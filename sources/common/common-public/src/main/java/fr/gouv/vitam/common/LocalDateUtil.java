@@ -260,6 +260,17 @@ public final class LocalDateUtil {
     }
 
     /**
+     * Parses a mongo formated date
+     *
+     * @param str formatted date in database
+     * @return the parsed local date time
+     */
+
+    public static LocalDateTime parseMongoFormattedDate(String str) {
+        return LocalDateTime.parse(str, ZONED_DATE_TIME_FORMAT);
+    }
+
+    /**
      * Use to have homogeneous String date format on ES indexes
      *
      * @param date the date to format for database

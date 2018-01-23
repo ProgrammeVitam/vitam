@@ -42,6 +42,7 @@ import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -119,6 +120,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 case VERSION:
                     replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
                     break;
+                case LAST_PERSISTED_DATE:
+                    replace(document, LogbookDocument.LAST_PERSISTED_DATE, VitamFieldsHelper.lastPersistedDate());
+                    break;
                 default:
                     break;
 
@@ -138,7 +142,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public List<LogbookOperation> select(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException {
         try (final MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, sliced)) {
             final List<LogbookOperation> result = new ArrayList<>();
             if (logbook == null || !logbook.hasNext()) {
@@ -174,21 +178,17 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public MongoCursor<LogbookOperation> selectAfterDate(final LocalDateTime date)
+    public MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(final LocalDateTime date)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidCreateOperationException,
         InvalidParseOperationException {
         final Select select = logbookOperationsAfterDateQuery(date);
         return mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false);
-
     }
 
     private Select logbookOperationsAfterDateQuery(final LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException {
-
-        final Query parentQuery = QueryHelper.gte("evDateTime", date.toString());
-        final Query sonQuery = QueryHelper.gte(LogbookDocument.EVENTS + ".evDateTime", date.toString());
         final Select select = new Select();
-        select.setQuery(QueryHelper.or().add(parentQuery, sonQuery));
+        select.setQuery(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(date)));
         select.addOrderByAscFilter("evDateTime");
         return select;
     }

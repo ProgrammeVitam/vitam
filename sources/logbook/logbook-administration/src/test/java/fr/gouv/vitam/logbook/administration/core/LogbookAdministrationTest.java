@@ -86,6 +86,7 @@ public class LogbookAdministrationTest {
 
     private static final String DATABASE_HOST = "localhost";
     private static final String DATABASE_NAME = "vitam-test";
+    public static final Integer OPERATION_TRACEABILITY_OVERLAP_DELAY = 300;
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -184,7 +185,7 @@ public class LogbookAdministrationTest {
 
         LogbookAdministration logbookAdministration =
             new LogbookAdministration(logbookOperations, timestampGenerator,
-                workspaceClientFactory, file);
+                workspaceClientFactory, file, OPERATION_TRACEABILITY_OVERLAP_DELAY);
 
         // When
         logbookAdministration.generateSecureLogbook();
@@ -217,7 +218,7 @@ public class LogbookAdministrationTest {
 
         LogbookAdministration logbookAdministration =
             new LogbookAdministration(logbookOperations, timestampGenerator,
-                workspaceClientFactory, file);
+                workspaceClientFactory, file, OPERATION_TRACEABILITY_OVERLAP_DELAY);
 
         // When
         logbookAdministration.generateSecureLogbook();
@@ -262,7 +263,7 @@ public class LogbookAdministrationTest {
 
         LogbookAdministration logbookAdministration =
             new LogbookAdministration(logbookOperations, timestampGenerator,
-                workspaceClientFactory, file);
+                workspaceClientFactory, file, OPERATION_TRACEABILITY_OVERLAP_DELAY);
         // insert initial event
         GUID guid = logbookAdministration.generateSecureLogbook();
         Select select = new Select();
@@ -306,7 +307,7 @@ public class LogbookAdministrationTest {
 
         LogbookAdministration logbookAdministration =
             new LogbookAdministration(logbookOperations, timestampGenerator,
-                workspaceClientFactory, file);
+                workspaceClientFactory, file, OPERATION_TRACEABILITY_OVERLAP_DELAY);
         InputStream stream = getClass().getResourceAsStream("/logbookOperationWithToken.json");
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);

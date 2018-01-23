@@ -26,14 +26,9 @@
  */
 package fr.gouv.vitam.logbook.administration.core;
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENTS;
-
 import java.util.Iterator;
-import java.util.List;
 
-import org.bson.Document;
-
-import com.google.common.collect.Iterables;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -43,8 +38,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation
  */
 public class TraceabilityIterator implements Iterator<LogbookOperation> {
 
-    private static final String EVENT_DATE_TIME = "evDateTime";
-
     private LogbookOperation lastDocument;
 
     private long numberOfLine;
@@ -52,7 +45,6 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
     private final MongoCursor<LogbookOperation> mongoCursor;
 
     /**
-     *
      * @param mongoCursor of logbook operation
      */
     public TraceabilityIterator(MongoCursor<LogbookOperation> mongoCursor) {
@@ -87,15 +79,7 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
      * @return the last date of document or event
      */
     public String endDate() {
-        final String evDateTime = lastDocument.getString(EVENT_DATE_TIME);
-        final List<Document> events = (List<Document>) lastDocument.get(EVENTS);
-
-        if (events != null && events.size() > 0) {
-            final Document last = Iterables.getLast(events);
-            final String lastEventDate = last.getString(EVENT_DATE_TIME);
-            return lastEventDate.compareTo(evDateTime) > 0 ? lastEventDate : evDateTime;
-        }
-        return evDateTime;
+        return lastDocument.getString(LogbookDocument.LAST_PERSISTED_DATE);
     }
 
     /**

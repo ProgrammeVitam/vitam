@@ -72,7 +72,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
  */
 class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCyclesClient {
 
-    private static final String REQUEST_PROCONDITION_FAILED = "Request procondition failed";
+    private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String ILLEGAL_ENTRY_PARAMETER = "Illegal Entry Parameter";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientRest.class);
     // For Lifecycles under operations
@@ -301,7 +301,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
-                throw new LogbookClientException(REQUEST_PROCONDITION_FAILED);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
@@ -325,7 +325,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
-                throw new LogbookClientException(REQUEST_PROCONDITION_FAILED);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
@@ -362,7 +362,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
-                throw new LogbookClientException(REQUEST_PROCONDITION_FAILED);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
@@ -385,7 +385,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
-                throw new LogbookClientException(REQUEST_PROCONDITION_FAILED);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {

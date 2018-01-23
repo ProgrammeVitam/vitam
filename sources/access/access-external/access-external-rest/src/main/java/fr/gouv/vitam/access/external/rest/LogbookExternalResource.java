@@ -110,7 +110,7 @@ public class LogbookExternalResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: " + e);
+            LOGGER.error("Invalid argument: ", e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -166,7 +166,7 @@ public class LogbookExternalResource {
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: " + e);
+            LOGGER.error("Invalid argument: ", e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -221,7 +221,7 @@ public class LogbookExternalResource {
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: " + e);
+            LOGGER.error("Invalid argument: ", e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
@@ -276,7 +276,7 @@ public class LogbookExternalResource {
                     e.getLocalizedMessage())
                 .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: " + e);
+            LOGGER.error("Invalid argument: ", e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
                     e.getLocalizedMessage())

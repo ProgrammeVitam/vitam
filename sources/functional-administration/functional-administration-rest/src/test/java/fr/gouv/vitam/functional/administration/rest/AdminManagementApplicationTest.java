@@ -31,8 +31,6 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -143,23 +141,17 @@ public class AdminManagementApplicationTest {
     }
 
     @Test
-    public void testFunctionnalIdConfiguration() {
-        try  {
+    public void testFunctionnalIdConfiguration() throws Exception {
+        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
+        final AdminManagementConfiguration realAdminConfig =
+            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
 
-            final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-            final AdminManagementConfiguration realAdminConfig =
-                PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-
-            Map<Integer, List<String>> list =
-                realAdminConfig.getListEnableExternalIdentifiers();
-            assertThat(list.get(0).get(0)).isEqualTo("INGEST_CONTRACT");
-            assertThat(list.get(0).get(1)).isEqualTo("RULES");
-            assertThat(list.get(1).get(0)).isEqualTo("ACCESS_CONTRACT");
-            assertThat(list.get(1).get(1)).isEqualTo("PROFILE");
-
-        } catch (final IOException e) {
-            fail("fail" + e);
-        }
+        Map<Integer, List<String>> list =
+            realAdminConfig.getListEnableExternalIdentifiers();
+        assertThat(list.get(0).get(0)).isEqualTo("INGEST_CONTRACT");
+        assertThat(list.get(0).get(1)).isEqualTo("RULES");
+        assertThat(list.get(1).get(0)).isEqualTo("ACCESS_CONTRACT");
+        assertThat(list.get(1).get(1)).isEqualTo("PROFILE");
     }
 
     @Test

@@ -103,7 +103,6 @@ public class LogbookResourceIT {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String DATABASE_HOST = "localhost";
     private static final String ALERT_EVENT_TYPE = "STP_IMPORT_ACCESS_CONTRACT";
@@ -119,7 +118,6 @@ public class LogbookResourceIT {
     private static ElasticsearchTestConfiguration config = null;
 
     private static final String REST_URI = "/logbook/v1";
-    private static final String SERVER_HOST = "localhost";
     private static JunitHelper junitHelper;
     private static int databasePort;
     private static int serverPort;

@@ -60,7 +60,7 @@ public class LogbookInternalStep {
                 world.setOperationId(operationId);                
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
             } catch (Exception e) {
-                fail("should not produce an exception "+e);
+                fail("should not produce an exception ", e);
                 //throw new RuntimeException(e);
             }
         });

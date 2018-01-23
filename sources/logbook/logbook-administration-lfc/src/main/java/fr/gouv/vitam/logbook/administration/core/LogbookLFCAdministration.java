@@ -52,6 +52,8 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -72,20 +74,33 @@ public class LogbookLFCAdministration {
     private final LogbookOperations logbookOperations;
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
+    private final int lifecycleTraceabilityOverlapDelayInSeconds;
 
     /**
      * LogbookLFCAdministration constructor
-     * 
-     * @param logbookOperations the logbook operations
+     *  @param logbookOperations the logbook operations
      * @param processingManagementClientFactory the processManagementClient factory
      * @param workspaceClientFactory the Workspace Client Factory
+     * @param lifecycleTraceabilityOverlapDelay
      */
     public LogbookLFCAdministration(LogbookOperations logbookOperations,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory, Integer lifecycleTraceabilityOverlapDelay) {
         this.logbookOperations = logbookOperations;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.lifecycleTraceabilityOverlapDelayInSeconds = validateAndGetTraceabilityOverlapDelay(
+            lifecycleTraceabilityOverlapDelay);
+    }
+
+    private static int validateAndGetTraceabilityOverlapDelay(Integer operationTraceabilityOverlapDelay) {
+        if (operationTraceabilityOverlapDelay == null) {
+            return 0;
+        }
+        if (operationTraceabilityOverlapDelay < 0) {
+            throw new IllegalArgumentException("Operation traceability overlap delay cannot be negative");
+        }
+        return operationTraceabilityOverlapDelay;
     }
 
     /**
@@ -94,11 +109,12 @@ public class LogbookLFCAdministration {
      * @return the GUID of the operation
      * @throws VitamException if case of errors launching the workflow
      */
-    public synchronized GUID generateSecureLogbookLFC() throws VitamException {
+    public synchronized GUID generateSecureLogbookLFC()
+        throws VitamException {
         final GUID traceabilityOperationGUID = GUIDFactory.newOperationLogbookGUID(
             VitamThreadUtils.getVitamSession().getTenantId());
         try (ProcessingManagementClient processManagementClient =
-            processingManagementClientFactory.getClient();) {
+            processingManagementClientFactory.getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(traceabilityOperationGUID);
             final LogbookOperationParameters logbookUpdateParametersStart = LogbookParametersFactory
                 .newLogbookOperationParameters(traceabilityOperationGUID, SECURISATION_LC,
@@ -111,8 +127,15 @@ public class LogbookLFCAdministration {
             createLogBookEntry(logbookUpdateParametersStart);
             try {
                 createContainer(traceabilityOperationGUID.getId());
+
+                ProcessingEntry processingEntry = new ProcessingEntry(traceabilityOperationGUID.getId(),
+                    SECURISATION_LC);
+                processingEntry.getExtraParams().put(
+                    WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds.name(),
+                    Integer.toString(lifecycleTraceabilityOverlapDelayInSeconds));
                 processManagementClient.initVitamProcess(Contexts.SECURISATION_LC.name(),
-                    traceabilityOperationGUID.getId(), SECURISATION_LC);
+                    processingEntry);
+
                 LOGGER.debug("Started Traceability in Resource");
                 RequestResponse<ItemStatus> ret =
                     processManagementClient
@@ -120,7 +143,7 @@ public class LogbookLFCAdministration {
                             traceabilityOperationGUID.getId());
 
                 if (Status.ACCEPTED.getStatusCode() != ret.getStatus()) {
-                    throw new VitamClientException("Process couldnt be executed");
+                    throw new VitamClientException("Process could not be executed");
                 }
 
             } catch (InternalServerException | VitamClientException | BadRequestException e) {

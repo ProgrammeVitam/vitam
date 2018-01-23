@@ -62,47 +62,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      */
     public static final String EVENTS = "events";
 
-
-    /**
-     * Mapping of this Collection.
-     */
-    public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
-        "properties : { " + LogbookOperation.EVENTS + " : { type : \"object\", enabled : true, " +
-        "properties : { " + LogbookMongoDbName.eventDetailData.getDbname() +
-        ": { type : \"object\",  enabled : true , " +
-        "properties : { " +
-        "evDetDataType: { type: \"string\", index: \"not_analyzed\" }, " +
-        "LogType : { type : \"string\", index : \"not_analyzed\" }, " +
-        "StartDate : { type : \"date\", index : \"analyzed\" }, " +
-        "EndDate : { type : \"date\", index : \"analyzed\" }, " +
-        "PreviousLogbookTraceabilityDate : { type : \"date\", index : \"analyzed\" }, " +
-        "MinusOneMonthLogbookTraceabilityDate : { type : \"date\", index : \"analyzed\" }, " +
-        "MinusOneYearLogbookTraceabilityDate : { type : \"date\", index : \"analyzed\" }, " +
-        "Hash : { type : \"string\", index : \"not_analyzed\" }, " +
-        "TimeStampToken : { type : \"string\", index : \"not_analyzed\" }, " +
-        "NumberOfElement : { type : \"long\", index : \"analyzed\" }, " +
-        "Size : { type : \"long\", index : \"analyzed\" }, " +
-        "FileName : { type : \"string\", index : \"not_analyzed\" }, " +
-        "EvDetailReq: { type: \"string\", index: \"not_analyzed\" }, " +
-        "EvDateTimeReq: { type: \"date\", index: \"not_analyzed\" }, " +
-        "ArchivalAgreement: { type: \"string\", index: \"not_analyzed\" }, " +
-        "ServiceLevel: { type: \"string\", index: \"not_analyzed\" }" +
-        "AccessStatus: { type: \"string\", index: \"not_analyzed\" }" +
-        " } } " + // end eventDetailData
-        ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
-        ", evType : { type : \"string\", index : \"not_analyzed\" } " +
-        ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
-        ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
-        ", evDateTime : { type : \"date\", index : \"not_analyzed\" } " +
-        " } } " + // end events
-        ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
-        ", evType : { type : \"string\", index : \"not_analyzed\" } " +
-        ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
-        ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
-        ", evDateTime : { type : \"date\", index : \"not_analyzed\" } " +
-        " } } }";
-
-
     /**
      * Constructor from LogbookOperationParameters
      *

@@ -1,14 +1,17 @@
 package fr.gouv.vitam.logbook.administration.core;
 
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -18,6 +21,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -57,11 +62,13 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.mockito.ArgumentCaptor;
 
 public class LogbookLFCAdministrationTest {
 
     private static final String DATABASE_HOST = "localhost";
     private static final String DATABASE_NAME = "vitam-test";
+    private static final Integer LIFECYCLE_TRACEABILITY_OVERLAP_DELAY = 300;
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -153,7 +160,7 @@ public class LogbookLFCAdministrationTest {
         reset(processingManagementClient);
         doNothing().when(workspaceClient).createContainer(anyString());
 
-        doNothing().when(processingManagementClient).initVitamProcess(anyString(), anyString(), anyString());
+        doNothing().when(processingManagementClient).initVitamProcess(anyString(), any());
         RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
         req.setHttpCode(Status.ACCEPTED.getStatusCode());
         when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
@@ -161,12 +168,17 @@ public class LogbookLFCAdministrationTest {
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
-                workspaceClientFactory);
+                workspaceClientFactory, LIFECYCLE_TRACEABILITY_OVERLAP_DELAY);
 
         // When
         GUID operationGuid = logbookAdministration.generateSecureLogbookLFC();
         assertNotNull(operationGuid);
 
+        ArgumentCaptor<ProcessingEntry> processingEntryArgumentCaptor = ArgumentCaptor.forClass(ProcessingEntry.class);
+        verify(processingManagementClient).initVitamProcess(anyString(), processingEntryArgumentCaptor.capture());
+        assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
+            get(WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds.name())).isEqualTo(
+                LIFECYCLE_TRACEABILITY_OVERLAP_DELAY.toString());
     }
 
     @Test
@@ -180,7 +192,7 @@ public class LogbookLFCAdministrationTest {
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
-                workspaceClientFactory);
+                workspaceClientFactory, LIFECYCLE_TRACEABILITY_OVERLAP_DELAY);
 
         try {
             logbookAdministration.generateSecureLogbookLFC();

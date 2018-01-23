@@ -118,7 +118,7 @@ public class ContractsStep {
         try {
             uploadContract(type);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
-            fail("should not produce an exception" + e);
+            fail("should not produce an exception", e);
         }
     }
 
@@ -191,7 +191,7 @@ public class ContractsStep {
         } catch (IllegalStateException e) {
             // Do nothing
         } catch (Exception e) {
-            fail("should not produce this exception" + e);
+            fail("should not produce this exception", e);
         }
     }
 

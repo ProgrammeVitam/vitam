@@ -157,7 +157,7 @@ public class StorageClientIT {
             workspaceClient.createContainer(CONTAINER_2);
             workspaceClient.createContainer(CONTAINER_3);
         } catch (final Exception e) {
-            LOGGER.error("Error creating container : " + e);
+            LOGGER.error("Error creating container : ", e);
         }
         try {
             FileInputStream stream = new FileInputStream(
@@ -174,7 +174,7 @@ public class StorageClientIT {
                 stream);
             StreamUtils.closeSilently(workspaceClient.getObject(CONTAINER_1, OBJECT_ID).readEntity(InputStream.class));
         } catch (final Exception e) {
-            LOGGER.error("Error getting or putting object : " + e);
+            LOGGER.error("Error getting or putting object : ", e);
         }
 
     }

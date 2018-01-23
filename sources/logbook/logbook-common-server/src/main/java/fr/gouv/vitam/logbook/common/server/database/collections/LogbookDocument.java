@@ -51,7 +51,11 @@ public abstract class LogbookDocument<E> extends Document {
      */
     public static final String VERSION = "_v";
     /**
-     * Contains the series of entries within the very same Logbook operation (1 operation) / Lyfecycle (all)
+     * Last persistence date of the logbook document (timestamp of document storage in DB)
+     */
+    public static final String LAST_PERSISTED_DATE = "_lastPersistedDate";
+    /**
+     * Contains the series of entries within the very same Logbook operation (1 operation) / Lifecycle (all)
      */
     public static final String EVENTS = "events";
     /**
@@ -133,7 +137,7 @@ public abstract class LogbookDocument<E> extends Document {
     public final int getVersion() {
         return getInteger(VERSION);
     }
-    
+
     /**
      *
      * @return the bypass toString

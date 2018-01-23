@@ -35,7 +35,8 @@
             "obId": "aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq",
             "evDetData": null,
             "_tenant": 4
-        }]
+        }],
+    "_lastPersistedDate": "2018-01-01T12:00:00"
   },
   {
     "_id": "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1",
@@ -64,7 +65,8 @@
             "obId": "aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq",
             "evDetData": null,
             "_tenant": 4
-        }]
+        }],
+    "_lastPersistedDate": "2018-01-01T13:00:00"
   }
   ]
 }

@@ -103,7 +103,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -435,6 +437,7 @@ public class ProcessingLFCTraceabilityIT {
             StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
             operationId);
+
         logbookClient.create(initParameters);
     }
 
@@ -472,7 +475,7 @@ public class ProcessingLFCTraceabilityIT {
         assertEquals(StatusCode.OK, processWorkflow2.getStatus());
     }
 
-    private String launchLogbookLFC() throws Exception {
+    private String launchLogbookLFC(int overlapDelay) throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
@@ -486,8 +489,12 @@ public class ProcessingLFCTraceabilityIT {
         // lets call traceability for lifecycles
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        processingClient.initVitamProcess(Contexts.SECURISATION_LC.name(),
-            containerName, LFC_TRACEABILITY_WORKFLOW);
+
+        ProcessingEntry processingEntry = new ProcessingEntry(containerName, LFC_TRACEABILITY_WORKFLOW);
+        processingEntry.getExtraParams().put(
+            WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds.name(), Integer.toString(overlapDelay));
+
+        processingClient.initVitamProcess(Contexts.SECURISATION_LC.name(), processingEntry);
         RequestResponse<ItemStatus> ret =
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
@@ -503,16 +510,20 @@ public class ProcessingLFCTraceabilityIT {
         tryImportFile();
 
         launchIngest();
-        String containerName = launchLogbookLFC();
+
+        // Launch securization for the first time (no overlap delay)
+
+        String containerName = launchLogbookLFC(0);
         wait(containerName);
+
         ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-        // Launch securization a second time, with no lfc added
-        String containerName2nd = launchLogbookLFC();
+        // Launch securization a second time, with no lfc added (no overlap delay)
+        String containerName2nd = launchLogbookLFC(0);
         wait(containerName2nd);
         ProcessWorkflow processWorkflow2nd =
             processMonitoring.findOneProcessWorkflow(containerName2nd, tenantId);
@@ -521,31 +532,41 @@ public class ProcessingLFCTraceabilityIT {
         // SINCE NO LFC ARE HANDLED, WARNING
         assertEquals(StatusCode.WARNING, processWorkflow2nd.getStatus());
 
-        // launch an ingest
-        launchIngest();
-
-        // Launch securization a second time, with new lfc added
-        String containerName3rd = launchLogbookLFC();
+        // Launch securization a third time, with no lfc added but with overlap delay
+        String containerName3rd = launchLogbookLFC(300);
         wait(containerName3rd);
         ProcessWorkflow processWorkflow3rd =
             processMonitoring.findOneProcessWorkflow(containerName3rd, tenantId);
         assertNotNull(processWorkflow3rd);
         assertEquals(ProcessState.COMPLETED, processWorkflow3rd.getState());
+        // OK since old ingest should be reselected
         assertEquals(StatusCode.OK, processWorkflow3rd.getStatus());
+
+        // launch an ingest
+        launchIngest();
+
+        // Launch securization with new lfc added (even with no overlap delay)
+        String containerName4th = launchLogbookLFC(0);
+        wait(containerName4th);
+        ProcessWorkflow processWorkflow4th =
+            processMonitoring.findOneProcessWorkflow(containerName4th, tenantId);
+        assertNotNull(processWorkflow4th);
+        assertEquals(ProcessState.COMPLETED, processWorkflow4th.getState());
+        assertEquals(StatusCode.OK, processWorkflow4th.getStatus());
 
         // simulate audit, update some object LFC
         changeOneGotLFC();
         // simulate unit update, update some unit LFC
         changeOneUnitLFC();
 
-        // Launch securization a second time, with lfc updated > so status OK
-        String containerName4rd = launchLogbookLFC();
-        wait(containerName4rd);
-        ProcessWorkflow processWorkflow4rd =
-                processMonitoring.findOneProcessWorkflow(containerName4rd, tenantId);
-        assertNotNull(processWorkflow4rd);
-        assertEquals(ProcessState.COMPLETED, processWorkflow4rd.getState());
-        assertEquals(StatusCode.OK, processWorkflow4rd.getStatus());
+        // Launch securization a second time, with lfc updated > so status OK (even with no overlap delay)
+        String containerName5th = launchLogbookLFC(0);
+        wait(containerName5th);
+        ProcessWorkflow processWorkflow5th =
+                processMonitoring.findOneProcessWorkflow(containerName5th, tenantId);
+        assertNotNull(processWorkflow5th);
+        assertEquals(ProcessState.COMPLETED, processWorkflow5th.getState());
+        assertEquals(StatusCode.OK, processWorkflow5th.getStatus());
     }
     
     private void changeOneGotLFC() throws Exception {
