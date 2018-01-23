@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,40 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.logbook.administration.main;
-
-import java.util.List;
-
-/**
- * Secure configuration
  */
-public class SecureConfiguration {
-    /**
-     * Empty ClientConfiguration constructor for YAMLFactory
-     */
-    public SecureConfiguration() {
-
-    }
-
-    /**
-     *
-     * @return list of tenant
-     */
-    public List<String> getTenants() {
-        return tenants;
-    }
-
-    /**
-     *
-     *
-     * @param tenants to set
-     */
-    public void setTenants(List<String> tenants) {
-        this.tenants = tenants;
-    }
-
-    protected List<String> tenants;
-
-
-}
+/**
+ * Provides core classes of functional administration rules module
+ */
+package fr.gouv.vitam.functional.administration.rules.main;

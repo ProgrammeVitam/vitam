@@ -141,6 +141,7 @@
         <netty.version>4.1.9.Final</netty.version>
         <commons-compress.version>1.12</commons-compress.version>
         <easystream.version>1.2.15</easystream.version>
+        <zjsonpatch.version>0.3.0</zjsonpatch.version>
         <!-- Metrics -->
         <metrics.version>3.2.2</metrics.version>
         <metrics.jersey.version>3.2.2</metrics.jersey.version>
@@ -1190,6 +1191,11 @@
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
                 <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.flipkart.zjsonpatch</groupId>
+                <artifactId>zjsonpatch</artifactId>
+                <version>${zjsonpatch.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>

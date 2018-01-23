@@ -410,6 +410,11 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
+    public RequestResponse<JsonNode> launchRuleAudit() throws AdminManagementClientServerException {
+        return new RequestResponseOK();
+    }
+
+    @Override
     public Status importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("import security profiles request ");

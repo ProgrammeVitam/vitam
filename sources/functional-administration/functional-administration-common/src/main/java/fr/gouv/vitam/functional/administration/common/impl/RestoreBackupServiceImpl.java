@@ -33,7 +33,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -126,5 +125,4 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
         }
         return Optional.empty();
     }
-
 }

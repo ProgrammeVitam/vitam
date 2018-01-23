@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.common;
 
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -35,9 +36,11 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -48,6 +51,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackup
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import com.mongodb.client.model.Sorts;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -245,9 +249,7 @@ public class FunctionalBackupService {
             jsonGenerator.writeFieldName(FIELD_COLLECTION);
             jsonGenerator.writeStartArray();
 
-            MongoCursor mongoCursor = collectionToSave.getCollection()
-                .find(getMangoFilter(collectionToSave, tenant))
-                .iterator();
+            MongoCursor mongoCursor = getCurrentCollection(collectionToSave, tenant);
 
             while (mongoCursor.hasNext()) {
                 Document document = (Document) mongoCursor.next();
@@ -270,6 +272,36 @@ public class FunctionalBackupService {
         }
 
         return file;
+    }
+
+    /**
+     * get the documents from functional admin collections
+     *
+     * @param collections
+     * @param tenant
+     * @return MongoCursor
+     */
+    public MongoCursor getCurrentCollection(FunctionalAdminCollections collections, int tenant) {
+        return collections.getCollection()
+                .find(getMangoFilter(collections, tenant))
+                .sort(Sorts.ascending(VitamDocument.ID))
+                .iterator();
+    }
+
+    /**
+     * transfer the collection to json
+     *
+     * @param mongoCursor
+     * @return ArrayNode
+     * @throws InvalidParseOperationException
+     */
+    public ArrayNode getCollectionInJson(MongoCursor mongoCursor) throws InvalidParseOperationException {
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        while (mongoCursor.hasNext()) {
+            Document document = (Document) mongoCursor.next();
+            arrayNode.add(JsonHandler.toJsonNode(document));
+        }
+        return arrayNode;
     }
 
     private Bson getMangoFilter(FunctionalAdminCollections collectionToSave, int tenant) {
