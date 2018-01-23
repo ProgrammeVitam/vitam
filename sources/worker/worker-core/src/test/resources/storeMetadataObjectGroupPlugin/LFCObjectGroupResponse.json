@@ -1,4 +1,5 @@
 {
+  "httpCode":200,
   "$hits" : {
     "total" : 1,
     "offset" : 0,

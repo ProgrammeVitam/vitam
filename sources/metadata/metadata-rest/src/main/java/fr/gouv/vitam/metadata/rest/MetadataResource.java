@@ -76,12 +76,12 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
  */
 @Path("/metadata/v1")
 @javax.ws.rs.ApplicationPath("webresources")
-public class MetaDataResource extends ApplicationStatusResource {
+public class MetadataResource extends ApplicationStatusResource {
 
     private static final String METADATA = "METADATA";
 
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataResource.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataResource.class);
 
 
     private static final String INGEST = "ingest";
@@ -95,7 +95,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      *
      * @param configuration {@link MetaDataConfiguration}
      */
-    public MetaDataResource(MetaDataConfiguration configuration) {
+    public MetadataResource(MetaDataConfiguration configuration) {
         metaDataImpl = MetaDataImpl.newMetadata(configuration);
         LOGGER.info("init MetaData Resource server");
     }
@@ -767,7 +767,8 @@ public class MetaDataResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(
-                new VitamError(Status.PRECONDITION_FAILED.name()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                new VitamError(Status.PRECONDITION_FAILED.name())
+                    .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                     .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
@@ -787,7 +788,7 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setHttpCode(Status.ACCEPTED.getStatusCode())).entity(result).build();
             } else {
                 // All KO -> 500
-                    Status status = Status.INTERNAL_SERVER_ERROR;
+                Status status = Status.INTERNAL_SERVER_ERROR;
                 VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_INDEXATION_ERROR,
                     status.getReasonPhrase());
                 response = Response.status(status).entity(error).entity(result).build();
@@ -814,7 +815,8 @@ public class MetaDataResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED).entity(
-                new VitamError(Status.PRECONDITION_FAILED.name()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                new VitamError(Status.PRECONDITION_FAILED.name())
+                    .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                     .setContext(METADATA)
                     .setState(CODE_VITAM)
                     .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())

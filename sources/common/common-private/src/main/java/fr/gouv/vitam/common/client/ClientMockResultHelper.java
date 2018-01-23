@@ -64,6 +64,57 @@ public class ClientMockResultHelper {
             "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
             "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
+    private static final String UNIT_RAW =
+        "{   \"_id\": \"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"," + 
+        "    \"DescriptionLevel\": \"Item\"," + 
+        "    \"Title\": \"Title test\"," + 
+        "    \"Titles\": {\"fr\": \"Title test\"}," + 
+        "    \"Description\": \"Pseudo Archive Unit du fichier.pdf\"," + 
+        "    \"Descriptions\": {\"fr\": \"Pseudo ArchiveE.pdf\"}," + 
+        "    \"TransactedDate\": \"2016-09-22T12:33:02\"," + 
+        "    \"_og\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," + 
+        "    \"_ops\":[\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"],"+
+        "    \"_up\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," + 
+        "    \"_us\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," + 
+        "    \"_sp\": \"vitam\"," + 
+        "    \"_sps\": [\"vitam\"]," + 
+        "    \"_uds\": {\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\": 1}," +
+        "    \"_min\": 1," +
+        "    \"_max\": 2," +
+        "    \"_tenant\": 0," + 
+        "    \"_v\": 1,\n" + 
+        "    \"_storage\": {\"_nbc\": 1,\"strategyId\": \"default\",\"offerIds\": [\"localhost\"]}" + 
+        "}";
+
+    private static final String GOT_RAW =
+        "{\"_id\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," + 
+        "    \"_profil\": \"\"," + 
+        "    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," + 
+        "    \"_qualifiers\": [{" + 
+        "            \"qualifier\": \"BinaryMaster\"," + 
+        "            \"_nbc\": 1," + 
+        "            \"versions\": [{" + 
+        "                    \"_id\": \"aeaaaaaaaagwky22aboqialbbrqyglqaaaaq\"," + 
+        "                    \"DataObjectGroupId\": \"aebaaaaaaagwky22aboqialbbrqygmaaaaaq\"," + 
+        "                    \"DataObjectVersion\": \"BinaryMaster_1\"," + 
+        "                    \"FormatIdentification\": {\"FormatLitteral\": \"OpenDocument Spreadsheet\",\"MimeType\": \"application/vnd.oasis.opendocument.spreadsheet\",\"FormatId\": \"fmt/295\"}," + 
+        "                    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," + 
+        "                    \"Size\": 16532," + 
+        "                    \"Uri\": \"Content/ID7.ods\"," + 
+        "                    \"MessageDigest\": \"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," + 
+        "                    \"Algorithm\": \"SHA-512\"," + 
+        "                    \"_storage\": {\"_nbc\": 1,\"offerIds\": [\"localhost\"],\"strategyId\": \"default\"}" + 
+        "            }]" + 
+        "    }]," + 
+        "    \"_up\": [\"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"]," + 
+        "    \"_nbc\": 1," + 
+        "    \"_ops\": [\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," + 
+        "    \"_sp\": \"Vitam\"," + 
+        "    \"_sps\": [\"Vitam\"]," + 
+        "    \"_storage\": {\"_nbc\": 1,\"offerIds\": [\"localhost\"],\"strategyId\": \"default\"}," + 
+        "    \"_tenant\": 0," + 
+        "    \"_v\": 1 }";
+    
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
             "\"evType\": \"Process_SIP_unitary\"," +
@@ -360,6 +411,14 @@ public class ClientMockResultHelper {
 
     public static RequestResponse<JsonNode> getMetaDataResult() throws InvalidParseOperationException {
         return getArchiveUnitResult();
+    }
+    
+    public static RequestResponse<JsonNode> getArchiveUnitRawResult() throws InvalidParseOperationException {
+        return createReponse(UNIT_RAW);
+    }
+    
+    public static RequestResponse<JsonNode> getObjectGroupRawResult() throws InvalidParseOperationException {
+        return createReponse(GOT_RAW);
     }
 
     /**

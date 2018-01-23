@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -491,6 +492,46 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new MetaDataClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getUnitByIdRaw(String unitId) throws VitamClientException {
+        ParametersChecker.checkParameter("The unit id is mandatory", unitId);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/raw", null,null,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException {
+        ParametersChecker.checkParameter("The unit id is mandatory", objectGroupId);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/objectgroups/" + objectGroupId + "/raw", null,null,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

@@ -1,0 +1,49 @@
+{
+    "_id": "aeaqaaaaaagwky22aboqialbbrqygviaaaaq",
+    "_og": "aebaaaaaaagwky22aboqialbbrqygmaaaaaq",
+    "_mgt": {
+        "OriginatingAgency": "Vitam"
+    },
+    "DescriptionLevel": "Item",
+    "Title": "Fichier 1 nouveau jeu de test",
+    "Titles": {
+        "fr": "Fichier 1 nouveau jeu de test"
+    },
+    "Description": "Integer posuere, lorem vitae suscipit tristique, odio sem sagittis augue, dignissim bibendum mauris neque a lectus. Cras eu diam et urna efficitur elementum varius at orci",
+    "Descriptions": {
+        "fr": "Integer posuere, lorem vitae suscipit tristique, odio sem sagittis augue, dignissim bibendum mauris neque a lectus. Cras eu diam et urna efficitur elementum varius at orci"
+    },
+    "TransactedDate": "2016-11-21T18:28:41",
+    "_sps": [
+        "Vitam"
+    ],
+    "_sp": "Vitam",
+    "_ops": [
+        "aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq"
+    ],
+    "_unitType": "INGEST",
+    "_max": 2,
+    "_min": 1,
+    "_up": [
+        "aeaqaaaaaagwky22aboqialbbrqyguyaaaba",
+        "aeaqaaaaaagwky22aboqialbbrqygvyaaaba"
+    ],
+    "_nbc": 0,
+    "_us": [
+        "aeaqaaaaaagwky22aboqialbbrqyguyaaaba",
+        "aeaqaaaaaagwky22aboqialbbrqygvyaaaba"
+    ],
+    "_uds": {
+        "aeaqaaaaaagwky22aboqialbbrqyguyaaaba": 1,
+        "aeaqaaaaaagwky22aboqialbbrqygvyaaaba": 1
+    },
+    "_v": 1,
+    "_tenant": 0,
+    "_storage": {
+        "_nbc": 1,
+        "strategyId": "default",
+        "offerIds": [
+            "localhost"
+        ]
+    }
+}

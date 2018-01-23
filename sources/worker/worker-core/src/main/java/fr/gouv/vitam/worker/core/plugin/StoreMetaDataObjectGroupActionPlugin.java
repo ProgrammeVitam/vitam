@@ -116,13 +116,14 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
      * @throws VitamException
      */
     private void saveDocumentWithLfcInStorage(WorkerParameters params, String guid, String fileName,
-        ItemStatus itemStatus) throws VitamException {
+        ItemStatus itemStatus)
+        throws VitamException {
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient();) {
 
             //// get metadata
-            JsonNode got = selectMetadataDocumentById(guid, DataCategory.OBJECT_GROUP, metaDataClient);
+            JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECT_GROUP, metaDataClient);
             //// get lfc
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.OBJECT_GROUP, logbookClient);
 
@@ -160,8 +161,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
                     LOGGER.error(e);
                 }
             }
-        } catch (MetaDataExecutionException | /* MetaDataDocumentSizeException | */
-            InvalidParseOperationException | MetaDataClientServerException e) {
+        } catch (MetaDataExecutionException | InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error(e);
             throw e;
         }

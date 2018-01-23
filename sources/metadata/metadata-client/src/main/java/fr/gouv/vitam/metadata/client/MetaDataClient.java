@@ -29,14 +29,14 @@ package fr.gouv.vitam.metadata.client;
 
 import java.util.List;
 
-import javax.ws.rs.PathParam;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -167,7 +167,7 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      * @throws MetaDataExecutionException
      */
-    void updateObjectGroupById(JsonNode updateQuery, @PathParam("id_og") String objectGroupId)
+    void updateObjectGroupById(JsonNode updateQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
 
     /**
@@ -243,4 +243,22 @@ public interface MetaDataClient extends BasicClient {
      */
     JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException;
+
+    /**
+     * Search units by path unit id
+     *
+     * @param unitId : unit id <br>
+     *        null and blank is not allowed
+     * @return Json object {$hint:{},$result:[{}]} or vitam error
+     */
+    RequestResponse<JsonNode> getUnitByIdRaw(String unitId) throws VitamClientException ;
+
+    /**
+     * Search object group by path unit id
+     *
+     * @param objectGroupId : objectGroup id <br>
+     *        null and blank is not allowed
+     * @return Json object {$hint:{},$result:[{}]} or vitam error
+     */
+    RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException ;
 }

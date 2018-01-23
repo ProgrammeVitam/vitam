@@ -7,9 +7,11 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -127,6 +129,24 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
         return ClientMockResultHelper.getSwitchIndexesInfo().toJsonNode();
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getUnitByIdRaw(String unitId) throws VitamClientException {
+        try {
+            return ClientMockResultHelper.getArchiveUnitRawResult();
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException {
+        try {
+            return ClientMockResultHelper.getObjectGroupRawResult();
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(e);
+        }
     }
 
 }
