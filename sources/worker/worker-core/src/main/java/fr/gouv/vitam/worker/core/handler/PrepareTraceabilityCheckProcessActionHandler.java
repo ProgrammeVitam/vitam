@@ -68,7 +68,10 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  *
@@ -84,7 +87,6 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
     private static final int TRACEABILITY_EVENT_DETAIL_RANK = 0;
     private boolean asyncIO = false;
-
 
 
 
@@ -128,7 +130,8 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
                 itemStatus.increment(StatusCode.KO);
                 return itemStatus;
             }
-        } catch (InvalidParseOperationException | LogbookClientException | IllegalArgumentException | WorkerspaceQueueException e) {
+        } catch (InvalidParseOperationException | LogbookClientException | IllegalArgumentException |
+            WorkerspaceQueueException e) {
             LOGGER.error(e.getMessage(), e);
             itemStatus.increment(StatusCode.FATAL);
             return itemStatus;
@@ -136,7 +139,8 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
         Response response = null;
         // 2- TRACEABILITY operation found, so extract the ZIP file to start checking process
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             // Get last event to extract eventDetailData field
             ArrayList events = (ArrayList) operationToCheck.get(LogbookDocument.EVENTS);
@@ -153,7 +157,17 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             // 1- get zip file
             response =
                 storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, StorageCollectionType.LOGBOOKS);
-
+ 
+            // Idempotency - we check if a folder exist
+            if (workspaceClient.isExistingContainer(param.getContainerName())) {
+                try {
+                    workspaceClient.deleteContainer(param.getContainerName(), true);
+                    LOGGER.warn("Container was already existing, step is being replayed");
+                } catch (ContentAddressableStorageNotFoundException e) {
+                    LOGGER.warn("The container could not be deleted", e);
+                }
+            }
+            
             // 2- unzip file
             handler.unzipInputStreamOnWorkspace(param.getContainerName(),
                 SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, CommonMediaType.ZIP,
@@ -185,8 +199,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 
     private void extractTraceabilityOperationDetails(HandlerIO handlerIO, TraceabilityEvent eventDetailData)
         throws InvalidParseOperationException, ProcessingException {

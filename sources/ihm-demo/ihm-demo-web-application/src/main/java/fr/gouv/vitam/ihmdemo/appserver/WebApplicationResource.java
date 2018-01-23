@@ -239,7 +239,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archivesearch/units")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("archivesearch:units:read")
-    public Response getArchiveSearchResult(@Context HttpServletRequest request, @CookieParam("JSESSIONID") String sessionId,
+    public Response getArchiveSearchResult(@Context HttpServletRequest request,
+        @CookieParam("JSESSIONID") String sessionId,
         String criteria) {
 
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
@@ -277,7 +278,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final Map<String, Object> criteriaMap = JsonHandler.getMapFromString(criteria);
                 final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
 
-                result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl, UserInterfaceTransactionManager.getVitamContext(request));
+                result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl,
+                    UserInterfaceTransactionManager.getVitamContext(request));
 
                 if (!result.isOk()) {
                     return result.toResponse();
@@ -327,7 +329,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             selectUnitIdMap.put(DslQueryHelper.PROJECTION_DSL, BuilderToken.GLOBAL.RULES.exactToken());
             JsonNode preparedQueryDsl = DslQueryHelper.createGetByIdDSLSelectMultipleQuery(selectUnitIdMap);
             final RequestResponse<JsonNode> archiveDetails = UserInterfaceTransactionManager
-                .getArchiveUnitDetails(preparedQueryDsl, unitId, UserInterfaceTransactionManager.getVitamContext(request));
+                .getArchiveUnitDetails(preparedQueryDsl, unitId,
+                    UserInterfaceTransactionManager.getVitamContext(request));
             return archiveDetails.toResponse();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -394,7 +397,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 result =
-                    UserInterfaceTransactionManager.selectOperation(query, UserInterfaceTransactionManager.getVitamContext(request));
+                    UserInterfaceTransactionManager.selectOperation(query,
+                        UserInterfaceTransactionManager.getVitamContext(request));
 
                 if (!result.isOk()) {
                     return result.toResponse();
@@ -431,14 +435,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("logbook:operations:read")
-    public Response getLogbookResultById(@Context HttpServletRequest request, @PathParam("idOperation") String operationId,
+    public Response getLogbookResultById(@Context HttpServletRequest request,
+        @PathParam("idOperation") String operationId,
         String options) {
         RequestResponse<LogbookOperation> result;
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, UserInterfaceTransactionManager.getVitamContext(request));
+                UserInterfaceTransactionManager.selectOperationbyId(operationId,
+                    UserInterfaceTransactionManager.getVitamContext(request));
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -560,7 +566,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 final RequestResponse<Void> finalResponse =
                     client.ingest(new VitamContext(tenantId)
-                            .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
+                        .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
                         new FileInputStream(temporarSipFile), contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
@@ -708,7 +714,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static LogbookEventOperation getlogBookOperationStatus(String operationId, HttpServletRequest request)
         throws VitamClientException {
         final RequestResponse<LogbookOperation> result =
-            UserInterfaceTransactionManager.selectOperationbyId(operationId, UserInterfaceTransactionManager.getVitamContext(request));
+            UserInterfaceTransactionManager.selectOperationbyId(operationId,
+                UserInterfaceTransactionManager.getVitamContext(request));
         RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
         List<LogbookOperation> results = responseOK.getResults();
         LogbookOperation operation = results.get(0);
@@ -961,7 +968,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archiveunit/objects/{idOG}")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("archiveunit:objects:read")
-    public Response getArchiveObjectGroup(@Context HttpServletRequest request, @PathParam("idOG") String objectGroupId) {
+    public Response getArchiveObjectGroup(@Context HttpServletRequest request,
+        @PathParam("idOG") String objectGroupId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
@@ -1041,7 +1049,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String contractId = UserInterfaceTransactionManager.getContractId(request);
         String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
-            .execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type, tenantId, contractId, personalCert));
+            .execute(
+                () -> asyncGetObjectStorageStream(asyncResponse, objectId, type, tenantId, contractId, personalCert));
     }
 
     private void asyncGetObjectStorageStream(AsyncResponse asyncResponse, String objectId, String type,
@@ -1062,7 +1071,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
             Response response = client.downloadObjectAsync(
-                UserInterfaceTransactionManager.getVitamContext(tenantId, contractId, personalCert), objectId, collection);
+                UserInterfaceTransactionManager.getVitamContext(tenantId, contractId, personalCert), objectId,
+                collection);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response.ok().header(CONTENT_DISPOSITION, "filename=" + objectId + ".xml"));
@@ -1173,7 +1183,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/admin/rules/{id_rule}")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("admin:rules:read")
-    public Response getRuleById(@Context HttpServletRequest request, @PathParam("id_rule") String ruleId, String options) {
+    public Response getRuleById(@Context HttpServletRequest request, @PathParam("id_rule") String ruleId,
+        String options) {
         RequestResponse<FileRulesModel> result = null;
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
@@ -1352,7 +1363,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/admin/accession-register")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("admin:accession-register:read")
-    public Response getAccessionRegister(@Context HttpServletRequest request, @CookieParam("JSESSIONID") String sessionId,
+    public Response getAccessionRegister(@Context HttpServletRequest request,
+        @CookieParam("JSESSIONID") String sessionId,
         String options) {
 
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
@@ -1387,7 +1399,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options, UserInterfaceTransactionManager.getVitamContext(request));
+                result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options,
+                    UserInterfaceTransactionManager.getVitamContext(request));
 
                 if (result.isOk()) {
                     // save result
@@ -1434,7 +1447,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         RequestResponse result = null;
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options, UserInterfaceTransactionManager.getVitamContext(request));
+            result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options,
+                UserInterfaceTransactionManager.getVitamContext(request));
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -1504,7 +1518,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         final UsernamePasswordToken token = new UsernamePasswordToken(username, password);
         final String tokenCSRF = XSRFHelper.generateCSRFToken();
         XSRFFilter.addToken(httpRequest.getSession().getId(), tokenCSRF);
-        
+
         try {
             subject.login(token);
             int timeoutInSeconds = httpRequest.getSession().getMaxInactiveInterval() * 1000;
@@ -1512,7 +1526,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.info("Login success: " + username);
             List<String> permissionsByUser = PermissionReader.filterPermission(permissions, subject);
 
-            return Response.status(Status.OK).entity(new LoginModel(username, permissionsByUser, timeoutInSeconds, tokenCSRF))
+            return Response.status(Status.OK)
+                .entity(new LoginModel(username, permissionsByUser, timeoutInSeconds, tokenCSRF))
                 .build();
         } catch (final Exception uae) {
             LOGGER.debug("Login fail: " + username);
@@ -1532,7 +1547,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         final String tokenCSRF = XSRFHelper.generateCSRFToken();
         XSRFFilter.addToken(httpRequest.getSession().getId(), tokenCSRF);
         List<String> permissionsByUser = PermissionReader.filterPermission(permissions, subject);
-        return Response.status(Status.OK).entity(new LoginModel((String) subject.getPrincipal(), permissionsByUser, timeoutInSeconds, tokenCSRF))
+        return Response.status(Status.OK)
+            .entity(new LoginModel((String) subject.getPrincipal(), permissionsByUser, timeoutInSeconds, tokenCSRF))
             .build();
     }
 
@@ -1547,11 +1563,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/logbookunitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("logbookunitlifecycles:read")
-    public Response getUnitLifeCycleById(@Context HttpServletRequest request, @PathParam("id_lc") String unitLifeCycleId) {
+    public Response getUnitLifeCycleById(@Context HttpServletRequest request,
+        @PathParam("id_lc") String unitLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         RequestResponse<LogbookLifecycle> result = null;
         try {
-            result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId, UserInterfaceTransactionManager.getVitamContext(request));
+            result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId,
+                UserInterfaceTransactionManager.getVitamContext(request));
         } catch (final VitamClientException e) {
             LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
@@ -2225,7 +2243,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("profiles:create")
-    public Response importProfileFile(@Context HttpServletRequest request, InputStream input, @PathParam("id") String id) {
+    public Response importProfileFile(@Context HttpServletRequest request, InputStream input,
+        @PathParam("id") String id) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient.createProfileFile(
@@ -2296,7 +2315,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String contractId = UserInterfaceTransactionManager.getContractId(request);
         String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
-            .execute(() -> asyncDownloadProfileFile(profileMetadataId, asyncResponse, tenantId, contractId, personalCert));
+            .execute(
+                () -> asyncDownloadProfileFile(profileMetadataId, asyncResponse, tenantId, contractId, personalCert));
     }
 
     private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse,
@@ -2454,7 +2474,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // Start check process
             RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.checkTraceabilityOperation(dslQuery, UserInterfaceTransactionManager.getVitamContext(request));
+                UserInterfaceTransactionManager.checkTraceabilityOperation(dslQuery,
+                    UserInterfaceTransactionManager.getVitamContext(request));
 
             // By default the returned status is different from the result of the verification process because we are
             // returning the report
@@ -2501,7 +2522,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/traceability/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("traceability:content:read")
-    public void downloadTraceabilityFile(@Context HttpServletRequest request, @PathParam("idOperation") String operationId,
+    public void downloadTraceabilityFile(@Context HttpServletRequest request,
+        @PathParam("idOperation") String operationId,
         @QueryParam("contractId") String contractId, @QueryParam("tenantId") String tenantIdParam,
         @Suspended final AsyncResponse asyncResponse) {
 
@@ -2516,7 +2538,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
-            .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId,  tenantId, contractId, personalCert));
+            .execute(
+                () -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId, contractId, personalCert));
     }
 
     private void downloadTraceabilityFileAsync(final AsyncResponse asyncResponse, String operationId,
