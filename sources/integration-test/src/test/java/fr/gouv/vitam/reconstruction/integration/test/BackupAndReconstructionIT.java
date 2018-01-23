@@ -286,18 +286,6 @@ public class BackupAndReconstructionIT {
     @AfterClass
     public static void afterClass() throws Exception {
 
-        // Ugly style but necessary because this is the folder representing the workspace
-        String CONTAINER = "0_rules";
-        File workspaceFolder = new File(CONTAINER);
-        if (workspaceFolder.exists()) {
-            try {
-                // if clean workspace delete did not work
-                FileUtils.cleanDirectory(workspaceFolder);
-                FileUtils.deleteDirectory(workspaceFolder);
-            } catch (Exception e) {
-                LOGGER.error("ERROR: Exception has been thrown when cleanning workspace:", e);
-            }
-        }
         if(workspaceClient != null ) {
             workspaceClient.close();
         }

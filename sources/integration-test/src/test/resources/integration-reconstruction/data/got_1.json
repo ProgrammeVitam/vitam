@@ -1,0 +1,198 @@
+{
+  "got" : {
+    "_id" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+    "_tenant" : 0,
+    "_profil" : "",
+    "FileInfo" : {
+      "Filename" : "example.7z",
+      "LastModified" : "2016-10-20T15:02:02.889+02:00"
+    },
+    "_qualifiers" : [ {
+      "qualifier" : "BinaryMaster",
+      "_nbc" : 1,
+      "versions" : [ {
+        "_id" : "aeaaaaaaaahdwvstab7eialbsrrj4viaaaca",
+        "DataObjectGroupId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+        "DataObjectVersion" : "BinaryMaster_1",
+        "FormatIdentification" : {
+          "FormatLitteral" : "7Zip format",
+          "FormatId" : "fmt/484",
+          "MimeType" : "application/epub+zip"
+        },
+        "FileInfo" : {
+          "Filename" : "example.7z",
+          "LastModified" : "2016-10-20T15:02:02.889+02:00"
+        },
+        "Size" : 356575,
+        "Uri" : "Content/ID33.7z",
+        "MessageDigest" : "18003097ad4ea78920a5ef0fd4a8abd5e6b3cc861cb02f9ae28a23508e4f5d3085dd995a549f7cb1c7c3248748af0b8e4119e2098821f588af938063f3e9c48b",
+        "Algorithm" : "SHA-512",
+        "_storage" : {
+          "_nbc" : 2,
+          "offerIds" : [ "offer-fs-1.service.consul", "offer-swift-1.service.consul" ],
+          "strategyId" : "default"
+        }
+      } ]
+    } ],
+    "_up" : [ "aeaqaaaaaahdwvstab7eialbsrrj4yaaaadq" ],
+    "_nbc" : 1,
+    "_ops" : [ "aeaqaaaaaagbcaacaang6ak4ts6zzzzzzzzz" ],
+    "_sp" : "ABCDEFG",
+    "_sps" : [ "ABCDEFG" ],
+    "_storage" : {
+      "_nbc" : 0,
+      "offerIds" : [ ],
+      "strategyId" : "default"
+    },
+    "_v" : 0
+  },
+  "lfc" : {
+    "_id" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+    "evId" : "aedqaaaaachdwvstab7eialbsrrj44qaaaaq",
+    "evParentId" : null,
+    "evType" : "LFC.LFC_CREATION",
+    "evDateTime" : "2018-02-14T12:55:46.546",
+    "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+    "evTypeProc" : "INGEST",
+    "outcome" : "OK",
+    "outDetail" : "LFC.LFC_CREATION.OK",
+    "outMessg" : "Succ\u00E8s de l'alimentation du journal du cycle de vie",
+    "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+    "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+    "evDetData" : null,
+    "events" : [ {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrj44qaaaba",
+      "evParentId" : null,
+      "evType" : "LFC.CHECK_MANIFEST",
+      "evDateTime" : "2018-02-14T12:55:46.546",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.CHECK_MANIFEST.OK",
+      "outMessg" : "Succ\u00E8s de la v\u00E9rification de la coh\u00E9rence du bordereau de transfert",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "evDetData" : null
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrj44qaaabq",
+      "evParentId" : "aedqaaaaachdwvstab7eialbsrrj44qaaaba",
+      "evType" : "LFC.CHECK_MANIFEST.LFC_CREATION",
+      "evDateTime" : "2018-02-14T12:55:46.546",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+      "outMessg" : "Succ\u00E8s de la cr\u00E9ation du journal du cycle de vie",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "evDetData" : null
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrj52iaaaaq",
+      "evParentId" : null,
+      "evType" : "LFC.CHECK_CONSISTENCY",
+      "evDateTime" : "2018-02-14T12:55:46.665",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.CHECK_CONSISTENCY.OK",
+      "outMessg" : "Succ\u00E8s de la v\u00E9rification de la coh\u00E9rence entre objets, groupes d'objets et unit\u00E9s archivistiques",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "evDetData" : null
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrlcziaaaaq",
+      "evParentId" : null,
+      "evType" : "LFC.CHECK_DIGEST",
+      "evDateTime" : "2018-02-14T12:55:51.410",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.CHECK_DIGEST.OK",
+      "outMessg" : "Succ\u00E8s de la v\u00E9rification de l'int\u00E9grit\u00E9 des objets vers\u00E9s",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "evDetData" : "{}"
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrlc4qaaaaq",
+      "evParentId" : "aedqaaaaachdwvstab7eialbsrrlcziaaaaq",
+      "evType" : "LFC.CHECK_DIGEST.CALC_CHECK",
+      "evDateTime" : "2018-02-14T12:55:51.420",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.CHECK_DIGEST.CALC_CHECK.OK",
+      "outMessg" : "Succ\u00E8s du calcul d'une empreinte en SHA-512",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aeaaaaaaaahdwvstab7eialbsrrj4viaaaca",
+      "evDetData" : "{\"MessageDigest\":\"18003097ad4ea78920a5ef0fd4a8abd5e6b3cc861cb02f9ae28a23508e4f5d3085dd995a549f7cb1c7c3248748af0b8e4119e2098821f588af938063f3e9c48b\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"18003097ad4ea78920a5ef0fd4a8abd5e6b3cc861cb02f9ae28a23508e4f5d3085dd995a549f7cb1c7c3248748af0b8e4119e2098821f588af938063f3e9c48b\", \"SystemAlgorithm\": \"SHA-512\"} "
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrldbqaaaaq",
+      "evParentId" : null,
+      "evType" : "LFC.OG_OBJECTS_FORMAT_CHECK",
+      "evDateTime" : "2018-02-14T12:55:51.467",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "WARNING",
+      "outDetail" : "LFC.OG_OBJECTS_FORMAT_CHECK.WARNING",
+      "outMessg" : "Avertissement lors de la v\u00E9rification des formats : des informations relatives aux formats ont \u00E9t\u00E9 compl\u00E9t\u00E9es par la solution logicielle Vitam",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "evDetData" : "{\"diff\":{\"-\":{\"FormatLitteral\":\"7Zip format\",\"FormatId\":\"fmt/484\"},\"+\":{\"FormatLitteral\":\"7Zip format\",\"FormatId\":\"fmt/484\",\"MimeType\":\"application/epub+zip\"}}}"
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrldkyaaaaq",
+      "evParentId" : "aedqaaaaachdwvstab7eialbsrrldbqaaaaq",
+      "evType" : "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT",
+      "evDateTime" : "2018-02-14T12:55:51.477",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "WARNING",
+      "outDetail" : "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.WARNING",
+      "outMessg" : "Avertissement lors de la v\u00E9rification du format",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aeaaaaaaaahdwvstab7eialbsrrj4viaaaca",
+      "evDetData" : "{}"
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrouvaaaaaq",
+      "evParentId" : null,
+      "evType" : "LFC.OBJ_STORAGE",
+      "evDateTime" : "2018-02-14T12:56:06.201",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.OBJ_STORAGE.OK",
+      "outMessg" : "Succ\u00E8s de l'\u00E9criture des objets sur les offres de stockage",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "evDetData" : "{}"
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrowoiaaaaq",
+      "evParentId" : "aedqaaaaachdwvstab7eialbsrrouvaaaaaq",
+      "evType" : "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK",
+      "evDateTime" : "2018-02-14T12:56:06.210",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK.OK",
+      "outMessg" : "Succ\u00E8s de l'\u00E9criture de l'objet sur les offres de stockage",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aeaaaaaaaahdwvstab7eialbsrrj4viaaaca",
+      "evDetData" : "{\"FileName\":\"aeaaaaaaaahdwvstab7eialbsrrj4viaaaca\",\"Algorithm\":\"SHA-512\",\"MessageDigest\":\"18003097ad4ea78920a5ef0fd4a8abd5e6b3cc861cb02f9ae28a23508e4f5d3085dd995a549f7cb1c7c3248748af0b8e4119e2098821f588af938063f3e9c48b\",\"Offers\":\"offer-fs-1.service.consul,offer-swift-1.service.consul\"}"
+    }, {
+      "evId" : "aedqaaaaachdwvstab7eialbsrrowryaaaaq",
+      "evParentId" : null,
+      "evType" : "LFC.OG_METADATA_INDEXATION",
+      "evDateTime" : "2018-02-14T12:56:06.244",
+      "evIdProc" : "aeeaaaaaaceuw3bhaa4pqalbsrri3gqaaaaq",
+      "evTypeProc" : "INGEST",
+      "outcome" : "OK",
+      "outDetail" : "LFC.OG_METADATA_INDEXATION.OK",
+      "outMessg" : "Succ\u00E8s de l'indexation des m\u00E9tadonn\u00E9es du groupe d'objets",
+      "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
+      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "evDetData" : "{}"
+    } ],
+    "_tenant" : 0,
+    "_v" : 8,
+    "_lastPersistedDate" : "2018-02-14T12:56:06.247"
+  }
+}

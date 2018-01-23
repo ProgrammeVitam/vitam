@@ -1,0 +1,47 @@
+{
+  "unit" : {
+    "_id" : "aeaqaaaaaaft45swaaxg2albfwxhlfiaaaba",
+    "_mgt" : {
+      "DisseminationRule" : {
+        "Rules" : [ {
+          "Rule" : "DIS-00002",
+          "StartDate" : "2000-01-01",
+          "EndDate" : "2075-01-01"
+        } ],
+        "Inheritance" : {
+          "PreventRulesId" : [ "DIS-00001" ]
+        }
+      },
+      "OriginatingAgency" : "RATP"
+    },
+    "DescriptionLevel" : "RecordGrp",
+    "Title" : "Gare du Nord",
+    "Titles" : {
+      "fr" : "Gare du Nord"
+    },
+    "Description" : "Cette unit\u00E9 de description h\u00E9rite de son parent de la r\u00E8gle ACC-00003 avec pour StartDate 01/01/2000, bloque l'h\u00E9ritage de la r\u00E8gle DIS-00001 mais d\u00E9clare la r\u00E8gle DIS-00002 avec pour StartDate 01/01/2000",
+    "Descriptions" : {
+      "fr" : "Cette unit\u00E9 de description h\u00E9rite de son parent de la r\u00E8gle ACC-00003 avec pour StartDate 01/01/2000, bloque l'h\u00E9ritage de la r\u00E8gle DIS-00001 mais d\u00E9clare la r\u00E8gle DIS-00002 avec pour StartDate 01/01/2000"
+    },
+    "StartDate" : "2017-04-05T08:11:56",
+    "EndDate" : "2017-04-05T08:11:56",
+    "_sps" : [ "RATP" ],
+    "_sp" : "RATP",
+    "_ops" : [ "aedqaaaaaceui43uabcw6albfwxhi6iaaaaq" ],
+    "_unitType" : "INGEST",
+    "_max" : 4,
+    "_min" : 1,
+    "_up" : [ "aeaqaaaaaaft45swaaxg2albfwxhlfaaaacq" ],
+    "_nbc" : {
+      "$numberLong" : "1"
+    },
+    "_us" : [ "aeaqaaaaaaft45swaaxg2albfwxhleyaaaba", "aeaqaaaaaaft45swaaxg2albfwxhlfaaaaba", "aeaqaaaaaaft45swaaxg2albfwxhlfaaaacq" ],
+    "_uds" : {
+      "aeaqaaaaaaft45swaaxg2albfwxhleyaaaba" : 3,
+      "aeaqaaaaaaft45swaaxg2albfwxhlfaaaaba" : 2,
+      "aeaqaaaaaaft45swaaxg2albfwxhlfaaaacq" : 1
+    },
+    "_v" : 0,
+    "_tenant" : 0
+  }
+}

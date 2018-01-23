@@ -24,6 +24,16 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-database-private</artifactId>
 			<version>${project.version}</version>
+		</dependency>		
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-lifecycles-client</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.java-diff-utils</groupId>

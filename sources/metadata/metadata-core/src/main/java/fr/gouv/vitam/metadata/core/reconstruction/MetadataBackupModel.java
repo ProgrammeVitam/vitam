@@ -24,54 +24,63 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.api.exception;
+package fr.gouv.vitam.metadata.core.reconstruction;
 
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamException;
+import org.bson.Document;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * MetaDataException the father of all metadata exception
+ * Description of metadata collection Backup model. <br/>
  */
-public class MetaDataException extends VitamException {
-    /**
-    *
-    */
-    private static final long serialVersionUID = 5683718092916241947L;
+public class MetadataBackupModel {
 
     /**
-     * Constructor
-     * 
-     * @param vitamError vitamError to associate with the exception
-     */ 
-    public MetaDataException(VitamError vitamError) {
-        super(vitamError);
-    }
-
-    /**
-     * Constructor
-     * 
-     * @param message message to associate with the exception
+     * Metadatas.
      */
-    public MetaDataException(String message) {
-        super(message);
-    }
+    @JsonProperty("metadata")
+    private Document metadatas;
 
     /**
-     * Constructor
-     * 
-     * @param cause cause to associate with the exception
+     * Lifecycle.
      */
-    public MetaDataException(Throwable cause) {
-        super(cause);
-    }
+    @JsonProperty("lfc")
+    private Document lifecycle;
 
     /**
-     * Constructor
-     * 
-     * @param message message to associate with the exception
-     * @param cause cause to associate with the exception
+     * Offset.
      */
-    public MetaDataException(String message, Throwable cause) {
-        super(message, cause);
+    @JsonProperty("offset")
+    private Long offset;
+
+    public Document getMetadatas() {
+        return metadatas;
     }
+
+    @JsonProperty("unit")
+    public void setUnit(Document unit) {
+        this.metadatas = unit;
+    }
+
+    @JsonProperty("got")
+    public void setGot(Document got) {
+        this.metadatas = got;
+    }
+
+    public Document getLifecycle() {
+        return lifecycle;
+    }
+
+    public void setLifecycle(Document lifecycle) {
+        this.lifecycle = lifecycle;
+    }
+
+    public Long getOffset() {
+        return offset;
+    }
+
+    public void setOffset(Long offset) {
+        this.offset = offset;
+    }
+
 }

@@ -285,7 +285,12 @@ public class VitamConfiguration {
     /**
      * Worker bulk size
      */
-    private static int workerBulkSize = 10;
+    private static int workerBulkSize = 10;    
+    /**
+     * Restore bulk size
+     */
+    private static int restoreBulkSize = 1000;
+
     /*
      * Cache delay = 60 seconds
      */
@@ -679,6 +684,9 @@ public class VitamConfiguration {
         }
         if (null != parameters.getWorkerBulkSize()) {
             setWorkerBulkSize(parameters.getWorkerBulkSize());
+        }
+        if (null != parameters.getRestoreBulkSize()) {
+            setWorkerBulkSize(parameters.getRestoreBulkSize());
         }
         if (null != parameters.getMaxElasticsearchBulk()) {
             setMaxElasticsearchBulk(parameters.getMaxElasticsearchBulk());
@@ -1491,6 +1499,24 @@ public class VitamConfiguration {
      */
     public static void setWorkerBulkSize(int workerBulkSize) {
         VitamConfiguration.workerBulkSize = workerBulkSize;
+    }
+
+    /**
+     * Getter restore bulk size
+     * 
+     * @return restoreBulkSize
+     */
+    public static int getRestoreBulkSize() {
+        return restoreBulkSize;
+    }
+
+    /**
+     * Setter restore bulk size
+     * 
+     * @param restoreBulkSize
+     */
+    public static void setRestoreBulkSize(int restoreBulkSize) {
+        VitamConfiguration.restoreBulkSize = restoreBulkSize;
     }
 
     /**

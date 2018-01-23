@@ -48,7 +48,11 @@ public class VitamConfigurationParameters {
     /**
      * Worker bulk size
      */
-    private Integer workerBulkSize;
+    private Integer workerBulkSize;    
+    /**
+     * Restore bulk size
+     */
+    private Integer restoreBulkSize;
 
     /**
      *
@@ -773,6 +777,25 @@ public class VitamConfigurationParameters {
     public void setWorkerBulkSize(Integer workerBulkSize) {
         this.workerBulkSize = workerBulkSize;
     }
+
+    /**
+    * Getter for restore bulk size
+    * 
+    * @return
+    */
+   public Integer getRestoreBulkSize() {
+       return restoreBulkSize;
+   }
+
+   /**
+    * Getter for restore bulk size
+    * 
+    * @return restoreBulkSize
+    */
+   public void setRestoreBulkSize(int restoreBulkSize) {
+       this.restoreBulkSize = restoreBulkSize;
+   }
+
 
     /**
      * Getter for   maxElasticsearchBulk;

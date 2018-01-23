@@ -92,8 +92,8 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -783,24 +783,32 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Get a unit
-     * <p>
-     * Note : this is NOT to be handled in item #72.
      *
      * @param headers http header
-     * @param metadataId the id of the unit metadata
-     * @return Response NOT_IMPLEMENTED
+     * @param objectId the id of the object
+     * @return the stream
      */
     @Path("/units/{id_md}")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getUnit(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(metadataId, DataCategory.UNIT, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
     }
 
     /**
@@ -810,7 +818,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param headers http header
      * @param metadataId the id of the unit metadata
      * @param createObjectDescription the workspace description of the unit to be created
-     * @return Response NOT_IMPLEMENTED
+     * @return Response containing result infos
      */
     // TODO P1: remove httpServletRequest when requester information sent by
     // header (X-Requester)
@@ -820,14 +828,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUnitMetadata(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
         @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
-        if (createObjectDescription == null) {
-            return getUnit(headers, metadataId);
-        } else {
-            // TODO P1: actually no X-Requester header, so send the getRemoteAdr
-            // from HttpServletRequest
-            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT,
-                httpServletRequest.getRemoteAddr());
-        }
+        return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT,
+            httpServletRequest.getRemoteAddr());
     }
 
     /**
@@ -932,46 +934,48 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     @Path("/objectgroups/{id_md}")
     @GET
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(metadataId, DataCategory.OBJECTGROUP, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
     }
 
     /**
      * Post a new Object Group metadata
-     * <p>
-     * Note : this is NOT to be handled in item #72.
      *
      * @param httpServletRequest http servlet request to get requester
      * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @param createObjectDescription the workspace description of the unit to be created
-     * @return Response Created, not found or internal server error
+     * @return Response Created with informations
      */
     // TODO P1: remove httpServletRequest when requester information sent by
     // header (X-Requester)
-    // TODO P1 : check the existence, in the headers, of the value
-    // X-Http-Method-Override, if set
     @Path("/objectgroups/{id_md}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectGroup(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
         @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
-        if (createObjectDescription == null) {
-            return getObjectGroup(headers, metadataId);
-        } else {
-            // TODO P1: actually no X-Requester header, so send the getRemoteAdr
-            // from HttpServletRequest
-            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECTGROUP,
-                httpServletRequest.getRemoteAddr());
-        }
+        // TODO P1: actually no X-Requester header, so send the getRemoteAdr
+        // from HttpServletRequest
+        return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECTGROUP,
+            httpServletRequest.getRemoteAddr());
     }
 
     /**

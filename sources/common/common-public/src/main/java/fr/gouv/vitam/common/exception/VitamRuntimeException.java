@@ -24,54 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.api.exception;
-
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamException;
+package fr.gouv.vitam.common.exception;
 
 /**
- * MetaDataException the father of all metadata exception
+ * Main Runtime Vitam Exception
  */
-public class MetaDataException extends VitamException {
-    /**
-    *
-    */
-    private static final long serialVersionUID = 5683718092916241947L;
+public class VitamRuntimeException extends RuntimeException {
 
     /**
-     * Constructor
-     * 
-     * @param vitamError vitamError to associate with the exception
-     */ 
-    public MetaDataException(VitamError vitamError) {
-        super(vitamError);
+     * serialVersionUID
+     */
+    private static final long serialVersionUID = -6574816923689373031L;
+
+    public VitamRuntimeException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    /**
-     * Constructor
-     * 
-     * @param message message to associate with the exception
-     */
-    public MetaDataException(String message) {
+    public VitamRuntimeException(String message) {
         super(message);
     }
 
-    /**
-     * Constructor
-     * 
-     * @param cause cause to associate with the exception
-     */
-    public MetaDataException(Throwable cause) {
+    public VitamRuntimeException(Throwable cause) {
         super(cause);
     }
 
-    /**
-     * Constructor
-     * 
-     * @param message message to associate with the exception
-     * @param cause cause to associate with the exception
-     */
-    public MetaDataException(String message, Throwable cause) {
-        super(message, cause);
-    }
+
 }
