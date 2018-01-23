@@ -153,6 +153,7 @@ describe('TraceabilityOperationDetailsComponent', () => {
   });
 
   it('should extract correct data', () => {
+    component.id='aecaaaaaacffskldaajwuak7toeyuxyaaaaq';
     component.extractData(traceabilityDetails.$results[0]);
     expect(component.item.logType).toBe('OPERATION');
     expect(component.item.startDate).toBe('2017-11-08T11:53:14.105');
@@ -161,5 +162,6 @@ describe('TraceabilityOperationDetailsComponent', () => {
     expect(component.item.digestAlgorithm).toBe('SHA512');
     expect(component.item.fileName).toBe('0_LogbookOperation_20171108_121003.zip');
     expect(component.item.fileSize).toBe(2109403);
+    expect(component.item.evId).toBe('aecaaaaaacffskldaajwuak7toeyuxyaaaaq');
   });
 });

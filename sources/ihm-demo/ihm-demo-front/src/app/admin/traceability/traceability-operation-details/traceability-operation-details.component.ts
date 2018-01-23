@@ -26,44 +26,43 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
 
   cols = [
     ColumnDefinition.makeStaticColumn('outDetail', 'Intitulé de l\'évènement', undefined,
-      () => ({'width': '500px', 'overflow-wrap': 'break-word', 'text-align': 'left'})),
+      () => ({'width': '500px', 'overflow-wrap': 'break-word', 'text-align': 'left'}), false),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date',
-      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
+      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('outcome', 'Statut', undefined,
-      () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '100px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('outMessg', 'Message', undefined,
-      () => ({'width': '525px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '525px', 'overflow-wrap': 'break-word'}), false)
   ];
 
   columns = {
     'operation': [
       ColumnDefinition.makeStaticColumn('startDate', 'Date début', DateService.handleDateWithTime,
-        () => ({'width': '250px'})),
+        () => ({'width': '250px'}), false),
       ColumnDefinition.makeStaticColumn('endDate', 'Date fin', DateService.handleDateWithTime,
-        () => ({'width': '250px'})),
+        () => ({'width': '250px'}), false),
       ColumnDefinition.makeStaticColumn('numberOfElement', 'Nombre d\'opération', undefined,
-        () => ({'width': '700px'}))
+        () => ({'width': '700px'}), false),
     ], 'file': [
       ColumnDefinition.makeStaticColumn('fileName', 'Nom fichier', undefined,
-        () => ({'width': '750px'})),
+        () => ({'width': '750px'}), false),
       ColumnDefinition.makeStaticColumn('fileSize', 'Taille fichier', ObjectsService.computeSize,
-        () => ({'width': '250px'}))
-      // TODO Add API point in order to be able to download file (and fill onClick param)
-      /*, ColumnDefinition.makeIconColumn('Télécharger', ['fa-download'], () => {},
-        () => true, () => ({'width': '200px'}))*/
+        () => ({'width': '250px'}), false),
+      ColumnDefinition.makeSpecialIconColumn('Télécharger', (item) =>  ['fa-download'],
+        () => ({'width': '200px'}), this.downloadReport, this.logbookService,false)
     ], 'traceability': [
       ColumnDefinition.makeStaticColumn('digestAlgorithm', 'Algorithme de hashage', undefined,
-        () => ({'width': '250px'})),
+        () => ({'width': '250px'}), false),
       ColumnDefinition.makeStaticColumn('genTime', 'Date tampon', DateService.handleDateWithTime,
-        () => ({'width': '250px'})),
+        () => ({'width': '250px'}), false),
       ColumnDefinition.makeStaticColumn('signerCertIssuer', 'CA signature', undefined,
-        () => ({'width': '700px', 'overflow-wrap': 'break-word'}))
+        () => ({'width': '700px', 'overflow-wrap': 'break-word'}), false)
     ]
   };
 
   constructor(public traceabilityService: TraceabilityOperationService, private route: ActivatedRoute,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private logbookService: LogbookService) {
+              public logbookService: LogbookService) {
     super('Détail de l\'opération de sécurisation', [], titleService, breadcrumbService);
   }
 
@@ -119,7 +118,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
     evDetData.fileSize = details.Size;
     evDetData.hash = details.Hash;
     evDetData.timeStampToken = details.TimeStampToken;
-
+    evDetData.evId=this.id;
     return evDetData;
   }
 
@@ -149,8 +148,9 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
     this.displayedItems = this.reportItems.slice(this.firstItem, this.firstItem + this.nbRows);
   }
 
-  downloadReport() {
-    this.logbookService.downloadTraceabilityReport(this.id);
+  downloadReport(item,logbookService) {
+    logbookService.downloadTraceabilityReport(item.evId);
   }
+
 
 }
