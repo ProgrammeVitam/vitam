@@ -88,7 +88,8 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public void create(LogbookOperationParameters parameters) throws LogbookAlreadyExistsException,
+    public void create(LogbookOperationParameters parameters)
+        throws LogbookAlreadyExistsException,
         LogbookDatabaseException {
         mongoDbAccess.createLogbookOperation(parameters);
     }
@@ -116,7 +117,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
                     replace(document, VitamDocument.TENANT_ID, VitamFieldsHelper.tenant());
 
                     break;
-                //FIXE ME check if _v is necessary
+                // FIXE ME check if _v is necessary
                 case VERSION:
                     replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
                     break;
@@ -131,7 +132,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     /*
-
+    
      */
     private final void replace(VitamDocument<?> document, String originalFieldName, String targetFieldName) {
         final Object value = document.remove(originalFieldName);
@@ -152,9 +153,14 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
             while (logbook.hasNext()) {
-                LogbookOperation doc = logbook.next();
-                filterFinalResponse(doc);
-                result.add(doc);
+                try {
+                    LogbookOperation doc = logbook.next();
+                    filterFinalResponse(doc);
+                    result.add(doc);
+                } catch (ClassCastException ex) {
+                    // Logbook cannot be cast, that means there is a gap between ES and Mongo
+                    LOGGER.error("Reindexation needed, data in ES is not in Mongo anymore", ex);
+                }
             }
             return result;
         }
@@ -188,7 +194,8 @@ public class LogbookOperationsImpl implements LogbookOperations {
     private Select logbookOperationsAfterDateQuery(final LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException {
         final Select select = new Select();
-        select.setQuery(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(date)));
+        select.setQuery(
+            QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(date)));
         select.addOrderByAscFilter("evDateTime");
         return select;
     }
@@ -230,21 +237,24 @@ public class LogbookOperationsImpl implements LogbookOperations {
             collection = LogbookCollections.valueOf(indexParameters.getCollectionName().toUpperCase());
         } catch (IllegalArgumentException exc) {
             String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
-                "logbook module", indexParameters
-                .getCollectionName());
+                "logbook module",
+                indexParameters
+                    .getCollectionName());
             LOGGER.error(message);
             return IndexationHelper.getFullKOResult(indexParameters, message);
         }
         if (!LogbookCollections.OPERATION.equals(collection)) {
             String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
-                "logbook module", indexParameters
-                .getCollectionName());
+                "logbook module",
+                indexParameters
+                    .getCollectionName());
             LOGGER.error(message);
             return IndexationHelper.getFullKOResult(indexParameters, message);
         } else {
             MongoCollection<Document> mongoCollection = collection.getCollection();
-            try (InputStream mappingStream = ElasticsearchCollections.valueOf(indexParameters.getCollectionName().toUpperCase())
-                .getMappingAsInputStream()) {
+            try (InputStream mappingStream =
+                ElasticsearchCollections.valueOf(indexParameters.getCollectionName().toUpperCase())
+                    .getMappingAsInputStream()) {
                 return IndexationHelper.reindex(mongoCollection, collection.getEsClient(),
                     indexParameters.getTenants(), mappingStream);
             } catch (IOException exc) {
