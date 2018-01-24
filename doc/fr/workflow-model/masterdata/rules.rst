@@ -87,7 +87,7 @@ Persistance des données en base (COMMIT_RULES)
 
     - FATAL : une erreur technique est survenue lors de la persistance des données en base (COMMIT_RULES.FATAL=Erreur fatale lors de la persistance des données en base)
 
-Sauvegarde du CSV (STP_IMPORT_RULES_CSV)
+Sauvegarde du CSV (STP_IMPORT_RULES_BACKUP_CSV)
 ----------------------------------------
 
 + **Règle** : enregistrement du CSV d'import
@@ -100,9 +100,9 @@ Sauvegarde du CSV (STP_IMPORT_RULES_CSV)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de l'enregistrement du CSV d'import (STP_IMPORT_RULES_CSV.FATAL = Erreur fatale lors de l'enregistrement du fichier d'import du référentiel des règles de gestion)
+    - FATAL : une erreur technique est survenue lors de l'enregistrement du CSV d'import (STP_IMPORT_RULES_BACKUP_CSV.FATAL = Erreur fatale lors de l'enregistrement du fichier d'import du référentiel des règles de gestion)
 
-Sauvegarde du JSON (STP_IMPORT_RULES_JSON)
+Sauvegarde du JSON (STP_IMPORT_RULES_BACKUP)
 ------------------------------------------
 
 + **Règle** : enregistrement d'une copie de la base de données
@@ -115,7 +115,7 @@ Sauvegarde du JSON (STP_IMPORT_RULES_JSON)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_IMPORT_RULES_JSON.FATAL = Erreur fatale lors de l'enregistrement de la copie du référentiel des règles de gestion)
+    - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_IMPORT_RULES_BACKUP.FATAL = Erreur fatale lors de l'enregistrement de la copie du référentiel des règles de gestion)
 
 
 Structure du rapport d'administration du référentiel des règles de gestion
