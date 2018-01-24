@@ -1,0 +1,8 @@
+---
+
+- name: Ensure vitam-traceability-audit timer is started
+  systemd:
+    name: "vitam-traceability-audit.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"

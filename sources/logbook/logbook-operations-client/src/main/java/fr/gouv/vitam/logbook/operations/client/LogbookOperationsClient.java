@@ -38,6 +38,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
@@ -218,5 +219,7 @@ public interface LogbookOperationsClient extends BasicClient {
      */
     JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, LogbookClientServerException;
+
+    void traceabilityAudit(int tenant, AuditLogbookOptions options) throws LogbookClientServerException;
 
 }

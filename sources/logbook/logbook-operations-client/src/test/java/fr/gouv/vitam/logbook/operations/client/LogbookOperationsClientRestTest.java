@@ -71,6 +71,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -231,6 +232,14 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response switchIndexes(JsonNode options) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/auditTraceability")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response launchTraceabilityAudit(JsonNode options) {
             return expectedResponse.post();
         }
 
@@ -483,6 +492,15 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             .build());
         JsonNode resp = client.switchIndexes(new SwitchIndexParameters());
         assertNotNull(resp);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void traceabilityAuditTest()
+            throws InvalidParseOperationException, LogbookClientServerException {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
+                .build());
+        client.traceabilityAudit(0, new AuditLogbookOptions());
     }
 
     @Test

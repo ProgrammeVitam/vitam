@@ -1,0 +1,10 @@
+[Unit]
+Description=Check the conformity of the security save of the rule in storage with that in database
+
+[Timer]
+OnCalendar=*-*-* 00:00:00
+Persistent=false
+
+
+[Install]
+WantedBy=timers.target
