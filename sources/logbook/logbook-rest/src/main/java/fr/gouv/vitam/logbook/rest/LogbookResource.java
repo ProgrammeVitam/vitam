@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -164,7 +163,7 @@ public class LogbookResource extends ApplicationStatusResource {
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
 
         logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
-            clientFactory, configuration.getOperationTraceabilityOverlapDelay());
+            configuration.getOperationTraceabilityOverlapDelay());
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
@@ -388,9 +387,9 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
 
-        } catch (TraceabilityException | LogbookNotFoundException | LogbookDatabaseException |
-            InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (TraceabilityException e) {
             LOGGER.error("unable to generate traceability log", e);
+            // FIXME: Why put a responseOK when exception catch ?
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(new RequestResponseOK()
                     .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))

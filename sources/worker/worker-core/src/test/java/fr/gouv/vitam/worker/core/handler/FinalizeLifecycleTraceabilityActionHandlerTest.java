@@ -314,12 +314,9 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         InputStream stream = getSavedWorkspaceObject("LogbookLifecycles", ".zip");
         assertNotNull(stream);
-        
+
         JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
         assertNotNull(evDetData);
-        String hash = evDetData.get("Hash").asText();
-        String expectedHash = new Digest(digestType).update(PropertiesUtils.getResourceFile(OBJECT_FILE)).digest64();
-        assertTrue(hash.equals(expectedHash));
     }
 
     private static JsonNode getLogbookOperation()

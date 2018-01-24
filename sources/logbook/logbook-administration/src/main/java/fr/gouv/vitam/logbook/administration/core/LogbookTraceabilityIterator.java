@@ -26,29 +26,28 @@
  */
 package fr.gouv.vitam.logbook.administration.core;
 
-import java.util.Iterator;
-
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import com.mongodb.client.MongoCursor;
-
+import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 
 /**
- * traceability iterator : help to compute endDate of events and iterator size
+ * traceability iterator for LogbookOperation
  */
-public class TraceabilityIterator implements Iterator<LogbookOperation> {
+public class LogbookTraceabilityIterator implements TraceabilityIterator<LogbookOperation> {
 
     private LogbookOperation lastDocument;
 
-    private long numberOfLine;
+    private long numberOfLines;
 
     private final MongoCursor<LogbookOperation> mongoCursor;
 
     /**
      * @param mongoCursor of logbook operation
      */
-    public TraceabilityIterator(MongoCursor<LogbookOperation> mongoCursor) {
-        numberOfLine = 0;
+    public LogbookTraceabilityIterator(MongoCursor<LogbookOperation> mongoCursor) {
+        super();
+        numberOfLines = 0;
         this.mongoCursor = mongoCursor;
     }
 
@@ -70,7 +69,7 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
      */
     @Override
     public LogbookOperation next() {
-        numberOfLine += 1;
+        numberOfLines += 1;
         lastDocument = mongoCursor.next();
         return lastDocument;
     }
@@ -78,6 +77,7 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
     /**
      * @return the last date of document or event
      */
+    @Override
     public String endDate() {
         return lastDocument.getString(LogbookDocument.LAST_PERSISTED_DATE);
     }
@@ -85,8 +85,9 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
     /**
      * @return size of the iterator
      */
-    public long getNumberOfLine() {
-        return numberOfLine;
+    @Override
+    public long getNumberOfLines() {
+        return numberOfLines;
     }
 
 }

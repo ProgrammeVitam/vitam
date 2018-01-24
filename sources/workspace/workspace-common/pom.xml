@@ -51,10 +51,5 @@
 			<artifactId>common-storage</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
-		<dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-compress</artifactId>
-		</dependency>
 	</dependencies>
 </project>

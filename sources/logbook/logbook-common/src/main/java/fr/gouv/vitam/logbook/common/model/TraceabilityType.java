@@ -5,14 +5,17 @@ package fr.gouv.vitam.logbook.common.model;
  */
 public enum TraceabilityType {
 
-    /**
-     * Operation
-     */
-    OPERATION, 
-    
-    /**
-     * Lifecycle
-     */
-    LIFECYCLE;
-
+	OPERATION("operations"),
+	LIFECYCLE("lifecycles"),
+	STORAGE("storage");
+	
+	private String fileName;
+	
+	TraceabilityType(String fileName) {
+		this.fileName = fileName;
+	}
+	
+	public String getFileName() {
+		return fileName;
+	}
 }
