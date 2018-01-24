@@ -193,6 +193,7 @@
 - hosts: hosts-functional-administration
   roles:
     - vitam
+    - functional_administration
   vars:
     vitam_struct: "{{ vitam.functional_administration }}"
 
