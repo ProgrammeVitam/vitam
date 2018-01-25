@@ -352,7 +352,7 @@ public class ProfileServiceImpl implements ProfileService {
             InputStream profileIS = new ByteArrayInputStream(byteArray);
 
             functionalBackupService.saveFile(profileIS, eip, OP_PROFILE_STORAGE,
-                StorageCollectionType.PROFILES, ParameterHelper.getTenantParameter(), fileName);
+                StorageCollectionType.PROFILES, fileName);
 
             final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
             Update update = new Update();

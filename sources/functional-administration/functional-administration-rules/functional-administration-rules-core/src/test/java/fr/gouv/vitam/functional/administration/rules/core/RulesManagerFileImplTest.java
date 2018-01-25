@@ -782,7 +782,7 @@ public class RulesManagerFileImplTest {
             FILE_TO_TEST_OK);
         // then
         verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
-            eq(StorageCollectionType.REPORTS), eq(TENANT_ID), anyString());
+            eq(StorageCollectionType.REPORTS), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
         final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
@@ -853,7 +853,7 @@ public class RulesManagerFileImplTest {
             FILE_TO_TEST_OK);
         // then
         verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
-            eq(StorageCollectionType.REPORTS), eq(TENANT_ID), anyString());
+            eq(StorageCollectionType.REPORTS), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
         final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
@@ -908,7 +908,7 @@ public class RulesManagerFileImplTest {
             Files.copy(argumentAt, report);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), anyString(),
-            eq(StorageCollectionType.REPORTS), eq(TENANT_ID), anyString());
+            eq(StorageCollectionType.REPORTS), anyString());
 
     }
 

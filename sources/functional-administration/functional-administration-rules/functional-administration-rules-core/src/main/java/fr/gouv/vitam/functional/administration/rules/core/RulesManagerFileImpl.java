@@ -343,9 +343,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelToInsert,
                 fileRulesModelsToImport, eip);
 
-            backupService
-                .saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV, StorageCollectionType.RULES,
-                    ParameterHelper.getTenantParameter(), eip != null ? eip.getId() : "" + CSV);
+            backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
+                StorageCollectionType.RULES, eip.getId() + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -402,10 +401,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             final Digest digest = new Digest(digestType);
             digest.update(new FileInputStream(file));
 
-
-            backupService
-                .saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV, StorageCollectionType.RULES,
-                    ParameterHelper.getTenantParameter(), eip != null ? eip.getId() : "" + CSV);
+            backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
+                StorageCollectionType.RULES, eip.getId() + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -964,13 +961,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
 
         try {
-            backupService
-                .saveFile(stream, eipMaster, RULES_REPORT, StorageCollectionType.REPORTS,
-                    ParameterHelper.getTenantParameter(), fileName);
+            backupService.saveFile(stream, eipMaster, RULES_REPORT, StorageCollectionType.REPORTS, fileName);
         } catch (VitamException e) {
             throw new StorageException(e.getMessage(), e);
         }
-
     }
 
 
