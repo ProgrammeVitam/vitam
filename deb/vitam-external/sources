@@ -1,8 +1,14 @@
-https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org_3.4.15_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org-mongos_3.4.15_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org-server_3.4.15_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org-shell_3.4.15_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org-tools_3.4.15_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.6/main/binary-amd64/mongodb-org-mongos_3.6.7_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.6/main/binary-amd64/mongodb-org-server_3.6.7_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.6/main/binary-amd64/mongodb-org-shell_3.6.7_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.6/main/binary-amd64/mongodb-org-tools_3.6.7_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.6/main/binary-amd64/mongodb-org_3.6.7_amd64.deb
+
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/4.0/main/binary-amd64/mongodb-org-mongos_4.0.1_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/4.0/main/binary-amd64/mongodb-org-server_4.0.1_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/4.0/main/binary-amd64/mongodb-org-shell_4.0.1_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/4.0/main/binary-amd64/mongodb-org-tools_4.0.1_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/4.0/main/binary-amd64/mongodb-org_4.0.1_amd64.deb
 
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.deb
 https://artifacts.elastic.co/downloads/logstash/logstash-6.4.0.deb

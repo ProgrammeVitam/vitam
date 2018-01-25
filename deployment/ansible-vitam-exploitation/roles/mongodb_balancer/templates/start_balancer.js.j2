@@ -1,0 +1,7 @@
+// Script to start the mongodb balancer
+sh.startBalancer();
+// Check if the balancer will not start again
+if (!sh.getBalancerState()) {
+    print("Failed to start the balancer");
+    quit(1);
+}

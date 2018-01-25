@@ -1,8 +1,14 @@
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.4/x86_64/RPMS/mongodb-org-3.4.15-1.el7.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.4/x86_64/RPMS/mongodb-org-mongos-3.4.15-1.el7.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.4/x86_64/RPMS/mongodb-org-server-3.4.15-1.el7.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.4/x86_64/RPMS/mongodb-org-shell-3.4.15-1.el7.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.4/x86_64/RPMS/mongodb-org-tools-3.4.15-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.6/x86_64/RPMS/mongodb-org-3.6.7-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.6/x86_64/RPMS/mongodb-org-mongos-3.6.7-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.6/x86_64/RPMS/mongodb-org-server-3.6.7-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.6/x86_64/RPMS/mongodb-org-shell-3.6.7-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/3.6/x86_64/RPMS/mongodb-org-tools-3.6.7-1.el7.x86_64.rpm
+
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-4.0.1-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-mongos-4.0.1-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-server-4.0.1-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-shell-4.0.1-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-tools-4.0.1-1.el7.x86_64.rpm
 
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.rpm
 https://artifacts.elastic.co/downloads/logstash/logstash-6.4.0.rpm
