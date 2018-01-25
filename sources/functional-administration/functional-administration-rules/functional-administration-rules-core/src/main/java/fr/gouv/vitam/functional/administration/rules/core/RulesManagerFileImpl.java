@@ -251,8 +251,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     @Override
     public void importFile(InputStream rulesFileStream, String filename)
-        throws IOException, InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
-        StorageException {
+        throws IOException, InvalidParseOperationException, ReferentialException, StorageException {
         ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
         File file = convertInputStreamToFile(rulesFileStream, CSV);
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();

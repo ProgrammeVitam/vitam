@@ -327,7 +327,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             manager.logUpdateSuccess(securityProfileModel.getId(), updateDiffs.get(securityProfileModel.getId()));
             return new RequestResponseOK<>();
 
-        } catch (ReferentialException | InvalidCreateOperationException e) {
+        } catch (VitamException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             final String err = new StringBuilder("Security profile update failed > ").append(e.getMessage()).toString();
             manager.logFatalError(err, SECURITY_PROFILE_UPDATE_EVENT);
@@ -371,14 +371,12 @@ public class SecurityProfileService implements VitamAutoCloseable {
          */
         private void logImportStarted() throws VitamException {
 
-            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-
             final LogbookOperationParameters logbookParameters;
             logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eipUsage, SECURITY_PROFILE_IMPORT_EVENT, eip,
+                .newLogbookOperationParameters(eip, SECURITY_PROFILE_IMPORT_EVENT, eip,
                     LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_IMPORT_EVENT, StatusCode.STARTED), eipUsage);
+                    VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_IMPORT_EVENT, StatusCode.STARTED), eip);
             logbookClient.create(logbookParameters);
         }
 
@@ -393,7 +391,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eipId, SECURITY_PROFILE_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_IMPORT_EVENT, StatusCode.KO), eipId);
+                    VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_IMPORT_EVENT, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
 
             logbookClient.update(logbookParameters);
@@ -411,7 +409,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eipId, eventCode, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.FATAL,
-                    VitamLogbookMessages.getCodeOp(eventCode, StatusCode.FATAL), eipId);
+                    VitamLogbookMessages.getCodeOp(eventCode, StatusCode.FATAL), eip);
             logbookMessageError(errorsDetails, logbookParameters);
 
             logbookClient.update(logbookParameters);
@@ -437,8 +435,9 @@ public class SecurityProfileService implements VitamAutoCloseable {
          * @throws VitamException
          */
         private void logImportSuccess() throws VitamException {
+            final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, SECURITY_PROFILE_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipId, SECURITY_PROFILE_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_IMPORT_EVENT, StatusCode.OK), eip);
 
@@ -471,11 +470,14 @@ public class SecurityProfileService implements VitamAutoCloseable {
             msg.put(UPDATED_DIFFS, diffs);
 
             evDetData.set(SECURITY_PROFILE, msg);
+
+            final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
             final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
                     .newLogbookOperationParameters(
-                        eip,
+                        eipId,
                         SECURITY_PROFILE_UPDATE_EVENT,
                         eip,
                         LogbookTypeProcess.MASTERDATA,

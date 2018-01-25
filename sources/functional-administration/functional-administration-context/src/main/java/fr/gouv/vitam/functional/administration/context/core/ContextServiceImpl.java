@@ -45,7 +45,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -109,14 +108,13 @@ public class ContextServiceImpl implements ContextService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextServiceImpl.class);
 
-    private static final String CONTEXT_IS_MANDATORY_PATAMETER = "contexts parameter is mandatory";
+    private static final String CONTEXT_IS_MANDATORY_PARAMETER = "contexts parameter is mandatory";
     private static final String CONTEXTS_IMPORT_EVENT = "STP_IMPORT_CONTEXT";
     private static final String CONTEXTS_UPDATE_EVENT = "STP_UPDATE_CONTEXT";
-    private static final String IDENTIFIER = "Identifier";
-    private static final String UPDATE_CONTEXT_MANDATORY_PATAMETER = "context is mandatory";
+    private static final String UPDATE_CONTEXT_MANDATORY_PARAMETER = "context is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final LogbookOperationsClient logBookclient;
+    private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
     private final ContextServiceImpl.ContextManager manager;
 
@@ -130,10 +128,10 @@ public class ContextServiceImpl implements ContextService {
         SecurityProfileService securityProfileService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
-        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
         ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
-        manager = new ContextManager(logBookclient, accessContract, ingestContract,
+        manager = new ContextManager(logbookClient, accessContract, ingestContract,
             securityProfileService);
     }
 
@@ -150,14 +148,14 @@ public class ContextServiceImpl implements ContextService {
         SecurityProfileService securityProfileService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
-        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        manager = new ContextManager(logBookclient, accessContract, ingestContract,
+        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        manager = new ContextManager(logbookClient, accessContract, ingestContract,
             securityProfileService);
     }
 
     @Override
     public RequestResponse<ContextModel> createContexts(List<ContextModel> contextModelList) throws VitamException {
-        ParametersChecker.checkParameter(CONTEXT_IS_MANDATORY_PATAMETER, contextModelList);
+        ParametersChecker.checkParameter(CONTEXT_IS_MANDATORY_PARAMETER, contextModelList);
 
         if (contextModelList.isEmpty()) {
             return new RequestResponseOK<>();
@@ -272,7 +270,7 @@ public class ContextServiceImpl implements ContextService {
     @Override
     public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
         throws VitamException {
-        ParametersChecker.checkParameter(UPDATE_CONTEXT_MANDATORY_PATAMETER, queryDsl);
+        ParametersChecker.checkParameter(UPDATE_CONTEXT_MANDATORY_PARAMETER, queryDsl);
         SanityChecker.checkJsonAll(queryDsl);
         final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
@@ -359,17 +357,17 @@ public class ContextServiceImpl implements ContextService {
     private final static class ContextManager {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         private GUID eip = null;
-        private final LogbookOperationsClient logBookclient;
+        private final LogbookOperationsClient logbookClient;
         private ContractService<AccessContractModel> accessContract;
         private ContractService<IngestContractModel> ingestContract;
         private SecurityProfileService securityProfileService;
         private List<ContextValidator> validators;
 
-        public ContextManager(LogbookOperationsClient logBookclient,
+        public ContextManager(LogbookOperationsClient logbookClient,
             ContractService<AccessContractModel> accessContract,
             ContractService<IngestContractModel> ingestContract,
             SecurityProfileService securityProfileService) {
-            this.logBookclient = logBookclient;
+            this.logbookClient = logbookClient;
             this.accessContract = accessContract;
             this.ingestContract = ingestContract;
             this.securityProfileService = securityProfileService;
@@ -410,7 +408,6 @@ public class ContextServiceImpl implements ContextService {
                     VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.STARTED), eip);
 
             helper.createDelegate(logbookParameters);
-
         }
 
         /**
@@ -419,12 +416,13 @@ public class ContextServiceImpl implements ContextService {
          * @throws VitamException
          */
         private void logSuccess() throws VitamException {
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipUsage, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.OK), eip);
             helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
         /**
@@ -453,10 +451,11 @@ public class ContextServiceImpl implements ContextService {
          * @throws VitamException
          */
         private void logUpdateSuccess(String id, String evDetData) throws VitamException {
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
                     .newLogbookOperationParameters(
-                        eip,
+                        eipUsage,
                         CONTEXTS_UPDATE_EVENT,
                         eip,
                         LogbookTypeProcess.MASTERDATA,
@@ -472,7 +471,7 @@ public class ContextServiceImpl implements ContextService {
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_UPDATE_EVENT +
                 "." + StatusCode.OK);
             helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
         /**
@@ -483,24 +482,26 @@ public class ContextServiceImpl implements ContextService {
          */
         private void logFatalError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipUsage, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.FATAL,
                     VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.FATAL), eip);
             logbookMessageError(errorsDetails, logbookParameters);
             helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
         private void logValidationError(String errorsDetails, String action) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, action, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipUsage, action, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(action, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
             helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
 
         }
 
@@ -672,6 +673,6 @@ public class ContextServiceImpl implements ContextService {
 
     @Override
     public void close() {
-        logBookclient.close();
+        logbookClient.close();
     }
 }

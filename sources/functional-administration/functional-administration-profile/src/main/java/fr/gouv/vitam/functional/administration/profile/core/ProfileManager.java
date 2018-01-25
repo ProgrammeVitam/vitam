@@ -152,7 +152,7 @@ public class ProfileManager {
     }
 
     /**
-     * Juste check if inputStream is xml valide
+     * Just check if inputStream is xml valid
      *
      * @param inputStream
      * @param error
@@ -230,7 +230,7 @@ public class ProfileManager {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eipId);
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
         logbookMessageError(objectId, errorsDetails, logbookParameters);
 
         logbookClient.update(logbookParameters);
@@ -267,7 +267,7 @@ public class ProfileManager {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eipId);
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
 
         logbookMessageError(objectId, errorsDetails, logbookParameters);
 
@@ -280,12 +280,10 @@ public class ProfileManager {
      * @throws VitamException
      */
     public void logStarted(String eventType, String objectId) throws VitamException {
-        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
+            .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eipId);
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
 
         logbookMessageError(objectId, null, logbookParameters);
         logbookClient.create(logbookParameters);
@@ -302,7 +300,7 @@ public class ProfileManager {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eipId);
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
 
         if (null != objectId && !objectId.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
