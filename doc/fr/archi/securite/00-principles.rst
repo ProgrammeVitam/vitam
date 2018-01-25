@@ -17,6 +17,7 @@ Principes de cloisonnement
 
 Les principes de cloisonnement en zones, et notamment les implications en termes de communication entre ces zones ont été décrits dans :doc:`la section dédiée aux principes de déploiement </archi-exploit-infra/principes/30-principles-deployment>`.
 
+.. warning:: Le principe de cloisonnement des flux ne peut être mené que par une équipe d'infrastructure. L'implémentation du filtrage des flux inter-zones doit etre effectuée lors du déploiement de la solution :term:`VITAM`, conformément à la matrice de flux, en annexe du document.
 
 Principes de sécurisation des accès externes
 ============================================
