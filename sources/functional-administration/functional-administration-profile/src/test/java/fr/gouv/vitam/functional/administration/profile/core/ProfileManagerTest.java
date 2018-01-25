@@ -27,12 +27,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileInputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -44,12 +44,12 @@ public class ProfileManagerTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final Integer TENANT_ID = 1;
-    static ProfileManager profileManager = new ProfileManager(null);
+    static ProfileManager profileManager = new ProfileManager(null, null);
 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        profileManager = new ProfileManager(null);;
+        profileManager = new ProfileManager(null, null);
     }
 
     @Test
@@ -64,7 +64,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, new FileInputStream(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
 
         assertThat(isValide).isTrue();
     }
@@ -81,7 +81,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, new FileInputStream(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
 
         assertThat(isValide).isFalse();
     }
@@ -99,7 +99,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, new FileInputStream(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
 
         assertThat(isValide).isTrue();
     }
@@ -116,7 +116,7 @@ public class ProfileManagerTest {
         final VitamError vitamError = new VitamError("");
 
         boolean isValide =
-            profileManager.validateProfileFile(modelMock, new FileInputStream(fileProfileXsd), vitamError);
+            profileManager.validateProfileFile(modelMock, FileUtils.readFileToByteArray(fileProfileXsd), vitamError);
 
         assertThat(isValide).isFalse();
     }

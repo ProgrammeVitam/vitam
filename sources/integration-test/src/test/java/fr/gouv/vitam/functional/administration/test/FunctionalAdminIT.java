@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.test;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
@@ -239,14 +240,15 @@ public class FunctionalAdminIT {
 
 
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
-        final WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
 
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", logbookPort));
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", logbookPort));
 
+        FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
+
         profileService =
             new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                workspaceClientFactory, vitamCounterService);
+                vitamCounterService, functionalBackupService);
 
         rulesManagerFile =
             new RulesManagerFileImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),

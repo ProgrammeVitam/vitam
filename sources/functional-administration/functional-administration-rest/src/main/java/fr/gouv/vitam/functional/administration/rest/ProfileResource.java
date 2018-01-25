@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -86,6 +87,8 @@ public class ProfileResource {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final VitamCounterService vitamCounterService;
+    private final FunctionalBackupService functionalBackupService;
+
 
     /**
      * @param configuration
@@ -93,10 +96,11 @@ public class ProfileResource {
      * @param vitamCounterService
      */
     public ProfileResource(AdminManagementConfiguration configuration, MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService) {
+        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
+        this.functionalBackupService = functionalBackupService;
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         LOGGER.debug("init Admin Management Resource server");
     }
@@ -104,10 +108,11 @@ public class ProfileResource {
 
     @VisibleForTesting
     public ProfileResource(WorkspaceClientFactory workspaceClientFactory, MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService) {
+        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
         this.workspaceClientFactory = workspaceClientFactory;
         this.vitamCounterService = vitamCounterService;
+        this.functionalBackupService = functionalBackupService;
 
         LOGGER.debug("init Admin Management Resource server");
     }
@@ -137,7 +142,7 @@ public class ProfileResource {
         ParametersChecker.checkParameter(PROFILE_JSON_IS_MANDATORY_PATAMETER, profileModelList);
 
         try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
             RequestResponse requestResponse = profileService.createProfiles(profileModelList);
 
             if (!requestResponse.isOk()) {
@@ -177,7 +182,7 @@ public class ProfileResource {
         ParametersChecker.checkParameter(PROFILE_ID_IS_MANDATORY_PATAMETER, profileMetadataId);
 
         try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
             SanityChecker.checkParameter(profileMetadataId);
             RequestResponse requestResponse = profileService.importProfileFile(profileMetadataId, profileFile);
 
@@ -218,7 +223,7 @@ public class ProfileResource {
         ParametersChecker.checkParameter(DSL_QUERY_IS_MANDATORY_PATAMETER, queryDsl);
 
         try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
             SanityChecker.checkParameter(profileMetadataId);
             RequestResponse requestResponse = profileService.updateProfile(profileMetadataId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
@@ -259,7 +264,7 @@ public class ProfileResource {
                 .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
         try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
 
             return profileService.downloadProfileFile(profileMetadataId);
 
@@ -288,7 +293,7 @@ public class ProfileResource {
     public Response findProfiles(JsonNode queryDsl) {
 
         try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
 
             final RequestResponseOK<ProfileModel> profileModelList =
                 profileService.findProfiles(queryDsl).setQuery(queryDsl);

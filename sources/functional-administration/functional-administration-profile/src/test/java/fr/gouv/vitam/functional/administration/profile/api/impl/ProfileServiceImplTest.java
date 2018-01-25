@@ -17,12 +17,17 @@
  */
 package fr.gouv.vitam.functional.administration.profile.api.impl;
 
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+
+import static fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl.OP_PROFILE_STORAGE;
+import static fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl.PROFILE_BACKUP_EVENT;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.eq;
+import org.mockito.Mockito;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -73,8 +78,10 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class ProfileServiceImplTest {
 
@@ -97,9 +104,8 @@ public class ProfileServiceImplTest {
     static Map<Integer, List<String>> externalIdentifiers;
 
     static ProfileService profileService;
+    static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static int mongoPort;
-    static WorkspaceClient workspaceClient;
-    static WorkspaceClientFactory workspaceClientFactory;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -128,13 +134,11 @@ public class ProfileServiceImplTest {
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
 
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        workspaceClient = mock(WorkspaceClient.class);
         LogbookOperationsClientFactory.changeMode(null);
 
         profileService =
             new ProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                workspaceClientFactory, vitamCounterService);
+                vitamCounterService, functionalBackupService);
 
     }
 
@@ -151,6 +155,7 @@ public class ProfileServiceImplTest {
     public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
+        reset(functionalBackupService);
     }
 
 
@@ -163,18 +168,12 @@ public class ProfileServiceImplTest {
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
         final ProfileModel profileModel = responseCast.getResults().iterator().next();
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
-
-        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).createContainer(anyString());
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
-            any(InputStream.class));
-
 
         RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
@@ -190,23 +189,27 @@ public class ProfileServiceImplTest {
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+                eq(FunctionalAdminCollections.PROFILE));
+        verifyNoMoreInteractions(functionalBackupService);
+        reset(functionalBackupService);
+
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("PR-000");
         final ProfileModel profileModel = responseCast.getResults().get(1);
         InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
 
-
-        doAnswer(invocation -> null).when(workspaceClient).createContainer(anyString());
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
-            any(InputStream.class));
-        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-
-
         RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
+        verify(functionalBackupService).saveFile(any(), any(), eq(OP_PROFILE_STORAGE),
+                eq(StorageCollectionType.PROFILES), eq(TENANT_ID), anyString());
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+                eq(FunctionalAdminCollections.PROFILE));
+        verifyNoMoreInteractions(functionalBackupService);
     }
 
     @Test
@@ -218,17 +221,12 @@ public class ProfileServiceImplTest {
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
         final ProfileModel profileModel = responseCast.getResults().get(1);
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
-
-
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
-            any(InputStream.class));
-        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
 
 
         RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
@@ -245,7 +243,7 @@ public class ProfileServiceImplTest {
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
@@ -253,9 +251,6 @@ public class ProfileServiceImplTest {
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
 
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
-            any(InputStream.class));
-        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
@@ -272,7 +267,7 @@ public class ProfileServiceImplTest {
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(response.isOk());
+        assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
     }
@@ -280,14 +275,14 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenATestMissingIdentifierReturnBadRequest() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
         final List<ProfileModel> profileModelList =
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(!response.isOk());
-
+        assertThat(response.isOk()).isFalse();
+        verifyZeroInteractions(functionalBackupService);
     }
 
     @Test
@@ -299,7 +294,7 @@ public class ProfileServiceImplTest {
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(!response.isOk());
+        assertThat(response.isOk()).isFalse();
     }
 
     @Test
@@ -311,7 +306,7 @@ public class ProfileServiceImplTest {
             JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         final RequestResponse response = profileService.createProfiles(profileModelList);
 
-        assertThat(!response.isOk());
+        assertThat(response.isOk()).isTrue();
     }
 
     @Test
@@ -330,30 +325,7 @@ public class ProfileServiceImplTest {
         // Try to recreate the same profile but with id
         response = profileService.createProfiles(responseCast.getResults());
 
-        assertThat(!response.isOk());
-    }
-
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenTestAlreadyExistsProfile() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-
-        List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
-        RequestResponse response = profileService.createProfiles(profileModelList);
-
-        final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
-        assertThat(responseCast.getResults()).hasSize(2);
-
-
-        // unset ids
-        profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
-        response = profileService.createProfiles(profileModelList);
-
-        assertThat(!response.isOk());
+        assertThat(response.isOk()).isFalse();
     }
 
 
@@ -581,6 +553,11 @@ public class ProfileServiceImplTest {
 
         assertThat(response.isOk()).isTrue();
 
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+                eq(FunctionalAdminCollections.PROFILE));
+        verifyNoMoreInteractions(functionalBackupService);
+        reset(functionalBackupService);
+
         Select select = new Select();
         select.setQuery(QueryHelper.eq(ProfileModel.TAG_NAME, "PToUpdate"));
         RequestResponseOK<ProfileModel> result = profileService.findProfiles(select.getFinalSelect());
@@ -593,6 +570,11 @@ public class ProfileServiceImplTest {
         response = profileService.updateProfile(profil, JsonHandler.getFromString(query));
 
         assertThat(response.isOk()).isTrue();
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
+                eq(FunctionalAdminCollections.PROFILE));
+        verifyNoMoreInteractions(functionalBackupService);
+
     }
 
     @Test

@@ -73,7 +73,7 @@ public class BusinessApplication extends Application {
             FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 
             final ProfileResource profileResource =
-                new ProfileResource(configuration, mongoDbAccess, vitamCounterService);
+                new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService);
             singletons.add(resource);
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService));
