@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import java.util.Properties;
 import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.Response;
@@ -40,7 +39,6 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -164,7 +162,8 @@ public class TransferThread implements Callable<ThreadResponseData> {
             .getGuid());
         switch (DataCategory.getByFolder(request.getType())) {
             case UNIT:
-            case OBJECT_GROUP:
+            case OBJECTGROUP:
+            case BACKUP_OPERATION:
                 return true;
             default:
                 break;

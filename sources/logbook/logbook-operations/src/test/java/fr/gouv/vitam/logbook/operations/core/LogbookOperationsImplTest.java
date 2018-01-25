@@ -33,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -62,7 +64,12 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccessFactory;
@@ -70,20 +77,39 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({LogbookElasticsearchAccessFactory.class, IndexationHelper.class})
+@PrepareForTest({LogbookElasticsearchAccessFactory.class, IndexationHelper.class, WorkspaceClientFactory.class})
 public class LogbookOperationsImplTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private LogbookOperationsImpl logbookOperationsImpl;
     private LogbookDbAccess mongoDbAccess;
     private LogbookOperationParameters logbookParameters;
+    private WorkspaceClient workspaceClient;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         mongoDbAccess = mock(LogbookDbAccess.class);
         logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
+        logbookParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, GUIDFactory
+            .newOperationLogbookGUID(0).getId());
+
+        // Mock workspace and mongoDbAccess to avoid error on operation backup
+        final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        workspaceClient = mock(WorkspaceClient.class);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        doNothing().when(workspaceClient).createContainer(anyString());
+        doNothing().when(workspaceClient).putObject(anyString(), anyString(), anyObject());
+        doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
     }
 
     @Test(expected = LogbookDatabaseException.class)
@@ -151,9 +177,12 @@ public class LogbookOperationsImplTest {
         assertNotNull(lo);
     }
 
+    @RunWithCustomExecutor
     @Test
     public void createBulkLogbookOperationTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         Mockito.reset(mongoDbAccess);
+        when(mongoDbAccess.getLogbookOperation(anyString())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParametersFactory.newLogbookOperationParameters();
         param[1] = LogbookParametersFactory.newLogbookOperationParameters();
@@ -161,9 +190,12 @@ public class LogbookOperationsImplTest {
         logbookOperationsImpl.createBulkLogbookOperation(param);
     }
 
+    @RunWithCustomExecutor
     @Test
     public void updateBulkLogbookOperationTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         Mockito.reset(mongoDbAccess);
+        when(mongoDbAccess.getLogbookOperation(anyString())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParametersFactory.newLogbookOperationParameters();
         param[1] = LogbookParametersFactory.newLogbookOperationParameters();

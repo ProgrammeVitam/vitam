@@ -36,17 +36,22 @@ import static org.junit.Assume.assumeTrue;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import fr.gouv.vitam.common.LocalDateUtil;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import com.mongodb.client.MongoCursor;
 
@@ -57,6 +62,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -86,33 +92,37 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAc
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWithCustomExecutor
 public class LogbookOperationsImplWithDatabasesTest {
 
+    private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static final int tenantId = 0;
+    private static final List<Integer> tenantList = Collections.singletonList(0);
+    private final static GUID eip = GUIDFactory.newEventGUID(tenantId);
+    private final static GUID eip1 = GUIDFactory.newEventGUID(tenantId);
+    private final static GUID eip2 = GUIDFactory.newEventGUID(tenantId);
+    private final static GUID eip3 = GUIDFactory.newEventGUID(tenantId);
+    private final static GUID eip4 = GUIDFactory.newEventGUID(tenantId);
+    private final static GUID eip5 = GUIDFactory.newEventGUID(tenantId);
+    private final static GUID eip6 = GUIDFactory.newEventGUID(1);
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    private static final String DATABASE_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
-    static LogbookDbAccess mongoDbAccess;
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    private static JunitHelper junitHelper;
-    private static int port;
-
     // ES
     @ClassRule
     public static TemporaryFolder esTempFolder = new TemporaryFolder();
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
-    private final static String ES_HOST_NAME = "localhost";
+    private static LogbookDbAccess mongoDbAccess;
+    private static MongodExecutable mongodExecutable;
+    private static MongodProcess mongod;
+    private static JunitHelper junitHelper;
+    private static int port;
     private static ElasticsearchTestConfiguration config = null;
-
-    private static final int tenantId = 0;
-    private static final List<Integer> tenantList = Arrays.asList(0);
-
-    private LogbookOperationsImpl logbookOperationsImpl;
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
     private static LogbookOperationParameters logbookParametersWrongStart;
@@ -120,25 +130,18 @@ public class LogbookOperationsImplWithDatabasesTest {
     private static LogbookOperationParameters logbookParameters1;
     private static LogbookOperationParameters logbookParameters2;
     private static LogbookOperationParameters logbookParameters3;
-
-
     private static LogbookOperationParameters logbookParameters4;
     private static LogbookOperationParameters logbookParameters5;
-
     private static LogbookOperationParameters event;
     private static LogbookOperationParameters event2;
-
     private static LogbookOperationParameters securityEvent;
-
-
-    final static GUID eip = GUIDFactory.newEventGUID(tenantId);
-    final static GUID eip1 = GUIDFactory.newEventGUID(tenantId);
-    final static GUID eip2 = GUIDFactory.newEventGUID(tenantId);
-    final static GUID eip3 = GUIDFactory.newEventGUID(tenantId);
-
-    final static GUID eip4 = GUIDFactory.newEventGUID(tenantId);
-    final static GUID eip5 = GUIDFactory.newEventGUID(tenantId);
-    final static GUID eip6 = GUIDFactory.newEventGUID(1);
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private LogbookOperationsImpl logbookOperationsImpl;
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private WorkspaceClient workspaceClient;
 
 
     @BeforeClass
@@ -234,11 +237,10 @@ public class LogbookOperationsImplWithDatabasesTest {
             eip5, "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
             StatusCode.OK, null, null, eip4);
         securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
-
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         mongoDbAccess.close();
         mongod.stop();
         mongodExecutable.stop();
@@ -249,38 +251,44 @@ public class LogbookOperationsImplWithDatabasesTest {
     public void clean() throws DatabaseException {
         mongoDbAccess.deleteCollection(LogbookCollections.OPERATION);
     }
-    
+
     @Test
     public void givenCreateAndUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        mockWorkspaceClient();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
         logbookOperationsImpl.create(logbookParametersStart);
         logbookOperationsImpl.update(logbookParametersAppend);
         try {
             logbookOperationsImpl.create(logbookParametersWrongStart);
             fail("Should failed");
-        } catch (final LogbookAlreadyExistsException e) {}
+        } catch (final LogbookAlreadyExistsException ignored) {
+        }
         try {
             logbookOperationsImpl.update(logbookParametersWrongAppend);
             fail("Should failed");
-        } catch (final LogbookNotFoundException e) {}
+        } catch (final LogbookNotFoundException ignored) {
+        }
         try {
             logbookOperationsImpl.create(LogbookParametersFactory.newLogbookOperationParameters());
             fail("Should failed");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException ignored) {
+        }
         try {
 
             final Select select = new Select();
             select.setQuery(exists("notExistVariable"));
             logbookOperationsImpl.select(JsonHandler.getFromString(select.getFinalSelect().toString()));
             fail("Should failed");
-        } catch (final LogbookNotFoundException e) {}
+        } catch (final LogbookNotFoundException ignored) {
+        }
     }
 
     @Test
     public void givenCreateAndSelect() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        mockWorkspaceClient();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);
         logbookOperationsImpl.create(logbookParameters3);
@@ -332,7 +340,8 @@ public class LogbookOperationsImplWithDatabasesTest {
     @Test
     public void givenCreateAndSelectByTenant() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        mockWorkspaceClient();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
         logbookOperationsImpl.create(logbookParameters5);
         logbookOperationsImpl.update(event2);
         MongoCursor<LogbookOperation> curseur;
@@ -345,8 +354,9 @@ public class LogbookOperationsImplWithDatabasesTest {
     @Test
     public void testAuditLogbook() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
-        
+        mockWorkspaceClient();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
+
         GUID eventIdentifier = GUIDFactory.newEventGUID(0);
         String eventType = "AUDIT";
         GUID eventIdentifierProcess = GUIDFactory.newEventGUID(0);
@@ -354,7 +364,7 @@ public class LogbookOperationsImplWithDatabasesTest {
         StatusCode outcome = StatusCode.STARTED;
         String outcomeDetailMessage = "AUDIT." + StatusCode.STARTED.name();
         GUID eventIdentifierRequest = GUIDFactory.newEventGUID(0);
-        
+
         final LogbookOperationParameters parametersForCreation =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
                 eventType, eventIdentifierProcess, eventTypeProcess,
@@ -376,6 +386,13 @@ public class LogbookOperationsImplWithDatabasesTest {
         MongoCursor<LogbookOperation> cursor;
         cursor = logbookOperationsImpl.selectOperationsPersistedAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
         assertFalse(cursor.hasNext());
+    }
+
+    private void mockWorkspaceClient() throws Exception {
+        Mockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyString());
+        Mockito.doNothing().when(workspaceClient)
+            .putObject(Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
     }
 
     private static void assertDateBetween(LocalDateTime localDateTime, LocalDateTime gte, LocalDateTime lte) {

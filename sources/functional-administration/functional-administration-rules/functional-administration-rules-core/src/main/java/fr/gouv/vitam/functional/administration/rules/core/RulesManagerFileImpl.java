@@ -54,17 +54,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.flipkart.zjsonpatch.JsonDiff;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -119,7 +121,6 @@ import fr.gouv.vitam.functional.administration.common.RuleTypeEnum;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
@@ -142,6 +143,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -151,7 +153,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -344,7 +346,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelsToImport, eip);
 
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
-                StorageCollectionType.RULES, eip.getId() + CSV);
+                DataCategory.RULES, eip.getId() + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -402,7 +404,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             digest.update(new FileInputStream(file));
 
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
-                StorageCollectionType.RULES, eip.getId() + CSV);
+                DataCategory.RULES, eip.getId() + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -960,7 +962,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
 
         try {
-            backupService.saveFile(stream, eipMaster, RULES_REPORT, StorageCollectionType.REPORTS, fileName);
+            backupService.saveFile(stream, eipMaster, RULES_REPORT, DataCategory.REPORT, fileName);
         } catch (VitamException e) {
             throw new StorageException(e.getMessage(), e);
         }
@@ -1047,28 +1049,20 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param rulesLinkedToUnit rulesLinkedToUnit
      * @param rulesNotLinkedToUnit rulesNotLinkedToUnit
      * @return true if a given FileRules is linked to a unit, false if none of them are linked to a unit
-     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     private boolean checkUnitLinkedToFileRules(List<FileRulesModel> fileRulesModelToCheck,
-        Set<String> rulesLinkedToUnit, Set<String> rulesNotLinkedToUnit)
-        throws InvalidParseOperationException {
+        Set<String> rulesLinkedToUnit, Set<String> rulesNotLinkedToUnit) {
         boolean linked = false;
-        try {
-            for (FileRulesModel fileRulesModel : fileRulesModelToCheck) {
-                ArrayNode arrayNodeResult =
-                    checkUnitLinkedtofileRulesInDatabase(fileRulesLinkedToUnitQueryBuilder(fileRulesModel),
-                        fileRulesModel.getRuleId());
-                if (arrayNodeResult != null && arrayNodeResult.size() > 0) {
-                    linked = true;
-                    rulesLinkedToUnit.add(fileRulesModel.getRuleId());
-                } else {
-                    rulesNotLinkedToUnit.add(fileRulesModel.getRuleId());
-                }
+        for (FileRulesModel fileRulesModel : fileRulesModelToCheck) {
+            ArrayNode arrayNodeResult =
+                checkUnitLinkedtofileRulesInDatabase(fileRulesLinkedToUnitQueryBuilder(fileRulesModel)
+                );
+            if (arrayNodeResult != null && arrayNodeResult.size() > 0) {
+                linked = true;
+                rulesLinkedToUnit.add(fileRulesModel.getRuleId());
+            } else {
+                rulesNotLinkedToUnit.add(fileRulesModel.getRuleId());
             }
-        } catch (FileFormatNotFoundException e) {
-            LOGGER.error(e);
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
         }
         return linked;
 
@@ -1460,13 +1454,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * find document based on DSL query with DbRequest multiple
      *
      * @param select query
-     * @param ruleFilesId Identifier
      * @return vitam document list
-     * @throws FileFormatNotFoundException when no results found
-     * @throws ReferentialException when error occurs
      */
-    private ArrayNode checkUnitLinkedtofileRulesInDatabase(JsonNode select, String ruleFilesId)
-        throws FileFormatNotFoundException, ReferentialException {
+    private ArrayNode checkUnitLinkedtofileRulesInDatabase(JsonNode select) {
         ArrayNode resultUnitsArray = null;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             LOGGER.debug("Selected Query For linked unit: " + select.toString());
@@ -1489,12 +1479,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param status status
      * @param eipMaster eipMaster
      * @return the error report inputStream
-     * @throws FileRulesException FileRulesException
      */
     public InputStream generateErrorReport(Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules,
-        StatusCode status, GUID eipMaster)
-        throws FileRulesException {
+        StatusCode status, GUID eipMaster) {
         final ObjectNode reportFinal = JsonHandler.createObjectNode();
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
         final ObjectNode lineNode = JsonHandler.createObjectNode();
@@ -1581,11 +1569,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
      * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
      * @return the error report inputStream
-     * @throws FileRulesException FileRulesException
      */
     private InputStream generateReportOK(Map<Integer, List<ErrorReport>> errors,
-        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, GUID eip)
-        throws FileRulesException {
+        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, GUID eip) {
         final ObjectNode reportFinal = JsonHandler.createObjectNode();
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
         final ArrayNode usedDeletedArrayNode = JsonHandler.createArrayNode();
@@ -1626,10 +1612,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      *
      * @param tenant
      * @return ArrayNode
-     * @throws IOException
-     * @throws ReferentialException
+     * @throws InvalidParseOperationException
      */
-    public ArrayNode getRuleFromCollection(int tenant) throws IOException, ReferentialException, InvalidParseOperationException {
+    public ArrayNode getRuleFromCollection(int tenant) throws InvalidParseOperationException {
         return backupService.getCollectionInJson(backupService.getCurrentCollection(FunctionalAdminCollections.RULES, tenant));
     }
 
@@ -1638,9 +1623,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      *
      * @param tenant
      * @return ArrayNode
-     * @throws IOException
      */
-    public ArrayNode getRuleFromOffer(int tenant) throws IOException{
+    public ArrayNode getRuleFromOffer(int tenant) {
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
@@ -1668,9 +1652,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param array2
      * @param tenant
      * @return true if rule conformity, false if not
-     * @throws IOException
      */
-    public boolean checkRuleConformity(ArrayNode array1, ArrayNode array2, int tenant) throws IOException {
+    public boolean checkRuleConformity(ArrayNode array1, ArrayNode array2, int tenant) {
 
         if (!array1.toString().equals(array2.toString())) {
             JsonNode patch = JsonDiff.asJson(array1, array2);

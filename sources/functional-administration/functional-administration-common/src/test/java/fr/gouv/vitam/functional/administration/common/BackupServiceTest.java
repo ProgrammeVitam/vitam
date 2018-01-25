@@ -27,28 +27,7 @@
 package fr.gouv.vitam.functional.administration.common;
 
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.io.InputStream;
-
-
-import static fr.gouv.vitam.storage.engine.common.model.StorageCollectionType.REPORTS;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -59,6 +38,27 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+
+import java.io.InputStream;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 public class BackupServiceTest {
 
@@ -91,7 +91,7 @@ public class BackupServiceTest {
         ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
             ArgumentCaptor.forClass(ObjectDescription.class);
         //When
-        backupService.backup(inputStream, REPORTS, uri);
+        backupService.backup(inputStream, REPORT, uri);
 
         //Then
         ArgumentCaptor<String> containerArgCaptor = ArgumentCaptor.forClass(String.class);
@@ -99,7 +99,7 @@ public class BackupServiceTest {
             .putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
 
         verify(storageClient)
-            .storeFileFromWorkspace(eq("default"), eq(REPORTS), eq(uri),
+            .storeFileFromWorkspace(eq("default"), eq(REPORT), eq(uri),
                 objectDescriptionArgumentCaptor.capture());
         ObjectDescription description = objectDescriptionArgumentCaptor.getValue();
         assertThat(description.getWorkspaceContainerGUID()).isEqualTo(containerArgCaptor.getValue());
@@ -114,19 +114,19 @@ public class BackupServiceTest {
         willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).createContainer(any());
         //When
         final String description = "Unable to store file in workSpace";
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORTS, URI))
+        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(description);
         //Given
         willThrow(ContentAddressableStorageAlreadyExistException.class).given(workspaceClient).createContainer(any());
         //When
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORTS, URI))
+        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(description);
 
         willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).putObject(any(), any(), any());
         //When
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORTS, URI))
+        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(description);
 
@@ -141,14 +141,14 @@ public class BackupServiceTest {
         willThrow(StorageAlreadyExistsClientException.class).given(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
         //When
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORTS, URI))
+        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(message);
         //Given
         willThrow(StorageNotFoundClientException.class).given(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
         //When
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORTS, URI))
+        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(message);
 
@@ -156,7 +156,7 @@ public class BackupServiceTest {
         willThrow(StorageServerClientException.class).given(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
         //When
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORTS, URI))
+        assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(message);
 
@@ -170,7 +170,7 @@ public class BackupServiceTest {
             .deleteContainer(any(), anyBoolean());
 
         //When
-        backupService.backup(inputStream, REPORTS, URI);
+        backupService.backup(inputStream, DataCategory.REPORT, URI);
         verify(workspaceClient).deleteContainer(any(), anyBoolean());
     }
 }

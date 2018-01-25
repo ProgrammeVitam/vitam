@@ -7,7 +7,6 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMo
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.Strings;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,7 +29,6 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -60,7 +57,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -233,7 +230,7 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                    DEFAULT_STRATEGY, StorageCollectionType.LOGBOOKS, fileName, description);
+                    DEFAULT_STRATEGY, DataCategory.LOGBOOK, fileName, description);
                 workspaceClient.deleteContainer(fileName, true);
                 subItemStatusSecurisationStorage.setEvDetailData(JsonHandler.unprettyPrint(event));
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,

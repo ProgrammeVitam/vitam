@@ -30,7 +30,7 @@ package fr.gouv.vitam.storage.engine.common.model.request;
 import java.io.File;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 /**
  * Simple object holding data used to retrieve an Object from the workspace
@@ -39,7 +39,7 @@ public class ObjectDescription {
     private String workspaceContainerGUID;
     private String workspaceObjectURI;
     private String objectName;
-    private StorageCollectionType type;
+    private DataCategory type;
 
     /**
      * Empty Constructor.
@@ -49,14 +49,14 @@ public class ObjectDescription {
     }
 
     /**
-     * Constructor with StorageCollectionType parameter<br/>
+     * Constructor with DataCategory parameter<br/>
      * 
      * @param type the collection tyoe
      * @param workspaceContainerGUID the container guid in workspace
      * @param objectName the object name
      * @param workspaceObjectUri the workspace uri of the object
      */
-    public ObjectDescription(StorageCollectionType type, String workspaceContainerGUID, String objectName,
+    public ObjectDescription(DataCategory type, String workspaceContainerGUID, String objectName,
         String workspaceObjectUri) {
         this.type = type;
         this.workspaceContainerGUID = workspaceContainerGUID;
@@ -121,7 +121,7 @@ public class ObjectDescription {
     /**
      * @return the type
      */
-    public StorageCollectionType getType() {
+    public DataCategory getType() {
         return type;
     }
 
@@ -131,7 +131,7 @@ public class ObjectDescription {
      *
      * @return this
      */
-    public ObjectDescription setType(StorageCollectionType type) {
+    public ObjectDescription setType(DataCategory type) {
         this.type = type;
         return this;
     }

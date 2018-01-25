@@ -41,7 +41,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin;
@@ -365,7 +365,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(FOLDERNAME + guid + JSON);
 
             storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY,
-                StorageCollectionType.REPORTS, guid + JSON, description);
+                DataCategory.REPORT, guid + JSON, description);
             workspaceClient.deleteContainer(guid, true);
 
         }

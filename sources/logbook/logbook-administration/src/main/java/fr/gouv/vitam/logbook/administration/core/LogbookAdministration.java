@@ -75,7 +75,6 @@ public class LogbookAdministration {
      * Constructor
      *
      * @param logbookOperations                 logbook operation
-     * @param workspaceClientFactory            to create workspace client
      * @param operationTraceabilityOverlapDelay
      */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,

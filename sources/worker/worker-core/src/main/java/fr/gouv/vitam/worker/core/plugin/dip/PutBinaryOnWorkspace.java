@@ -48,7 +48,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -125,7 +125,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
             Response response = storageClient
-                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), StorageCollectionType.OBJECTS);
+                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), DataCategory.OBJECT);
 
             handler.transferInputStreamToWorkspace((String) guidToPath.get(param.getObjectName()),
                 (InputStream) response.getEntity(), null, false);

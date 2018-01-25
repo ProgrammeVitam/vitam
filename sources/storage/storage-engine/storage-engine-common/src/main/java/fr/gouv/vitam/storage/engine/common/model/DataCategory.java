@@ -32,57 +32,72 @@ package fr.gouv.vitam.storage.engine.common.model;
  * deleted from different storage offer
  */
 public enum DataCategory {
+
+    /**
+     * Container
+     * TODO is this right ?
+     */
+    CONTAINER("", "", true, true),
     /**
      * Archive Unit
      */
-    UNIT("unit", true, true),
+    UNIT("units", "unit", true, true),
     /**
      * Binary Object
      */
-    OBJECT("object", false, true),
+    OBJECT("objects", "object", false, true),
     /**
      * Object Group
      */
-    OBJECT_GROUP("objectGroup", true, true),
+    OBJECTGROUP("objectgroups", "objectGroup", true, true),
     /**
      * Logbook (any)
      */
-    LOGBOOK("logbook", false, false),
+    LOGBOOK("logbooks", "logbook", false, false),
     /**
      * Report of operations (like ArchiveTransferReply)
      */
-    REPORT("report", false, false),
+    REPORT("reports", "report", false, false),
     /**
      * Manitesf.xml from a SIP
      */
-    MANIFEST("manifest", false, false),
+    MANIFEST("manifests", "manifest", false, false),
 
     /**
      * Profile xsd, rng, ...
      */
-    PROFILE("profile", false, false),
+    PROFILE("profiles", "profile", false, false),
 
     /**
      * StorageLog (any)
      */
-    STORAGELOG("storagelog", false, false),
+    STORAGELOG("storagelog", "storagelog", false, false),
     /**
      * Rules files
      */
-    RULES("rules", false, false),
+    RULES("rules", "rules", false, false),
     /**
      * dip collection
      */
-    DIP("dip", false, true),
+    DIP("dip", "dip", false, true),
     /**
      * Rules files
      */
-    AGENCIES("agencies", false, false),
+    AGENCIES("agencies", "agencies", false, false),
 
     /**
      * backup files
      */
-    BACKUP("backup", false, false);
+    BACKUP("backup", "backup", false, false),
+    /**
+     * backup operation files
+     */
+    BACKUP_OPERATION("backupoperation", "backup_operation", true, false);
+
+    /**
+     * Collection name
+     */
+    private String collectionName;
 
     /**
      * Folder
@@ -100,14 +115,27 @@ public enum DataCategory {
     private boolean deletable;
 
     /**
-     * Constructor.
+     * Default constructor
      *
-     * @param folder folder
+     * @param collectionName the collection name
+     * @param folder the folder name for storage
+     * @param udpatable true if this kind of object is updatable, false otherwise
+     * @param deletable true if this kind of object is deletable, false otherwise
      */
-    DataCategory(String folder, boolean udpatable, boolean deletable) {
+    DataCategory(String collectionName, String folder, boolean udpatable, boolean deletable) {
+        this.collectionName = collectionName;
         this.folder = folder;
         this.updatable = udpatable;
         this.deletable = deletable;
+    }
+
+    /**
+     * Get collection name
+     *
+     * @return the collection name
+     */
+    public String getCollectionName() {
+        return collectionName;
     }
 
     /**
@@ -149,6 +177,23 @@ public enum DataCategory {
                 return v;
             }
         }
+        // TODO: IllegalArgumentException is better (as valueOf default method)
         return null;
+    }
+
+    /**
+     * Get DataCategory by collection name
+     *
+     * @param collectionName the wanted collection name
+     * @return the DataCategory if exists
+     * @throws IllegalArgumentException if DataCategory does not exist
+     */
+    public static DataCategory getByCollectionName(String collectionName) {
+        for (final DataCategory v : values()) {
+            if (v.getCollectionName().equalsIgnoreCase(collectionName)) {
+                return v;
+            }
+        }
+        throw new IllegalArgumentException(collectionName + " is not a collectionName in DataCategory entry");
     }
 }

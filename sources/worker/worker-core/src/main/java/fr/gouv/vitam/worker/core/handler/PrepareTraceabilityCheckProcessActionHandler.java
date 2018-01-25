@@ -33,6 +33,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import org.bson.Document;
 
@@ -65,11 +66,9 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -156,7 +155,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
             // 1- get zip file
             response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, StorageCollectionType.LOGBOOKS);
+                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK);
  
             // Idempotency - we check if a folder exist
             if (workspaceClient.isExistingContainer(param.getContainerName())) {
@@ -167,7 +166,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
                     LOGGER.warn("The container could not be deleted", e);
                 }
             }
-            
+
             // 2- unzip file
             handler.unzipInputStreamOnWorkspace(param.getContainerName(),
                 SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, CommonMediaType.ZIP,
@@ -181,14 +180,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             if (asyncIO)
                 handler.enableAsync(false);
 
-        } catch (StorageServerClientException | StorageNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (ContentAddressableStorageException | WorkerspaceQueueException e) {
-            // Decompression Exception
-            LOGGER.error(e.getMessage(), e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (InvalidParseOperationException e) {
+        } catch (StorageServerClientException | StorageNotFoundException | ContentAddressableStorageException | WorkerspaceQueueException | InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
             itemStatus.increment(StatusCode.FATAL);
         } finally {

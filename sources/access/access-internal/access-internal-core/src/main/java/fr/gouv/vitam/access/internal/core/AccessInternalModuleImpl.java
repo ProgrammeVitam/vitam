@@ -50,7 +50,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
-import fr.gouv.vitam.access.internal.api.DataCategory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
@@ -132,7 +131,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -313,7 +312,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 case UNIT:
                     jsonNode = metaDataClient.selectUnitbyId(jsonQuery, idDocument);
                     break;
-                case OBJECT_GROUP:
+                case OBJECTGROUP:
                     jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery, idDocument);
                     break;
                 default:
@@ -341,7 +340,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 case UNIT:
                     requestResponse = metaDataClient.getUnitByIdRaw(idDocument);
                     break;
-                case OBJECT_GROUP:
+                case OBJECTGROUP:
                     requestResponse = metaDataClient.getObjectGroupByIdRaw(idDocument);
                     break;
                 default:
@@ -368,7 +367,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (!(parser instanceof SelectParserMultiple)) {
             throw new InvalidParseOperationException("Not a Select operation");
         }
-        return selectMetadataDocumentById(jsonQuery, idObjectGroup, DataCategory.OBJECT_GROUP);
+        return selectMetadataDocumentById(jsonQuery, idObjectGroup, DataCategory.OBJECTGROUP);
     }
 
     @Override
@@ -447,7 +446,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId,
-                StorageCollectionType.OBJECTS);
+                DataCategory.OBJECT);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
@@ -705,7 +704,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     }
                 }
                 // updates (replaces) stored object
-                return storeMetaDataUnit(new ObjectDescription(StorageCollectionType.UNITS, requestId, fileName,
+                return storeMetaDataUnit(new ObjectDescription(DataCategory.UNIT, requestId, fileName,
                     IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
 
             } else {
@@ -757,7 +756,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
      * @param idDocument document uuid
-     * @param dataCategory accepts UNIT or OBJECT_GROUP
+     * @param dataCategory accepts UNIT or OBJECTGROUP
      * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
      */
@@ -1400,7 +1399,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, id,
-                StorageCollectionType.DIP);
+                DataCategory.DIP);
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageServerClientException | StorageNotFoundException e) {
             throw new AccessInternalExecutionException(e);

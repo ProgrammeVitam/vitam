@@ -301,7 +301,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param type       the object type to list
      * @return a response with listing elements
      */
-    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP|AGENCIES|BACKUP}")
+    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP|AGENCIES|BACKUP" +
+        "|BACKUP_OPERATION}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -463,6 +464,27 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         } else {
             return getObjectInformationWithPost(headers, objectId);
         }
+    }
+
+    /**
+     * Post a new backup operation
+     *
+     * @param httpServletRequest http servlet request to get requester
+     * @param headers http header
+     * @param operationId the id of the operation
+     * @param createObjectDescription the object description for storage
+     * @return
+     */
+    @Path("/backupoperation/{id_operation}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createOrUpdateBackupOperation(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("id_operation") String operationId, ObjectDescription createObjectDescription) {
+        // TODO check nullity and emptiness
+        return createObjectByType(headers, operationId, createObjectDescription, DataCategory.BACKUP_OPERATION,
+            httpServletRequest.getRemoteAddr());
     }
 
     private Response getObjectInformationWithPost(HttpHeaders headers, String objectId) {
@@ -908,7 +930,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         } else {
             // TODO P1: actually no X-Requester header, so send the getRemoteAdr
             // from HttpServletRequest
-            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECT_GROUP,
+            return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECTGROUP,
                 httpServletRequest.getRemoteAddr());
         }
     }
@@ -934,7 +956,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         Status status = Status.NOT_IMPLEMENTED;
-        if (!DataCategory.OBJECT_GROUP.canUpdate()) {
+        if (!DataCategory.OBJECTGROUP.canUpdate()) {
             status = Status.UNAUTHORIZED;
         }
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
@@ -959,7 +981,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return response;
         }
         Status status = Status.NOT_IMPLEMENTED;
-        if (!DataCategory.OBJECT_GROUP.canDelete()) {
+        if (!DataCategory.OBJECTGROUP.canDelete()) {
             status = Status.UNAUTHORIZED;
         }
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();

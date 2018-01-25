@@ -43,6 +43,7 @@ import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -74,6 +75,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -119,6 +123,10 @@ public class LogBookLifeCycleObjectGroupTest {
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersUpdate;
 
     private static JunitHelper junitHelper;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -442,7 +450,8 @@ public class LogBookLifeCycleObjectGroupTest {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-    
+
+    @RunWithCustomExecutor
     @Test
     public final void given_lifeCycleGO_bulk_raw_when_create_thenReturn_created()
         throws InvalidParseOperationException, FileNotFoundException {

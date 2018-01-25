@@ -86,7 +86,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
@@ -232,7 +232,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.storeFileFromWorkspace(
                     DEFAULT_STRATEGY,
-                    StorageCollectionType.REPORTS,
+                    DataCategory.REPORT,
                     params.getContainerName() + XML, description);
 
                 if (!workflowStatus.isGreaterOrEqualToKo()) {
@@ -240,7 +240,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
                     storageClient.storeFileFromWorkspace(
                         DEFAULT_STRATEGY,
-                        StorageCollectionType.MANIFESTS,
+                        DataCategory.MANIFEST,
                         params.getContainerName() + XML, description);
                 }
             }

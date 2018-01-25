@@ -61,7 +61,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -111,7 +110,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type, String guid,
+    public StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
         ObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         return generateStoredInfoResult(guid);
@@ -123,7 +122,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest,
         DigestType digestAlgorithm)
         throws StorageServerClientException {
         return true;
@@ -135,7 +134,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean exists(String strategyId, StorageCollectionType type, String guid, List<String> offerIds)
+    public boolean exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         return true;
     }
@@ -153,7 +152,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
+    public Response getContainerAsync(String strategyId, String guid, DataCategory type)
         throws StorageServerClientException, StorageNotFoundException {
 
         if (null != guid && guid.endsWith(".rng")) {

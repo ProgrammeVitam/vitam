@@ -69,7 +69,7 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
      * selectMetadataDocumentById, Retrieve Metadata Document from DB
      *
      * @param idDocument document uuid
-     * @param dataCategory accepts UNIT or OBJECT_GROUP
+     * @param dataCategory accepts UNIT or OBJECTGROUP
      * @param metaDataClient MetaDataClient to use
      * @return JsonNode from the found document
      * @throws ProcessingException if no result found or error during parsing response from metadata client
@@ -87,7 +87,7 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
                 case UNIT:
                     requestResponse = metaDataClient.getUnitByIdRaw(idDocument);
                     break;
-                case OBJECT_GROUP:
+                case OBJECTGROUP:
                     requestResponse = metaDataClient.getObjectGroupByIdRaw(idDocument);
                     break;
                 default:
@@ -131,7 +131,7 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
                     jsonResponse = loogbookClient.selectUnitLifeCycleById(idDocument, queryDsl,
                         LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
                     break;
-                case OBJECT_GROUP:
+                case OBJECTGROUP:
                     jsonResponse = loogbookClient.selectObjectGroupLifeCycleById(idDocument, queryDsl,
                         LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
                     break;
@@ -160,7 +160,7 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
         final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
         switch (dataCategory) {
             case UNIT:
-            case OBJECT_GROUP:
+            case OBJECTGROUP:
                 // get the document
                 docWithLFC.set(dataCategory.equals(DataCategory.UNIT) ? UNIT_KEY : GOT_KEY, document);
                 // get the lfc

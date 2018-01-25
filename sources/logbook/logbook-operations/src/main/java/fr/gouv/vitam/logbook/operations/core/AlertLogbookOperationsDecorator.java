@@ -30,8 +30,8 @@ import java.text.MessageFormat;
 import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
@@ -48,7 +48,6 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
  * This implementation create a LogbookOperation and if necessary create an alert
  */
 public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator {
-
 
     private static final String SECURITY_ALERT = "Evénement de securité déclenché pour l''eventType {0} et l''outcome {1} : {2} {3}";
 
@@ -165,6 +164,4 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
         }
         return false;
     }
-
-
 }

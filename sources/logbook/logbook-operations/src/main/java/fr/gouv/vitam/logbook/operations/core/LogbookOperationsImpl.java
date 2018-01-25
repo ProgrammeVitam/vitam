@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -56,9 +57,13 @@ import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCol
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -68,6 +73,18 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Logbook Operations implementation base class
@@ -75,8 +92,11 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 public class LogbookOperationsImpl implements LogbookOperations {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsImpl.class);
+    // TODO: make storage strategy configurable
+    public static final String STRATEGY_ID = "default";
 
     private final LogbookDbAccess mongoDbAccess;
+    private final WorkspaceClientFactory workspaceClientFactory;
 
     /**
      * Constructor
@@ -84,7 +104,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
      * @param mongoDbAccess of logbook
      */
     public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess) {
+        this(mongoDbAccess, WorkspaceClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess, WorkspaceClientFactory workspaceClientFactory) {
         this.mongoDbAccess = mongoDbAccess;
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     @Override
@@ -92,12 +118,14 @@ public class LogbookOperationsImpl implements LogbookOperations {
         throws LogbookAlreadyExistsException,
         LogbookDatabaseException {
         mongoDbAccess.createLogbookOperation(parameters);
+        backupOperation(parameters);
     }
 
     @Override
     public void update(LogbookOperationParameters parameters)
         throws LogbookNotFoundException, LogbookDatabaseException {
         mongoDbAccess.updateLogbookOperation(parameters);
+        backupOperation(parameters);
     }
 
     @Override
@@ -107,7 +135,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         return select(select, true);
     }
 
-    public final void filterFinalResponse(VitamDocument<?> document) {
+    private void filterFinalResponse(VitamDocument<?> document) {
         for (final ParserTokens.PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
             switch (projection) {
                 case ID:
@@ -131,10 +159,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         }
     }
 
-    /*
-    
-     */
-    private final void replace(VitamDocument<?> document, String originalFieldName, String targetFieldName) {
+    private void replace(VitamDocument<?> document, String originalFieldName, String targetFieldName) {
         final Object value = document.remove(originalFieldName);
         if (value != null) {
             document.append(targetFieldName, value);
@@ -175,12 +200,14 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public final void createBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
         mongoDbAccess.createBulkLogbookOperation(operationArray);
+        backupBulkOperation(operationArray);
     }
 
     @Override
     public final void updateBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookNotFoundException {
         mongoDbAccess.updateBulkLogbookOperation(operationArray);
+        backupBulkOperation(operationArray);
     }
 
     @Override
@@ -252,9 +279,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
             return IndexationHelper.getFullKOResult(indexParameters, message);
         } else {
             MongoCollection<Document> mongoCollection = collection.getCollection();
-            try (InputStream mappingStream =
-                ElasticsearchCollections.valueOf(indexParameters.getCollectionName().toUpperCase())
-                    .getMappingAsInputStream()) {
+            try (InputStream mappingStream = ElasticsearchCollections
+                .valueOf(indexParameters.getCollectionName().toUpperCase())
+                .getMappingAsInputStream()) {
                 return IndexationHelper.reindex(mongoCollection, collection.getEsClient(),
                     indexParameters.getTenants(), mappingStream);
             } catch (IOException exc) {
@@ -273,6 +300,54 @@ public class LogbookOperationsImpl implements LogbookOperations {
         } catch (DatabaseException exc) {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName, exc);
             throw exc;
+        }
+    }
+
+    private void backupOperation(LogbookOperationParameters parameters) throws LogbookDatabaseException {
+        String operationGuid = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+        LogbookOperation logbookOperation;
+        try {
+            logbookOperation = mongoDbAccess.getLogbookOperation(operationGuid);
+        } catch (LogbookNotFoundException e) {
+            throw new LogbookDatabaseException("Cannot find operation with GUID " + operationGuid + ", cannot backup " +
+                "it", e);
+        }
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        // tenant_backup_operation
+        String containerName = tenantId + "_" + DataCategory.BACKUP_OPERATION.getFolder();
+        // Ugly hack to mock workspaceFactoryClient
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            try {
+                workspaceClient.createContainer(containerName);
+            } catch (ContentAddressableStorageAlreadyExistException ignored) {
+                // Already exists ? So, it's good
+                SysErrLogger.FAKE_LOGGER.ignoreLog(ignored);
+            }
+            workspaceClient.putObject(containerName, operationGuid, JsonHandler.writeToInpustream
+                (logbookOperation));
+            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                ObjectDescription objectDescription = new ObjectDescription();
+                objectDescription.setWorkspaceContainerGUID(containerName);
+                objectDescription.setObjectName(operationGuid);
+                objectDescription.setType(DataCategory.BACKUP_OPERATION);
+                objectDescription.setWorkspaceObjectURI(operationGuid);
+                storageClient.storeFileFromWorkspace(STRATEGY_ID, DataCategory.BACKUP_OPERATION, operationGuid,
+                    objectDescription);
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+                throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationGuid, e);
+            }
+            workspaceClient.deleteObject(containerName, operationGuid);
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn("Cannot delete temporary backup operation file with GUID {}", operationGuid, e);
+        } catch (InvalidParseOperationException e) {
+            throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationGuid, e);
+        }
+    }
+
+    private void backupBulkOperation(LogbookOperationParameters[] parametersArray) throws LogbookDatabaseException {
+        for (LogbookOperationParameters parameters : parametersArray) {
+            // TODO: better exception management ?
+            backupOperation(parameters);
         }
     }
 }

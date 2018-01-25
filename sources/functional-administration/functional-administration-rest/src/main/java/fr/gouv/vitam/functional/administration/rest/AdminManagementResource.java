@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -54,9 +54,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang3.StringUtils;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -101,7 +103,6 @@ import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
@@ -120,7 +121,6 @@ import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.VitamRuleService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -282,14 +282,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param formatId path param as String
      * @param request
      * @return Response jersey response
-     * @throws InvalidParseOperationException when transform result to json exception occurred
-     * @throws IOException when error json occurs
      */
     @GET
     @Path("format/{id_format:.+}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findFileFormatByID(@PathParam("id_format") String formatId, @Context Request request)
-        throws InvalidParseOperationException, IOException {
+    public Response findFileFormatByID(@PathParam("id_format") String formatId, @Context Request request) {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
         FileFormat fileFormat = null;
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
@@ -333,15 +330,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to get format
      * @return Response jersey Response
-     * @throws IOException when error json occurs
-     * @throws InvalidParseOperationException when error json occurs
      */
     @Path("format/document")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findFormats(JsonNode select)
-        throws InvalidParseOperationException, IOException {
+    public Response findFormats(JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileFormat> fileFormatList;
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
@@ -368,17 +362,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param rulesStream as InputStream
      * @return Response response jersey
-     * @throws IOException convert inputstream rule to File exception occurred
-     * @throws InvalidCreateOperationException if exception occurred when create query
-     * @throws InvalidParseOperationException if parsing json data exception occurred
-     * @throws ReferentialException if exception occurred when create rule file manager
      */
     @Path("rules/check")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response checkRulesFile(InputStream rulesStream)
-        throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+    public Response checkRulesFile(InputStream rulesStream) {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         return downloadErrorReport(rulesStream);
     }
@@ -430,21 +419,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
      */
     private Response handleGenerateReport(Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules) {
-        InputStream errorReportInputStream = null;
-        try {
-            RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
-            errorReportInputStream =
-                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
-                    null);
-            Map<String, String> headers = new HashMap<>();
-            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
-            headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
-            return new VitamAsyncInputStreamResponse(errorReportInputStream,
-                Status.BAD_REQUEST, headers);
-        } catch (FileRulesException e1) {
-            LOGGER.error(e1);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
+        InputStream errorReportInputStream;
+        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+        errorReportInputStream =
+            rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
+                null);
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+        headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
+        return new VitamAsyncInputStreamResponse(errorReportInputStream,
+            Status.BAD_REQUEST, headers);
     }
 
     /**
@@ -453,16 +437,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param headers http headers
      * @param rulesStream as InputStream
      * @return Response jersey response
-     * @throws IOException when error json occurs
-     * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo insert throw error
      */
     @Path("rules/import")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importRulesFile(@Context HttpHeaders headers, InputStream rulesStream)
-        throws InvalidParseOperationException, ReferentialException, IOException {
+    public Response importRulesFile(@Context HttpHeaders headers, InputStream rulesStream) {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
@@ -498,19 +478,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param ruleId path param as String
      * @param request the request
      * @return Response jersey response
-     * @throws InvalidParseOperationException if exception occurred when transform json rule id
-     * @throws IOException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
-     * @throws InvalidCreateOperationException if exception occurred when create query
      */
     @GET
     @Path("rules/{id_rule}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findRuleByID(@PathParam("id_rule") String ruleId, @Context Request request)
-        throws InvalidParseOperationException, IOException,
-        ReferentialException, InvalidCreateOperationException {
+    public Response findRuleByID(@PathParam("id_rule") String ruleId, @Context Request request) {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
-        FileRules fileRules = null;
+        FileRules fileRules;
         try {
             RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
 
@@ -554,15 +528,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String
      * @return Response jersey Response
-     * @throws IOException when error json occurs
-     * @throws InvalidParseOperationException when error json occurs
      */
     @Path("rules/document")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocumentRules(JsonNode select)
-        throws InvalidParseOperationException, IOException {
+    public Response findDocumentRules(JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileRules> filerulesList;
         try {
@@ -622,16 +593,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to find accession register
      * @return Response jersey Response
-     * @throws IOException when error json occurs
-     * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/document")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocumentFundsRegister(JsonNode select)
-        throws InvalidParseOperationException, IOException, ReferentialException {
+    public Response findDocumentFundsRegister(JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
         try {
@@ -697,16 +664,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param documentId
      * @param select as String the query to find the accession register
      * @return Response jersey Response
-     * @throws IOException when error json occurs
-     * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/detail/{id}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDetailAccessionRegister(@PathParam("id") String documentId, JsonNode select)
-        throws InvalidParseOperationException, IOException, ReferentialException {
+    public Response findDetailAccessionRegister(@PathParam("id") String documentId, JsonNode select) {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<AccessionRegisterDetail> accessionRegisterDetails;
         try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
@@ -766,7 +729,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try {
             rulesManagerFileImpl.checkRuleConformity(rulesManagerFileImpl.getRuleFromCollection(tenant),
                     rulesManagerFileImpl.getRuleFromOffer(tenant), tenant);
-        } catch (IOException | ReferentialException | InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
@@ -849,9 +812,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-    private AccessContractModel getContractDetails(String contractId)
-        throws InvalidParseOperationException,
-        InvalidCreateOperationException, AdminManagementClientServerException {
+    private AccessContractModel getContractDetails(String contractId) throws InvalidCreateOperationException {
 
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
@@ -866,14 +827,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-    private static JsonNode getQueryDsl(String headerAccessContratId)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-
+    private static JsonNode getQueryDsl(String headerAccessContratId) throws InvalidCreateOperationException {
         Select select = new Select();
         Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.IDENTIFIER, headerAccessContratId),
             QueryHelper.eq(AccessContract.STATUS, ContractStatus.ACTIVE.name()));
         select.setQuery(query);
-
         return select.getFinalSelect();
     }
 
@@ -887,7 +845,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     private void createAuditLogbookOperation()
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        LogbookClientNotFoundException, InvalidGuidOperationException {
+        InvalidGuidOperationException {
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final GUID objectId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
         final GUID operationAuditGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
@@ -908,10 +866,5 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
             .setMessage(status.getReasonPhrase()).setDescription(aMessage);
-    }
-
-    private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setMessage(status.getReasonPhrase());
     }
 }

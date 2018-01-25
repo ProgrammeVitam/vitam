@@ -53,6 +53,7 @@ import org.bson.Document;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.MongoCursor;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -83,7 +84,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -126,7 +127,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     /**
      * @param logbookOperations used to search the operation to secure
      * @param operationID guid of the traceability operation
-     * @param delay the overlap delay in second used to avoid to forgot logbook operation for traceability
+     * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
     public LogbookOperationTraceabilityHelper(LogbookOperations logbookOperations,
         GUID operationID, int overlapDelayInSeconds) {
@@ -302,7 +303,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                    STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
+                    STRATEGY_ID, DataCategory.LOGBOOK, fileName, description);
                 workspaceClient.deleteContainer(fileName, true);
 
                 createLogbookOperationEvent(tenant, OP_SECURISATION_STORAGE, OK, event);

@@ -114,8 +114,6 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
             if (throwable != null) {
                 throw throwable;
             }
-
         }
-
     }
 }

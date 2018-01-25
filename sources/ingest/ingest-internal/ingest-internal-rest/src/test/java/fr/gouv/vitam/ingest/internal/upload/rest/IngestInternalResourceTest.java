@@ -37,9 +37,6 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -58,11 +55,11 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -72,18 +69,20 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
@@ -330,17 +329,17 @@ public class IngestInternalResourceTest {
     public void downloadObjects()
         throws Exception {
         RestAssured.given()
-            .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.REPORTS.getCollectionName())
+            .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + DataCategory.REPORT.getCollectionName())
             .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
             .when()
-            .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.MANIFESTS.getCollectionName())
+            .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + DataCategory.MANIFEST.getCollectionName())
             .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
             .when()
-            .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.LOGBOOKS.getCollectionName())
+            .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + DataCategory.LOGBOOK.getCollectionName())
             .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         RestAssured.given()

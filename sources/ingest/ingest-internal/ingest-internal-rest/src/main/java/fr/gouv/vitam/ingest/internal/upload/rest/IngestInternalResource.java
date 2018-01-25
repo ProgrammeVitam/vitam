@@ -48,6 +48,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -102,7 +103,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -663,7 +664,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             description.setWorkspaceContainerGUID(guid);
             description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);
             storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY,
-                StorageCollectionType.REPORTS, guid + XML, description);
+                DataCategory.REPORT, guid + XML, description);
             workspaceClient.deleteContainer(guid, true);
             return Response.status(Status.OK).build();
 
@@ -677,13 +678,13 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private Response downloadObjectAsync(String objectId,
         String type) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            StorageCollectionType documentType = StorageCollectionType.valueOf(type.toUpperCase());
-            if (documentType == StorageCollectionType.MANIFESTS || documentType == StorageCollectionType.REPORTS) {
+            DataCategory documentType = DataCategory.getByCollectionName(type);
+            if (documentType == DataCategory.MANIFEST || documentType == DataCategory.REPORT) {
                 objectId += XML;
-            } else if (documentType == StorageCollectionType.RULES) {
+            } else if (documentType == DataCategory.RULES) {
                 // #2940 Ugly hack for use the same point of API for all report
                 objectId += JSON;
-                documentType = StorageCollectionType.REPORTS;
+                documentType = DataCategory.REPORT;
             } else {
                 return Response.status(Status.METHOD_NOT_ALLOWED).build();
             }
@@ -1023,7 +1024,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     response =
                         storageClient.getContainerAsync(DEFAULT_STRATEGY,
                             containerGUID.getId() + XML,
-                            StorageCollectionType.REPORTS);
+                            DataCategory.REPORT);
                 }
             } else {
                 response = Response.status(stepExecutionStatus).entity(updateResponse).build();

@@ -50,7 +50,6 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -75,13 +74,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -277,7 +276,7 @@ public class StorageTestMultiIT {
 
         InputStream fileIS = PropertiesUtils.getResourceAsStream("static-offer.json");
 
-        backupService.backup(fileIS, StorageCollectionType.RULES, FILE_NAME);
+        backupService.backup(fileIS, DataCategory.RULES, FILE_NAME);
 
         VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
 
@@ -309,7 +308,7 @@ public class StorageTestMultiIT {
         }
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS,
+                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT,
                     GUIDFactory.newObjectGroupGUID(0).getId(), description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
@@ -364,7 +363,7 @@ public class StorageTestMultiIT {
                 break;
             }
             try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
@@ -422,7 +421,7 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+            storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
             StorageServerClientException e) {
             LOGGER.error("Size: " + size, e);
@@ -457,7 +456,7 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+            storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
             StorageServerClientException e) {
             LOGGER.error("Size: " + size, e);
@@ -491,7 +490,7 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+            storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
             StorageServerClientException e) {
             LOGGER.error("Size: " + size, e);
@@ -648,7 +647,7 @@ public class StorageTestMultiIT {
             description.setWorkspaceContainerGUID(CONTAINER);
             description.setWorkspaceObjectURI(objectId.getId());
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, storageId.getId(),
+                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, storageId.getId(),
                     description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
@@ -657,7 +656,7 @@ public class StorageTestMultiIT {
             }
             Response response = null;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                response = storageClient.getContainerAsync("default", storageId.getId(), StorageCollectionType.OBJECTS);
+                response = storageClient.getContainerAsync("default", storageId.getId(), DataCategory.OBJECT);
                 final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                 if (status == Status.OK && response.hasEntity()) {
                     return true;
@@ -695,7 +694,7 @@ public class StorageTestMultiIT {
                 }
                 try {
                     storageClient
-                        .storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+                        .storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException e) {
                     LOGGER.error("Size: " + size, e);

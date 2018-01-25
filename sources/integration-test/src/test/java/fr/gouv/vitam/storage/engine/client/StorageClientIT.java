@@ -36,23 +36,6 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.jayway.restassured.RestAssured;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -61,12 +44,31 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.jayway.restassured.RestAssured;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
  * the storage-offer-mock.jar from the storage-offer-mock module and copy it in src/test/resources in place of the
  * previous one.
  */
-@Ignore("Really test of storage and offer is developped in the ReconstructionIT that does not use mock")
+@Ignore("Really test of storage and offer is developped in the BackupAndReconstructionIT that does not use mock")
 public class StorageClientIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIT.class);
     public static final String CONFIG_WORKSPACE_PATH = "integration-storage/workspace.conf";
@@ -241,45 +243,45 @@ public class StorageClientIT {
          * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (StorageServerClientException svce) { // not yet
          * implemented }
          */
-        storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, "objectId",
+        storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, "objectId",
             description);
-        storageClient.storeFileFromWorkspace("default2", StorageCollectionType.OBJECTS, "objectId",
+        storageClient.storeFileFromWorkspace("default2", DataCategory.OBJECT, "objectId",
             description);
 
-        storageClient.storeFileFromWorkspace("default", StorageCollectionType.REPORTS, "objectId",
+        storageClient.storeFileFromWorkspace("default", DataCategory.REPORT, "objectId",
             description1);
 
-        storageClient.storeFileFromWorkspace("default", StorageCollectionType.MANIFESTS, "objectId",
+        storageClient.storeFileFromWorkspace("default", DataCategory.MANIFEST, "objectId",
             description2);
 
         final InputStream stream =
-            storageClient.getContainerAsync("default", OBJECT_ID, StorageCollectionType.OBJECTS)
+            storageClient.getContainerAsync("default", OBJECT_ID, DataCategory.OBJECT)
                 .readEntity(InputStream.class);
         assertNotNull(stream);
         final InputStream stream2 =
-            storageClient.getContainerAsync("default2", OBJECT_ID, StorageCollectionType.OBJECTS)
+            storageClient.getContainerAsync("default2", OBJECT_ID, DataCategory.OBJECT)
                 .readEntity(InputStream.class);
         assertNotNull(stream2);
 
         final InputStream stream3 =
-            storageClient.getContainerAsync("default", REPORT, StorageCollectionType.REPORTS)
+            storageClient.getContainerAsync("default", REPORT, DataCategory.REPORT)
                 .readEntity(InputStream.class);
         assertNotNull(stream3);
 
         final InputStream stream4 =
-            storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
+            storageClient.getContainerAsync("default", MANIFEST, DataCategory.MANIFEST)
                 .readEntity(InputStream.class);
         assertNotNull(stream4);
 
         assertTrue(storageClient
-            .exists("default", StorageCollectionType.MANIFESTS, MANIFEST, SingletonUtils.singletonList()));
+            .exists("default", DataCategory.MANIFEST, MANIFEST, SingletonUtils.singletonList()));
 
         final InputStream stream5 =
-            storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
+            storageClient.getContainerAsync("default", MANIFEST, DataCategory.MANIFEST)
                 .readEntity(InputStream.class);
         assertNotNull(stream5);
         Digest digest = Digest.digest(stream5, VitamConfiguration.getDefaultDigestType());
-        storageClient.delete("default", StorageCollectionType.OBJECTS, "objectId", digest.toString(),
+        storageClient.delete("default", DataCategory.OBJECT, "objectId", digest.toString(),
             VitamConfiguration.getDefaultDigestType());
     }
 }

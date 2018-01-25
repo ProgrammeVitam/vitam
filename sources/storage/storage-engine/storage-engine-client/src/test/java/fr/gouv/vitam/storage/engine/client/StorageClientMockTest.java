@@ -34,20 +34,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 
-import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -83,7 +83,7 @@ public class StorageClientMockTest {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final StoredInfoResult result = client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "guid",
+        final StoredInfoResult result = client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "guid",
                 description);
         assertEquals(result.getId(), expectedResult.getId());
     }
@@ -92,7 +92,7 @@ public class StorageClientMockTest {
     public void checkExists() throws VitamClientException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertTrue(client.exists("idStrategy", StorageCollectionType.OBJECTS, "guid", SingletonUtils.singletonList()));
+        assertTrue(client.exists("idStrategy", DataCategory.OBJECT, "guid", SingletonUtils.singletonList()));
         assertTrue(client.existsContainer("idStrategy"));
     }
 
@@ -100,7 +100,7 @@ public class StorageClientMockTest {
     public void checkDelete() throws VitamClientException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTS, "guid", null, null));
+        assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "guid", null, null));
         assertTrue(client.deleteContainer("idStrategy"));
     }
 
@@ -108,7 +108,7 @@ public class StorageClientMockTest {
     public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        final InputStream stream = client.getContainerAsync("strategyId", "guid", StorageCollectionType.OBJECTS)
+        final InputStream stream = client.getContainerAsync("strategyId", "guid", DataCategory.OBJECT)
                 .readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);

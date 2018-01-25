@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -79,7 +78,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -98,7 +98,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -107,7 +106,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -325,7 +323,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Post used because Angular not support Get with body
      *
-     * @param headers       the HttpHeaders for the request
+     * @param request
      * @param xhttpOverride the use of http override POST method
      * @param sessionId     the id of session
      * @param options       the option for creating query to find logbook
@@ -523,7 +521,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             String evDetData = lastEvent.getEvDetData();
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
-            StorageCollectionType documentType = StorageCollectionType.LOGBOOKS;
+            DataCategory documentType = DataCategory.LOGBOOK;
             final Response response = storageClient.getContainerAsync("default", fileName, documentType);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {

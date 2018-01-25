@@ -39,6 +39,17 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -53,7 +64,6 @@ import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -61,16 +71,6 @@ import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.io.FileUtils;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * Integration tests for the reconstruction services. <br/>
@@ -109,7 +109,7 @@ public class RestoreBackupIT {
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
 
-        containerName = String.format("%s_%s", TENANT_ID, StorageCollectionType.BACKUP.toString().toLowerCase());
+        containerName = String.format("%s_%s", TENANT_ID, DataCategory.BACKUP.getCollectionName().toLowerCase());
         recoverBuckupService = new RestoreBackupServiceImpl();
 
         // Identify overlapping in particular jsr311
@@ -293,7 +293,7 @@ public class RestoreBackupIT {
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(uri);
-            storageClient.storeFileFromWorkspace(STRATEGY_ID, StorageCollectionType.BACKUP, uri, description);
+            storageClient.storeFileFromWorkspace(STRATEGY_ID, DataCategory.BACKUP, uri, description);
 
         } catch (Exception e) {
             LOGGER.error("ERROR: Exception has been thrown when storing the backup copy.", e);

@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -48,7 +47,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -95,7 +93,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type, String guid,
+    public StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
             ObjectDescription description)
             throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -142,13 +140,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean exists(String strategyId, StorageCollectionType type, String guid, List<String> offerIds)
+    public boolean exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
-        if (StorageCollectionType.CONTAINERS.equals(type)) {
+        if (DataCategory.CONTAINER.equals(type)) {
             throw new IllegalArgumentException("Type of storage object cannot be " + type.getCollectionName());
         }
         Response response = null;
@@ -214,7 +212,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest, DigestType digestAlgorithm)
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest, DigestType digestAlgorithm)
             throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -222,7 +220,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
         ParametersChecker.checkParameter("Digest must have a valid value", digest);
         ParametersChecker.checkParameter("Digest Algorithm must have a valid value", digestAlgorithm);
-        if (StorageCollectionType.CONTAINERS.equals(type)) {
+        if (DataCategory.CONTAINER.equals(type)) {
             throw new IllegalArgumentException(
                     VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_STORAGE_TYPE, type.getCollectionName()));
         }
@@ -364,7 +362,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
+    public Response getContainerAsync(String strategyId, String guid, DataCategory type)
             throws StorageServerClientException, StorageNotFoundException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);

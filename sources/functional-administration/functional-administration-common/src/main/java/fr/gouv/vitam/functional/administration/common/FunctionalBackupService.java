@@ -26,11 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
+import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.bson.BsonDocument;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Sorts;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -50,23 +66,7 @@ import fr.gouv.vitam.functional.administration.common.exception.BackupServiceExc
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import com.mongodb.client.model.Sorts;
-import org.bson.BsonDocument;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
-import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
-
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 /**
  * Functional backupService
@@ -185,12 +185,12 @@ public class FunctionalBackupService {
      * @param inputStream
      * @param eipMaster
      * @param eventCode
-     * @param storageCollectionType
+     * @param dataCategory
      * @param fileName
      * @throws VitamException
      */
     public void saveFile(InputStream inputStream, GUID eipMaster, String eventCode,
-        StorageCollectionType storageCollectionType, String fileName)
+        DataCategory dataCategory, String fileName)
         throws VitamException {
         final DigestType digestType = VitamConfiguration.getDefaultDigestType();
         final Digest digest = new Digest(digestType);
@@ -198,7 +198,7 @@ public class FunctionalBackupService {
 
         // Save data to storage
         try {
-            backupService.backup(digestInputStream, storageCollectionType, fileName);
+            backupService.backup(digestInputStream, dataCategory, fileName);
 
             backupLogbookManager.logEventSuccess(eipMaster, eventCode, digest.digestHex(), fileName);
         } catch (BackupServiceException e) {
@@ -206,6 +206,17 @@ public class FunctionalBackupService {
             backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
         }
     }
+
+    /**
+     * @param dataCategory
+     * @param tenant
+     * @param fileName
+     * @return
+     */
+    public String getName(DataCategory dataCategory, int tenant, String fileName) {
+        return String.format("%d_%s_%s", tenant, dataCategory.getCollectionName(), fileName);
+    }
+
 
     private File saveFunctionalCollectionToTempFile(FunctionalAdminCollections collectionToSave, int tenant,
         VitamSequence backupSequence) throws ReferentialException, IOException {
@@ -311,7 +322,7 @@ public class FunctionalBackupService {
             InputStream digestInputStream = digest.getDigestInputStream(fileInputStream);
 
             // Save data to storage
-            backupService.backup(digestInputStream, StorageCollectionType.BACKUP, fileName);
+            backupService.backup(digestInputStream, DataCategory.BACKUP, fileName);
 
             digestStr = digest.digestHex();
         }
