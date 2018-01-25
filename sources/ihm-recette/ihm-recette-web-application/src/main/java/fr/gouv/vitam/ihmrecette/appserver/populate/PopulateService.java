@@ -26,16 +26,18 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import io.reactivex.Observable;
-import io.reactivex.schedulers.Schedulers;
-import org.bson.Document;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.google.common.base.Stopwatch;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
+import org.bson.Document;
 
 public class PopulateService {
 
@@ -46,16 +48,18 @@ public class PopulateService {
     private final MetadataRepository metadataRepository;
 
     private UnitGraph unitGraph;
+    private int nbThreads;
 
-    public PopulateService(MetadataRepository metadataRepository, DescriptiveMetadataGenerator descriptiveMetadataGenerator,
-        UnitGraph unitGraph) {
+
+    public PopulateService(MetadataRepository metadataRepository, UnitGraph unitGraph, int nThreads) {
         this.metadataRepository = metadataRepository;
         this.unitGraph = unitGraph;
+        this.nbThreads = nThreads;
     }
 
     /**
      * Populate vitam with data using populateModel
-     * 
+     *
      * @param populateModel config to use
      */
     public void populateVitam(PopulateModel populateModel) {
@@ -63,6 +67,9 @@ public class PopulateService {
         if (populateInProgress.get()) {
             return;
         }
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
         populateInProgress.set(true);
 
         Map<String, String> options = new HashMap<>();
@@ -89,21 +96,28 @@ public class PopulateService {
 
             }
         }
-        Observable.range(0, populateModel.getNumberOfUnit())
-            .observeOn(Schedulers.computation())
-            .map(i -> unitGraph
-                .createGraph(i, populateModel))
+        Flowable.range(0, populateModel.getNumberOfUnit())
+            .observeOn(Schedulers.io())
+            .map(index -> unitGraph
+                        .createGraph(index, populateModel))
             .buffer(populateModel.getBulkSize())
-            .subscribe(unitGotList -> metadataRepository.store(populateModel.getTenant(), unitGotList, 
-                    populateModel.isStoreInDb(), populateModel.isIndexInEs()), t -> {
+            .parallel(nbThreads)
+            .map( unitGotList -> metadataRepository.store(populateModel.getTenant(), unitGotList,
+                populateModel.isStoreInDb(), populateModel.isIndexInEs()))
+            .sequential()
+            .subscribe(t -> {}, t -> {
                 LOGGER.error(t);
                 populateInProgress.set(false);
-            }, () -> populateInProgress.set(false));
+            }, () -> {
+                populateInProgress.set(false);
+                long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+                LOGGER.info("save time: {}", elapsed);
+            });
     }
 
     /**
      * Check if a populating task is in progress
-     * 
+     *
      * @return true if there is a populating task in progress
      */
     public boolean inProgress() {

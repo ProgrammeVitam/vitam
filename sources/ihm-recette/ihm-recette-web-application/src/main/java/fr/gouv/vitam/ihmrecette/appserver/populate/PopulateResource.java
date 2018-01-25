@@ -27,9 +27,11 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Path("/v1/api/populate")
 public class PopulateResource {
@@ -44,6 +46,17 @@ public class PopulateResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public void populateVitam(PopulateModel populateModel) {
         populateService.populateVitam(populateModel);
+    }
+
+    /**
+     * @return 202 if test are in progress, 200 if the previous test are done
+     */
+    @HEAD
+    public Response status() {
+        if (populateService.inProgress()) {
+            return Response.accepted().build();
+        }
+        return Response.ok().build();
     }
 
 }
