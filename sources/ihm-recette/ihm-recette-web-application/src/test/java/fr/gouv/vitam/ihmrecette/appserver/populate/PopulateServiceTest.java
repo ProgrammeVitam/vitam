@@ -19,7 +19,9 @@ import org.junit.rules.TemporaryFolder;
 
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +32,7 @@ public class PopulateServiceTest {
 
     @Rule
     public MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "metadata",
-            Arrays.stream(MetadataType.values()).map(MetadataType::getCollectionName).toArray(String[]::new));
+            Arrays.stream(VitamDataType.values()).map(VitamDataType::getCollectionName).toArray(String[]::new));
 
     private PopulateService populateService;
     private MetadataRepository metadataRepository;
@@ -62,6 +64,11 @@ public class PopulateServiceTest {
         populateModel.setSp("vitam");
         populateModel.setTenant(0);
         populateModel.setWithGots(true);
+        populateModel.setWithRules(true);
+        Map<String, Integer> ruleMap = new HashMap<>();
+        ruleMap.put("STR-00059", 20);
+        ruleMap.put("ACC-000111", 20);
+        populateModel.setRuleTemplatePercent(ruleMap);
 
         UnitModel unitModel = new UnitModel();
 
@@ -84,8 +91,11 @@ public class PopulateServiceTest {
         }
 
         int[] idx = { 0 };
-        assertThat(mongoRule.getMongoCollection(MetadataType.UNIT.getCollectionName()).count()).isEqualTo(11);
-        mongoRule.getMongoCollection(MetadataType.UNIT.getCollectionName()).find().skip(1).
+        int portMongo = MongoRule.getDataBasePort();
+        assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count()).isEqualTo(11);
+        assertThat(mongoRule.getMongoCollection(VitamDataType.AGENCIES.getCollectionName()).count()).isEqualTo(1);
+        assertThat(mongoRule.getMongoCollection(VitamDataType.RULES.getCollectionName()).count()).isEqualTo(2);
+        mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) document -> {
                 assertThat(document.getString("Title").equals("Title: " + (idx[0]++)));
                 assertThat(!document.get("_up", List.class).contains("1234"));
@@ -95,8 +105,8 @@ public class PopulateServiceTest {
         });
 
         int[] jdx = { 0 };
-        assertThat(mongoRule.getMongoCollection(MetadataType.GOT.getCollectionName()).count()).isEqualTo(10);
-        mongoRule.getMongoCollection(MetadataType.GOT.getCollectionName()).find().
+        assertThat(mongoRule.getMongoCollection(VitamDataType.GOT.getCollectionName()).count()).isEqualTo(10);
+        mongoRule.getMongoCollection(VitamDataType.GOT.getCollectionName()).find().
             forEach((Block<? super Document>) document -> {
                 assertThat(document.get("FileInfo", Document.class).
                         getString("Filename").equals("Filename: " + (jdx[0]++)));

@@ -30,7 +30,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
+import org.bson.Document;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PopulateService {
@@ -59,14 +63,36 @@ public class PopulateService {
         if (populateInProgress.get()) {
             return;
         }
-
         populateInProgress.set(true);
 
+        Map<String, String> options = new HashMap<>();
+        String identifier = populateModel.getSp();
+        int tenantId = populateModel.getTenant();
+        options.put("Identifier", identifier);
+        options.put("_tenant", populateModel.getTenant() + "");
+        Optional<Document> agencyDocuments =
+            this.metadataRepository.findDocumentByMap(VitamDataType.AGENCIES, options);
+
+        if (!agencyDocuments.isPresent()) {
+            this.metadataRepository.importAgency(identifier, tenantId);
+        }
+
+        if (populateModel.isWithRules()) {
+            Map<String, Integer> ruleMap = populateModel.getRuleTemplatePercent();
+            for (String rule : ruleMap.keySet()) {
+                options.put("RuleId", rule);
+                options.put("_tenant", populateModel.getTenant() + "");
+                Optional<Document> ruleDocuments = this.metadataRepository.findDocumentByMap(VitamDataType.RULES, options);
+                if (!ruleDocuments.isPresent()) {
+                    this.metadataRepository.importRule(rule, tenantId);
+                }
+
+            }
+        }
         Observable.range(0, populateModel.getNumberOfUnit())
             .observeOn(Schedulers.computation())
             .map(i -> unitGraph
-                .createGraph(i, populateModel.getRootId(), populateModel.getTenant(), populateModel.getSp(), 
-                        populateModel.isWithGots()))
+                .createGraph(i, populateModel))
             .buffer(populateModel.getBulkSize())
             .subscribe(unitGotList -> metadataRepository.store(populateModel.getTenant(), unitGotList, 
                     populateModel.isStoreInDb(), populateModel.isIndexInEs()), t -> {

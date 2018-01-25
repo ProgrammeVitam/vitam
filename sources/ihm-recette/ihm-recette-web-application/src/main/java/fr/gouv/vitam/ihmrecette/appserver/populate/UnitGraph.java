@@ -6,7 +6,13 @@ import com.google.common.cache.LoadingCache;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
+import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -31,26 +37,19 @@ public class UnitGraph {
     /**
      * Create a graph
      * @param i used to generate dynamic metadata
-     * @param rootId the id of a root unit to use for attachment (can be null) 
-     * @param tenantId tenant identifier
-     * @param originatingAgency the origination agency
-     * @param withGot if true, one got is created for every unit
+     * @param populateModel model of populate service
      * @return new UnitGotModel (unitModel, gotModel)
      */
-    public UnitGotModel createGraph(int i, String rootId, int tenantId, String originatingAgency, boolean withGot) {
-        
+    public UnitGotModel createGraph(int i, PopulateModel populateModel) {
+
+        final int tenantId = populateModel.getTenant();
+        final boolean withGot = populateModel.isWithGots();
         // id of the unit.
         String uuid = GUIDFactory.newUnitGUID(tenantId).toString();
         
-        // get rootUnit if any
-        UnitModel rootUnit = null;
-        if(rootId != null) {
-            rootUnit = cache.getUnchecked(rootId);
-        }
-        
         // create unitModel
-        UnitModel unitModel = createUnitModel(uuid, originatingAgency, rootId, tenantId, 
-                DescriptiveMetadataGenerator.generateDescriptiveMetadataModel(i), rootUnit);
+        UnitModel unitModel = createUnitModel(uuid, DescriptiveMetadataGenerator.generateDescriptiveMetadataModel(i),
+            populateModel, i);
         
         if(!withGot) {
             return new UnitGotModel(unitModel);  
@@ -74,15 +73,23 @@ public class UnitGraph {
      * Create a unitModel
      * 
      * @param uuid Guid
-     * @param originatingAgency originating agency
-     * @param rootId to use for up
-     * @param tenantId tenant identifier
      * @param descriptiveMetadataModel MetadataModel
-     * @param rootUnit parentUnit Model
+     * @param populateModel populate Model
      * @return a UnitModel
      */
-    private UnitModel createUnitModel(String uuid, String originatingAgency, String rootId, int tenantId,
-                                      DescriptiveMetadataModel descriptiveMetadataModel, UnitModel rootUnit) {
+    private UnitModel createUnitModel(String uuid, DescriptiveMetadataModel descriptiveMetadataModel,
+        PopulateModel populateModel, int unitNumber) {
+
+        final int tenantId = populateModel.getTenant();
+        final String rootId = populateModel.getRootId();
+        final String originatingAgency = populateModel.getSp();
+
+        // get rootUnit if any
+        UnitModel rootUnit = null;
+        if(rootId != null) {
+            rootUnit = cache.getUnchecked(rootId);
+        }
+
         UnitModel unitModel = new UnitModel();
 
         unitModel.setId(uuid);
@@ -92,6 +99,26 @@ public class UnitGraph {
         unitModel.getUp().add(rootId);
         unitModel.setTenant(tenantId);
         unitModel.setDescriptiveMetadataModel(descriptiveMetadataModel);
+
+        if (populateModel.isWithRules()) {
+            ManagementModel management = new ManagementModel();
+            Map<String, Integer> ruleMap = populateModel.getRuleTemplatePercent();
+            for (String rule : ruleMap.keySet()) {
+                int numberUnitWithRUle = ruleMap.get(rule)*populateModel.getBulkSize()/100;
+                if (unitNumber < numberUnitWithRUle) {
+                    RuleModel ruleModel = new RuleModel(rule, "2017-01-01");
+                    // Set default rule duration 50 years
+                    // TODO search rule duration and calculate end date ??
+                    ruleModel.setEndDate("2067-01-01");
+                    List<RuleModel> rules = new ArrayList<>();
+                    rules.add(ruleModel);
+                    RuleCategoryModel ruleCategory = new RuleCategoryModel();
+                    ruleCategory.setRules(rules);
+                    management.setRuleCategoryModel(ruleCategory, MetadataRepository.getRuleCategoryByRuleId(rule));
+                }
+            }
+            unitModel.setManagementModel(management);
+        }
 
         // setup graph info
         if(rootUnit != null) {
