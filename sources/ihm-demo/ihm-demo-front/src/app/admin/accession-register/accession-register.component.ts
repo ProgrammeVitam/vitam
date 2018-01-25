@@ -68,10 +68,10 @@ export class AccessionRegisterSearchComponent extends PageComponent {
             data => {
             this.filterResponse(data);
           },
-            error => console.log('Error - ', this.response)
+            error => console.log('Error - ', error)
         );
       },
-        error => console.log('Error - ', this.response)
+        error => console.log('Error - ', error)
     );
   }
 
