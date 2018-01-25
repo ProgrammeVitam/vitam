@@ -47,12 +47,16 @@ Enfin, la déclaration des configuration des offres de stockage est réalisée d
 
 Déclaration des secrets
 =======================
+.. warning:: Cette section décrit des fichiers contenant des données sensibles ; il convient de sécuriser ces fichiers avec un mot de passe "fort". En cas d'usage d'un fichier de mot de passe ("vault-password-file"), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
+
 
 Les secrets utilisés par la solution logicielle (en-dehors des certificats qui sont abordés dans une section ultérieure) sont définis dans des fichiers chiffrés par ansible-vault.
 
 .. important:: Tous les vault présents dans l'arborescence d'inventaire doivent être tous protégés par le même mot de passe !
 
-La première étape consiste à changer les mot de passe de tous les vault présents dans l'arborescence de déploiement (le mot de passe par défaut est contenu dans le fichier ``vault_pass.txt``) à l'aide de la commande ``ansible-vault rekey <fichier vault>``.
+
+
+La première étape consiste à changer les mots de passe de tous les vault présents dans l'arborescence de déploiement (le mot de passe par défaut est contenu dans le fichier ``vault_pass.txt``) à l'aide de la commande ``ansible-vault rekey <fichier vault>``.
 
 2 vaults sont principalement utilisés dans le déploiement d'une version ; leur contenu est donc à modifier avant tout déploiement :
 
@@ -62,11 +66,23 @@ La première étape consiste à changer les mot de passe de tous les vault prés
      :language: ini
      :linenos:
 
-* Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mot de passe des magasins de certificats utilisés dans VITAM :
+* Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
   
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.txt
      :language: ini
      :linenos:
+
+.. warning:: il convient de sécuriser votre environnement en définissant des mots de passe "forts".
+
+Cas des extra
+--------------
+
+* Le fichier |repertoire_inventory| ``/group_vars/all/vault-extra.yml`` contient les mot de passe des magasins de certificats utilisés dans VITAM :
+  
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.txt
+     :language: ini
+     :linenos:
+
 
 
 .. note:: le playbook ``vitam.yml`` comprend des étapes avec la mention ``no_log`` afin de ne pas afficher en clair des étapes comme les mots de passe des certificats. En cas d'erreur, il est possible de retirer la ligne dans le fichier pour une analyse plus fine d'un éventuel problème sur une de ces étapes.
