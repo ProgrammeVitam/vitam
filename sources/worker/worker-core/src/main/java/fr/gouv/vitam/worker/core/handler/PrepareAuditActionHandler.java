@@ -66,6 +66,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -153,6 +154,17 @@ public class PrepareAuditActionHandler extends ActionHandler {
 
             File file = handler.getNewLocalFile(AuditWorkflowConstants.AUDIT_FILE);
             JsonHandler.writeAsFile(ogIdList, file);
+
+            // Idempotency - we check if the folder exist
+            if (workspaceClient.isExistingContainer(param.getContainerName())) {
+                try {
+                    workspaceClient.deleteContainer(param.getContainerName(), true);
+                    LOGGER.warn("Container was already existing, step is being replayed");
+                } catch (ContentAddressableStorageNotFoundException e) {
+                    LOGGER.warn("The container could not be deleted", e);
+                }
+            }
+
             workspaceClient.createContainer(param.getContainerName());
             handler.transferFileToWorkspace(AuditWorkflowConstants.AUDIT_FILE, file, true, asyncIO);
             if (ogIdList.size() == 0 || originatingAgencyEmpty.size() > 0) {
@@ -185,7 +197,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
             }
         }
     }
-    
+
     private List<String> listOriginatingAgency(ArrayNode originatingAgencyEmpty, String objectId)
         throws AccessUnauthorizedException, InvalidParseOperationException, ReferentialException,
         InvalidCreateOperationException {

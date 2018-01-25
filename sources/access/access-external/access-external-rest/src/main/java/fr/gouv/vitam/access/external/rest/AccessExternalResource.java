@@ -577,6 +577,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     .setHttpCode(Status.NOT_FOUND.getStatusCode())))
                 .build();
         } catch (AccessUnauthorizedException exc) {
+            LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.UNAUTHORIZED)
                 .entity(getErrorStream(VitamCodeHelper
                     .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
@@ -599,6 +600,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         try {
             return JsonHandler.writeToInpustream(vitamError);
         } catch (InvalidParseOperationException e) {
+            LOGGER.error(e.getMessage(), e);
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
     }

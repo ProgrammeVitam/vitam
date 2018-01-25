@@ -1,5 +1,5 @@
 Processing Engine
-##################
+#################
 
 Présentation
 ^^^^^^^^^^^^
@@ -10,15 +10,15 @@ Présentation
 Ce module présente un packge api et core. Dans api on retrouve les interface et dans core leurs implémentations.
 
 Api
-----
+---
 ProcessEngine est l'interface qu'on retrouve au niveau de la machine état. Elle expose les méthodes suivantes:
 - start : pour lancer l'exécution d'une étape d'un processus auquel ce ProcessEngine est rattaché.
-- pause: n'est pas encore implémenté pour le moment mais sert à propager l'action pause sur les étapes.
-- cancel: n'est pas encore implémenté pour le moment mais sert à propager l'action cancel sur les étapes.
+- pause: sert à propager l'action pause sur les étapes.
+- cancel: sert à propager l'action cancel sur les étapes.
 
 
 Core
------
+----
 
 Dans la partie Core, la classe ProcessEngineImpl est l'implémentation de l'interface  ProcessEngine:
 

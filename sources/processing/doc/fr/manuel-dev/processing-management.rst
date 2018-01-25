@@ -19,7 +19,7 @@ Processing-management
 =====================
 
 Rest API
-------------------
+--------
 
 Dans le module Processing-management (package rest) : 
 | http://server/processing/v1
@@ -31,6 +31,7 @@ Dans le module Processing-management (package rest) :
 | - Relancer un processus en mode continu avec header X-ACTION==> resume
 | - Exécuter l'étape suivante avec header X-ACTION==> next
 | - Mettre en pause un processus avec header X-ACTION==> pause
+| - Réexécuter l'étape précédemment exécutée avec header X-ACTION==> replay
 | GET /operations/{id} -> **récupérer les details d'un processus workflow par id et tenant**
 | HEAD /operations/{id} -> **récupérer l'état d'éxécution d'un processus workflow par id et tenant**
 | DELETE /operations/{id} -> **Annuler un processus**
@@ -42,13 +43,14 @@ De plus est ajoutée à la resource existante une resource déclarée dans le mo
 | DELETE /{id_family}/workers/{id_worker} -> **DELETE Permet de supprimer un worker**
 
 Core
------
+----
 
 Dans la partie Core, la classe ProcessManagementImpl propose les méthodes suivantes :
 
 
 - **init**: Initialiser un processus avec un workflow donné. Dans cette étape on attach avec un cardinalité un-à-un un ProcessEngine et une machine à état à ce processus.
 - **next**: Exécute l'action next (exécuter l'étape suivante mode step by step) sur un processus existant.
+- **replay**: Exécute l'action replay (relancer la dernière étape exécutée) sur un processus existant.
 - **resume**: Exécute l'action resume (exécuter toutes les étapes mode continu) sur un processus existant.
 - **pause**: Exécute l'action pause (mettre le processus en état pause dès que possible) sur un processus existant.
 - **cancel**: Exécute l'action cancel (annuler un processus dès que possible) sur un processus existant.
@@ -64,27 +66,34 @@ Dans la partie core on trouve aussi la classe StateMachine. Elle gère toutes le
 
 Evaluer le passage de l'état actuel du processus vers l'état RUNNING en mode step by step.
 On ne peut passer à l'état RUNNING que depuis un état en cours PAUSE.
-Si cette évaluation ne lance pas d'exception alors lancer l'exéction d'un processus appel de ma la méthode **doRunning**.
+Si cette évaluation ne lance pas d'exception alors on lance l'exécution d'un processus et appel de la méthode **doRunning**
+
+- **replay**:
+
+Evaluer le passage de l'état actuel du processus vers l'état RUNNING en mode step by step.
+On ne peut passer à l'état RUNNING que depuis un état en cours PAUSE.
+Si cette évaluation ne lance pas d'exception alors on lance l'exécution d'un processus et appel de la méthode **doReplay**.
 
 - **resume**:
 
 Evaluer le passage de l'état actuel du processus vers l'état RUNNING en mode continu.
 On ne peut passer à l'état RUNNING que depuis un état en cours PAUSE.
-Si cette évaluation ne lance pas d'exception alors lancer l'exéction d'un processus appel de ma la méthode **doRunning**.
+Si cette évaluation ne lance pas d'exception alors on lance l'exécution d'un processus et appel de la méthode **doRunning**.
 
 - **pause**:
 
 Evaluer le passage de l'état actuel du processus vers l'état PAUSE.
 On ne peut passer à l'état PAUSE que depuis un état en cours (PAUSE, RUNNING).
-Si cette évaluation ne lance pas d'exception alors , dans le cas d'un état en cours RUNNING, finir l'exécution de l'étape en cours et passer à l'état PAUSE, et si c'est la dernière étape, alors passer à l'état COMPLETED. Appel de ma la méthode **doPause**
+Si cette évaluation ne lance pas d'exception alors , dans le cas d'un état en cours RUNNING, finir l'exécution de l'étape en cours et passer à l'état PAUSE, et si c'est la dernière étape, alors passer à l'état COMPLETED. Appel de la méthode **doPause**
 
 - **cancel**:
 
 Evaluer le passage de l'état actuel du processus vers l'état COMPLETED.
 On ne peut passer à l'état COMPLETED que depuis un état en cours (PAUSE, RUNNING).
-Si cette évaluation ne lance pas d'exception alors , dans le cas d'un état en cours RUNNING,  finir l'exécution de l'étape en cours et passer à l'état COMPLETED. Appel de ma la méthode **doCompleted**
+Si cette évaluation ne lance pas d'exception alors , dans le cas d'un état en cours RUNNING,  finir l'exécution de l'étape en cours et passer à l'état COMPLETED. Appel de la méthode **doCompleted**
 
 -**doRunning**: Appelée depuis **next** ou **resume**.
+-**doReplay**: Appelée depuis **replay**.
 -**doPause**: Appelée depusi **pause**.
 -**doCompleted**: Appelée depuis **cancel**.
 
@@ -121,7 +130,7 @@ Processing-management-client
 ----------------------------
 
 Utilisation
-------------
+-----------
 
 Le client propose les méthode suivantes : 
 
@@ -136,7 +145,7 @@ Le client propose les méthode suivantes :
 - **unregisterWorker** : permet de supprimer un worker à la liste des workers.
 
 Exemple:
----------
+--------
 
 .. code-block:: java
 
@@ -160,7 +169,7 @@ Le module processing data propose plusieurs méthodes:
 
 
 Configuration
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 1. Configuration du pom
 
 Configuration du pom avec maven-surefire-plugin permet le build sous jenkins. Il permet de configurer le chemin des resources de esapi dans le common private.

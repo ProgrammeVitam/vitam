@@ -412,7 +412,6 @@ public class LogbookInternalResourceImpl {
             if (done) {
                 // Get the created logbookOperation and return the response
                 final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
-                cleanWorkspace(checkOperationGUID.getId());
                 return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();
             } else {
                 ItemStatus itemStatus = processingClient.getOperationProcessStatus(checkOperationGUID.getId());
@@ -431,7 +430,7 @@ public class LogbookInternalResourceImpl {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
 
         } catch (InternalServerException | VitamClientException | LogbookClientException |
-            InvalidParseOperationException | ContentAddressableStorageException e) {
+            InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
@@ -563,14 +562,5 @@ public class LogbookInternalResourceImpl {
         }
     }
 
-    private void cleanWorkspace(final String containerName)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        // call workspace
-        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-            if (workspaceClient.isExistingContainer(containerName)) {
-                workspaceClient.deleteContainer(containerName, true);
-            }
-        }
-    }
 
 }

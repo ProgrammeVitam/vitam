@@ -21,6 +21,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -368,6 +369,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
                         .toVitamError(VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR, "Collection not found")),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
             } catch (InvalidParseOperationException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
                     new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
