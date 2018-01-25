@@ -65,14 +65,20 @@ public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
             executeQuery();
         }
         if (results.hasNext()) {
-            action.accept(results.next());
-            this.size += 1;
+            applyAndIncrementSize(action);
             return true;
         }
         if (size < hits.getTotal()) {
             executeQuery();
+            applyAndIncrementSize(action);
+            return true;
         }
         return false;
+    }
+
+    private void applyAndIncrementSize(Consumer<? super T> action) {
+        action.accept(results.next());
+        this.size += 1;
     }
 
     @Override
