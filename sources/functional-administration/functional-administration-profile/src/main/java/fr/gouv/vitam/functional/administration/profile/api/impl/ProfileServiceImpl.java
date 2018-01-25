@@ -352,7 +352,7 @@ public class ProfileServiceImpl implements ProfileService {
             InputStream profileIS = new ByteArrayInputStream(byteArray);
 
             functionalBackupService.saveFile(profileIS, eip, OP_PROFILE_STORAGE,
-                StorageCollectionType.PROFILES, ParameterHelper.getTenantParameter(), fileName);
+                StorageCollectionType.PROFILES, fileName);
 
             final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
             Update update = new Update();
@@ -388,7 +388,8 @@ public class ProfileServiceImpl implements ProfileService {
 
             manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(), wellFormedJson);
 
-        } catch (IOException | InvalidCreateOperationException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+        } catch (Exception e) {
+            LOGGER.error(e);
             String err =
                 new StringBuilder("Import profiles storage workspace error : ").append(e.getMessage()).toString();
             LOGGER.error(err, e);
@@ -506,10 +507,29 @@ public class ProfileServiceImpl implements ProfileService {
             return error;
         }
 
+        String wellFormedJson = null;
+        try {
+            try (DbRequestResult result = mongoAccess.updateData(jsonDsl, FunctionalAdminCollections.PROFILE)) {
+                updateDiffs = result.getDiffs();
+            }
 
-        try (DbRequestResult result = mongoAccess.updateData(jsonDsl, FunctionalAdminCollections.PROFILE)) {
-            updateDiffs = result.getDiffs();
-        } catch (final ReferentialException e) {
+            List<String> diff = updateDiffs.get(profileModel.getId());
+            try {
+                final ObjectNode object = JsonHandler.createObjectNode();
+                object.put(UPDATED_DIFFS, Joiner.on(" ").join(diff));
+                wellFormedJson = SanityChecker.sanitizeJson(object);
+            } catch (InvalidParseOperationException e) {
+                // Do nothing
+            }
+
+            functionalBackupService.saveCollectionAndSequence(
+                eip,
+                PROFILE_BACKUP_EVENT,
+                FunctionalAdminCollections.PROFILE
+            );
+
+        }catch (final Exception e) {
+            LOGGER.error(e);
             final String err = new StringBuilder("Update profile error : ").append(e.getMessage()).toString();
             manager.logFatalError(PROFILES_UPDATE_EVENT, profileModel.getId(), err);
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
@@ -518,21 +538,6 @@ public class ProfileServiceImpl implements ProfileService {
 
             return error;
         }
-        List<String> diff = updateDiffs.get(profileModel.getId());
-        String wellFormedJson = null;
-        try {
-            final ObjectNode object = JsonHandler.createObjectNode();
-            object.put(UPDATED_DIFFS, Joiner.on(" ").join(diff));
-            wellFormedJson = SanityChecker.sanitizeJson(object);
-        } catch (InvalidParseOperationException e) {
-            // Do nothing
-        }
-
-        functionalBackupService.saveCollectionAndSequence(
-                eip,
-                PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.PROFILE
-        );
 
         manager.logSuccess(PROFILES_UPDATE_EVENT, profileModel.getId(), wellFormedJson);
         return new RequestResponseOK().setHttpCode(Response.Status.OK.getStatusCode());

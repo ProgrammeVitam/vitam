@@ -206,7 +206,7 @@ public class ProfileServiceImplTest {
         assertThat(requestResponse.isOk()).isTrue();
 
         verify(functionalBackupService).saveFile(any(), any(), eq(OP_PROFILE_STORAGE),
-                eq(StorageCollectionType.PROFILES), eq(TENANT_ID), anyString());
+                eq(StorageCollectionType.PROFILES), anyString());
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
                 eq(FunctionalAdminCollections.PROFILE));
         verifyNoMoreInteractions(functionalBackupService);

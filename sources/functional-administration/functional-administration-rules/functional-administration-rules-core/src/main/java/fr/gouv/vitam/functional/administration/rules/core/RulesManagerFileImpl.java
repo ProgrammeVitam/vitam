@@ -61,6 +61,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.flipkart.zjsonpatch.JsonDiff;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -251,8 +252,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     @Override
     public void importFile(InputStream rulesFileStream, String filename)
-        throws IOException, InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
-        StorageException {
+        throws IOException, InvalidParseOperationException, ReferentialException, StorageException {
         ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
         File file = convertInputStreamToFile(rulesFileStream, CSV);
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
@@ -343,9 +343,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelToInsert,
                 fileRulesModelsToImport, eip);
 
-            backupService
-                .saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV, StorageCollectionType.RULES,
-                    ParameterHelper.getTenantParameter(), eip != null ? eip.getId() : "" + CSV);
+            backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
+                StorageCollectionType.RULES, eip.getId() + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -402,10 +401,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             final Digest digest = new Digest(digestType);
             digest.update(new FileInputStream(file));
 
-
-            backupService
-                .saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV, StorageCollectionType.RULES,
-                    ParameterHelper.getTenantParameter(), eip != null ? eip.getId() : "" + CSV);
+            backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
+                StorageCollectionType.RULES, eip.getId() + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -605,8 +602,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToDelete,
         ArrayNode validatedRules, List<FileRulesModel> fileRulesModelToInsert,
         List<FileRulesModel> fileRulesModelsToImport, GUID eipMaster)
-        throws FileRulesException, LogbookClientServerException, StorageException, LogbookClientBadRequestException,
-        LogbookClientAlreadyExistsException {
+        throws FileRulesException {
         boolean secureRules = false;
         try {
             Integer sequence = vitamCounterService
@@ -803,8 +799,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param logbookParametersEnd logbookParametersEnd
      */
     private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
-        try {
-            logbookOperationsClientFactory.getClient().update(logbookParametersEnd);
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+            client.update(logbookParametersEnd);
         } catch (LogbookClientBadRequestException | LogbookClientNotFoundException | LogbookClientServerException e) {
             LOGGER.error(e.getMessage());
         }
@@ -816,8 +812,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param logbookParametersStart logbookParametersStart
      */
     private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
-        try {
-            logbookOperationsClientFactory.getClient().create(logbookParametersStart);
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+            client.create(logbookParametersStart);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
             LogbookClientServerException e) {
             LOGGER.error(e.getMessage());
@@ -964,13 +960,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
 
         try {
-            backupService
-                .saveFile(stream, eipMaster, RULES_REPORT, StorageCollectionType.REPORTS,
-                    ParameterHelper.getTenantParameter(), fileName);
+            backupService.saveFile(stream, eipMaster, RULES_REPORT, StorageCollectionType.REPORTS, fileName);
         } catch (VitamException e) {
             throw new StorageException(e.getMessage(), e);
         }
-
     }
 
 

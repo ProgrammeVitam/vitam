@@ -30,6 +30,9 @@ package fr.gouv.vitam.functional.administration.common;
 import java.io.InputStream;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -45,12 +48,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-
 /**
  * BackupService class for storing files in offers
  * Thread Safe
  */
 public class BackupService {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupService.class);
 
     private static final String STRATEGY_ID = "default";
     private final WorkspaceClientFactory workspaceClientFactory;
@@ -75,38 +79,44 @@ public class BackupService {
         throws BackupServiceException {
         WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
         StorageClient storageClient = storageClientFactory.getClient();
+
+        String containerName = GUIDFactory.newGUID().toString();
+
         try {
 
             //store in workSpace
-            workspaceClient.createContainer(uri);
+            workspaceClient.createContainer(containerName);
+
             try {
-                workspaceClient.putObject(uri, uri, stream);
+                workspaceClient.putObject(containerName, uri, stream);
 
                 //store in offer
                 final ObjectDescription description = new ObjectDescription();
-                description.setWorkspaceContainerGUID(uri);
+                description.setWorkspaceContainerGUID(containerName);
                 description.setWorkspaceObjectURI(uri);
 
                 storageClient.storeFileFromWorkspace(STRATEGY_ID, storageCollectionType, uri, description);
+
             } finally {
-                //DeleteContainer
-                workspaceClient.deleteContainer(uri, true);
+                try {
+                    // try delete container
+                    workspaceClient.deleteContainer(containerName, true);
+                } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+                    LOGGER.warn("Unable to delete file from workSpace " + containerName + "/" + uri);
+                }
             }
 
         } catch (ContentAddressableStorageServerException
             | ContentAddressableStorageAlreadyExistException e) {
             //workspace Error
-            throw new BackupServiceException("Unable to store file in workSpace " + uri, e);
+            throw new BackupServiceException("Unable to store file in workSpace " + containerName + "/" + uri, e);
 
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
             //Offer storage Error
-            throw new BackupServiceException("Unable to store file from workSpace to storage " + uri, e);
-        } catch (ContentAddressableStorageNotFoundException e) {
-            // clean container Error
-            throw new BackupServiceException("Unable to delete file", e);
+            throw new BackupServiceException(
+                "Unable to store file from workSpace to storage " + containerName + "/" + uri, e);
         } finally {
             StreamUtils.closeSilently(stream);
         }
     }
-
 }

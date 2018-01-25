@@ -186,22 +186,19 @@ public class FunctionalBackupService {
      * @param eipMaster
      * @param eventCode
      * @param storageCollectionType
-     * @param tenant
      * @param fileName
      * @throws VitamException
      */
     public void saveFile(InputStream inputStream, GUID eipMaster, String eventCode,
-        StorageCollectionType storageCollectionType, int tenant, String fileName)
+        StorageCollectionType storageCollectionType, String fileName)
         throws VitamException {
         final DigestType digestType = VitamConfiguration.getDefaultDigestType();
         final Digest digest = new Digest(digestType);
         InputStream digestInputStream = digest.getDigestInputStream(inputStream);
 
-        String uri = getName(storageCollectionType, tenant, fileName);
         // Save data to storage
-
         try {
-            backupService.backup(digestInputStream, storageCollectionType, uri);
+            backupService.backup(digestInputStream, storageCollectionType, fileName);
 
             backupLogbookManager.logEventSuccess(eipMaster, eventCode, digest.digestHex(), fileName);
         } catch (BackupServiceException e) {
@@ -209,17 +206,6 @@ public class FunctionalBackupService {
             backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
         }
     }
-
-    /**
-     * @param storageCollectionType
-     * @param tenant
-     * @param fileName
-     * @return
-     */
-    public String getName(StorageCollectionType storageCollectionType, int tenant, String fileName) {
-        return String.format("%d_%s_%s", tenant, storageCollectionType.getCollectionName(), fileName);
-    }
-
 
     private File saveFunctionalCollectionToTempFile(FunctionalAdminCollections collectionToSave, int tenant,
         VitamSequence backupSequence) throws ReferentialException, IOException {

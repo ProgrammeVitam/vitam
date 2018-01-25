@@ -56,18 +56,18 @@ class AgenciesManager {
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesManager.class);
 
     private final GUID eip;
-    private final LogbookOperationsClient logBookclient;
+    private final LogbookOperationsClient logbookClient;
     private boolean warning = false;
 
 
 
-    public AgenciesManager(LogbookOperationsClient logBookclient, GUID eip) {
-        this.logBookclient = logBookclient;
+    public AgenciesManager(LogbookOperationsClient logbookClient, GUID eip) {
+        this.logbookClient = logbookClient;
         this.eip = eip;
     }
 
     @VisibleForTesting AgenciesManager(LogbookOperationsClient logBookclient, GUID eip, boolean warning) {
-        this.logBookclient = logBookclient;
+        this.logbookClient = logBookclient;
         this.eip = eip;
         this.warning = warning;
     }
@@ -79,16 +79,13 @@ class AgenciesManager {
      * @param eventType the event type to be logged
      */
     public void logStarted(String eventType) throws VitamException {
-
-        final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-
         final LogbookOperationParameters logbookParameters;
         logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eipUsage, eventType, eip,
+            .newLogbookOperationParameters(eip, eventType, eip,
                 LogbookTypeProcess.MASTERDATA,
                 StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eipUsage);
-        logBookclient.create(logbookParameters);
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
+        logbookClient.create(logbookParameters);
     }
 
     /**
@@ -126,7 +123,7 @@ class AgenciesManager {
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.OK,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
-        logBookclient.update(logbookParameters);
+        logbookClient.update(logbookParameters);
 
     }
 
@@ -147,7 +144,7 @@ class AgenciesManager {
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.WARNING), eip);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
             JsonHandler.unprettyPrint(evDetData));
-        logBookclient.update(logbookParameters);
+        logbookClient.update(logbookParameters);
 
     }
 
@@ -179,7 +176,7 @@ class AgenciesManager {
         // set evDetData
         logbookMessageError(errorsDetails, logbookParameters);
 
-        logBookclient.update(logbookParameters);
+        logbookClient.update(logbookParameters);
     }
 
 

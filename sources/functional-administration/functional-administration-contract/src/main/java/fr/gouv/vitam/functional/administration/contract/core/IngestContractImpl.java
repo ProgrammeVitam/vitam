@@ -251,7 +251,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             // use IngestContract at this point
             mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.INGEST_CONTRACT).close();
 
+            functionalBackupService.saveCollectionAndSequence(
+                eip,
+                CONTRACT_BACKUP_EVENT,
+                FunctionalAdminCollections.INGEST_CONTRACT
+            );
+
         } catch (final Exception exp) {
+            LOGGER.error(exp);
             final String err =
                 new StringBuilder("Import ingest contracts error > ").append(exp.getMessage()).toString();
             manager.logFatalError(err);
@@ -259,14 +266,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
 
-        functionalBackupService.saveCollectionAndSequence(
-            eip,
-            CONTRACT_BACKUP_EVENT,
-            FunctionalAdminCollections.INGEST_CONTRACT
-        );
-
         manager.logSuccess();
-
 
         return new RequestResponseOK<IngestContractModel>().addAllResults(contractModelList)
             .setHttpCode(Response.Status.CREATED.getStatusCode());
@@ -369,8 +369,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          */
         private void logValidationError(final String errorsDetails, final String eventType) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
@@ -385,8 +386,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          */
         private void logFatalError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipUsage, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.FATAL,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.FATAL), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
@@ -431,8 +433,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          * @throws VitamException
          */
         private void logSuccess() throws VitamException {
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipUsage, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
@@ -471,10 +474,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             evDetData.set(INGEST_CONTRACT, msg);
 
             final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
                     .newLogbookOperationParameters(
-                        eip,
+                        eipUsage,
                         CONTRACT_UPDATE_EVENT,
                         eip,
                         LogbookTypeProcess.MASTERDATA,
@@ -762,7 +766,15 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
             updateDiffs = result.getDiffs();
             result.close();
-        } catch (ReferentialException | InvalidCreateOperationException e) {
+
+            functionalBackupService.saveCollectionAndSequence(
+                eip,
+                CONTRACT_BACKUP_EVENT,
+                FunctionalAdminCollections.INGEST_CONTRACT
+            );
+
+        } catch (Exception e) {
+            LOGGER.error(e);
             final String err = new StringBuilder("Update ingest contracts error > ").append(e.getMessage()).toString();
             manager.logFatalError(err);
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
@@ -771,12 +783,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             return error;
         }
-
-        functionalBackupService.saveCollectionAndSequence(
-            eip,
-            CONTRACT_BACKUP_EVENT,
-            FunctionalAdminCollections.INGEST_CONTRACT
-        );
 
         manager.logUpdateSuccess(ingestContractModel.getId(), identifier, updateDiffs.get(ingestContractModel.getId()));
         return new RequestResponseOK<>();

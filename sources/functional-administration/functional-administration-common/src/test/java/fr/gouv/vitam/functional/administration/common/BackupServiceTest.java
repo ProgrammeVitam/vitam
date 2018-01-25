@@ -94,18 +94,18 @@ public class BackupServiceTest {
         backupService.backup(inputStream, REPORTS, uri);
 
         //Then
-
+        ArgumentCaptor<String> containerArgCaptor = ArgumentCaptor.forClass(String.class);
         verify(workspaceClient)
-            .putObject(uri, uri, inputStream);
+            .putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
 
         verify(storageClient)
             .storeFileFromWorkspace(eq("default"), eq(REPORTS), eq(uri),
                 objectDescriptionArgumentCaptor.capture());
         ObjectDescription description = objectDescriptionArgumentCaptor.getValue();
-        assertThat(description.getWorkspaceContainerGUID()).isEqualTo(uri);
+        assertThat(description.getWorkspaceContainerGUID()).isEqualTo(containerArgCaptor.getValue());
         assertThat(description.getWorkspaceObjectURI()).isEqualTo(uri);
 
-        verify(workspaceClient).deleteContainer(uri, true);
+        verify(workspaceClient).deleteContainer(containerArgCaptor.getValue(), true);
     }
 
     @Test
@@ -163,16 +163,14 @@ public class BackupServiceTest {
     }
 
     @Test
-    public void should_fail_clean_file_workSpace() throws Exception {
+    public void should_not_fail_clean_file_workSpace() throws Exception {
 
         //Given
-        final String message = "Unable to delete file";
         doThrow(ContentAddressableStorageNotFoundException.class).when(workspaceClient)
             .deleteContainer(any(), anyBoolean());
 
         //When
-        assertThatThrownBy(() -> backupService.backup(inputStream, REPORTS, URI))
-            .isInstanceOf(BackupServiceException.class)
-            .hasMessageContaining(message);
+        backupService.backup(inputStream, REPORTS, URI);
+        verify(workspaceClient).deleteContainer(any(), anyBoolean());
     }
 }

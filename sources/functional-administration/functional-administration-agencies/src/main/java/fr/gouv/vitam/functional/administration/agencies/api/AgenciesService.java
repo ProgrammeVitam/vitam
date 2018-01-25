@@ -553,11 +553,11 @@ public class AgenciesService implements VitamAutoCloseable {
             reportStream = generateReportOK();
             //store report
             backupService.saveFile(reportStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
-                ParameterHelper.getTenantParameter(), eip + ".json");
+                eip + ".json");
 
             //store source File
             backupService.saveFile(new FileInputStream(file), eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
-                ParameterHelper.getTenantParameter(), eip + ".csv");
+                eip + ".csv");
             //store collection
             backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
                 FunctionalAdminCollections.AGENCIES);
@@ -569,7 +569,7 @@ public class AgenciesService implements VitamAutoCloseable {
             InputStream errorStream = generateErrorReport();
 
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
-                ParameterHelper.getTenantParameter(), eip + ".json");
+                eip + ".json");
             errorStream.close();
             
             ObjectNode errorMessage = JsonHandler.createObjectNode();
@@ -583,7 +583,7 @@ public class AgenciesService implements VitamAutoCloseable {
             LOGGER.error(MESSAGE_ERROR, e);
             InputStream errorStream = generateErrorReport();
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
-                ParameterHelper.getTenantParameter(), eip + ".json");
+                eip + ".json");
             errorStream.close();
             return generateVitamError(MESSAGE_ERROR + e.getMessage(), null);
         } finally {
@@ -797,14 +797,6 @@ public class AgenciesService implements VitamAutoCloseable {
         reportFinal.setError(errors);
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
     }
-
-    private void storeReport(InputStream stream) throws VitamException {
-        final String fileName = eip + ".json";
-        backupService.saveFile(stream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
-            ParameterHelper.getTenantParameter(), fileName);
-    }
-
-
 
     @Override
     public void close() {
