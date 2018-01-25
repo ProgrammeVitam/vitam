@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -81,9 +82,12 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
+import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
+import fr.gouv.vitam.logbook.administration.audit.exception.LogbookAuditException;
 import fr.gouv.vitam.logbook.administration.core.LogbookAdministration;
 import fr.gouv.vitam.logbook.administration.core.LogbookLFCAdministration;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
+import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -123,8 +127,11 @@ public class LogbookResource extends ApplicationStatusResource {
     private final LogbookDbAccess mongoDbAccess;
     private final LogbookAdministration logbookAdministration;
     private final LogbookLFCAdministration logbookLFCAdministration;
+    private final LogbookAuditAdministration logbookAuditAdministration;
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
+
+    private static final String AUDIT_TRACEABILITY_URI = "/auditTraceability";
 
     /**
      * Constructor
@@ -170,6 +177,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
         logbookLFCAdministration = new LogbookLFCAdministration(logbookOperation, processClientFactory,
             clientFactory, configuration.getLifecycleTraceabilityOverlapDelay());
+
+        logbookAuditAdministration = new LogbookAuditAdministration(logbookOperation);
 
         LOGGER.debug("LogbookResource operation initialized");
 
@@ -1852,5 +1861,24 @@ public class LogbookResource extends ApplicationStatusResource {
                 exc.getMessage());
             return Response.status(status).entity(error).build();
         }
+    }
+
+    @Path(AUDIT_TRACEABILITY_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response launchTraceabilityAudit(AuditLogbookOptions options) {
+        try {
+            logbookAuditAdministration.auditTraceability(options.getType(), options.getNbDay(), options.getTimesEachDay());
+
+            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+                    .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+
+        } catch (LogbookAuditException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
+                    new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+                            .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())).build();
+        }
+
     }
 }

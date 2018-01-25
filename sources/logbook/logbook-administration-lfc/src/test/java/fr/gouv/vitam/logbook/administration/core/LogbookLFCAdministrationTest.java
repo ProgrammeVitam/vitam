@@ -1,6 +1,7 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import org.junit.After;
@@ -90,6 +92,8 @@ public class LogbookLFCAdministrationTest {
 
     private static final Integer tenantId = 0;
     static final List<Integer> tenantList = Arrays.asList(0);
+
+    private static final String LC_TYPE = "LOGBOOK_LC_SECURISATION";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -201,5 +205,36 @@ public class LogbookLFCAdministrationTest {
 
         }
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void traceabilityAuditTest() throws Exception{
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
+        reset(workspaceClient);
+        reset(processingManagementClient);
+        doNothing().when(workspaceClient).createContainer(anyString());
+
+        doNothing().when(processingManagementClient).initVitamProcess(anyString(), any());
+        RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
+        req.setHttpCode(Status.ACCEPTED.getStatusCode());
+        when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
+
+        LogbookLFCAdministration logbookAdministration =
+                new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
+                        workspaceClientFactory, LIFECYCLE_TRACEABILITY_OVERLAP_DELAY);
+
+        for (int i=0; i<23; i++) {
+            logbookAdministration.generateSecureLogbookLFC();
+        }
+
+        LogbookAuditAdministration logbookAuditAdministration =
+                new LogbookAuditAdministration(logbookOperations);
+        assertEquals(23, logbookAuditAdministration.auditTraceability(LC_TYPE, 1, 24));
+
+        logbookAdministration.generateSecureLogbookLFC();
+        assertEquals(24, logbookAuditAdministration.auditTraceability(LC_TYPE, 1, 24));
     }
 }

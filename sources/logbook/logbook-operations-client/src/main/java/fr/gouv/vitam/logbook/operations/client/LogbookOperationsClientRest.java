@@ -56,6 +56,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 
@@ -68,6 +69,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     private static final String OPERATIONS_URL = "/operations";
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
+    private static final String AUDIT_TRACEABILITY_URI = "/auditTraceability";
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
@@ -389,4 +391,23 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public void traceabilityAudit(int tenant, AuditLogbookOptions options) throws LogbookClientServerException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenant);
+            response = performRequest(HttpMethod.POST, AUDIT_TRACEABILITY_URI, headers, options,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            LOGGER.debug("Traceability audit OK");
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new LogbookClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
+    }
+
 }

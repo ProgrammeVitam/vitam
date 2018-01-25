@@ -48,6 +48,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -190,5 +191,10 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
         throws InvalidParseOperationException, LogbookClientServerException {
         return ClientMockResultHelper.getSwitchIndexesInfo().toJsonNode();
+    }
+
+    @Override
+    public void traceabilityAudit(int tenant, AuditLogbookOptions options) {
+        LOGGER.info("audit traceability");
     }
 }

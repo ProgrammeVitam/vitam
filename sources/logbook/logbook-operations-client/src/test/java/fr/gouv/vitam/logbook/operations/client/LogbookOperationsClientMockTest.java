@@ -50,6 +50,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -268,6 +269,14 @@ public class LogbookOperationsClientMockTest {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
         assertNotNull(client.switchIndexes(new SwitchIndexParameters()));
+    }
+
+    @Test
+    public void traceabilityAuditTest()
+            throws LogbookClientServerException, InvalidParseOperationException {
+        final LogbookOperationsClient client =
+                LogbookOperationsClientFactory.getInstance().getClient();
+        client.traceabilityAudit(0, new AuditLogbookOptions());
     }
 
 }

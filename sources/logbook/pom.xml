@@ -23,5 +23,6 @@
 		<module>logbook-administration</module>
 		<module>logbook-administration-lfc</module>
 		<module>logbook-rest</module>
+		<module>logbook-administration-audit</module>
 	</modules>
 </project>
