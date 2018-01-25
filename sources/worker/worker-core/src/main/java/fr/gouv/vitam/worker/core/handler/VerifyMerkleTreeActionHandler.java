@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,24 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.BaseXx;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -55,8 +41,11 @@ import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * Using Merkle trees to detect inconsistencies in data
@@ -69,7 +58,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
 
     private static final String MERKLE_TREE_JSON = "merkleTree.json";
 
-    private static final String OPERATIONS_JSON = "operations.json";
+    public static final String DATA_FILE = "data.txt";
 
     private static final String HANDLER_ID = "CHECK_MERKLE_TREE";
 
@@ -89,8 +78,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
@@ -101,25 +89,15 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
                 JsonHandler.getFromFile((File) handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK),
                     TraceabilityEvent.class);
 
-            // 2- Get operations.json file
+            // 2- Get data.txt file
             String operationFilePath = SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-                OPERATIONS_JSON;
+                DATA_FILE;
             InputStream operationsInputStream = handler.getInputStreamFromWorkspace(operationFilePath);
 
             // 3- Calculate MerkelTree hash
 
             // TODO Get digest algorithm from traceabilityEvent object
-            final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
-
-            final Map<String, String> operationsKO = new HashMap<>();
-
-            boolean isMerkleTreeCreated = createMerkleTree(params, operationsInputStream, merkleTreeAlgo, operationsKO);
-
-            // if check is ko then return itemstatus ko
-            if (!isMerkleTreeCreated) {
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            }
+            MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(operationsInputStream);
 
             // calculates hash
             final String currentRootHash = currentRootHash(merkleTreeAlgo);
@@ -130,10 +108,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
-        } catch (ContentAddressableStorageNotFoundException | IOException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (InvalidParseOperationException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -192,62 +167,33 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     }
 
     /**
-     * 
-     * 
-     * @param params
+     * Compute merkle tree
+     *
      * @param inputStream
-     * @param merkleTreeAlgo
-     * @param operationsKO
-     * @return
-     * @throws IOException
+     * @return the computed Merkle tree
      * @throws ProcessingException
      */
-    boolean createMerkleTree(WorkerParameters params, InputStream inputStream, final MerkleTreeAlgo merkleTreeAlgo,
-        final Map<String, String> operationsKO) throws IOException, ProcessingException {
+    private MerkleTreeAlgo computeMerkleTree(InputStream inputStream)
+        throws ProcessingException {
 
-        String str = "";
-        boolean isMerkelTreeCreated = true;
+        final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
         try (InputStreamReader isr = new InputStreamReader(inputStream);
             BufferedReader reader = new BufferedReader(isr)) {
-            if (inputStream != null) {
-                while ((str = reader.readLine()) != null) {
-                    String evDate = StringUtils.substringBetween(str, "\"evDateTime\":\"", "\",");
-                    Date evDateTime = parseDate(evDate);
-                    if (evDateTime.compareTo(parseDate(traceabilityEvent.getStartDate())) >= 0 &&
-                        evDateTime.compareTo(parseDate(traceabilityEvent.getEndDate())) <= 0) {
-
-                        if (isMerkelTreeCreated) {
-                            merkleTreeAlgo.addLeaf(str);
-                        }
-
-                    } else {
-                        isMerkelTreeCreated = false;
-                        operationsKO.put(params.getObjectId(), evDate);
-                    }
-                }
+            String str;
+            while ((str = reader.readLine()) != null) {
+                merkleTreeAlgo.addLeaf(str);
             }
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             throw new ProcessingException(e);
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (Exception e) {
-                LOGGER.error(e.getMessage());
-            }
         }
-        return isMerkelTreeCreated;
+
+        return merkleTreeAlgo;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
-    }
-
-    private Date parseDate(String dateInString) throws ParseException {
-        return LocalDateUtil.getDate(dateInString);
     }
 }

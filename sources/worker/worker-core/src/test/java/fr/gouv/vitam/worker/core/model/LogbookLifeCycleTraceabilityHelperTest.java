@@ -20,6 +20,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.Rule;
@@ -91,6 +92,10 @@ public class LogbookLifeCycleTraceabilityHelperTest {
 
 	@Before
 	public void setUp() throws Exception {
+
+		File vitamTempFolder = folder.newFolder();
+		SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+
 		LOGBOOK_OPERATION_EVENT_DATE = LocalDateUtil.fromDate(LocalDateUtil.getDate("2016-06-10T11:56:35.914"));
 
 		PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -189,14 +194,14 @@ public class LogbookLifeCycleTraceabilityHelperTest {
 		final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
 		File zipFile = new File(folder.newFolder(), String.format(FILE_NAME));
-		TraceabilityFile file = new TraceabilityFile(zipFile, helper.getTraceabilityType().getFileName());
+		TraceabilityFile file = new TraceabilityFile(zipFile);
 
 		// When
 		helper.saveDataInZip(algo, initialStartDate, file);
 		file.close();
 
 		// Then
-		assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(31875);
+		assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(31863);
 	}
 
 	@Test

@@ -60,7 +60,7 @@ public class TraceabilityFileTest {
         File destination = folder.newFile();
 
         // When
-        TraceabilityFile traceabilityFile = new TraceabilityFile(destination, "test");
+        TraceabilityFile traceabilityFile = new TraceabilityFile(destination);
         traceabilityFile.initStoreLog();
         byte[] line = StreamUtils.toString(getResourceAsStream(LOGBOOK_OPERATION)).getBytes();
         traceabilityFile.storeLog(line);

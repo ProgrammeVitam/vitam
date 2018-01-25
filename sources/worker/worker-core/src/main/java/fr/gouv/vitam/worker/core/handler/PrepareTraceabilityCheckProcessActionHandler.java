@@ -141,12 +141,8 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-            // Get last event to extract eventDetailData field
-            ArrayList events = (ArrayList) operationToCheck.get(LogbookDocument.EVENTS);
-            Document lastEvent = (Document) Iterables.getLast(events);
-
             // Create TraceabilityEvent instance
-            String evDetData = lastEvent.getString(LogbookMongoDbName.eventDetailData.getDbname());
+            String evDetData = operationToCheck.getString(LogbookMongoDbName.eventDetailData.getDbname());
             JsonNode eventDetail = JsonHandler.getFromString(evDetData);
 
             TraceabilityEvent traceabilityEvent =

@@ -93,10 +93,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
     StorageClientFactory.class})
 public class PrepareTraceabilityCheckProcessActionHandlerTest {
     PrepareTraceabilityCheckProcessActionHandler prepareTraceabilityCheckProcessActionHandler;
-    private static final String HANDLER_ID = "CHECK_MERKLE_TREE";
-    private static final String SAMPLE_TRACEABILITY_FILENAME = "SAMPLE_TRACEABILITY_FILENAME.json";
+    private static final String SAMPLE_TRACEABILITY_FILENAME = "SAMPLE_TRACEABILITY_FILENAME.txt";
     private static final String SAMPLE_TRACEABILITY_FILENAME_WRONG_TYPE =
-        "SAMPLE_TRACEABILITY_FILENAME_WRONG_TYPE.json";
+        "SAMPLE_TRACEABILITY_FILENAME_WRONG_TYPE.txt";
     private static final String FAKE_URL = "http://localhost:8080";
     private HandlerIOImpl action;
     private GUID guid;
