@@ -1,0 +1,55 @@
+[
+	{
+		"Name":"aName",
+		"Identifier":"aName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FR_ORG_AGEN"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
+	},
+		{
+		"Name":"aName2",
+		"Identifier":"aName2",
+		"Description":"aDescription of the contract 2",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FR_ORG_AGEN"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
+	},
+	{
+		"Name":"aName3",
+		"Identifier":"aName3",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FRAN_NP_005568", "FR_ORG_AGEN"],
+		"EveryDataObjectVersion": true,
+		"DataObjectVersion": [],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
+	},
+	{
+		"Name":"aName4",
+		"Identifier":"aName4",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["NO_SP", "TestReplayOriginAgency2", "TestReplayOriginAgency1"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
+	}
+]

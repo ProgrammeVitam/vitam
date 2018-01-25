@@ -127,6 +127,7 @@ vitam:
         # Set it to a reasonable delay to cover max clock difference across servers
         operationTraceabilityOverlapDelay: 300
         lifecycleTraceabilityOverlapDelay: 300
+        disablePurgeForTempLFC: false
 
     metadata:
         vitam_component: metadata

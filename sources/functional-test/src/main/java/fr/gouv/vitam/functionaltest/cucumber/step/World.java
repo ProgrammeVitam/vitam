@@ -195,6 +195,7 @@ public class World {
      */
     @Given("^les jeux de tests réinitialisés$")
     public void the_reinit_of_test_set() {
+
         operationIdsByTestSet.clear();
     }
 
@@ -234,8 +235,6 @@ public class World {
     public WorkspaceClient getWorkspaceClient() {
         return workspaceClient;
     }
-
-
 
     /**
      * Workspace client

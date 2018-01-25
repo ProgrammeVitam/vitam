@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -40,6 +41,9 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 
 /**
  * Logbook client interface
@@ -221,5 +225,14 @@ public interface LogbookOperationsClient extends BasicClient {
         throws InvalidParseOperationException, LogbookClientServerException;
 
     void traceabilityAudit(int tenant, AuditLogbookOptions options) throws LogbookClientServerException;
+
+    /**
+     * checkLogbookCoherence
+     *
+     * @return
+     * @throws VitamException
+     */
+    Response checkLogbookCoherence() throws VitamException;
+
 
 }

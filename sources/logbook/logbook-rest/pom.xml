@@ -45,7 +45,11 @@
 			<artifactId>logbook-lifecycles</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-lifecycles-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<dependency>
             <groupId>ru.yandex.qatools.embed</groupId>
             <artifactId>embedded-services</artifactId>
@@ -81,12 +85,6 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-operations-client</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-lifecycles-client</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

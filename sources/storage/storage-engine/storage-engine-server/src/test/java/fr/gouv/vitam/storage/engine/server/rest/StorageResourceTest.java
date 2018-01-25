@@ -87,6 +87,7 @@ import fr.gouv.vitam.storage.engine.server.registration.StorageLogSecurisationLi
 public class StorageResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResourceTest.class);
+    public static final String ID_0 = "id0";
 
     private static VitamStarter vitamStarter;
 
@@ -113,6 +114,8 @@ public class StorageResourceTest {
     private static final String MANIFEST_ID_URI = "/{id_manifest}";
     private static final String STORAGE_BACKUP = "/backup";
     private static final String STORAGE_BACKUP_ID_URI = "/{backupfile}";
+    private static final String CHECKLOGBOOKREPORTS = "/checklogbookreports";
+    private static final String CHECKLOGBOOKREPORTS_URI = "/{logbookreportfile}";
 
     private static final String STORAGE_BACKUP_OPERATION = "/backupoperation";
     private static final String STORAGE_BACKUP_OPERATION_ID_URI = "/{operationId}";
@@ -483,13 +486,15 @@ public class StorageResourceTest {
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
             .when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then().statusCode(Status.OK.getStatusCode());
-        given().accept(MediaType.APPLICATION_OCTET_STREAM).when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then()
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0")
+            .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E, VitamHttpHeader.STRATEGY_ID.getName(),
                 STRATEGY_ID)
-            .when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
 
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E, VitamHttpHeader.STRATEGY_ID.getName(),
@@ -934,6 +939,58 @@ public class StorageResourceTest {
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         // .statusCode(Status.NOT_FOUND.getStatusCode());
     }
+
+    @Test
+    public final void testCheckLogbookReportsStorage() {
+
+        final ObjectDescription createObjectDescription = new ObjectDescription();
+        createObjectDescription.setWorkspaceObjectURI("bb");
+        createObjectDescription.setWorkspaceContainerGUID("bb");
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .body(createObjectDescription).when().post(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_O1).then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .body(createObjectDescription).when()
+            .post(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_Ardyexist)
+            .body(createObjectDescription).when().post(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_O1).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().post(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testGetCheckLogbookReportsStorageOk() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then().statusCode(Status.OK.getStatusCode());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E, VitamHttpHeader.STRATEGY_ID.getName(),
+                STRATEGY_ID)
+            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E, VitamHttpHeader.STRATEGY_ID.getName(),
+                STRATEGY_ID)
+            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
 
     @Test
     public void getContainerInformationOk() {

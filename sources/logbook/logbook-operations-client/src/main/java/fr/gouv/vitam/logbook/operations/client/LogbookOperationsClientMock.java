@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -52,6 +53,8 @@ import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+
+import javax.ws.rs.core.Response;
 
 /**
  * Mock client implementation for logbook operation
@@ -196,5 +199,9 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     @Override
     public void traceabilityAudit(int tenant, AuditLogbookOptions options) {
         LOGGER.info("audit traceability");
+    }
+
+    @Override public Response checkLogbookCoherence() throws VitamException {
+        return Response.ok().build();
     }
 }

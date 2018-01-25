@@ -1315,7 +1315,38 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
+    /**
+     * Get colection data.
+     *
+     * @param headers
+     * @param logbookreportfile
+     * @return
+     * @throws IOException
+     */
+    @Path("/checklogbookreports/{logbookreportfile}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
+    public Response getlogbookreportFile(@Context HttpHeaders headers, @PathParam("logbookreportfile") String logbookreportfile)
+        throws IOException {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(logbookreportfile, DataCategory.CHECKLOGBOOKREPORTS, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
+    }
     /**
      * Post a new object
      *

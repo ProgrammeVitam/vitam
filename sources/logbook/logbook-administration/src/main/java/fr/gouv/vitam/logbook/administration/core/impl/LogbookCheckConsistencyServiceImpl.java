@@ -36,12 +36,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.utils.LifecyclesSpliterator;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,7 +51,6 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -94,6 +93,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import java.io.IOException;
+
 /**
  * Logbook consistency check service.<br>
  */
@@ -106,6 +107,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
 
     private static final String LFC_EVENT_TYPE_PREFIX = "LFC.";
     private static final String STEP_STARTED_SUFFIX = ".STARTED";
+    private static final String EXTENSION_JSON = ".json";
 
     private static final String STRATEGY_ID = "default";
     /**
@@ -117,36 +119,37 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      */
     private static final int LIMIT = 1000;
 
-
     /**
      * List of logbook operation with lifecycles.
      */
-    private static final List<String> OP_WITH_LFC = Arrays.asList("PROCESS_SIP_UNITARY",
-        "FILINGSCHEME", "HOLDINGSCHEME", "UPDATE_RULES_ARCHIVE_UNITS", "PROCESS_AUDIT", "STP_UPDATE_UNIT");
+    private static final List<String> OP_WITH_LFC = Arrays.asList("PROCESS_SIP_UNITARY", "STP_UPLOAD_SIP",
+            "FILINGSCHEME", "HOLDINGSCHEME", "UPDATE_RULES_ARCHIVE_UNITS", "PROCESS_AUDIT", "STP_UPDATE_UNIT");
 
     /**
      * SAVED_LOGBOOK_MSG
      */
     private final String SAVED_LOGBOOK_WORKFLOW_NOT_EXISTS_MSG =
-        "The saved logbook event %s value %s, is not present in the workflow";
+            "The saved logbook event %s value %s, is not present in the workflow";
 
     private final String SAVED_LOGBOOK_EVENTS_EMPTY_MSG =
-        "The logbook operation's event list is empty";
+            "The logbook operation's event list is empty";
 
     /**
      * EXPECTED_LOGBOOK_MSG
      */
     private final String EXPECTED_LOGBOOK_WORKFLOW_NOT_EXISTS_MSG =
-        "The logbook event %s, must be present in the workflow";
+            "The logbook event %s, must be present in the workflow";
 
     private final String EXPECTED_LOGBOOK_EVENTS_EMPTY_MSG =
-        "The logbook operation's event list must not be empty";
+            "The logbook operation's event list must not be empty";
 
     /**
      * Error/Exceptions messages.
      */
     private static final String CHECK_LOGBOOK_MONDATORY_PARAMETERS_MSG =
-        "the tenant parameter is mondatory to the logbook check consistency.";
+            "the tenant parameter is mondatory to the logbook check consistency.";
+    public static final String EXCEPTION_HAS_BEEN_THROWN_WHEN_CONVERTING_ON_INPUT_STREAM =
+            "Exception has been thrown when converting on inputStream ";
 
     private LogbookConfiguration configuration;
 
@@ -161,7 +164,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
     private LogbookDetailsCheckService logbookDetailsCheckService;
 
     // list of the logbook check results
-    List<LogbookCheckResult> logbookCheckTotalResults = new ArrayList<>();
+    private final List<LogbookCheckResult> logbookCheckTotalResults = new ArrayList<>();
 
     private Map<String, Set<String>> workflowEventTypes;
 
@@ -172,8 +175,8 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      * @param vitamRepository
      */
     public LogbookCheckConsistencyServiceImpl(
-        LogbookConfiguration configuration,
-        VitamRepositoryProvider vitamRepository) {
+            LogbookConfiguration configuration,
+            VitamRepositoryProvider vitamRepository) {
         this(configuration, vitamRepository, new LogbookDetailsCheckServiceImpl());
     }
 
@@ -186,9 +189,9 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      */
     @VisibleForTesting
     public LogbookCheckConsistencyServiceImpl(
-        LogbookConfiguration configuration,
-        VitamRepositoryProvider vitamRepository,
-        LogbookDetailsCheckService checkLogbookPropertiesService) {
+            LogbookConfiguration configuration,
+            VitamRepositoryProvider vitamRepository,
+            LogbookDetailsCheckService checkLogbookPropertiesService) {
         this.configuration = configuration;
         this.vitamRepository = vitamRepository;
         this.logbookDetailsCheckService = checkLogbookPropertiesService;
@@ -208,31 +211,36 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
         // check and init workflow eventTypes if not already done
         initWorkflowEventTypes();
 
-        // get all documents of the logbook operations
+        // get all documents of the logbook operationss
         MongoCursor<Document> cursor =
-            vitamRepository.getVitamMongoRepository(LogbookCollections.OPERATION)
-                .findDocuments(VitamConfiguration.getBatchSize(), tenant).iterator();
+                vitamRepository.getVitamMongoRepository(LogbookCollections.OPERATION)
+                        .findDocuments(VitamConfiguration.getBatchSize(), tenant).iterator();
 
-        final List<Document> documents = getDocuments(cursor);
+        // converting the results to a list of LogbookOperation.
+        Iterable<Document> documentIterable = () -> cursor;
+        final List<Document> operations =
+                StreamSupport.stream(documentIterable.spliterator(), false)
+                        .collect(Collectors.toList());
+
         Map<String, EventModel> mapOpEvents;
         Map<String, EventModel> mapLfcEvents;
         Set<String> allowedEvTypes;
         String operationId;
 
         // Check coherence of the different logbook properties
-        for (Document operation : documents) {
+        for (Document operation : operations) {
             // get operation identifer and eventType
-            operationId = operation.get(LogbookEventName.ID.getValue()).toString();
+            operationId = operation.getString(LogbookEventName.ID.getValue());
             String operationEvType = operation.getString(LogbookEventName.EVTYPE.getValue());
 
             // get allowed event (if null no check is done against workflow)
             allowedEvTypes = workflowEventTypes.containsKey(operationEvType) ?
-                workflowEventTypes.get(operation.getString(LogbookEventName.EVTYPE.getValue())) : null;
+                    workflowEventTypes.get(operationEvType) : null;
 
             // check logbook operation root event details.
             EventModel eventModelOp = getEventModel(operation, operationId, null, LogbookEventType.OPERATION);
             logbookCheckTotalResults.addAll(logbookDetailsCheckService
-                .checkEvent(eventModelOp));
+                    .checkEvent(eventModelOp));
 
             // get operation events and Check their coherence.
             mapOpEvents = new HashMap<>();
@@ -240,12 +248,12 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
             // Check operation's events
             if (operationEvents != null && !operationEvents.isEmpty()) {
                 checkCoherenceEvents(LogbookEventType.OPERATION, operationId, null, operationEvents, allowedEvTypes,
-                    mapOpEvents);
+                        mapOpEvents);
             } else {
                 logbookCheckTotalResults.add(new LogbookCheckResult(operationId,
-                    "", eventModelOp.getEvType(),
-                    SAVED_LOGBOOK_EVENTS_EMPTY_MSG,
-                    EXPECTED_LOGBOOK_EVENTS_EMPTY_MSG));
+                        "", eventModelOp.getEvType(),
+                        SAVED_LOGBOOK_EVENTS_EMPTY_MSG,
+                        EXPECTED_LOGBOOK_EVENTS_EMPTY_MSG));
             }
 
             // Logbook lifecycles.
@@ -255,30 +263,29 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
 
                     // get the unit's lifeCycles for the current operation.
                     checkUnitLfcByOperation(client, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED, operationId,
-                        allowedEvTypes, mapLfcEvents);
+                            allowedEvTypes, mapLfcEvents);
 
                     // tests only when purgeTempLfc is false
                     checkUnitLfcByOperation(client, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS, operationId,
-                        allowedEvTypes, mapLfcEvents);
+                            allowedEvTypes, mapLfcEvents);
 
                     // get the objectGroup's lifeCycles for the current operation.
                     checkObjectGroupLfcByOperation(client, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED, operationId,
-                        allowedEvTypes, mapLfcEvents);
+                            allowedEvTypes, mapLfcEvents);
 
                     // tests only when purgeTempLfc is false
                     checkObjectGroupLfcByOperation(client, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS, operationId,
-                        allowedEvTypes, mapLfcEvents);
+                            allowedEvTypes, mapLfcEvents);
                 }
                 // Check coherence between logbook operation and lifecycles.
                 mapOpEvents.remove(operationEvType); // skip operation result event (last event)
                 logbookCheckTotalResults
-                    .addAll(logbookDetailsCheckService.checkLFCandOperation(mapOpEvents, mapLfcEvents));
+                        .addAll(logbookDetailsCheckService.checkLFCandOperation(mapOpEvents, mapLfcEvents));
             }
-
         }
 
         // save the logbook coherence check results
-        storeReportsInStorage(logbookCheckTotalResults);
+        storeReportsInStorage(logbookCheckTotalResults, tenant);
     }
 
     /**
@@ -289,27 +296,26 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
             workflowEventTypes = new HashMap<>();
 
             try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-                .getClient()) {
+                    .getClient();) {
                 RequestResponse<WorkFlow> requestResponse = processingClient.getWorkflowDefinitions();
                 if (requestResponse.isOk()) {
                     List<WorkFlow> workflows = ((RequestResponseOK) requestResponse).getResults();
                     workflows.forEach(workflow -> {
                         Set<String> eventTypes = new HashSet<>();
-
                         workflow.getSteps().forEach(step -> {
                             eventTypes.add(step.getStepName());
                             eventTypes.addAll(step.getActions().stream().map(
-                                action -> action.getActionDefinition().getActionKey()).collect(Collectors.toSet()));
+                                    action -> action.getActionDefinition().getActionKey()).collect(Collectors.toSet()));
                         });
 
                         workflowEventTypes.put(workflow.getIdentifier(), eventTypes);
                     });
                 }
+
             } catch (VitamClientException e) {
                 LOGGER.warn("Unable to load workflows'definitions from ProcessEngineManagement.");
             }
         }
-
     }
 
     /**
@@ -322,48 +328,47 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      * @param mapLfcEvents
      */
     private void checkUnitLfcByOperation(LogbookLifeCyclesClient client, LifeCycleStatusCode cycleStatusCode,
-        String operationId, Set<String> allowedEvTypes, Map<String, EventModel> mapLfcEvents)
-        throws LogbookClientException, InvalidParseOperationException {
+                                         String operationId, Set<String> allowedEvTypes, Map<String, EventModel> mapLfcEvents)
+            throws LogbookClientException, InvalidParseOperationException {
         try {
             final Select select = new Select();
             LifecyclesSpliterator<JsonNode> scrollSplitator = new LifecyclesSpliterator<>(select,
-                query -> {
-                    RequestResponse response;
-                    try {
-                        response = client.unitLifeCyclesByOperationIterator(operationId,
-                            cycleStatusCode, select.getFinalSelect());
-                    } catch (LogbookClientException | InvalidParseOperationException e) {
-                        throw new IllegalStateException(e);
-                    }
-                    if (response.isOk()) {
-                        return (RequestResponseOK) response;
-                    } else {
-                        throw new IllegalStateException(
-                            String.format("Error while loading logbook lifecycle Unit RequestResponse %d",
-                                response.getHttpCode()));
-                    }
-                }, OFFSET, LIMIT);
-            StreamSupport.stream(scrollSplitator, false).map(LogbookLifeCycleUnit::new)
-                .forEach(unitLFC -> {
-                    try {
-                        // check unit lifecycle root event details.
-                        logbookDetailsCheckService.checkEvent(getEventModel(unitLFC, operationId, unitLFC.getId(),
-                            LogbookEventType.UNIT_LFC));
-                        // Check unitlifecycle's events
-                        List<Document> unitLFCEvents =
-                            (List<Document>) unitLFC.get(LogbookDocument.EVENTS.toString());
-                        if (unitLFCEvents != null && !unitLFCEvents.isEmpty()) {
-                            checkCoherenceEvents(LogbookEventType.UNIT_LFC, operationId, unitLFC.getId(),
-                                unitLFCEvents, allowedEvTypes, mapLfcEvents);
+                    query -> {
+                        RequestResponse response;
+                        try {
+                            response = client.unitLifeCyclesByOperationIterator(operationId,
+                                    cycleStatusCode, select.getFinalSelect());
+                        } catch (LogbookClientException | InvalidParseOperationException e) {
+                            throw new IllegalStateException(e);
                         }
-                    } catch (IllegalStateException e) {
-                        throw e;
-                    }
-                });
+                        if (response.isOk()) {
+                            return (RequestResponseOK) response;
+                        } else {
+                            throw new IllegalStateException(
+                                    String.format("Error while loading logbook lifecycle Unit RequestResponse %d",
+                                            response.getHttpCode()));
+                        }
+                    }, OFFSET, LIMIT);
+            StreamSupport.stream(scrollSplitator, false).map(LogbookLifeCycleUnit::new)
+                    .forEach(unitLFC -> {
+                        try {
+                            // check unit lifecycle root event details.
+                            logbookDetailsCheckService.checkEvent(getEventModel(unitLFC, operationId, unitLFC.getId(),
+                                    LogbookEventType.UNIT_LFC));
+                            // Check unitlifecycle's events
+                            List<Document> unitLFCEvents =
+                                    (List<Document>) unitLFC.get(LogbookDocument.EVENTS.toString());
+                            if (unitLFCEvents != null && !unitLFCEvents.isEmpty()) {
+                                checkCoherenceEvents(LogbookEventType.UNIT_LFC, operationId, unitLFC.getId(),
+                                        unitLFCEvents, allowedEvTypes, mapLfcEvents);
+                            }
+                        } catch (IllegalStateException e) {
+                            throw e;
+                        }
+                    });
         } catch (IllegalStateException e) {
             LOGGER.error("ERROR: Exception has been thrown when loading unit's lifeCycles : ", e);
         }
-
     }
 
     /**
@@ -376,49 +381,200 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      * @param mapLfcEvents
      */
     private void checkObjectGroupLfcByOperation(LogbookLifeCyclesClient client, LifeCycleStatusCode cycleStatusCode,
-        String operationId, Set<String> allowedEvTypes, Map<String, EventModel> mapLfcEvents) {
+                                                String operationId, Set<String> allowedEvTypes, Map<String, EventModel> mapLfcEvents) {
         try {
             Select select = new Select();
             LifecyclesSpliterator<JsonNode> scrollSplitator = new LifecyclesSpliterator<>(select,
-                query -> {
-                    RequestResponse response;
-                    try {
-                        response = client.objectGroupLifeCyclesByOperationIterator(operationId, cycleStatusCode,
-                            select.getFinalSelect());
-                    } catch (LogbookClientException | InvalidParseOperationException e) {
-                        throw new IllegalStateException(e);
-                    }
-                    if (response.isOk()) {
-                        return (RequestResponseOK) response;
-                    } else {
-                        throw new IllegalStateException(
-                            String.format("Error while loading logbook lifecycle Unit RequestResponse %d",
-                                response.getHttpCode()));
-                    }
-                }, OFFSET, LIMIT);
+                    query -> {
+                        RequestResponse response;
+                        try {
+                            response = client.objectGroupLifeCyclesByOperationIterator(operationId, cycleStatusCode,
+                                    select.getFinalSelect());
+                        } catch (LogbookClientException | InvalidParseOperationException e) {
+                            throw new IllegalStateException(e);
+                        }
+                        if (response.isOk()) {
+                            return (RequestResponseOK) response;
+                        } else {
+                            throw new IllegalStateException(
+                                    String.format("Error while loading logbook lifecycle Unit RequestResponse %d",
+                                            response.getHttpCode()));
+                        }
+                    }, OFFSET, LIMIT);
 
             StreamSupport.stream(scrollSplitator, false).map(LogbookLifeCycleObjectGroup::new)
-                .forEach(objectGroupLFC -> {
-                    try {
-                        // Get all objectGroup LifeCycles's events and Check their coherence.
-                        logbookDetailsCheckService
-                            .checkEvent(getEventModel(objectGroupLFC, operationId, objectGroupLFC.getId(),
-                                LogbookEventType.OBJECTGROUP_LFC));
-                        // Check objectGrouplifecycle's events
-                        List<Document> objectGroupLFCEvents =
-                            (List<Document>) objectGroupLFC.get(LogbookDocument.EVENTS.toString());
-                        if (objectGroupLFCEvents != null && !objectGroupLFCEvents.isEmpty()) {
-                            checkCoherenceEvents(LogbookEventType.OBJECTGROUP_LFC, operationId, objectGroupLFC.getId(),
-                                objectGroupLFCEvents, allowedEvTypes, mapLfcEvents);
+                    .forEach(objectGroupLFC -> {
+                        try {
+                            // Get all objectGroup LifeCycles's events and Check their coherence.
+                            logbookDetailsCheckService
+                                    .checkEvent(getEventModel(objectGroupLFC, operationId, objectGroupLFC.getId(),
+                                            LogbookEventType.OBJECTGROUP_LFC));
+                            // Check objectGrouplifecycle's events
+                            List<Document> objectGroupLFCEvents =
+                                    (List<Document>) objectGroupLFC.get(LogbookDocument.EVENTS.toString());
+                            if (objectGroupLFCEvents != null && !objectGroupLFCEvents.isEmpty()) {
+                                checkCoherenceEvents(LogbookEventType.OBJECTGROUP_LFC, operationId, objectGroupLFC.getId(),
+                                        objectGroupLFCEvents, allowedEvTypes, mapLfcEvents);
+                            }
+                        } catch (IllegalStateException e) {
+                            throw e;
                         }
-                    } catch (IllegalStateException e) {
-                        throw e;
-                    }
-                });
+                    });
         } catch (IllegalStateException e) {
             LOGGER.error("ERROR: Exception has been thrown when loading objectGroup's lifeCycles : ", e);
         }
 
+    }
+
+    /**
+     * Logbook coherence check on all Vitam tenants.
+     *
+     * @throws LogbookException
+     */
+    @Override
+    public void logbookCoherenceCheck() throws VitamException {
+
+        // get the list of vitam tenants from the configuration.
+        List<Integer> tenants = configuration.getTenants();
+        if (null != tenants && !tenants.isEmpty()) {
+            LOGGER.debug(String.format("Logbook coherence check on the %s Vitam tenants", tenants.size()));
+
+            // scan && check coherence of the logbook on all the Vitam tenants
+            for (Integer tenant : tenants) {
+                logbookCoherenceCheckByTenant(tenant);
+            }
+        } else {
+            LOGGER.warn(String.format("Warning : there is no Vitam tenants"));
+        }
+    }
+
+    /**
+     * store check logbook reports in storage (offer).
+     *
+     * @param logbookCheckResults
+     * @throws VitamException
+     */
+    @Override
+    public void storeReportsInStorage(List<LogbookCheckResult> logbookCheckResults, Integer tenant)
+            throws VitamException {
+
+        if (logbookCheckResults == null || logbookCheckResults.isEmpty()) {
+            return;
+        }
+        // save the logbook coherence check results
+        try (InputStream logbookCheckReportFile = new ByteArrayInputStream(
+                JsonHandler.prettyPrint(logbookCheckResults).getBytes(
+                        CharsetUtils.UTF_8))) {
+            String containerName = String.format("%s_%s", tenant, DataCategory.CHECKLOGBOOKREPORTS.getFolder());
+            String fileName = GUIDFactory.newGUID().toString() + EXTENSION_JSON;
+            // Save data to storage
+            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();) {
+                //store in workSpace
+                workspaceClient.createContainer(containerName);
+                workspaceClient.putObject(containerName, fileName, logbookCheckReportFile);
+                try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+                    //store in offer
+                    final ObjectDescription objectDescription = new ObjectDescription();
+                    objectDescription.setWorkspaceContainerGUID(containerName);
+                    objectDescription.setObjectName(fileName);
+                    objectDescription.setType(DataCategory.BACKUP_OPERATION);
+                    objectDescription.setWorkspaceObjectURI(fileName);
+                    storageClient
+                            .storeFileFromWorkspace(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS, fileName,
+                                    objectDescription);
+                } finally {
+                    // delete the workspace container
+                    workspaceClient.deleteContainer(containerName, true);
+                }
+            } catch (ContentAddressableStorageServerException
+                    | ContentAddressableStorageAlreadyExistException e) {
+                //workspace Error
+                throw new VitamException("Unable to store file in workSpace " + containerName, e);
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+                //Offer storage Error
+                throw new VitamException("Unable to store file from workSpace to storage " + containerName, e);
+            } catch (ContentAddressableStorageNotFoundException e) {
+                // clean container Error
+                throw new VitamException("Unable to delete file", e);
+            }
+
+        } catch (IOException e) {
+            LOGGER.error(EXCEPTION_HAS_BEEN_THROWN_WHEN_CONVERTING_ON_INPUT_STREAM, e);
+            throw new VitamException(EXCEPTION_HAS_BEEN_THROWN_WHEN_CONVERTING_ON_INPUT_STREAM, e);
+        }
+
+    }
+    
+    /**
+     * check events coherence.
+     *
+     * @param logbookEventType
+     * @param operationId
+     * @param lfcId
+     * @param events
+     * @param allowedEvTypes
+     * @param mapLogbookEvents
+     * @return
+     */
+    private void checkCoherenceEvents(LogbookEventType logbookEventType, String operationId, String lfcId,
+                                      List<Document> events, Set<String> allowedEvTypes, Map<String, EventModel> mapLogbookEvents) {
+
+        EventModel lastEvent = new EventModel();
+        EventModel eventModel;
+        boolean doBreak = false;
+        for (Document event : events) {
+            // consider only the events corresponding on the current operation.
+            if (event.getString(LogbookEventName.EVID_PROC.getValue()).equals(operationId)) {
+                doBreak = true;
+            } else if (doBreak) {
+                // only stop if flag doBreak is true, this is useful for events appended to LFC (Unit and Got)
+                break;
+            }
+
+            // construct eventModel with level/evType
+            eventModel = getEventModel(event, operationId, lfcId, null);
+            updateEventLogbookType(eventModel, logbookEventType,
+                    event.getString(LogbookEventName.EVPARENT_ID.getValue()), lastEvent);
+
+            // save last event for coherence check.
+            lastEvent = eventModel;
+
+            // check eventType against workflow for STEP and ACTION
+            if ((LogbookEventType.STEP.equals(eventModel.getLogbookEventType())
+                    || LogbookEventType.ACTION.equals(eventModel.getLogbookEventType()))
+                    && allowedEvTypes != null && !allowedEvTypes.contains(eventModel.getEvType())
+                    && !eventModel.getEvType().endsWith(STEP_STARTED_SUFFIX)
+                    && !OP_WITH_LFC.contains(eventModel.getEvType())) {
+
+                logbookCheckTotalResults.add(new LogbookCheckResult(eventModel.getOperationId(),
+                        eventModel.getLfcId(), eventModel.getEvType(),
+                        String.format(SAVED_LOGBOOK_WORKFLOW_NOT_EXISTS_MSG, LogbookEventName.EVTYPE.getValue(),
+                                eventModel.getEvType()),
+                        String.format(EXPECTED_LOGBOOK_WORKFLOW_NOT_EXISTS_MSG, LogbookEventName.EVTYPE.getValue(),
+                                eventModel.getEvType())));
+            }
+
+            // Check all events : evType, outcome and outcomeDetails
+            logbookCheckTotalResults.addAll(logbookDetailsCheckService.checkEvent(eventModel));
+
+            // construct maps for logbook operation and the lifecycles to check coherence between each other.
+            if (!(LogbookEventType.STEP.equals(eventModel.getLogbookEventType())
+                    || eventModel.getEvType().endsWith(STEP_STARTED_SUFFIX))) {
+
+                if (!mapLogbookEvents.containsKey(eventModel.getEvType())) {
+                    mapLogbookEvents.put(eventModel.getEvType(), eventModel);
+                } else {
+                    // aggregation of logbook events
+                    EventModel value = mapLogbookEvents.get(eventModel.getEvType());
+                    String eventStatus = eventModel.getOutcome();
+                    if (Stream.of(OutcomeStatus.values()).anyMatch(x -> x.name().equals(eventStatus))
+                            && (OutcomeStatus.valueOf(eventStatus).getWeight() >
+                            OutcomeStatus.valueOf(value.getOutcome()).getWeight())) {
+                        mapLogbookEvents.replace(eventModel.getEvType(), eventModel);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -431,7 +587,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      * @return
      */
     private EventModel getEventModel(Document document, String operationId, String lfcId,
-        LogbookEventType logbookEventType) {
+                                     LogbookEventType logbookEventType) {
         EventModel eventModel = new EventModel();
 
         // extract event detail
@@ -464,202 +620,60 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
     }
 
     /**
-     * Logbook coherence check on all Vitam tenants.
-     *
-     * @throws LogbookException
-     */
-    @Override
-    public void logbookCoherenceCheck() throws VitamException {
-
-        // get the list of vitam tenants from the configuration.
-        List<Integer> tenants = configuration.getTenants();
-        if (null != tenants && !tenants.isEmpty()) {
-            LOGGER.debug(String.format("Logbook coherence check on the %s Vitam tenants", tenants.size()));
-
-            // scan && check coherence of the logbook on all the Vitam tenants
-            for (Integer tenant : tenants) {
-                logbookCoherenceCheckByTenant(tenant);
-            }
-        } else {
-            LOGGER.warn(String.format("Warning : there is no Vitam tenants"));
-        }
-    }
-
-    /**
-     * store check logbook reports in storage (offer).
-     *
-     * @param logbookCheckResults
-     * @throws VitamException
-     */
-    @Override
-    public void storeReportsInStorage(List<LogbookCheckResult> logbookCheckResults)
-        throws VitamException {
-
-        if (logbookCheckResults == null || logbookCheckResults.isEmpty()) {
-            return;
-        }
-        // save the logbook coherence check results
-        try (InputStream logbookCheckReportFile = new ByteArrayInputStream(logbookCheckResults.toString().getBytes(
-            CharsetUtils.UTF_8))) {
-            String fileName = GUIDFactory.newGUID().toString();
-            // Save data to storage
-            try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();) {
-                //store in workSpace
-                workspaceClient.createContainer(fileName);
-                workspaceClient.putObject(fileName, fileName, logbookCheckReportFile);
-                try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                    //store in offer
-                    final ObjectDescription description = new ObjectDescription();
-                    description.setWorkspaceContainerGUID(fileName);
-                    description.setWorkspaceObjectURI(fileName);
-                    storageClient
-                        .storeFileFromWorkspace(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS, fileName,
-                            description);
-                } finally {
-                    // delete the workspace container
-                    workspaceClient.deleteContainer(fileName, true);
-                }
-            } catch (ContentAddressableStorageServerException
-                | ContentAddressableStorageAlreadyExistException e) {
-                //workspace Error
-                throw new VitamException("Unable to store file in workSpace " + fileName, e);
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
-                //Offer storage Error
-                throw new VitamException("Unable to store file from workSpace to storage " + fileName, e);
-            } catch (ContentAddressableStorageNotFoundException e) {
-                // clean container Error
-                throw new VitamException("Unable to delete file", e);
-            }
-
-        } catch (Exception e) {
-            LOGGER.error("Exception has been thrown when converting on inputStream ", e);
-        }
-
-    }
-
-    /**
-     * get the document list from the cursor.
-     *
-     * @param cursor
-     * @return
-     */
-    private static List<Document> getDocuments(MongoCursor<Document> cursor) {
-        int cpt = 0;
-        List<Document> documents = new ArrayList<>();
-        while (cpt < VitamConfiguration.getBatchSize() && cursor.hasNext()) {
-            documents.add(cursor.next());
-            cpt++;
-        }
-        return documents;
-    }
-
-    /**
-     * check events coherence.
-     *
-     * @param logbookEventType
-     * @param operationId
-     * @param lfcId
-     * @param events
-     * @param allowedEvTypes
-     * @param mapLogbookEvents
-     * @return
-     */
-    private void checkCoherenceEvents(LogbookEventType logbookEventType, String operationId, String lfcId,
-        List<Document> events, Set<String> allowedEvTypes, Map<String, EventModel> mapLogbookEvents) {
-
-        EventModel parentEvent = new EventModel();
-        String evTypeParent = null;
-        EventModel eventModel;
-        boolean doBreak = false;
-        for (Document event : events) {
-            // consider only the events corresponding on the current operation.
-            if (event.getString(LogbookEventName.EVID_PROC.getValue()).equals(operationId)) {
-                doBreak = true;
-            } else if (doBreak) {
-                // only stop if flag doBreak is true, this is useful for events appended to LFC (Unit and Got)
-                break;
-            }
-
-            // construct eventModel with level/evType
-            eventModel = getEventModel(event, operationId, lfcId, getEventLogbookType(
-                logbookEventType, event.getString(LogbookEventName.EVPARENT_ID.getValue()), parentEvent));
-
-            // save parent evType for coherence check.
-            eventModel.setEvTypeParent(evTypeParent);
-            evTypeParent = eventModel.getEvType();
-            parentEvent = eventModel;
-
-            // check eventType against workflow for STEP and ACTION
-            if ((LogbookEventType.STEP.equals(eventModel.getLogbookEventType()) ||
-                LogbookEventType.ACTION.equals(eventModel.getLogbookEventType())) &&
-                allowedEvTypes != null && !allowedEvTypes.contains(eventModel.getEvType())) {
-                logbookCheckTotalResults.add(new LogbookCheckResult(eventModel.getOperationId(),
-                    eventModel.getLfcId(), eventModel.getEvType(),
-                    String.format(SAVED_LOGBOOK_WORKFLOW_NOT_EXISTS_MSG, LogbookEventName.EVTYPE.getValue(),
-                        eventModel.getEvType()),
-                    String.format(EXPECTED_LOGBOOK_WORKFLOW_NOT_EXISTS_MSG, LogbookEventName.EVTYPE.getValue(),
-                        eventModel.getEvType())));
-            }
-
-            // Check all events : evType, outcome and outcomeDetails
-            logbookCheckTotalResults.addAll(logbookDetailsCheckService.checkEvent(eventModel));
-
-            // construct maps for logbook operation and the lifecycles to check coherence between each other.
-            if (!(eventModel.getLogbookEventType().equals(LogbookEventType.STEP)
-                && eventModel.getEvType().endsWith(STEP_STARTED_SUFFIX))) {
-
-                if (!mapLogbookEvents.containsKey(eventModel.getEvType())) {
-                    mapLogbookEvents.put(eventModel.getEvType(), eventModel);
-                } else {
-                    // aggregation of logbook events
-                    EventModel value = mapLogbookEvents.get(eventModel.getEvType());
-                    if (OutcomeStatus.valueOf(eventModel.getOutcome()).getWeight() >
-                        OutcomeStatus.valueOf(value.getOutcome()).getWeight()) {
-                        mapLogbookEvents.replace(eventModel.getEvType(), eventModel);
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
      * addLogbookEventType for the given event.
      *
+     * @param evModel
      * @param logbookEventType
      * @param evParentId
-     * @param parentEvent
-     * @return
+     * @param lastEvent
      */
-    private LogbookEventType getEventLogbookType(LogbookEventType logbookEventType, String evParentId,
-        EventModel parentEvent) {
-        // compute the event type on the logbook operation.
-        if (LogbookEventType.OPERATION.equals(logbookEventType)) {
-            if (evParentId == null) {
-                // event of type "STEP"
-                return LogbookEventType.STEP;
-            } else if (parentEvent.getEvParentId() == null) {
-                // event of type "ACTION"
-                return LogbookEventType.ACTION;
-            } else if (LogbookEventType.ACTION.equals(parentEvent.getLogbookEventType())) {
-                // event of type "TASK" (TREATMENT)
-                return LogbookEventType.TASK;
-            }
-        }
+    private void updateEventLogbookType(EventModel evModel, LogbookEventType logbookEventType, String evParentId,
+                                        EventModel lastEvent) {
 
-        // compute the event type on the logbook lifecycles.
-        if (LogbookEventType.UNIT_LFC.equals(logbookEventType) ||
-            LogbookEventType.OBJECTGROUP_LFC.equals(logbookEventType)) {
-            if (evParentId == null) {
-                // event of type "ACTION"
-                return LogbookEventType.ACTION;
-            } else {
-                // event of type "TASK" (TREATMENT)
-                return LogbookEventType.TASK;
-            }
+        switch (logbookEventType) {
+            // case of logbook operation.
+            case OPERATION:
+                if (evParentId == null) {  // event of type "STEP"
+                    evModel.setLogbookEventType(LogbookEventType.STEP);
+                } else if (lastEvent != null) {
+                    // same level, event of type same as the last one
+                    if (lastEvent.getEvParentId() != null && lastEvent.getEvParentId().equals(evParentId)) {
+                        evModel.setLogbookEventType(lastEvent.getLogbookEventType());
+                        evModel.setEvTypeParent(lastEvent.getEvTypeParent());
+                    } else {
+                        // change level, change type
+                        switch (lastEvent.getLogbookEventType()) {
+                            case STEP:  // down level
+                                evModel.setLogbookEventType(LogbookEventType.ACTION);
+                                break;
+                            case ACTION:  // event of type "TASK" (TREATMENT)
+                                evModel.setLogbookEventType(LogbookEventType.TASK);
+                                evModel.setEvTypeParent(lastEvent.getEvType());
+                                break;
+                            case TASK:
+                                evModel.setLogbookEventType(LogbookEventType.ACTION);
+                                break;
+                        }
+                    }
+                }
+                break;
+            // case of logbook lifecycles.
+            case OBJECTGROUP_LFC:
+            case UNIT_LFC:
+                if (evParentId == null) {
+                    // event of type "ACTION"
+                    evModel.setLogbookEventType(LogbookEventType.ACTION);
+                } else {
+                    // event of type "TASK" (TREATMENT)
+                    evModel.setLogbookEventType(LogbookEventType.TASK);
+                    if (lastEvent != null) {
+                        evModel.setEvTypeParent(lastEvent.getEvType());
+                    }
+                }
+                break;
+            default:
+                evModel.setLogbookEventType(logbookEventType.DEFAULT);
         }
-
-        return logbookEventType.DEFAULT;
     }
 
 }

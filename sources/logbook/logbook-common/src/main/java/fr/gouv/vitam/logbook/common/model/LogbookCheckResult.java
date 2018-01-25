@@ -26,38 +26,49 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 /**
  * Description of LogbookCheckResult model. <br/>
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class LogbookCheckResult implements Serializable{
 
     /**
      * Operation identifier.
      */
+    @JsonProperty("operationId")
     private String operationId;
 
     /**
      * Unit or Got LFC identifier.
      */
+    @JsonProperty("lfcId")
     private String lfcId;
 
     /**
      * Checked property : evType.
      */
+    @JsonProperty("checkedProperty")
     private String checkedProperty;
 
     /**
      * actual logbook.
      */
+    @JsonProperty("savedLogbookMsg")
     private String savedLogbookMsg;
 
     /**
      * Expected logbook.
      */
+    @JsonProperty("expectedLogbookMsg")
     private String expectedLogbookMsg;
 
+    public LogbookCheckResult() {
+    }
 
     /**
      * LogbookCheckResult constructor.
@@ -74,21 +85,6 @@ public class LogbookCheckResult implements Serializable{
         this.checkedProperty = checkedProperty;
         this.savedLogbookMsg = savedLogbookMsg;
         this.expectedLogbookMsg = expectedLogbookMsg;
-    }
-
-    /**
-     * override toString method.
-     *
-     * @return
-     */
-    @Override public String toString() {
-        return " {" +
-            "operationId='" + operationId + '\'' +
-            ", lfcId='" + lfcId + '\'' +
-            ", checkedProperty='" + checkedProperty + '\'' +
-            ", savedLogbookMsg='" + savedLogbookMsg + '\'' +
-            ", expectedLogbookMsg='" + expectedLogbookMsg + '\'' +
-            "}\n";
     }
 
     public String getOperationId() {

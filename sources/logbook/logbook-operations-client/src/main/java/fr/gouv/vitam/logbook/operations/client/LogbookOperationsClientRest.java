@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.operations.client;
 import java.util.Queue;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -42,14 +43,19 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -73,6 +79,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
+    private final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -399,7 +406,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, tenant);
             response = performRequest(HttpMethod.POST, AUDIT_TRACEABILITY_URI, headers, options,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             LOGGER.debug("Traceability audit OK");
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -408,6 +415,19 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             consumeAnyEntityAndClose(response);
         }
 
+    }
+
+    @Override
+    public Response checkLogbookCoherence() throws VitamException {
+        Response response = null;
+        try {
+            return performRequest(HttpMethod.POST, CHECK_LOGBOOK_COHERENCE_URI,  null, null,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+        } catch (VitamException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new LogbookClientServerException("Internal Server Error", e);
+        }
     }
 
 }

@@ -149,6 +149,14 @@ public class FunctionalBackupService {
                 LOGGER.error("Could not persist backup error in logbook operation", logbookErrorException);
             }
             throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
+        } catch (Exception e) {
+            // FIXME : Actually format backup is throwing NullPointerException
+            try {
+                backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
+            } catch (VitamException | RuntimeException logbookErrorException) {
+                LOGGER.error("Could not persist backup error in logbook operation", logbookErrorException);
+            }
+            throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
         }
     }
 

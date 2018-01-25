@@ -77,7 +77,7 @@ public class VitamConfiguration {
      * path for download object data
      */
     public static final String OBJECT_DOWNLOAD_URL = "/archiveunit/objects/download";
-    ;
+
     /**
      * path for exporting DIP
      */
