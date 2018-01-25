@@ -33,7 +33,6 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
-import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,21 +44,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.StreamSupport;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -72,8 +68,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
-import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -100,6 +94,7 @@ public class CreateManifest extends ActionHandler {
     static final int MANIFEST_XML_RANK = 0;
     static final int GUID_TO_PATH_RANK = 1;
     static final int BINARIES_RANK = 2;
+    private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
     private MetaDataClientFactory metaDataClientFactory;
 
@@ -183,7 +178,7 @@ public class CreateManifest extends ActionHandler {
 
                 Map<String, String> idBinaryWithFileName = new HashMap<>();
 
-                Iterable<List<String>> partitions = partition(ogs.values(), GlobalDatasDb.LIMIT_LOAD);
+                Iterable<List<String>> partitions = partition(ogs.values(), MAX_ELEMENT_IN_QUERY);
                 for (List<String> partition : partitions) {
                     InQuery in = QueryHelper.in(id(), partition.toArray(new String[partition.size()]));
                     select.setQuery(in);
