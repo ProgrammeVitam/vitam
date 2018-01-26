@@ -17,16 +17,30 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AuditWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.DistributionKind;
@@ -56,21 +70,6 @@ import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 /**
  * The Process Distributor call the workers and intercept the response for manage a post actions step
@@ -229,6 +228,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                     useDistributorIndex = false;
                                 }
                                 objectsList.clear();
+
+                                // If fatal occurs, do not continue distribution
+                                if(step.getStepResponses().getGlobalStatus().isGreaterOrEqualToFatal()) {
+                                    break;
+                                }
                             }
                         }
                     } else {
