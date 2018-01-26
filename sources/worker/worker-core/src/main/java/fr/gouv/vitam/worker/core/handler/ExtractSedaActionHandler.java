@@ -33,7 +33,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -287,8 +286,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting
-    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -517,7 +515,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params parameters of workspace server
+     * @param params                    parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException when a cycle is found in data extract
@@ -580,9 +578,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             ProcessingUnitNotFoundException exception = (ProcessingUnitNotFoundException) e.getCause();
                             unitIdToGuid.put(exception.getUnitId(), exception.getUnitGuid());
                             saveGuidsMaps();
-                            createLifeCycleForError(SUBTASK_ATTACHEMENT,
-                                getMessageItemStatusAUNotFound(exception.getUnitId(), exception.getUnitGuid()),
-                                exception.getUnitGuid(), true, false, containerId, logbookLifeCycleClient, typeProcess);
+                            if (exception.isValidGuid()) {
+                                createLifeCycleForError(SUBTASK_ATTACHEMENT,
+                                    getMessageItemStatusAUNotFound(exception.getUnitId(), exception.getUnitGuid()),
+                                    exception.getUnitGuid(), true, false, containerId, logbookLifeCycleClient,
+                                    typeProcess);
+                            }
                         }
                         if (e.getCause() instanceof ProcessingObjectGroupNotFoundException) {
                             ProcessingObjectGroupNotFoundException exception =
@@ -1129,7 +1130,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit archiveUnit
+     * @param archiveUnit      archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1182,9 +1183,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode global management node
+     * @param globalMgtRuleNode          global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType category of rule
+     * @param ruleType                   category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1902,7 +1903,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2136,7 +2137,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid guid of data object
+     * @param guid       guid of data object
      * @param isPhysical is this object a physical object
      */
 

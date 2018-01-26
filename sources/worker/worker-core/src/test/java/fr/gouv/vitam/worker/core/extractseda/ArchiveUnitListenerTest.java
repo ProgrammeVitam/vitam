@@ -80,7 +80,7 @@ public class ArchiveUnitListenerTest {
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
 
-        when(updateOperation.getSystemId()).thenReturn("systemId");
+        when(updateOperation.getSystemId()).thenReturn("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
 
         when(parent.isGlobalScope()).thenReturn(true);
 
@@ -92,6 +92,46 @@ public class ArchiveUnitListenerTest {
             fail("Must throws ProcessingUnitNotFoundException ");
         } catch (RuntimeException e) {
             assertThat(e.getCause()).isInstanceOf(ProcessingUnitNotFoundException.class);
+            ProcessingUnitNotFoundException exception = (ProcessingUnitNotFoundException) e.getCause();
+            // Case of a not valid SystemId (not valid guid) is test in ProcessingIT testWorkflowAddAndLinkSIPWithNotGUIDSystemIDKo
+            assertThat(exception.isValidGuid()).isTrue();
+        }
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAfterUnmarshalLinkedSystemIdNotFoundNotValigSystemIDKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        ArchiveUnitType target = mock(ArchiveUnitType.class);
+        JAXBElement parent = mock(JAXBElement.class);
+
+        ArchiveUnitListener archiveUnitListener =
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
+                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null
+            );
+
+        when(target.getArchiveUnitRefId()).thenReturn(null);
+        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        when(target.getManagement()).thenReturn(management);
+        UpdateOperationType updateOperation = mock(UpdateOperationType.class);
+        when(management.getUpdateOperation()).thenReturn(updateOperation);
+
+        when(updateOperation.getSystemId()).thenReturn("SystemIDNotValid");
+
+        when(parent.isGlobalScope()).thenReturn(true);
+
+        RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
+        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(resp.toJsonNode());
+
+        try {
+            archiveUnitListener.afterUnmarshal(target, parent);
+            fail("Must throws ProcessingUnitNotFoundException ");
+        } catch (RuntimeException e) {
+            assertThat(e.getCause()).isInstanceOf(ProcessingUnitNotFoundException.class);
+            ProcessingUnitNotFoundException exception = (ProcessingUnitNotFoundException) e.getCause();
+            assertThat(exception.isValidGuid()).isFalse();
         }
     }
 
@@ -110,7 +150,8 @@ public class ArchiveUnitListenerTest {
 
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.FILING_UNIT, null,
+                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.FILING_UNIT,
+                null,
                 null);
 
 
@@ -120,7 +161,7 @@ public class ArchiveUnitListenerTest {
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
 
-        when(updateOperation.getSystemId()).thenReturn("systemId");
+        when(updateOperation.getSystemId()).thenReturn("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
 
         when(parent.isGlobalScope()).thenReturn(true);
 
@@ -156,7 +197,8 @@ public class ArchiveUnitListenerTest {
 
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.HOLDING_UNIT, null,
+                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.HOLDING_UNIT,
+                null,
                 null);
 
 
@@ -166,7 +208,7 @@ public class ArchiveUnitListenerTest {
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
 
-        when(updateOperation.getSystemId()).thenReturn("systemId");
+        when(updateOperation.getSystemId()).thenReturn("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
 
         when(parent.isGlobalScope()).thenReturn(true);
 
@@ -211,7 +253,7 @@ public class ArchiveUnitListenerTest {
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
 
-        when(updateOperation.getSystemId()).thenReturn("systemId");
+        when(updateOperation.getSystemId()).thenReturn("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
 
         when(parent.isGlobalScope()).thenReturn(true);
 
@@ -262,7 +304,7 @@ public class ArchiveUnitListenerTest {
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
 
-        when(updateOperation.getSystemId()).thenReturn("systemId");
+        when(updateOperation.getSystemId()).thenReturn("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
 
         when(parent.isGlobalScope()).thenReturn(true);
 
