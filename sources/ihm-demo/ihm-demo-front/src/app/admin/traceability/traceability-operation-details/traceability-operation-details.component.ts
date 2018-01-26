@@ -8,6 +8,7 @@ import { ObjectsService } from "../../../common/utils/objects.service";
 import { ColumnDefinition } from "../../../common/generic-table/column-definition";
 import { LogbookService } from "../../../ingest/logbook.service";
 import {DateService} from "../../../common/utils/date.service";
+import {VitamResponse} from '../../../common/utils/response';
 
 @Component({
   selector: 'vitam-traceability-operation-details',
@@ -18,22 +19,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
   reportGenerated = false;
   id: string;
   item: any;
-  reportItems: any[];
-  selectedCols: ColumnDefinition[] = [];
-  firstItem = 0;
-  nbRows = 25;
-  displayedItems: any[];
-
-  cols = [
-    ColumnDefinition.makeStaticColumn('outDetail', 'Intitulé de l\'évènement', undefined,
-      () => ({'width': '500px', 'overflow-wrap': 'break-word', 'text-align': 'left'}), false),
-    ColumnDefinition.makeStaticColumn('evDateTime', 'Date',
-      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('outcome', 'Statut', undefined,
-      () => ({'width': '100px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('outMessg', 'Message', undefined,
-      () => ({'width': '525px', 'overflow-wrap': 'break-word'}), false)
-  ];
+  response: VitamResponse;
 
   columns = {
     'operation': [
@@ -131,21 +117,11 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
     this.traceabilityService.checkTraceabilityOperation(this.id)
       .subscribe(
         (resp) => {
-          let report = resp.$results[0];
-          this.selectedCols = this.cols;
-
-          if (!!report) {
-            this.reportItems = [report].concat(report.events);
-            this.displayedItems = this.reportItems.slice(this.firstItem, this.firstItem + this.nbRows);
+          if (!!resp) {
+             this.response = resp;
           }
         }
       );
-  }
-
-  paginate(event) {
-    this.firstItem = event.first;
-    this.nbRows = event.rows;
-    this.displayedItems = this.reportItems.slice(this.firstItem, this.firstItem + this.nbRows);
   }
 
   downloadReport(item,logbookService) {

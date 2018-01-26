@@ -1,4 +1,4 @@
-<p-panel [header]="isIngestOperation ? 'Détails de l\'opération d\'entrée' : 'Détails de l\'opération'" [toggleable]="true">
+<p-panel [header]="operationsTitle" [toggleable]="true">
   <div class="ui-g" *ngIf="results">
     <div class="ui-g-12">
       <div *ngFor="let event of events; let i=index">

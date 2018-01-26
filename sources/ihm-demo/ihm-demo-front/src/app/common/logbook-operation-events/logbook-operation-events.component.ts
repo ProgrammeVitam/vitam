@@ -9,9 +9,10 @@ import {LogbookHelperService} from "./logbook-helper.service";
   styleUrls: ['./logbook-operation-events.component.css']
 })
 export class LogbookOperationEventsComponent implements OnInit {
-  @Input() isIngestOperation: boolean;
+  @Input() operationsTitle: string;
   @Input() results: any;
   events: Event[] = [];
+
 
   constructor(private logbookHelper: LogbookHelperService) { }
 

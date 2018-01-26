@@ -33,10 +33,7 @@
 <p-panel [header]="'Vérification de l\'opération de sécurisation'" *ngIf="!item">
   Récupération des données en cours...
 </p-panel>
-<p-panel [header]="'Rapport de vérification'" *ngIf="reportGenerated && reportItems">
-  <p-paginator [(rows)]="nbRows" (onPageChange)="paginate($event)" [(first)]="firstItem"></p-paginator>
-  <vitam-generic-table [items]="displayedItems" [selectedCols]="selectedCols" [getClass]="getClass" [identifier]="identifier"></vitam-generic-table>
-</p-panel>
-<p-panel [header]="'Rapport de vérification'" *ngIf="reportGenerated && !reportItems">
+<vitam-logbook-operation-events [operationsTitle]="'Rapport de vérification'" [results]="response.$results[0]" *ngIf="response"></vitam-logbook-operation-events>
+<p-panel [header]="'Rapport de vérification'" *ngIf="reportGenerated && !response">
   Vérification en cours...
 </p-panel>
