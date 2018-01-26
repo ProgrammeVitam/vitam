@@ -27,29 +27,27 @@
 
 package fr.gouv.vitam.logbook.common.model;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.security.merkletree.MerkleTree;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.security.merkletree.MerkleTree;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Used to handle zip file for traceability
  */
 public class TraceabilityFile implements AutoCloseable {
 
-    private static final String EXTRACT_FILENAME_SUFFIX = ".txt";
+    private static final String EXTRACT_FILENAME = "data.txt";
     private static final String ADDITIONAL_INFORMATION_FILENAME = "additional_information.txt";
     private static final String COMPUTING_INFORMATION_FILENAME = "computing_information.txt";
     private static final String MEKLE_TREE_FILENAME = "merkleTree.json";
@@ -64,18 +62,17 @@ public class TraceabilityFile implements AutoCloseable {
     // FIXME ArchiveException thrown if ArchiveStreamFactory.ZIP is not found (Throw TraceabilityException instead ?)
 
     /**
-     * @param file                  the targeted file to store tmp zip file
-     * @param extractedDataFileName the prefix name of the extractedData.txt file (depend on traceability type)
+     * @param file the targeted file to store tmp zip file
      * @throws FileNotFoundException if the given file is missing
      * @throws ArchiveException      if any error occurs while creating ZipArchiveOutputStram
      */
-    public TraceabilityFile(File file, String extractedDataFileName) throws FileNotFoundException, ArchiveException {
+    public TraceabilityFile(File file) throws FileNotFoundException, ArchiveException {
         final OutputStream archiveStream = new BufferedOutputStream(new FileOutputStream(file));
         archive = (ZipArchiveOutputStream) new ArchiveStreamFactory()
             .createArchiveOutputStream(ArchiveStreamFactory.ZIP, archiveStream);
 
         archive.setLevel(0);
-        this.extractedDataFileName = extractedDataFileName + EXTRACT_FILENAME_SUFFIX;
+        this.extractedDataFileName = EXTRACT_FILENAME;
     }
 
     /**
@@ -108,20 +105,19 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      * Create a new file for extracted data.<br>
-     * Should be directly followed by one or multiple storeOperationLog<br>
-     * Must be close with closeStoreOperationLog
+     * Should be directly followed by one or multiple storeLog<br>
+     * Must be close with closeStoreLog
      *
      * @throws IOException if any error occurs while attempting to write in zip
      */
     public void initStoreLog() throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(extractedDataFileName);
         archive.putArchiveEntry(entry);
-
     }
 
     /**
      * Add a line of extracted data in the recently created file.<br>
-     * Must be directly preceded by a call of initStoreOperationLog or storeOperationLog
+     * Must be directly preceded by a call of initStoreLog or storeLog
      *
      * @throws IOException if any error occurs while attempting to write in zip
      */

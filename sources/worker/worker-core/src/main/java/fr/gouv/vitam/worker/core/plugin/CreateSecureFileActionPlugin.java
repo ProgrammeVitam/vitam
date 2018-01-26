@@ -160,7 +160,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 JsonNode versions = qualifier.get(SedaConstants.TAG_VERSIONS);
                 if (versions.isArray() && versions.size() > 0) {
                     for (final JsonNode version : versions) {
-                        sj.add("{\"id\":" + version.get("_id") +
+                        sj.add("{\"id\":" + version.get("#id") +
                             ", \"object\": \"" + generateDigest(version) +
                             "\"}");
                     }

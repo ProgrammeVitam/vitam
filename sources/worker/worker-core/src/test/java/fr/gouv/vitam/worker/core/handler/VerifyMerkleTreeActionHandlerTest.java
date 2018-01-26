@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.DATA_FILE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -89,12 +90,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class VerifyMerkleTreeActionHandlerTest {
     VerifyMerkleTreeActionHandler verifyMerkleTreeActionHandler;
     private static final String DETAIL_EVENT_TRACEABILITY = "EVENT_DETAIL_DATA.json";
-    private static final String DETAIL_EVENT_TRACEABILITY_WRONG_ROOT = "EVENT_DETAIL_DATA_WRONG_ROOT.json";    
+    private static final String DETAIL_EVENT_TRACEABILITY_WRONG_ROOT = "EVENT_DETAIL_DATA_WRONG_ROOT.json";
     private static final String FAKE_DETAIL_EVENT_TRACEABILITY = "sip.xml";
     private static final String MERKLE_TREE_JSON = "merkleTree.json";
     private static final String MERKLE_TREE_JSON_WRONG_ROOT = "merkleTreeWrongRoot.json";
-
-    private static final String OPERATIONS_JSON = "operations.json";
     private static final String OPERATIONS_WRONG_DATES_JSON = "operations_wrong_dates.json";
 
     private static final String FAKE_URL = "http://localhost:8080";
@@ -168,12 +167,12 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         final InputStream operationsJson =
-            PropertiesUtils.getResourceAsStream(OPERATIONS_JSON);
+            PropertiesUtils.getResourceAsStream(DATA_FILE);
         final InputStream merkleTreeJson =
             PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON);
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            OPERATIONS_JSON)))
+            DATA_FILE)))
                 .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
@@ -197,12 +196,12 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         final InputStream operationsJson =
-            PropertiesUtils.getResourceAsStream(OPERATIONS_JSON);
+            PropertiesUtils.getResourceAsStream(DATA_FILE);
         final InputStream merkleTreeJson =
             PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON);
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            OPERATIONS_JSON)))
+            DATA_FILE)))
                 .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
@@ -230,12 +229,12 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         final InputStream operationsJson =
-            PropertiesUtils.getResourceAsStream(OPERATIONS_JSON);
+            PropertiesUtils.getResourceAsStream(DATA_FILE);
         final InputStream merkleTreeJson =
             PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON_WRONG_ROOT);
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            OPERATIONS_JSON)))
+            DATA_FILE)))
                 .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
@@ -268,7 +267,7 @@ public class VerifyMerkleTreeActionHandlerTest {
             PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON);
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            OPERATIONS_JSON)))
+            DATA_FILE)))
                 .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
@@ -296,7 +295,7 @@ public class VerifyMerkleTreeActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testVerifyMerkleTreeWithOperationJsonNotFoundThenFATAL()
+    public void testVerifyMerkleTreeWithDataFileNotFoundThenFATAL()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         in = new ArrayList<>();
@@ -309,8 +308,8 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            OPERATIONS_JSON)))
-                .thenThrow(new ContentAddressableStorageNotFoundException(OPERATIONS_JSON + " not found"));
+            DATA_FILE)))
+                .thenThrow(new ContentAddressableStorageNotFoundException(DATA_FILE + " not found"));
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }

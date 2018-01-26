@@ -102,8 +102,7 @@ public class TraceabilityService {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         String fileName = createZipFile(tenantId, now);
 
-        try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile,
-            helper.getTraceabilityType().getFileName())) {
+        try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
 
             // Create new merkleTreeAlgo
             final MerkleTreeAlgo merkleAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
