@@ -33,6 +33,8 @@ public class ZipFilesNameNotAllowedException extends ContentAddressableStorageEx
     private static final long serialVersionUID = -1L;
 
     /**
+     * Constructor
+     * 
      * @param message as String message to associate with the exception
      */
     public ZipFilesNameNotAllowedException(String message) {
@@ -40,6 +42,8 @@ public class ZipFilesNameNotAllowedException extends ContentAddressableStorageEx
     }
 
     /**
+     * Constructor
+     * 
      * @param cause as String to associate with the exception
      */
     public ZipFilesNameNotAllowedException(Throwable cause) {
@@ -47,6 +51,8 @@ public class ZipFilesNameNotAllowedException extends ContentAddressableStorageEx
     }
 
     /**
+     * Constructor
+     * 
      * @param message : message to associate with the exception
      * @param cause : cause to associate with the exception
      */

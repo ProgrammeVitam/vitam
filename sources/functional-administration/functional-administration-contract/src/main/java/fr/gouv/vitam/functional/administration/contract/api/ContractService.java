@@ -89,7 +89,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * @param identifier the identifier of the contract
      * @return T the contract corresponding to this identifier
      * @throws ReferentialException thrown if the query could not be executed
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException thrown if the query could not be created
      */
     public T findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 

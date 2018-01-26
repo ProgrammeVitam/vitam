@@ -43,9 +43,14 @@ public enum OutcomeStatus {
      * constructor. <br/>
      */
     OutcomeStatus(int weight) {
-        weight = weight;
+        this.weight = weight;
     }
 
+    /**
+     * Get Weight
+     * 
+     * @return weight
+     */
     public int getWeight() {
         return weight;
     }

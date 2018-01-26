@@ -174,17 +174,19 @@ public interface LogbookOperations {
         InvalidParseOperationException;
 
     /**
+     * Reindex one or more collections
      *
-     * @param indexParameters
-     * @return
+     * @param indexParameters the parameters specifying what to reindex
+     * @return the reindexation result as a IndexationResult Object
      */
     IndexationResult reindex(IndexParameters indexParameters);
 
     /**
+     * Switch indexes for one or more collections
      *
-     * @param alias
-     * @param newIndexName
-     * @throws DatabaseException
+     * @param alias the alias name 
+     * @param newIndexName the new index to be pointed on 
+     * @throws DatabaseException in case error with database occurs
      */
     void switchIndex(String alias, String newIndexName) throws DatabaseException;
 }

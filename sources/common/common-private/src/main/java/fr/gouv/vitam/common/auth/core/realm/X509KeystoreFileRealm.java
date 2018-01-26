@@ -46,13 +46,12 @@ import org.apache.shiro.subject.PrincipalCollection;
  */
 public class X509KeystoreFileRealm extends AbstractX509Realm {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(X509KeystoreFileRealm.class);
-
     private static final String REALM_NAME = "X509KeystoreFile";
     private final Set<X509Certificate> grantedIssuers = new HashSet<>();
-    private Map<String, String> roleDefs;
     private Map<String, String> certificateDnRoleMapping;
 
+    private Map<String, String> roleDefs;
+    
     /**
      * empty constructor
      */
@@ -61,7 +60,8 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
         this.roleDefs = RealmUtils.getRoleDefs();
     }
 
-    @Override protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
         return new SimpleAuthorizationInfo();
     }
 

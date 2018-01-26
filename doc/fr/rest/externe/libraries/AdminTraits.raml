@@ -7,6 +7,7 @@ uses:
   StandardTraits: StandardTraits.raml
   AccessTypes: AccessTypes.raml
   DslTypes: DslTypes.raml
+  AdminTypes: AdminTypes.raml
 
 traits:
 
@@ -22,10 +23,10 @@ traits:
         example: !include examples/dslQuery.json
     responses:
       200:
-        description:  Renvoie la liste des résultats de type <<resourcePathName | !uppercamelcase>> correspondant à la requête DSL 
+        description:  Renvoie la liste des résultats de type <<resourcePathName | !uppercamelcase>> correspondant à la requête DSL
         body:
           application/json:
-            description: Réponse DSL multiple pour Access contenant les <<resourcePathName | !uppercamelcase>> 
+            description: Réponse DSL multiple pour Access contenant les <<resourcePathName | !uppercamelcase>>
             schema: DslTypes.DslSingleResponse
             #example: !include examples/logbookResponse.json
 
@@ -133,3 +134,40 @@ traits:
         body:
           application/json:
             description: Final Traceability report
+
+
+  AdminReindex:
+    description: Response model for reindexation order
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader400 ]
+    body:
+      application/json:
+        description: Contient la requête de réindexation au format JSON.
+        schema: AdminTypes.AdminReindexationRequest
+        example: !include examples/reindexation.json
+    responses:
+      200:
+        description: |
+          Retourne OK en cas de succès de réindexation
+        body:
+          application/json:
+            description: Reindexation accepted
+            example: !include examples/reindexationResponse.json
+
+  AdminAlias:
+    description: Response model for switch order
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader400 ]
+    body:
+      application/json:
+        description: Contient la requête de switch au format JSON.
+        schema: AdminTypes.AdminSwitchRequest
+        example: !include examples/switch.json
+    responses:
+      200:
+        description: |
+          Retourne OK en cas de succès de switch
+        body:
+          application/json:
+            description: Reindexation accepted
+            example: !include examples/switchResponse.json

@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
@@ -46,15 +45,12 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
-    /**
-     * Vitam Basic authentication -> username & password
-     */
-    private BasicAuthModel adminBasicAuth;
 
     // constructor
     AdminManagementConfiguration() {
         super();
     }
+
     private Map<Integer, List<String>> listEnableExternalIdentifiers;
     private Map<Integer, Map<String, String>> listMinimumRuleDuration;
 
@@ -88,7 +84,7 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     public void setWorkspaceUrl(String workspaceUrl) {
         this.workspaceUrl = workspaceUrl;
     }
-    
+
     /**
      * @return processing Url
      */
@@ -146,11 +142,11 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
      * Setter for listEnableExternalIdentifiers;
      */
     public void setListEnableExternalIdentifiers(
-        Map<Integer, List<String>>  listEnableExternalIdentifiers) {
+        Map<Integer, List<String>> listEnableExternalIdentifiers) {
 
         this.listEnableExternalIdentifiers = listEnableExternalIdentifiers;
     }
-    
+
     /**
      * @return listMinimumRuleDuration
      */
@@ -162,7 +158,8 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
      * @param listMinimumRuleDuration
      * @return AdminManagementConfiguration
      */
-    public AdminManagementConfiguration setListMinimumRuleDuration(Map<Integer, Map<String, String>> listMinimumRuleDuration) {
+    public AdminManagementConfiguration setListMinimumRuleDuration(
+        Map<Integer, Map<String, String>> listMinimumRuleDuration) {
         this.listMinimumRuleDuration = listMinimumRuleDuration;
         return this;
     }
