@@ -76,7 +76,8 @@ public class VitamConfiguration {
     /**
      * path for download object data
      */
-    public static final String OBJECT_DOWNLOAD_URL = "/archiveunit/objects/download";;
+    public static final String OBJECT_DOWNLOAD_URL = "/archiveunit/objects/download";
+    ;
     /**
      * path for exporting DIP
      */
@@ -291,6 +292,11 @@ public class VitamConfiguration {
      * Max Elasticsearch Bulk
      */
     private static int maxElasticsearchBulk = 1000;
+
+    /**
+     * batchSize
+     */
+    private static int batchSize = 1000;
     /*
      * Max Thread for ES and MongoDB
      */
@@ -1406,7 +1412,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for worker bulk size
-     * 
+     *
      * @return
      */
     public static int getWorkerBulkSize() {
@@ -1415,7 +1421,7 @@ public class VitamConfiguration {
 
     /**
      * Setter worker bulk size
-     * 
+     *
      * @param workerBulkSize
      */
     public static void setWorkerBulkSize(int workerBulkSize) {
@@ -1511,7 +1517,7 @@ public class VitamConfiguration {
 
     /**
      * Get the maxResultWindow
-     * 
+     *
      * @return maxResultWindow
      */
     public static int getMaxResultWindow() {
@@ -1519,13 +1525,29 @@ public class VitamConfiguration {
     }
 
     /**
-     * Set the maxResultWindow 
+     * Set the maxResultWindow
+     *
      * @param maxResultWindow
      */
     public static void setMaxResultWindow(int maxResultWindow) {
         VitamConfiguration.maxResultWindow = maxResultWindow;
     }
 
+    /**
+     * Get the batchSize.
+     *
+     * @return
+     */
+    public static int getBatchSize() {
+        return batchSize;
+    }
 
-
+    /**
+     * Set the batchSize.
+     *
+     * @param batchSize
+     */
+    public static void setBatchSize(int batchSize) {
+        VitamConfiguration.batchSize = batchSize;
+    }
 }

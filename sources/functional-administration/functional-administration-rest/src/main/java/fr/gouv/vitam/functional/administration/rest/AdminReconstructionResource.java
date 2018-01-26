@@ -82,7 +82,6 @@ public class AdminReconstructionResource {
      */
     private ReconstructionService reconstructionService;
 
-
     public AdminReconstructionResource(AdminManagementConfiguration adminManagementConfig,
         VitamRepositoryProvider reconstructionFactory) {
         this.reconstructionService = new ReconstructionServiceImpl(adminManagementConfig, reconstructionFactory);

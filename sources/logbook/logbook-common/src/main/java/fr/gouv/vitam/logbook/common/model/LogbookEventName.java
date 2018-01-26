@@ -24,46 +24,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.server.database.collections;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.bson.Document;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.json.JsonHandler;
+package fr.gouv.vitam.logbook.common.model;
 
 /**
- * Logbook repository : direct access to databases
+ * Enumeration of the LogbookEvent names. <br/>
  */
-public class LogbookRepositoryService {
+public enum LogbookEventName {
+
+    ID ("_id"),
+
+    EVID_PROC ("evIdProc"),
+
+    EVTYPE ("evType"),
+
+    EVTYPE_PARENT ("evTypeParent"),
+
+    OUTCOME("outcome"),
+
+    EVID("evId"),
+
+    OUTCOMEDETAILS("outDetail"),
+
+    EVPARENT_ID("evParentId");
 
     /**
-     * VitamRepository provider.
+     * value.
      */
-    private VitamRepositoryProvider vitamRepositoryProvider;
+    private String value;
 
-
-    public LogbookRepositoryService(VitamRepositoryProvider vitamRepositoryProvider) {
-        this.vitamRepositoryProvider = vitamRepositoryProvider;
+    /**
+     * constructor.
+     *
+     * @param value
+     */
+    LogbookEventName(String value) {
+        this.value = value;
     }
 
     /**
-     * Save datas as bulk
-     * @param collection logbook collection
-     * @param logbookItems logbooks 
-     * @throws DatabaseException
+     * getValue.
+     *
+     * @return
      */
-    public void saveBulk(LogbookCollections collection, List<JsonNode> logbookItems) throws DatabaseException {
-        List<Document> documents = logbookItems.stream()
-            .map(item -> new Document(Document.parse(JsonHandler.unprettyPrint(item)))).collect(Collectors.toList());
-        vitamRepositoryProvider.getVitamMongoRepository(collection).saveOrUpdate(documents);
-        if (LogbookCollections.OPERATION.equals(collection)) {
-            vitamRepositoryProvider.getVitamESRepository(collection).save(documents);
-        }
-
+    public String getValue() {
+        return value;
     }
+
 }

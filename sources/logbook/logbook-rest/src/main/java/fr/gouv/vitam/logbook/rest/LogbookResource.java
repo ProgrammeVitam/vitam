@@ -182,7 +182,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
         LOGGER.debug("LogbookResource operation initialized");
 
-        logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess, configuration.getDisablePurge());
         LOGGER.debug("LogbookResource lifecycles initialized");
     }
 

@@ -29,8 +29,6 @@ package fr.gouv.vitam.functional.administration.common.impl;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -78,13 +76,6 @@ public class ReconstructionServiceImpl implements ReconstructionService {
         this.adminManagementConfig = adminManagementConfig;
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.recoverBuckupService = recoverBuckupService;
-    }
-
-    @PostConstruct
-    public void init() {
-        if (recoverBuckupService == null) {
-            recoverBuckupService = new RestoreBackupServiceImpl();
-        }
     }
 
     /**

@@ -131,5 +131,10 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>logbook-administration</artifactId>
+            <version>0.30.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

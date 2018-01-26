@@ -103,7 +103,6 @@ public class ReindexationResource {
     /**
      * Constructor
      *
-     * @param indexationService
      * @param logbookClient
      * @param metadataClient
      */
@@ -151,7 +150,7 @@ public class ReindexationResource {
                     results.add(JsonHandler.getFromJsonNode(metadataClient.reindex(index), IndexationResult.class));
                     atLeastOneOK.set(true);
                 } else {
-                    // reconstruction of the given collection on the given list of tenants
+                    // Reindex of the given collection
                     FunctionalAdminCollections collectionToReindex;
                     try {
                         collectionToReindex =

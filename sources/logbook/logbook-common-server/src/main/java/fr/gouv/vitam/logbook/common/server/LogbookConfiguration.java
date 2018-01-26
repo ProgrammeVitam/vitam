@@ -67,6 +67,8 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      */
     private Integer lifecycleTraceabilityOverlapDelay;
     
+    private boolean disablePurge;
+    
 
     /**
      * LogbookConfiguration constructor
@@ -215,6 +217,20 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      */
     public void setAlertEvents(List<LogbookEvent> alertEvents) {
         this.alertEvents = alertEvents;
+    }
+
+    /**
+     * @return disablePurge
+     */
+    public boolean getDisablePurge() {
+        return disablePurge;
+    }
+
+    /**
+     * @param disablePurge to set
+     */
+    public void setDisablePurge(boolean disablePurge) {
+        this.disablePurge = disablePurge;
     }
 
     /**

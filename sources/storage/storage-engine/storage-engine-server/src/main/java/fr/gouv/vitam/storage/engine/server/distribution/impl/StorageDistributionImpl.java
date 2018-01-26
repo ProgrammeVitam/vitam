@@ -508,6 +508,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 break;
             case BACKUP_OPERATION:
                 description.append("Backup Operation ");
+            case CHECKLOGBOOKREPORTS:
+                description.append("CHECKLOGBOOKREPORTS ");
                 break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
