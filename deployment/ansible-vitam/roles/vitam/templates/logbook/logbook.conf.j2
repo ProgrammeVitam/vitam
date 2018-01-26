@@ -24,6 +24,9 @@ elasticsearchNodes:
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
 
+# disable purge of temporary LifeCycles
+disablePurge: false
+
 # Configuration des alertes de securite
 alertEvents:
 - evType: 'CHECK_HEADER.CHECK_CONTRACT_INGEST'

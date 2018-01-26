@@ -446,7 +446,7 @@ public class ReindexSwitchIT {
 
             VitamThreadUtils.getVitamSession().setContractId("aName4");
             String containerName = launchIngest();
-                        
+
             JsonNode logbookResultBefore = logbookClient.selectOperationById(containerName, null);
             SelectMultiQuery selectMulti = new SelectMultiQuery();
             selectMulti.addQueries(QueryHelper.in("#operations", containerName));
@@ -454,19 +454,19 @@ public class ReindexSwitchIT {
             ArrayNode resultUnit = (ArrayNode) nodeUnit.get("$results");
             JsonNode nodeObject = metadataClient.selectObjectGroups(selectMulti.getFinalSelect());
             ArrayNode resultObject = (ArrayNode) nodeObject.get("$results");
-            
+
             int sizeUnitsBefore = resultUnit.size();
             int sizeOgBefore = resultObject.size();
-           
+
             launchReindexationAndSwitchAndCheckValues("Operation", "Operation", client, "0");
             launchReindexationAndSwitchAndCheckValues("Unit", "Unit", client, "0");
             launchReindexationAndSwitchAndCheckValues("ObjectGroup", "ObjectGroup", client, "0");
-            
+
             JsonNode logbookResultAfter = logbookClient.selectOperationById(containerName, null);
 
             validateLogbookOperations(logbookResultBefore.get("$results").get(0),
                 logbookResultAfter.get("$results").get(0));
-            
+
             nodeUnit = metadataClient.selectUnits(selectMulti.getFinalSelect());
             resultUnit = (ArrayNode) nodeUnit.get("$results");
             nodeObject = metadataClient.selectObjectGroups(selectMulti.getFinalSelect());

@@ -302,7 +302,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @return a response with listing elements
      */
     @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP|AGENCIES|BACKUP" +
-        "|BACKUP_OPERATION}")
+        "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -1289,6 +1289,32 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return getObjectInformationWithPost(headers, ruleFile);
         }
     }
+
+    /**
+     * Post a new ckeck logbook report file
+     *
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param logbookreportfile       the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    @Path("/checklogbookreports/{logbookreportfile}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createlogbookreportFile(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("logbookreportfile") String logbookreportfile, ObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, logbookreportfile, createObjectDescription, DataCategory.CHECKLOGBOOKREPORTS,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, logbookreportfile);
+        }
+    }
+
 
     /**
      * Post a new object

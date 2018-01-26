@@ -24,46 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.server.database.collections;
+package fr.gouv.vitam.logbook.administration.core.api;
+
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.logbook.common.model.LogbookCheckResult;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
-import org.bson.Document;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Logbook repository : direct access to databases
+ * Check consistency logbook service.<br>
  */
-public class LogbookRepositoryService {
+public interface LogbookCheckConsistencyService {
 
     /**
-     * VitamRepository provider.
+     * Logbook coherence check by tenant.
+     *
+     * @param tenant
+     * @throws VitamException
      */
-    private VitamRepositoryProvider vitamRepositoryProvider;
-
-
-    public LogbookRepositoryService(VitamRepositoryProvider vitamRepositoryProvider) {
-        this.vitamRepositoryProvider = vitamRepositoryProvider;
-    }
+    void logbookCoherenceCheckByTenant(final Integer tenant) throws VitamException;
 
     /**
-     * Save datas as bulk
-     * @param collection logbook collection
-     * @param logbookItems logbooks 
-     * @throws DatabaseException
+     * Logbook coherence check on all Vitam tenants.
+     *
+     * @throws VitamException
      */
-    public void saveBulk(LogbookCollections collection, List<JsonNode> logbookItems) throws DatabaseException {
-        List<Document> documents = logbookItems.stream()
-            .map(item -> new Document(Document.parse(JsonHandler.unprettyPrint(item)))).collect(Collectors.toList());
-        vitamRepositoryProvider.getVitamMongoRepository(collection).saveOrUpdate(documents);
-        if (LogbookCollections.OPERATION.equals(collection)) {
-            vitamRepositoryProvider.getVitamESRepository(collection).save(documents);
-        }
+    void logbookCoherenceCheck() throws VitamException;
 
-    }
+    /**
+     * store check logbook reports in storage (offer).
+     *
+     * @param logbookCheckResults
+     * @throws VitamException
+     */
+    void storeReportsInStorage(List<LogbookCheckResult> logbookCheckResults) throws VitamException;
 }

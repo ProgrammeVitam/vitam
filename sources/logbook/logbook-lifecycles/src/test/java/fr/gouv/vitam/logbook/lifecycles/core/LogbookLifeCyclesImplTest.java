@@ -64,7 +64,6 @@ public class LogbookLifeCyclesImplTest {
     private static final LogbookLifeCycleUnitParameters getCompleteLifeCycleUnitParameters() {
         LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParameters;
 
-
         logbookLifeCyclesUnitParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParameters.setStatus(StatusCode.OK);
         logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
@@ -219,6 +218,15 @@ public class LogbookLifeCyclesImplTest {
             .rollbackLogbookLifeCycleObjectGroup(anyObject(), anyObject());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCyclesImpl.rollbackObjectGroup(iop.toString(), ioL.toString());
+    }
+
+    @Test
+    public void givenDeleteOGLCWhenOGLCNotExistsAndPurgeDisabledThenDoNotThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
+                .rollbackLogbookLifeCycleObjectGroup(anyObject(), anyObject());
+
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess, true);
         logbookLifeCyclesImpl.rollbackObjectGroup(iop.toString(), ioL.toString());
     }
 

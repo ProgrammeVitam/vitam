@@ -61,12 +61,11 @@ public class BusinessApplication extends Application {
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new LogbookResource(configuration));            
-            singletons.add(new AdminLogbookResource(VitamRepositoryFactory.getInstance()));
+            singletons.add(new LogbookResource(configuration));
+            singletons.add(new AdminLogbookResource(VitamRepositoryFactory.getInstance(), configuration));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override

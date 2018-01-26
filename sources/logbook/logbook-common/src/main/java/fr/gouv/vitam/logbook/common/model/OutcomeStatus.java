@@ -24,46 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.server.database.collections;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.bson.Document;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.json.JsonHandler;
+package fr.gouv.vitam.logbook.common.model;
 
 /**
- * Logbook repository : direct access to databases
+ * Enumeration of the outcome status. <br/>
  */
-public class LogbookRepositoryService {
+public enum OutcomeStatus {
+
+    STARTED(0),
+    OK(1),
+    WARNING(2),
+    KO(3),
+    FATAL(4);
+
+    private int weight;
 
     /**
-     * VitamRepository provider.
+     * constructor. <br/>
      */
-    private VitamRepositoryProvider vitamRepositoryProvider;
-
-
-    public LogbookRepositoryService(VitamRepositoryProvider vitamRepositoryProvider) {
-        this.vitamRepositoryProvider = vitamRepositoryProvider;
+    OutcomeStatus(int weight) {
+        weight = weight;
     }
 
-    /**
-     * Save datas as bulk
-     * @param collection logbook collection
-     * @param logbookItems logbooks 
-     * @throws DatabaseException
-     */
-    public void saveBulk(LogbookCollections collection, List<JsonNode> logbookItems) throws DatabaseException {
-        List<Document> documents = logbookItems.stream()
-            .map(item -> new Document(Document.parse(JsonHandler.unprettyPrint(item)))).collect(Collectors.toList());
-        vitamRepositoryProvider.getVitamMongoRepository(collection).saveOrUpdate(documents);
-        if (LogbookCollections.OPERATION.equals(collection)) {
-            vitamRepositoryProvider.getVitamESRepository(collection).save(documents);
-        }
-
+    public int getWeight() {
+        return weight;
     }
+
 }

@@ -32,15 +32,27 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyService;
+import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookRepositoryService;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
@@ -57,20 +69,27 @@ public class AdminLogbookResource {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminLogbookResource.class);
 
+    private final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
+
     /**
-     * Reconstruction service.
+     * LogbookRepository service.
      */
     private LogbookRepositoryService logbookRepositoryService;
 
+    /**
+     * logbookCoherenceCheck service.
+     */
+    private LogbookCheckConsistencyService checkLogbookService;
 
-    public AdminLogbookResource(VitamRepositoryProvider vitamRepositoryProvider) {
+    public AdminLogbookResource(VitamRepositoryProvider vitamRepositoryProvider, LogbookConfiguration configuration) {
         this.logbookRepositoryService = new LogbookRepositoryService(vitamRepositoryProvider);
+        this.checkLogbookService = new LogbookCheckConsistencyServiceImpl(configuration, vitamRepositoryProvider);
     }
 
     /**
      * Lifecycle Unit Bulk Create raw JsonNode objects
      *
-     * @param logbookLifeCycleModels Lifecycle Unit Logbooks as list of jsonNodes
+     * @param logbookLifecycles Lifecycle Unit Logbooks as list of jsonNodes
      * @return Response of CREATED
      */
     @POST
@@ -83,7 +102,7 @@ public class AdminLogbookResource {
     /**
      * Lifecycle object group Bulk Create raw JsonNode objects
      *
-     * @param logbookLifeCycleModels Lifecycle objectGroup Logbooks as list of jsonNodes
+     * @param logbookLifecycles Lifecycle objectGroup Logbooks as list of jsonNodes
      * @return Response of CREATED
      */
     @POST
@@ -109,6 +128,32 @@ public class AdminLogbookResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         return Response.status(Response.Status.CREATED).build();
+    }
+
+    /**
+     * API to access and lanch the Check logbook coherence service.<br/>
+     *
+     * @param headers
+     * @param uri
+     * @return
+     */
+    @Path(CHECK_LOGBOOK_COHERENCE_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkLogbookCoherence (@Context HttpHeaders headers, @Context UriInfo uri) {
+
+        LOGGER.debug("Starting Check logbook coherence service :");
+        try {
+            checkLogbookService.logbookCoherenceCheckByTenant(VitamThreadUtils.getVitamSession().getTenantId());
+            return Response.ok().build();
+
+        } catch (VitamException exc) {
+            Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
+            VitamError error = VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
+                exc.getMessage());
+            return Response.status(status).entity(error).build();
+        }
     }
 
 }
