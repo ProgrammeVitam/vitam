@@ -123,7 +123,7 @@ Détail des champs
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
-**"Name":** Nom du contrat d'entrée unique par tenant.
+**"Name":** Nom du contrat d'entrée.
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
@@ -654,7 +654,7 @@ Détail des champs
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
-**"Name":** nom du service agent, qui doit être unique sur le tenant.
+**"Name":** nom du service agent.
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
@@ -800,7 +800,7 @@ Détail des champs
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
-**"Name":** nom du contexte applicatif, qui doit être unique sur la plateforme.
+**"Name":** nom du contexte applicatif.
   
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
@@ -1281,7 +1281,7 @@ Détail des champs de la collection IngestContract
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
-**"Name":** Nom du contrat d'entrée, unique par tenant.
+**"Name":** Nom du contrat d'entrée.
   
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
@@ -1553,7 +1553,7 @@ Détail des champs
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Cardinalité : 1-1
 
-**"Name":** nom du profil de sécurité, qui doit être unique sur la plateforme.
+**"Name":** nom du profil de sécurité.
   
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
