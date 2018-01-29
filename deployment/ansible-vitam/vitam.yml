@@ -178,6 +178,7 @@
     - vitam
     - logbook_secure_operations
     - logbook_secure_lifecycles
+    - logbook
   vars:
     vitam_struct: "{{ vitam.logbook }}"
     vitam_timestamp_usage: secure-logbook

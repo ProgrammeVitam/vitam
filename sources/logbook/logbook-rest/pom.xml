@@ -251,6 +251,12 @@
 						</mapping>
 						<mapping>
 							<directory>/vitam/script/${unix.name}</directory>
+							<!-- OMA : change to 750 and change directive if not correct
+														<defaultFileMode>640</defaultFileMode>
+							-->
+							<filemode>750</filemode>
+							<username>${unix.user}</username>
+							<groupname>${unix.user}</groupname>
 							<sources>
 								<source>
 									<location>${project.build.directory}/script</location>
