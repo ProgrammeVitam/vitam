@@ -30,7 +30,6 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -80,9 +79,9 @@ public class VitamElasticsearchRepository implements VitamRepository {
     private boolean indexByTenant;
 
     /**
-     * @param client
-     * @param indexName
-     * @param indexByTenant
+     * @param client the es client
+     * @param indexName the name of the index
+     * @param indexByTenant specifies if the index is for a specific tenant or not
      */
     public VitamElasticsearchRepository(Client client, String indexName, boolean indexByTenant) {
         this.client = client;

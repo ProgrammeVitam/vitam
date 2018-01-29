@@ -112,6 +112,7 @@ public interface MetaData {
     RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException;
+
     /**
      * Search UNITs by Id {@link Select}Query <br>
      * for this method, the roots will be filled<br>
@@ -193,11 +194,13 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      */
-    void insertObjectGroup(JsonNode objectRequest) throws InvalidParseOperationException, MetaDataNotFoundException,
+    void insertObjectGroup(JsonNode objectRequest)
+        throws InvalidParseOperationException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
     /**
      * find the number of archive unit per originating agency for a operationId
+     * 
      * @param operationId operation id
      * @return the list of documents
      */
@@ -207,37 +210,45 @@ public interface MetaData {
     /**
      * Update an object group
      * 
-     * @param updateRequest
-     * @param objectId
-     * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException 
+     * @param updateRequest the request as a json
+     * @param objectId the id of the object to be updated
+     * @throws InvalidParseOperationException Thrown when json format is not correct
+     * @throws MetaDataExecutionException Thrown if error occurs when send Unit to database
      */
     void updateObjectGroupId(JsonNode updateRequest, String objectId)
         throws InvalidParseOperationException, MetaDataExecutionException;
-    
+
     /**
      * Flush Unit Index
      * 
-     * @throws IllegalArgumentException  if tenant is wrong
-     * @throws VitamThreadAccessException  if tenant is wrong
+     * @throws IllegalArgumentException if tenant is wrong
+     * @throws VitamThreadAccessException if tenant is wrong
      */
     void flushUnit() throws IllegalArgumentException, VitamThreadAccessException;
-    
+
     /**
      * Flush ObjectGroup Index
      *
-     * @throws IllegalArgumentException  if tenant is wrong
-     * @throws VitamThreadAccessException  if tenant is wrong
+     * @throws IllegalArgumentException if tenant is wrong
+     * @throws VitamThreadAccessException if tenant is wrong
      */
     void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException;
 
     /**
+     * Reindex one or more collections
      *
-     * @param indexParam
-     * @return
+     * @param indexParam the parameters specifying what to reindex
+     * @return the reindexation result as a IndexationResult Object
      */
     IndexationResult reindex(IndexParameters indexParam);
 
+    /**
+     * Switch indexes for one or more collections
+     *
+     * @param alias the alias name
+     * @param newIndexName the new index to be pointed on
+     * @throws DatabaseException in case error with database occurs
+     */
     void switchIndex(String alias, String newIndexName) throws DatabaseException;
 
 }

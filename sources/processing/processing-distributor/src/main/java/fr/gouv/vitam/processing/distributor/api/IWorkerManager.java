@@ -144,7 +144,7 @@ public interface IWorkerManager {
      * Register a worker
      * 
      * @param workerBean the worker description as a WorkerBean object
-     * @throws WorkerAlreadyExistsException
+     * @throws WorkerAlreadyExistsException thrown if the worker already exists
      */
     void registerWorker(WorkerBean workerBean) throws WorkerAlreadyExistsException;
 

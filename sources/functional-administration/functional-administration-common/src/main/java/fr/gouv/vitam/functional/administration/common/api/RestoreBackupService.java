@@ -40,20 +40,23 @@ public interface RestoreBackupService {
     /**
      * get the latest file name according to the name suffix.<br/>
      *
-     * @param strategy
-     * @param collection
-     * @param type     the storage collection type.
+     * @param strategy the storage strategy to be applied
+     * @param collection the collection to be restored
+     * @param type the storage collection type.
      * @return the last version.
      */
-    Optional<String> getLatestSavedFileName(final String strategy, final DataCategory type, final FunctionalAdminCollections collection);
+    Optional<String> getLatestSavedFileName(final String strategy, final DataCategory type,
+        final FunctionalAdminCollections collection);
 
     /**
      * Read the latest file using the name requested by getLatestSavedFileName.<br/>
      * Be careful, this method use tenant that is requested from the VitamSession
-     * @param strategy
-     * @param collection
+     * 
+     * @param strategy the storage strategy to be applied
+     * @param collection the collection to be restored
      * @return the backup copy.
      */
-    Optional<CollectionBackupModel> readLatestSavedFile(final String strategy, final FunctionalAdminCollections collection);
+    Optional<CollectionBackupModel> readLatestSavedFile(final String strategy,
+        final FunctionalAdminCollections collection);
 
 }

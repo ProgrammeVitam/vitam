@@ -346,7 +346,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelsToImport, eip);
 
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
-                DataCategory.RULES, eip.getId() + CSV);
+                DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -404,7 +404,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             digest.update(new FileInputStream(file));
 
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
-                DataCategory.RULES, eip.getId() + CSV);
+                DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -1055,8 +1055,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         boolean linked = false;
         for (FileRulesModel fileRulesModel : fileRulesModelToCheck) {
             ArrayNode arrayNodeResult =
-                checkUnitLinkedtofileRulesInDatabase(fileRulesLinkedToUnitQueryBuilder(fileRulesModel)
-                );
+                checkUnitLinkedtofileRulesInDatabase(fileRulesLinkedToUnitQueryBuilder(fileRulesModel));
             if (arrayNodeResult != null && arrayNodeResult.size() > 0) {
                 linked = true;
                 rulesLinkedToUnit.add(fileRulesModel.getRuleId());
@@ -1615,7 +1614,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @throws InvalidParseOperationException
      */
     public ArrayNode getRuleFromCollection(int tenant) throws InvalidParseOperationException {
-        return backupService.getCollectionInJson(backupService.getCurrentCollection(FunctionalAdminCollections.RULES, tenant));
+        return backupService
+            .getCollectionInJson(backupService.getCurrentCollection(FunctionalAdminCollections.RULES, tenant));
     }
 
     /**
@@ -1630,7 +1630,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
         RestoreBackupService restoreBackupService = new RestoreBackupServiceImpl();
         Optional<CollectionBackupModel> collectionBackup =
-                restoreBackupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
+            restoreBackupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
         ArrayNode arrayNode = JsonHandler.createArrayNode();
 
         if (collectionBackup.isPresent()) {
@@ -1659,8 +1659,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             JsonNode patch = JsonDiff.asJson(array1, array2);
             LOGGER.error(array1.toString());
             LOGGER.error(array2.toString());
-            alertService.createAlert("Check failed: the security save of the rules repository of tenant "
-                    + tenant + " is not equal to its value in database.\n" + patch);
+            alertService.createAlert("Check failed: the security save of the rules repository of tenant " + tenant +
+                " is not equal to its value in database.\n" + patch);
             return false;
         }
 

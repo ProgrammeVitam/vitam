@@ -182,6 +182,7 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
+     * Constructor for test purposes
      * 
      * @param mongoAccess MongoDB client
      * @param vitamCounterService the vitam counter service
@@ -209,6 +210,8 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
+     * Find a document by its identifier
+     * 
      * @param id the document id
      * @return the vitamDocument as an Agencies object
      * @throws ReferentialException thrown if the agency is not found or if the an error is encountered
@@ -236,6 +239,7 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
+     * Find documents with a query
      * 
      * @param select the query as a json
      * @return list of response as a RequestResponseOK object
@@ -357,7 +361,7 @@ public class AgenciesService implements VitamAutoCloseable {
      * Convert a given input stream to a file
      *
      * @param agenciesStream the agencies stream
-     * @param extension the file extension 
+     * @param extension the file extension
      * @return a file
      * @throws IOException thrown if the file could not be created
      */
@@ -552,14 +556,14 @@ public class AgenciesService implements VitamAutoCloseable {
             commitAgencies();
 
             reportStream = generateReportOK();
-            //store report
+            // store report
             backupService.saveFile(reportStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
                 eip + ".json");
 
-            //store source File
+            // store source File
             backupService.saveFile(new FileInputStream(file), eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
                 eip + ".csv");
-            //store collection
+            // store collection
             backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
                 FunctionalAdminCollections.AGENCIES);
 
@@ -572,7 +576,7 @@ public class AgenciesService implements VitamAutoCloseable {
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
                 eip + ".json");
             errorStream.close();
-            
+
             ObjectNode errorMessage = JsonHandler.createObjectNode();
             String listAgencies = agenciesToDelete.stream().map(AgenciesModel::getIdentifier)
                 .collect(Collectors.joining(","));
@@ -697,6 +701,8 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
+     * Find agencies with a specific query
+     * 
      * @param queryDsl the query to be executed
      * @return a DbRequestResult containing agencies
      * @throws ReferentialException thrown if the query could not be executed

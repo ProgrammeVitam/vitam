@@ -39,14 +39,15 @@ public interface ReconstructionService {
      *
      * @param collection the collection to reconstruct.
      * @param tenant the given tenant.
-     * @throws DatabaseException
+     * @throws DatabaseException in case error with database occurs
      */
-    public void reconstruct(FunctionalAdminCollections collection, Integer ... tenant) throws DatabaseException;
+    public void reconstruct(FunctionalAdminCollections collection, Integer... tenant) throws DatabaseException;
 
     /**
      * Reconstrut Vitam collection.
      *
      * @param collection the collection to reconstruct.
+     * @throws DatabaseException in case error with database occurs
      */
     public void reconstruct(FunctionalAdminCollections collection) throws DatabaseException;
 

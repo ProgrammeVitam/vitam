@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
-import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -322,8 +321,8 @@ public interface LogbookLifeCycles {
      * @param lifecycleArray with first and next events to add/update
      *
      * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
-     * @throws LogbookDatabaseException
-     * @throws LogbookAlreadyExistsException
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookAlreadyExistsException if LifeCycle already exists
      */
     void createBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;

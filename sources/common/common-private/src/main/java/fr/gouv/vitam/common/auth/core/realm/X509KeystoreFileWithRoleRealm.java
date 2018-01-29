@@ -32,12 +32,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.security.auth.x500.X500Principal;
-
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.AuthorizationInfo;
@@ -45,12 +39,13 @@ import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
 
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+
 /**
  * X509 Keystore File Realm with Role/Permissions
  */
 public class X509KeystoreFileWithRoleRealm extends AbstractX509Realm {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(X509KeystoreFileWithRoleRealm.class);
 
     private static final String REALM_NAME = "X509KeystoreFile";
     private final Set<X509Certificate> grantedIssuers = new HashSet<>();

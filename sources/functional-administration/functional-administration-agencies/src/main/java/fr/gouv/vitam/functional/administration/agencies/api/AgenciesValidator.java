@@ -102,7 +102,7 @@ public interface AgenciesValidator {
         /**
          * Reject if one of multiple mandatory parameter are null
          * 
-         * @param fieldname the fieldname
+         * @param fieldName the field name
          * @return agenciesRejectionCause the cause of rejection
          */
         public static AgenciesRejectionCause rejectMandatoryMissing(String fieldName) {

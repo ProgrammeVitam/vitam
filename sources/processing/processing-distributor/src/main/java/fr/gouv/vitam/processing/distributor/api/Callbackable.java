@@ -37,7 +37,7 @@ public interface Callbackable<T> {
     /**
      * Must be called by async request at the end of execution
      * 
-     * @param returnArguments
+     * @param returnArguments the arguments to be returned
      * 
      */
     void callbackResponse(T returnArguments);

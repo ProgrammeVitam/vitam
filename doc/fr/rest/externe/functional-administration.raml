@@ -561,6 +561,24 @@ documentation:
       La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée.
     is: [AdminTraits.TraceabilityCheckResponseAsync]
 
+/reindex:
+  displayName: Reindexation
+  description: |
+   API qui permet de lancer une réindexation de collection(s)
+  post:
+    description: |
+      Lance la réindexation de collection(s) sur une liste de tenants donnée
+    is: [AdminTraits.AdminReindex]
+
+/alias:
+  displayName: Switch Indexes
+  description: |
+   API qui permet de faire pointer un alias sur un nouvel index
+  post:
+    description: |
+      Lance le switch d'index pour un alias donné
+    is: [AdminTraits.AdminAlias]
+    
 /:
   displayName: Endpoints
   description: |

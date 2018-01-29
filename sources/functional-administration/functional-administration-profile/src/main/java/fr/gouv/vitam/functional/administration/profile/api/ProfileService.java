@@ -50,7 +50,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * <li>A field has an invalid format</li>
      * <li>One or many profile already exist in the database</li>
      *
-     * @param profileModelList
+     * @param profileModelList the list of profiles to be created 
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */

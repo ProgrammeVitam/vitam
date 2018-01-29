@@ -2199,9 +2199,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * Reindex a collection
+     * Switch indexes for a collection
      *
-     * @param indexParameters parameters specifying what to reindex
+     * @param indexParameters parameters specifying what to switch
      * @return Response response
      */
     @Path(ALIASES_URI)

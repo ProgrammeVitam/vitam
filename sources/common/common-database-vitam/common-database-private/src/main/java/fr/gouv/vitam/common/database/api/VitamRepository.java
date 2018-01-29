@@ -35,8 +35,6 @@ import com.mongodb.client.FindIterable;
 
 import fr.gouv.vitam.common.exception.DatabaseException;
 
-import fr.gouv.vitam.common.exception.DatabaseException;
-
 /**
  * This repository is a specification of vitam data management
  */
@@ -44,24 +42,24 @@ public interface VitamRepository {
     /**
      * Save vitam document
      *
-     * @param document
-     * @throws DatabaseException
+     * @param document the document to be saved
+     * @throws DatabaseException in case error with database occurs
      */
     void save(Document document) throws DatabaseException;
 
     /**
      * Save a list of vitam documents
      *
-     * @param documents
-     * @throws DatabaseException
+     * @param documents the list of documents to be saved
+     * @throws DatabaseException in case error with database occurs
      */
     void save(List<Document> documents) throws DatabaseException;
 
     /**
      * Save or update a list of vitam documents
      *
-     * @param documents
-     * @throws DatabaseException
+     * @param documents the list of document to be saved orupdated
+     * @throws DatabaseException in case error with database occurs
      */
     void saveOrUpdate(List<Document> documents) throws DatabaseException;
 
@@ -69,9 +67,9 @@ public interface VitamRepository {
     /**
      * Remove document by id
      *
-     * @param id
-     * @param tenant
-     * @throws DatabaseException
+     * @param id the id of the document to be removed
+     * @param tenant the tenant of the document to be removed
+     * @throws DatabaseException in case error with database occurs
      */
     void remove(String id, Integer tenant) throws DatabaseException;
 
@@ -79,19 +77,19 @@ public interface VitamRepository {
     /**
      * Remove collection by name and tenant
      *
-     * @param name
-     * @param tenant
-     * @throws DatabaseException
+     * @param name the name of the collection to be removed
+     * @param tenant the tenant of the collection to be removed
+     * @throws DatabaseException in case error with database occurs
      */
     void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException;
 
     /**
      * Remove by tenant for collection multi-tenant
      *
-     * Remove by tenant
-     * @param tenant
-     * @return
-     * @throws DatabaseException
+     * 
+     * @param tenant the tenant
+     * @return the number of deleted documents 
+     * @throws DatabaseException in case error with database occurs
      */
     long purge(Integer tenant) throws DatabaseException;
 
@@ -99,7 +97,7 @@ public interface VitamRepository {
      * Remove by tenant for collection cross-tenant
      * 
      * @return
-     * @throws DatabaseException
+     * @throws DatabaseException in case error with database occurs
      */
     long purge() throws DatabaseException;
 
@@ -107,10 +105,10 @@ public interface VitamRepository {
     /**
      * Get vitam document by id
      *
-     * @param id
-     * @param tenant
-     * @return Optional
-     * @throws DatabaseException
+     * @param id the document id
+     * @param tenant the tenant of the document
+     * @return the document if found
+     * @throws DatabaseException in case error with database occurs
      */
     Optional<Document> getByID(String id, Integer tenant) throws DatabaseException;
 
@@ -118,27 +116,27 @@ public interface VitamRepository {
     /**
      * find by identifier for all tenant
      * 
-     * @param identifier
-     * @param tenant
-     * @return
-     * @throws DatabaseException
+     * @param identifier the identifier of the document
+     * @param tenant the tenant of the document
+     * @return the document if found
+     * @throws DatabaseException in case error with database occurs
      */
     Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant) throws DatabaseException;
 
     /**
      * Find by identifier for collections cross tenant
      * 
-     * @param identifier
-     * @return
-     * @throws DatabaseException
+     * @param identifier the identifier of the document
+     * @return the document if found
+     * @throws DatabaseException in case error with database occurs
      */
     Optional<Document> findByIdentifier(String identifier) throws DatabaseException;
-    
+
     /**
      * Return iterable over document for the given collection for a specific tenant
      *
      * @param mongoBatchSize mongoBatchSize
-     * @param tenant         tenant id
+     * @param tenant tenant id
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant);

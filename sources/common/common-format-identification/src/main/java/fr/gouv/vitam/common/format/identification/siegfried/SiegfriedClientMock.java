@@ -59,12 +59,6 @@ class SiegfriedClientMock extends AbstractMockClient implements SiegfriedClient 
         return getJsonNode(versionResponse);
     }
 
-    private JsonNode getFormatJson() {
-        final String okResponse =
-            "{\"files\":[{\"matches\":[{\"ns\": \"pronom\",\"id\": \"x-fmt/263\",\"format\": \"ZIP Format\",\"mime\": \"application/zip\"}]}]}";
-        return getJsonNode(okResponse);
-    }
-
     private JsonNode getFormatJson(Path path) {
         final String okResponse;
         if (path.endsWith(".zip")) {

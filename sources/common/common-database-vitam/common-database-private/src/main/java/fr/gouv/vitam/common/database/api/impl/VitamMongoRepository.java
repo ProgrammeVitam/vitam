@@ -62,6 +62,11 @@ public class VitamMongoRepository implements VitamRepository {
 
     private MongoCollection<Document> collection;
 
+    /**
+     * Default constructor
+     * 
+     * @param collection the collection on which to perform operation
+     */
     public VitamMongoRepository(MongoCollection<Document> collection) {
         this.collection = collection;
     }
