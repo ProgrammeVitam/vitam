@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -61,8 +62,10 @@ import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -139,16 +142,16 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private final List<String> existingGOTs;
 
     public ArchiveUnitListener(HandlerIO handlerIO, ObjectNode archiveUnitTree, Map<String, String> unitIdToGuid,
-                               Map<String, String> unitIdToGroupId,
-                               Map<String, List<String>> objectGroupIdToUnitId,
-                               Map<String, String> dataObjectIdToObjectGroupId,
-                               Map<String, GotObj> dataObjectIdWithoutObjectGroupId,
-                               Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters,
-                               Set<String> existingUnitGuids, LogbookTypeProcess logbookTypeProcess, String containerId,
-                               MetaDataClientFactory metaDataClientFactory,
-                               Map<String, String> objectGroupIdToGuid,
-                               Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
-                               List<String> originatingAgencies, List<String> existingGOTs) {
+        Map<String, String> unitIdToGroupId,
+        Map<String, List<String>> objectGroupIdToUnitId,
+        Map<String, String> dataObjectIdToObjectGroupId,
+        Map<String, GotObj> dataObjectIdWithoutObjectGroupId,
+        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters,
+        Set<String> existingUnitGuids, LogbookTypeProcess logbookTypeProcess, String containerId,
+        MetaDataClientFactory metaDataClientFactory,
+        Map<String, String> objectGroupIdToGuid,
+        Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
+        List<String> originatingAgencies, List<String> existingGOTs) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -212,14 +215,14 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             }
 
             if (archiveUnitType.getManagement() != null &&
-                    archiveUnitType.getManagement().getUpdateOperation() != null &&
-                    archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null) {
+                archiveUnitType.getManagement().getUpdateOperation() != null &&
+                archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null) {
                 elementGUID = attachArchiveUnitToExisting(archiveUnitType, archiveUnitId);
 
             }
 
             List<Object> archiveUnitOrDataObjectReferenceOrAny =
-                    archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup();
+                archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup();
 
             String groupId = buildGraph(archiveUnitId, archiveUnitOrDataObjectReferenceOrAny);
 
@@ -242,10 +245,11 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 throw new RuntimeException(e);
             }
 
-            DescriptiveMetadataModel descriptiveMetadataModel = archiveUnitRoot.getArchiveUnit().getDescriptiveMetadataModel();
+            DescriptiveMetadataModel descriptiveMetadataModel =
+                archiveUnitRoot.getArchiveUnit().getDescriptiveMetadataModel();
 
             if (descriptiveMetadataModel.getSignature() != null &&
-                    descriptiveMetadataModel.getSignature().getReferencedObject() != null) {
+                descriptiveMetadataModel.getSignature().getReferencedObject() != null) {
                 enhanceSignature(descriptiveMetadataModel);
             }
 
@@ -253,11 +257,11 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccess());
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getStorage());
             fillListRulesToMap(archiveUnitId,
-                    archiveUnitRoot.getArchiveUnit().getManagement().getAppraisal());
+                archiveUnitRoot.getArchiveUnit().getManagement().getAppraisal());
             fillListRulesToMap(archiveUnitId,
-                    archiveUnitRoot.getArchiveUnit().getManagement().getClassification());
+                archiveUnitRoot.getArchiveUnit().getManagement().getClassification());
             fillListRulesToMap(archiveUnitId,
-                    archiveUnitRoot.getArchiveUnit().getManagement().getDissemination());
+                archiveUnitRoot.getArchiveUnit().getManagement().getDissemination());
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getReuse());
 
             storeArchiveUnit(elementGUID, archiveUnitRoot);
@@ -290,7 +294,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
         if (dataObjectIdToGuid.containsKey(signedObjectId)) {
             descriptiveMetadataModel.getSignature().getReferencedObject()
-                    .setSignedObjectId(dataObjectIdToGuid.get(signedObjectId));
+                .setSignedObjectId(dataObjectIdToGuid.get(signedObjectId));
         }
     }
 
@@ -304,18 +308,18 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private String attachArchiveUnitToExisting(ArchiveUnitType archiveUnitType, String archiveUnitId) {
         String elementGUID;// check if systemId exist
         elementGUID = archiveUnitType.getManagement().getUpdateOperation().getSystemId();
-        existingUnitGuids.add(elementGUID);
-        ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
-        archiveUnitRoot.getArchiveUnit().setId(elementGUID);
+            existingUnitGuids.add(elementGUID);
+            ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
+            archiveUnitRoot.getArchiveUnit().setId(elementGUID);
 
         try {
             JsonNode existingData = loadExistingArchiveUnit(elementGUID, archiveUnitId);
             if (existingData == null || existingData.get("$results") == null ||
-                    existingData.get("$results").size() == 0) {
+                existingData.get("$results").size() == 0) {
                 LOGGER.error("Existing Unit was not found {}", elementGUID);
                 throw new ProcessingUnitNotFoundException(
-                        "Existing Unit " + archiveUnitId + "[" + elementGUID + "] was not found", archiveUnitId,
-                        elementGUID);
+                    "Existing Unit " + archiveUnitId + "[" + elementGUID + "] was not found", archiveUnitId,
+                    elementGUID, true);
             }
 
 
@@ -331,7 +335,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             // Do not get originating agencies of holding
             if (!UnitType.HOLDING_UNIT.equals(dataUnitType)) {
                 ArrayNode originatingAgencies =
-                        (ArrayNode) existingData.get("$results").get(0).get(originatingAgencies());
+                    (ArrayNode) existingData.get("$results").get(0).get(originatingAgencies());
                 List<String> originatingAgencyList = new ArrayList<>();
                 for (JsonNode agency : originatingAgencies) {
                     originatingAgencyList.add(agency.asText());
@@ -350,10 +354,10 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             return;
         }
         Set<String> rulesId =
-                ruleCategory.getRules().stream()
-                        .map(RuleModel::getRule)
-                        .filter(item -> !Strings.isNullOrEmpty(item))
-                        .collect(Collectors.toSet());
+            ruleCategory.getRules().stream()
+                .map(RuleModel::getRule)
+                .filter(item -> !Strings.isNullOrEmpty(item))
+                .collect(Collectors.toSet());
         if (rulesId.size() <= 0) {
             return;
         }
@@ -448,11 +452,11 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             JsonNode existingObjectGroup = loadExistingObjectGroup(groupId);
 
             if (existingObjectGroup == null || existingObjectGroup.get("$results") == null ||
-                    existingObjectGroup.get("$results").size() == 0) {
+                existingObjectGroup.get("$results").size() == 0) {
                 LOGGER.error("Existing ObjectGroup " + groupId + " was not found {}", existingObjectGroup);
                 throw new RuntimeException(new ProcessingObjectGroupNotFoundException(
-                        "Existing ObjectGroup " + groupId + " was not found for AU " + archiveUnitId, archiveUnitId,
-                        groupId));
+                    "Existing ObjectGroup " + groupId + " was not found for AU " + archiveUnitId, archiveUnitId,
+                    groupId));
             }
 
             existingGOTs.add(groupId);
@@ -510,23 +514,23 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private String getNewGdoIdFromGdoByUnit(String objIdRefByUnit) throws ProcessingManifestReferenceException {
 
         final String gotGuid = dataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) != null
-                ? dataObjectIdWithoutObjectGroupId.get(objIdRefByUnit).getGotGuid()
-                : null;
+            ? dataObjectIdWithoutObjectGroupId.get(objIdRefByUnit).getGotGuid()
+            : null;
 
         if (Strings.isNullOrEmpty(dataObjectIdToObjectGroupId.get(objIdRefByUnit)) &&
-                !Strings.isNullOrEmpty(gotGuid)) {
+            !Strings.isNullOrEmpty(gotGuid)) {
 
             // nominal case of do without go
             LOGGER.debug("The data object id " + objIdRefByUnit +
-                    ", is defined without the group object id " +
-                    dataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
-                    ". The technical group object guid is " + gotGuid);
+                ", is defined without the group object id " +
+                dataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
+                ". The technical group object guid is " + gotGuid);
 
             return gotGuid;
 
         } else if (!Strings.isNullOrEmpty(dataObjectIdToObjectGroupId.get(objIdRefByUnit))) {
             LOGGER.debug("The data object id " + dataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) +
-                    " referenced defined with the group object id " + objIdRefByUnit);
+                " referenced defined with the group object id " + objIdRefByUnit);
             // il y a un DO possédant le GO id
             return dataObjectIdToObjectGroupId.get(objIdRefByUnit);
         } else if (dataObjectIdToObjectGroupId.containsValue(objIdRefByUnit)) {
@@ -534,24 +538,24 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             return objIdRefByUnit;
         } else {
             throw new ProcessingManifestReferenceException(
-                    "The group id " + objIdRefByUnit +
-                            " doesn't reference a data object or go and it not include in data object");
+                "The group id " + objIdRefByUnit +
+                    " doesn't reference a data object or go and it not include in data object");
         }
     }
 
     private void createUnitLifeCycle(String unitGuid, String containerId,
-                                     LogbookTypeProcess logbookTypeProcess) {
+        LogbookTypeProcess logbookTypeProcess) {
         final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
-                (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(
-                        unitGuid, true, false);
+            (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(
+                unitGuid, true, false);
 
         logbookLifecycleUnitParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.OK, null);
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
+            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                logbookTypeProcess.name());
+            logbookTypeProcess.name());
 
         /*
          * try { logbookLifeCycleClient.create(logbookLifecycleUnitParameters); } catch
@@ -565,17 +569,17 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
     private void updateUnitLifeCycle(String unitGuid, String containerId, LogbookTypeProcess logbookTypeProcess) {
         final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
-                (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(
-                        unitGuid, true, false);
+            (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(
+                unitGuid, true, false);
 
         // TODO : add update message
         // logbookLifecycleUnitParameters.setBeginningLog(LFC_INITIAL_CREATION_EVENT_TYPE, null, null);
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                GUIDFactory.newEventGUID(0).toString());
+            GUIDFactory.newEventGUID(0).toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                logbookTypeProcess.name());
+            logbookTypeProcess.name());
 
         // Update guidToLifeCycleParameters
         guidToLifeCycleParameters.put(unitGuid, logbookLifecycleUnitParameters);
@@ -585,8 +589,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         LogbookParameters logbookLifeCycleParameters = guidToLifeCycleParameters.get(guid);
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
-                    : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
@@ -604,6 +608,17 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      */
     private JsonNode loadExistingArchiveUnit(String archiveUnitGuid, String archiveUnitId) throws ProcessingException {
 
+        // Check that the given systemId is a valid guid
+        try {
+            GUIDReader.getGUID(archiveUnitGuid);
+        } catch (final InvalidGuidOperationException e) {
+            LOGGER.error("ID is not a GUID: " + archiveUnitGuid, e);
+            throw new ProcessingUnitNotFoundException(
+                "Existing Unit " + archiveUnitId + "[" + archiveUnitGuid + "] not valid guid", archiveUnitId,
+                archiveUnitGuid, false);
+        }
+
+
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             final SelectParserMultiple selectRequest = new SelectParserMultiple();
             final SelectMultiQuery request = selectRequest.getRequest().reset();
@@ -616,8 +631,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Existing Unit was not found", e);
             throw new ProcessingUnitNotFoundException(
-                    "Existing Unit " + archiveUnitId + "[" + archiveUnitGuid + "] was not found",
-                    archiveUnitId, archiveUnitGuid);
+                "Existing Unit " + archiveUnitId + "[" + archiveUnitGuid + "] was not found",
+                archiveUnitId, archiveUnitGuid, true);
         }
     }
 
@@ -643,7 +658,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Existing ObjectGroup " + objectGroupId + " was not found", e);
             throw new RuntimeException(
-                    new ProcessingException("Existing ObjectGroup " + objectGroupId + " was not found"));
+                new ProcessingException("Existing ObjectGroup " + objectGroupId + " was not found"));
         }
     }
 

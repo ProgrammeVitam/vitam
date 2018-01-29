@@ -36,6 +36,8 @@ public class ProcessingUnitNotFoundException extends ProcessingException {
     private String unitId;
     private String unitGuid;
 
+    // When unitId is a not valid guid
+    private boolean validGuid = true;
     /**
      * @param message associated message
      * @param cause associated cause
@@ -56,10 +58,11 @@ public class ProcessingUnitNotFoundException extends ProcessingException {
      * @param unitId 
      * @param unitGuid 
      */
-    public ProcessingUnitNotFoundException(String message, String unitId, String unitGuid) {
+    public ProcessingUnitNotFoundException(String message, String unitId, String unitGuid, boolean validGuid) {
         super(message);
         this.unitId = unitId;
         this.unitGuid = unitGuid;
+        this.validGuid = validGuid;
     }
 
     /**
@@ -85,4 +88,7 @@ public class ProcessingUnitNotFoundException extends ProcessingException {
         return unitId;
     }
 
+    public boolean isValidGuid() {
+        return validGuid;
+    }
 }

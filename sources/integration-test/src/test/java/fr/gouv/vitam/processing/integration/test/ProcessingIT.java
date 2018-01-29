@@ -1628,7 +1628,7 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowAddAndLinkSIPKo() throws Exception {
+    public void testWorkflowAddAndLinkSIPWithNotGUIDSystemIDKo() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
@@ -1637,9 +1637,6 @@ public class ProcessingIT {
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         // prepare zip
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-            "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
-
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);

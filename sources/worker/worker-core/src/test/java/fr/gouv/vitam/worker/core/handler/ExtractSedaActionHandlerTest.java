@@ -583,8 +583,8 @@ public class ExtractSedaActionHandlerTest {
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
 
-        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_CHILD"))).thenReturn(child);
-        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_PARENT"))).thenReturn(parent);
+        when(metadataClient.selectUnitbyId(any(), eq("aeaaaaaaaaaam7mxabxccakzrw47veqaaaaq"))).thenReturn(child);
+        when(metadataClient.selectUnitbyId(any(), eq("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq"))).thenReturn(parent);
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -605,7 +605,7 @@ public class ExtractSedaActionHandlerTest {
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
 
-        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_PARENT"))).thenReturn(parent);
+        when(metadataClient.selectUnitbyId(any(), eq("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq"))).thenReturn(parent);
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -646,7 +646,7 @@ public class ExtractSedaActionHandlerTest {
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
 
-        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_PARENT"))).thenReturn(parent);
+        when(metadataClient.selectUnitbyId(any(), eq("aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq"))).thenReturn(parent);
         when(metadataClient.selectUnitbyId(any(), eq("LinkParentId"))).thenReturn(parent);
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
