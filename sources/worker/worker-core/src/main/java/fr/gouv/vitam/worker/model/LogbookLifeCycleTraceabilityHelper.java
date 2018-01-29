@@ -18,10 +18,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
-import org.bouncycastle.util.Strings;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -65,6 +62,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.bouncycastle.util.Strings;
 
 public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHelper {
     private static final VitamLogger LOGGER =
@@ -168,13 +166,11 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
         try {
             List<URI> uriListLFCObjectsWorkspace =
                 handlerIO.getUriList(handlerIO.getContainerName(), SedaConstants.LFC_OBJECTS_FOLDER);
-            extractAppendToFinalFile(uriListLFCObjectsWorkspace, file, algo,
-                    SedaConstants.LFC_OBJECTS_FOLDER);
+            extractAppendToFinalFile(uriListLFCObjectsWorkspace, file, algo, SedaConstants.LFC_OBJECTS_FOLDER);
 
             List<URI> uriListLFCUnitsWorkspace =
                 handlerIO.getUriList(handlerIO.getContainerName(), SedaConstants.LFC_UNITS_FOLDER);
-            extractAppendToFinalFile(uriListLFCUnitsWorkspace, file, algo,
-                    SedaConstants.LFC_UNITS_FOLDER);
+            extractAppendToFinalFile(uriListLFCUnitsWorkspace, file, algo, SedaConstants.LFC_UNITS_FOLDER);
 
         } catch (ProcessingException e) {
             throw new TraceabilityException(e);
@@ -206,7 +202,7 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     public void saveEvent(TraceabilityEvent event) {
         itemStatus.setEvDetailData(JsonHandler.unprettyPrint(event));
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-                JsonHandler.unprettyPrint(event));
+            JsonHandler.unprettyPrint(event));
     }
 
     @Override
@@ -236,13 +232,13 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,
                     subItemStatusSecurisationStorage.increment(StatusCode.OK));
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                    StorageServerClientException | ContentAddressableStorageNotFoundException e) {
+                StorageServerClientException | ContentAddressableStorageNotFoundException e) {
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,
                     subItemStatusSecurisationStorage.increment(StatusCode.FATAL));
                 throw new TraceabilityException("unable to store zip file", e);
             }
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
-                IOException e) {
+            IOException e) {
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,
                 subItemStatusSecurisationStorage.increment(StatusCode.FATAL));
             throw new TraceabilityException("unable to create container", e);
@@ -351,7 +347,7 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
 
     /**
      * Reduce part of the process : lets merge in one only file the disting lifecycles ones
-     * 
+     *
      * @param listOfFiles
      * @param traceabilityFile
      * @param algo
@@ -360,22 +356,24 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
      * @throws IOException
-     * @throws TraceabilityException 
+     * @throws TraceabilityException
      */
     private void extractAppendToFinalFile(List<URI> listOfFiles, TraceabilityFile traceabilityFile, MerkleTreeAlgo algo,
         String rootFolder)
         throws TraceabilityException {
         try {
             for (final URI uriWorkspace : listOfFiles) {
-                InputStream lifecycleIn;
-                lifecycleIn = handlerIO.getInputStreamFromWorkspace(rootFolder + "/" + uriWorkspace.getPath());
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                org.apache.commons.io.IOUtils.copy(lifecycleIn, baos);
-                byte[] bytes = baos.toByteArray();
-                String lifecycleDataStr = Strings.fromByteArray(bytes);
+                try (InputStream lifecycleIn =
+                    handlerIO.getInputStreamFromWorkspace(rootFolder + "/" + uriWorkspace.getPath());) {
 
-                traceabilityFile.storeLog(bytes);
-                algo.addLeaf(lifecycleDataStr);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    org.apache.commons.io.IOUtils.copy(lifecycleIn, baos);
+                    byte[] bytes = baos.toByteArray();
+                    String lifecycleDataStr = Strings.fromByteArray(bytes);
+
+                    traceabilityFile.storeLog(bytes);
+                    algo.addLeaf(lifecycleDataStr);
+                }
             }
 
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e) {
@@ -395,7 +393,8 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
         isLastEventInit = true;
     }
 
-    private void extractPreviousEvent(LocalDateTime specificDate, Boolean isMonth) throws InvalidParseOperationException, TraceabilityException {
+    private void extractPreviousEvent(LocalDateTime specificDate, Boolean isMonth)
+        throws InvalidParseOperationException, TraceabilityException {
         try {
             previousMonthTimestampToken =
                 findHashByTraceabilityEventExpect(specificDate);
@@ -457,12 +456,12 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     private LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
-            throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
-            InvalidParseOperationException, LogbookClientException {
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
+        InvalidParseOperationException, LogbookClientException {
         try {
             RequestResponseOK<JsonNode> requestResponseOK =
                 RequestResponseOK.getFromJsonNode(
-                logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
+                    logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
             List<JsonNode> foundOperation = requestResponseOK.getResults();
             if (foundOperation != null && foundOperation.size() == 1) {
                 return new LogbookOperation(foundOperation.get(0));

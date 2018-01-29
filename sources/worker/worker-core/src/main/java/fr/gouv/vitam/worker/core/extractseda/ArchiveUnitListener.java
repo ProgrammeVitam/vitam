@@ -449,6 +449,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             String groupId = dataObjectRefType.getDataObjectGroupExistingReferenceId();
             // Check that the object group exists
+
             JsonNode existingObjectGroup = loadExistingObjectGroup(groupId);
 
             if (existingObjectGroup == null || existingObjectGroup.get("$results") == null ||
@@ -646,7 +647,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      */
     private JsonNode loadExistingObjectGroup(String objectGroupId) {
 
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             final SelectParserMultiple selectRequest = new SelectParserMultiple();
             final SelectMultiQuery request = selectRequest.getRequest().reset();
             return metadataClient.selectObjectGrouptbyId(request.getFinalSelect(), objectGroupId);
