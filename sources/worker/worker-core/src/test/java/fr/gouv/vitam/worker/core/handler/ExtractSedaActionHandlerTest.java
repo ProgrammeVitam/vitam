@@ -33,7 +33,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -41,7 +42,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.core.Response;
@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -85,6 +86,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 public class ExtractSedaActionHandlerTest {
 
@@ -119,10 +123,6 @@ public class ExtractSedaActionHandlerTest {
     private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
     private static final String KO_CYCLE = "extractSedaActionHandler/KO_cycle.xml";
     private static final String KO_AU_REF_OBJ = "extractSedaActionHandler/KO_AU_REF_OBJ.xml";    
-    private WorkspaceClient workspaceClient;
-    private MetaDataClient metadataClient;
-    private WorkspaceClientFactory workspaceClientFactory;
-    private MetaDataClientFactory metadataClientFactory;
     private HandlerIOImpl handlerIO;
     private List<IOParameter> out;
     private List<IOParameter> in;
@@ -142,11 +142,29 @@ public class ExtractSedaActionHandlerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    public ExtractSedaActionHandlerTest() throws FileNotFoundException {
-    }
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Mock
+    private MetaDataClient metadataClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private MetaDataClientFactory metadataClientFactory;
+
+    @Mock
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    @Mock
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
 
     @Before
-    public void setUp() throws URISyntaxException, IOException {
+    public void setUp() throws IOException {
 
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
@@ -155,17 +173,11 @@ public class ExtractSedaActionHandlerTest {
         LogbookOperationsClientFactory.changeMode(null);
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        workspaceClient = mock(WorkspaceClient.class);
-        metadataClient = mock(MetaDataClient.class);
-
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        metadataClientFactory = mock(MetaDataClientFactory.class);
-
-        handler = new ExtractSedaActionHandler(metadataClientFactory);
+        handler = new ExtractSedaActionHandler(metadataClientFactory, logbookLifeCyclesClientFactory);
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
-
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
         handlerIO = new HandlerIOImpl(workspaceClient, "ExtractSedaActionHandlerTest", "workerId");
         out = new ArrayList<>();
@@ -679,8 +691,7 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadKO()
-        throws VitamException, IOException {
+    public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadKO() throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
@@ -691,6 +702,27 @@ public class ExtractSedaActionHandlerTest {
 
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertEquals("CHECK_MANIFEST_WRONG_ATTACHMENT", response.getGlobalOutcomeDetailSubcode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_call_lifecycle_when_guid_is_invalid() throws VitamException, IOException {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("extractSedaActionHandler/SIP_Add_GOT.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+
+        handlerIO.addOutIOParameters(out);
+
+        // When
+        final ItemStatus response = handler.execute(params, handlerIO);
+
+        // Then
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("CHECK_MANIFEST_WRONG_ATTACHMENT");
+        verify(logbookLifeCyclesClient, never()).create(anyObject());
     }
 
     @Test

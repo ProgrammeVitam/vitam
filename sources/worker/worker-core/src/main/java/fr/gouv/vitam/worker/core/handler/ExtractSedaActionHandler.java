@@ -45,7 +45,6 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -81,11 +80,13 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.graph.DirectedCycle;
 import fr.gouv.vitam.common.graph.DirectedGraph;
 import fr.gouv.vitam.common.graph.Graph;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -274,6 +275,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private Unmarshaller unmarshaller;
 
     private MetaDataClientFactory metaDataClientFactory;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
     private ObjectNode archiveUnitTree;
     private List<String> existingGOTs;
@@ -283,10 +285,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      */
     public ExtractSedaActionHandler() {
-        this(MetaDataClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance());
     }
 
-    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting
+    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -308,6 +311,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
+        this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
     }
 
     /**
@@ -330,7 +334,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         handlerIO = ioParam;
         final ItemStatus globalCompositeItemStatus = new ItemStatus(HANDLER_ID);
 
-        try (LogbookLifeCyclesClient lifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try (LogbookLifeCyclesClient lifeCycleClient = logbookLifeCyclesClientFactory.getClient()) {
 
             if (asyncIO) {
                 handlerIO.enableAsync(true);
@@ -515,7 +519,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params                    parameters of workspace server
+     * @param params parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException when a cycle is found in data extract
@@ -1130,7 +1134,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit      archiveUnit
+     * @param archiveUnit archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1183,9 +1187,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode          global management node
+     * @param globalMgtRuleNode global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType                   category of rule
+     * @param ruleType category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -2137,7 +2141,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid       guid of data object
+     * @param guid guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2276,15 +2280,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
         lfcParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
         lfcParameters.putParameterValue(LogbookParameterName.eventTypeProcess, logbookTypeProcess.name());
-        logbookLifeCycleClient.create(lfcParameters);
-        guidToLifeCycleParameters.put(guid, lfcParameters);
 
-        lfcParameters.setFinalStatus(subTask, null, StatusCode.KO, null, null);
-        ObjectNode llcEvDetData = JsonHandler.createObjectNode();
-        llcEvDetData.put(SedaConstants.EV_DET_TECH_DATA, message);
-        lfcParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.writeAsString(llcEvDetData));
-        logbookLifeCycleClient.update(lfcParameters);
+        // do not create a lifecycle if guid is incorrect.
+        try {
+            GUIDReader.getGUID(guid);
+            logbookLifeCycleClient.create(lfcParameters);
+            guidToLifeCycleParameters.put(guid, lfcParameters);
 
+            lfcParameters.setFinalStatus(subTask, null, StatusCode.KO, null, null);
+            ObjectNode llcEvDetData = JsonHandler.createObjectNode();
+            llcEvDetData.put(SedaConstants.EV_DET_TECH_DATA, message);
+            lfcParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.writeAsString(llcEvDetData));
+            logbookLifeCycleClient.update(lfcParameters);
+
+        } catch (final InvalidGuidOperationException e) {
+            LOGGER.error("ID is not a GUID: " + guid, e);
+        }
     }
 
     @Override
