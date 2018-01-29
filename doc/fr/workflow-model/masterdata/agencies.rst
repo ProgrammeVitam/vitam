@@ -55,8 +55,8 @@ Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_CONTRACT)
 
     - FATAL : une erreur technique est survenue lors de la vérification des services agents utilisés dans les contrats d'accès (STP_IMPORT_AGENCIES.USED_CONTRACT.FATAL=Erreur fatale lors du processus de vérification des services agents utilisés dans les contrats d'accès)
 
-Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_AU)
-----------------------------------------------------------------
+Vérification des unités archivistiques (STP_IMPORT_AGENCIES.USED_AU)
+---------------------------------------------------------------------
 
   + **Règle** :  contrôle des unité archivistiques référençant des serivces agents modifiés
 

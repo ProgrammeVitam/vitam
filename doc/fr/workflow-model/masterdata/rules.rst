@@ -13,6 +13,21 @@ Le processus d'import et de mise à jour d'un référentiel de règles de gestio
 
 Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
+Création du rapport (RULES_REPORT)
+-----------------------------------
+
++ **Règle** : création du rapport d'import des règles
+
++ **Type** : bloquant
+
++ **Statuts** :
+
+    - OK : Le rapport est généré
+
+    - KO : pas de cas KO
+
+    - FATAL : une erreur technique est survenue lors de la création du rapport (RULES_REPORT.FATAL = Erreur fatale lors de la génération du rapport d'import du référentiel des règles de gestion)
+
 Contrôle des règles de gestion (CHECK_RULES)
 --------------------------------------------
 
@@ -57,21 +72,6 @@ De plus le fichier rempli les conditions suivantes :
 
 {"JDO":{"evType":"STP_IMPORT_RULES","evDateTime":"2017-11-02T13:50:22.389"},"error":{},"usedDeletedRules":[],"usedUpdatedRules":[]}
 
-Création du rapport (RULES_REPORT)
------------------------------------
-
-+ **Règle** : création du rapport d'import des règles
-
-+ **Type** : bloquant
-
-+ **Statuts** :
-
-    - OK : Le rapport est généré
-
-    - KO : pas de cas KO
-
-    - FATAL : une erreur technique est survenue lors de la création du rapport (RULES_REPORT.FATAL = Erreur fatale lors de la génération du rapport d'import du référentiel des règles de gestion)
-
 Persistance des données en base (COMMIT_RULES)
 ----------------------------------------------
 
@@ -82,6 +82,8 @@ Persistance des données en base (COMMIT_RULES)
 + **Statuts** :
 
     - OK : les données sont persistées en base
+      
+    - WARNING : 
 
     - KO : pas de cas KO
 
