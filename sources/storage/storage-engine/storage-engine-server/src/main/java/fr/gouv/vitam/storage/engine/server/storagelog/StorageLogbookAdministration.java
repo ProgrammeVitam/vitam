@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.logbook;
+package fr.gouv.vitam.storage.engine.server.storagelog;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
 import static fr.gouv.vitam.common.LocalDateUtil.now;
@@ -65,7 +65,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.storage.LogInformation;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;

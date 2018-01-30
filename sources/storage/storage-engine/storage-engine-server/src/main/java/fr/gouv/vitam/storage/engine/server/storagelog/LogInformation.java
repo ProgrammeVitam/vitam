@@ -24,23 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.engine.server.storagelog;
 
-package fr.gouv.vitam.storage.logbook.parameters;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 
 /**
- * Storage Logbook Operation Outcome values
+ * Log Information
  */
-public enum StorageLogbookOutcome {
+public class LogInformation {
+
+    private Path path;
+
+    private LocalDateTime beginTime;
+
+    private LocalDateTime endTime;
+
+    public LogInformation(Path path, LocalDateTime beginTime, LocalDateTime endTime) {
+        this.path = path;
+        this.beginTime = beginTime;
+        this.endTime = endTime;
+    }
+
     /**
-     * To be used when one storage operation in status Ok
+     * get log  Path
+     * @return path
      */
-    OK,
+    public Path getPath() {
+        return path;
+    }
+
     /**
-     * To be used when one storage operation in status KO
+     * get begin log time
+     * @return LocalDateTime beginTime
      */
-    KO,
+    public LocalDateTime getBeginTime() {
+        return beginTime;
+    }
+
     /**
-     * To be used when one storage operation in status Pending
+     * get end log file time
+     * @return LocalDateTime endTime
      */
-    PENDING
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
 }
