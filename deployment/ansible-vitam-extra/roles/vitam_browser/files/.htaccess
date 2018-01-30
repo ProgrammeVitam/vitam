@@ -1,0 +1,4 @@
+<Files "default-storage.conf">
+Order Allow,Deny
+Deny from all
+</Files>

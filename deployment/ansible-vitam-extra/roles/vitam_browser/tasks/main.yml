@@ -80,3 +80,6 @@
   notify: restart apache2
   with_items:
   - "httpd-offer-view.conf"
+
+- include_tasks: htaccess.yml
+  when: inventory_hostname in groups['hosts-storage-offer-default']

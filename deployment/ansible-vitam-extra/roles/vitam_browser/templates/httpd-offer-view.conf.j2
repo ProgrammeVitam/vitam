@@ -1,6 +1,7 @@
 <Directory "{{ vitam_defaults.folder.root_path }}">
     Options Indexes FollowSymLinks
 	Require all granted
+    AllowOverride Limit
 </Directory>
 
 Alias /browse "{{ vitam_defaults.folder.root_path }}"
