@@ -12,6 +12,10 @@ import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
+
+/**
+ * MetadataMain class
+ */
 public class MetadataMain {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataMain.class);
@@ -25,6 +29,12 @@ public class MetadataMain {
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
 
+    
+    /**
+     * Default constructor
+     * 
+     * @param configurationFile
+     */
     public MetadataMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
@@ -32,6 +42,11 @@ public class MetadataMain {
             BusinessApplication.class, AdminApplication.class);
     }
 
+    /**
+     * The main method
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
@@ -55,14 +70,30 @@ public class MetadataMain {
         }
     }
 
+    /**
+     * Start the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void start() throws VitamApplicationServerException {
         vitamStarter.start();
     }
 
+    /**
+     * Start and join the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void startAndJoin() throws VitamApplicationServerException {
         vitamStarter.run();
     }
 
+    
+    /**
+     * Stop the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }

@@ -57,6 +57,20 @@ public class TnrClientConfiguration {
     public void setUrlWorkspace(String urlWorkspace) {
         this.urlWorkspace = urlWorkspace;
     }
+    
+    /**
+     * @return vitamSecret
+     */
+    public String getVitamSecret() {
+        return vitamSecret;
+    }
+
+    /**
+     * @param vitamSecret
+     */
+    public void setVitamSecret(String vitamSecret) {
+        this.vitamSecret = vitamSecret;
+    }
 
     /**
      *url workspace
@@ -67,6 +81,11 @@ public class TnrClientConfiguration {
      */
     protected List<Integer> tenantsTest;
 
+    /**
+     *vitam secret
+     */
+    protected String vitamSecret;
+    
     /**
      * TNR tenants List
      * @return The list

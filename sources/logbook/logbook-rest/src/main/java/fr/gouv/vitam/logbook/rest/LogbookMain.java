@@ -38,6 +38,9 @@ import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 
+/**
+ * Logbook web application
+ */
 public class LogbookMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookMain.class);
     private static final String CONF_FILE_NAME = "logbook.conf";
@@ -46,6 +49,11 @@ public class LogbookMain {
 
     private VitamStarter vitamStarter;
 
+    /**
+     * Constructor with a configuration file
+     * 
+     * @param configurationFile the path to configuration file
+     */
     public LogbookMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
@@ -53,6 +61,11 @@ public class LogbookMain {
             BusinessApplication.class, AdminApplication.class);
     }
 
+    /**
+     * Main method to run the application (doing start and join)
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
@@ -67,20 +80,36 @@ public class LogbookMain {
 
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(), e);
 
             System.exit(1);
         }
     }
 
+    /**
+     * Start the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void start() throws VitamApplicationServerException {
         vitamStarter.start();
     }
 
+    /**
+     * Start and join the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void startAndJoin() throws VitamApplicationServerException {
         vitamStarter.run();
     }
 
+    /**
+     * Stop the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }

@@ -44,6 +44,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.client.IhmRecetteClient;
 import fr.gouv.vitam.client.IhmRecetteClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -135,9 +136,15 @@ public class World {
      */
     private String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
 
+    /**
+     * initialization of client
+     * 
+     * @throws IOException
+     */
     @Before
     public void init() throws IOException {
         configuration();
+        VitamConfiguration.setSecret(tnrClientConfiguration.getVitamSecret());
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
@@ -336,6 +343,9 @@ public class World {
         return accessService;
     }
 
+    /**
+     * 
+     */
     @After
     public void finish() {
         adminClient.close();
