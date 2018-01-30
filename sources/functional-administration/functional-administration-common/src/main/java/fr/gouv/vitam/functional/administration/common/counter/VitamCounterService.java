@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
@@ -66,8 +65,6 @@ import java.util.Set;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Sorts.descending;
-import static com.mongodb.client.model.Updates.inc;
-
 
 /**
  * Vitam functional counter service
@@ -272,6 +269,13 @@ public class VitamCounterService {
         try {
             final Object result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
                 .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
+
+            if (result == null) {
+                throw new ReferentialException(String
+                    .format("Not sequence for tenant= %d and sequence= %s",
+                        tenant, name));
+            }
+
             return ((VitamSequence) result);
         } catch (final Exception e) {
             LOGGER.error("find Document Exception", e);
