@@ -27,13 +27,12 @@
 package fr.gouv.vitam.access.internal.serve.filter;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContratIdException;
+import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContractIdException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -72,21 +71,22 @@ public class AccessContratIdHeaderHelper {
      * Extracts the X_ACCESS_CONTRAT_ID from the headers to save it through the VitamSession
      *
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
-     * @throws MissingAccessContratIdException
+     * @throws MissingAccessContractIdException
      */
-    public static void manageAccessContratFromHeader(MultivaluedMap<String, String> requestHeaders) throws MissingAccessContratIdException {
+    public static void manageAccessContratFromHeader(MultivaluedMap<String, String> requestHeaders) throws
+        MissingAccessContractIdException {
         try(final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             String headerAccessContratId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
             if (headerAccessContratId== null){
-                throw new MissingAccessContratIdException(headerAccessContratId);
+                throw new MissingAccessContractIdException(headerAccessContratId);
             }
 
             JsonNode queryDsl = getQueryDsl(headerAccessContratId);            
             RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
 
             if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
-                throw new MissingAccessContratIdException(headerAccessContratId);
+                throw new MissingAccessContractIdException(headerAccessContratId);
             }
 
             List<AccessContractModel> contracts = ((RequestResponseOK<AccessContractModel>)response).getResults(); 

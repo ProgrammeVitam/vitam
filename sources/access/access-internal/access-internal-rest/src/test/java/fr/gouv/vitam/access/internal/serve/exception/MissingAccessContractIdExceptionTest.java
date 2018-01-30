@@ -34,14 +34,14 @@ import org.junit.Test;
 /**
  *
  */
-public class MissingAccessContratIdExceptionTest {
+public class MissingAccessContractIdExceptionTest {
 
     @Test
     public final void testMissingAccessContratIdException() {
-        assertEquals("", new MissingAccessContratIdException("").getMessage());
-        assertEquals("test", new MissingAccessContratIdException("test").getMessage());
-        assertNotNull(new MissingAccessContratIdException(new Exception()).getCause());
-        assertNotNull(new MissingAccessContratIdException("test", new Exception()).getCause());
+        assertEquals("", new MissingAccessContractIdException("").getMessage());
+        assertEquals("test", new MissingAccessContractIdException("test").getMessage());
+        assertNotNull(new MissingAccessContractIdException(new Exception()).getCause());
+        assertNotNull(new MissingAccessContractIdException("test", new Exception()).getCause());
     }
 
 }

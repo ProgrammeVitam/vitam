@@ -2,7 +2,7 @@ package fr.gouv.vitam.access.internal.rest;
 
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
-import fr.gouv.vitam.access.internal.serve.filter.AccessContratIdContainerFilter;
+import fr.gouv.vitam.access.internal.serve.filter.AccessContractIdContainerFilter;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
@@ -43,7 +43,7 @@ public class BusinessApplication extends Application {
                 singletons.add(new AccessInternalResourceImpl(accessInternalConfiguration));
                 singletons.add(new LogbookInternalResourceImpl());
             }
-            singletons.add(new AccessContratIdContainerFilter());
+            singletons.add(new AccessContractIdContainerFilter());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

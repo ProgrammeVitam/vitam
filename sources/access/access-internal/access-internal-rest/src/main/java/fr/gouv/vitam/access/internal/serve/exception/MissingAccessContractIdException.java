@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Exception when missing access contrat
  *
  */
-public class MissingAccessContratIdException extends VitamException{
+public class MissingAccessContractIdException extends VitamException{
 
     /**
      *
@@ -45,7 +45,7 @@ public class MissingAccessContratIdException extends VitamException{
      *
      * @param message message to log
      */
-    public MissingAccessContratIdException(String message) {
+    public MissingAccessContractIdException(String message) {
         super(message);
     }
 
@@ -54,7 +54,7 @@ public class MissingAccessContratIdException extends VitamException{
      *
      * @param throwable the originating exception
      */
-    public MissingAccessContratIdException(Throwable throwable) {
+    public MissingAccessContractIdException(Throwable throwable) {
         super("An error occurred while retrieving objects from the local thread", throwable);
     }
 
@@ -64,7 +64,7 @@ public class MissingAccessContratIdException extends VitamException{
      * @param message the message to log throw threw
      * @param throwable the originating exception
      */
-    public MissingAccessContratIdException(String message, Throwable throwable) {
+    public MissingAccessContractIdException(String message, Throwable throwable) {
         super(message, throwable);
     }
 
