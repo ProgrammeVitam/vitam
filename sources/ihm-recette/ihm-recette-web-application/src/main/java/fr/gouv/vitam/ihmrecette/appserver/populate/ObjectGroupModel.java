@@ -26,13 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
-import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 
 public class ObjectGroupModel {
 
@@ -43,7 +42,7 @@ public class ObjectGroupModel {
     private FileInfoModel fileInfoModel;
     
     @JsonProperty("_qualifiers")
-    private List<QualifiersModel> qualifiers;
+    private List<ObjectGroupQualifiersModel> qualifiers;
 
     @JsonProperty("_up")
     private Set<String> up = new HashSet<>(); // change to array
@@ -76,11 +75,11 @@ public class ObjectGroupModel {
         this.fileInfoModel = fileInfoModel;
     }
 
-    public List<QualifiersModel> getQualifiers() {
+    public List<ObjectGroupQualifiersModel> getQualifiers() {
         return qualifiers;
     }
 
-    public void setQualifiers(List<QualifiersModel> qualifiers) {
+    public void setQualifiers(List<ObjectGroupQualifiersModel> qualifiers) {
         this.qualifiers = qualifiers;
     }
 

@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,33 +23,50 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-public enum VitamDataType {
-    UNIT("Unit", "unit_%d"),
-    GOT("ObjectGroup", "objectgroup_%d"),
-    RULES("FileRules", "filerules"),
-    ACCESS_CONTRACT("AccessContract", "accesscontract"),
-    AGENCIES("Agencies", "agencies");
-    
-    private String collectionName;
-    private String indexName;
+import java.util.List;
 
-    VitamDataType(String collectionName, String indexName) {
-        this.collectionName = collectionName;
-        this.indexName = indexName;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Object mapping Storage Response
+ */
+public class ObjectStorageJson {
+
+    @JsonProperty("strategyId")
+    private String strategyId;
+
+    @JsonProperty("_nbc")
+    private int nbc;
+
+    @JsonProperty("offerIds")
+    private List<String> offerIds;
+
+    public String getStrategyId() {
+        return strategyId;
     }
 
-    public String getCollectionName() {
-        return collectionName;
+    public void setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
     }
 
-    public String getIndexName() {
-        return indexName;
+    public int getNbc() {
+        return nbc;
     }
 
-    public String getIndexName(int tenantId) {
-        return String.format(indexName, tenantId);
+    public void setNbc(int nbc) {
+        this.nbc = nbc;
     }
+
+    public List<String> getOfferIds() {
+        return offerIds;
+    }
+
+    public void setOfferIds(List<String> offerIds) {
+        this.offerIds = offerIds;
+    }
+
+
 }

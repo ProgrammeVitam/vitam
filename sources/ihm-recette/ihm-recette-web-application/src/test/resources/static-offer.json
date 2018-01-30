@@ -1,0 +1,7 @@
+[
+  {
+    "id" : "default",
+    "baseUrl" : "http://localhost:8194",
+    "parameters" : {}
+  }
+]

@@ -36,6 +36,7 @@ public class PopulateServiceTest {
 
     private PopulateService populateService;
     private MetadataRepository metadataRepository;
+    private MasterdataRepository masterdataRepository;
     private TransportClient client;
 
     @Before
@@ -50,8 +51,9 @@ public class PopulateServiceTest {
         client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
 
         this.metadataRepository = new MetadataRepository(mongoRule.getMongoDatabase(), client);
+        this.masterdataRepository = new MasterdataRepository(mongoRule.getMongoDatabase(), client);
         UnitGraph unitGraph = new UnitGraph(metadataRepository);
-        populateService = new PopulateService(metadataRepository, unitGraph, 4);
+        populateService = new PopulateService(metadataRepository, masterdataRepository, unitGraph, 4);
     }
 
     @Test
@@ -65,6 +67,7 @@ public class PopulateServiceTest {
         populateModel.setTenant(0);
         populateModel.setWithGots(true);
         populateModel.setWithRules(true);
+        populateModel.setObjectSize(1024);
         Map<String, Integer> ruleMap = new HashMap<>();
         ruleMap.put("STR-00059", 20);
         ruleMap.put("ACC-000111", 20);
@@ -94,6 +97,7 @@ public class PopulateServiceTest {
         int portMongo = MongoRule.getDataBasePort();
         assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count()).isEqualTo(11);
         assertThat(mongoRule.getMongoCollection(VitamDataType.AGENCIES.getCollectionName()).count()).isEqualTo(1);
+        assertThat(mongoRule.getMongoCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName()).count()).isEqualTo(1);
         assertThat(mongoRule.getMongoCollection(VitamDataType.RULES.getCollectionName()).count()).isEqualTo(2);
         mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) document -> {

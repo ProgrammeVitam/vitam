@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -33,26 +36,35 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.base.Stopwatch;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.Document;
 
 public class PopulateService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PopulateService.class);
+    public static final String TENANT = "_tenant";
+    public static final String CONTRACT_POPULATE = "ContractPopulate";
+    public static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
 
     private AtomicBoolean populateInProgress = new AtomicBoolean(false);
 
     private final MetadataRepository metadataRepository;
 
+    private final MasterdataRepository masterdataRepository;
+
     private UnitGraph unitGraph;
     private int nbThreads;
 
 
-    public PopulateService(MetadataRepository metadataRepository, UnitGraph unitGraph, int nThreads) {
+    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository,
+        UnitGraph unitGraph, int nThreads) {
         this.metadataRepository = metadataRepository;
+        this.masterdataRepository = masterdataRepository;
         this.unitGraph = unitGraph;
         this.nbThreads = nThreads;
     }
@@ -76,25 +88,46 @@ public class PopulateService {
         String identifier = populateModel.getSp();
         int tenantId = populateModel.getTenant();
         options.put("Identifier", identifier);
-        options.put("_tenant", populateModel.getTenant() + "");
+        options.put(TENANT, populateModel.getTenant() + "");
         Optional<Document> agencyDocuments =
-            this.metadataRepository.findDocumentByMap(VitamDataType.AGENCIES, options);
+            this.masterdataRepository.findDocumentByMap(VitamDataType.AGENCIES, options);
 
         if (!agencyDocuments.isPresent()) {
-            this.metadataRepository.importAgency(identifier, tenantId);
+            this.masterdataRepository.importAgency(identifier, tenantId);
+        }
+
+        options.clear();
+        options.put("Name", CONTRACT_POPULATE);
+        Optional<Document> contractDocument =
+            this.masterdataRepository.findDocumentByMap(VitamDataType.ACCESS_CONTRACT, options);
+
+        if (!contractDocument.isPresent()) {
+            this.masterdataRepository.importAccessContract(CONTRACT_POPULATE, tenantId);
         }
 
         if (populateModel.isWithRules()) {
             Map<String, Integer> ruleMap = populateModel.getRuleTemplatePercent();
             for (String rule : ruleMap.keySet()) {
+                options.clear();
                 options.put("RuleId", rule);
-                options.put("_tenant", populateModel.getTenant() + "");
-                Optional<Document> ruleDocuments = this.metadataRepository.findDocumentByMap(VitamDataType.RULES, options);
+                options.put(TENANT, populateModel.getTenant() + "");
+                Optional<Document> ruleDocuments = this.masterdataRepository.findDocumentByMap(VitamDataType.RULES, options);
                 if (!ruleDocuments.isPresent()) {
-                    this.metadataRepository.importRule(rule, tenantId);
+                    this.masterdataRepository.importRule(rule, tenantId);
                 }
 
             }
+        }
+        if (populateModel.getObjectSize() > 0) {
+            try {
+                String text = RandomStringUtils.random(populateModel.getObjectSize());
+                RandomAccessFile file = new RandomAccessFile(POPULATE_FILE, "rw");
+                file.writeChars(text);
+                file.close();
+            } catch (IOException e) {
+                LOGGER.error(e);
+            }
+
         }
         Flowable.range(0, populateModel.getNumberOfUnit())
             .observeOn(Schedulers.io())
@@ -108,8 +141,10 @@ public class PopulateService {
             .subscribe(t -> {}, t -> {
                 LOGGER.error(t);
                 populateInProgress.set(false);
+                POPULATE_FILE.delete();
             }, () -> {
                 populateInProgress.set(false);
+                POPULATE_FILE.delete();
                 long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
                 LOGGER.info("save time: {}", elapsed);
             });
