@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import fr.gouv.vitam.ihmrecette.appserver.populate.MasterdataRepository;
 import static java.lang.String.format;
 
 import java.io.FileNotFoundException;
@@ -124,15 +125,17 @@ public class BusinessApplication extends Application {
             MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
             MongoDatabase metadataDb = mongoClient.getDatabase(configuration.getMetadataDbName());
-
+            MongoDatabase masterdataDb = mongoClient.getDatabase(configuration.getMasterdataDbName());
+            
             List<ElasticsearchNode> elasticsearchNodes = configuration.getElasticsearchNodes();
             Settings settings = ElasticsearchAccess.getSettings(configuration.getClusterName());
             TransportClient esClient = getClient(settings, elasticsearchNodes);
 
             MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient);
+            MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb, esClient);
             UnitGraph unitGraph = new UnitGraph(metadataRepository);
             PopulateService populateService =
-                new PopulateService(metadataRepository, unitGraph, configuration.getIngestMaxThread());
+                new PopulateService(metadataRepository, masterdataRepository, unitGraph, configuration.getIngestMaxThread());
             PopulateResource populateResource = new PopulateResource(populateService);
 
             singletons.add(populateResource);

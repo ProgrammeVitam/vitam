@@ -29,7 +29,10 @@ package fr.gouv.vitam.ihmrecette.appserver.populate;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,9 +48,14 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.InsertOneModel;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -61,41 +69,26 @@ import org.elasticsearch.common.xcontent.XContentType;
 public class MetadataRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRepository.class);
-    public static final String GUID = "GUID";
-    public static final String TENANT_ID = "TENANT_ID";
-    public static final String AGENCY_NAME = "AGENCY_NAME";
-    public static final String RULE_ID = "RULE_ID";
-    public static final String RULE_CATEGORY = "RULE_CATEGORY";
+    public static final String STORAGE_CONF_FILE = "storage.conf";
+    public static final String STRATEGY_ID = "default";
 
     private MongoDatabase metadataDb;
     private TransportClient transportClient;
     private ObjectMapper objectMapper;
+    private final StoragePopulateImpl storagePopulateService;
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
-    private static final String RULE_TEMPLATE = "{\"_id\" : \"" + GUID + "\"," +
-        "    \"RuleId\" : \"" + RULE_ID + "\"," +
-        "    \"RuleType\" : \"" + RULE_CATEGORY + "\"," +
-        "    \"RuleValue\" : \"Dossier individuel d’agent civil\"," +
-        "    \"RuleDescription\" : \"Durée de conservation des dossiers\"," +
-        "    \"RuleDuration\" : \"80\"," +
-        "    \"RuleMeasurement\" : \"Year\"," +
-        "    \"CreationDate\" : \"2018-01-23T10:06:16.969\"," +
-        "    \"UpdateDate\" : \"2018-01-23T10:06:16.969\"," +
-        "    \"_v\" : 0," +
-        "    \"_tenant\" : " + TENANT_ID +
-        "}";
-
-    private static final String AGENCY_TEMPLATE = "{\"_id\" : \"" + GUID + "\"," +
-        "    \"Identifier\" : \"" + AGENCY_NAME + "\"," +
-        "    \"Name\" : \"" + AGENCY_NAME + "\"," +
-        "    \"Description\" : \"" + AGENCY_NAME + "\"," +
-        "    \"_v\" : 0," +
-        "    \"_tenant\" : " + TENANT_ID +
-        "}";
 
     public MetadataRepository(MongoDatabase metadataDb, TransportClient transportClient) {
         this.metadataDb = metadataDb;
         this.transportClient = transportClient;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
+            final StorageConfiguration configuration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
+            storagePopulateService = new StoragePopulateImpl(configuration);
+        } catch (IOException e) {
+            LOGGER.error("Cannot initialize storage resource server, error when reading configuration file");
+            throw new RuntimeException(e);
+        }
         this.objectMapper = UnitGotMapper.buildObjectMapper();
 
         // init collections for available metadataTypes
@@ -124,62 +117,6 @@ public class MetadataRepository {
     }
 
     /**
-     * Find a document by key-value
-     *
-     * @param documentType to fetch
-     * @param options to fetch
-     * @return Document if found
-     */
-    public Optional<Document> findDocumentByMap(VitamDataType documentType,
-        Map<String, String> options) {
-
-        List<Bson> conditions = new ArrayList<>();
-        for (String option : options.keySet()) {
-            conditions.add(eq(option, options.get(option)));
-        }
-        FindIterable<Document> models = this.getCollection(documentType).find(and(conditions));
-
-        Document first = models.first();
-        if (first == null) {
-            return Optional.empty();
-        }
-
-        try {
-            return Optional.of(first);
-        } catch (final IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * import agency by name
-     *
-     * @param agencyName identifier to import
-     */
-    public void importAgency(String agencyName, int tenantId) {
-        String agencyToImport = AGENCY_TEMPLATE
-            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-            .replace(TENANT_ID, tenantId + "")
-            .replace(AGENCY_NAME, agencyName);
-        this.getCollection(VitamDataType.AGENCIES).insertOne(Document.parse(agencyToImport));
-    }
-
-    /**
-     * import rule by id
-     *
-     * @param ruleId id to import
-     */
-    public void importRule(String ruleId, int tenantId) {
-        String ruleToImport = RULE_TEMPLATE
-            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-            .replace(TENANT_ID, tenantId + "")
-            .replace(RULE_ID, ruleId)
-            .replace(RULE_CATEGORY, getRuleCategoryByRuleId(ruleId));
-
-        this.getCollection(VitamDataType.RULES).insertOne(Document.parse(ruleToImport));
-    }
-
-    /**
      * Store unit and got in database and es
      *
      * @param tenant tenant identifier
@@ -193,12 +130,33 @@ public class MetadataRepository {
 
         if (!gots.isEmpty()) {
             this.storeAndIndex(tenant, gots, VitamDataType.GOT, storeInDb, indexInEs);
+
+            if (unitGotList.get(0).getObjectSize() != 0) {
+                LOGGER.error("######## Write object" + unitGotList.get(0).getObjectSize());
+                storeObjects(unitGotList);
+            }
         }
 
         List<Document> units = unitGotList.stream().map(unitGot ->
             getDocument(unitGot.getUnit())).collect(Collectors.toList());
         this.storeAndIndex(tenant, units, VitamDataType.UNIT, storeInDb, indexInEs);
+
         return true;
+    }
+
+    private void storeObjects(List<UnitGotModel> unitGotList) {
+        for (UnitGotModel unitGotModel : unitGotList) {
+            try {
+                this.storagePopulateService.storeData(
+                    STRATEGY_ID,
+                    unitGotModel.getGot().getQualifiers().get(0).getVersions().get(0).getId(),
+                    PopulateService.POPULATE_FILE,
+                    DataCategory.OBJECT, unitGotModel.getUnit().getTenant()
+                );
+            } catch (StorageException | FileNotFoundException e) {
+                LOGGER.error("Can not store object of " + unitGotModel.getUnit().getId());
+            }
+        }
     }
 
     /**
@@ -219,6 +177,7 @@ public class MetadataRepository {
             indexDocuments(documents, vitamDataType, tenant);
         }
     }
+
 
     /**
      * store a list of documents in db
@@ -298,25 +257,6 @@ public class MetadataRepository {
             throw new RuntimeException(e);
         }
         return Document.parse(source);
-    }
-
-    public static String getRuleCategoryByRuleId(String ruleId) {
-        if (ruleId.startsWith("ACC-")) {
-            return "AccessRule";
-        }
-        if (ruleId.startsWith("APP-")) {
-            return "AppraisalRule";
-        }
-        if (ruleId.startsWith("DIS-")) {
-            return "DisseminationRule";
-        }
-        if (ruleId.startsWith("CLASS-")) {
-            return "ClassificationRule";
-        }
-        if (ruleId.startsWith("REU-")) {
-            return "ReuseRule";
-        }
-        return "StorageRule";
     }
 
 }

@@ -30,14 +30,20 @@ public class UnitGotModel {
     
     private UnitModel unit;
     private ObjectGroupModel got;
+    private int objectSize;
 
     public UnitGotModel(UnitModel unit) {
         this.unit = unit;
     }
 
     public UnitGotModel(UnitModel unit, ObjectGroupModel got) {
+        this(unit, got, 0);
+    }
+
+    public UnitGotModel(UnitModel unit, ObjectGroupModel got, Integer objectSize) {
         this.unit = unit;
         this.got = got;
+        this.objectSize = (objectSize == null) ? 0 : objectSize;
     }
 
     public UnitModel getUnit() {
@@ -54,5 +60,13 @@ public class UnitGotModel {
 
     public void setGot(ObjectGroupModel got) {
         this.got = got;
+    }
+
+    public int getObjectSize() {
+        return objectSize;
+    }
+
+    public void setObjectSize(int objectSize) {
+        this.objectSize = objectSize;
     }
 }

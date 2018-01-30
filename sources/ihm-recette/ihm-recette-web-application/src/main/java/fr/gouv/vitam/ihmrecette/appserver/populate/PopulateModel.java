@@ -48,6 +48,9 @@ public class PopulateModel {
     
     private boolean withGots = true;
 
+    @JsonProperty("objectSize")
+    private Integer objectSize;
+
     @JsonProperty("ruleTemplatePercent")
     private Map<String, Integer> ruleTemplatePercent;
 
@@ -131,5 +134,13 @@ public class PopulateModel {
 
     public void setRuleTemplatePercent(Map<String, Integer> ruleTemplatePercent) {
         this.ruleTemplatePercent = ruleTemplatePercent;
+    }
+
+    public Integer getObjectSize() {
+        return objectSize != null ? objectSize : 0;
+    }
+
+    public void setObjectSize(Integer objectSize) {
+        this.objectSize = objectSize;
     }
 }

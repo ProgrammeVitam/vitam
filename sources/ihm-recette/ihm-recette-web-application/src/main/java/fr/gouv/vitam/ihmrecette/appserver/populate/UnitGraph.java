@@ -1,22 +1,27 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import fr.gouv.vitam.common.model.unit.ManagementModel;
-import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
-import fr.gouv.vitam.common.model.unit.RuleModel;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
+import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
+import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
+
 public class UnitGraph {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitGraph.class);
 
     private final LoadingCache<String, UnitModel> cache;
 
@@ -60,13 +65,17 @@ public class UnitGraph {
 
         // update unitModel
         unitModel.setOg(guid);
-                
+        int objectSize = 0;
+        if (populateModel.getObjectSize() != null) {
+            objectSize = populateModel.getObjectSize();
+        }
+
         // create gotModel
         ObjectGroupModel gotModel = createObjectGroupModel(guid, tenantId, 
-                DescriptiveMetadataGenerator.generateFileInfoModel(i), unitModel); 
+                DescriptiveMetadataGenerator.generateFileInfoModel(i), unitModel, objectSize);
 
         // return (unit, got) as UnitGotModel
-        return new UnitGotModel(unitModel, gotModel);
+        return new UnitGotModel(unitModel, gotModel, objectSize);
     }
 
     /**
@@ -114,7 +123,7 @@ public class UnitGraph {
                     rules.add(ruleModel);
                     RuleCategoryModel ruleCategory = new RuleCategoryModel();
                     ruleCategory.setRules(rules);
-                    management.setRuleCategoryModel(ruleCategory, MetadataRepository.getRuleCategoryByRuleId(rule));
+                    management.setRuleCategoryModel(ruleCategory, MasterdataRepository.getRuleCategoryByRuleId(rule));
                 }
             }
             unitModel.setManagementModel(management);
@@ -148,15 +157,46 @@ public class UnitGraph {
      * @return a ObjectGroupModel
      */
     private ObjectGroupModel createObjectGroupModel(String guid, int tenantId, FileInfoModel fileInfoModel, 
-                                                    UnitModel parentUnit){
+                                                    UnitModel parentUnit, int objectSize){
         ObjectGroupModel gotModel = new ObjectGroupModel();
         
         gotModel.setId(guid);
         gotModel.setTenant(tenantId);
         gotModel.getUp().add(parentUnit.getId());
         gotModel.setFileInfoModel(fileInfoModel);
-        gotModel.setQualifiers(null); // Use to inject BDO and Physical Object metadatas
+        List<ObjectGroupQualifiersModel> qualifiers = new ArrayList<>();
+        if (objectSize != 0) {
+            ObjectGroupQualifiersModel qualifier = new ObjectGroupQualifiersModel();
+            qualifier.setNbc(1);
+            qualifier.setQualifier("BinaryMaster");
+            List<ObjectGroupVersionsModel> versions = new ArrayList<>();
+            ObjectGroupVersionsModel version = new ObjectGroupVersionsModel();
+            String uuid = GUIDFactory.newObjectGUID(tenantId).toString();
+            version.setId(uuid);
+            version.setAlgorithm("SHA-512");
+            version.setDataObjectGroupId(guid);
+            version.setFileInfoModel(fileInfoModel);
+            version.setUri("Content/" + fileInfoModel.getFilename());
 
+            FormatIdentificationModel formatIdentificationModel = new FormatIdentificationModel();
+            formatIdentificationModel.setFormatLitteral("Plain Text File");
+            formatIdentificationModel.setFormatId("x-fmt/111");
+            formatIdentificationModel.setMimeType("text/plain");
+            version.setFormatIdentification(formatIdentificationModel);
+            version.setSize(objectSize);
+            ObjectStorageJson objectStorageJson = new ObjectStorageJson();
+            objectStorageJson.setStrategyId("default");
+            objectStorageJson.setNbc(StoragePopulateImpl.getNbc());
+            objectStorageJson.setOfferIds(StoragePopulateImpl.getOfferIds());
+
+            version.setStorage(objectStorageJson);
+
+            versions.add(version);
+            qualifier.setVersions(versions);
+            qualifiers.add(qualifier);
+        }
+
+        gotModel.setQualifiers(qualifiers);
         gotModel.setSp(parentUnit.getSp());
         gotModel.getSps().addAll(parentUnit.getSps());
         
