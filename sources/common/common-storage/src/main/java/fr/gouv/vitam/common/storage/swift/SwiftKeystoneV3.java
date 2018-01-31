@@ -28,6 +28,7 @@
 package fr.gouv.vitam.common.storage.swift;
 
 import org.openstack4j.api.OSClient;
+import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.openstack.OSFactory;
@@ -48,11 +49,13 @@ public class SwiftKeystoneV3 extends Swift {
 
     private Identifier domainIdentifier;
     private Identifier projectIdentifier;
+    private Config configOS4J;
 
     public SwiftKeystoneV3(StorageConfiguration configuration) {
         super(configuration);
         domainIdentifier = Identifier.byName(configuration.getSwiftUid());
         projectIdentifier = Identifier.byName(configuration.getProjectName());
+        configOS4J = Config.newConfig().withEndpointURLResolver(new VitamEndpointUrlResolver(configuration));
     }
 
     @Override
@@ -63,10 +66,12 @@ public class SwiftKeystoneV3 extends Swift {
             // endpoint(endpoint v3).credentials(user, mdp, domain).scopeToProject(project, domain)
             osClientV3 = OSFactory.builderV3().endpoint(configuration.getKeystoneEndPoint())
                 .credentials(configuration.getSwiftSubUser(), configuration.getCredential(), domainIdentifier)
-                .scopeToProject(projectIdentifier, domainIdentifier).authenticate();
+                .scopeToProject(projectIdentifier, domainIdentifier)
+                    .withConfig(configOS4J)
+                    .authenticate();
             token = osClientV3.getToken();
         } else {
-            osClientV3 = OSFactory.clientFromToken(token);
+            osClientV3 = OSFactory.clientFromToken(token, configOS4J);
         }
         return osClientV3;
     }
