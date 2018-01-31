@@ -3,6 +3,10 @@
 
 #### Kibana dashboards configuration ####
 
+- name: check wether replica number for metrics-vitam is compatible with inventory
+  fail: msg="Too much replica defined for metrics index in elasticsearch-log"
+  when: groups['hosts-elasticsearch-log']|length <= kibana.log.metrics.replica and groups['hosts-elasticsearch-log']|length>1
+
 - name: Wait for the kibana port to be open
   wait_for:
     host: "{{ ip_service }}"
@@ -65,7 +69,7 @@
   uri:
     url: "{{ elasticsearch.log|client_url }}_template/metrics_template"
     method: PUT
-    body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/metrics.template.json') }}"
+    body: "{{ lookup('template', '{{ role_path }}/templates/metrics.template.json.j2') }}"
     body_format: json
     status_code: 200,201
 

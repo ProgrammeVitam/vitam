@@ -13,7 +13,7 @@ output
                 #idle_flush_time => 1
                 #idle_flush_time => 2
                 #workers => 20
-                # template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
+                template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-vitam-%{+YYYY.MM.dd}"
                 {% for host in groups['hosts-elasticsearch-log'] %}
                  hosts =>  ["{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"]
@@ -33,7 +33,7 @@ output
         {
             elasticsearch
             {
-                # template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
+                template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-uncatched-%{+YYYY.MM.dd}"
                 hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.log.port_http + '", "') }}:{{ elasticsearch.log.port_http }}"]
             }
