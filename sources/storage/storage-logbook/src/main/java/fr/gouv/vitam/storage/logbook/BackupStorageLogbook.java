@@ -44,20 +44,18 @@ import java.io.InputStream;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Utility to launch the Traceability through command line and external scheduler
+ * Utility to launch the backup through command line and external scheduler
  */
-public class SecureStorageLogbook {
+public class BackupStorageLogbook {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecureStorageLogbook.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupStorageLogbook.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_SECURISATION_NAME = "secureStorageLog.conf";
 
     /**
      * @param args ignored
-     * @throws InvalidParseOperationException if json data not well-formed
-     * @throws StorageServerClientException   if logbook server is unreachable
      */
-    public static void main(String[] args) throws InvalidParseOperationException, StorageServerClientException {
+    public static void main(String[] args) {
         platformSecretConfiguration();
         try {
             File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
@@ -66,12 +64,7 @@ public class SecureStorageLogbook {
             CountDownLatch startSignal = new CountDownLatch(1);
             CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
             conf.getTenants().forEach((v) -> {
-                try {
-                    secureByTenantId(v, startSignal, doneSignal);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("Cannot secure log " + v, e);
-                }
-
+                backupByTenantId(v, startSignal, doneSignal);
             });
             startSignal.countDown();
             doneSignal.await();           // wait for all to finish
@@ -83,8 +76,7 @@ public class SecureStorageLogbook {
     }
 
 
-    private static void secureByTenantId(int tenantId, CountDownLatch startSignal, CountDownLatch doneSignal)
-        throws InterruptedException {
+    private static void backupByTenantId(int tenantId, CountDownLatch startSignal, CountDownLatch doneSignal) {
 
         VitamThreadFactory instance = VitamThreadFactory.getInstance();
         Thread thread = instance.newThread(() -> {
@@ -94,7 +86,7 @@ public class SecureStorageLogbook {
                 final StorageClientFactory storageClientFactory =
                     StorageClientFactory.getInstance();
                 try (StorageClient client = storageClientFactory.getClient()) {
-                    client.secureStorageLogbook();
+                    client.backupStorageLog();
                 }
             } catch (InvalidParseOperationException | StorageServerClientException | InterruptedException e) {
                 throw new IllegalStateException(" Error when securing Tenant  :  " + tenantId, e);

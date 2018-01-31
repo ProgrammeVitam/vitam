@@ -72,7 +72,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>fr.gouv.vitam.storage.logbook.SecureStorageLogbook</mainClass>
+                            <mainClass>fr.gouv.vitam.storage.logbook.BackupStorageLogbook</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -96,7 +96,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>fr.gouv.vitam.storage.logbook.SecureStorageLogbook</mainClass>
+                            <mainClass>fr.gouv.vitam.storage.logbook.BackupStorageLogbook</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

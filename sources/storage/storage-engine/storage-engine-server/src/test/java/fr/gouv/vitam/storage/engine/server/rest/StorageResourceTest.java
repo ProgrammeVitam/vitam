@@ -1038,8 +1038,8 @@ public class StorageResourceTest {
     }
 
     @Test
-    public void secureStorageLogbookOk() {
-        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).when().post("/storage/secure").then()
+    public void backupStorageLogbookOk() {
+        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).when().post("/storage/backup").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
     }

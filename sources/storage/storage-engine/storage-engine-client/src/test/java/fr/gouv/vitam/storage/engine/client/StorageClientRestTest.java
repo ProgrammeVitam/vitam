@@ -151,9 +151,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @Path("/storage/v1")
     public static class MockResource {
-        private static final String SECURE = "/storage/secure";
+        private static final String STORAGE_BACKUP_PATH = "/storage/backup";
         private final ExpectedResults expectedResponse;
-        public static final String APPLICATION_ZIP = "application/zip";
 
         public MockResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
@@ -280,7 +279,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path(SECURE)
+        @Path(STORAGE_BACKUP_PATH)
         @Produces(MediaType.APPLICATION_JSON)
         public Response t() {
             return expectedResponse.post();
@@ -637,11 +636,11 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test
-    public void successSecureStorageLogbook() throws Exception {
+    public void successBackupStorageLog() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.OK).
             entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
-        client.secureStorageLogbook();
+        client.backupStorageLog();
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

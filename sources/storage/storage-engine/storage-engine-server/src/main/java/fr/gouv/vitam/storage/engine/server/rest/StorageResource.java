@@ -1179,13 +1179,13 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Run storage logbook secure operation
+     * Backup storage log
      *
      * @param xTenantId the tenant id
      * @return the response with a specific HTTP status
      */
     @POST
-    @Path("/storage/secure")
+    @Path("/storage/backup")
     @Produces(MediaType.APPLICATION_JSON)
     public Response secureStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
