@@ -1300,7 +1300,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
                 } catch (AccessInternalRuleExecutionException e) {
                     throw new AccessInternalRuleExecutionException(
-                        VitamCodeHelper.getCode(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE));
+                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE.name());
                 }
                 createdRules.add(updateRule);
             }
