@@ -114,18 +114,38 @@ public class AccessExternalMain {
         }
     }
 
+    /**
+     * Start the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void start() throws VitamApplicationServerException {
         vitamStarter.start();
     }
 
+    /**
+     * Start and join the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void startAndJoin() throws VitamApplicationServerException {
         vitamStarter.run();
     }
 
+    /**
+     * Stop the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
     
+    /**
+     * Get the server 
+     * 
+     * @return the vitam server
+     */
     public final VitamStarter getVitamServer() {
         return vitamStarter;
     }
