@@ -44,13 +44,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 public interface WorkerAction {
 
     /**
-     * Execute an action 
+     * Execute an action
      *
      * @param param {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
      * @throws ProcessingException if an error is encountered when executing the action
-     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
      */
     ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException;
@@ -68,7 +68,7 @@ public interface WorkerAction {
      * 
      * @return true if LFC in handled internally
      */
-    default boolean lfcHandledInternally(){
+    default boolean lfcHandledInternally() {
         return false;
     }
 }

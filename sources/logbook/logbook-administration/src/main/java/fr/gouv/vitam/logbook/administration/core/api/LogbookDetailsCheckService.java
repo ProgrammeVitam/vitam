@@ -26,14 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.administration.core.api;
 
-import fr.gouv.vitam.logbook.common.model.EventModel;
-import fr.gouv.vitam.logbook.common.model.LogbookCheckResult;
-import org.bson.Document;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
+import fr.gouv.vitam.logbook.common.model.EventModel;
+import fr.gouv.vitam.logbook.common.model.LogbookCheckResult;
 
 /**
  * Logbook details check service.<br>
@@ -44,16 +41,16 @@ public interface LogbookDetailsCheckService {
      * Logbook events check.
      *
      * @param event
-     * @return
+     * @return the list of results after check
      */
     List<LogbookCheckResult> checkEvent(EventModel event);
 
     /**
      * check coherence between LFC and operation.
      *
-     * @param mapOpEvents
-     * @param mapLfcEvents
-     * @return
+     * @param mapOpEvents the map of operation event models
+     * @param mapLfcEvents the map of lfc event models
+     * @return the list of results after check
      */
     List<LogbookCheckResult> checkLFCandOperation(final Map<String, EventModel> mapOpEvents,
         final Map<String, EventModel> mapLfcEvents);

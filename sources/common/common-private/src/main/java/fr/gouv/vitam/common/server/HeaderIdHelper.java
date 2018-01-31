@@ -38,6 +38,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
+/**
+ * HeaderId Helper, check and put header values
+ */
 public class HeaderIdHelper {
     /**
      * Context of request
@@ -67,7 +70,8 @@ public class HeaderIdHelper {
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
      * @param ctx Context, or rather http message type (request or response)
      */
-    public static void putVitamIdFromExternalHeaderInSession(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+    public static void putVitamIdFromExternalHeaderInSession(MultivaluedMap<String, String> requestHeaders,
+        Context ctx) {
 
         try {
 
@@ -207,7 +211,8 @@ public class HeaderIdHelper {
         String applicationSessionId = getHeaderString(requestHeaders, GlobalDataRest.X_APPLICATION_ID);
 
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-        if (vitamSession.getApplicationSessionId() != null && !vitamSession.getApplicationSessionId().equals(applicationSessionId)) {
+        if (vitamSession.getApplicationSessionId() != null &&
+            !vitamSession.getApplicationSessionId().equals(applicationSessionId)) {
             LOGGER.info(
                 "Note : the applicationSessionId stored in session was not empty and different from the received " +
                     "applicationSessionId before {} handling ! Some cleanup must have failed... " +
@@ -218,7 +223,8 @@ public class HeaderIdHelper {
         vitamSession.setApplicationSessionId(applicationSessionId);
 
         if (applicationSessionId != null) {
-            LOGGER.debug("Got applicationSessionId {} from {} headers ; setting it in the current VitamSession", applicationSessionId,
+            LOGGER.debug("Got applicationSessionId {} from {} headers ; setting it in the current VitamSession",
+                applicationSessionId,
                 ctx);
         } else {
             LOGGER.debug("No applicationSessionId found in {} ; setting it as empty in the current VitamSession", ctx);
@@ -227,9 +233,9 @@ public class HeaderIdHelper {
 
     private static String getHeaderString(MultivaluedMap<String, String> requestHeaders, String headerName) {
         /*
-         * Note : jetty seems NOT to correctly unserialize multiple headers declaration in only one header, with
-         * values separated by commas Example : X-Request-Id: header-1,header-2-should-not-be-take Note : Cf. the
-         * last paragraph in https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2 TODO: Jetty bug ?
+         * Note : jetty seems NOT to correctly unserialize multiple headers declaration in only one header, with values
+         * separated by commas Example : X-Request-Id: header-1,header-2-should-not-be-take Note : Cf. the last
+         * paragraph in https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2 TODO: Jetty bug ?
          */
         // KWA TODO: beurk.
 
@@ -245,6 +251,7 @@ public class HeaderIdHelper {
      *
      * @param headers List of target HTTP headers ; required header will be added to this list.
      * @param ctx Context, or rather http message type (request or response)
+     * @param statusCode the status code
      */
     public static void putVitamIdFromSessionInExternalHeader(MultivaluedMap<String, Object> headers, Context ctx,
         int statusCode) {
@@ -261,7 +268,8 @@ public class HeaderIdHelper {
                     LOGGER.debug("RequestId {} found in session and set in the {} header.", requestId, ctx);
                 }
             } else {
-                LOGGER.warn("No RequestId found in session (somebody should have set it) ! ");
+                // TODO this should be improved : warn log and consul calls to be handled in a better way
+                LOGGER.info("No RequestId found in session (somebody should have set it) ! ");
                 if (ctx.equals(Context.RESPONSE) && statusCode >= Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                     String newRequestId = GUIDFactory.newGUID().toString();
 
@@ -285,6 +293,7 @@ public class HeaderIdHelper {
      *
      * @param headers List of target HTTP headers ; required header will be added to this list.
      * @param ctx Context, or rather http message type (request or response)
+     * @param statusCode status code
      */
     public static void putVitamIdFromSessionInHeader(MultivaluedMap<String, Object> headers, Context ctx,
         int statusCode) {
@@ -305,7 +314,8 @@ public class HeaderIdHelper {
                     LOGGER.debug("RequestId {} found in session and set in the {} header.", requestId, ctx);
                 }
             } else {
-                LOGGER.warn("No RequestId found in session (somebody should have set it) ! ");
+                // TODO this should be improved : warn log and consul calls to be handled in a better way
+                LOGGER.info("No RequestId found in session (somebody should have set it) ! ");
                 if (ctx.equals(Context.RESPONSE) && statusCode >= Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                     String newRequestId = GUIDFactory.newGUID().toString();
 
@@ -374,7 +384,8 @@ public class HeaderIdHelper {
                     // TODO: is it really the best way to react to this situation ?
                 } else {
                     headers.add(GlobalDataRest.X_APPLICATION_ID, applicationSessionId);
-                    LOGGER.debug("applicationSessionId {} found in session and set in the {} header.", applicationSessionId, ctx);
+                    LOGGER.debug("applicationSessionId {} found in session and set in the {} header.",
+                        applicationSessionId, ctx);
                 }
             } else {
                 // Not everywhere useful
