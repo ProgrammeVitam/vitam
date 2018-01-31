@@ -26,10 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -176,5 +181,19 @@ public final class StringUtils {
         return org.apache.commons.lang3.StringUtils.substringBeforeLast(source, separator);
     }
 
+    /**
+     * Get text content of an input stream
+     *
+     * @param is input stream
+     * @return text content
+     * @throws IOException when input stream unreadable
+     */
+    public static String getStringFromInputStream(InputStream is) throws IOException {
+        final String content;
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(is))) {
+            content = buffer.lines().collect(Collectors.joining());
+        }
+        return content;
+    }
 }
 

@@ -26,14 +26,9 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,17 +42,16 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
+import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.InsertOneModel;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -210,7 +204,7 @@ public class MetadataRepository {
             String id = (String) document.remove("_id");
             String source = document.toJson();
             bulkRequestBuilder
-                .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), "type_unique", id)
+                .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), VitamCollection.TYPEUNIQUE, id)
                     .setSource(source, XContentType.JSON));
         });
 

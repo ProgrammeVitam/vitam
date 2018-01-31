@@ -53,7 +53,7 @@ public class VitamCollection {
     private final String name;
     private MongoCollection<?> collection;
     private ElasticsearchAccess esClient;
-    private static final String TYPEUNIQUE = "typeunique";
+    public static final String TYPEUNIQUE = "typeunique";
     private final boolean isMultiTenant;
     private final boolean useScore;
     private boolean createIndexByTenant = false;
