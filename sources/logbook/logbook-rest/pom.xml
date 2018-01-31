@@ -137,10 +137,25 @@
 					</execution>
 				</executions>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
+					<execution>
+						<id>copy-audit-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+							<resources>
+								<resource>
+									<directory>../logbook-administration-audit/target/dependencies</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 					<execution>
 						<id>copy-config-resources</id>
 						<phase>validate</phase>
@@ -189,8 +204,6 @@
 							</resources>
 						</configuration>
 					</execution>
-
-
 				</executions>
 			</plugin>
 
