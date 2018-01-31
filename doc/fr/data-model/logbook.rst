@@ -107,7 +107,8 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
             [...]
         }
     ],
-    "_tenant": 0
+    "_tenant": 0,
+    "_lastPersistedDate": "2017-09-12T12:08:33.219"
   }
 
 Détail des champs du JSON stocké dans la collection
@@ -309,7 +310,15 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
-      *Ce champ existe uniquement pour la structure incluante.*
+    *Ce champ existe uniquement pour la structure incluante.*
+
+**"_lastPersistedDate":** date technique de sauvegarde en base.
+
+    * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+    * Elle est renseignée par le serveur Logbook.
+      ``Exemple : "2016-08-17T08:26:04.227"``
+    * Cardinalité : 1-1
+    * Ce champ existe uniquement pour la structure incluante.
 
 Champ présents dans les events
 ------------------------------
@@ -515,7 +524,8 @@ Extrait d'un JSON correspondant à un journal de cycle du vie d'une unité archi
         }
     ],
     "_tenant": 1,
-    "_v": 0
+    "_v": 0,
+    "_lastPersistedDate": "2017-04-10T12:39:37.953"
   }
 
 Détail des champs du JSON stocké en base
@@ -659,6 +669,14 @@ Détail des champs du JSON stocké en base
     * Ce champ existe uniquement pour la structure incluante.
     * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
 
+**"_lastPersistedDate":** date technique de sauvegarde en base.
+
+    * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+    * Elle est renseignée par le serveur Logbook.
+      ``Exemple : "2016-08-17T08:26:04.227"``
+    * Cardinalité : 1-1
+    * Ce champ existe uniquement pour la structure incluante.
+
 Détail des champs du JSON stocké en base spécifiques à une mise à jour
 -----------------------------------------------------------------------
 
@@ -749,7 +767,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
         }
     ],
     "_tenant": 0,
-    "_v": 0
+    "_v": 0,
+    "_lastPersistedDate": "2016-11-04T14:47:45.132"
     }
 
 
@@ -899,3 +918,10 @@ Pour l'événement LFC.OG_METADATA_STORAGE, on utilise ce champ pour tracer les 
     * Cardinalité : 1-1 
     * Ce champ existe uniquement pour la structure incluante.
 
+**"_lastPersistedDate":** date technique de sauvegarde en base.
+
+    * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+    * Elle est renseignée par le serveur Logbook.
+      ``Exemple : "2016-08-17T08:26:04.227"``
+    * Cardinalité : 1-1
+    * Ce champ existe uniquement pour la structure incluante.
