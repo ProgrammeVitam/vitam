@@ -1,0 +1,11 @@
+---
+
+- name: apply .htaccess to hide some files 
+  copy:
+    src: .htaccess
+    dest: "{{vitam_defaults.folder.root_path}}/conf/offer/.htaccess"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  tags:
+    - htaccess
