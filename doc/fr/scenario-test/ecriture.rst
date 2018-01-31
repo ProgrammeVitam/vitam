@@ -1,5 +1,5 @@
-Configuration
-#############
+Ecriture des TNR
+################
 
 Structure des répertoires
 =========================
@@ -13,7 +13,7 @@ Le répertoire du dépot vitam-test est strucutré de la façon suivante :
 
 **Dossier vitam-itests** : contient les fichiers de configurations des tests fonctionnels.
 
-**Dossier data** : contient les éventuels jeux de données nécessaires à l'execution des tests.
+**Dossier data** : contient les éventuels jeux de données nécessaires à l'exécution des tests.
 
 Fichiers de Configuration
 =========================
@@ -21,7 +21,7 @@ Fichiers de Configuration
 Nommage des fichiers
 --------------------
 
-Un fichier regroupe tous les tests à effectuer sur une fonctionnalité. Il ne peut y avoir deux fonctionnalités dans un fichier de configuration. 
+Un fichier regroupe tous les tests à effectuer sur une fonctionnalité. Il ne peut y avoir deux fonctionnalités dans un fichier de configuration.
 
 On va par exemple réaliser :
 
@@ -46,7 +46,7 @@ Informations transverses
 
 Les fichiers de configuration doivent contenir les informations suivantes qui s'appliqueront ensuite à l'ensemble des scénarios du fichier :
 
-**# language** : information obligatoire. Correspond à la langue utilisée pour les descriptions. Par exemple : 
+**# language** : information obligatoire. Correspond à la langue utilisée pour les descriptions. Par exemple :
 
 ::
 
@@ -71,7 +71,8 @@ Les fichiers de configuration doivent contenir les informations suivantes qui s'
 	Contexte:
     	Etant donné les tests effectués sur le tenant 0
 
-Configuration d'un scénario
+
+Ecriture d'un scénario
 ===========================
 
 Structure d'un scénario
@@ -83,19 +84,19 @@ Un scénario correspond à un test. Son nom doit être défini de la façon suiv
 
 	Scénario: Description du scénario
 
-Il doit être sur la même indentation que le contexte, soit 1 par rapport à la fonctionnalité, annotation et language.
+Il doit être sur la même indentation que le contexte, soit 1 par rapport à la fonctionnalité, annotation et langage.
 
 Un scénario est constitué d'une succession d'actions, chacune décrite sur une ligne.
 
 Les actions sont composées des trois informations suivantes :
-	
+
 	* Contexte
 	* Fonction
 	* Paramètre (pas toujours obligatoire)
-	  
-**Contexte** : permet d'introduire l'action, de l'insérer par rapport à l'action précédente. La liste des contextes disponibles se trouve en annexe.
 
-**Fonction** : mobilise, via un langague naturel, une fonction de Vitam. La liste des fonctions disponibles se trouve en annexe.
+**Actions d'étapes** : permet d'introduire l'action, de l'insérer par rapport à l'action précédente. La liste des contextes disponibles se trouve en annexe.
+
+**Fonction** : mobilise, via un langage naturel, une fonction de Vitam. La liste des fonctions disponibles se trouve en annexe.
 
 **Paramètre** : certaines fonctions ont besoin d'être suivies d'un paramètre. Ils sont listés dans le tableau des fonctionnalités disponibles en annexe.
 
@@ -108,7 +109,7 @@ Exemple d'un scénario constitué de trois actions :
   Scénario: SIP au mauvais format
     Etant donné un fichier SIP nommé data/SIP_KO/ZIP/KO_SIP_Mauvais_Format.pdf
     Quand je télécharge le SIP
-    Alors le statut final du journal des opérations est KO	
+    Alors le statut final du journal des opérations est KO
 
 
 Insérer une requète DSL
@@ -141,7 +142,7 @@ Insérer un tableau
 
 Certaines fonctions attendent un tableau en paramètre. Les lignes des tableaux doivent simplement être séparées par des "pipes" ( | ).
 
-Voici un exemple de fonction prenant un tableau en paramètre. 
+Voici un exemple de fonction prenant un tableau en paramètre.
 
 ::
 
@@ -152,28 +153,16 @@ Voici un exemple de fonction prenant un tableau en paramètre.
       | EndDate          | 1918-01-01          |
 
 
-Lancer les tests
-================
-
-IHM
----
-
-Des écran dédiés aux tests fonctionnels sont disponibles dans l'IHM de recette. Leurs fonctionnements sont détaillés dans le manuel utilisateur.
-
-Ligne de commande
------------------
-
-Comming soon
 
 Annexes
 =======
 
-Liste des contextes disponibles
--------------------------------
+Liste des actions d'étapes disponibles
+--------------------------------------
 
-Les types de contexte sont les suivants :
+Les types d'actions sont les suivants :
 
-* un contexte initial (les acquis) : **Etant donné**
+* une situation initial (les acquis) : **Etant donné**
 * un événement survient : **Quand** (peut être suivi de **Et** et/ou **Mais**)
 * on s’assure de l’obtention de certains résultats : **Alors** (peut être suivi de **Et** et/ou **Mais**)
 
@@ -223,4 +212,3 @@ Liste des fonctions disponibles
 	"je recherche les détails des registres de fond pour le service producteur (.*)","un identifiant de service producteur"
 	"le nombre de détails du registre de fond est (.*)","un nombre"
 	"les metadonnées pour le détail du registre de fond sont","un tableau"
-	
