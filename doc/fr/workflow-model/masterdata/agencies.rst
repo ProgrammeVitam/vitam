@@ -109,8 +109,8 @@ Sauvegarde d'une copie de la base de donnée (STP_AGENCIES_JSON)
 
     - FATAL : une erreur technique est survenue lors de la création d'une copie de la base de données contenant le référentiel des services agent (STP_IMPORT_AGENCIES_JSON.FATAL=Erreur fatale lors du processus d'enregistrement de la base de donnée contenant le référentiel des services agents)
 
-Structure du rapport d'administration du référentiel des règles de gestion
-===========================================================================
+Structure du rapport d'administration du référentiel des services agents
+========================================================================
 
 Lorsqu'un nouveau référentiel est importé, la solution logicielle Vitam génère un rapport de l'opération. Ce rapport est en 3 parties :
 

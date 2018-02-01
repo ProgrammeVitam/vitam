@@ -46,8 +46,8 @@ Mise à jour d'un profil d'archivage (STP_UPDATE_PROFILE_JSON)
 
 La modification d'un profil d'archivage doit suivre les mêmes règles que celles décrites pour la création.
 
-Import d'une description de profil d'archivage (STP_IMPORT_PROFILE_FILE)
-------------------------------------------------------------------------
+Import du profil d'archivage (STP_IMPORT_PROFILE_FILE)
+-------------------------------------------------------
 
 * Vérification de la concordance entre le fichier importé dans un profil et le format décrit dans la métadonnée "Format"
 
