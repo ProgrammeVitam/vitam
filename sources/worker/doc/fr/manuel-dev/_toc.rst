@@ -6,4 +6,6 @@ Worker
    
    intro.rst
    worker.rst
-   worker-client.rst   
+   worker-client.rst
+   plugin.rst
+   idempotent.rst   

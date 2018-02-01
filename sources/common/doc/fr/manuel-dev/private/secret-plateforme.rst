@@ -3,7 +3,7 @@ Implémentation du secret de la plateforme
 
 Présentation
 ------------
-Le secret de plateforme permet de se protéger contre des erreurs de manipulation et de configuration 
+Le secret de plateforme permet de se protéger contre des erreurs de manipulation et de configuration
 en séparant les environnements de manière logique (secret partagé par l'ensemble de la plateforme mais différent entre plateforme).
 
 Implémentation
@@ -13,7 +13,7 @@ Implémentation
 * Un Header X-Platform-ID qui est SHA256("<methode>;<URL>;<Valeur du header X-Request-Timestamp>;<Secret partagé de plateforme>").
 
 	Par contre, mettre le secret de plateforme à la fin permet de limite les attaques par extension.
-	
+
 .. code-block:: java
 
     // add Authorization Headers (X_TIMESTAMP, X_PLATFORM_ID)
@@ -48,9 +48,9 @@ Ce Hash est transmis dans le Header : X-Platform-Id
 Le contrôle est alors le suivant :
 
 1) Existance de X-Platform-Id et Timestamp
-2) Vérification que Timestamp est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes ( |Timestamp - temps local| < 10 s )
+2) Vérification que Timestamp est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes ( Timestamp - temps local < 10 s )
 3) Calcul d'un Hash2 = Hash(URI+paramètres (dans l'ordre alphabétique) + Header Timestamp + secret non transmis) et vérification avec la valeur Hash transmise
-	
+
 .. code-block:: java
 
     if ((Strings.isNullOrEmpty(platformId)) || (Strings.isNullOrEmpty(timestamp))) {
@@ -81,4 +81,3 @@ Le contrôle est alors le suivant :
          LOGGER.error("PlatformId check failed");
          return false;
     }
-

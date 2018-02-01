@@ -11,6 +11,7 @@ Utilisation
 1. Rejet d'un référentiel CSV contenant une injection
 
 .. code-block:: java
+
     public static final void checkHTMLFile(File file) throws InvalidParseOperationException, IOException {
         try (final Reader fileReader = new FileReader(file)) {
             try (final BufferedReader bufReader = new BufferedReader(fileReader)) {
@@ -25,6 +26,7 @@ Utilisation
 2. Rejet d'un référentiel Json contenant une injection
 
 .. code-block:: java
+
     if (json.isArray()) {
             ArrayNode nodes = (ArrayNode) json;
             for (JsonNode element : nodes) {

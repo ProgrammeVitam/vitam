@@ -2,7 +2,7 @@ Base Logbook
 ############
 
 Collections contenues dans la base
-===================================
+==================================
 
 La base Logbook contient les collections relatives aux journaux d'opérations et de cycles de vie des unités archivistiques et des groupes d'objets de la solution logicielle Vitam.
 
@@ -112,7 +112,7 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
   }
 
 Détail des champs du JSON stocké dans la collection
-----------------------------------------------------
+---------------------------------------------------
 
 Chaque enregistrement de cette collection est composé d'une structure auto-imbriquée : la structure possède une première instanciation "incluante" et contient un tableau de n structures identiques, dont seules les valeurs contenues dans les champs changent.
 
@@ -310,7 +310,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
-    *Ce champ existe uniquement pour la structure incluante.*
+      *Ce champ existe uniquement pour la structure incluante.*
 
 **"_lastPersistedDate":** date technique de sauvegarde en base.
 
@@ -342,7 +342,7 @@ Les events sont au minimum composés des champs suivants:
 D'autres champs peuvent apparaître dans certains events lorsqu'ils mettent à jour le master.
 
 Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation des journaux d'opération et de cycle de vie
----------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
 
 Ceci ne concerne aujourd'hui que les sécurisations des journaux d'opération et la sécurisation des journaux de cycle de vie.
 
@@ -529,7 +529,7 @@ Extrait d'un JSON correspondant à un journal de cycle du vie d'une unité archi
   }
 
 Détail des champs du JSON stocké en base
------------------------------------------
+----------------------------------------
 
 **"_id":** Identifiant donné par le système lors de l'initialisation du journal du cycle de vie.
 
@@ -678,7 +678,7 @@ Détail des champs du JSON stocké en base
     * Ce champ existe uniquement pour la structure incluante.
 
 Détail des champs du JSON stocké en base spécifiques à une mise à jour
------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 Exemple de données stockées :
 
@@ -701,7 +701,7 @@ Collection LogbookLifeCycleObjectGroup
 ======================================
 
 Utilisation de la collection LogbookLifeCycleObjectGroup
----------------------------------------------------------
+--------------------------------------------------------
 
 Le journal du cycle de vie du groupe d'objets (ObjectGroup) trace tous les événements qui impactent le groupe d'objets (et les objets associés) dès sa prise en charge dans le système. Il doit être conservé aussi longtemps que les objets sont gérés dans le système.
 
@@ -711,7 +711,7 @@ Le journal du cycle de vie du groupe d'objets (ObjectGroup) trace tous les évé
 Chaque groupe d'objets possède une et une seule entrée dans la collection LogbookLifeCycleObjectGroup.
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs
---------------------------------------------------------------------
+-------------------------------------------------------------------
 
 ::
 
@@ -773,7 +773,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 
 
 Détail des champs du JSON stocké en base
------------------------------------------
+----------------------------------------
 
 **"_id":** Identifiant donné par le système lors de l'initialisation du journal du cycle de vie.
 
