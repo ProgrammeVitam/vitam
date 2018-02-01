@@ -31,7 +31,6 @@ logstash:
     rest_port: 20514
 
 curator:
-    data:
     log:
         metrics:
             close: 5
@@ -39,6 +38,13 @@ curator:
         logstash:
             close: 5
             delete: 30
+        metricbeat:
+            close: 5
+            delete: 30
+        packetbeat:
+            close: 5
+            delete: 30
+        
 kibana:
     log:
         baseuri: "kibana_log"

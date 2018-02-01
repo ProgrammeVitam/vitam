@@ -29,6 +29,6 @@ actions:
       direction: older
       timestring: '%Y.%m.%d'
       unit: days
-      unit_count: {{days_to_delete_packetbeat_indexes}}
+      unit_count: {{ curator.log.packetbeat.delete }}
       exclude:
 # --------------------------------------------
