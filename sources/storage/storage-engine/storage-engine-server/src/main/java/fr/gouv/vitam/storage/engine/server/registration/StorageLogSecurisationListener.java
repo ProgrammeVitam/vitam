@@ -32,12 +32,9 @@ import java.io.InputStream;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.serverv2.ConfigurationFile;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageResource;
-import fr.gouv.vitam.storage.logbook.StorageLogbookService;
 
-import javax.imageio.IIOException;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 

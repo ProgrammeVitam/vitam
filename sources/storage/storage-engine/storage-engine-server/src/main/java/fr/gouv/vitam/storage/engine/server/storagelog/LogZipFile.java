@@ -24,10 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.logbook;
+package fr.gouv.vitam.storage.engine.server.storagelog;
 
 import com.google.common.io.ByteStreams;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;

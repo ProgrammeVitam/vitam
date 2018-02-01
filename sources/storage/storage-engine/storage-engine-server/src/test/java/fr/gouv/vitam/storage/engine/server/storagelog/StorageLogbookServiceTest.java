@@ -24,11 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.logbook;
+package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +40,9 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookOutcome;
-import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameterName;
-import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookOutcome;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import org.junit.rules.TemporaryFolder;
 
 public class StorageLogbookServiceTest {

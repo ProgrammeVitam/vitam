@@ -25,7 +25,22 @@
  * accept its terms.
  *******************************************************************************/
 
+package fr.gouv.vitam.storage.engine.server.storagelog.parameters;
+
 /**
- * Provides logbook parameters classes used for the Storage Engine Server module
+ * Storage Logbook Operation Outcome values
  */
-package fr.gouv.vitam.storage.logbook.parameters;
+public enum StorageLogbookOutcome {
+    /**
+     * To be used when one storage operation in status Ok
+     */
+    OK,
+    /**
+     * To be used when one storage operation in status KO
+     */
+    KO,
+    /**
+     * To be used when one storage operation in status Pending
+     */
+    PENDING
+}

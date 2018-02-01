@@ -89,10 +89,10 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
-import fr.gouv.vitam.storage.logbook.StorageLogException;
-import fr.gouv.vitam.storage.logbook.StorageLogbookAdministration;
-import fr.gouv.vitam.storage.logbook.StorageLogbookService;
-import fr.gouv.vitam.storage.logbook.StorageLogbookServiceImpl;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookAdministration;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookService;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookServiceImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**

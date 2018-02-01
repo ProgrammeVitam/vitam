@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.logbook.parameters;
+package fr.gouv.vitam.storage.engine.server.storagelog.parameters;
 
 /**
  * Enum with all possible logbook storage parameters <br>
