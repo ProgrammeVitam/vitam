@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
@@ -127,6 +126,8 @@ public class LogbookResourceTest {
     private static final String UNIT_LIFECYCLES = "/unitlifecycles";
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
+    private static final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
+
     private static int databasePort;
     private static int serverPort;
     private static LogbookMain application;
@@ -617,4 +618,18 @@ public class LogbookResourceTest {
         given().contentType(MediaType.APPLICATION_JSON).body(parameters)
             .when().post("/alias").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckLogbookCoherenceOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        // call the endpoint logbook check coherence
+        given().contentType(ContentType.JSON).
+            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CHECK_LOGBOOK_COHERENCE_URI)
+            .then().statusCode(javax.ws.rs.core.Response.Status.OK.getStatusCode());
+
+    }
+
 }

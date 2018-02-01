@@ -133,15 +133,13 @@ public class AdminLogbookResource {
     /**
      * API to access and lanch the Check logbook coherence service.<br/>
      *
-     * @param headers
-     * @param uri
      * @return
      */
     @Path(CHECK_LOGBOOK_COHERENCE_URI)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkLogbookCoherence (@Context HttpHeaders headers, @Context UriInfo uri) {
+    public Response checkLogbookCoherence (@Context UriInfo uri) {
 
         LOGGER.debug("Starting Check logbook coherence service :");
         try {

@@ -25,7 +25,7 @@ elasticsearchNodes:
 {% endfor %}
 
 # disable purge of temporary LifeCycles
-disablePurge: false
+disablePurge: {{ vitam.logbook.disablePurgeForTempLFC }}
 
 # Configuration des alertes de securite
 alertEvents:

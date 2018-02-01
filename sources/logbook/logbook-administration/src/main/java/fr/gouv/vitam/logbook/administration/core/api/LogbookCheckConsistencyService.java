@@ -39,23 +39,24 @@ public interface LogbookCheckConsistencyService {
     /**
      * Logbook coherence check by tenant.
      *
-     * @param tenant the tenant on which operation should be checked
-     * @throws VitamException in case exception are encountered
+     * @param tenant
+     * @throws VitamException
      */
     void logbookCoherenceCheckByTenant(final Integer tenant) throws VitamException;
 
     /**
      * Logbook coherence check on all Vitam tenants.
      *
-     * @throws VitamException in case exception are encountered 
+     * @throws VitamException
      */
     void logbookCoherenceCheck() throws VitamException;
 
     /**
      * store check logbook reports in storage (offer).
      *
-     * @param logbookCheckResults the results to be stored on storage
-     * @throws VitamException in case exception are encountered
+     * @param logbookCheckResults
+     * @param tenant
+     * @throws VitamException
      */
-    void storeReportsInStorage(List<LogbookCheckResult> logbookCheckResults) throws VitamException;
+    void storeReportsInStorage(final List<LogbookCheckResult> logbookCheckResults, final Integer tenant) throws VitamException;
 }

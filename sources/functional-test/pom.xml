@@ -77,7 +77,6 @@
             <artifactId>storage-engine-client</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>
