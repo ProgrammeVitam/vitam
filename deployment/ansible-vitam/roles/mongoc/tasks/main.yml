@@ -99,7 +99,7 @@
 # Now lest's initiate the replica set (do this only on the last node)
 
 - name: Wait for the service port to be open
-  wait_for: port={{ mongodb.mongoc_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
+  wait_for: port={{ mongodb.mongoc_port }} host={{ip_service}} timeout="{{ vitam_defaults.services.start_timeout }}"
   when: inventory_hostname == "{{ groups['mongoc']|last }}"
 
 - name: Copy the script which initiate the replica set
@@ -112,5 +112,5 @@
   when: inventory_hostname == "{{ groups['mongoc']|last }}"
 
 - name: Initiate the replica set
-  command: mongo --port {{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/init-replica-config.js
+  command: mongo --host {{ ip_service}} --port {{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/init-replica-config.js
   when: inventory_hostname == "{{ groups['mongoc']|last }}"

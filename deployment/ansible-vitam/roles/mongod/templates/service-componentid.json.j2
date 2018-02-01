@@ -7,7 +7,7 @@
       {
         "name": "mongod : TCP check",
         "notes": "Status mongod",
-        "tcp": "localhost:{{ mongodb.mongod_port }}",
+        "tcp": "{{ ip_service }}:{{ mongodb.mongod_port }}",
         "interval": "1s"
       }
     ]

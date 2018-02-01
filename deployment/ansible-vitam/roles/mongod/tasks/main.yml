@@ -105,7 +105,7 @@
 
     - name: Wait for the service port to be open on all members of the replica
       wait_for:
-        host: "{{ item }}"
+        host: "{{ hostvars[item]['ip_service'] }}"
         port: "{{ mongodb.mongod_port }}"
         timeout: "{{ vitam_defaults.services.start_timeout }}"
       when: "hostvars[item]['mongo_shard_id'] == mongo_shard_id"
@@ -120,7 +120,7 @@
         mode: "{{ vitam_defaults.folder.conf_permission }}"
 
     - name: Initiate the replica set
-      command: mongo --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js
+      command: mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js
 
     # Create the local shard admin user
 
@@ -133,6 +133,6 @@
         mode: "{{ vitam_defaults.folder.conf_permission }}"
 
     - name: Create the local shard user
-      command: "mongo --host shard{{ mongo_shard_id }}/localhost:27019 {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
+      command: "mongo --host shard{{ mongo_shard_id }}/{{ ip_service}}:{{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
 
   when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap|lower == "true"
