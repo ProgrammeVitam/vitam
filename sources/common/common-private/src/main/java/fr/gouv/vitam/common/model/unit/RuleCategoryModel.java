@@ -37,6 +37,17 @@ public class RuleCategoryModel {
     @JsonProperty("Rules")
     private List<RuleModel> rules;
 
+    /**
+     * classification level
+     */
+    private String classificationLevel;
+
+    /**
+     * classification owner
+     */
+    private String classificationOwner;
+
+
     @JsonProperty("Inheritance")
     private InheritanceModel inheritance;
 
@@ -110,5 +121,22 @@ public class RuleCategoryModel {
         }
         inheritance.getPreventRulesId().add(preventRulesId);
     }
+
+    public String getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    public void setClassificationLevel(String classificationLevel) {
+        this.classificationLevel = classificationLevel;
+    }
+
+    public String getClassificationOwner() {
+        return classificationOwner;
+    }
+
+    public void setClassificationOwner(String classificationOwner) {
+        this.classificationOwner = classificationOwner;
+    }
+
 
 }

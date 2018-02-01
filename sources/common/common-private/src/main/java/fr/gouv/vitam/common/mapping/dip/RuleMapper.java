@@ -73,8 +73,8 @@ public class RuleMapper {
             // Case ClassificationRuleType manage other fields
             if (commonRule instanceof ClassificationRuleType) {
                 ClassificationRuleType crt = (ClassificationRuleType) commonRule;
-                crt.setClassificationLevel(rule.getClassificationLevel());
-                crt.setClassificationOwner(rule.getClassificationOwner());
+                crt.setClassificationLevel(ruleCategory.getClassificationLevel());
+                crt.setClassificationOwner(ruleCategory.getClassificationOwner());
                 crt.setNeedReassessingAuthorization(rule.isNeedReassessingAuthorization());
                 String classificationReassessingDate = rule.getClassificationReassessingDate();
                 if (ParametersChecker.isNotEmpty(classificationReassessingDate)) {
