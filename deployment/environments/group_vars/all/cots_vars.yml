@@ -30,6 +30,15 @@ logstash:
     port: 10514
     rest_port: 20514
 
+curator:
+    data:
+    log:
+        metrics:
+            close: 5
+            delete: 30        
+        logstash:
+            close: 5
+            delete: 30
 kibana:
     log:
         baseuri: "kibana_log"

@@ -9,7 +9,7 @@ actions:
   1:
     action: close
     description: >-
-      Close indices older than {{ days_to_close_logstash_indexes }} days (based on index name), for logstash-
+      Close indices older than {{ curator.log.logstash.close }} days (based on index name), for logstash-
       prefixed indices.
     options:
       ignore_empty_list: True
@@ -27,5 +27,5 @@ actions:
       direction: older
       timestring: '%Y.%m.%d'
       unit: days
-      unit_count: {{ days_to_close_logstash_indexes }}
+      unit_count: {{ curator.log.logstash.close }}
       exclude:
