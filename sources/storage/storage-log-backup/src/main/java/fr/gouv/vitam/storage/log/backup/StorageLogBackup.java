@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.logbook;
+package fr.gouv.vitam.storage.log.backup;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -46,11 +46,11 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Utility to launch the backup through command line and external scheduler
  */
-public class BackupStorageLogbook {
+public class StorageLogBackup {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupStorageLogbook.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogBackup.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
-    private static final String VITAM_SECURISATION_NAME = "secureStorageLog.conf";
+    private static final String VITAM_STORAGE_BACKUP_LOG_CONF_NAME = "storage-log-backup.conf";
 
     /**
      * @param args ignored
@@ -58,9 +58,9 @@ public class BackupStorageLogbook {
     public static void main(String[] args) {
         platformSecretConfiguration();
         try {
-            File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-            final StorageSecureConfiguration conf =
-                PropertiesUtils.readYaml(confFile, StorageSecureConfiguration.class);
+            File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_LOG_CONF_NAME);
+            final StorageBackupConfiguration conf =
+                PropertiesUtils.readYaml(confFile, StorageBackupConfiguration.class);
             CountDownLatch startSignal = new CountDownLatch(1);
             CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
             conf.getTenants().forEach((v) -> {

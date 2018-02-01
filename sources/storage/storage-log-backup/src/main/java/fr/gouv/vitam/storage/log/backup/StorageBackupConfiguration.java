@@ -24,10 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.log.backup;
+
+import java.util.List;
+
 /**
- * Provides logbook interface, factory and implementation for the Storage Engine
- * Server module in order to log every object written on different storage
- * offers
- * 
+ * Storage backup configuration
  */
-package fr.gouv.vitam.storage.logbook;
+public class StorageBackupConfiguration {
+
+    protected List<Integer> tenants;
+
+    /**
+     * Empty ClientConfiguration constructor for YAMLFactory
+     */
+    public StorageBackupConfiguration() {
+
+    }
+
+    /**
+     * @return list of tenant
+     */
+    public List<Integer> getTenants() {
+        return tenants;
+    }
+
+    /**
+     * @param tenants to set
+     */
+    public void setTenants(List<Integer> tenants) {
+        this.tenants = tenants;
+    }
+}

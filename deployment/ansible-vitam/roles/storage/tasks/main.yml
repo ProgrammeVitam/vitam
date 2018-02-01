@@ -27,7 +27,7 @@
 
 - name: Ensure storage backup systemd timer is enabled
   systemd:
-    name: "vitam-storage-backup-logs.timer"
+    name: "vitam-storage-log-backup.timer"
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"

@@ -1,12 +1,12 @@
 [Unit]
-Description=Backup old vitam storage logs
+Description=Vitam storage log backup
 
 Wants=network.target
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/vitam/script/storage/backup-logs.sh
+ExecStart=/vitam/script/storage/launchStorageLogBackup.sh
 User=vitam
 Group=vitam
 StandardOutput=syslog
