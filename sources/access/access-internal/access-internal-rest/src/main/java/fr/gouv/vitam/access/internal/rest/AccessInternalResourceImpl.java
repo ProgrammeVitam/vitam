@@ -33,6 +33,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -56,6 +57,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
@@ -65,7 +68,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
-import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -83,11 +85,13 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
 import fr.gouv.vitam.common.mapping.dip.DipService;
+import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
 import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
@@ -154,8 +158,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private ObjectGroupMapper objectGroupMapper;
 
     private ObjectMapper objectMapper;
-    private WorkspaceClientFactory workspaceClientFactory;
     private ProcessingManagementClientFactory processingManagementClientFactory;
+    private LogbookOperationsClient logbookOperationsClient;
+    private WorkspaceClient workspaceClient;
 
     /**
      * @param configuration to associate with AccessResourceImpl
@@ -169,13 +174,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.objectMapper = buildObjectMapper();
         this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
-        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        this.logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
     }
 
     /**
-     * Test constructor
+     * Mock constructor
      *
      * @param accessModule
      */
@@ -187,8 +192,31 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.objectMapper = buildObjectMapper();
         this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
-        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        this.logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        this.workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+    }
+
+    /**
+     * Test constructor
+     *
+     * @param accessModule accessModule
+     * @param logbookOperationsClient logbookOperationsClient
+     * @param workspaceClient workspaceClient
+     */
+    @VisibleForTesting
+    AccessInternalResourceImpl(AccessInternalModule accessModule, LogbookOperationsClient logbookOperationsClient,
+        WorkspaceClient workspaceClient) {
+        this.accessModule = accessModule;
+        archiveUnitMapper = new ArchiveUnitMapper();
+        objectGroupMapper = new ObjectGroupMapper();
+        LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
+        this.objectMapper = buildObjectMapper();
+        this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
+        this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
+        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        this.logbookOperationsClient = logbookOperationsClient;
+        this.workspaceClient = workspaceClient;
     }
 
 
@@ -255,9 +283,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
 
-            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
-                LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-                ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
 
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
@@ -266,10 +292,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         GUIDReader.getGUID(operationId),
                         LogbookTypeProcess.EXPORT_DIP,
                         StatusCode.STARTED,
-                        logbookId.toString(),
-                        logbookId);
-
-                logbookClient.create(initParameters);
+                        VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + logbookId.toString(),
+                        GUIDReader.getGUID(operationId));
+                
+                logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
@@ -283,8 +309,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
                 LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
                 InvalidGuidOperationException | VitamClientException | InternalServerException e) {
-                LOGGER.error("", e);
-                return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                LOGGER.error("Error while generating DIP", e);
+                return Response.status(INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
             }
 
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -292,7 +319,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        }  catch (BadRequestException e) {
+        } catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }

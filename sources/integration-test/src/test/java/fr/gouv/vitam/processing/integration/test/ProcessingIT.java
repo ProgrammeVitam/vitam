@@ -105,6 +105,7 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -451,10 +452,10 @@ public class ProcessingIT {
             .deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
         FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
             .addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient().deleteIndex(FunctionalAdminCollections
-            .ACCESSION_REGISTER_DETAIL);
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient().addIndex(FunctionalAdminCollections
-            .ACCESSION_REGISTER_DETAIL);
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
+            .deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
+            .addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
     }
 
     @Test
@@ -508,8 +509,7 @@ public class ProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
-                    });
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
                 client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
@@ -522,16 +522,14 @@ public class ProcessingIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {
-                    });
+                    new TypeReference<List<IngestContractModel>>() {});
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
                 // import access contract
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                    });
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
                 client.importAccessContracts(accessContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
@@ -625,8 +623,7 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -673,7 +670,7 @@ public class ProcessingIT {
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
 
             final MongoDatabase db = mongoClient.getDatabase("Vitam");
-            // check if unit is valid 
+            // check if unit is valid
             MongoIterable<Document> resultCheckUnits = db.getCollection("Unit").find();
             Document unitCheck = resultCheckUnits.first();
             assertThat(unitCheck.get("_storage")).isNotNull();
@@ -681,7 +678,7 @@ public class ProcessingIT {
             assertThat(storageUnit.get("_nbc")).isNotNull();
             assertThat(storageUnit.get("_nbc")).isEqualTo(1);
 
-            // check if units are valid 
+            // check if units are valid
             MongoIterable<Document> resultCheckObjectGroups = db.getCollection("ObjectGroup").find();
             Document objectGroupCheck = resultCheckObjectGroups.first();
             assertThat(objectGroupCheck.get("_storage")).isNotNull();
@@ -1456,7 +1453,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setRequestId(objectGuid);
 
         createLogbookOperation(operationGuid, objectGuid);
-
+        
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
         // upload SIP
@@ -1486,7 +1483,7 @@ public class ProcessingIT {
         operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         objectGuid = GUIDFactory.newManifestGUID(tenantId);
         containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        createLogbookOperation(operationGuid, objectGuid, "EXPORT_DIP", LogbookTypeProcess.EXPORT_DIP);
 
         workspaceClient.createContainer(containerName);
 
@@ -1509,6 +1506,7 @@ public class ProcessingIT {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+
     }
 
 
@@ -1923,11 +1921,16 @@ public class ProcessingIT {
         if (type == null) {
             type = "Process_SIP_unitary";
         }
+
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
             operationId, type, objectId,
             typeProc, StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
             operationId);
+        if ("EXPORT_DIP".equals(type)) {
+            initParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + operationId);
+        }
         logbookClient.create(initParameters);
     }
 
@@ -2782,8 +2785,7 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
