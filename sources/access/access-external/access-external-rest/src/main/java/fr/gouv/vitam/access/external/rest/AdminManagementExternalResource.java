@@ -188,9 +188,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "formatsfile:check",
         description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
     public Response checkDocument(InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        addRequestId();
 
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
         return asyncCheckFormat(document);
@@ -209,11 +206,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "rulesfile:check",
         description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
     public Response checkRules(InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        LOGGER.debug(String.format("tenant Id %d", tenantId));
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        addRequestId();
-
         return asyncDownloadErrorReportRules(document);
     }
 
@@ -231,11 +223,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "agenciesfile:check",
         description = "Vérifier si le référentiel de services producteurs que l'on souhaite importer est valide")
     public Response checkAgencies(InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        LOGGER.debug(String.format("tenant Id %d", tenantId));
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        addRequestId();
-
         return asyncDownloadErrorReportAgencies(document);
     }
 
@@ -319,11 +306,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "formats:create", description = "Importer un référentiel des formats")
-    public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo,
-        InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
+    public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -368,9 +352,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "rules:create", description = "Importer un référentiel des règles de gestion")
     public Response importRulesFile(@Context HttpHeaders headers,
         InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
@@ -453,10 +435,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:create:json",
         description = "Importer des contrats d'entrées dans le référentiel")
-    public Response importIngestContracts(JsonNode select)
-        throws DatabaseConflictException {
+    public Response importIngestContracts(JsonNode select) {
 
-        addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
@@ -494,10 +474,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "accesscontracts:create:json",
         description = "Importer des contrats d'accès dans le référentiel")
-    public Response importAccessContracts(JsonNode select)
-        throws DatabaseConflictException {
+    public Response importAccessContracts(JsonNode select) {
 
-        addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
@@ -534,10 +512,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "contexts:create:json", description = "Importer des contextes dans le référentiel")
-    public Response importContexts(JsonNode select)
-        throws DatabaseConflictException {
+    public Response importContexts(JsonNode select) {
 
-        addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
@@ -571,8 +547,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:create:binary", description = "Importer des profils dans le référentiel")
     public Response createProfiles(InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -614,10 +588,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:create:json", description = "Ecrire un profil dans le référentiel")
-    public Response createProfiles(JsonNode select)
-        throws DatabaseConflictException {
+    public Response createProfiles(JsonNode select) {
 
-        addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
@@ -651,10 +623,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:id:update:binaire", description = "Importer un fichier xsd ou rng dans un profil")
-    public Response importProfileFile(@Context UriInfo uriInfo,
-        @PathParam("id") String profileMetadataId,
+    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("id") String profileMetadataId,
         InputStream profileFile) {
-        addRequestId();
         try {
             ParametersChecker.checkParameter("profileFile stream is a mandatory parameter", profileFile);
             ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
@@ -697,7 +667,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @PathParam("id") String fileId) {
 
         ParametersChecker.checkParameter("Profile id should be filled", fileId);
-        addRequestId();
         return asyncDownloadProfileFile(fileId);
     }
 
@@ -718,9 +687,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         try {
             ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
-
-            addRequestId();
-
             return downloadTraceabilityOperationFile(fileId);
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             LOGGER.error(e);
@@ -761,7 +727,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "formats:read", description = "Lister le contenu du référentiel des formats")
     public Response getFormats(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -801,7 +766,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "rules:read", description = "Lister le contenu du référentiel des règles de gestion")
     public Response getRules(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -841,7 +805,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Lister le contenu du référentiel des contrats d'entrée")
     public Response findIngestContracts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -877,7 +840,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "accesscontracts:read", description = "Lister le contenu du référentiel des contrats d'accès")
     public Response findAccessContracts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -913,7 +875,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "profiles:read", description = "Lister le contenu du référentiel des profils")
     public Response findProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -949,7 +910,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "contexts:read", description = "Lister le contenu du référentiel des contextes")
     public Response findContexts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -987,9 +947,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "agencies:create", description = "Importer un référentiel des services producteurs")
     public Response importAgenciesFile(@Context HttpHeaders headers,
         InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
@@ -1037,7 +995,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "agencies:id:read", description = "Trouver un service producteur avec son identifier")
     public Response findAgencyByID(@PathParam("id_document") String documentId) {
-        addRequestId();
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("documentId is a mandatory parameter", documentId);
@@ -1079,7 +1036,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "agencies:read", description = "Lister le contenu du référentiel des services producteurs")
     public Response findAgencies(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) throws IOException {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -1115,7 +1071,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Lister le contenu du référentiel des registres des fonds")
     public Response getAccessionRegister(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
@@ -1157,7 +1112,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "formats:id:read", description = "Lire un format donné")
     public Response findFormatByID(@PathParam("id_document") String documentId) {
-        addRequestId();
+
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -1195,7 +1150,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "rules:id:read", description = "Lire une règle de gestion donnée")
     public Response findRuleByID(@PathParam("id_document") String documentId) {
-        addRequestId();
+
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -1232,7 +1187,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:id:read", description = "Lire un contrat d'entrée donné")
     public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
-        addRequestId();
+
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -1271,7 +1226,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "accesscontracts:id:read", description = "Lire un contrat d'accès donné")
     public Response findAccessContractsByID(@PathParam("id_document") String documentId) {
-        addRequestId();
+
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -1310,7 +1265,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:id:read:json", description = "Lire un profil donné")
     public Response findProfilesByID(@PathParam("id_document") String documentId) {
-        addRequestId();
+
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -1349,7 +1304,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "contexts:id:read", description = "Lire un contexte donné")
     public Response findContextById(@PathParam("id_document") String documentId) {
-        addRequestId();
+
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -1394,7 +1349,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response updateContext(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
-        addRequestId();
+
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
@@ -1435,7 +1390,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response updateProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
-        addRequestId();
+
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
@@ -1476,7 +1431,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response updateAccessContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
-        addRequestId();
+
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
@@ -1519,7 +1474,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response updateIngestContract(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
-        addRequestId();
+
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
@@ -1568,7 +1523,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Lister les détails d'un registre de fonds")
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId,
         @Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
-        addRequestId();
 
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1609,7 +1563,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("checks operation Logbook traceability parameters", query);
             SanityChecker.checkJsonAll(query);
-            addRequestId();
             RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -1650,7 +1603,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response launchAudit(JsonNode options) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(options);
-            addRequestId();
             RequestResponse<JsonNode> result = client.launchAuditWorkflow(options);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -1677,10 +1629,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "securityprofiles:create:json",
         description = "Importer des profiles de sécurité dans le référentiel")
-    public Response importSecurityProfiles(JsonNode document)
-        throws DatabaseConflictException {
+    public Response importSecurityProfiles(JsonNode document) {
 
-        addRequestId();
         ParametersChecker.checkParameter("Json document is a mandatory parameter", document);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(document);
@@ -1715,7 +1665,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Lister le contenu du référentiel des profiles de sécurité")
     public Response findSecurityProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
-        addRequestId();
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse<SecurityProfileModel> result = client.findSecurityProfiles(select);
@@ -1747,7 +1696,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "securityprofiles:id:read", description = "Lire un profile de sécurité donné")
     public Response findSecurityProfileByIdentifier(@PathParam("identifier") String identifier) {
-        addRequestId();
+
         try {
             ParametersChecker.checkParameter("identifier is a mandatory parameter", identifier);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1793,7 +1742,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response updateSecurityProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
-        addRequestId();
+
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
@@ -1816,12 +1765,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                 .toResponse();
         }
-    }
-
-    private void addRequestId() {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        LOGGER.debug(String.format("tenant Id %d", tenantId));
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
     }
 
     /**

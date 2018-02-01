@@ -93,8 +93,6 @@ public class LogbookExternalResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "logbookoperations:read", description = "Lister toutes les opérations")
     public Response selectOperation(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode query) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(query);
@@ -141,8 +139,6 @@ public class LogbookExternalResource {
     @Secured(permission = "logbookoperations:id:read", description = "Récupérer le journal d'une opération donnée")
     public Response getOperationById(@PathParam("id_op") String operationId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
@@ -199,8 +195,6 @@ public class LogbookExternalResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();
@@ -251,8 +245,6 @@ public class LogbookExternalResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();

@@ -33,6 +33,8 @@ import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -47,19 +49,25 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
  */
 @PreMatching
 @Priority(Priorities.AUTHENTICATION - 10)
-public class RequestIdGeneratorContainerFilter implements ContainerRequestFilter {
+public class RequestIdGeneratorContainerFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         MultivaluedMap<String, String> requestHeaders = requestContext.getHeaders();
         String headerTenantId = getHeaderString(requestHeaders, GlobalDataRest.X_TENANT_ID);
-        Integer tenantId = null;
+        Integer tenantId;
         if (headerTenantId != null) {
             tenantId = Integer.parseInt(headerTenantId);
-            final GUID requestId = GUIDFactory.newEventGUID(tenantId);
+            final GUID requestId = GUIDFactory.newRequestIdGUID(tenantId);
             VitamSession vitamSession = VitamThreadUtils.getVitamSession();
             vitamSession.setRequestId(requestId);
         }
     }
 
+    @Override
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+        throws IOException {
+        HeaderIdHelper.putVitamIdFromSessionInExternalHeader(responseContext.getHeaders(),
+            HeaderIdHelper.Context.RESPONSE, responseContext.getStatus());
+    }
 }

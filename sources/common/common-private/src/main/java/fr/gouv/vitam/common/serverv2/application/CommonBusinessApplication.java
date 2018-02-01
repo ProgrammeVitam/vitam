@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.metrics.VitamMetrics;
 import fr.gouv.vitam.common.metrics.VitamMetricsType;
 import fr.gouv.vitam.common.server.ExternalHeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
+import fr.gouv.vitam.common.server.RequestIdGeneratorContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
 import fr.gouv.vitam.common.serverv2.metrics.MetricsFeature;
@@ -57,7 +58,6 @@ public class CommonBusinessApplication {
 
     private Set<Object> resources;
 
-
     private Set<Class<?>> classes;
 
     public CommonBusinessApplication() {
@@ -69,6 +69,7 @@ public class CommonBusinessApplication {
 
         if(externalApi) {
             resources.add(new ExternalHeaderIdContainerFilter());
+            resources.add(new RequestIdGeneratorContainerFilter());
         } else {
             resources.add(new HeaderIdContainerFilter());
         }

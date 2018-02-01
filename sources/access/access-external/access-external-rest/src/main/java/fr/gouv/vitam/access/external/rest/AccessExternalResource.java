@@ -93,7 +93,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
  * Access External Resource
  */
 @Path("/access-external/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class AccessExternalResource extends ApplicationStatusResource {
 
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
@@ -143,8 +142,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "units:read", description = "Récupérer la liste des unités archivistiques")
     public Response getUnits(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
@@ -201,8 +198,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "dipexport:create", description = "Générer le DIP à partir d'un DSL")
     public Response exportDIP(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
             RequestResponse response = client.exportDIP(queryJson);
@@ -234,8 +229,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "dipexport:id:dip:read", description = "Récupérer le DIP")
     public Response findDIPByID(@PathParam("id") String id) {
 
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             Response response = client.findDIPByID(id);
@@ -262,8 +255,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "units:id:read:json",
         description = "Obtenir le détail d'une unité archivistique au format json")
     public Response getUnitById(@Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(idUnit);
@@ -312,8 +303,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "units:id:update", description = "Réaliser la mise à jour d'une unité archivistique")
     public Response updateUnitById(@Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             // FIXME P1 add of idUnit as roots should be made in metadata as it is an internal concern
@@ -382,8 +371,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
         description = "Télécharger le groupe d'objet technique de l'unité archivistique donnée")
     public Response getObjectGroupMetadataByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
@@ -446,17 +433,12 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "units:id:objects:read:binary", description = "Télecharger un objet")
     public Response getDataObjectByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId) {
 
-        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        VitamThreadUtils.getVitamSession().setRequestId(guid);
-
         Status status;
         try {
             String idObjectGroup = idObjectGroup(unitId);
             if (idObjectGroup == null) {
                 throw new AccessInternalClientNotFoundException("ObjectGroup of Unit not found");
             }
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
             MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
             return asyncObjectStream(multipleMap, idObjectGroup);
         } catch (final InvalidParseOperationException e) {
@@ -494,8 +476,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private String idObjectGroup(String idu)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
+    private String idObjectGroup(String idu) throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException {
         // Select "Object from ArchiveUNit idu
         ParametersChecker.checkParameter("unit id is required", idu);

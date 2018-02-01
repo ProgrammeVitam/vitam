@@ -48,6 +48,22 @@ public final class GUIDReader {
     }
 
     /**
+     * Get GUID from String representation
+     *
+     * @param guid the String representation of the GUID
+     * @return the GUID
+     * @throws InvalidGuidOperationException if the String is malformed
+     */
+    public static final GUID getGUIDUnsafe(String guid) {
+        try {
+            return new GUIDImpl(guid);
+        } catch (InvalidGuidOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    /**
      * Get GUID from byte array representation
      *
      * @param guid the byte array representation of the GUID
