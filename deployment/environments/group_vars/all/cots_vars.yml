@@ -35,6 +35,14 @@ kibana:
         baseuri: "kibana_log"
         groupe: "log"
         port: 5601
+        # pour index logstash-*
+        metrics:
+            shards: 5
+            replica: 1
+        # pour index metrics-vitam-*
+        logs:
+            shards: 5
+            replica: 1      
     # KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
     data:
         baseuri: "kibana_data"
