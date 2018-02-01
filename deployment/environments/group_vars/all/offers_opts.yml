@@ -1,15 +1,35 @@
 # This list can and has to be completed if more offers are necessary
-# DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift
+# DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
 
 vitam_offers:
   offer_fs_1:
     # param can be filesystem or filesystem-hash
     provider: filesystem
   offer_swift_1:
+    # provider : openstack-swift for v1 or openstack-swift-v3 for v3
     provider: openstack-swift
-    # keystone URL
+    # keystoneEndPoint : URL de connexion à keystone
+    keystoneEndPoint: http://hostname-rados-gw:port/auth/1.0
+    # deprecated
     keystone_auth_url: http://hostname-rados-gw:port/auth/1.0
-    #
-    swift_uid: tenant$user
-    #
-    swift_subuser: subuser
+    # swiftUid : domaine OpenStack dans lequel l'utilisateur est enregistré
+    swift_uid: domaine
+    # swiftSubUser : identifiant de l'utilisateur
+    swift_subuser: utilisateur
+    # cephMode : doit être à false si offre v3 ; true si offre v1
+    cephMode: false
+    # projectName : tenant openstack
+    projectName: monTenant
+  # example_swift_v1:
+  #   provider: openstack-swift
+  #   keystoneEndPoint: https://keystone/auth/1.0
+  #   swift_uid: tenant$user # <tenant>$<user>
+  #   swift_subuser: subuser
+  #   cephMode: true
+  # example_swift_v3:
+  #   provider: openstack-swift-v3
+  #   keystoneEndPoint: https://keystone/v3
+  #   swift_uid: domaine
+  #   swift_subuser: user
+  #   cephMode: false
+  #   projectName: monTenant

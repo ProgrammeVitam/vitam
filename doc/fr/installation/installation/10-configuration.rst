@@ -44,6 +44,10 @@ Enfin, la déclaration des configuration des offres de stockage est réalisée d
      :language: yaml
      :linenos:
 
+Se référer aux commentaires dans le fichier pour le renseigner correctement.
+
+.. warning:: Ne pas oublier, en cas de connexion à un keystone en https, de répercuter dans la :term:`PKI` la clé publique de la CA du keystone.
+
 
 Déclaration des secrets
 =======================
