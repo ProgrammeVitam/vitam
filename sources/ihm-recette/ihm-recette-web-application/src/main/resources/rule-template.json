@@ -1,0 +1,13 @@
+{
+  "_id" : "GUID",
+  "RuleId" : "RULE_ID",
+  "RuleType" : "RULE_CATEGORY",
+  "RuleValue" : "Dossier individuel d’agent civil",
+  "RuleDescription" : "Durée de conservation des dossiers",
+  "RuleDuration" : "80",
+  "RuleMeasurement" : "Year",
+  "CreationDate" : "2018-01-23T10:06:16.969",
+  "UpdateDate" : "2018-01-23T10:06:16.969",
+  "_v" : 0,
+  "_tenant" : "TENANT_ID"
+}

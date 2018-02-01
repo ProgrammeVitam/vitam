@@ -34,9 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoException;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
@@ -45,6 +42,8 @@ import com.mongodb.client.MongoDatabase;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import com.mongodb.client.model.InsertOneModel;
+import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -62,7 +61,7 @@ public class MasterdataRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MasterdataRepository.class);
     public static final String GUID = "GUID";
-    public static final String TENANT_ID = "TENANT_ID";
+    public static final String TENANT_ID = "\"TENANT_ID\"";
     public static final String AGENCY_NAME = "AGENCY_NAME";
     public static final String CONTRACT_NAME = "CONTRACT_NAME";
     public static final String RULE_ID = "RULE_ID";
@@ -72,43 +71,26 @@ public class MasterdataRepository {
     private TransportClient transportClient;
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
-    private static final String RULE_TEMPLATE = "{\"_id\" : \"" + GUID +"\"," +
-        "    \"RuleId\" : \"" + RULE_ID +"\"," +
-        "    \"RuleType\" : \"" + RULE_CATEGORY +"\"," +
-        "    \"RuleValue\" : \"Dossier individuel d’agent civil\"," +
-        "    \"RuleDescription\" : \"Durée de conservation des dossiers\"," +
-        "    \"RuleDuration\" : \"80\"," +
-        "    \"RuleMeasurement\" : \"Year\"," +
-        "    \"CreationDate\" : \"2018-01-23T10:06:16.969\"," +
-        "    \"UpdateDate\" : \"2018-01-23T10:06:16.969\"," +
-        "    \"_v\" : 0," +
-        "    \"_tenant\" : " + TENANT_ID +
-        "}";
 
-    private static final String AGENCY_TEMPLATE = "{\"_id\" : \"" + GUID +"\"," +
-        "    \"Identifier\" : \"" + AGENCY_NAME +"\"," +
-        "    \"Name\" : \"" + AGENCY_NAME +"\"," +
-        "    \"Description\" : \"" + AGENCY_NAME +"\"," +
-        "    \"_v\" : 0," +
-        "    \"_tenant\" : " + TENANT_ID +
-        "}";
+    private static String RULE_TEMPLATE;
 
-    private static final String ACCESS_CONTRACTS_TEMPLATE = "{\"_id\" : \"" + GUID +"\"," +
-        "    \"Identifier\" : \"" + CONTRACT_NAME +"\"," +
-        "    \"Name\" : \"" + CONTRACT_NAME +"\"," +
-        "    \"Status\" : \"ACTIVE\"," +
-        "    \"EveryOriginatingAgency\" : true," +
-        "    \"EveryDataObjectVersion\" : true," +
-        "    \"DataObjectVersion\" : []," +
-        "    \"OriginatingAgencies\" : []," +
-        "    \"_v\" : 0," +
-        "    \"_tenant\" : " + TENANT_ID +
-        "}";
+    private static String AGENCY_TEMPLATE;
+
+    private static String ACCESS_CONTRACTS_TEMPLATE;
 
     public MasterdataRepository(MongoDatabase metadataDb, TransportClient transportClient) {
         this.metadataDb = metadataDb;
         this.transportClient = transportClient;
-
+        try {
+            AGENCY_TEMPLATE = StringUtils.getStringFromInputStream(
+                MasterdataRepository.class.getResourceAsStream("/agency-template.json"));
+            RULE_TEMPLATE = StringUtils.getStringFromInputStream(
+                MasterdataRepository.class.getResourceAsStream("/rule-template.json"));
+            ACCESS_CONTRACTS_TEMPLATE = StringUtils.getStringFromInputStream(
+                MasterdataRepository.class.getResourceAsStream("/access-contract-template.json"));
+        } catch (IOException e) {
+            LOGGER.error("Fail to init referential template");
+        }
         // init collections for available metadataTypes
         initCollections();
     }
@@ -253,7 +235,7 @@ public class MasterdataRepository {
             String id = (String) document.remove("_id");
             String source = document.toJson();
             bulkRequestBuilder
-                    .add(transportClient.prepareIndex(vitamDataType.getIndexName(), "type_unique", id)
+                    .add(transportClient.prepareIndex(vitamDataType.getIndexName(), VitamCollection.TYPEUNIQUE, id)
                             .setSource(source, XContentType.JSON));
         });
 

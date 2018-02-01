@@ -1,0 +1,8 @@
+{
+  "_id" : "GUID",
+  "Identifier" : "AGENCY_NAME",
+  "Name" : "AGENCY_NAME",
+  "Description" : "AGENCY_NAME",
+  "_v" : 0,
+  "_tenant" :  "TENANT_ID"
+}
