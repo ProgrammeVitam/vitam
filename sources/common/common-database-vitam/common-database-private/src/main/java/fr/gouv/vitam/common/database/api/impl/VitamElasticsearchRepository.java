@@ -79,6 +79,8 @@ public class VitamElasticsearchRepository implements VitamRepository {
     private boolean indexByTenant;
 
     /**
+     * VitamElasticsearchRepository Constructor
+     * 
      * @param client the es client
      * @param indexName the name of the index
      * @param indexByTenant specifies if the index is for a specific tenant or not

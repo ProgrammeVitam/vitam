@@ -96,7 +96,7 @@ public interface VitamRepository {
     /**
      * Remove by tenant for collection cross-tenant
      * 
-     * @return
+     * @return number of purged documents
      * @throws DatabaseException in case error with database occurs
      */
     long purge() throws DatabaseException;

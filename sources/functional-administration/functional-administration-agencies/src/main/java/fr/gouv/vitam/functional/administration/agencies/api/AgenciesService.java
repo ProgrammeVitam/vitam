@@ -737,6 +737,9 @@ public class AgenciesService implements VitamAutoCloseable {
 
         guidmasterNode.put(ReportConstants.EV_TYPE, AGENCIES_IMPORT_EVENT);
         guidmasterNode.put(ReportConstants.EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        if (eip == null) {
+            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        }
         guidmasterNode.put(ReportConstants.EV_ID, eip.toString());
 
         agenciesToInsert.forEach(agency -> insertAgencies.add(agency.getIdentifier()));
