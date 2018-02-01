@@ -83,6 +83,8 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import javax.xml.ws.Response;
+
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
 @PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
@@ -176,22 +178,17 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     @Test
     public void givenXMLCreationWhenValidButWithoutInfoFieldsInManifestThenResponseOK()
         throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
-
-            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
-            Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
-            Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
-
-            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
-            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
-            Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
                 .selectOperationById(anyObject(), anyObject());
-            Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-                anyObject());
-            Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-                anyObject());
+            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT()))
+                .when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
+                anyObject(), anyObject());
+            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult((getLogbookLifecycleAU())))
+                .when(lifeCyclesClient)
+                .unitLifeCyclesByOperationIterator(anyObject(),
+                    anyObject(), anyObject());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();
@@ -205,7 +202,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
                     action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
             File atr = action.getNewLocalFile(ATR_PATH);
-            String atrString= FileUtil.readFile(atr);
+            String atrString = FileUtil.readFile(atr);
             assertTrue(atrString.contains(SedaConstants.TAG_ARCHIVE_PROFILE));
             assertTrue(atrString.contains(SedaConstants.TAG_DATA_OBJECT_GROUP_SYSTEM_ID));
         }
@@ -214,22 +211,16 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     @Test
     public void givenXMLCreationWhenProcessKOButWithoutInfoFieldsInManifestThenResponseATROK()
         throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
-
-            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
-            Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
-            Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
-
-            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
-            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
-            Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
                 .selectOperationById(anyObject(), anyObject());
-            Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-                anyObject());
-            Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-                anyObject());
+            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT()))
+                .when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
+                anyObject(), anyObject());
+            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU()))
+                .when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
+                anyObject(), anyObject());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();
@@ -248,7 +239,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     }
 
     private static JsonNode getLogbookOperation()
-        throws FileNotFoundException, IOException, InvalidParseOperationException {
+        throws IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
             new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));
@@ -257,14 +248,14 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     }
 
     private static JsonNode getLogbookLifecycleGOT()
-        throws FileNotFoundException, IOException, InvalidParseOperationException {
+        throws IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
             new LogbookLifeCycleObjectGroup(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
                 .toJson());
     }
 
     private static JsonNode getLogbookLifecycleAU()
-        throws FileNotFoundException, IOException, InvalidParseOperationException {
+        throws IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
             new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU)))
                 .toJson());

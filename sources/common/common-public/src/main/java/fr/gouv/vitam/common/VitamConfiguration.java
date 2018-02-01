@@ -294,10 +294,16 @@ public class VitamConfiguration {
     private static int maxElasticsearchBulk = 1000;
 
     /**
-     * batchSize
+     * batchSize and used in lifecycleSpliterator for the limit
      */
     private static int batchSize = 1000;
-    /*
+
+    /**
+     * default offset for lifecycleSpliterator
+     */
+    public static int defaultOffset = 0;
+
+    /**
      * Max Thread for ES and MongoDB
      */
     private static int numberDbClientThread = 200;
@@ -1536,10 +1542,19 @@ public class VitamConfiguration {
     /**
      * Get the batchSize.
      *
-     * @return
+     * @return batchSize
      */
     public static int getBatchSize() {
         return batchSize;
+    }
+
+    /**
+     * Get defaultOffset
+     *
+     * @return defaultOffset
+     */
+    public static int getDefaultOffset() {
+        return defaultOffset;
     }
 
     /**

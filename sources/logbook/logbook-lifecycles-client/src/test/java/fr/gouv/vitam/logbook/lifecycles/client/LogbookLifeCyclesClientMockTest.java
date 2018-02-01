@@ -205,8 +205,10 @@ public class LogbookLifeCyclesClientMockTest {
         assertNotNull(client);
         assertNotNull(client.selectObjectGroupLifeCycleById("id", JsonHandler.createObjectNode()));
         assertNotNull(client.selectUnitLifeCycleById("id", JsonHandler.createObjectNode()));
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
+            JsonHandler.createObjectNode()));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
+            JsonHandler.createObjectNode()));
 
     }
 
@@ -296,7 +298,7 @@ public class LogbookLifeCyclesClientMockTest {
         assertNotNull(objectGroupLifeCycleStatus);
         assertEquals(objectGroupLifeCycleStatus, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
     }
-    
+
     @Test
     public void testRawbulkLifecycles()
         throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {

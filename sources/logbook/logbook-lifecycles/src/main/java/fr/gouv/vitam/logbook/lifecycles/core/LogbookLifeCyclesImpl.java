@@ -70,11 +70,7 @@ import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
 public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
 
-    /**
-     * This is valid as Static final since this has to be shared among all requests and Concurrent for Thread safety
-     */
-    private static final Map<String, MongoCursor<?>> mapXCursor = new ConcurrentHashMap<>();
-    private static final Map<String, LogbookCollections> mapXCursorByCollection = new ConcurrentHashMap<>();
+
     private final LogbookDbAccess mongoDbAccess;
     private boolean disablePurge;
 
@@ -173,112 +169,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public String createCursorUnit(String operationId, JsonNode select, LogbookCollections logbookCollection)
-        throws LogbookDatabaseException {
-        String newxcursorid;
-        // First time call
-        newxcursorid = GUIDFactory.newGUID().toString();
-        MongoCursor<LogbookLifeCycleUnit> cursor;
-        try {
-            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
-            parser.parse(select);
-            parser.addCondition(QueryHelper.or()
-                .add(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId))
-                .add(QueryHelper.eq(
-                    LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
-                    operationId)));
-            final Select selectRequest = parser.getRequest();
-            cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(logbookCollection, selectRequest);
-            mapXCursor.put(newxcursorid, cursor);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new LogbookDatabaseException(e);
-        }
-        return newxcursorid;
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public LogbookLifeCycle getCursorUnitNext(String cursorId)
-        throws LogbookNotFoundException, LogbookDatabaseException {
-        try {
-            @SuppressWarnings("unchecked")
-            final MongoCursor<LogbookLifeCycle> cursor =
-                (MongoCursor<LogbookLifeCycle>) mapXCursor.get(cursorId);
-            if (cursor != null) {
-                if (cursor.hasNext()) {
-                    return cursor.next();
-                }
-                cursor.close();
-                mapXCursor.remove(cursorId);
-                throw new LogbookNotFoundException("No more entries");
-            }
-        } catch (final ClassCastException e) {
-            throw new LogbookDatabaseException("Cursor not linked to Unit", e);
-        }
-        throw new LogbookDatabaseException("Cursor already closed");
-    }
-
-    @Override
-    public String createCursorObjectGroup(String operationId, JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException {
-        String newxcursorid;
-        // First time call
-        newxcursorid = GUIDFactory.newGUID().toString();
-        MongoCursor<?> cursor;
-
-        try {
-            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
-            parser.parse(select);
-            parser.addCondition(QueryHelper.or()
-                .add(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId))
-                .add(QueryHelper.eq(
-                    LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
-                    operationId)));
-
-            final Select selectRequest = parser.getRequest();
-            cursor = mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(collection, selectRequest);
-            mapXCursor.put(newxcursorid, cursor);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new LogbookDatabaseException(e);
-        }
-        return newxcursorid;
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public LogbookLifeCycle getCursorObjectGroupNext(String cursorId)
-        throws LogbookNotFoundException, LogbookDatabaseException {
-        try {
-            final MongoCursor<?> cursor =
-                (MongoCursor<?>) mapXCursor.get(cursorId);
-
-            if (cursor != null) {
-                if (cursor.hasNext()) {
-                    return (LogbookLifeCycle) cursor.next();
-                }
-                cursor.close();
-                mapXCursor.remove(cursorId);
-                mapXCursorByCollection.remove(cursorId);
-                throw new LogbookNotFoundException("No more entries");
-            }
-        } catch (final ClassCastException e) {
-            throw new LogbookDatabaseException("Cursor not linked to ObjectGroup", e);
-        }
-        throw new LogbookDatabaseException("Cursor already closed");
-    }
-
-    @Override
-    public void finalizeCursor(String cursorId) {
-        final MongoCursor<?> cursor = mapXCursor.get(cursorId);
-        if (cursor != null) {
-            cursor.close();
-            mapXCursor.remove(cursorId);
-            mapXCursorByCollection.remove(cursorId);
-            return;
-        }
-    }
-
-    @Override
     public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
         return selectObjectGroup(select, true, collection);
@@ -288,14 +178,14 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced,
         LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        try (final MongoCursor<LogbookLifeCycle> logbook =
+        try (final MongoCursor<LogbookLifeCycle> logbookCursor =
             mongoDbAccess.getLogbookLifeCycleObjectGroups(select, sliced, collection)) {
             final List<LogbookLifeCycle> result = new ArrayList<>();
-            if (!logbook.hasNext()) {
+            if (!logbookCursor.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
-            while (logbook.hasNext()) {
-                result.add(logbook.next());
+            while (logbookCursor.hasNext()) {
+                result.add(logbookCursor.next());
             }
             return result;
         }

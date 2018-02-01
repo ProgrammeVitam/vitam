@@ -24,20 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-/**
- *
- */
-package fr.gouv.vitam.metadata.core.database.configuration;
 
-import java.util.HashSet;
-import java.util.Set;
+package fr.gouv.vitam.metadata.core.database.configuration;
 
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 
 /**
  * Default configuration for DB support
- *
- *
  */
 public class GlobalDatasDb extends GlobalDatasParser {
     /**

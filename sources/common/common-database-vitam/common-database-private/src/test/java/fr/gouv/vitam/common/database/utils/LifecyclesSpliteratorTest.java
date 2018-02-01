@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -34,26 +33,29 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Spliterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.junit.Test;
 
-public class ScrollSpliteratorTest {
+public class LifecyclesSpliteratorTest {
+
 
     @Test
     public void should_invoke_function_when_try_to_advance() {
         // Given
         Function function = mock(Function.class);
-        given(function.apply(any(SelectMultiQuery.class))).willReturn(new RequestResponseOK<Long>());
+        RequestResponseOK<Long> longRequestResponseOK = new RequestResponseOK<>();
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        Spliterator<Long> longSpliterator = new ScrollSpliterator<>(query, function, 3, 4);
+        //        longRequestResponseOK.setHits(new DatabaseCursor(4L, Long.valueOf(Integer.valueOf("3")), 4L));
+        given(function.apply(any(Select.class))).willReturn(longRequestResponseOK);
+
+        Select query = new Select();
+        Spliterator<Long> longSpliterator = new LifecyclesSpliterator<>(query, function, 0, 4);
 
         // When
-        longSpliterator.forEachRemaining(item -> {});
+        longSpliterator.forEachRemaining(item -> {
+        });
 
         // Then
         verify(function).apply(query);
@@ -68,25 +70,21 @@ public class ScrollSpliteratorTest {
         requestResponseOK1.addResult(2L);
         requestResponseOK1.addResult(3L);
 
-
         requestResponseOK1.setHits(4, 0, 3, 3);
-
         RequestResponseOK<Long> requestResponseOK2 = new RequestResponseOK<>();
         requestResponseOK2.addResult(4L);
-        requestResponseOK2.setHits(4, 0, 3, 1);
-        given(function.apply(any(SelectMultiQuery.class))).willReturn(requestResponseOK1).willReturn(requestResponseOK2);
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        Spliterator<Long> longSpliterator = new ScrollSpliterator<>(query, function, 3, 4);
-        AtomicInteger counter = new AtomicInteger(0);
+        requestResponseOK2.setHits(4, 3, 3, 1);
+        //        System.out.println(JsonHandler.unprettyPrint(requestResponseOK.getQuery()));
+        given(function.apply(any(Select.class))).willReturn(requestResponseOK1).willReturn(requestResponseOK2);
+        Select query = new Select();
+        Spliterator<Long> longSpliterator = new LifecyclesSpliterator<>(query, function, 3, 4);
 
         // When
-        longSpliterator.forEachRemaining(item -> counter.incrementAndGet());
+        longSpliterator.forEachRemaining(item -> {
+        });
 
         // Then
-        assertThat(longSpliterator.estimateSize()).isEqualTo(4);
-        assertThat(counter.get()).isEqualTo(4);
         verify(function, times(2)).apply(query);
     }
-
 }

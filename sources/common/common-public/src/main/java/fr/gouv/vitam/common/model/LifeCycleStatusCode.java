@@ -42,5 +42,5 @@ public enum LifeCycleStatusCode {
     /**
      * LIFE_CYCLE_IN_PROCESS : indicates that the lifeCycle hasn't been committed yet
      */
-    LIFE_CYCLE_IN_PROCESS;
+    LIFE_CYCLE_IN_PROCESS
 }
