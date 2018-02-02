@@ -13,9 +13,10 @@ Common-private
    Uri.rst
    shiro.rst
    security-filter.rst
-   tenant-filter.rst   
+   tenant-filter.rst
+   sanity-checker.rst
    DefaultVitamApplicationConfiguration.rst
    Execution-request-dsl.rst
    mongodb-securite.rst
-   secret-plateforme.rst
+   secret-plateforme.rst   
 

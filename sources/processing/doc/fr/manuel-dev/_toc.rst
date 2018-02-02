@@ -8,4 +8,5 @@ Processing
    parametres/parametres.rst
    processing-management.rst
    processing-distributor.rst
+   processing-engine.rst
    worker/_toc.rst 

@@ -43,9 +43,8 @@ Tous les fichiers de gestion de la PKI se trouvent dans le répertoire ``deploym
 
 .. _arborescence_pki:
 
-.. figure:: images/arborescence_pki.*
+.. figure:: images/arborescence_pki.svg
     :align: center
-    :target: ../_images/arborescence_pki.svg
 
     Vue l'arborescence de la PKI Vitam
 
@@ -60,9 +59,8 @@ Description de l'arborescence du répertoire deployment/environments/certs
 
 .. _arborescence_certs:
 
-.. figure:: images/arborescence_certs.*
+.. figure:: images/arborescence_certs.svg
     :align: center
-    :target: ../_images/arborescence_certs.svg
 
     Vue détaillée de l'arborescence des certificats
 
@@ -77,9 +75,8 @@ Description de l'arborescence du répertoire deployment/environments/keystores
 
 .. _arborescence_keystores:
 
-.. figure:: images/arborescence_keystores.*
+.. figure:: images/arborescence_keystores.svg
     :align: center
-    :target: ../_images/arborescence_keystores.svg
 
     Vue détaillée de l'arborescence des keystores
 

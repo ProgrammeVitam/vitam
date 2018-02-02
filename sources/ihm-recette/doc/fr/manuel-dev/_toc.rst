@@ -6,4 +6,5 @@ IHM demo
 
    front.rst
    rest-raml.rst
+   ihm-recette-serveur.rst
 

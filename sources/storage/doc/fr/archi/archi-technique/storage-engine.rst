@@ -128,7 +128,7 @@ DriverManager : SPI
 ===================
 
 | Service permettant d'ajouter ou de supprimer des drivers d'offre.
-| Le driver (son interface) est défini dans `storage-driver <storage-driver.html>`_.
+| Le driver (son interface) est défini dans `storage-driver`_.
 
 Les différents drivers sont chargés via le ServiceLoader de la JDK puis leurs instances sont stockées dans une liste.
 Cela permet ensuite de configurer les offres sur les différentes instances de driver en passant par une MAP dont la clef est l'identifant de l'offre, la valeur est le driver instancié dans la liste (une référence à ce driver donc, retrouvé par son nom (getName())).

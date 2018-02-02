@@ -1,5 +1,5 @@
 Workflow d'administration d'un référentiel de règles de gestion
-##################################################################
+###############################################################
 
 Introduction
 ============
@@ -7,14 +7,14 @@ Introduction
 Cette section décrit le processus permettant d'importer et de mettre à jour un référentiel de règles de gestions dans la solution logicielle Vitam
 
 Processus d'administration d'un référentiel de règles de gestion (STP_IMPORT_RULES)
-=============================================================================================
+===================================================================================
 
 Le processus d'import et de mise à jour d'un référentiel de règles de gestion permet de vérifier que les informations sont formalisées de la bonne manière dans le fichier soumis à la solution logicielle Vitam, que les données obligatoires ont bien été remplies pour chaque enregistrement et que dans le cas d'une mise à jour, on ne souhaite éliminer aucune règle déjà utilisée par une unité archivistique prise en charge dans la solution logicielle Vitam.
 
 Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
 Création du rapport (RULES_REPORT)
------------------------------------
+----------------------------------
 
 + **Règle** : création du rapport d'import des règles
 
@@ -90,7 +90,7 @@ Persistance des données en base (COMMIT_RULES)
     - FATAL : une erreur technique est survenue lors de la persistance des données en base (COMMIT_RULES.FATAL=Erreur fatale lors de la persistance des données en base)
 
 Sauvegarde du CSV (STP_IMPORT_RULES_BACKUP_CSV)
-----------------------------------------
+-----------------------------------------------
 
 + **Règle** : enregistrement du CSV d'import
 
@@ -105,7 +105,7 @@ Sauvegarde du CSV (STP_IMPORT_RULES_BACKUP_CSV)
     - FATAL : une erreur technique est survenue lors de l'enregistrement du CSV d'import (STP_IMPORT_RULES_BACKUP_CSV.FATAL = Erreur fatale lors de l'enregistrement du fichier d'import du référentiel des règles de gestion)
 
 Sauvegarde du JSON (STP_IMPORT_RULES_BACKUP)
-------------------------------------------
+--------------------------------------------
 
 + **Règle** : enregistrement d'une copie de la base de données
 
@@ -121,7 +121,7 @@ Sauvegarde du JSON (STP_IMPORT_RULES_BACKUP)
 
 
 Structure du rapport d'administration du référentiel des règles de gestion
-===========================================================================
+==========================================================================
 
 Lorsqu'un nouveau référentiel est importé, la solution logicielle Vitam génère un rapport de l'opération. Ce rapport est en 3 parties :
 
@@ -141,7 +141,7 @@ Lorsqu'un nouveau référentiel est importé, la solution logicielle Vitam gén�
     - "usedUpdatedRules" : contient l'intégralité des règles en cours d'utilisation dont une mise à jour a été effectuée. Chaque détail précise en plus la date de création de la règle, sa dernière mise à jour et sa version.
 
 Exemples
--------------
+--------
 
 **Exemple 1 : import initial d'un référentiel**
 

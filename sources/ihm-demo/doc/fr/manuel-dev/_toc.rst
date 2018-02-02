@@ -13,3 +13,4 @@ IHM demo
    ihm-tenant-id.rst
    ihm-authorization.rst
    ihm-filter-requestID.rst
+   ihm-demo-serveur.rst
