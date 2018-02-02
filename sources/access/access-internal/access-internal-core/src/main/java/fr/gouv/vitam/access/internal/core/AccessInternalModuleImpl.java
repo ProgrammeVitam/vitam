@@ -70,9 +70,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -1156,12 +1154,26 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     // Set a field
                     Iterator<String> fields = object.fieldNames();
                     while (fields.hasNext()) {
+                        ObjectNode objectToPut = null;
                         String field = fields.next();
-                        if (field.startsWith(MANAGEMENT_PREFIX) &&
-                            VitamConstants.getSupportedRules().contains(field.substring(MANAGEMENT_PREFIX.length()))) {
-                            // Set a ruleCategory
-                            updatedCategoryRules.put(field.substring(MANAGEMENT_PREFIX.length()), object.get(field));
-                            actionsIterator.remove();
+                        if (field.startsWith(MANAGEMENT_PREFIX)) {
+                            // 2 possibilities are now handled :
+                            // - {"#management.AccessRule.Rules":[...]}
+                            // - {"#management.AccessRule":{"Rules":[...]}}
+                            String ruleToBeChecked = field.substring(MANAGEMENT_PREFIX.length());
+                            if (ruleToBeChecked.contains(".")) {
+                                String mainAtt = ruleToBeChecked.split("\\.")[0];
+                                String subAtt = ruleToBeChecked.split("\\.")[1];
+                                objectToPut = JsonHandler.createObjectNode();
+                                objectToPut.set(subAtt, object.get(field));
+                                ruleToBeChecked = mainAtt;
+                            }
+                            if (VitamConstants.getSupportedRules().contains(ruleToBeChecked)) {
+                                // Set a ruleCategory
+                                updatedCategoryRules.put(ruleToBeChecked,
+                                    objectToPut != null ? objectToPut : object.get(field));
+                                actionsIterator.remove();
+                            }
                         }
                     }
                 }
