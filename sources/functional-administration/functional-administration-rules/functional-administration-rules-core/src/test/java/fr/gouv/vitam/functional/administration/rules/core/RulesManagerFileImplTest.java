@@ -28,10 +28,13 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -58,6 +61,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.bson.Document;
@@ -277,11 +281,12 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
-                errors, usedDeletedRules, usedUpdatedRules, notUsedDeletedRules, notUsedUpdatedRules);
+                errors, usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
         } catch (final FileRulesException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         } catch (FileRulesDeleteException e) {
@@ -292,7 +297,7 @@ public class RulesManagerFileImplTest {
 
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
-                errors, usedDeletedRules, usedUpdatedRules, notUsedDeletedRules, notUsedUpdatedRules);
+                errors, usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
             fail("Check file with FILE_TO_TEST_KO should throw exception");
         } catch (final FileRulesCsvException e) {
             exception.expect(FileRulesCsvException.class);
@@ -331,13 +336,6 @@ public class RulesManagerFileImplTest {
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
-
-
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
-        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        Set<String> notUsedDeletedRules = new HashSet<>();
-        Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
             rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)), FILE_DURATION_EXCEED);
         } catch (final FileRulesException e) {
@@ -463,26 +461,6 @@ public class RulesManagerFileImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldRetrieveAllRules() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
-
-        final Select select = new Select();
-        select.setQuery(eq("#tenant", TENANT_ID));
-        List<FileRules> fileRules =
-            convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-        if (fileRules.size() == 0) {
-            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
-                FILE_TO_TEST_OK);
-        }
-        List<FileRules> fileRulesAfter =
-            convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-        assertEquals(fileRulesAfter.size(), 22);
-
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void shouldInsertUpdateAndDeleteNewFileRules() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final Select select = new Select();
@@ -526,14 +504,21 @@ public class RulesManagerFileImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldUpdateRulesType() {
+    public void shouldUpdateRulesType() throws DatabaseException, ReferentialException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        MongoDbAccessAdminImpl dbAccess = create(
+            new DbConfigurationImpl(nodes, DATABASE_NAME));
+        dbAccess.deleteCollection(FunctionalAdminCollections.RULES);
         final Select select = new Select();
         try {
             LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
             when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
             when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
                 .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+
+            MetaDataClient metaDataClient = mock(MetaDataClient.class);
+            when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+            when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
 
             List<FileRules> fileRules = new ArrayList<>();
             try {
@@ -550,7 +535,7 @@ public class RulesManagerFileImplTest {
             assertEquals(22, fileRulesAfterImport.size());
             for (FileRules fileRulesAfter : fileRulesAfterImport) {
                 if (ACC_00003.equals(fileRulesAfter.getRuleid())) {
-                    assertEquals(APPRAISAL_RULE, fileRulesAfter.getRuletype());
+                    assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
                 }
             }
             // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
@@ -558,9 +543,12 @@ public class RulesManagerFileImplTest {
                 FILE_UPDATE_RULE_TYPE);
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            assertEquals(22, fileRulesAfterInsert.size());
+            assertEquals(23, fileRulesAfterInsert.size());
             for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
                 if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
+                    assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+                }
+                if ("APP-00006".equals(fileRulesUpdated.getRuleid())) {
                     assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
                 }
             }
@@ -741,6 +729,7 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
 
@@ -748,7 +737,7 @@ public class RulesManagerFileImplTest {
         // When
         assertThatThrownBy(() -> rulesFileManager
             .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
-                usedDeletedRules, usedUpdatedRules, notUsedDeletedRules, notUsedUpdatedRules))
+                usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
             .isInstanceOf(ReferentialException.class);
 
         return rulesFileManager.generateErrorReport(errorsMap, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
@@ -812,7 +801,7 @@ public class RulesManagerFileImplTest {
             FILE_UPDATE_RULE_TYPE);
         List<FileRules> fileRulesAfterInsert =
             convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-        assertEquals(22, fileRulesAfterInsert.size());
+        assertEquals(23, fileRulesAfterInsert.size());
 
         final JsonNode reportAfterUpdateNode = JsonHandler.getFromFile(reportAfterUpdate.toFile());
         final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get("JDO");
@@ -824,6 +813,9 @@ public class RulesManagerFileImplTest {
 
         for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
             if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
+                assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+            }
+            if ("APP-00006".equals(fileRulesUpdated.getRuleid())) {
                 assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
             }
         }
@@ -915,8 +907,8 @@ public class RulesManagerFileImplTest {
     private static void createRuleDurationConfigration(List<Integer> tenants) {
         Map<Integer, Map<String, String>> durationList = new HashMap<>();
         Map<String, String> duration = new HashMap<>();
-        duration.put("AppraisalRule", "6 day");
-        duration.put("AccessRule", "5");
+        duration.put(APPRAISAL_RULE, "6 day");
+        duration.put(ACCESS_RULE, "5");
         for (Integer tenant : tenants) {
 
             durationList.put(tenant, duration);
