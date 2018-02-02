@@ -182,9 +182,9 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
             assertEquals(StatusCode.OK, response.getGlobalStatus());
             response.getItemsStatus().forEach((k, v) -> {
                 try {
-                    assertNotNull(JsonHandler.getFromString(v.getEvDetailData()).get("diff"));
+                    assertEquals(v.getEvDetailData(), "{}");
                 } catch (Exception e) {
-                    fail("should not failed at this moment, diff value couldnt be empty");
+                    fail("should not failed at this moment, evDetailData value must be {}");
                 }
             });
         } finally {
@@ -217,9 +217,9 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
             assertEquals(StatusCode.OK, response.getGlobalStatus());
             response.getItemsStatus().forEach((k, v) -> {
                 try {
-                    assertNotNull(JsonHandler.getFromString(v.getEvDetailData()).get("diff"));
+                    assertEquals(v.getEvDetailData(), "{}");
                 } catch (Exception e) {
-                    fail("should not failed at this moment, diff value couldnt be empty");
+                    fail("should not failed at this moment, evDetailData value must be {}");
                 }
             });
         } finally {

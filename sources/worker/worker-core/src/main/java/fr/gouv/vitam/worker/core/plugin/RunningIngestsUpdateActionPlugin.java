@@ -235,7 +235,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                             if (nbUpdates > 0) {
                                 try {
                                     query.addActions(
-                                        UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getProcessId()));
+                                        UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
                                     JsonNode updateResultJson =
                                         metaDataClient.updateUnitbyId(query.getFinalUpdate(), auGuid);
                                     archiveUnitUpdateUtils.logLifecycle(params, auGuid, StatusCode.OK,

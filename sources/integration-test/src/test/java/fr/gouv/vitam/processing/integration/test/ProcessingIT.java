@@ -2573,8 +2573,9 @@ public class ProcessingIT {
                 events.stream().filter(t -> t.get("outDetail").equals("LFC.UPDATE_UNIT_RULES.OK"))
                     .collect(Collectors.toList());
             if (lifecycleEvent != null && lifecycleEvent.size() > 0) {
-                assertThat(Iterables.getOnlyElement(lifecycleEvent).getString(EVENT_DETAILS))
-                    .containsIgnoringCase("diff");
+                String evDetData = Iterables.getOnlyElement(lifecycleEvent).getString(EVENT_DETAILS);
+                assertThat(evDetData).containsIgnoringCase("diff");
+                assertThat(evDetData).contains(containerName2);
                 assertThat(Iterables.getOnlyElement(lifecycleEvent).getString("outMessg")).isEqualTo(
                     "Succès de la mise à jour des règles de gestion de l'unité archivistique");
             }
