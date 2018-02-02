@@ -87,8 +87,13 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
             throws ProcessingException, IOException, URISyntaxException {
-        final Map<String, String> invalidVersionList = new HashMap<>();
-        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
+        Map<String, Map<String, String>> versionMap = new HashMap<>();
+        final Map<String, String> invalidVersionMap = new HashMap<>();
+        final Map<String, String> validVersionMap = new HashMap<>();
+
+        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
+        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
+        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -97,9 +102,13 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
             throws ProcessingException, IOException, URISyntaxException {
-        final Map<String, String> invalidVersionList = new HashMap<>();
-        invalidVersionList.put("PhysicalMaste", "PhysicalMaste");
-        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
+        Map<String, Map<String, String>> versionMap = new HashMap<>();
+        final Map<String, String> invalidVersionMap = new HashMap<>();
+        final Map<String, String> validVersionMap = new HashMap<>();
+        invalidVersionMap.put("PhysicalMaste", "PhysicalMaste");
+        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
+        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
+        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());

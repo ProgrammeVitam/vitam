@@ -197,29 +197,42 @@ public class SedaUtilsTest {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
 
         XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip.xml"));
-        Map<String, String> map = utils.compareVersionList(evenReader);
-        assertEquals(0, map.size());
-
+        Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
+        Map<String, String> invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
+        Map<String, String> validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
+        assertEquals(0, invalidVersionMap.size());
+        assertEquals(5, validVersionMap.size());
         evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
-        map = utils.compareVersionList(evenReader);
-        assertEquals(3, map.size());
-        assertTrue(map.containsValue("PhysicalMaste"));
-        assertTrue(map.containsValue("Diffusion"));
-        assertTrue(map.containsValue("PhysicalMaster"));
+        versionMap = utils.compareVersionList(evenReader);
+        invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
+        validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
+
+        assertEquals(3, invalidVersionMap.size());
+        assertEquals(2, validVersionMap.size());
+        assertTrue(invalidVersionMap.containsValue("PhysicalMaste"));
+        assertTrue(invalidVersionMap.containsValue("Diffusion"));
+        assertTrue(invalidVersionMap.containsValue("PhysicalMaster"));
 
         evenReader =
             factory.createXMLEventReader(new FileReader("src/test/resources/sip-incorrect-version-format.xml"));
-        map = utils.compareVersionList(evenReader);
-        assertEquals(2, map.size());
-        assertTrue(map.containsValue("PhysicalMaster_-1"));
-        assertTrue(map.containsValue("Dissemination_One"));
+        versionMap = utils.compareVersionList(evenReader);
+        invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
+        validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
+
+        assertEquals(2, invalidVersionMap.size());
+        assertEquals(3, validVersionMap.size());
+        assertTrue(invalidVersionMap.containsValue("PhysicalMaster_-1"));
+        assertTrue(invalidVersionMap.containsValue("Dissemination_One"));
         
         evenReader =
             factory.createXMLEventReader(new FileReader("src/test/resources/sip_missing_required_value.xml"));
-        map = utils.compareVersionList(evenReader);
-        assertEquals(2, map.size());
-        assertTrue(map.containsKey("ID004_BinaryDataObject_IncorrectUri"));
-        assertTrue(map.containsKey("ID006_PhysicalDataObject_IncorrectPhysicalId"));
+        versionMap = utils.compareVersionList(evenReader);
+        invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
+        validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
+        assertEquals(2, invalidVersionMap.size());
+        assertEquals(3, validVersionMap.size());
+        assertTrue(invalidVersionMap.containsKey("ID004_BinaryDataObject_IncorrectUri"));
+        assertTrue(invalidVersionMap.containsKey("ID006_PhysicalDataObject_IncorrectPhysicalId"));
     }
 
     @Test

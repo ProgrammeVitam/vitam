@@ -105,6 +105,8 @@ public class SedaUtils {
      * nbAUExisting: number of the AU already existing
      */
     public static final String NB_AU_EXISTING = "nbAUExisting";
+    public static final String INVALID_DATAOBJECT_VERSION = "INVALID_DATAOBJECT_VERSION";
+    public static final String VALID_DATAOBJECT_VERSION = "VALID_DATAOBJECT_VERSION";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -517,15 +519,15 @@ public class SedaUtils {
      * @return map containing unsupported version
      * @throws ProcessingException throws when error occurs
      */
-    public Map<String, String> checkSupportedDataObjectVersion(WorkerParameters params)
+    public Map<String, Map<String, String>> checkSupportedDataObjectVersion(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         return isSedaVersionValid();
     }
 
-    private Map<String, String> isSedaVersionValid() throws ProcessingException {
+    private Map<String, Map<String, String>> isSedaVersionValid() throws ProcessingException {
         InputStream xmlFile = null;
-        Map<String, String> invalidVersionList;
+        Map<String, Map<String, String>> versionMap;
         XMLEventReader reader = null;
         try {
             try {
@@ -539,7 +541,7 @@ public class SedaUtils {
 
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
-            invalidVersionList = compareVersionList(reader);
+            versionMap = compareVersionList(reader);
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
@@ -554,7 +556,7 @@ public class SedaUtils {
             StreamUtils.closeSilently(xmlFile);
         }
 
-        return invalidVersionList;
+        return versionMap;
     }
 
     /**
@@ -699,7 +701,7 @@ public class SedaUtils {
      * @return map containing the error code and the unsupported version
      * @throws ProcessingException when error in execution
      */
-    public Map<String, String> compareVersionList(XMLEventReader eventReader)
+    public Map<String, Map<String, String>> compareVersionList(XMLEventReader eventReader)
         throws ProcessingException {
 
         SedaVersion sedaVersion;
@@ -710,12 +712,15 @@ public class SedaUtils {
             throw new ProcessingException(e);
         }
         final Map<String, List<DataObjectInfo>> manifestVersionListByType = manifestVersionList(eventReader);
-        final Map<String, String> invalidVersionList = new HashMap<>();
+        final Map<String, String> invalidVersionMap = new HashMap<>();
+        final Map<String, String> validVersionMap = new HashMap<>();
+        final Map<String, Map<String, String>> versionMap = new HashMap<String, Map<String, String>>();
 
         for (Map.Entry<String, List<DataObjectInfo>> manifestVersionEntry : manifestVersionListByType.entrySet()) {
             List<String> fileVersions = sedaVersion.getVersionForType(manifestVersionEntry.getKey());
             for (final DataObjectInfo doi : manifestVersionEntry.getValue()) {
                 if (doi.getVersion() != null) {
+                    validVersionMap.put(doi.getId(),"");
                     final String versionParts[] = doi.getVersion().split("_");
                     String errorCode = manifestVersionEntry.getKey();
                     if (versionParts.length > 2 || !fileVersions.contains(versionParts[USAGE_POSITION])) {
@@ -724,7 +729,8 @@ public class SedaUtils {
                         if (otherFileVersions.contains(versionParts[USAGE_POSITION])) {
                             errorCode += CONTAINS_OTHER_TYPE;
                         }
-                        invalidVersionList.put(doi.getId() + "_" + errorCode, doi.getVersion());
+                        invalidVersionMap.put(doi.getId() + "_" + errorCode, doi.getVersion());
+                        validVersionMap.remove(doi.getId());
                         continue;
                     }
                     if (versionParts.length == 2) {
@@ -732,28 +738,34 @@ public class SedaUtils {
                         try {
                             int currentVersion = Integer.parseInt(versionParts[VERSION_POSITION]);
                             if (currentVersion < 0) {
-                                invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
+                                invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
                                     doi.getVersion());
+                                validVersionMap.remove(doi.getId());
                             }
                         } catch (NumberFormatException e) {
                             LOGGER.warn("Wrong version ", e);
-                            invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
+                            invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
                                 doi.getVersion());
+                            validVersionMap.remove(doi.getId());
                         }
                     }
                     if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(doi.getType())) {
                         if (Strings.isNullOrEmpty(doi.getUri())) {
-                            invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_URI,
+                            invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_URI,
                                 SedaConstants.TAG_URI);
+                            validVersionMap.remove(doi.getId());
                         }
                     } else if (Strings.isNullOrEmpty(doi.getPhysicalId())) {
-                        invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_PHYSICAL_ID,
+                        invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_PHYSICAL_ID,
                             SedaConstants.TAG_PHYSICAL_ID);
+                        validVersionMap.remove(doi.getId());
                     }
                 }
             }
         }
-        return invalidVersionList;
+        versionMap.put(INVALID_DATAOBJECT_VERSION,invalidVersionMap);
+        versionMap.put(VALID_DATAOBJECT_VERSION,validVersionMap);
+        return versionMap;
     }
 
     /**

@@ -85,11 +85,15 @@ public class CheckVersionActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            final Map<String, String> versionInvalidList = sedaUtils.checkSupportedDataObjectVersion(params);
-            if (!versionInvalidList.isEmpty()) {
-                itemStatus.increment(StatusCode.KO);
+            final Map<String, Map<String, String>> versionMap = sedaUtils.checkSupportedDataObjectVersion(params);
+            final Map<String, String> invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
+            final Map<String, String> validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
+            if (!invalidVersionMap.isEmpty()) {
 
-                versionInvalidList.forEach((key, value) -> {
+                itemStatus.increment(StatusCode.KO, invalidVersionMap.size());
+                itemStatus.increment(StatusCode.OK, validVersionMap.size());
+
+                invalidVersionMap.forEach((key, value) -> {
                     if (key.endsWith(BDO_CONTAINS_OTHER_TYPE)) {
                         updateDetailItemStatus(itemStatus,
                             getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
@@ -116,7 +120,7 @@ public class CheckVersionActionHandler extends ActionHandler {
                     }
                 });
 
-                itemStatus.setData("errorNumber", versionInvalidList.size());
+                itemStatus.setData("errorNumber", invalidVersionMap.size());
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
