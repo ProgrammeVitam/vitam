@@ -26,6 +26,7 @@ mongodb:
     host: "mongos.service.{{ consul_domain }}"
 
 logstash:
+    host: "logstash.service.{{ consul_domain }}"
     user: logstash
     port: 10514
     rest_port: 20514
@@ -42,7 +43,7 @@ kibana:
         # pour index metrics-vitam-*
         logs:
             shards: 5
-            replica: 1      
+            replica: 1
     # KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
     data:
         baseuri: "kibana_data"
