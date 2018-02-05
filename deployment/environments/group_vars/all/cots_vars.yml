@@ -64,6 +64,8 @@ kibana:
         baseuri: "kibana_data"
         groupe: "data"
         port: 5601
+        shards: 10
+        replica: 2
 
 cerebro:
     baseuri: "cerebro"
