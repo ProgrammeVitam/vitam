@@ -119,6 +119,18 @@
         },
         {
           "action": {
+            "actionKey": "CHECK_CLASSIFICATION_LEVEL",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
             "behavior": "BLOCKING"
           }

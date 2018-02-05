@@ -161,7 +161,13 @@
         {
           "action": {
             "actionKey": "CHECK_CLASSIFICATION_LEVEL",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
           }
         },
         {
