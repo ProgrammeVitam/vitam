@@ -159,6 +159,13 @@ mongo_common
 
 [hosts-elasticsearch-data]
 # TODO: Put here servers where this service will be deployed : elasticsearch-data cluster
+# 2 params available for huge environments (parameter to be declared after each server) :
+#    is_data=true/false
+#    is_master=true/false
+# defaults are set to true
+# Examples :
+# server1 is_master=true is_data=false
+# server2 is_master=false is_data=true
 
 
 # Group definition ; DO NOT MODIFY
