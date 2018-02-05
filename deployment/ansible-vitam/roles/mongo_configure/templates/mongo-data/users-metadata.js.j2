@@ -4,11 +4,11 @@ db = db.getSiblingDB('metadata')
 
 // Create metadata user
 
-if (! db.getUser("{{mongoMetadataUser}}")) {
+if (! db.getUser("{{ mongodb.data.metadata.user }}")) {
     db.createUser(
         {
-            user: "{{mongoMetadataUser}}",
-            pwd: "{{mongoMetadataPassword}}",
+            user: "{{ mongodb.data.metadata.user }}",
+            pwd: "{{ mongodb.data.metadata.password }}",
             roles: [
                 { role: "readWrite", db: "metadata" }
             ]
@@ -18,11 +18,11 @@ if (! db.getUser("{{mongoMetadataUser}}")) {
 
 // Create admin user
 
-if (! db.getUser("{{mongoAdminUser}}")) {
+if (! db.getUser("{{ mongodb.data.admin.user }}")) {
     db.createUser(
         {
-            user: "{{mongoAdminUser}}",
-            pwd: "{{mongoAdminPassword}}",
+            user: "{{ mongodb.data.admin.user }}",
+            pwd: "{{ mongodb.data.admin.password }}",
             roles: [
                 { role: "readWrite", db: "metadata" },
                 { role: "dbAdmin", db: "metadata" }

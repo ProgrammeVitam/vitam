@@ -111,32 +111,47 @@ localhost
 
 [zone-storage:children]
 hosts-storage-offer-default
+hosts-mongodb-offer
 
 [hosts-storage-offer-default]
 localhost offer_conf=offer-fs-1
+
+[hosts-mongodb-offer:children]
+hosts-mongos-data
+hosts-mongoc-data
+hosts-mongod-data
+
+[hosts-mongos-offer]
+localhost   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+
+[hosts-mongoc-offer]
+localhost   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+
+[hosts-mongod-offer]
+localhost   mongo_cluster_name=offer-fs-1   mongo_shard_id=0    mongo_rs_bootstrap=true
 
 ##### Zone data
 
 [zone-data:children]
 hosts-elasticsearch-data
-mongo_common
+hosts-mongodb-data
 
 [hosts-elasticsearch-data]
 localhost elasticsearch_memory=256m
 
-[mongo_common:children]
-mongos
-mongoc
-mongod
+[hosts-mongodb-data:children]
+hosts-mongos-data
+hosts-mongoc-data
+hosts-mongod-data
 
-[mongos]
-localhost
+[hosts-mongos-data]
+localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
 
-[mongoc]
-localhost
+[hosts-mongoc-data]
+localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
 
-[mongod]
-localhost   mongo_shard_id=0  mongo_rs_bootstrap=true
+[hosts-mongod-data]
+localhost   mongo_cluster_name=mongo-data   mongo_shard_id=0  mongo_rs_bootstrap=true
 
 ###### Zone admin
 

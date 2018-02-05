@@ -30,7 +30,7 @@
   register: tuned_service_status
   when: ansible_distribution == "Debian"
 
-- set_fact: status_tuned_present="{{tuned_service_status.stat.exists}}"
+- set_fact: status_tuned_present="{{ tuned_service_status.stat.exists }}"
   when: tuned_service_status.changed
 
 - name: create the tuned conf directory

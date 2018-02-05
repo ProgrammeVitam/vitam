@@ -1,162 +1,194 @@
 ---
-# Make sure the service is open (mongos listening on 27017)
 
-# TODO: put the timeout in global variable (timeout to wait for mongo to be open)
-- name: Wait for the service port to be open
-  wait_for: host={{ip_service}} port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
-  run_once: true
+- block:
 
-# Detect if authentication is enabled
+    # Make sure the service is open (mongos listening on 27017)
+    # TODO: put the timeout in global variable (timeout to wait for mongo to be open)
+    - name: Wait for the service port to be open
+      wait_for: host={{ ip_service }} port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
 
-- name: Check if authent is enabled
-  command: "mongo {{ip_service}}:{{ mongodb.mongos_port }}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'db.help()'"
-  run_once: true
-  register: mongo_authent_enabled
-  failed_when: false
-  no_log: true
+    # Detect if authentication is enabled
 
-# Set mongo_no_auth facts
+    - name: Check if authent is enabled
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet --eval 'db.help()'"
+      register: mongo_authent_enabled
+      failed_when: false
+      no_log: false
 
-- name: Set default mongo facts
-  set_fact:
-    mongo_credentials: ""
-    mongo_no_auth: false
-  run_once: true
+    # Set mongo_no_auth facts
 
-- name: Set mongo_no_auth fact to true
-  set_fact:
-    mongo_no_auth: true
-  when: "mongo_authent_enabled.rc != 0"
-  run_once: true
+    - name: Set default mongo facts
+      set_fact:
+        mongo_credentials: ""
+        mongo_no_auth: false
 
-# When authentication is required, we set mongodb admin credentials
-- name: Set mongodb authentication credentials
-  set_fact:
-    mongo_credentials: " -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet"
-  when: "mongo_authent_enabled.rc == 0"
-  no_log: true
-  run_once: true
+    - name: Set mongo_no_auth fact to true
+      set_fact:
+        mongo_no_auth: true
+      when: "mongo_authent_enabled.rc != 0"
 
-# Copy the mongodb scripts
+    # When authentication is required, we set mongodb admin credentials
+    - name: Set mongodb authentication credentials
+      set_fact:
+        mongo_credentials: " -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet"
+      when: "mongo_authent_enabled.rc == 0"
+      no_log: false
 
-- name: Copy the database scripts files
-  template:
-    src: "{{ item }}"
-    dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/{{ item | basename | regex_replace('\\.j2$') }}"
-    owner: "{{ vitam_defaults.users.vitamdb }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
-  with_fileglob:
-    - "{{ role_path }}/templates/*"
-  run_once: true
+    # Copy the mongodb scripts
 
-# Enable sharding for specific databases and collections
+    - name: Copy the database scripts files
+      template:
+        src: "{{ item }}"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/{{ item | basename | regex_replace('\\.j2$') }}"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      with_fileglob:
+        - "{{ role_path }}/templates/mongo-data/*"
+      when:
+        - "mongo_cluster_name == 'mongo-data'"
 
-- name: Enable the sharding
-  command: mongo {{ip_service}}:{{ mongodb.mongos_port }}/admin {{mongo_credentials}} {{ vitam_defaults.folder.root_path }}/app/mongos/enable-sharding.js
-  run_once: true
-  no_log: true
+    - name: Copy the database scripts files
+      template:
+        src: "{{ item }}"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/{{ item | basename | regex_replace('\\.j2$') }}"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      with_fileglob:
+        - "{{ role_path }}/templates/mongo-offer/*"
+      when:
+        - "mongo_cluster_name != 'mongo-data'"
 
-# Initiate the databases and the related users
-# FIXME: use mongodb_user module which is curently in extras modules -> need to install pymongo on mongodb servers
+    # Enable sharding for specific databases and collections
 
-- name: Create the users
-  command: "mongo {{ip_service}}:{{ mongodb.mongos_port }}/admin {{mongo_credentials}} {{ vitam_defaults.folder.root_path }}/app/mongos/users-{{ item }}.js"
-  run_once: true
-  with_items:
-    - admin
-    - logbook
-    - masterdata
-    - metadata
-    - identity
-  no_log: true
+    - name: Enable the sharding
+      command: mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin {{ mongo_credentials }} {{ vitam_defaults.folder.root_path }}/app/mongos/enable-sharding.js
+      no_log: false
 
-# Activate security on mongo instances
+    # Initiate the databases and the related users
+    # FIXME: use mongodb_user module which is curently in extras modules -> need to install pymongo on mongodb servers
 
-# TODO: check if we can activate security by default and then create the users
-#  (caution : it seems that we can only create one user while being anonymous after security enabling)
-- name: Activate security on mongos instances
-  blockinfile:
-    dest: "{{ mongos_config_path }}/mongos.conf"
-    insertafter: "# ansible managed security conf"
-    block: |
-      security:
-        clusterAuthMode: keyFile
-        keyFile: "{{ mongos_config_path }}/keyfile"
-  delegate_to: "{{ item }}"
-  with_items: "{{groups['mongos']}}"
-  run_once: true
+    - name: Create the users
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin {{ mongo_credentials }} {{ vitam_defaults.folder.root_path }}/app/mongos/users-{{ item }}.js"
+      with_items:
+        - admin
+        - logbook
+        - masterdata
+        - metadata
+        - identity
+      no_log: false
+      when: "mongo_cluster_name == 'mongo-data'"
 
-- name: Activate security on mongod instances
-  blockinfile:
-    dest: "{{ mongod_config_path }}/mongod.conf"
-    insertafter: "# ansible managed security conf"
-    block: |
-      security:
-        authorization: enabled
-        clusterAuthMode: keyFile
-        keyFile: "{{ mongod_config_path }}/keyfile"
-  delegate_to: "{{ item }}"
-  with_items: "{{groups['mongod']}}"
-  run_once: true
+    - name: Create the users
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin {{ mongo_credentials }} {{ vitam_defaults.folder.root_path }}/app/mongos/users-{{ item }}.js"
+      with_items:
+        - admin
+        - offer
+      no_log: false
+      when: "mongo_cluster_name != 'mongo-data'"
 
-- name: Activate security on mongoc instances
-  blockinfile:
-    dest: "{{ mongoc_config_path }}/mongoc.conf"
-    insertafter: "# ansible managed security conf"
-    block: |
-      security:
-        authorization: enabled
-        clusterAuthMode: keyFile
-        keyFile: "{{ mongoc_config_path }}/keyfile"
-  delegate_to: "{{ item }}"
-  with_items: "{{groups['mongoc']}}"
-  run_once: true
+    # Activate security on mongo instances
 
-# Restart the mongo instances (to enable auth)
+    # TODO: check if we can activate security by default and then create the users
+    #  (caution : it seems that we can only create one user while being anonymous after security enabling)
+    - name: Activate security on mongos instances
+      blockinfile:
+        dest: "{{ mongos_config_path }}/mongos.conf"
+        insertafter: "# ansible managed security conf"
+        block: |
+          security:
+            clusterAuthMode: keyFile
+            keyFile: "{{ mongos_config_path }}/keyfile"
+      delegate_to: "{{ item }}"
+      when:
+        - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+      with_items: "{{ groups[mongos] }}"
 
-- name: restart mongod
-  service:
-     name: vitam-mongod
-     enabled: true
-     state: restarted
-  delegate_to: "{{ item }}"
-  with_items: "{{groups['mongod']}}"
-  run_once: true
+    - name: Activate security on mongod instances
+      blockinfile:
+        dest: "{{ mongod_config_path }}/mongod.conf"
+        insertafter: "# ansible managed security conf"
+        block: |
+          security:
+            authorization: enabled
+            clusterAuthMode: keyFile
+            keyFile: "{{ mongod_config_path }}/keyfile"
+      delegate_to: "{{ item }}"
+      when:
+        - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+      with_items: "{{ groups[mongod] }}"
 
-- name: restart mongoc
-  service:
-     name: vitam-mongoc
-     enabled: true
-     state: restarted
-  delegate_to: "{{ item }}"
-  with_items: "{{groups['mongoc']}}"
-  run_once: true
+    - name: Activate security on mongoc instances
+      blockinfile:
+        dest: "{{ mongoc_config_path }}/mongoc.conf"
+        insertafter: "# ansible managed security conf"
+        block: |
+          security:
+            authorization: enabled
+            clusterAuthMode: keyFile
+            keyFile: "{{ mongoc_config_path }}/keyfile"
+      delegate_to: "{{ item }}"
+      when:
+        - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+      with_items: "{{ groups[mongoc] }}"
 
-- name: restart mongos
-  service:
-     name: vitam-mongos
-     enabled: true
-     state: restarted
-  delegate_to: "{{ item }}"
-  with_items: "{{groups['mongos']}}"
-  run_once: true
+    # Restart the mongo instances (to enable auth)
 
-# Make sure the service is open (mongos listening on 27017)
+    - name: restart mongod
+      service:
+         name: vitam-mongod
+         enabled: true
+         state: restarted
+      delegate_to: "{{ item }}"
+      when:
+        - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+      with_items: "{{ groups[mongod] }}"
 
-- name: Wait for the service port to be open
-  wait_for: host={{ip_service}} port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
-  run_once: true
+    - name: restart mongoc
+      service:
+         name: vitam-mongoc
+         enabled: true
+         state: restarted
+      delegate_to: "{{ item }}"
+      when:
+        - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+      with_items: "{{ groups[mongoc] }}"
 
-# Initiate the databases (now we know that authentication is enabled)
+    - name: restart mongos
+      service:
+         name: vitam-mongos
+         enabled: true
+         state: restarted
+      delegate_to: "{{ item }}"
+      when:
+        - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+      with_items: "{{ groups[mongos] }}"
 
-- name: Initiate the databases
-  command: "mongo {{ip_service}}:{{ mongodb.mongos_port }}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
-  run_once: true
-  with_items:
-    - admin
-    - logbook
-    - masterdata
-    - metadata
-    - identity
-  no_log: true
+    # Make sure the service is open (mongos listening on 27017)
+
+    - name: Wait for the service port to be open
+      wait_for: host={{ ip_service }} port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
+
+    # Initiate the databases (now we know that authentication is enabled)
+
+    - name: Initiate the databases
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
+      with_items:
+        - admin
+        - logbook
+        - masterdata
+        - metadata
+        - identity
+      no_log: false
+      when: "mongo_cluster_name == 'mongo-data'"
+
+    - name: Initiate the databases
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
+      with_items:
+        - admin
+        - offer
+      no_log: false
+      when: "mongo_cluster_name != 'mongo-data'"
+
+  when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap|lower == "true"

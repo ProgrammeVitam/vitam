@@ -28,4 +28,4 @@
 # Act on a local vitam test environment with ansible ; default inventory used is "hosts.local"
 
 # TODO: User & password should be retrieved from the vitam-vault, but it's not simple to do it with shell scripting
-mongo -u vitamdb-admin -p azerty admin
+mongo --host 172.17.0.2 -u vitamdb-admin -p azerty admin

@@ -43,39 +43,39 @@ metricbeat.modules:
     # Sockets (linux only)
     - socket
 
-    # DIsk I/O 
+    # DIsk I/O
     - diskio
 
   enabled: true
   period: 10s
   processes: ['.*']
 
-{% if inventory_hostname in groups['mongoc'] %}
+{% if inventory_hostname in groups['hosts-mongoc-data'] %}
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
   metricsets: ["dbstats", "status"]
-  username: {{mongoLocalAdminUser}}
-  password: {{mongoLocalAdminPassword}}
+  username: {{ mongodb.data.localadmin.user }}
+  password: {{ mongodb.data.localadmin.password }}
   db: ["admin"]
   period: 10s
 {% endif %}
 
-{% if inventory_hostname in groups['mongod'] %}
+{% if inventory_hostname in groups['hosts-mongod-data'] %}
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
   metricsets: ["dbstats", "status"]
-  username: {{mongoLocalAdminUser}}
-  password: {{mongoLocalAdminPassword}}
+  username: {{ mongodb.data.localadmin.user }}
+  password: {{ mongodb.data.localadmin.password }}
   db: ["admin"]
   period: 10s
 {% endif %}
 
-{% if inventory_hostname in groups['mongos'] %}
+{% if inventory_hostname in groups['hosts-mongos-data'] %}
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongos_port }}"]
   metricsets: ["dbstats", "status"]
-  username: {{mongoAdminUser}}
-  password: {{mongoAdminPassword}}
+  username: {{ mongodb.data.admin.user }}
+  password: {{ mongodb.data.admin.password }}
   db: ["admin"]
   period: 10s
   #collections: ["logbook","masterdata","metadata,"identity"]

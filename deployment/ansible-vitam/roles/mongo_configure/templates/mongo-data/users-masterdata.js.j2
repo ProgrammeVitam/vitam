@@ -4,11 +4,11 @@ db = db.getSiblingDB('masterdata')
 
 // Create functional-admin user
 
-if (! db.getUser("{{mongoFunctionalAdminUser}}")) {
+if (! db.getUser("{{ mongodb.data.functionalAdmin.user }}")) {
     db.createUser(
         {
-            user: "{{mongoFunctionalAdminUser}}",
-            pwd: "{{mongoFunctionalAdminPassword}}",
+            user: "{{ mongodb.data.functionalAdmin.user }}",
+            pwd: "{{ mongodb.data.functionalAdmin.password }}",
             roles: [
                 { role: "readWrite", db: "masterdata" }
             ]
@@ -18,11 +18,11 @@ if (! db.getUser("{{mongoFunctionalAdminUser}}")) {
 
 // Create admin user
 
-if (! db.getUser("{{mongoAdminUser}}")) {
+if (! db.getUser("{{ mongodb.data.admin.user }}")) {
     db.createUser(
         {
-            user: "{{mongoAdminUser}}",
-            pwd: "{{mongoAdminPassword}}",
+            user: "{{ mongodb.data.admin.user }}",
+            pwd: "{{ mongodb.data.admin.password }}",
             roles: [
                 { role: "readWrite", db: "masterdata" },
                 { role: "dbAdmin", db: "masterdata" }

@@ -1,17 +1,16 @@
 
 # Configuration MongoDB
 mongoDbNodes:
-{% for host in groups['mongos'] %}
+{% for host in groups['hosts-mongos-data'] %}
 - dbHost: {{hostvars[host]['ip_service']}}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: identity
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{mongoSecurityInternalUser}}
-dbPassword: {{mongoSecurityInternalPassword}}
+dbUserName: {{ mongodb.data.securityInternal.user }}
+dbPassword: {{ mongodb.data.securityInternal.password }}
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 
 personalCertificatePermissionConfig: personal-certificate-permissions.conf
-

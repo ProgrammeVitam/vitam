@@ -108,8 +108,10 @@
         host: "{{ hostvars[item]['ip_service'] }}"
         port: "{{ mongodb.mongod_port }}"
         timeout: "{{ vitam_defaults.services.start_timeout }}"
-      when: "hostvars[item]['mongo_shard_id'] == mongo_shard_id"
-      with_items: "{{ groups['mongod'] }}"
+      when:
+        - "hostvars[item]['mongo_cluster_name'] == mongo_cluster_name"
+        - "hostvars[item]['mongo_shard_id'] == mongo_shard_id"
+      with_items: "{{ groups[group_name] }}"
 
     - name: Copy the script which initiate the replica set
       template:

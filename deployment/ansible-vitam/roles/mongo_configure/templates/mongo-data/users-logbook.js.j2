@@ -4,11 +4,11 @@ db = db.getSiblingDB('logbook')
 
 // Create logbook user
 
-if (! db.getUser("{{mongoLogbookUser}}")) {
+if (! db.getUser("{{ mongodb.data.logbook.user }}")) {
     db.createUser(
         {
-            user: "{{mongoLogbookUser}}",
-            pwd: "{{mongoLogbookPassword}}",
+            user: "{{ mongodb.data.logbook.user }}",
+            pwd: "{{ mongodb.data.logbook.password }}",
             roles: [
                 { role: "readWrite", db: "logbook" }
             ]
@@ -18,11 +18,11 @@ if (! db.getUser("{{mongoLogbookUser}}")) {
 
 // Create admin user
 
-if (! db.getUser("{{mongoAdminUser}}")) {
+if (! db.getUser("{{ mongodb.data.admin.user }}")) {
     db.createUser(
         {
-            user: "{{mongoAdminUser}}",
-            pwd: "{{mongoAdminPassword}}",
+            user: "{{ mongodb.data.admin.user }}",
+            pwd: "{{ mongodb.data.admin.password }}",
             roles: [
                 { role: "readWrite", db: "logbook" },
                 { role: "dbAdmin", db: "logbook" }

@@ -1,0 +1,62 @@
+---
+
+# mongodb commons (yum install, etc...)
+- hosts: hosts-mongodb-offer
+  roles:
+    - mongo_common
+
+# Mongoc replicas configuration
+- hosts: hosts-mongoc-offer
+  roles:
+    - mongoc
+  vars:
+    mongo_bin: mongod
+    passphrase: "{{ mongodb.offer.passphrase }}"
+    group_name: "hosts-mongoc-offer"
+
+# Mongod replicas configuration
+- hosts: hosts-mongod-offer
+  roles:
+    - mongod
+  vars:
+    mongo_bin: mongod
+    passphrase: "{{ mongodb.offer.passphrase }}"
+    group_name: "hosts-mongod-offer"
+
+# Mongos configuration
+- hosts: hosts-mongos-offer
+  roles:
+    - mongos
+  vars:
+    mongo_bin: mongos
+    passphrase: "{{ mongodb.offer.passphrase }}"
+    group_name: "hosts-mongos-offer"
+    mongoc: "hosts-mongoc-offer"
+    mongod: "hosts-mongod-offer"
+    mongos: "hosts-mongos-offer"
+
+# HUGE FIXME: BEURK
+# force mongo_cluster_name when deploying to localhost (dev docker)
+
+- hosts: hosts-mongos-offer
+  roles:
+    - { role: mongo_configure, when: "inventory_hostname == 'localhost'" }
+  vars:
+    mongo_bin: mongos
+    passphrase: "{{ mongodb.offer.passphrase }}"
+    group_name: "hosts-mongos-offer"
+    mongoc: "hosts-mongoc-offer"
+    mongod: "hosts-mongod-offer"
+    mongos: "hosts-mongos-offer"
+    mongo_cluster_name: "mongo-offer"
+
+- hosts: hosts-mongos-offer
+  roles:
+    - { role: mongo_configure, when: "inventory_hostname != 'localhost'" }
+  vars:
+    mongo_bin: mongos
+    passphrase: "{{ mongodb.offer.passphrase }}"
+    group_name: "hosts-mongos-offer"
+    mongoc: "hosts-mongoc-offer"
+    mongod: "hosts-mongod-offer"
+    mongos: "hosts-mongos-offer"

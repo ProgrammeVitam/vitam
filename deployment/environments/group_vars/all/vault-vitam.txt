@@ -1,19 +1,41 @@
+
 plateforme_secret: vitamsecret
 cerebro_secret_key: tGz28hJkiW[p@a34G
-mongoAdminUser: vitamdb-admin
-mongoAdminPassword: azerty
-mongoLocalAdminUser: vitamdb-localadmin
-mongoLocalAdminPassword: qwerty
-mongoMetadataUser: metadata
-mongoMetadataPassword: azerty
-mongoLogbookUser: logbook
-mongoLogbookPassword: azerty
-mongoFunctionalAdminUser: functional-admin
-mongoFunctionalAdminPassword: azerty
-mongoSecurityInternalUser: security-internal
-mongoSecurityInternalPassword: azerty
-mongoPassPhrase: mongogo
 consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
+
+mongodb:
+  data:
+    passphrase: mongogo
+    admin:
+      user: vitamdb-admin
+      password: azerty
+    localadmin:
+      user: vitamdb-localadmin
+      password: qwerty
+    metadata:
+      user: metadata
+      password: azerty1
+    logbook:
+      user: logbook
+      password: azerty2
+    functionalAdmin:
+      user: functional-admin
+      password: azerty3
+    securityInternal:
+      user: security-internal
+      password: azerty4
+  offer:
+    passphrase: mongogo
+    admin:
+      user: vitamdb-admin
+      password: azerty
+    localadmin:
+      user: vitamdb-localadmin
+      password: qwerty
+    offer:
+      user: offer
+      password: azerty5
+
 vitam_users:
   - vitam_aadmin:
     login: aadmin
@@ -31,9 +53,6 @@ vitam_users:
     login: techadmin
     password: techadmin1234
     role: admin
-vitam_offers:
-  offer_swift_1:
-    swift_password: password
 ldap_authentification:
     ldap_pwd: "admin"
 

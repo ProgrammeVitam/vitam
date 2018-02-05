@@ -1,14 +1,14 @@
 
 # Configuration MongoDB
 mongoDbNodes:
-{% for host in groups['mongos'] %}
+{% for host in groups['hosts-mongos-data'] %}
 - dbHost: {{hostvars[host]['ip_service']}}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: masterdata
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{mongoFunctionalAdminUser}}
-dbPassword: {{mongoFunctionalAdminPassword}}
+dbUserName: {{ mongodb.data.functionalAdmin.user }}
+dbPassword: {{ mongodb.data.functionalAdmin.password }}
 
 #Basic Authentication
 adminBasicAuth:
