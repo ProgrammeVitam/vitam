@@ -60,10 +60,8 @@
 
 - name: remove temporary pem file
   local_action:
-    module: file:
-    path: "{{ item }}"
+    module: file
+    path:  "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
     state: absent
-  with_items:
-    - "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
   tags:
     - init_pronom
