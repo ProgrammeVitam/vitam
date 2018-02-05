@@ -222,6 +222,7 @@ public class AgenciesResource {
 
     /**
      * check the agencie file
+     * @param agencyStream the stream containing agencies to be checked
      *
      * @return Response response jersey
      * @throws IOException convert inputstream agency to File exception occurred
