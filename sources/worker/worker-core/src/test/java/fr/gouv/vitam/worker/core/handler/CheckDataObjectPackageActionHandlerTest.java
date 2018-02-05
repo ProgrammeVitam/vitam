@@ -220,8 +220,13 @@ public class CheckDataObjectPackageActionHandlerTest {
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
 
-        final Map<String, String> invalidVersionList = new HashMap<>();
-        Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
+        Map<String, Map<String, String>> versionMap = new HashMap<>();
+        final Map<String, String> invalidVersionMap = new HashMap<>();
+        final Map<String, String> validVersionMap = new HashMap<>();
+        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
+        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
+
+        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         final ItemStatus response2 = handler.execute(params, action);
         assertEquals(StatusCode.KO, response2.getGlobalStatus());
     }

@@ -557,4 +557,25 @@ public class ItemStatus {
     public void setGlobalOutcomeDetailSubcode(String globalOutcomeDetailSubcode) {
         this.globalOutcomeDetailSubcode = globalOutcomeDetailSubcode;
     }
+
+    /**
+     * Set the value of the specified statusCode in this statusMeter
+     *
+     * @param statusCode
+     * @param value
+     */
+
+    public void setStatusMeterValue(StatusCode statusCode, Integer value) {
+        this.statusMeter.set(statusCode.getStatusLevel(),value);
+    }
+
+    /**
+     * Reinit all the values of this statusMeter to 0
+     */
+    public void reinitStatusMeter() {
+        for (int i = 0; i < this.statusMeter.size(); i++) {
+            this.statusMeter.set(i,0);
+        }
+
+    }
 }

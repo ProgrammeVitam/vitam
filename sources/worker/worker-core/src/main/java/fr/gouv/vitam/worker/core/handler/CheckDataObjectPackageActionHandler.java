@@ -94,6 +94,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
                     if (extractSedaStatus.shallStop(true)) {
+                        resetItemStatusMeter(itemStatus);
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
                 }
@@ -108,6 +109,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     itemStatus.setItemsStatus(CheckVersionActionHandler.getId(), checkVersionStatus);
 
                     if (checkVersionStatus.shallStop(true)) {
+                        resetItemStatusMeter(itemStatus);
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
                     ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
@@ -119,6 +121,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
                     if (extractSedaStatus.shallStop(true)) {
+                        resetItemStatusMeter(itemStatus);
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
                     List<IOParameter> inputList = new ArrayList<>();
@@ -134,20 +137,37 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     itemStatus.setItemsStatus(CheckObjectUnitConsistencyActionHandler.getId(),
                         checkObjectUnitConsistencyStatus);
 
+
                 }
 
 
             }
+
+
         } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
+
+
+        resetItemStatusMeter(itemStatus);
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+
+    }
+
+    /**
+     * Reset the statusMeter of the specified itemStatus
+     * @param itemStatus
+     */
+    private void resetItemStatusMeter(ItemStatus itemStatus){
+        itemStatus.reinitStatusMeter();
+        //counter for DATAOBJECTPACKAGE is always 1
+        itemStatus.setStatusMeterValue(itemStatus.getGlobalStatus(),1);
 
     }
 
