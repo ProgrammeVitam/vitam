@@ -21,6 +21,8 @@ cluster.name: {{ composant.cluster_name }}
 # Use a descriptive name for the node:
 #
 node.name: {{inventory_hostname}}
+node.master: {{ is_master|default('true') }}
+node.data: {{ is_data|default('true') }}
 #
 # Add custom attributes to the node:
 #
