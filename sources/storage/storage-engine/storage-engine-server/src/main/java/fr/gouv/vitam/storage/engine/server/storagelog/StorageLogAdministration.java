@@ -27,24 +27,9 @@
 
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import static fr.gouv.vitam.common.LocalDateUtil.getString;
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import org.apache.commons.compress.archivers.ArchiveException;
-
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -56,14 +41,11 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -77,56 +59,57 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.compress.archivers.ArchiveException;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import static fr.gouv.vitam.common.LocalDateUtil.getString;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
 
 /**
- * Business class for Logbook Administration (traceability)
+ * Business class for Storage Log Administration (backup)
  */
-public class StorageLogbookAdministration {
+public class StorageLogAdministration {
 
-    //TODO : could be usefull to create a Junit for this
+    //TODO : could be useful to create a Junit for this
 
     private static final String STORAGE_LOGBOOK = "storage_logbook";
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookAdministration.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAdministration.class);
 
     private static final String STP_OP_SECURISATION = "STP_STORAGE_SECURISATION";
 
-
     private static final String STRATEGY_ID = "default";
     public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "StorageLogbookOperation";
-    final StorageLogbookService storageLogbookService;
+    final StorageLogService storageLogService;
     private final File tmpFolder;
     private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH-mm-ss");
 
-
-
-    public StorageLogbookAdministration(StorageLogbookService storageLogbookService,
+    public StorageLogAdministration(StorageLogService storageLogService,
         String tmpFolder) {
-        this.storageLogbookService = storageLogbookService;
+        this.storageLogService = storageLogService;
         this.tmpFolder = new File(tmpFolder);
         this.tmpFolder.mkdir();
-
     }
-
-
 
     /**
      * secure the logbook operation since last securisation.
      *
      * @return the GUID of the operation
-     * @throws TraceabilityException               if error on generating secure logbook
      * @throws IOException                         if an IOException is thrown while generating the secure storage
      * @throws StorageLogException                 if a LogZipFile cannot be generated
      * @throws LogbookClientBadRequestException    if a bad request is encountered
      * @throws LogbookClientAlreadyExistsException if the logbook already exists
      * @throws LogbookClientServerException        if there's a problem connecting to the logbook functionnality
-     * @throws LogbookNotFoundException            if not found on selecting logbook operation
-     * @throws InvalidParseOperationException      if json data is not well-formed
-     * @throws LogbookDatabaseException            if error on query logbook collection
-     * @throws InvalidCreateOperationException     if error on creating query
      */
-    public synchronized GUID generateSecureStorageLogbook()
-        throws TraceabilityException, IOException, StorageLogException,
+    public synchronized GUID backupStorageLog()
+        throws IOException, StorageLogException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         // TODO: use a distributed lock to launch this function only on one server (cf consul)
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
@@ -142,7 +125,7 @@ public class StorageLogbookAdministration {
 
             final File zipFile = new File(tmpFolder, fileName);
             final String uri = String.format("%s/%s", STORAGE_LOGBOOK, fileName);
-            LogInformation info = storageLogbookService.generateSecureStorage(tenantId);
+            LogInformation info = storageLogService.generateSecureStorage(tenantId);
             try (LogZipFile logZipFile = new LogZipFile(zipFile)) {
                 logZipFile.initStoreLog();
                 final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
@@ -213,7 +196,7 @@ public class StorageLogbookAdministration {
     }
 
     private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip)
-        throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {
+        throws LogbookClientAlreadyExistsException {
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED,

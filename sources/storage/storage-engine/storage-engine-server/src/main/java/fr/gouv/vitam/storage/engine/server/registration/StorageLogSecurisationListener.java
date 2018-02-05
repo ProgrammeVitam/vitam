@@ -74,7 +74,7 @@ public class StorageLogSecurisationListener implements ServletContextListener {
         LOGGER.debug("ServletContextListener destroyed");
         try {
             for (Integer tenant : configuration.getTenants()) {
-                storageResource.getStorageLogbookService().stopAppenderLoggerAndSecureLastLogs(tenant);
+                storageResource.getStorageLogService().stopAppenderLoggerAndSecureLastLogs(tenant);
             }
         } catch (final Exception e) {
             LOGGER.error("Fail to Backup Storage log ", e);

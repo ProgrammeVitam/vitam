@@ -81,7 +81,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookService;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookOutcome;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
@@ -149,7 +149,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     // FOR JUNIT TEST ONLY (TODO P1: review WorkspaceClientFactory to offer a
     // mocked WorkspaceClient)
     private final WorkspaceClient mockedWorkspaceClient;
-    private StorageLogbookService storageLogbookService;
+    private StorageLogService storageLogService;
 
 
 
@@ -157,15 +157,15 @@ public class StorageDistributionImpl implements StorageDistribution {
      * Constructs the service with a given configuration
      *
      * @param configuration the configuration of the storage
-     * @param storageLogbookService 
+     * @param storageLogService
      */
-    public StorageDistributionImpl(StorageConfiguration configuration, StorageLogbookService storageLogbookService) {
+    public StorageDistributionImpl(StorageConfiguration configuration, StorageLogService storageLogService) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
         urlWorkspace = configuration.getUrlWorkspace();
         WorkspaceClientFactory.changeMode(urlWorkspace);
         millisecondsPerKB = configuration.getTimeoutMsPerKB();
         mockedWorkspaceClient = null;
-        this.storageLogbookService = storageLogbookService;
+        this.storageLogService = storageLogService;
         // TODO P2 : a real design discussion is needed : should we force it ?
         // Should we negociate it with the offer ?
         // TODO P2 Might be negotiated but limited to available digestType from
@@ -183,12 +183,12 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param wkClient   a custom instance of workspace client
      * @param digestType a custom digest
      */
-    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digestType,StorageLogbookService storageLogbookService) {
+    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digestType,StorageLogService storageLogService) {
         urlWorkspace = null;
         millisecondsPerKB = 100;
         mockedWorkspaceClient = wkClient;
         this.digestType = digestType;
-        this.storageLogbookService = storageLogbookService;
+        this.storageLogService = storageLogService;
     }
 
     // TODO P1 : review design : for the moment we handle
@@ -200,7 +200,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public StoredInfoResult storeData(String strategyId, String objectId,
         ObjectDescription createObjectDescription, DataCategory category, String requester)
-        throws StorageException, StorageAlreadyExistsException {
+        throws StorageException {
         // Check input params
         Integer tenantId = ParameterHelper.getTenantParameter();
         checkStoreDataParams(createObjectDescription, strategyId, objectId, category);
@@ -227,7 +227,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             } catch (IOException e) {
                 LOGGER.error(e);
             }
-            
+
             // TODO P1 Handle Status result if different for offers
             return buildStoreDataResponse(objectId, category, parameters.getMapParameters().get(StorageLogbookParameterName.digest), 
                     strategyId, datas.getGlobalOfferResult());
@@ -429,14 +429,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private void logStorage(Integer tenant, StorageLogbookParameters parameters)
-        throws StorageTechnicalException, IOException {
-        try {
-
-            storageLogbookService.append(tenant, parameters);
-        } catch (final StorageException exc) {
-            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
-                exc);
-        }
+        throws IOException {
+        storageLogService.append(tenant, parameters);
     }
 
     private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String digest, String strategy,

@@ -26,68 +26,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
+import java.io.IOException;
+import java.util.List;
+
 /**
- * Use as a singleton Implementation of the mock of the storage logbook Only log informations
+ * Storage Logbook interface. It describes methods to be implemented.
  */
-public class StorageLogbookServiceImpl implements StorageLogbookService {
+public interface StorageLogService {
 
-    private StorageLogAppender appender;
+    /**
+     * Add a storage logbook entry <br>
+     * <br>
+     *
+     * @param parameters the entry parameters
+     * @throws StorageException if an error is encountered
+     */
+    void append(Integer tenant, StorageLogbookParameters parameters) throws IOException;
 
-    public StorageLogbookServiceImpl(List<Integer> tenants, Path path) throws IOException {
-        appender = new StorageLogAppender(tenants, path);
-    }
+    /**
+     * Rotation
+     * clode  Storage Log file and create a new one
+     * @param tenantId
+     */
+    LogInformation generateSecureStorage(Integer tenantId) throws IOException;
 
-
-    @Override
-    public void append(Integer tenant, StorageLogbookParameters parameters) throws StorageException, IOException {
-        appender.append(tenant, parameters);
-    }
-
-    @Override
-    public void close() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public List<StorageLogbookParameters> selectOperationsbyObjectId(String objectId) throws StorageException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId)
-        throws StorageException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
-        throws StorageException, InvalidParseOperationException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public LogInformation generateSecureStorage(Integer tenantId) throws IOException {
-        return appender.secureAndCreateNewlogByTenant(tenantId);
-
-    }
-
-    // FIXME Secure when server restart
-    @Override
-    public void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException {
-
-        LogInformation info = appender.secureWithoutCreatingNewLogByTenant(tenantId);
-
-    }
-
+    /**
+     * Just close  Storage Log file
+     * should be called when the server is shutting Down
+     * @param tenantId
+     * @throws IOException
+     */
+    void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException;
 
 }

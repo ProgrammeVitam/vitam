@@ -90,9 +90,9 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookAdministration;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookService;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookServiceImpl;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
@@ -108,18 +108,18 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     private final StorageDistribution distribution;
 
-    private StorageLogbookService storageLogbookService;
-    private StorageLogbookAdministration storageLogbookAdministration;
+    private StorageLogService storageLogService;
+    private StorageLogAdministration storageLogAdministration;
 
     public StorageResource(String configurationFile) {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final StorageConfiguration configuration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
-            storageLogbookService = new StorageLogbookServiceImpl(configuration.getTenants(),
+            storageLogService = new StorageLogServiceImpl(configuration.getTenants(),
                 Paths.get(configuration.getLoggingDirectory()));
-            distribution = new StorageDistributionImpl(configuration, storageLogbookService);
+            distribution = new StorageDistributionImpl(configuration, storageLogService);
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
-            storageLogbookAdministration =
-                new StorageLogbookAdministration(storageLogbookService, configuration.getZippingDirecorty());
+            storageLogAdministration =
+                new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
             LOGGER.info("init Storage Resource server");
         } catch (IOException e) {
             LOGGER.error("Cannot initialize storage resource server, error when reading configuration file");
@@ -134,12 +134,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param configuration the storage configuration to be applied
      * @param service       the logbook service
      */
-    public StorageResource(StorageConfiguration configuration, StorageLogbookService service) {
-        this.storageLogbookService = service;
-        distribution = new StorageDistributionImpl(configuration, storageLogbookService);
+    public StorageResource(StorageConfiguration configuration, StorageLogService service) {
+        this.storageLogService = service;
+        distribution = new StorageDistributionImpl(configuration, storageLogService);
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
-        storageLogbookAdministration =
-            new StorageLogbookAdministration(storageLogbookService, configuration.getZippingDirecorty());
+        storageLogAdministration =
+            new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
         LOGGER.info("init Storage Resource server");
     }
 
@@ -1195,7 +1195,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         try {
             Integer tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final GUID guid = storageLogbookAdministration.generateSecureStorageLogbook();
+            final GUID guid = storageLogAdministration.backupStorageLog();
             final List<String> resultAsJson = new ArrayList<>();
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
@@ -1203,7 +1203,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
                     .addAllResults(resultAsJson))
                 .build();
 
-        } catch (LogbookClientServerException | TraceabilityException | IOException |
+        } catch (LogbookClientServerException | IOException |
             StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
             LOGGER.error("unable to generate secure  log", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -1521,10 +1521,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Getter of Storage service
      *
-     * @return StorageLogbookService
+     * @return StorageLogService
      */
-    public StorageLogbookService getStorageLogbookService() {
-        return storageLogbookService;
+    public StorageLogService getStorageLogService() {
+        return storageLogService;
     }
 
 }

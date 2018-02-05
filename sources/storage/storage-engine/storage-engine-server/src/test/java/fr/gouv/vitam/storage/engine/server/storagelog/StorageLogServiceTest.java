@@ -45,10 +45,9 @@ import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookP
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import org.junit.rules.TemporaryFolder;
 
-public class StorageLogbookServiceTest {
+public class StorageLogServiceTest {
 
-    private static final String selectString = "{\"select\": \"selectQuery\"}";
-    private StorageLogbookService storageLogbookService;
+    private StorageLogService storageLogService;
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     @Before
@@ -56,37 +55,16 @@ public class StorageLogbookServiceTest {
         List<Integer> list = new ArrayList<>() ;
         list.add(0);
         list.add(1);
-        storageLogbookService = new StorageLogbookServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
+        storageLogService = new StorageLogServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
     }
 
     @Test()
     public void appendTest() throws Exception {
-        storageLogbookService.append(0,getParameters());
+        storageLogService.append(0,getParameters());
     }
     @Test(expected = StorageException.class)
     public void addTestInError() throws Exception {
-        storageLogbookService.append(0,getEmptyParameters());
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void closeTest() {
-        storageLogbookService.close();
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void selectOperationsbyObjectIdTest() throws Exception {
-        storageLogbookService.selectOperationsbyObjectId("objectId");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void selectOperationsbyObjectGroupIdTest() throws Exception {
-        storageLogbookService.selectOperationsbyObjectGroupId("objectGroupId");
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void selectOperationsWithASelectTest() throws Exception {
-        final ObjectMapper mapper = new ObjectMapper();
-        storageLogbookService.selectOperationsWithASelect(mapper.readTree(selectString));
+        storageLogService.append(0,getEmptyParameters());
     }
 
     private StorageLogbookParameters getParameters() {

@@ -26,80 +26,44 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import java.time.LocalDateTime;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 /**
- * Log Information
+ * Use as a singleton Implementation of the mock of the storage logbook Only log informations
  */
-public class LogInformationEvent {
-    /**
-     * fileName
-     */
-    private String fileName;
-    /**
-     * time stamp begin log time
-     */
-    private LocalDateTime beginTime;
-    /**
-     * time stamp end log time
-     */
-    private LocalDateTime endTime;
-    /**
-     * time stamp token (base64 encoded)
-     */
-    private String hash;
-    /**
-     * Total size of the ZIP entry
-     */
-    private long size;
+public class StorageLogServiceImpl implements StorageLogService {
 
-    public LogInformationEvent(String fileName, LocalDateTime beginTime, LocalDateTime endTime, String hash,
-        long size) {
-        this.fileName = fileName;
-        this.beginTime = beginTime;
-        this.endTime = endTime;
-        this.hash = hash;
-        this.size = size;
+    private StorageLogAppender appender;
+
+    public StorageLogServiceImpl(List<Integer> tenants, Path path) throws IOException {
+        appender = new StorageLogAppender(tenants, path);
     }
 
-    /**
-     * get log FileName
-     *
-     * @return fileName
-     */
-    public String getFileName() {
-        return fileName;
+
+    @Override
+    public void append(Integer tenant, StorageLogbookParameters parameters) throws IOException {
+        appender.append(tenant, parameters);
     }
 
-    /**
-     * get begin log time
-     *
-     * @return LocalDateTime beginTime
-     */
-    public LocalDateTime getBeginTime() {
-        return beginTime;
+    @Override
+    public LogInformation generateSecureStorage(Integer tenantId) throws IOException {
+        return appender.secureAndCreateNewlogByTenant(tenantId);
+
     }
 
-    /**
-     * get end log file time
-     *
-     * @return LocalDateTime endTime
-     */
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
+    // FIXME Secure when server restart
+    @Override
+    public void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException {
 
-    /**
-     * @return Size of the entry
-     */
-    public long getSize() {
-        return size;
-    }
+        LogInformation info = appender.secureWithoutCreatingNewLogByTenant(tenantId);
 
-    /**
-     * @return hash
-     */
-    public String getHash() {
-        return hash;
     }
 }
