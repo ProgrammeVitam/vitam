@@ -27,12 +27,10 @@
 package fr.gouv.vitam.access.internal.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
+import static org.mockito.ArgumentCaptor.forClass;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -51,7 +49,15 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Unit Test class
@@ -62,37 +68,57 @@ public class AccessInternalResourceTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    private LogbookOperationsClient logbookOperationsClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Mock
+    private AccessInternalModule accessInternalModule;
+
     @Test
     @RunWithCustomExecutor
     public void should_create_logbook_when_export_dip()
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         InvalidCreateOperationException {
-        // given
+        // Given
         GUID request = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(request);
         
-        AccessInternalModule accessInternalModuleMock = mock(AccessInternalModule.class);
-        LogbookOperationsClient logbookOperationsClientMock = mock(LogbookOperationsClient.class);
-        WorkspaceClient workspaceClientMock = mock(WorkspaceClient.class);
-        
-        AccessInternalResourceImpl accessInternalResource =
-            new AccessInternalResourceImpl(accessInternalModuleMock, logbookOperationsClientMock, workspaceClientMock);
+        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
+        given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
 
-        // when
+        AccessInternalResourceImpl accessInternalResource =
+            new AccessInternalResourceImpl(accessInternalModule, logbookOperationsClientFactory,
+                workspaceClientFactory);
+
+        // When
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.eq("#id", "test"));
         accessInternalResource.exportDIP(select.getFinalSelect());
-        
-        // then
-        ArgumentCaptor<LogbookOperationParameters> logbookParamsCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
-        Mockito.verify(logbookOperationsClientMock, Mockito.times(1)).create(logbookParamsCaptor.capture());
+
+        // Then
+        ArgumentCaptor<LogbookOperationParameters> logbookParamsCaptor = forClass(LogbookOperationParameters.class);
+
+        verify(logbookOperationsClient, times(1)).create(logbookParamsCaptor.capture());
+
         assertThat(logbookParamsCaptor.getValue()).isNotNull();
         assertThat(logbookParamsCaptor.getValue().getParameterValue(LogbookParameterName.outcomeDetailMessage))
             .contains(VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED"));
         assertThat(logbookParamsCaptor.getValue().getParameterValue(LogbookParameterName.eventIdentifierRequest))
-        .isEqualTo(request.getId());
+            .isEqualTo(request.getId());
     }
+
 }
 
