@@ -80,7 +80,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -1516,15 +1515,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Override
     public void close() {
         distribution.close();
-    }
-
-    /**
-     * Getter of Storage service
-     *
-     * @return StorageLogService
-     */
-    public StorageLogService getStorageLogService() {
-        return storageLogService;
     }
 
 }

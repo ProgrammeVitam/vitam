@@ -26,13 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Storage Logbook interface. It describes methods to be implemented.
@@ -51,16 +48,9 @@ public interface StorageLogService {
     /**
      * Rotation
      * clode  Storage Log file and create a new one
+     *
      * @param tenantId
      */
     LogInformation generateSecureStorage(Integer tenantId) throws IOException;
-
-    /**
-     * Just close  Storage Log file
-     * should be called when the server is shutting Down
-     * @param tenantId
-     * @throws IOException
-     */
-    void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException;
 
 }

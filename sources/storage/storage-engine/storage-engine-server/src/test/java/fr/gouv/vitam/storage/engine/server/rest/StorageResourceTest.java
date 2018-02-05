@@ -79,7 +79,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.registration.StorageLogSecurisationListener;
 
 /**
  *
@@ -1099,7 +1098,6 @@ public class StorageResourceTest {
                 singletons.add(new GenericExceptionMapper());
                 StorageResource storageResource = new StorageResource(new StorageDistributionInnerClass());
                 singletons.add(storageResource);
-                singletons.add(new StorageLogSecurisationListener(storageResource, configurationFile));
             }
             return singletons;
         }

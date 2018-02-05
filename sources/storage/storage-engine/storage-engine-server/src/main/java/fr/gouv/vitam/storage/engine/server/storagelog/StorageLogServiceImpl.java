@@ -26,15 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 /**
  * Use as a singleton Implementation of the mock of the storage logbook Only log informations
@@ -56,14 +52,5 @@ public class StorageLogServiceImpl implements StorageLogService {
     @Override
     public LogInformation generateSecureStorage(Integer tenantId) throws IOException {
         return appender.secureAndCreateNewlogByTenant(tenantId);
-
-    }
-
-    // FIXME Secure when server restart
-    @Override
-    public void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException {
-
-        LogInformation info = appender.secureWithoutCreatingNewLogByTenant(tenantId);
-
     }
 }

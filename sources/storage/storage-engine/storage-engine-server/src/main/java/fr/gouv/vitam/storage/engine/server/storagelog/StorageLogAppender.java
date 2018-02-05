@@ -30,8 +30,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,12 +44,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+
 /**
  * Storage Logbook  Appender
  */
 public class StorageLogAppender {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAppender.class);
-    
+
     private Path fileLocation;
 
     private final String lineSeparator = System.getProperty("line.separator");
@@ -69,10 +70,6 @@ public class StorageLogAppender {
     private final Map<Integer, Object> lockers = new HashMap<>();
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    private DateTimeFormatter timeFormater = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss");
-
-
 
     /**
      * <pre>{@code
@@ -163,29 +160,6 @@ public class StorageLogAppender {
     }
 
     /**
-     * Call only when no more appending log is expected
-     * for exemple when context is destroyed
-     *
-     * @param tenant
-     * @return Log Information
-     * @throws IOException
-     */
-    public LogInformation secureWithoutCreatingNewLogByTenant(Integer tenant) throws IOException {
-        LocalDateTime endTime = null;
-        //save the name
-        Path lastPath = null;
-        Object lock = lockers.get(tenant);
-        synchronized (lock) {
-            OutputStream out = streams.get(tenant);
-            lastPath = filesNames.get(tenant);
-            endTime = LocalDateTime.now();
-            out.flush();
-            out.close();
-        }
-        return new LogInformation(lastPath, beginLogTimes.get(tenant), endTime);
-    }
-
-    /**
      * Append logbookParameters to the current log.
      *
      * @param tenant
@@ -200,10 +174,6 @@ public class StorageLogAppender {
             out.write((parameters.getMapParameters().toString() + lineSeparator).getBytes());
         }
         return this;
-    }
-
-    private String getTime() {
-        return LocalDateTime.now().format(timeFormater);
     }
 
 }
