@@ -277,7 +277,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         try {
             checkEmptyQuery(queryDsl);
-            GUID logbookId = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -286,14 +285,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
-                        logbookId,
+                        GUIDReader.getGUID(operationId),
                         "EXPORT_DIP",
                         GUIDReader.getGUID(operationId),
                         LogbookTypeProcess.EXPORT_DIP,
                         StatusCode.STARTED,
-                        VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + logbookId.toString(),
+                        VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + GUIDReader.getGUID(operationId),
                         GUIDReader.getGUID(operationId));
-
+                
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
@@ -306,8 +305,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
-                LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-                InvalidGuidOperationException | VitamClientException | InternalServerException e) {
+                InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                VitamClientException | InternalServerException e) {
                 LOGGER.error("Error while generating DIP", e);
                 return Response.status(INTERNAL_SERVER_ERROR)
                     .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
