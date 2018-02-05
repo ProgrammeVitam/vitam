@@ -91,7 +91,6 @@ public class StorageLogbookAdministration {
 
     private static final String STP_OP_SECURISATION = "STP_STORAGE_SECURISATION";
 
-
     private static final String STRATEGY_ID = "default";
     public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "StorageLogbookOperation";
     final StorageLogbookService storageLogbookService;
@@ -229,7 +228,7 @@ public class StorageLogbookAdministration {
         StatusCode statusCode) throws LogbookClientNotFoundException {
 
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(parentEventId, eventType, parentEventId, LogbookTypeProcess.TRACEABILITY,
+            .newLogbookOperationParameters(GUIDFactory.newEventGUID(parentEventId), eventType, parentEventId, LogbookTypeProcess.TRACEABILITY,
                 statusCode,
                 VitamLogbookMessages.getCodeOp(eventType, statusCode), parentEventId);
         logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType +
