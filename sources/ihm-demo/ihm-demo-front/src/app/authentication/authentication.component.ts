@@ -16,6 +16,7 @@ export class AuthenticationComponent implements OnInit {
   tenantId: string;
   tenants = [];
   isTLSEnabled = false;
+  onlyTLSEnabled = false;
   loginForm: FormGroup;
   constructor(private authenticationService: AuthenticationService, private router: Router, private translateService:TranslateService) {
     this.loginForm = new FormGroup( {
@@ -42,6 +43,9 @@ export class AuthenticationComponent implements OnInit {
         for (let authenticationMode of authenticationModes) {
           if (authenticationMode.indexOf('x509') > -1) {
             this.isTLSEnabled = true;
+            if (authenticationModes.length === 1) {
+              this.onlyTLSEnabled = true;
+            }
             return;
           }
         }
