@@ -152,10 +152,9 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
                 }
                 // if at least one action is set
                 if (nbUpdates > 0) {
-                    query.addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getProcessId()));
+                    query.addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
                     JsonNode updateResultJson = metaDataClient.updateUnitbyId(query.getFinalUpdate(), archiveUnitId);
                     String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
-                    itemStatus.setEvDetailData(diffMessage);
                     archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
                         logbookLifeCycleClient);
                     archiveUnitUpdateUtils.commitLifecycle(params.getProcessId(), archiveUnitId,
