@@ -21,11 +21,19 @@ Vue d'ensemble de la gestion des certificats
 
 .. _pki-certificats:
 
-.. figure:: images/pki-certificats.*
-    :align: center
+.. only:: html
 
-    Vue d'ensemble de la gestion des certificats au déploiement
+    .. figure:: images/pki-certificats.svg
+        :align: center
 
+        Vue d'ensemble de la gestion des certificats au déploiement
+
+.. only:: latex
+
+    .. figure:: images/pki-certificats.png
+        :align: center
+
+        Vue d'ensemble de la gestion des certificats au déploiement
 
 Description de l'arborescence de la PKI
 =======================================
@@ -43,10 +51,20 @@ Tous les fichiers de gestion de la PKI se trouvent dans le répertoire ``deploym
 
 .. _arborescence_pki:
 
-.. figure:: images/arborescence_pki.svg
-    :align: center
+.. only:: html
 
-    Vue l'arborescence de la PKI Vitam
+    .. figure:: images/arborescence_pki.svg
+        :align: center
+
+        Vue l'arborescence de la PKI Vitam
+
+.. only:: latex
+
+    .. figure:: images/arborescence_pki.png
+        :align: center
+
+        Vue l'arborescence de la PKI Vitam
+
 
 .. only:: html
 
@@ -59,11 +77,19 @@ Description de l'arborescence du répertoire deployment/environments/certs
 
 .. _arborescence_certs:
 
-.. figure:: images/arborescence_certs.svg
-    :align: center
+.. only:: html
 
-    Vue détaillée de l'arborescence des certificats
+    .. figure:: images/arborescence_certs.svg
+        :align: center
 
+        Vue détaillée de l'arborescence des certificats
+
+.. only:: latex
+
+    .. figure:: images/arborescence_certs.png
+        :align: center
+
+        Vue détaillée de l'arborescence des certificats
 
 .. only:: html
 
@@ -75,11 +101,19 @@ Description de l'arborescence du répertoire deployment/environments/keystores
 
 .. _arborescence_keystores:
 
-.. figure:: images/arborescence_keystores.svg
-    :align: center
+.. only:: html
 
-    Vue détaillée de l'arborescence des keystores
+    .. figure:: images/arborescence_keystores.svg
+        :align: center
 
+        Vue détaillée de l'arborescence des keystores
+
+.. only:: latex
+
+    .. figure:: images/arborescence_keystores.png
+        :align: center
+
+        Vue détaillée de l'arborescence des keystores
 
 .. only:: html
 

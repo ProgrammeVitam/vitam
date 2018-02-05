@@ -20,10 +20,20 @@ Intégration de certificats existants
 
 Si vous possédez déjà une :term:`PKI`, il convient de positionner les certificats et CA sous ``environmements/certs/....`` en respectant la structure indiquée ci-dessous.
 
-.. figure:: ../../annexes/images/arborescence_certs.svg
-    :align: center 
+.. only:: html
 
-    Vue détaillée de l'arborescence des certificats
+    .. figure:: ../../annexes/images/arborescence_certs.svg
+        :align: center 
+
+        Vue détaillée de l'arborescence des certificats
+
+.. only:: latex
+
+    .. figure:: ../../annexes/images/arborescence_certs.png
+        :align: center 
+
+        Vue détaillée de l'arborescence des certificats
+
 
 .. tip::
 
