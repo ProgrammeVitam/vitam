@@ -12,7 +12,7 @@ actions:
   2:
     action: delete_indices
     description: >-
-      Delete indices older than {{ days_to_delete_logstash_indexes }} days (based on index name), for logstash-
+      Delete indices older than {{ curator.log.logstash.delete }} days (based on index name), for logstash-
       prefixed indices.
     options:
       ignore_empty_list: True
@@ -28,6 +28,6 @@ actions:
       direction: older
       timestring: '%Y.%m.%d'
       unit: days
-      unit_count: {{ days_to_delete_logstash_indexes }}
+      unit_count: {{ curator.log.logstash.delete }}
       exclude:
 # --------------------------------------------

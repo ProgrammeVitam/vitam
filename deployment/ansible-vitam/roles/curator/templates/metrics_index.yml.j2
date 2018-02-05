@@ -9,7 +9,7 @@ actions:
   1:
     action: close
     description: >-
-      Close indices older than {{ days_to_close_metrics_indexes }} days (based on index name), for metrics-vitam-
+      Close indices older than {{ curator.log.metrics.close }} days (based on index name), for metrics-vitam-
       prefixed indices.
     options:
       ignore_empty_list: True
@@ -27,13 +27,13 @@ actions:
       direction: older
       timestring: '%Y.%m.%d'
       unit: days
-      unit_count: {{ days_to_close_metrics_indexes }}
+      unit_count: {{ curator.log.metrics.close }}
       exclude:
 
   2:
     action: delete_indices
     description: >-
-      Delete indices older than {{ days_to_delete_metrics_indexes }} days (based on index name), for metrics-vitam-
+      Delete indices older than {{ curator.log.metrics.delete }} days (based on index name), for metrics-vitam-
       prefixed indices.
     options:
       ignore_empty_list: True
@@ -49,6 +49,6 @@ actions:
       direction: older
       timestring: '%Y.%m.%d'
       unit: days
-      unit_count: {{ days_to_delete_metrics_indexes }}
+      unit_count: {{ curator.log.metrics.delete }}
       exclude:
 # --------------------------------------------
