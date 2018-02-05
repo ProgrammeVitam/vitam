@@ -881,6 +881,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return internalCheckDocuments(vitamContext, AdminCollections.FORMATS, formats);
     }
 
+    @Override
+    public Response checkAgencies(VitamContext vitamContext, InputStream agencies) throws VitamClientException {
+        return internalCheckDocuments(vitamContext, AdminCollections.AGENCIES, agencies);
+    }
 
     private Response internalCheckDocuments(VitamContext vitamContext, AdminCollections documentType,
         InputStream stream)

@@ -28,6 +28,7 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
@@ -131,9 +132,9 @@ public class AccessStep {
      */
     @Then("^les metadonnées pour le résultat (\\d+)$")
     public void metadata_are_for_particular_result(int resultNumber, DataTable dataTable) throws Throwable {
-        // Transform results 
+        // Transform results
         List<JsonNode> transformedResults = new ArrayList<>();
-        for(JsonNode result : results) {
+        for (JsonNode result : results) {
             String resultAsString = JsonHandler.unprettyPrint(result);
             String resultAsStringTransformed = transformUnitTitleToGuid(resultAsString);
             transformedResults.add(JsonHandler.getFromString(resultAsStringTransformed));
@@ -143,14 +144,14 @@ public class AccessStep {
         List<List<String>> raws = dataTable.raw();
         for (List<String> raw : raws) {
             List<String> modifiedSubRaws = new ArrayList<>();
-            for(String subRaw : raw) {
-                modifiedSubRaws.add(transformUnitTitleToGuid(subRaw));  
+            for (String subRaw : raw) {
+                modifiedSubRaws.add(transformUnitTitleToGuid(subRaw));
             }
             modifiedRaws.add(modifiedSubRaws);
         }
         List<String> topCells = modifiedRaws.isEmpty() ? Collections.<String>emptyList() : modifiedRaws.get(0);
         DataTable transformedDataTable = dataTable.toTable(modifiedRaws, topCells.toArray(new String[topCells.size()]));
-        
+
         world.getAccessService().checkResultsForParticularData(transformedResults, resultNumber, transformedDataTable);
     }
 
@@ -381,7 +382,7 @@ public class AccessStep {
 
         String queryTmp = world.getQuery().replace("Originating_System_Id", originatingSystemId);
         world.setQuery(queryTmp);
-        
+
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
 
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
@@ -601,6 +602,8 @@ public class AccessStep {
             status = world.getAdminClient().checkFormats(context, inputStream).getStatus();
         } else if (RULES.equals(adminCollection)) {
             status = world.getAdminClient().checkRules(context, inputStream).getStatus();
+        } else if (AGENCIES.equals(adminCollection)) {
+            status = world.getAdminClient().checkAgencies(context, inputStream).getStatus();
         }
         return status;
     }
@@ -688,7 +691,7 @@ public class AccessStep {
         }
     }
 
-    
+
     @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
     public void je_modifie_le_contrat_d_accès(String name, String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
@@ -771,3 +774,4 @@ public class AccessStep {
     }
 
 }
+
