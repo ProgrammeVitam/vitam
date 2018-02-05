@@ -27,14 +27,12 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -63,10 +61,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
  * IndexUnitAction Plugin
  */
@@ -79,6 +73,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
     private static final String TAG_MANAGEMENT = "Management";
     private static final int SEDA_PARAMETERS_RANK = 1;
 
+    private final MetaDataClientFactory metaDataClientFactory;
+
 
     private HandlerIO handlerIO;
 
@@ -86,13 +82,25 @@ public class IndexUnitActionPlugin extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      */
     public IndexUnitActionPlugin() {
-        // Empty
+        this(MetaDataClientFactory.getInstance());
     }
 
     /**
-     * @return HANDLER_ID
+     * Useful for inject mock in test class
+     *
+     * @param metaDataClientFactory instance of metaDataClientFactory or mock
      */
-    public static final String getId() {
+    @VisibleForTesting
+    IndexUnitActionPlugin(MetaDataClientFactory metaDataClientFactory) {
+        this.metaDataClientFactory = metaDataClientFactory;
+    }
+
+    /**
+     * Retrieve id of this plugin INDEXATION
+     *
+     * @return HANDLER_ID id of this plugin
+     */
+    public static String getId() {
         return HANDLER_PROCESS;
     }
 
@@ -122,7 +130,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
     /**
      * Index archive unit
      *
-     * @param params work parameters
+     * @param params     work parameters
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
      */
@@ -133,10 +141,10 @@ public class IndexUnitActionPlugin extends ActionHandler {
         final String objectName = params.getObjectName();
         RequestMultiple query = null;
         InputStream input;
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             input = handlerIO
-                    .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + 
-                        File.separator + objectName);
+                .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
+                    File.separator + objectName);
 
             JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
             final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
@@ -191,16 +199,16 @@ public class IndexUnitActionPlugin extends ActionHandler {
     /**
      * Convert xml archive unit to json node for insert/update.
      *
-     * @param input xml archive unit
+     * @param input       xml archive unit
      * @param containerId container id
-     * @param objectName unit file name
+     * @param objectName  unit file name
      * @return map of data
      * @throws InvalidParseOperationException exception while reading temporary json file
-     * @throws ProcessingException exception while reading xml file
+     * @throws ProcessingException            exception while reading xml file
      */
     // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
-            throws InvalidParseOperationException, ProcessingException {
+        throws InvalidParseOperationException, ProcessingException {
         try {
             ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
             ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
