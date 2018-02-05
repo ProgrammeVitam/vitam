@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -42,7 +43,8 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
     private static final int AGENT_RANK = 0;
 
     private static final String HANDLER_ID = "CHECK_AGENT";
-
+    public static final String EMPTY_REQUIRED_FIELD = "EMPTY_REQUIRED_FIELD";
+    private final AdminManagementClientFactory adminManagementClientFactory;
     private HandlerIO handlerIO;
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
@@ -50,11 +52,24 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      */
     public CheckOriginatingAgencyHandler() {
+        this(AdminManagementClientFactory.getInstance());
 
     }
 
     /**
-     * @return HANDLER_ID
+     * Useful for inject mock in test class
+     *
+     * @param adminManagementClientFactory instance of adminManagementClientFactory or mock
+     */
+    @VisibleForTesting
+    public CheckOriginatingAgencyHandler(AdminManagementClientFactory adminManagementClientFactory) {
+        this.adminManagementClientFactory = adminManagementClientFactory;
+    }
+
+    /**
+     * Return Handler Id
+     *
+     * @return HANDLER_ID CHECK_AGENT
      */
     public static final String getId() {
         return HANDLER_ID;
@@ -66,8 +81,7 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
         checkMandatoryParameters(param);
         handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        Set<String> missingserviceAgents = new HashSet<>();
-        boolean serviceAgentValidity = false;
+        Set<String> missingserviceAgents;
 
         try {
             checkMandatoryIOParameter(handler);
@@ -76,18 +90,19 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
 
             Set<String> serviceAgentList = new HashSet<>();
             if (mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null &&
-                    !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
+                !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
                 serviceAgentList.add((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
             } else {
                 ObjectNode evDetData = JsonHandler.createObjectNode();
                 evDetData.put(SedaConstants.EV_DET_TECH_DATA, "Error originating agency not found in the manifest");
                 itemStatus.setEvDetailData(JsonHandler.writeAsString(evDetData));
                 itemStatus.increment(StatusCode.KO);
+                itemStatus.setGlobalOutcomeDetailSubcode(EMPTY_REQUIRED_FIELD);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
 
             if (mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER) != null &&
-                    !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))) {
+                !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))) {
                 serviceAgentList.add((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
             }
 
@@ -98,7 +113,8 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
                 ObjectNode evDetData = JsonHandler.createObjectNode();
                 ArrayNode serviceAgents = JsonHandler.createArrayNode();
                 missingserviceAgents.forEach(agent -> serviceAgents.add(agent));
-                evDetData.put(SedaConstants.EV_DET_TECH_DATA, "error originating agency validation" + JsonHandler.writeAsString(missingserviceAgents));
+                evDetData.put(SedaConstants.EV_DET_TECH_DATA,
+                    "error originating agency validation" + JsonHandler.writeAsString(missingserviceAgents));
                 itemStatus.setEvDetailData(JsonHandler.writeAsString(evDetData));
             } else {
                 itemStatus.increment(StatusCode.OK);
@@ -112,7 +128,7 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
     }
 
     private Set<String> getMissingServiceAgents(Set<String> serviceAgentList) throws ProcessingException {
-        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+        try (final AdminManagementClient client = adminManagementClientFactory.getClient()) {
 
             Set<String> missingServiceAgent = new HashSet<>();
             String[] serviceAgentArray = serviceAgentList.toArray(new String[serviceAgentList.size()]);
