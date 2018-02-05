@@ -39,9 +39,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
@@ -174,11 +171,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 try {
-                    VitamError vitamError = RequestResponse.parseVitamError(response);
-                    if (VitamCodeHelper.getCode(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES)
-                        .equals(vitamError.getCode())) {
-                        return vitamError;
-                    }
+                    return RequestResponse.parseVitamError(response);
                 } catch (final InvalidParseOperationException e) {
                     LOGGER.info("Cant parse error as vitamError, throw a new exception");
                 }
