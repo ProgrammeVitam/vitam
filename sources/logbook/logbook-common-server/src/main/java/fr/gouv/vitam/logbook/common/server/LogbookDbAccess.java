@@ -30,11 +30,9 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
-import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -60,27 +58,21 @@ public interface LogbookDbAccess {
     void close();
 
     /**
-     *
      * @return the current number of Logbook Operation
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
     long getLogbookOperationSize() throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
-     *
      * @return the current number of Logbook LifeCyle
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
     long getLogbookLifeCyleUnitSize() throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
-     *
      * @return the current number of Logbook LifeCyle
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
@@ -91,7 +83,6 @@ public interface LogbookDbAccess {
      *
      * @param operationItem
      * @return True if one LogbookOperation exists with this id
-     *
      * @throws LogbookDatabaseException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
@@ -102,7 +93,6 @@ public interface LogbookDbAccess {
      *
      * @param lifecycleItem
      * @return True if one LogbookLibeCycle exists with this id
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -115,7 +105,6 @@ public interface LogbookDbAccess {
      *
      * @param lifecycleItem
      * @return True if one LogbookLibeCycle exists with this id
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -128,7 +117,6 @@ public interface LogbookDbAccess {
      *
      * @param eventIdentifierProcess
      * @return the corresponding LogbookOperation if it exists
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -141,7 +129,6 @@ public interface LogbookDbAccess {
      *
      * @param objectIdentifier
      * @return the corresponding LogbookLibeCycle if it exists
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -154,9 +141,8 @@ public interface LogbookDbAccess {
      *
      * @param queryDsl the DSL query
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     * (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the corresponding LogbookLibeCycle if it exists
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -169,7 +155,6 @@ public interface LogbookDbAccess {
      *
      * @param objectIdentifier
      * @return the full corresponding LogbookLibeCycle if it exists
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -183,7 +168,6 @@ public interface LogbookDbAccess {
      * @param idOperation
      * @param idLc
      * @return the full corresponding LogbookLibeCycle if it exists and linked to the given operation
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -197,7 +181,6 @@ public interface LogbookDbAccess {
      * @param idOperation
      * @param idLc
      * @return the corresponding LogbookLibeCycle if it exists and linked to the given operation
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -209,10 +192,9 @@ public interface LogbookDbAccess {
      * Create one Logbook Operation
      *
      * @param operationItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      */
     void createLogbookOperation(final LogbookOperationParameters operationItem)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -222,10 +204,9 @@ public interface LogbookDbAccess {
      *
      * @param idOperation
      * @param lifecycleItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      */
     void createLogbookLifeCycleUnit(final String idOperation, final LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -235,10 +216,9 @@ public interface LogbookDbAccess {
      *
      * @param idOperation
      * @param lifecycleItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      */
     void createLogbookLifeCycleObjectGroup(final String idOperation,
         final LogbookLifeCycleObjectGroupParameters lifecycleItem)
@@ -251,7 +231,6 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook Operaton entry in "events" array.
      *
      * @param operationItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -267,13 +246,13 @@ public interface LogbookDbAccess {
      * @param idOperation
      * @param idLfc
      * @param lifecycleItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleUnit(final String idOperation, final String idLfc, LogbookLifeCycleUnitParameters lifecycleItem)
+    void updateLogbookLifeCycleUnit(final String idOperation, final String idLfc,
+        LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
 
@@ -285,11 +264,10 @@ public interface LogbookDbAccess {
      * @param idOperation
      * @param idLfc
      * @param lifecycleItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
         LogbookLifeCycleObjectGroupParameters lifecycleItem)
@@ -299,7 +277,6 @@ public interface LogbookDbAccess {
      * Update one Logbook LifeCycle <br>
      * <br>
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
-     * 
      *
      * @param idOperation
      * @param idLfc
@@ -308,12 +285,12 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
-                                           LogbookLifeCycleObjectGroupParameters lifecycleItem,
-                                           boolean commit)
-            throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+        LogbookLifeCycleObjectGroupParameters lifecycleItem,
+        boolean commit)
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     /**
      * Rollback one Logbook LifeCycle <br>
@@ -322,7 +299,6 @@ public interface LogbookDbAccess {
      *
      * @param idOperation
      * @param lifecycleItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -337,7 +313,6 @@ public interface LogbookDbAccess {
      *
      * @param idOperation
      * @param lifecycleItem
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -350,8 +325,7 @@ public interface LogbookDbAccess {
      * Create one Logbook Operation with already multiple sub-events
      *
      * @param operationItems with first and next events to add/update
-     *
-     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws IllegalArgumentException      if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
@@ -362,8 +336,7 @@ public interface LogbookDbAccess {
      * Create one Logbook LifeCycle with already multiple sub-events
      *
      * @param lifecycleItems with first and next events to add/update
-     *
-     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws IllegalArgumentException      if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
@@ -374,8 +347,7 @@ public interface LogbookDbAccess {
      * Create one Logbook LifeCycle with already multiple sub-events
      *
      * @param lifecycleItems with first and next events to add/update
-     *
-     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws IllegalArgumentException      if first argument is null or null mandatory parameters for all
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
@@ -388,7 +360,6 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook Operaton entry in "events" array.
      *
      * @param operationItems
-     *
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -402,8 +373,7 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
      * @param lifecycleItems
-     *
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
@@ -417,8 +387,7 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
      * @param lifecycleItems
-     *
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
@@ -432,7 +401,6 @@ public interface LogbookDbAccess {
      * @param select
      * @param sliced If true will return the first and last events only
      * @return the Closeable MongoCursor of LogbookOperation
-     *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -446,9 +414,8 @@ public interface LogbookDbAccess {
      * @param select
      * @param sliced
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     * (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the Closeable MongoCursor of LogbookLifeCycle
-     *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -461,10 +428,9 @@ public interface LogbookDbAccess {
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
      *
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     * (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @param select
      * @return the Closeable MongoCursor of LogbookLifeCycle
-     *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      */
@@ -477,9 +443,8 @@ public interface LogbookDbAccess {
      * @param select
      * @param sliced
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
+     * (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return the Closeable MongoCursor of LogbookLifeCycle
-     *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -491,12 +456,11 @@ public interface LogbookDbAccess {
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
-     * 
+     *
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
+     * (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @param select
      * @return the Closeable MongoCursor of LogbookLifeCycle
-     *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      */
@@ -517,7 +481,6 @@ public interface LogbookDbAccess {
      *
      * @param unitId the unit id
      * @return the corresponding LogbookLifeCycleUnitInProcess if it exists
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -530,7 +493,6 @@ public interface LogbookDbAccess {
      *
      * @param objectGroupId the object group id
      * @return the corresponding LogbookLifeCycleObjectGroupInProcess if it exists
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -540,7 +502,7 @@ public interface LogbookDbAccess {
 
     /**
      * Creates Unit lifeCycle from a LogbookLifeCycleUnitInProcess instance
-     * 
+     *
      * @param logbookLifeCycleUnitInProcess a LogbookLifeCycleUnitInProcess instance
      * @throws LogbookAlreadyExistsException
      * @throws LogbookDatabaseException
@@ -550,7 +512,7 @@ public interface LogbookDbAccess {
 
     /**
      * Creates ObjectGroup lifeCycle from a LogbookLifeCycleObjectGroupInProcess instance
-     * 
+     *
      * @param logbookLifeCycleObjectGrouptInProcess
      * @throws LogbookAlreadyExistsException
      * @throws LogbookDatabaseException
@@ -562,7 +524,7 @@ public interface LogbookDbAccess {
 
     /**
      * Updates Unit lifeCycle from a LogbookLifeCycleUnitInProcess instance
-     * 
+     *
      * @param logbookLifeCycleUnitInProcess a LogbookLifeCycleUnitInProcess instance
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -572,7 +534,7 @@ public interface LogbookDbAccess {
 
     /**
      * Updates ObjectGroup lifeCycle from a LogbookLifeCycleObjectGroupInProcess instance
-     * 
+     *
      * @param logbookLifeCycleObjectGrouptInProcess a LogbookLifeCycleObjectGroupInProcess instance
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -582,7 +544,7 @@ public interface LogbookDbAccess {
 
     /**
      * Rolls back all the created unit lifeCycles during a given operation
-     * 
+     *
      * @param operationId an operation id
      * @throws LogbookNotFoundException
      * @throws LogbookDatabaseException
@@ -592,7 +554,7 @@ public interface LogbookDbAccess {
 
     /**
      * Rolls back all the created objectGroups lifeCycles during a given operation
-     * 
+     *
      * @param operationId an operation Id
      * @throws LogbookNotFoundException
      * @throws LogbookDatabaseException
@@ -601,18 +563,14 @@ public interface LogbookDbAccess {
         throws LogbookNotFoundException, LogbookDatabaseException;
 
     /**
-     *
      * @return the current number of LogbookLifeCyle created in working unit collection
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
     long getLogbookLifeCyleUnitInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
-     *
      * @return the current number of LogbookLifeCyle created in working objectGroup collection
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
@@ -623,7 +581,6 @@ public interface LogbookDbAccess {
      *
      * @param lifecycleItem
      * @return True if one LogbookLibeCycle exists with this id
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
@@ -636,20 +593,20 @@ public interface LogbookDbAccess {
      *
      * @param lifecycleItem
      * @return True if one LogbookLibeCycle exists with this id
-     *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     boolean existsLogbookLifeCycleObjectGroupInProcess(final String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException;
-    
+
     /**
      * Get information on a Database
-     * 
+     *
      * @return information on the database
      */
     String getInfo();
 
-    void bulk(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels);
+    void bulk(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
+        throws DatabaseException;
 }
