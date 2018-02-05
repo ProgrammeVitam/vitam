@@ -1,5 +1,5 @@
 {
-  "Journal des opérations": {
+  "Operation": {
     "evType": "STP_IMPORT_RULES",
     "evDateTime": "2017-08-09T08:14:11.545"
   },
