@@ -12,7 +12,8 @@
       </div>
       <div class="loginContainer ui-g-12 ui-md-12">
         <div class="ui-g-2 ui-md-2 " *ngIf="!isTLSEnabled"></div>
-        <div class="ui-g-8 ui-md-8 ">
+        <div class="ui-g-4 ui-md-4 " *ngIf="onlyTLSEnabled && isTLSEnabled"></div>
+        <div class="ui-g-8 ui-md-8 " *ngIf="!onlyTLSEnabled">
           <p-panel [header]="'Authentification par identifiant'">
             <form class="ui-g ui-fluid loginMinHeight" [formGroup]="loginForm" (ngSubmit)="login()">
               <div class="ui-g-12 ui-md-6">
