@@ -663,7 +663,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
-        client.backupStorageLog();
+        client.storageLogBackup();
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

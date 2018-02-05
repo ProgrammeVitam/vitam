@@ -16,6 +16,7 @@
 		<module>storage-driver-api</module>
 		<module>storage-engine</module>
 		<module>storage-log-backup</module>
+		<module>storage-log-traceability</module>
 		<module>cas-manager</module>
 		<module>cas-container</module>
 	</modules>
