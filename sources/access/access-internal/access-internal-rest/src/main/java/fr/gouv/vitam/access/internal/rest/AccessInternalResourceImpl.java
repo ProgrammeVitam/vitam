@@ -201,7 +201,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * @param logbookOperationsClientFactory logbookOperationsClientFactory
      * @param workspaceClientFactory workspaceClientFactory
      */
-    @VisibleForTesting AccessInternalResourceImpl(AccessInternalModule accessModule,
+    @VisibleForTesting
+    AccessInternalResourceImpl(AccessInternalModule accessModule,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         WorkspaceClientFactory workspaceClientFactory) {
         this.accessModule = accessModule;
