@@ -94,16 +94,16 @@
     - restart logstash
 
 
-# - name: configure extra parser configuration
-#   template:
-#     src: "{{ item }}.j2"
-#     dest: "{{logstash_conf_dir}}/extra/{{ item }}"
-#     owner: logstash
-#     mode: "{{ vitam_defaults.folder.conf_permission }}"
-#   with_items:
-#     - "elasticsearch-template.json"
-#   notify:
-#     - restart logstash
+- name: configure extra parser configuration
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{logstash_conf_dir}}/extra/{{ item }}"
+    owner: logstash
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_items:
+    - "elasticsearch-template.json"
+  notify:
+    - restart logstash
 
 #### Consul configuration ####
 
