@@ -682,4 +682,17 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     Response downloadRulesReport(VitamContext vitamContext, String opId)
         throws VitamClientException;
 
+    /**
+     * checkAgencies<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
+     * @param vitamContext the vitam context
+     * @param agencies the input stream to be checked
+     * @return response including InputStream
+     * @throws VitamClientException  
+     */
+    Response checkAgencies(VitamContext vitamContext, InputStream agencies)
+        throws VitamClientException;
+
 }

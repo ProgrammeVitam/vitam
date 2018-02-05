@@ -387,7 +387,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return checkInternalDocuments(vitamContext, AdminCollections.FORMATS, formats);
     }
 
-
+    @Override
+    public Response checkAgencies(VitamContext vitamContext, InputStream agencies) throws VitamClientException {
+        return checkInternalDocuments(vitamContext, AdminCollections.AGENCIES, agencies);
+    }
 
     @Override
     public RequestResponse createIngestContracts(VitamContext vitamContext, InputStream ingestContracts)
