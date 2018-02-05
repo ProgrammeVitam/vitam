@@ -50,7 +50,7 @@
     # 201 : uploaded
     # 409 : conflict as already uploaded
     status_code: 201,409
-#  ignore_errors: true
+  ignore_errors: true
   run_once: true # Limit as this upload is not related to tenants
   #no_log: true
   with_items:
