@@ -26,76 +26,260 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.assertj.core.api.AbstractLongAssert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookOutcome;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl.STORAGE_LOG_DIR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class StorageLogServiceTest {
+
+    private static final int TENANTS = 3;
 
     private StorageLogService storageLogService;
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
+
     @Before
     public void setUp() throws IOException {
-        List<Integer> list = new ArrayList<>() ;
-        list.add(0);
-        list.add(1);
-        storageLogService = new StorageLogServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
+        folder.create();
+
+        List<Integer> tenants = new ArrayList<>();
+        for (int i = 0; i < TENANTS; i++) {
+            tenants.add(i);
+        }
+
+        storageLogService = new StorageLogServiceImpl(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
+    }
+
+    @After
+    public void cleanUp() {
+        storageLogService.close();
+        folder.delete();
     }
 
     @Test()
     public void appendTest() throws Exception {
-        storageLogService.append(0,getParameters());
-    }
-    @Test(expected = StorageException.class)
-    public void addTestInError() throws Exception {
-        storageLogService.append(0,getEmptyParameters());
-    }
 
-    private StorageLogbookParameters getParameters() {
-        final Map<StorageLogbookParameterName, String> initalParameters = new TreeMap<>();
+        storageLogService.append(0, buildStorageParameters("tenant0-param1"));
+        storageLogService.append(1, buildStorageParameters("tenant1-param1"));
+        storageLogService.append(0, buildStorageParameters("tenant0-param2"));
 
-        initalParameters.put(StorageLogbookParameterName.eventDateTime, "2016-07-29T11:56:35.914");
-        initalParameters.put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.OK.name());
-        initalParameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
-        initalParameters.put(StorageLogbookParameterName.objectGroupIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
-        initalParameters.put(StorageLogbookParameterName.digest, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
-        initalParameters.put(StorageLogbookParameterName.digestAlgorithm, "SHA-256");
-        initalParameters.put(StorageLogbookParameterName.size, "1024");
-        initalParameters.put(StorageLogbookParameterName.agentIdentifiers, "agentIdentifiers");
-        initalParameters.put(StorageLogbookParameterName.agentIdentifierRequester, "agentIdentifierRequester");
-        initalParameters.put(StorageLogbookParameterName.outcomeDetailMessage, "outcomeDetailMessage");
-        initalParameters.put(StorageLogbookParameterName.objectIdentifierIncome, "objectIdentifierIncome");
-        initalParameters.put(StorageLogbookParameterName.tenantId, "0");
-        initalParameters.put(StorageLogbookParameterName.xRequestId, "0123");
-        initalParameters.put(StorageLogbookParameterName.eventType, "CREATE");
+        storageLogService.close();
 
-        final StorageLogbookParameters parameters = new StorageLogbookParameters(initalParameters);
+        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(STORAGE_LOG_DIR);
+        List<Path> files = Files.list(path).sorted().collect(Collectors.toList());
 
-        return parameters;
+        assertThat(files).hasSize(TENANTS);
+
+        Path file1 = files.get(0);
+        assertThat(file1.getFileName().toString()).matches("0_\\d+_.*\\.log");
+        assertFileContent(file1, "tenant0-param1\ntenant0-param2\n");
+
+        Path file2 = files.get(1);
+        assertThat(file2.getFileName().toString()).matches("1_\\d+_.*\\.log");
+        assertFileContent(file2, "tenant1-param1\n");
+
+        Path file3 = files.get(2);
+        assertEmptyFile(file3);
     }
 
-    private StorageLogbookParameters getEmptyParameters() throws StorageException {
-        try {
-            return new StorageLogbookParameters(new TreeMap<>());
-        } catch (final IllegalArgumentException exception) {
-            throw new StorageException(exception.getMessage(), exception);
+    @Test()
+    public void rotateLogsTest() throws IOException {
+
+        // Given / when
+        LocalDateTime date1 = LocalDateUtil.now();
+
+        storageLogService.append(0, buildStorageParameters("tenant0-param1"));
+        storageLogService.append(1, buildStorageParameters("tenant1-param1"));
+        storageLogService.append(0, buildStorageParameters("tenant0-param2"));
+
+        LocalDateTime date2 = LocalDateUtil.now();
+
+        List<LogInformation> logInformation =
+            storageLogService.rotateLogFile(0).stream()
+                .sorted(Comparator.comparing(i -> i.getPath().getFileName().toString()))
+                .collect(Collectors.toList());
+
+        storageLogService.close();
+
+        LocalDateTime date3 = LocalDateUtil.now();
+
+        // Assert
+
+        assertThat(logInformation).hasSize(1);
+
+        assertThat(logInformation.get(0).getBeginTime()).isBeforeOrEqualTo(date1);
+        assertThat(logInformation.get(0).getEndTime()).isBetween(date2, date3);
+
+        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(STORAGE_LOG_DIR);
+        List<Path> files = Files.list(path).sorted().collect(Collectors.toList());
+
+        assertThat(files).hasSize(4);
+
+        assertThat(logInformation.get(0).getPath().toAbsolutePath().toString())
+            .isEqualTo(files.get(0).toAbsolutePath().toString());
+
+        assertFileContent(files.get(0), "tenant0-param1\ntenant0-param2\n");
+        assertFileContent(files.get(1), "");
+        assertFileContent(files.get(2), "tenant1-param1\n");
+
+        assertEmptyFile(files.get(3));
+    }
+
+
+    @Test()
+    public void multiThreadedAppendRotateLogsTest() throws Exception {
+
+        /*
+         * For each tenant, run "NB_THREADS_PER_TENANT" threads that continuously append log entries
+         * For each tenant, run a thread that rotate logs every "INTERVAL_BETWEEN_LOG_ROTATION"
+         * Wait for "TEST_DURATION_IN_MILLISECONDS" and stop threads
+         * Ensure that all messages have been logged
+         */
+
+        int TEST_DURATION_IN_MILLISECONDS = 5000;
+        int INTERVAL_BETWEEN_LOG_ROTATION = 100;
+        int NB_THREADS_PER_TENANT = 10;
+
+        List<AtomicInteger> tenantCpt = new ArrayList<>();
+        for (int i = 0; i < TENANTS; i++) {
+            tenantCpt.add(new AtomicInteger());
+        }
+
+        MultiValuedMap<Integer, String> loggedDataByTenant = new ArrayListValuedHashMap<>();
+
+        CountDownLatch stopSignal = new CountDownLatch(1);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(NB_THREADS_PER_TENANT * TENANTS);
+
+        // Threads for appending messages
+        for (int i = 0; i < NB_THREADS_PER_TENANT * NB_THREADS_PER_TENANT; i++) {
+
+            final int tenant = i % TENANTS;
+
+            executorService.submit(() -> {
+
+                try {
+
+                    while (!stopSignal.await(0, TimeUnit.MILLISECONDS)) {
+
+                        storageLogService.append(tenant,
+                            buildStorageParameters(
+                                "tenant" + tenant + "-param" + tenantCpt.get(tenant).getAndIncrement()));
+
+                    }
+
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+
+        // Threads for rotating logs every INTERVAL_BETWEEN_LOG_ROTATION
+        for (int i = 0; i < TENANTS; i++) {
+
+            final int tenant = i;
+
+            executorService.submit(() -> {
+
+                try {
+
+                    while (!stopSignal.await(INTERVAL_BETWEEN_LOG_ROTATION, TimeUnit.MILLISECONDS)) {
+
+                        List<LogInformation> logInformation = storageLogService.rotateLogFile(tenant);
+                        for (LogInformation logInfo : logInformation) {
+                            loggedDataByTenant
+                                .putAll(tenant, Files.readAllLines(logInfo.getPath(), StandardCharsets.UTF_8));
+                            Files.delete(logInfo.getPath());
+                        }
+
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+
+        // Wait for TEST_DURATION_IN_MILLISECONDS and send stop signal
+        stopSignal.await(TEST_DURATION_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
+        stopSignal.countDown();
+
+        // Await termination
+        executorService.shutdown();
+        executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+        // Flush any buffered data to disk
+        storageLogService.close();
+
+        // Read non remaining log files (non rotated)
+        Path path = Paths.get(folder.getRoot().getAbsolutePath()).resolve(STORAGE_LOG_DIR);
+        List<Path> files = Files.list(path).sorted().collect(Collectors.toList());
+
+        assertThat(files).hasSize(TENANTS);
+
+        for (int i = 0; i < TENANTS; i++) {
+            loggedDataByTenant.putAll(i, Files.readAllLines(files.get(i), StandardCharsets.UTF_8));
+        }
+
+        // Ensure all data have been written to disk
+        for (int tenant = 0; tenant < TENANTS; tenant++) {
+
+            List<String> sortedTenantLog = loggedDataByTenant.get(tenant).stream()
+                .sorted(Comparator.comparing((String s) -> Integer.parseInt(s.substring(s.lastIndexOf("-param") + 6))))
+                .collect(Collectors.toList());
+
+            assertThat(sortedTenantLog).hasSize(tenantCpt.get(tenant).get());
+            System.out.println("Nb message for tenant " + tenant + "=" + sortedTenantLog.size());
+
+            for (int i = 0; i < sortedTenantLog.size(); i++) {
+                assertThat(sortedTenantLog.get(i)).isEqualTo("tenant" + tenant + "-param" + i);
+            }
         }
     }
 
+    private StorageLogbookParameters buildStorageParameters(String str) {
+        StorageLogbookParameters params = mock(StorageLogbookParameters.class);
+        Map<StorageLogbookParameterName, String> mapParameters = mock(Map.class);
+        when(mapParameters.toString()).thenReturn(str);
+        when(params.getMapParameters()).thenReturn(mapParameters);
+        return params;
+    }
+
+    private void assertFileContent(Path file, String expectedContent) throws IOException {
+        assertThat(Files.readAllBytes(file)).isEqualTo(expectedContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private AbstractLongAssert<?> assertEmptyFile(Path filePath) throws IOException {
+        return assertThat(Files.size(filePath)).isEqualTo(0);
+    }
 }
+

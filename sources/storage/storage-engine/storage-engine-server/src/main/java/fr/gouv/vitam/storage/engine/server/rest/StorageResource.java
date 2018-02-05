@@ -1186,7 +1186,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @POST
     @Path("/storage/backup")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response secureStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response backupStorageLog(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Status.BAD_REQUEST).build();
@@ -1514,7 +1514,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     @Override
     public void close() {
+        storageLogService.close();
         distribution.close();
     }
-
 }

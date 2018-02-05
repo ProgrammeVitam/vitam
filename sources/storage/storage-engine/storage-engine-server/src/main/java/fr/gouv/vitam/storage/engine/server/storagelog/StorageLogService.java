@@ -26,31 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
- * Storage Logbook interface. It describes methods to be implemented.
+ * Storage log service interface. It describes methods to be implemented.
  */
-public interface StorageLogService {
+public interface StorageLogService extends VitamAutoCloseable {
 
     /**
-     * Add a storage logbook entry <br>
-     * <br>
+     * Add a storage log entry.
      *
      * @param parameters the entry parameters
-     * @throws StorageException if an error is encountered
+     * @throws IOException if an error is encountered
      */
     void append(Integer tenant, StorageLogbookParameters parameters) throws IOException;
 
     /**
-     * Rotation
-     * clode  Storage Log file and create a new one
+     * Rotate log file, and return previous log information
      *
      * @param tenantId
      */
-    LogInformation generateSecureStorage(Integer tenantId) throws IOException;
+    List<LogInformation> rotateLogFile(Integer tenantId) throws IOException;
 
 }

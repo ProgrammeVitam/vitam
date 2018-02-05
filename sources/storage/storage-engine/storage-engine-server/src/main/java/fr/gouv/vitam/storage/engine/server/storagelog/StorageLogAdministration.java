@@ -65,6 +65,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Business class for Storage Log Administration (backup)
@@ -110,9 +111,11 @@ public class StorageLogAdministration {
         try {
             createLogbookOperationStarted(helper, eip);
 
-            LogInformation logInformation = storageLogService.generateSecureStorage(tenantId);
+            List<LogInformation> info = storageLogService.rotateLogFile(tenantId);
 
-            storeLogFile(helper, tenantId, eip, logInformation);
+            for (LogInformation logInformation : info) {
+                storeLogFile(helper, tenantId, eip, logInformation);
+            }
 
             createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.OK);
 
