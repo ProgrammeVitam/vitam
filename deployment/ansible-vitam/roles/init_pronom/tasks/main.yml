@@ -1,0 +1,67 @@
+---
+# tasks file for init_pronom
+
+# Source example: http://www.nationalarchives.gov.uk/documents/DROID_SignatureFile_V88.xml
+# - name: get PRONOM {{pronom_version}}
+#   get_url:
+#     url: "{{pronom_baseurl}}/DROID_SignatureFile_{{pronom_version}}.xml"
+#     dest: "/vitam/tmp/ihm-demo/DROID_SignatureFile_{{pronom_version}}.xml"
+#     mode: "{{ vitam_defaults.folder.conf_permission }}"
+#     owner: "{{ vitam_defaults.users.vitam }}"
+#     group: "{{ vitam_defaults.users.group }}"
+#   environment:
+#     http_proxy: "{{ http_proxy_environnement }}"
+
+- name: create temporary pem file to upload PRONOM
+  shell: openssl pkcs12 -in {{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem  -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes
+  #no_log: true
+  tags:
+    - init_pronom
+
+- name: Ensure service is started 
+  service:
+    name: "vitam-access-external"
+    state: started
+
+- name: wait for service to be up'n'running on business port
+  wait_for: 
+    host: "{{ ip_service }}" 
+    port: "{{ vitam.accessexternal.port_service }}" 
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+  run_once: true
+
+- name: upload PRONOM through access-external
+  uri:
+    url: "https://{{ ip_service }}:{{ vitam.accessexternal.port_service }}/admin-external/v1/formats"
+    method: POST
+    client_cert: "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
+    #password: "{{ keystores.client_external.vitam_admin_int }}"
+    headers:
+      Connection: "keep-alive"
+      X-Tenant-Id: "{{ item }}"
+      Content-Type: "application/octet-stream"
+      Host: "{{ vitam_struct.host }}"
+      # FIXME beurk : Transfer-Encoding badly handled
+      Transfer-Encoding: "anotherthanchunk"
+    body: "{{ lookup('file', 'DROID_SignatureFile_V88.xml') }}"
+    body_format: "raw"
+    validate_certs: false
+    # 201 : uploaded
+    # 409 : conflict as already uploaded
+    status_code: 201,409
+#  ignore_errors: true
+  run_once: true # Limit as this upload is not related to tenants
+  no_log: true
+  with_items:
+    - "{{vitam_tenant_ids|first}}"
+  tags:
+    - init_pronom
+
+- name: remove temporary pem file
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
+  tags:
+    - init_pronom

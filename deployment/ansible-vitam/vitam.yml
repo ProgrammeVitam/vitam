@@ -238,6 +238,7 @@
 - hosts: hosts-access-external
   roles:
     - vitam
+    - init_pronom
   vars:
     vitam_struct: "{{ vitam.accessexternal }}"
     password_keystore: "{{keystores.server.access_external}}"
