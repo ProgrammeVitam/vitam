@@ -13,7 +13,7 @@
 #     http_proxy: "{{ http_proxy_environnement }}"
 
 - name: create temporary pem file to upload PRONOM
-  shell: openssl pkcs12 -in {{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem  -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes
+  local_action: shell openssl pkcs12 -in {{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem  -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes
   #no_log: true
   tags:
     - init_pronom
@@ -31,7 +31,8 @@
   run_once: true
 
 - name: upload PRONOM through access-external
-  uri:
+  local_action:
+    module: uri
     url: "https://{{ ip_service }}:{{ vitam.accessexternal.port_service }}/admin-external/v1/formats"
     method: POST
     client_cert: "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
@@ -58,7 +59,8 @@
     - init_pronom
 
 - name: remove temporary pem file
-  file:
+  local_action:
+    module: file:
     path: "{{ item }}"
     state: absent
   with_items:
