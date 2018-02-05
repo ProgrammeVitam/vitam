@@ -231,7 +231,7 @@ public class HeaderIdHelper {
         }
     }
 
-    private static String getHeaderString(MultivaluedMap<String, String> requestHeaders, String headerName) {
+    public static String getHeaderString(MultivaluedMap<String, String> requestHeaders, String headerName) {
         /*
          * Note : jetty seems NOT to correctly unserialize multiple headers declaration in only one header, with values
          * separated by commas Example : X-Request-Id: header-1,header-2-should-not-be-take Note : Cf. the last

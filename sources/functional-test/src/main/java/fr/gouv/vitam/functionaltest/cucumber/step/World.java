@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.assertj.core.api.Fail;
-
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
@@ -48,6 +46,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
 import fr.gouv.vitam.functionaltest.cucumber.service.AccessService;
@@ -60,8 +60,11 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.Fail;
 
 public class World {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(World.class);
 
     public static final String TNR_BASE_DIRECTORY = "tnrBaseDirectory";
 
@@ -138,7 +141,7 @@ public class World {
 
     /**
      * initialization of client
-     * 
+     *
      * @throws IOException
      */
     @Before
@@ -260,7 +263,6 @@ public class World {
     }
 
     /**
-     * 
      * @return the dsl query
      */
     public String getQuery() {
@@ -268,7 +270,6 @@ public class World {
     }
 
     /**
-     * 
      * @param query the query
      */
     public void setQuery(String query) {
@@ -277,7 +278,7 @@ public class World {
 
     /**
      * Get an operation id for the test set
-     * 
+     *
      * @param testSet test set identifier
      * @return operation id
      */
@@ -287,7 +288,7 @@ public class World {
 
     /**
      * Set an operation id for a test set
-     * 
+     *
      * @param testSet test set identifier
      * @param operationId operation id
      */
@@ -296,7 +297,6 @@ public class World {
     }
 
     /**
-     *
      * @return unitId
      */
     public String getUnitId() {
@@ -304,7 +304,6 @@ public class World {
     }
 
     /**
-     *
      * @param unitId
      */
     public void setUnitId(String unitId) {
@@ -343,7 +342,7 @@ public class World {
     }
 
     /**
-     * 
+     *
      */
     @After
     public void finish() {
@@ -379,7 +378,7 @@ public class World {
             tnrClientConfiguration = PropertiesUtils.readYaml(confFile, TnrClientConfiguration.class);
             SanityChecker.checkParameter(baseDirectory);
         } catch (IOException | InvalidParseOperationException e) {
-            Fail.fail("Unable to load configuration File: \n" + e.getMessage());
+            LOGGER.error("Unable to load configuration File: {}" + TNR_CONF, e);
         }
 
     }
@@ -394,7 +393,7 @@ public class World {
                     ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
                 } catch (VitamException e) {
                     // FAIL WHEN unable purge ?
-                    Fail.fail("Unable purge data " + i.toString() + " on tenant: " + i + e.getStackTrace());
+                    LOGGER.error("Unable purge data " + i.toString() + " on tenant: " + i + e.getStackTrace());
                 }
             });
         }

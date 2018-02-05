@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.access.internal.serve.filter;
 
-import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContratIdException;
+import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContractIdException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -112,7 +112,7 @@ public class AccessContratIdHeaderHelperTest {
         try {
 	        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders);
 	        fail("No exception was thrown");
-	    } catch (MissingAccessContratIdException e) {
+	    } catch (MissingAccessContractIdException e) {
 	        // Must throw an exception: Technical error
 	    }
     }
@@ -137,7 +137,7 @@ public class AccessContratIdHeaderHelperTest {
         try {
 	        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders);
 	        fail("No exception was thrown");
-	    } catch (MissingAccessContratIdException e) {
+	    } catch (MissingAccessContractIdException e) {
 	        // Must throw an exception: No matching contracts
         }
     }

@@ -256,8 +256,6 @@ public class ProfileResource {
         try {
             ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
 
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)

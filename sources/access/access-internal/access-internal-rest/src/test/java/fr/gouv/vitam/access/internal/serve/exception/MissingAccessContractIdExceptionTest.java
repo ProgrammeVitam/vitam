@@ -26,47 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.serve.exception;
 
-import fr.gouv.vitam.common.exception.VitamException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
 
 /**
  *
- * Exception when missing access contrat
- *
  */
-public class MissingAccessContratIdException extends VitamException{
+public class MissingAccessContractIdExceptionTest {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -2684023194234768369L;
-
-    /**
-     * Basic constructor to indicate a simple error message without stacktrace
-     *
-     * @param message message to log
-     */
-    public MissingAccessContratIdException(String message) {
-        super(message);
-    }
-
-    /**
-     * Constructor used to encapsulate a previously thrown exception. A generic message is used.
-     *
-     * @param throwable the originating exception
-     */
-    public MissingAccessContratIdException(Throwable throwable) {
-        super("An error occurred while retrieving objects from the local thread", throwable);
-    }
-
-    /**
-     * Constructor used to encapsulate a previously thrown exception with but with a custom meaningful message
-     *
-     * @param message the message to log throw threw
-     * @param throwable the originating exception
-     */
-    public MissingAccessContratIdException(String message, Throwable throwable) {
-        super(message, throwable);
+    @Test
+    public final void testMissingAccessContratIdException() {
+        assertEquals("", new MissingAccessContractIdException("").getMessage());
+        assertEquals("test", new MissingAccessContractIdException("test").getMessage());
+        assertNotNull(new MissingAccessContractIdException(new Exception()).getCause());
+        assertNotNull(new MissingAccessContractIdException("test", new Exception()).getCause());
     }
 
 }
-

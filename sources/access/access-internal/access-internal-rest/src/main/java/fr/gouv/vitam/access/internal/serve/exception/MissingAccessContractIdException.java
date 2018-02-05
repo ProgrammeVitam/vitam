@@ -24,33 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.server;
+package fr.gouv.vitam.access.internal.serve.exception;
 
-import java.io.IOException;
-import javax.annotation.Priority;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Manage the headers from the server-side perspective.
+ *
+ * Exception when missing access contrat
+ *
  */
-@PreMatching
-@Priority(Priorities.AUTHENTICATION)
-public class ExternalHeaderIdContainerFilter implements ContainerRequestFilter {
+public class MissingAccessContractIdException extends VitamException{
 
     /**
-     * Extracts the ids from the headers to save it in the VitamSession
      *
-     * @param requestContext {@link ContainerRequestFilter#filter(ContainerRequestContext)}
-     * @throws IOException {@see ContainerRequestFilter#filter(ContainerRequestContext)}
-     * @see ContainerRequestFilter#filter(ContainerRequestContext)
      */
-    @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
-        HeaderIdHelper.putVitamIdFromExternalHeaderInSession(requestContext.getHeaders(),
-            HeaderIdHelper.Context.REQUEST);
+    private static final long serialVersionUID = -2684023194234768369L;
+
+    /**
+     * Basic constructor to indicate a simple error message without stacktrace
+     *
+     * @param message message to log
+     */
+    public MissingAccessContractIdException(String message) {
+        super(message);
+    }
+
+    /**
+     * Constructor used to encapsulate a previously thrown exception. A generic message is used.
+     *
+     * @param throwable the originating exception
+     */
+    public MissingAccessContractIdException(Throwable throwable) {
+        super("An error occurred while retrieving objects from the local thread", throwable);
+    }
+
+    /**
+     * Constructor used to encapsulate a previously thrown exception with but with a custom meaningful message
+     *
+     * @param message the message to log throw threw
+     * @param throwable the originating exception
+     */
+    public MissingAccessContractIdException(String message, Throwable throwable) {
+        super(message, throwable);
     }
 
 }
+
