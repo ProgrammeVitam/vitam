@@ -4,34 +4,17 @@ usage: |
   Use to define global types for Vitam's administration
 
 types:
-
-
-  ReindexationRequest:
-    description: Requête de demande de réindexation
-    type: object
-    properties:
-      collection:
-        type: string
-        required: true
-      tenants:
-        type: integer[]
-        required: false
-
-  SwitchRequest:
-    description: Requête de demande de switch
-    type: object
-    properties:
-      alias:
-        type: string
-        required: true
-      indexName:
-        type: string
-        required: true
-
   AdminReindexationRequest:
       displayName: Requête de réindexation
       description: Requête Vitam de réindexation
-      type: ReindexationRequest
+      type: object
+      properties:
+        collection:
+          type: string
+          required: true
+        tenants:
+          type: integer[]
+          required: false
       example: [{
         "collection": "ObjectGroup",
         "tenants": [0]
@@ -40,7 +23,14 @@ types:
   AdminSwitchRequest:
       displayName: Requête de switch d'indexes
       description: Requête Vitam de switch
-      type: SwitchRequest
+      type: object
+      properties:
+        alias:
+          type: string
+          required: true
+        indexName:
+          type: string
+          required: true
       example: [{
         "alias": "ObjectGroup",
         "indexName": "objectgroup_20_20180126_143919"

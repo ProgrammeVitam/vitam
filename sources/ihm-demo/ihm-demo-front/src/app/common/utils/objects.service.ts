@@ -23,11 +23,10 @@ export class ObjectsService {
   }
 
   static stringify(value) {
-    if (!value) {
+    if (value === undefined) {
       return '';
-    } else {
-      return '' + value;
     }
+    return String(value);    
   }
 
   static pushAllWithoutDuplication(array: string[], otherArray: string[]) {
