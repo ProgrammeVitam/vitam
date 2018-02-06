@@ -33,7 +33,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -58,7 +57,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
@@ -133,7 +131,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * AccessResourceImpl implements AccessResource
  */
 @Path("/access-internal/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class AccessInternalResourceImpl extends ApplicationStatusResource implements AccessInternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
@@ -159,8 +156,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     private ObjectMapper objectMapper;
     private ProcessingManagementClientFactory processingManagementClientFactory;
-    private LogbookOperationsClient logbookOperationsClient;
-    private WorkspaceClient workspaceClient;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private WorkspaceClientFactory workspaceClientFactory;
 
     /**
      * @param configuration to associate with AccessResourceImpl
@@ -176,7 +173,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
-        this.logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
     }
 
     /**
@@ -193,20 +190,21 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
-        this.logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
-        this.workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
+        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
     }
 
     /**
      * Test constructor
      *
      * @param accessModule accessModule
-     * @param logbookOperationsClient logbookOperationsClient
-     * @param workspaceClient workspaceClient
+     * @param logbookOperationsClientFactory logbookOperationsClientFactory
+     * @param workspaceClientFactory workspaceClientFactory
      */
     @VisibleForTesting
-    AccessInternalResourceImpl(AccessInternalModule accessModule, LogbookOperationsClient logbookOperationsClient,
-        WorkspaceClient workspaceClient) {
+    AccessInternalResourceImpl(AccessInternalModule accessModule,
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
         this.accessModule = accessModule;
         archiveUnitMapper = new ArchiveUnitMapper();
         objectGroupMapper = new ObjectGroupMapper();
@@ -215,8 +213,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
-        this.logbookOperationsClient = logbookOperationsClient;
-        this.workspaceClient = workspaceClient;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
 
@@ -282,8 +280,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             GUID logbookId = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
-
-            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
@@ -294,7 +293,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         StatusCode.STARTED,
                         VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + logbookId.toString(),
                         GUIDReader.getGUID(operationId));
-                
+
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);
