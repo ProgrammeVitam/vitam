@@ -276,9 +276,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 /* To process import validate the file first */
                 validatedRules =
                     checkFile(new FileInputStream(file), errors, usedDeletedRulesForReport,
-                        usedUpdateRulesForReport,
+                        usedUpdateRulesForReport, fileRulesModelToInsert,
                         notUsedDeletedRulesForReport, notUsedUpdateRulesForReport);
                 if (validatedRules != null) {
+                    // Clear list because generateReport re-generate insert list
+                    fileRulesModelToInsert.clear();
                     generateReportCommitAndSecureFileRules(file, eip, eip1, notUsedDeletedRulesForReport,
                         fileRulesModelToInsert, fileRulesModelToDelete, fileRulesModelToUpdate, validatedRules,
                         errors,
@@ -464,13 +466,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param fileRulesNotLinkedToUnitForUpdate file rules not linked to unit for update
      */
     private void checkRulesLinkedToAu(ArrayNode validatedRules, List<FileRulesModel> filesRulesDeleted,
-        List<FileRulesModel> filesRulesUpdated, Set<String> fileRulesNotLinkedToUnitForDelete,
-        Set<String> fileRulesNotLinkedToUnitForUpdate)
+        List<FileRulesModel> filesRulesUpdated, List<FileRulesModel> fileRulesModelToInsert,
+        Set<String> fileRulesNotLinkedToUnitForDelete, Set<String> fileRulesNotLinkedToUnitForUpdate)
         throws InvalidParseOperationException {
         List<FileRules> fileRulesInDb = findAllFileRulesQueryBuilder();
         List<FileRulesModel> fileRulesModelsInDb = transformFileRulesToFileRulesModel(fileRulesInDb);
         List<FileRulesModel> fileRulesModelToDelete = new ArrayList<>();
-        List<FileRulesModel> fileRulesModelToInsert = new ArrayList<>();
         List<FileRulesModel> fileRulesModelToUpdate = new ArrayList<>();
         List<FileRulesModel> fileRulesModelsToImport = transformJsonNodeToFileRulesModel(validatedRules);
         createListToimportUpdateDelete(fileRulesModelsToImport, fileRulesModelsInDb,
@@ -612,7 +613,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             for (FileRulesModel fileRulesModel : fileRulesModelToUpdate) {
                 updateFileRules(fileRulesModel, sequence);
             }
-            if (!fileRulesModelToInsert.isEmpty() && fileRulesModelToInsert.containsAll(fileRulesModelsToImport)) {
+            if (!fileRulesModelToInsert.isEmpty() &&
+                fileRulesModelToInsert.containsAll(fileRulesModelsToImport)) {
                 commit(validatedRules);
                 secureRules = true;
             } else if (!fileRulesModelToInsert.isEmpty()) {
@@ -640,9 +642,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private void commit(ArrayNode validatedRules)
         throws ReferentialException {
-        Integer sequence = vitamCounterService
-            .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE);
-        mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES, sequence);
+        if (validatedRules.size() > 0) {
+            Integer sequence = vitamCounterService
+                .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE);
+            mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES, sequence);
+        }
 
     }
 
@@ -822,10 +826,24 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
     }
 
-    @Override
+    /**
+     * Checks File : checks if a stream of referential data is valid
+     *
+     * @param rulesFileStream as InputStream
+     * @param errorsMap List of string that contains errors
+     * @param usedDeletedRules used rules in AU that want to delete
+     * @param usedUpdatedRules used rules in AU that want to update
+     * @param notUsedDeletedRules not used rules in AU that want to delete
+     * @param notUsedUpdatedRules Updated rules not used in AU
+     * @return The JsonArray containing the referential data if they are all valid
+     * @throws ReferentialException when there is errors import
+     * @throws IOException when there is IO Exception
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
     public ArrayNode checkFile(InputStream rulesFileStream, Map<Integer, List<ErrorReport>> errorsMap,
-        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, Set<String> notUsedDeletedRules,
-        Set<String> notUsedUpdatedRules)
+        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, List<FileRulesModel> insertRules,
+        Set<String> notUsedDeletedRules, Set<String> notUsedUpdatedRules)
         throws IOException, ReferentialException, InvalidParseOperationException {
         ParametersChecker.checkParameter(RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER, rulesFileStream);
         File csvFileReader = convertInputStreamToFile(rulesFileStream, TXT);
@@ -903,7 +921,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         }
         if (csvFileReader != null) {
             final ArrayNode readRulesAsJson = RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(csvFileReader);
-            checkRulesLinkedToAu(readRulesAsJson, usedDeletedRules, usedUpdatedRules, notUsedDeletedRules,
+            checkRulesLinkedToAu(readRulesAsJson, usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules,
                 notUsedUpdatedRules);
             if (errorsMap.size() > 0) {
                 for (List<ErrorReport> map : errorsMap.values()) {

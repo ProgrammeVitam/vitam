@@ -27,14 +27,9 @@
 package fr.gouv.vitam.functional.administration.format.core;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -48,10 +43,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
@@ -60,6 +53,7 @@ import fr.gouv.vitam.functional.administration.common.counter.VitamCounterServic
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -70,8 +64,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
@@ -112,9 +104,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public void importFile(InputStream xmlPronom, String filename)
         throws VitamException {
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-        final ArrayNode pronomList = checkFile(xmlPronom, errors, null, null, null, null);
+        final ArrayNode pronomList = checkFile(xmlPronom);
 
         final GUID eip = createLogbook();
 
@@ -210,10 +201,14 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         return eip;
     }
 
-    @Override
-    public ArrayNode checkFile(InputStream xmlPronom, Map<Integer, List<ErrorReport>> errorsMap,
-        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, Set<String> notUsedDeletedRules,
-        Set<String> notUsedUpdatedRules)
+    /**
+     * check PRONOM File and return all format as arraynode
+     *
+     * @param xmlPronom format file stream
+     * @return arraynode of format
+     * @throws ReferentialException
+     */
+    public ArrayNode checkFile(InputStream xmlPronom)
         throws ReferentialException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         /*

@@ -157,14 +157,12 @@ public class ReferentialFormatFileImplTest {
 
     @Test
     public void testFormatXML() throws FileNotFoundException, ReferentialException {
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
-        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), errors, null, null, null, null);
+        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
     }
 
     @Test(expected = ReferentialException.class)
     public void testFormatXMLKO() throws FileNotFoundException, ReferentialException {
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
-        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)), errors, null, null, null, null);
+        formatFile.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)));
     }
 
     @Test

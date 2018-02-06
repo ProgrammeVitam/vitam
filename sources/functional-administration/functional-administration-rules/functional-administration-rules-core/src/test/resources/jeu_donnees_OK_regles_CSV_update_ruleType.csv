@@ -9,6 +9,8 @@ APP-00004,AppraisalRule,Exécution d’un marché de travaux,"Durée de conserva
 L’échéance est calculée à partir de la date de levée des réserves",10,YEAR
 APP-00005,AppraisalRule,Pièces comptables (comptable),"Durée de conservation des pièces comptables pour le comptable
 l’échéance est calculée à partir de la date de solde comptable",6,YEAR
+APP-00006,AppraisalRule,Pièces comptables (extra),"Durée de conservation des pièces comptables pour le comptable
+l’échéance est calculée à partir de la date de solde comptable",10,YEAR
 ACC-00001,AccessRule,Libre communicabilité,Durée de communicabilité par défaut,0,YEAR
 ACC-00002,AccessRule,Communicabilité des informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif (date du document le plus récent dans le dossier),"Durée de communicabilité applicable aux informations portant atteinte au secret des délibérations du gouvernement et des autorités responsables relevant du pouvoir exécutif
 L’échéance est calculée à partir de la date du document le plus récent du dossier",25,YEAR

@@ -93,24 +93,4 @@ public interface ReferentialFile<E> {
      */
     public RequestResponseOK<E> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException;
 
-    /**
-     * Checks File : checks if a stream of referential data is valid
-     *
-     * @param file as InputStream
-     * @param errorsMap List of string that contains errors
-     * @param usedDeletedRules used rules in AU that want to delete
-     * @param usedUpdatedRules used rules in AU that want to update
-     * @param notUsedDeletedRules not used rules in AU that want to delete
-     * @param notUsedUpdatedRules Updated rules not used in AU
-     * @return The JsonArray containing the referential data if they are all valid
-     * @throws ReferentialException when there is errors import
-     * @throws IOException when there is IO Exception
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
-     */
-    ArrayNode checkFile(InputStream file, Map<Integer, List<ErrorReport>> errorsMap,
-        List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, Set<String> notUsedDeletedRules,
-        Set<String> notUsedUpdatedRules)
-        throws ReferentialException, IOException, InvalidCreateOperationException, InvalidParseOperationException;
-
 }

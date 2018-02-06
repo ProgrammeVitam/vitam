@@ -222,9 +222,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
-        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
-            formatManagement.checkFile(xmlPronom, errors, null, null, null, null);
+            formatManagement.checkFile(xmlPronom);
             return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
@@ -382,13 +381,14 @@ public class AdminManagementResource extends ApplicationStatusResource {
         Map<Integer, List<ErrorReport>> errors = new HashMap<Integer, List<ErrorReport>>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
             RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
 
             try {
-                rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules,
+                rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules, insertRules,
                     notUsedDeletedRules, notUsedUpdatedRules);
             } catch (FileRulesUpdateException exc) {
                 LOGGER.warn("used Rules ({}) want to be updated",
