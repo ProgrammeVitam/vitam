@@ -162,10 +162,12 @@ mongo_common
 # 2 params available for huge environments (parameter to be declared after each server) :
 #    is_data=true/false
 #    is_master=true/false
+#    other options are not handled yet
 # defaults are set to true
 # Examples :
 # server1 is_master=true is_data=false
 # server2 is_master=false is_data=true
+# More explanation here : https://www.elastic.co/guide/en/elasticsearch/reference/5.6/modules-node.html
 
 
 # Group definition ; DO NOT MODIFY
