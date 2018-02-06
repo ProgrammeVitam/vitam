@@ -28,6 +28,7 @@
 package fr.gouv.vitam.common.storage.swift;
 
 import org.openstack4j.api.OSClient;
+import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.identity.v2.Access;
 import org.openstack4j.openstack.OSFactory;
 
@@ -45,9 +46,11 @@ public class SwiftKeystoneV2 extends Swift {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SwiftKeystoneV2.class);
 
     private static Access access;
+    private Config configOS4J;
 
     public SwiftKeystoneV2(StorageConfiguration configuration) {
         super(configuration);
+        configOS4J = Config.newConfig().withEndpointURLResolver(new VitamEndpointUrlResolver(configuration));
     }
 
     @Override
@@ -57,10 +60,11 @@ public class SwiftKeystoneV2 extends Swift {
             LOGGER.info("No access or token expired, let's get authenticate again");
             osClientV2 = OSFactory.builderV2().endpoint(configuration.getKeystoneEndPoint()).tenantName(configuration
                 .getSwiftUid()).credentials(configuration.getSwiftSubUser(), configuration.getCredential())
-                .authenticate();
+                    .withConfig(configOS4J)
+                    .authenticate();
             access = osClientV2.getAccess();
         } else {
-            osClientV2 = OSFactory.clientFromAccess(access);
+            osClientV2 = OSFactory.clientFromAccess(access, configOS4J);
         }
         return osClientV2;
     }

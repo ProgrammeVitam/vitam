@@ -137,11 +137,13 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
     @Override
     public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType) throws
         ContentAddressableStorageException {
+
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
+
         OSClient osClient = getAuthenticatedClient();
-        osClient.objectStorage().objects().put(containerName, objectName, Payloads.create
-            (stream));
+
+        osClient.objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
         // Same as the others (like HashFileSystem) but clearly not the best way
         String digest = super.computeObjectDigest(containerName, objectName, digestType);
         Map<String, String> metadataToUpdate = new HashMap<>();

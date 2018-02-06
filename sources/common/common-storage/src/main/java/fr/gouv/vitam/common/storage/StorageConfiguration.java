@@ -43,6 +43,23 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private String contextPath;
     private boolean authentication;
     private String projectName;
+    private String swiftUrl;
+
+    /**
+     * @return the swiftUrl
+     */
+    public String getSwiftUrl() { return swiftUrl; }
+
+    /**
+     * @param swiftUrl
+     *            the swiftUrl to set
+     *
+     * @return this
+     */
+    public StorageConfiguration setSwiftUrl(String swiftUrl) {
+        this.swiftUrl = swiftUrl;
+        return this;
+    }
 
     /**
      * @return the provider
