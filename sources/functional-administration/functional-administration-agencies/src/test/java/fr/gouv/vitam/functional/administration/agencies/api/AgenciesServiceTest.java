@@ -223,7 +223,7 @@ public class AgenciesServiceTest {
         // Then
         assertThat(response.isOk()).isTrue();
         JsonNode report = getFromFile(reportPath.toFile());
-        assertThat(report.get("JDO")).isNotNull();
+        assertThat(report.get("Operation")).isNotNull();
         reportPath.toFile().delete();
 
         // import 2
@@ -231,7 +231,7 @@ public class AgenciesServiceTest {
 
         response = agencyService.importAgencies(new FileInputStream(fileAgencies2));
         report = getFromFile(reportPath.toFile());
-        assertThat(report.get("JDO")).isNotNull();
+        assertThat(report.get("Operation")).isNotNull();
         assertThat(response.isOk()).isTrue();
         reportPath.toFile().delete();
 
@@ -244,7 +244,7 @@ public class AgenciesServiceTest {
         report = getFromFile(reportPath.toFile());
 
         assertThat(response.isOk()).isFalse();
-        assertThat(report.get("JDO")).isNotNull();
+        assertThat(report.get("Operation")).isNotNull();
         String error =
             "{\"line 4\":\"[{\\\"Code\\\":\\\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\\\",\\\"Message\\\":\\\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\\\",\\\"Information additionnelle\\\":\\\"Name\\\"}]\"}";
         assertThat(report.get("error").toString()).isEqualTo(error);
@@ -261,7 +261,7 @@ public class AgenciesServiceTest {
         response = agencyService.importAgencies(new FileInputStream(fileAgencies4));
         assertThat(response.isOk()).isFalse();
         report = getFromFile(reportPath.toFile());
-        assertThat(report.get("JDO")).isNotNull();
+        assertThat(report.get("Operation")).isNotNull();
         assertThat((report.get("UsedAgencies to Delete")).get(0).textValue())
             .startsWith("AG-00000");
 

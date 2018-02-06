@@ -56,7 +56,7 @@ public class AgenciesReport {
     @JsonProperty("UsedAgencies to Delete")
     private List<String> usedAgenciesToDelete = new ArrayList<>();
 
-    @JsonProperty("JDO")
+    @JsonProperty("Operation")
     private HashMap<String, String> jdo = new HashMap<>();
     @JsonProperty("error")
     private HashMap<String, String> errors;

@@ -31,7 +31,7 @@ package fr.gouv.vitam.functional.administration.common;
  */
 public class ReportConstants {
 
-    public static final String JDO_DISPLAY = "JDO";
+    public static final String JDO_DISPLAY = "Operation";
     public static final String ADDITIONAL_INFORMATION = "Information additionnelle";
     public static final String CODE = "Code";
     public static final String MESSAGE = "Message";

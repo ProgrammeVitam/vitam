@@ -116,6 +116,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.ReportConstants;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
@@ -671,7 +672,7 @@ public class RulesManagerFileImplTest {
             getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
-        final JsonNode errorNode = errorReportAtJson.get("JDO");
+        final JsonNode errorNode = errorReportAtJson.get(ReportConstants.JDO_DISPLAY);
 
         assertThat(errorNode.get("outMessg").asText())
             .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
@@ -687,7 +688,7 @@ public class RulesManagerFileImplTest {
             getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_INVALID_FORMAT);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
-        final JsonNode errorNode = errorReportAtJson.get("JDO");
+        final JsonNode errorNode = errorReportAtJson.get(ReportConstants.JDO_DISPLAY);
 
         assertThat(errorNode.get("outMessg").asText())
             .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
@@ -703,7 +704,7 @@ public class RulesManagerFileImplTest {
         final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_MISSING_COLUMN);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
-        final JsonNode errorNode = errorReportAtJson.get("JDO");
+        final JsonNode errorNode = errorReportAtJson.get(ReportConstants.JDO_DISPLAY);
 
         assertThat(errorNode.get("outMessg").asText())
             .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
@@ -774,7 +775,7 @@ public class RulesManagerFileImplTest {
         verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
             eq(DataCategory.REPORT), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
-        final JsonNode jdoNode = fromFile.get("JDO");
+        final JsonNode jdoNode = fromFile.get(ReportConstants.JDO_DISPLAY);
         final String evId = jdoNode.get("evId").asText();
         final String outMessg = jdoNode.get("outMessg").asText();
         assertThat(evId).isNotEmpty();
@@ -804,7 +805,7 @@ public class RulesManagerFileImplTest {
         assertEquals(23, fileRulesAfterInsert.size());
 
         final JsonNode reportAfterUpdateNode = JsonHandler.getFromFile(reportAfterUpdate.toFile());
-        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get("JDO");
+        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get(ReportConstants.JDO_DISPLAY);
         final String evIdAfterUpdate = jdoAfterUpdateNode.get("evId").asText();
         final String outMessgAfterUpdate = jdoNode.get("outMessg").asText();
         assertThat(evIdAfterUpdate).isNotEmpty();
@@ -848,7 +849,7 @@ public class RulesManagerFileImplTest {
         verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
             eq(DataCategory.REPORT), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
-        final JsonNode jdoNode = fromFile.get("JDO");
+        final JsonNode jdoNode = fromFile.get(ReportConstants.JDO_DISPLAY);
         final String evId = jdoNode.get("evId").asText();
         final String outMessg = jdoNode.get("outMessg").asText();
         assertThat(evId).isNotEmpty();
@@ -878,7 +879,7 @@ public class RulesManagerFileImplTest {
             convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
         assertEquals(22, fileRulesAfterInsert.size());
         final JsonNode reportAfterUpdateNode = JsonHandler.getFromFile(reportAfterUpdate.toFile());
-        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get("JDO");
+        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get(ReportConstants.JDO_DISPLAY);
         final String evIdAfterUpdate = jdoAfterUpdateNode.get("evId").asText();
         final String outMessgAfterUpdate = jdoAfterUpdateNode.get("outMessg").asText();
         assertThat(evIdAfterUpdate).isNotEmpty();
