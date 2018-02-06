@@ -202,7 +202,7 @@ public class ArchiveUnitUpdateUtils {
         String evDetData, LogbookLifeCyclesClient logbookLifeCycleClient) {
         try {
             LogbookLifeCycleUnitParameters logbookLCParam =
-                getLogbookLifeCycleUpdateUnitParameters(GUIDReader.getGUID(params.getProcessId()), code,
+                getLogbookLifeCycleUpdateUnitParameters(GUIDReader.getGUID(params.getContainerName()), code,
                     GUIDReader.getGUID(auGuid), UNIT_METADATA_UPDATE);
             if (evDetData != null) {
                 logbookLCParam.putParameterValue(LogbookParameterName.eventDetailData, evDetData);

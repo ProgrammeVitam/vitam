@@ -241,13 +241,13 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                                     archiveUnitUpdateUtils.logLifecycle(params, auGuid, StatusCode.OK,
                                         archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, auGuid),
                                         logbookLifeCycleClient);
-                                    archiveUnitUpdateUtils.commitLifecycle(params.getProcessId(), auGuid,
+                                    archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), auGuid,
                                         logbookLifeCycleClient);
                                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
                                     MetaDataClientServerException | InvalidCreateOperationException |
                                     InvalidParseOperationException | MetaDataNotFoundException e) {
                                     try {
-                                        logbookLifeCycleClient.rollBackUnitsByOperation(params.getProcessId());
+                                        logbookLifeCycleClient.rollBackUnitsByOperation(params.getContainerName());
                                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                                         LogbookClientServerException ex) {
                                         LOGGER.error("Couldn't rollback lifecycles", ex);

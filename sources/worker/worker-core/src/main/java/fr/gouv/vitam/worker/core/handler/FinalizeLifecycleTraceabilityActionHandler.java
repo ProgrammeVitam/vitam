@@ -128,7 +128,7 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
         File tmpFolder = PropertiesUtils.fileFromTmpFolder("secure");
         final LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
         LogbookLifeCycleTraceabilityHelper helper =
-        		new LogbookLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, params.getProcessId());
+        		new LogbookLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, params.getContainerName());
     	
     	TraceabilityService traceabilityService = 
     		new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);

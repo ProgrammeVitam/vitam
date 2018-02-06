@@ -157,7 +157,7 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
                     String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
                     archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
                         logbookLifeCycleClient);
-                    archiveUnitUpdateUtils.commitLifecycle(params.getProcessId(), archiveUnitId,
+                    archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
                         logbookLifeCycleClient);
                 }
             }
