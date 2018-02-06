@@ -20,6 +20,14 @@ describe('ObjectsService', () => {
     expect(ObjectsService.computeSize(149003002001)).toBe('149 Go');
   });
 
+  it ('should stringify objects', () => {
+    expect(ObjectsService.stringify(124)).toBe('124');
+    expect(ObjectsService.stringify(0)).toBe('0');
+    let testvar;
+    expect(ObjectsService.stringify(testvar)).toBe('');
+    expect(ObjectsService.stringify([1,2])).toBe('1,2');
+  });
+        
   it ('should copy object correctly', () => {
     let item = {
       prop: 'value',
