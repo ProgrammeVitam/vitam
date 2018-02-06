@@ -848,14 +848,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
         InvalidGuidOperationException {
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final GUID objectId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
-        final GUID operationAuditGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationAuditGuid, Contexts.AUDIT_WORKFLOW.getEventType(), objectId,
+                objectId, Contexts.AUDIT_WORKFLOW.getEventType(), objectId,
                 LogbookTypeProcess.AUDIT, StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(Contexts.AUDIT_WORKFLOW.getEventType(), StatusCode.STARTED),
-                operationAuditGuid);
+                objectId);
             logbookClient.create(initParameters);
         }
     }
