@@ -18,6 +18,17 @@
   tags:
     - init_pronom
 
+- name: copy temporary PEM certificate 
+  copy:
+    src: "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
+    dest: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
+    remote_src: no
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  tags:
+    - init_pronom
+
 - name: Ensure service is started 
   service:
     name: "vitam-access-external"
@@ -31,11 +42,10 @@
   run_once: true
 
 - name: upload PRONOM through access-external
-  local_action:
-    module: uri
+  uri:
     url: "https://{{ ip_service }}:{{ vitam.accessexternal.port_service }}/admin-external/v1/formats"
     method: POST
-    client_cert: "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
+    client_cert: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
     #password: "{{ keystores.client_external.vitam_admin_int }}"
     headers:
       Connection: "keep-alive"
@@ -44,21 +54,28 @@
       Host: "{{ vitam_struct.host }}"
       # FIXME beurk : Transfer-Encoding badly handled
       Transfer-Encoding: "anotherthanchunk"
-    body: "{{ lookup('file', 'DROID_SignatureFile_V88.xml') }}"
+    body: "{{ lookup('file', '{{inventory_dir}}/DROID_SignatureFile_V88.xml') }}"
     body_format: "raw"
     validate_certs: false
     # 201 : uploaded
     # 409 : conflict as already uploaded
     status_code: 201,409
-  ignore_errors: true
+  #ignore_errors: true
   run_once: true # Limit as this upload is not related to tenants
-  #no_log: true
+  no_log: true
   with_items:
     - "{{vitam_tenant_ids|first}}"
   tags:
     - init_pronom
 
-- name: remove temporary pem file
+- name: remove temporary PEM certificate 
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
+    state: absent
+  tags:
+    - init_pronom
+
+- name: remove temporary pem file in ansible
   local_action:
     module: file
     path:  "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
