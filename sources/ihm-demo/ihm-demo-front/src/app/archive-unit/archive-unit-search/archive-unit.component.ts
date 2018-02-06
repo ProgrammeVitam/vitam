@@ -43,8 +43,8 @@ export class ArchiveUnitComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('Title', 'Intitulé', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('#unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'}), false),
     ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de début', this.archiveUnitHelper.getStartDate, DateService.handleDate, () => ({'width': '100px'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, DateService.handleDate, () => ({'width': '100px'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Date la plus ancienne', this.archiveUnitHelper.getStartDate, DateService.handleDate, () => ({'width': '100px'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Date la plus récente', this.archiveUnitHelper.getEndDate, DateService.handleDate, () => ({'width': '100px'}), false),
     ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
       (data) => data['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({'width': '100px'}), null, null, false),
     ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (item) => this.routeToLFC(item), () => true, () => ({'width': '50px'}), null, false)
