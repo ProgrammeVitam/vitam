@@ -156,24 +156,17 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     private ObjectMapper objectMapper;
     private ProcessingManagementClientFactory processingManagementClientFactory;
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private WorkspaceClientFactory workspaceClientFactory;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
 
     /**
      * @param configuration to associate with AccessResourceImpl
      */
     public AccessInternalResourceImpl(AccessInternalConfiguration configuration) {
-        accessModule = new AccessInternalModuleImpl(configuration);
+        this(new AccessInternalModuleImpl(configuration), LogbookOperationsClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance());
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
-        archiveUnitMapper = new ArchiveUnitMapper();
-        objectGroupMapper = new ObjectGroupMapper();
-        LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
-        this.objectMapper = buildObjectMapper();
-        this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
-        this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
-        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
-        this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
     }
 
     /**
@@ -182,16 +175,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * @param accessModule
      */
     AccessInternalResourceImpl(AccessInternalModule accessModule) {
-        this.accessModule = accessModule;
-        archiveUnitMapper = new ArchiveUnitMapper();
-        objectGroupMapper = new ObjectGroupMapper();
-        LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
-        this.objectMapper = buildObjectMapper();
-        this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
-        this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
-        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
-        this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
-        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
+        this(accessModule, LogbookOperationsClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
     }
 
     /**
