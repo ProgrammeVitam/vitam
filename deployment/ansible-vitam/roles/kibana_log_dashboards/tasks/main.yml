@@ -78,7 +78,7 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
-    url: '{{ elasticsearch.log|client_url }}.kibana/config/5.6.1'
+    url: '{{ elasticsearch.log|client_url }}.kibana/config/5.6.3'
     method: PUT
     body: '{"defaultIndex": "logstash-vitam*", "buildNum": 15533}'
     body_format: json
