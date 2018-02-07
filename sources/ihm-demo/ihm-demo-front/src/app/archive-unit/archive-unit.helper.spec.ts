@@ -49,6 +49,13 @@ describe('ArchiveUnitHelper', () => {
     expect(service.transformType('INGEST')).toBe('Standard');
     expect(service.transformType('UNKNOW_TYPE')).toBe('UNKNOW_TYPE');
   }));
+    
+    
+  it('should translate the unit type', inject([ArchiveUnitHelper], (service: ArchiveUnitHelper) => {
+    expect(service.getDimensions('micrometre')).toBe('micromètre');
+    expect(service.getDimensions('4H')).toBe('micromètre');
+    expect(service.getDimensions('KGM')).toBe('kilogramme');
+  }));    
 
   it('should exclude some fields', inject([ArchiveUnitHelper], (service: ArchiveUnitHelper) => {
     expect(service.mustExcludeFields('#id')).toBeTruthy();

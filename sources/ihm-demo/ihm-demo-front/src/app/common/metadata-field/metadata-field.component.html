@@ -4,7 +4,8 @@
     <label class="label fieldLabel">{{title}}</label>
   </div>
   <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="!updateMode || !canUpdate">
-    <span *ngIf="!dateValue && displayMode !== 'MultiSelect' && displayMode !== 'DropDown'" class="overflow-break-words" >{{value}}</span>
+    <span *ngIf="!dateValue && displayMode !== 'MultiSelect' && displayMode !== 'DropDown' && !physicalUnitMode" class="overflow-break-words" >{{value}}</span>
+    <span *ngIf="physicalUnitMode" class="overflow-break-words">{{getLabelPhysicalDimensions(value)}}</span>
     <span *ngIf="dateValue" class="overflow-break-words" >{{value | date:'dd/MM/yyyy'}}</span>
     <span *ngIf="displayMode === 'MultiSelect' || displayMode === 'DropDown'" class="overflow-break-words">{{getLabels(value)}}</span>
   </div>

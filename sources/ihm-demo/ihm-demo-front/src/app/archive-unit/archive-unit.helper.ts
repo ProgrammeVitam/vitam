@@ -51,6 +51,25 @@ export class ArchiveUnitHelper {
       {label: 'Arbre de positionnement', value: 'HOLDING_UNIT'}
     ]
   };
+  public unece = [{label: 'centimètre', value: 'CMT'},
+                  {label: 'centimètre', value: 'centimetre'},
+                  {label: 'micromètre', value: 'micrometre'},
+                  {label: 'micromètre', value: '4H'},
+                  {label: 'millimètre', value: 'millimetre'},
+                  {label: 'millimètre', value: 'MMT'},
+                  {label: 'mètre', value: 'metre'},
+                  {label: 'pouce', value: 'inch'},
+                  {label: 'pouce', value: 'INH'},
+                  {label: 'pied', value: 'foot'},
+                  {label: 'pied', value: 'FOT'},
+                  {label: 'microgramme', value: 'microgram'},
+                  {label: 'microgramme', value: 'MC'},
+                  {label: 'milligramme', value: 'milligram'},
+                  {label: 'milligramme', value: 'MGM'},
+                  {label: 'gramme', value: 'gram'},
+                  {label: 'gramme', value: 'GRM'},
+                  {label: 'kilogramme', value: 'kilogram'},
+                  {label: 'kilogramme', value: 'KGM'}];
 
   constructor() { }
 
@@ -64,6 +83,15 @@ export class ArchiveUnitHelper {
       case 'FILING_UNIT': return 'Plan de classement';
       case 'HOLDING_UNIT': return 'Arbre de positionnement';
       default: return unitType;
+    }
+  }
+    
+  getDimensions(unitType: string): string  {
+    let matchingOption = this.unece.find(option => option.value === unitType);
+    if (matchingOption) {
+      return matchingOption.label;
+    } else {
+      return unitType;  
     }
   }
 
@@ -329,6 +357,7 @@ export class ArchiveUnitHelper {
   getObjectGroupTranslations() {
     return {
       '_id': 'Identifiant',
+      '#id': 'Identifiant',
       'DataObjectGroupId': 'Identifiant du groupe d\'objets techniques',
       'DataObjectVersion': 'Usage',
       'MessageDigest': 'Empreinte',
@@ -354,10 +383,10 @@ export class ArchiveUnitHelper {
       'Metadata.Audio': 'Audio',
       'Metadata.Image': 'Image',
       'Metadata.Text':'Texte',
-      '_storage': 'Stockage',
-      '_storage._nbc': 'Nombre de copies',
-      '_storage.offerIds': 'offre de stockage',
-      '_storage.strategyId': 'Stratégie de stockage',
+      '#storage': 'Stockage',
+      '#storage.#nbc': 'Nombre de copies',
+      '#storage.offerIds': 'offre de stockage',
+      '#storage.strategyId': 'Identifiant de la stratégie de stockage',
       'PhysicalId': 'Identifiant d\'objet physique',
       'PhysicalDimensions': 'Dimensions physiques de l\'objet',
       'PhysicalDimensions.Shape': 'Forme',
