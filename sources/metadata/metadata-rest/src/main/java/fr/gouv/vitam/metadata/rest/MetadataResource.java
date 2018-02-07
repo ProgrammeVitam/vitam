@@ -482,7 +482,7 @@ public class MetadataResource extends ApplicationStatusResource {
     private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
         Status status;
         LOGGER.error(e);
-        status = Status.INTERNAL_SERVER_ERROR;
+        status = Status.BAD_REQUEST;
         Throwable e2 = e.getCause();
         if (e2 != null && e2 instanceof IllegalArgumentException || e2 instanceof ElasticsearchParseException) {
             status = Status.PRECONDITION_FAILED;

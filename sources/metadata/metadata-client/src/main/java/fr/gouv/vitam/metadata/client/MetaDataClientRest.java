@@ -37,7 +37,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -70,6 +69,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
+    public static final String DESCRIPTION = "description";
 
     /**
      * Constructor using given scheme (http)
@@ -269,6 +269,20 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+
+                try {
+                    // FIXME: use response.hasEntity() instead of try catch. the origin of the problem is VitamApacheHttpClientEngine make response.hasEntity() return always true.
+                    JsonNode resp = response.readEntity(JsonNode.class);
+                    if (null != resp) {
+                        JsonNode errNode = resp.get(DESCRIPTION);
+                        if (null != errNode) {
+                            throw new InvalidParseOperationException(errNode.asText());
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+                }
+
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
@@ -502,10 +516,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("The unit id is mandatory", unitId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/raw", null,null,
+            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/raw", null, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
-        
+
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
@@ -522,10 +536,10 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("The unit id is mandatory", objectGroupId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/objectgroups/" + objectGroupId + "/raw", null,null,
+            response = performRequest(HttpMethod.GET, "/objectgroups/" + objectGroupId + "/raw", null, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
-        
+
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
