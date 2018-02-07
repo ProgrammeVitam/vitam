@@ -24,82 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.storagelog;
-
-import java.time.LocalDateTime;
-
 /**
- * Log Information
+ * Provides logbook interface, factory and implementation for the Storage Engine
+ * Server module in order to log every object written on different storage
+ * offers
+ * 
  */
-public class LogInformationEvent {
-    /**
-     * fileName
-     */
-    private String fileName;
-    /**
-     * time stamp begin log time
-     */
-    private LocalDateTime beginTime;
-    /**
-     * time stamp end log time
-     */
-    private LocalDateTime endTime;
-    /**
-     * time stamp token (base64 encoded)
-     */
-    private String hash;
-    /**
-     * Total size of the ZIP entry
-     */
-    private long size;
-
-    public LogInformationEvent(String fileName, LocalDateTime beginTime, LocalDateTime endTime, String hash,
-        long size) {
-        this.fileName = fileName;
-        this.beginTime = beginTime;
-        this.endTime = endTime;
-        this.hash = hash;
-        this.size = size;
-    }
-
-    /**
-     * get log FileName
-     *
-     * @return fileName
-     */
-    public String getFileName() {
-        return fileName;
-    }
-
-    /**
-     * get begin log time
-     *
-     * @return LocalDateTime beginTime
-     */
-    public LocalDateTime getBeginTime() {
-        return beginTime;
-    }
-
-    /**
-     * get end log file time
-     *
-     * @return LocalDateTime endTime
-     */
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    /**
-     * @return Size of the entry
-     */
-    public long getSize() {
-        return size;
-    }
-
-    /**
-     * @return hash
-     */
-    public String getHash() {
-        return hash;
-    }
-}
+package fr.gouv.vitam.storage.log.backup;

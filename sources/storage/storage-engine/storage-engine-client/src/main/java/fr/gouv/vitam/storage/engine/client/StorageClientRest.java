@@ -67,7 +67,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String GUID_MUST_HAVE_A_VALID_VALUE = "GUID must have a valid value";
     private static final String TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE = "Type of storage object must have a valid value";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
-    private static final String SECURE_STORAGE_LOGBOOK_URI = "/storage/secure";
+    private static final String BACKUP_STORAGE_LOG_URI = "/storage/backup";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
 
     StorageClientRest(StorageClientFactory factory) {
@@ -415,12 +415,12 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK secureStorageLogbook() throws StorageServerClientException ,InvalidParseOperationException {
+    public RequestResponseOK backupStorageLog() throws StorageServerClientException ,InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
-            response = performRequest(HttpMethod.POST, SECURE_STORAGE_LOGBOOK_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, BACKUP_STORAGE_LOG_URI, headers, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:

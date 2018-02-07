@@ -185,7 +185,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponseOK secureStorageLogbook() throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK backupStorageLog() throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Get object information from objects in storage

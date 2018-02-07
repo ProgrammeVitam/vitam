@@ -179,7 +179,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK secureStorageLogbook()
+    public RequestResponseOK backupStorageLog()
         throws StorageServerClientException, InvalidParseOperationException {
         return new RequestResponseOK<String>()
             .addResult(GUIDFactory.newGUID().toString());

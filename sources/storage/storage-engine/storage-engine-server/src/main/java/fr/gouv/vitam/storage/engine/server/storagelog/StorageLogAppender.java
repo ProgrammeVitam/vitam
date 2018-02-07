@@ -26,184 +26,68 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 /**
- * Storage Logbook  Appender
+ * Storage log appender.
+ *
+ * Not thread-safe. Should not be invoked by multiple threads concurrently.
  */
-public class StorageLogAppender {
+public class StorageLogAppender implements VitamAutoCloseable {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAppender.class);
-    
-    private Path fileLocation;
 
-    private final String lineSeparator = System.getProperty("line.separator");
+    private final Writer writer;
+    private final String lineSeparator = "\n";
 
-    private final String PARAMS_CANNOT_BE_NULL = "Params cannot be null";
-
-    private final List<Integer> tenantIds;
-
-    private final Map<Integer, OutputStream> streams = new HashMap<>();
-
-    private final Map<Integer, Path> filesNames = new HashMap<>();
-
-    private final Map<Integer, LocalDateTime> beginLogTimes = new HashMap<>();
-
-    private final Map<Integer, Object> lockers = new HashMap<>();
-
-    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-    private DateTimeFormatter timeFormater = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss");
-
-
-
-    /**
-     * <pre>{@code
-     * usage
-     * final ArrayList list = new ArrayList<>();
-     * list.append(1);
-     * list.append(2);
-     * StorageLogAppender storageLogAppender = new StorageLogAppender(list, folder.getRoot().toPath());
-     * }
-     * </pre>
-     *
-     * @param tenantIds
-     * @param path
-     * @throws IOException
-     */
-    public StorageLogAppender(List<Integer> tenantIds, Path path) throws IOException {
-        this.tenantIds = tenantIds;
-        this.fileLocation = path;
-        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, tenantIds);
-        //create log by tenant
-        for (Integer tenant : this.tenantIds) {
-            Object lock = new Object();
-            lockers.put(tenant, lock);
-            createNewLog(tenant);
-        }
+    public StorageLogAppender(Path filePath) throws IOException {
+        OutputStream outputStream = openStream(filePath);
+        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
     }
 
-
-    private void createNewLog(Integer tenant) throws IOException {
-        Path filepath = constructPath(tenant);
-        filesNames.put(tenant, filepath);
-        OutputStream out = openTenantStream(tenant, filepath);
-        streams.put(tenant, out);
-        beginLogTimes.put(tenant, LocalDateTime.now());
-    }
-
-    /**
-     * Get the name of the new file
-     *
-     * @param tenant
-     * @return
-     */
-    private Path constructPath(Integer tenant) {
-        LocalDateTime date = LocalDateTime.now();
-        String file_name = fileLocation.toString() + "/"
-            + tenant.toString()
-            + "_" + date.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli()
-            + "_" + date.format(formatter)
-            + UUID.randomUUID().toString()
-            + ".log";
-        return Paths.get(file_name);
-    }
-
-    private OutputStream openTenantStream(Integer tenant, Path path) throws IOException {
+    private OutputStream openStream(Path path) throws IOException {
         try {
             return Files.newOutputStream(path, CREATE_NEW, APPEND);
         } catch (IOException e) {
-            LOGGER.error("Cannot instantiate file: {}", path.toFile().getAbsolutePath(), e);
-            throw e;
+            throw new IOException(String.format("Cannot open storage log file %s", path.toFile().getAbsolutePath()), e);
         }
     }
 
     /**
-     * Secure log by tenant
-     * create a new log
-     * and close curent stream
+     * Append to the current log.
      *
-     * @param tenant the tenantId
-     * @return the path of the last securised log
-     * @throws IOException
-     */
-    public LogInformation secureAndCreateNewlogByTenant(Integer tenant) throws IOException {
-        LocalDateTime endTime;
-        Path lastPath;
-        //save the name
-        Object lock = lockers.get(tenant);
-        synchronized (lock) {
-            // get tenant Stream
-            lastPath = filesNames.get(tenant);
-            OutputStream out = streams.get(tenant);
-            endTime = LocalDateTime.now();
-            out.flush();
-            out.close();
-            // create a new name for  the future log
-            createNewLog(tenant);
-        }
-        return new LogInformation(lastPath, beginLogTimes.get(tenant), endTime);
-    }
-
-    /**
-     * Call only when no more appending log is expected
-     * for exemple when context is destroyed
-     *
-     * @param tenant
-     * @return Log Information
-     * @throws IOException
-     */
-    public LogInformation secureWithoutCreatingNewLogByTenant(Integer tenant) throws IOException {
-        LocalDateTime endTime = null;
-        //save the name
-        Path lastPath = null;
-        Object lock = lockers.get(tenant);
-        synchronized (lock) {
-            OutputStream out = streams.get(tenant);
-            lastPath = filesNames.get(tenant);
-            endTime = LocalDateTime.now();
-            out.flush();
-            out.close();
-        }
-        return new LogInformation(lastPath, beginLogTimes.get(tenant), endTime);
-    }
-
-    /**
-     * Append logbookParameters to the current log.
-     *
-     * @param tenant
      * @param parameters
      * @return this
      * @throws IOException
      */
-    public StorageLogAppender append(Integer tenant, StorageLogbookParameters parameters) throws IOException {
-        Object lock = lockers.get(tenant);
-        synchronized (lock) {
-            final OutputStream out = streams.get(tenant);
-            out.write((parameters.getMapParameters().toString() + lineSeparator).getBytes());
+    public void append(StorageLogbookParameters parameters) throws IOException {
+        writer.append(parameters.getMapParameters().toString()).append(lineSeparator);
+    }
+
+    @Override
+    public void close() {
+        try {
+            if (writer != null) {
+                writer.flush();
+                writer.close();
+            }
+        } catch (IOException ex) {
+            LOGGER.warn("Could not close stream", ex);
         }
-        return this;
     }
-
-    private String getTime() {
-        return LocalDateTime.now().format(timeFormater);
-    }
-
 }

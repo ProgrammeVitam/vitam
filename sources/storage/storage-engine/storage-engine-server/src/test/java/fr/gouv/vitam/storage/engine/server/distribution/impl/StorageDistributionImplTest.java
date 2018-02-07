@@ -52,7 +52,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogbookServiceImpl;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -107,10 +107,10 @@ public class StorageDistributionImplTest {
         list.add(1);
 
         folder.create();
-        StorageLogbookServiceImpl storageLogbookService =
-            new StorageLogbookServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
-        simpleDistribution = new StorageDistributionImpl(configuration, storageLogbookService);
-        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1,storageLogbookService);
+        StorageLogServiceImpl storageLogService =
+            new StorageLogServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
+        simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
+        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1,storageLogService);
         //LogbookLifeCyclesClientFactory.changeMode(null);
     }
 

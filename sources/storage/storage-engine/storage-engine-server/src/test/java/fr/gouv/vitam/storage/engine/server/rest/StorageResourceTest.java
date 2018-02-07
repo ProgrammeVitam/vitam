@@ -79,7 +79,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.registration.StorageLogSecurisationListener;
 
 /**
  *
@@ -1038,8 +1037,8 @@ public class StorageResourceTest {
     }
 
     @Test
-    public void secureStorageLogbookOk() {
-        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).when().post("/storage/secure").then()
+    public void backupStorageLogbookOk() {
+        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).when().post("/storage/backup").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
     }
@@ -1099,7 +1098,6 @@ public class StorageResourceTest {
                 singletons.add(new GenericExceptionMapper());
                 StorageResource storageResource = new StorageResource(new StorageDistributionInnerClass());
                 singletons.add(storageResource);
-                singletons.add(new StorageLogSecurisationListener(storageResource, configurationFile));
             }
             return singletons;
         }

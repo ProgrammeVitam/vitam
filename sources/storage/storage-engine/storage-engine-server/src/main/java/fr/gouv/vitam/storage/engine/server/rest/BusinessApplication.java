@@ -32,10 +32,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 import java.util.HashSet;
 import java.util.Set;
 
-import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.storage.engine.server.registration.StorageLogSecurisationListener;
-import org.glassfish.jersey.server.ServerConfig;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -67,7 +64,6 @@ public class BusinessApplication extends Application {
 
             StorageResource storageResource = new StorageResource(configurationFile);
             singletons.add(storageResource);
-            singletons.add(new StorageLogSecurisationListener(storageResource, configurationFile));
         }
         return singletons;
     }

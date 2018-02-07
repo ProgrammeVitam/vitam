@@ -24,43 +24,32 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.logbook;
+package fr.gouv.vitam.storage.engine.server.storagelog;
 
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+
+import java.io.IOException;
 import java.util.List;
 
 /**
- * Secure configuration
+ * Storage log service interface. It describes methods to be implemented.
  */
-public class StorageSecureConfiguration {
-
-    protected List<Integer> tenants ;
-
-
+public interface StorageLogService extends VitamAutoCloseable {
 
     /**
-     * Empty ClientConfiguration constructor for YAMLFactory
+     * Add a storage log entry.
+     *
+     * @param parameters the entry parameters
+     * @throws IOException if an error is encountered
      */
-    public StorageSecureConfiguration() {
-
-    }
+    void append(Integer tenant, StorageLogbookParameters parameters) throws IOException;
 
     /**
+     * Rotate log file, and return previous log information
      *
-     * @return list of tenant
+     * @param tenantId
      */
-    public List<Integer> getTenants() {
-        return tenants;
-    }
-
-    /**
-     *
-     *
-     * @param tenants to set
-     */
-    public void setTenants(List<Integer> tenants) {
-        this.tenants = tenants;
-    }
-
-
+    List<LogInformation> rotateLogFile(Integer tenantId) throws IOException;
 
 }
