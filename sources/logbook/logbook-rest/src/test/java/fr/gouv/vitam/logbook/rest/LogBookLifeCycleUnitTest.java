@@ -182,6 +182,9 @@ public class LogBookLifeCycleUnitTest {
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
             logbookConf.setTenants(tenantList);
+            logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
+            logbookConf.setOpEventsNotInWf(new ArrayList<>());
+            logbookConf.setOpWithLFC(new ArrayList<>());
 
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();

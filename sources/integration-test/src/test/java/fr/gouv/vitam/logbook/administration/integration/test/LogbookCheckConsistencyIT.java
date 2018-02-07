@@ -65,7 +65,9 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyService;
 import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
-import fr.gouv.vitam.logbook.common.model.LogbookCheckResult;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckError;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckEvent;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -115,13 +117,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Integration test of LogbookCheckConsistency services.
@@ -187,6 +191,7 @@ public class LogbookCheckConsistencyIT {
     private static final String JETTY_INGEST_INTERNAL_PORT = "jetty.ingest-internal.port";
 
     private static final String SIP_KO_ARBO_RECURSIVE = "integration-logbook/data/KO_ARBO_recursif.zip";
+    private static final String EXPECTED_RESULTS_JSON = "integration-logbook/data/expected_results.json";
 
     private static final String DEFAULT_WORKFLOW_RESUME = "DEFAULT_WORKFLOW_RESUME";
     private static final String ERROR_EXCEPTION_HAS_BEEN_THROWN_WHEN_CLEANING_OFFERS =
@@ -197,7 +202,7 @@ public class LogbookCheckConsistencyIT {
     private static final int TENANT_0 = 0;
     private static final long SLEEP_TIME = 100l;
     private static final long NB_TRY = 9600;
-
+    
     private static MetadataMain medtadataApplication;
     private static WorkerMain workerApplication;
     private static WorkspaceMain workspaceMain;
@@ -456,53 +461,15 @@ public class LogbookCheckConsistencyIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testStoreReportsInStorage() throws Exception {
-        LOGGER.debug("Starting store logbook coherence checks reports test.");
-
-        List<LogbookCheckResult> logbookCheckResults = Arrays.asList(
-            new LogbookCheckResult("operationId01", "lfcId01", "checkedProperty01", "savedLogbookMsg01",
-                "expectedLogbookMsg01"),
-            new LogbookCheckResult("operationId02", "lfcId02", "checkedProperty02", "savedLogbookMsg02",
-                "expectedLogbookMsg02"),
-            new LogbookCheckResult("operationId03", "lfcId03", "checkedProperty03", "savedLogbookMsg03",
-                "expectedLogbookMsg03")
-        );
-
-        final File logbookConfig = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration configuration = PropertiesUtils.readYaml(logbookConfig, LogbookConfiguration.class);
-
-        coherenceCheckService =
-            new LogbookCheckConsistencyServiceImpl(configuration, VitamRepositoryFactory.getInstance());
-
-        coherenceCheckService.storeReportsInStorage(logbookCheckResults, TENANT_0);
-
-        // verify offer content
-        VitamRequestIterator<JsonNode> result =
-            storageClient.listContainer(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS);
-
-        Assert.assertNotNull(result);
-        Assert.assertTrue(result.hasNext());
-        JsonNode node = result.next();
-        Assert.assertNotNull(node.get(OBJECT_ID));
-
-        Response response =
-            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
-                DataCategory.CHECKLOGBOOKREPORTS);
-        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void testLogbookCoherenceCheck_withoutIncoherentLogbook() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-
         LOGGER.debug("Starting integration tests for logbook coherence checks.");
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
         // Import of the agencies referential.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
-                CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
+                    CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
         }
 
         // logbook configuration
@@ -518,11 +485,34 @@ public class LogbookCheckConsistencyIT {
 
         // verify offer check logbook report content
         VitamRequestIterator<JsonNode> result =
-            storageClient.listContainer(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS);
+                storageClient.listContainer(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS);
 
-        Assert.assertFalse(result.hasNext());
+        Assert.assertTrue(result.hasNext());
+        JsonNode node = result.next();
+        Assert.assertNotNull(node.get(OBJECT_ID));
+
+        Response response =
+                storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
+                        DataCategory.CHECKLOGBOOKREPORTS);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+
+        final InputStream inputStream =
+                storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS)
+                        .readEntity(InputStream.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        LogbookCheckResult logbookCheckResult = JsonHandler.getFromInputStream(inputStream, LogbookCheckResult.class);
+        assertNotNull(logbookCheckResult);
+
+        Set<LogbookCheckEvent> logbookCheckedEvents = logbookCheckResult.getCheckedEvents();
+        assertNotNull(logbookCheckedEvents);
+        assertFalse(logbookCheckedEvents.isEmpty());
+
+        Set<LogbookCheckError> logbookCheckErrors = logbookCheckResult.getCheckErrors();
+        assertNotNull(logbookCheckErrors);
+        assertTrue(logbookCheckErrors.isEmpty());
     }
-
+    
     @Test
     @RunWithCustomExecutor
     public void testLogbookCoherenceCheckSIP_KO_withIncoherentLogbook() throws Exception {
@@ -589,50 +579,30 @@ public class LogbookCheckConsistencyIT {
         Response response =
             storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
                 DataCategory.CHECKLOGBOOKREPORTS);
-        Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
         final InputStream inputStream =
             storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS)
                 .readEntity(InputStream.class);
 
         ObjectMapper mapper = new ObjectMapper();
-        List<LogbookCheckResult> logbookCheckResults =
-            mapper.readValue(inputStream, new TypeReference<List<LogbookCheckResult>>() {
+        LogbookCheckResult logbookCheckResult = JsonHandler.getFromInputStream(inputStream, LogbookCheckResult.class);
+        assertNotNull(logbookCheckResult);
+
+        Set<LogbookCheckEvent> logbookCheckedEvents = logbookCheckResult.getCheckedEvents();
+        assertNotNull(logbookCheckedEvents);
+        assertFalse(logbookCheckedEvents.isEmpty());
+
+        Set<LogbookCheckError> logbookCheckErrors = logbookCheckResult.getCheckErrors();
+        assertNotNull(logbookCheckErrors);
+        assertFalse(logbookCheckErrors.isEmpty());
+        
+        Set<LogbookCheckError> expectedResults = mapper.readValue(
+            PropertiesUtils.getResourceAsStream(EXPECTED_RESULTS_JSON), 
+            new TypeReference<Set<LogbookCheckError>>() {
         });
 
-        Assert.assertEquals(11, logbookCheckResults.size());
-        Assert.assertTrue(logbookCheckResults.get(0).getOperationId().contains(operationGuid.toString()));
-        Assert.assertTrue(logbookCheckResults.get(0).getCheckedProperty().contains("PROCESS_SIP_UNITARY"));
-        Assert.assertTrue(logbookCheckResults.get(0).getSavedLogbookMsg()
-            .contains("The saved event PROCESS_SIP_UNITARY outcome value is : UNKNOWN"));
-        Assert.assertTrue(logbookCheckResults.get(0).getExpectedLogbookMsg()
-            .contains("The event outcome value must be as : STARTED, OK, WARNING, KO, FATAL"));
-
-        Assert.assertTrue(logbookCheckResults.get(2).getCheckedProperty()
-            .contains("CHECK_SEDA"));
-        Assert.assertTrue(logbookCheckResults.get(2).getSavedLogbookMsg()
-            .contains("The saved logbook operation event evType value CHECK_SEDA, is not present in the lifecycles"));
-        Assert.assertTrue(logbookCheckResults.get(2).getExpectedLogbookMsg()
-            .contains("The logbook operation event evType, must be present in the lifecycles"));
-
-        Assert.assertTrue(logbookCheckResults.get(3).getCheckedProperty().contains("CHECK_HEADER"));
-        Assert.assertTrue(logbookCheckResults.get(3).getSavedLogbookMsg()
-                .contains("The saved logbook operation event evType value CHECK_HEADER, is not present in the lifecycles"));
-        Assert.assertTrue(logbookCheckResults.get(3).getExpectedLogbookMsg()
-                .contains("The logbook operation event evType, must be present in the lifecycles"));
-
-        Assert.assertTrue(logbookCheckResults.get(6).getCheckedProperty().contains("CHECK_DATAOBJECTPACKAGE"));
-        Assert.assertTrue(logbookCheckResults.get(6).getSavedLogbookMsg()
-                .contains("The saved logbook operation event evType value CHECK_DATAOBJECTPACKAGE, is not present in the lifecycles"));
-        Assert.assertTrue(logbookCheckResults.get(6).getExpectedLogbookMsg()
-                .contains("The logbook operation event evType, must be present in the lifecycles"));
-        
-        Assert.assertTrue(
-            logbookCheckResults.get(7).getCheckedProperty().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER"));
-        Assert.assertTrue(logbookCheckResults.get(7).getSavedLogbookMsg()
-            .contains("The saved logbook operation event evType value CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER, is not present in the lifecycles"));
-        Assert.assertTrue(logbookCheckResults.get(7).getExpectedLogbookMsg()
-            .contains("The logbook operation event evType, must be present in the lifecycles"));
+        Assert.assertTrue(logbookCheckErrors.containsAll(expectedResults));
     }
 
     /**
@@ -656,14 +626,14 @@ public class LogbookCheckConsistencyIT {
             File fileContracts = PropertiesUtils.getResourceFile(REFERENTIAL_CONTRACTS_OK_JSON);
             List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                 new TypeReference<List<IngestContractModel>>() {
-                });
+            });
             client.importIngestContracts(IngestContractModelList);
 
             // import contrat
             File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRATS_JSON);
             List<AccessContractModel> accessContractModelList = JsonHandler
                 .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+            });
             client.importAccessContracts(accessContractModelList);
 
         } catch (final Exception e) {

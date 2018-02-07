@@ -122,6 +122,10 @@ public class LogbookApplicationTest {
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
         logbookConfiguration.setTenants(tenantList);
+        logbookConfiguration.setOpLfcEventsToSkip(new ArrayList<>());
+        logbookConfiguration.setOpEventsNotInWf(new ArrayList<>());
+        logbookConfiguration.setOpWithLFC(new ArrayList<>());
+
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         serverPort = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins

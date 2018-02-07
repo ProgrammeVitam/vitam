@@ -56,7 +56,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 /**
  * CheckConformityAction Plugin.<br>
- *
  */
 public class CheckConformityActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionPlugin.class);
@@ -69,6 +68,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
     private static final int ALGO_RANK = 0;
     private static final int OG_OUT_RANK = 0;
     private boolean asyncIO = false;
+    
     /**
      * Constructor
      */
@@ -83,7 +83,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
         handlerIO = handler;
         LOGGER.debug("CheckConformityActionHandler running ...");
 
-        final ItemStatus itemStatus = new ItemStatus(CALC_CHECK);
+        // Set default status code to OK 
+        final ItemStatus itemStatus = new ItemStatus(CALC_CHECK).increment(StatusCode.OK);
         try {
             // Get objectGroup
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
@@ -102,7 +103,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                checkMessageDigest(params, binaryObjects.get(objectId), version, itemStatus);
+                                checkMessageDigest(binaryObjects.get(objectId), version, itemStatus);
                             }
                         }
                     }
@@ -123,8 +124,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
         return new ItemStatus(CALC_CHECK).setItemsStatus(CALC_CHECK, itemStatus);
     }
 
-    private void checkMessageDigest(WorkerParameters params,
-        DataObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
+    private void checkMessageDigest(DataObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus)
         throws ProcessingException {
         String eventDetailData;
 

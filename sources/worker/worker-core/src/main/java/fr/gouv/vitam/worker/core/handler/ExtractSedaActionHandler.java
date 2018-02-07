@@ -2287,7 +2287,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             logbookLifeCycleClient.create(lfcParameters);
             guidToLifeCycleParameters.put(guid, lfcParameters);
 
-            lfcParameters.setFinalStatus(subTask, null, StatusCode.KO, null, null);
+            lfcParameters.setFinalStatus(HANDLER_ID, subTask, StatusCode.KO, null, null);
             ObjectNode llcEvDetData = JsonHandler.createObjectNode();
             llcEvDetData.put(SedaConstants.EV_DET_TECH_DATA, message);
             lfcParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.writeAsString(llcEvDetData));

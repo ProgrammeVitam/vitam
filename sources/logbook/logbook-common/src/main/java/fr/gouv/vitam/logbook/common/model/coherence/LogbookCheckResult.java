@@ -24,29 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.administration.core.api;
+package fr.gouv.vitam.logbook.common.model.coherence;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fr.gouv.vitam.common.exception.VitamException;
+import java.io.Serializable;
+import java.util.Set;
 
 /**
- * Check consistency logbook service.<br>
+ * Description of LogbookCheckResult model. <br/>
  */
-public interface LogbookCheckConsistencyService {
+public class LogbookCheckResult implements Serializable {
 
     /**
-     * Logbook coherence check by tenant.
-     *
-     * @param tenant the tenant id
-     * @throws VitamException if an error is encountered
+     * Checked events
      */
-    void logbookCoherenceCheckByTenant(final Integer tenant) throws VitamException;
+    @JsonProperty("checkedEvents")
+    private Set<LogbookCheckEvent> checkedEvents;
 
     /**
-     * Logbook coherence check on all Vitam tenants.
-     *
-     * @throws VitamException if an error is encountered
+     * Check errors
      */
-    void logbookCoherenceCheck() throws VitamException;
+    @JsonProperty("checkErrors")
+    private Set<LogbookCheckError> checkErrors;
+
+    public LogbookCheckResult() {
+    }
+
+    public LogbookCheckResult(Set<LogbookCheckEvent> checkedEvents, Set<LogbookCheckError> checkErrors) {
+        this.checkedEvents = checkedEvents;
+        this.checkErrors = checkErrors;
+    }
+
+    public Set<LogbookCheckEvent> getCheckedEvents() {
+        return checkedEvents;
+    }
+
+    public void setCheckedEvents(Set<LogbookCheckEvent> checkedEvents) {
+        this.checkedEvents = checkedEvents;
+    }
+
+    public Set<LogbookCheckError> getCheckErrors() {
+        return checkErrors;
+    }
+
+    public void setCheckErrors(Set<LogbookCheckError> checkErrors) {
+        this.checkErrors = checkErrors;
+    }
 }

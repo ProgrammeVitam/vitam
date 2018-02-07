@@ -29,8 +29,8 @@ package fr.gouv.vitam.logbook.administration.core.api;
 import java.util.List;
 import java.util.Map;
 
-import fr.gouv.vitam.logbook.common.model.EventModel;
-import fr.gouv.vitam.logbook.common.model.LogbookCheckResult;
+import fr.gouv.vitam.logbook.common.model.coherence.EventModel;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckError;
 
 /**
  * Logbook details check service.<br>
@@ -43,7 +43,7 @@ public interface LogbookDetailsCheckService {
      * @param event the event to be checked
      * @return the list of results after check
      */
-    List<LogbookCheckResult> checkEvent(EventModel event);
+    List<LogbookCheckError> checkEvent(EventModel event);
 
     /**
      * check coherence between LFC and operation.
@@ -52,6 +52,6 @@ public interface LogbookDetailsCheckService {
      * @param mapLfcEvents the map of lfc event models
      * @return the list of results after check
      */
-    List<LogbookCheckResult> checkLFCandOperation(final Map<String, EventModel> mapOpEvents,
-        final Map<String, EventModel> mapLfcEvents);
+    List<LogbookCheckError> checkLFCandOperation(final Map<String, EventModel> mapOpEvents,
+                                                 final Map<String, EventModel> mapLfcEvents);
 }
