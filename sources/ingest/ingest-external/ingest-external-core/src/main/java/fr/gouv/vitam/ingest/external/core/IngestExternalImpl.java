@@ -437,7 +437,7 @@ public class IngestExternalImpl implements IngestExternal {
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     messageLogbookEngineHelper.getLabelOp(INGEST_EXT, endParameters.getStatus()));
 
-                // write logbook 
+                // write logbook
                 helper.updateDelegate(endParameters);
                 helper.updateDelegate(antivirusParameters);
 
@@ -542,7 +542,7 @@ public class IngestExternalImpl implements IngestExternal {
             new MessageLogbookEngineHelper(preUploadResume.getLogbookTypeProcess());
 
         LogbookTypeProcess logbookTypeProcess = preUploadResume.getLogbookTypeProcess();
-        //Finalisation STARTED event
+        // Finalisation STARTED event
         String eventType = VitamLogbookMessages.getEventTypeStarted(STP_INGEST_FINALISATION);
         GUID eventId = GUIDFactory.newEventGUID(operationId);
         StatusCode finalisationStatusCode = StatusCode.OK;
@@ -589,7 +589,7 @@ public class IngestExternalImpl implements IngestExternal {
 
 
         eventType = STP_INGEST_FINALISATION;
-        GUID finalisationEventId = GUIDReader.getGUID(operationId.getId());
+        GUID finalisationEventId = GUIDFactory.newEventGUID(operationId);
         String outComeDetailMessage = VitamLogbookMessages.getCodeOp(eventType, finalisationStatusCode);
 
         if (statusCode.equals(StatusCode.FATAL)) {
@@ -611,7 +611,7 @@ public class IngestExternalImpl implements IngestExternal {
             getAtrNotificationEvent(operationId, logbookTypeProcess, atrStatusCode, finalisationEventId);
 
         if (!StatusCode.OK.equals(atrStatusCode)) {
-            //Erase informations of finalisation event if atrStatusCode is not OK
+            // Erase informations of finalisation event if atrStatusCode is not OK
             // Because parent event should have the correct status if atr fail
             stpIngestFinalisationParameters.setStatus(atrStatusCode);
             stpIngestFinalisationParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -623,7 +623,8 @@ public class IngestExternalImpl implements IngestExternal {
         helper.updateDelegate(stpIngestFinalisationParameters);
         helper.updateDelegate(transferNotificationParameters);
 
-
+        preUploadResume.getStartedParameters().putParameterValue(LogbookParameterName.eventIdentifier,
+            GUIDFactory.newEventGUID(operationId).getId());
         preUploadResume.getStartedParameters().setStatus(statusCode);
         preUploadResume.getStartedParameters().putParameterValue(LogbookParameterName.outcomeDetail,
             messageLogbookEngineHelper.getOutcomeDetail(preUploadResume.getEventType(), statusCode));
@@ -693,7 +694,7 @@ public class IngestExternalImpl implements IngestExternal {
         helper.createDelegate(startedParameters);
 
 
-        //Finalisation STARTED event
+        // Finalisation STARTED event
         String eventType = VitamLogbookMessages.getEventTypeStarted(STP_INGEST_FINALISATION);
         GUID eventId = GUIDReader.getGUID(operationId.getId());
         //
@@ -758,8 +759,9 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     private LogbookOperationParameters getAtrNotificationEvent(GUID operationId, LogbookTypeProcess logbookTypeProcess,
-        StatusCode statusCode, GUID finalisationEventId) throws InvalidGuidOperationException {
-        GUID atrEventId = GUIDReader.getGUID(operationId.getId());
+        StatusCode statusCode, GUID finalisationEventId)
+        throws InvalidGuidOperationException {
+        GUID atrEventId = GUIDFactory.newEventGUID(operationId);
         final LogbookOperationParameters event =
             LogbookParametersFactory.newLogbookOperationParameters(
                 atrEventId,
