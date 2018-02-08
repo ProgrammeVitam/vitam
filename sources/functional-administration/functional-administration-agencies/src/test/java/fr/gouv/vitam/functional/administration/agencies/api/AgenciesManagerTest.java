@@ -6,6 +6,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.junit.Before;
 import org.junit.Rule;
@@ -14,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.functional.administration.agencies.api.AgenciesService.AGENCIES_IMPORT_EVENT;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcome;
@@ -72,7 +74,7 @@ public class AgenciesManagerTest {
         AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0), false);
 
         // When
-        manager.logFinish();
+        manager.logFinish("test.json");
 
         //THEN
         verify(logbookOperationsClient, times(1)).update(captor.capture());
@@ -84,7 +86,7 @@ public class AgenciesManagerTest {
 
         manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0), true);
 
-        manager.logFinish();
+        manager.logFinish("test.json");
 
         verify(logbookOperationsClient, times(2)).update(captor.capture());
 
@@ -93,6 +95,8 @@ public class AgenciesManagerTest {
         assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("WARNING");
+        assertThat(log.getParameterValue(eventDetailData)).isEqualTo("{\"FileName\":\"test.json\"}");
+
     }
 
 

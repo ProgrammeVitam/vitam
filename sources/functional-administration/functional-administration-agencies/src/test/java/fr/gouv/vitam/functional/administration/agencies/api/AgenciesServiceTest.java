@@ -232,7 +232,7 @@ public class AgenciesServiceTest {
         File fileAgencies1 = getResourceFile("agencies.csv");
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(fileAgencies1));
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(fileAgencies1),null);
 
         // Then
         assertThat(response.isOk()).isTrue();
@@ -243,7 +243,7 @@ public class AgenciesServiceTest {
         // import 2
         File fileAgencies2 = getResourceFile("agencies2.csv");
 
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies2));
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies2),null);
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("Operation")).isNotNull();
         assertThat(response.isOk()).isTrue();
@@ -254,7 +254,7 @@ public class AgenciesServiceTest {
 
         File fileAgencies3 = getResourceFile("agencies3.csv");
         //
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies3));
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies3),"test.json");
         report = getFromFile(reportPath.toFile());
 
         assertThat(response.isOk()).isFalse();
@@ -272,7 +272,7 @@ public class AgenciesServiceTest {
         assertThat(doc.getName()).isEqualTo("agency222");
 
         File fileAgencies4 = getResourceFile("agencies_delete.csv");
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies4));
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies4),"test.json");
         assertThat(response.isOk()).isFalse();
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("Operation")).isNotNull();

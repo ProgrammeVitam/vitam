@@ -123,6 +123,7 @@ public class AgenciesService implements VitamAutoCloseable {
     public static final String AGENCIES_IMPORT_EVENT = "STP_IMPORT_AGENCIES";
     public static final String AGENCIES_REPORT_EVENT = "STP_AGENCIES_REPORT";
     public static final String AGENCIES_BACKUP_EVENT = "STP_BACKUP_AGENCIES";
+    public static final String STP_IMPORT_AGENCIES_BACKUP_CSV = "STP_IMPORT_AGENCIES_BACKUP_CSV";
 
     private static final String AGENCIES_IMPORT_DELETION_ERROR = "DELETION";
     private static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
@@ -530,12 +531,12 @@ public class AgenciesService implements VitamAutoCloseable {
      * Import an input stream into agencies collection
      *
      * @param stream the stream to be imported
-     * @return a response as a RequestResponse<AgenciesModel> object
+     * @return a response as a RequestResponse <AgenciesModel> object
      * @throws VitamException                  thrown if logbook could not be initialized
      * @throws IOException                     thrown in case or error with stream
      * @throws InvalidCreateOperationException thrown if the error report could not be stored
      */
-    public RequestResponse<AgenciesModel> importAgencies(InputStream stream)
+    public RequestResponse<AgenciesModel> importAgencies(InputStream stream, String filename)
             throws VitamException, IOException {
 
         manager.logStarted(AGENCIES_IMPORT_EVENT);
@@ -567,13 +568,13 @@ public class AgenciesService implements VitamAutoCloseable {
                     eip + ".json");
 
             // store source File
-            backupService.saveFile(new FileInputStream(file), eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
+            backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_AGENCIES_BACKUP_CSV, DataCategory.REPORT,
                     eip + ".csv");
             // store collection
             backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
                     FunctionalAdminCollections.AGENCIES);
 
-            manager.logFinish();
+            manager.logFinish(filename);
         } catch (final AgencyImportDeletionException e) {
 
             LOGGER.error(MESSAGE_ERROR, e);
