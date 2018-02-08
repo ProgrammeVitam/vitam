@@ -37,7 +37,7 @@ export class OperationComponent extends PageComponent {
   ];
     
   public logbookData = [
-    FieldDefinition.createIdField('TraceabilityId', 'Identifiant de l\'objet', 3, 12),
+    FieldDefinition.createIdField('TraceabilityId', 'Identifiant de l\'opération', 3, 12),
     FieldDefinition.createDateField('TraceabilityStartDate', 'Date de début', 3, 12),
     FieldDefinition.createDateField('TraceabilityEndDate', 'Date de fin', 3, 12),
     FieldDefinition.createSelectField('evType', 'Type de journal sécurisé', '', this.options, 3, 12)
@@ -60,18 +60,19 @@ export class OperationComponent extends PageComponent {
     ColumnDefinition.makeSpecialValueColumn('Type de journal sécurisé',
       (item) => item.evType === storageSecuringEventKey ? 'STORAGE' :
           !!item.evDetData ? JSON.parse(item.evDetData).LogType : '',
-        undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+        undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de début',
       (item) => item.evType === storageSecuringEventKey ? item.evDateTime :
           !!item.evDetData ? JSON.parse(item.evDetData).StartDate : '',
-        DateService.handleDateWithTime, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
+        DateService.handleDateWithTime, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de fin',
       (item) => item.evType === storageSecuringEventKey ? item.events[item.events.length - 1].evDateTime :
           !!item.evDetData ? JSON.parse(item.evDetData).EndDate : '',
-        DateService.handleDateWithTime, () => ({'width': '125px'})),
+        DateService.handleDateWithTime, () => ({'width': '125px'}), false),
     ColumnDefinition.makeSpecialIconColumn('Télécharger',
       (item) => (item.events.length > 1 && item.events[1].outcome) === 'OK' ? ['fa-download'] : [],
-      () => ({'width': '125px', 'overflow-wrap': 'break-word'}), OperationComponent.downloadReports, this.logbookService)
+      () => ({'width': '125px', 'overflow-wrap': 'break-word'}), OperationComponent.downloadReports,
+      this.logbookService, false)
   ];
   public extraColumns = [];
 
@@ -95,7 +96,7 @@ export class OperationComponent extends PageComponent {
     let preResult = new Preresult();
     request.EventType = 'traceability';
     request.TraceabilityOk = 'true';
-    request.orderby = {"field":"evDateTime","sortType":"ASC"};
+    request.orderby = {"field":"evDateTime","sortType":"DESC"};
     for (let i of searchAttribut) {
       if (!request[i] || request[i] === '') {
         delete request[i];
