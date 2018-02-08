@@ -174,6 +174,7 @@
 
 
 - hosts: hosts-logbook
+  serial: 1
   roles:
     - vitam
     - logbook_secure_operations
