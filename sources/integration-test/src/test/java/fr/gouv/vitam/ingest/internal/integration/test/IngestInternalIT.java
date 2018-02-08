@@ -31,6 +31,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -38,6 +39,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +50,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.storage.StorageConfiguration;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -112,9 +113,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -409,16 +412,16 @@ public class IngestInternalIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if(esClient != null) {
+        if (esClient != null) {
             esClient.close();
         }
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);
         }
-        if(mongod != null) {
+        if (mongod != null) {
             mongod.stop();
         }
-        if(mongodExecutable != null) {
+        if (mongodExecutable != null) {
             mongodExecutable.stop();
         }
         if (ingestInternalApplication != null) {
@@ -703,10 +706,27 @@ public class IngestInternalIT {
 
             // get initial lfc version
             String unitId = unit.findValuesAsText("#id").get(0);
-            assertEquals( 5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
-            // execute update
-            RequestResponse response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), unitId);
+            assertEquals(5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
+
+            // lets find details for the unit -> AccessRule should have been set
+            RequestResponseOK<JsonNode> responseUnitBeforeUpdate =
+                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+            assertNotNull(responseUnitBeforeUpdate.getFirstResult().get("#management").get("AccessRule"));
+
+            // execute update -> rules to be 'unset'
+            Map<String, JsonNode> action = new HashMap<>();
+            action.put("#management.AccessRule.Rules", JsonHandler.createArrayNode());
+            UpdateMultiQuery updateQuery = new UpdateMultiQuery().addActions(new SetAction(action));
+            updateQuery.addRoots(unitId);
+            RequestResponse response = accessClient
+                .updateUnitbyId(updateQuery.getFinalUpdate(), unitId);
             assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
+
+            // lets find details for the unit -> AccessRule should have been unset
+            RequestResponseOK<JsonNode> responseUnitAfterUpdate =
+                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+
+            assertNull(responseUnitAfterUpdate.getFirstResult().get("#management").get("AccessRule"));
             // check version incremented in lfc
             assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
 
@@ -2092,7 +2112,8 @@ public class IngestInternalIT {
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
-        final FileInputStream expectedStreamErrorReport) throws Exception {
+        final FileInputStream expectedStreamErrorReport)
+        throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.checkRulesFile(fileInputStreamToImport);
             final String readEntity = response.readEntity(String.class);

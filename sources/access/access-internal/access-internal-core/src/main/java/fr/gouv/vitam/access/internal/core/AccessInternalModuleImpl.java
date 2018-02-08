@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -1044,6 +1045,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
+    /**
+     * check and update rule queries
+     * 
+     * @param updateParser the parser to be handled
+     * @throws AccessInternalRuleExecutionException
+     * @throws AccessInternalExecutionException
+     * @throws InvalidParseOperationException
+     */
     public void checkAndUpdateRuleQuery(UpdateParserMultiple updateParser)
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException, InvalidParseOperationException {
         UpdateMultiQuery request = updateParser.getRequest();
@@ -1089,13 +1098,24 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     Map<String, JsonNode> action = new HashMap<>();
                     updatedRules.addAll(createdRules);
 
-                    action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
-                    if (finalAction != null) {
-                        action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
-                    }
+                    // size = 0 that means this category is empty -> lets unset rules
+                    if (updatedRules.size() != 0) {
+                        action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
+                        if (finalAction != null) {
+                            action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                        }
+                    } else {
+                        try {
+                            request.addActions(new UnsetAction(MANAGEMENT_PREFIX + category));
+                        } catch (InvalidCreateOperationException e) {
+                            throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
+                        }
+                    }                    
 
                     try {
-                        request.addActions(new SetAction(action));
+                        if (action.size() > 0) {
+                            request.addActions(new SetAction(action));
+                        }
                     } catch (InvalidCreateOperationException e) {
                         throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
                     }
