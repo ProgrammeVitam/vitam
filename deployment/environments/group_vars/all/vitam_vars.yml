@@ -100,6 +100,8 @@ vitam:
         baseuri: "ihm-demo"
         https_enabled: false
         secret_platform: "false"
+        # User session timeout in milliseconds (for shiro)
+        session_timeout: 1800000
         # Specify here the realms you want to use for authentication in ihm-demo
         # You can set multiple realms, one per line
         # With multiple realms, the user will be able to choose between the allowed realms
