@@ -28,8 +28,9 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   initialValue: any;
   typeOfField: string;
   displayMode: string;
+  physicalUnitMode: boolean;
   @Output() updatedFieldsChange = new EventEmitter<{}>();
-
+    
   frLocale = {
       dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
       dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
@@ -134,7 +135,12 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
         this.displayMode = 'TextInput';
       }
     }
-
+    
+    if (this.originalTitle !== undefined && this.originalTitle.indexOf('PhysicalDimensions') !== -1 
+        && this.originalTitle.indexOf('unit') !== -1) {
+        this.physicalUnitMode = true;
+    }
+            
     // Handle Specific field size
     if (this.noTitle) {
       this.inputClass = 'ui-g-12';
@@ -172,6 +178,12 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
     this.updatedFieldsChange.emit(this.updatedFields);
   }
 
+  getLabelPhysicalDimensions(value: string) {
+    let labels = [];
+    labels.push(this.archiveUnitHelper.getDimensions(value));  
+    return labels;
+  }
+    
   getLabels(values: string | string[]) {
     let labels = [];
     if (values instanceof Array) {

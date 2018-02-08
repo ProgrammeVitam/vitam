@@ -159,7 +159,7 @@ public class Messages {
     public Map<String, String> getAllMessages() {
         final Map<String, String> bundleMap = new HashMap<>();
         for (final String key : resourceBundle.keySet()) {
-            final String value = resourceBundle.getString(key);
+            final String value = MessageFormat.format(resourceBundle.getString(key), "");
             bundleMap.put(key, value);
         }
         return bundleMap;
@@ -222,7 +222,7 @@ public class Messages {
         try {
             final String source = resourceBundle.getString(key);
             if (source == null || source.isEmpty()) {
-                // find in plugin message properties 
+                // find in plugin message properties
                 return getFakeMessage(key, args);
             }
             return MessageFormat.format(source, args);
@@ -253,16 +253,13 @@ public class Messages {
     }
 
     /**
-     * Determines whether the given <code>key</code> is contained in
-     * this <code>ResourceBundle</code> or its parent bundles.
+     * Determines whether the given <code>key</code> is contained in this <code>ResourceBundle</code> or its parent
+     * bundles.
      *
-     * @param key
-     *        the resource <code>key</code>
-     * @return <code>true</code> if the given <code>key</code> is
-     *        contained in this <code>ResourceBundle</code> or its
-     *        parent bundles; <code>false</code> otherwise.
-     * @exception NullPointerException
-     *         if <code>key</code> is <code>null</code>
+     * @param key the resource <code>key</code>
+     * @return <code>true</code> if the given <code>key</code> is contained in this <code>ResourceBundle</code> or its
+     *         parent bundles; <code>false</code> otherwise.
+     * @exception NullPointerException if <code>key</code> is <code>null</code>
      */
     public boolean containsKey(String key) {
         return resourceBundle.containsKey(key);
