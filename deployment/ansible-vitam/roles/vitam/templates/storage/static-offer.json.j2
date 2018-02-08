@@ -1,11 +1,11 @@
 [
-{% for item in groups['hosts-storage-offer-default'] %}
+{% for item in vitam_strategy %}
 {
-    "id" : "{{ item }}",
+    "id" : "{{ item.name }}.service.{{ consul_domain }}",
     {% if vitam.storageofferdefault.https_enabled==true %}
-    "baseUrl" : "https://{{hostvars[item]['ip_service']}}:{{ vitam.storageofferdefault.port_service }}",
+    "baseUrl" : "https://{{ item.name }}.service.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
     {% else %}
-    "baseUrl" : "http://{{hostvars[item]['ip_service']}}:{{ vitam.storageofferdefault.port_service }}",
+    "baseUrl" : "http://{{ item.name }}.service.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
     {% endif %}
     "parameters" : {
         {% if vitam.storageofferdefault.https_enabled==true %}

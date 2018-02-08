@@ -1,6 +1,9 @@
 ---
 # Don't add package_version when set to '*' to install the package with his exact name
 
+- include_tasks: check_strategies_offers.yml
+  when:  inventory_hostname in groups['hosts-storage-engine']
+
 # FIXME : will need more testing to be sure it is mandatory here
 - name: install openjdk from jessie-backports only when Debian
   apt:

@@ -1,0 +1,16 @@
+---
+
+- fail: msg="{{ item.name }} not configured in vitam_offers"
+  when: vitam_offers[item.name].provider is undefined
+  with_items:
+    - "{{ vitam_strategy }}"
+
+- name: check each offers name does not contain "_" character
+  debug: msg="checking {{ item }}..."
+  failed_when:
+    - item.name | regex_search('_')
+  with_items:
+    - "{{ vitam_strategy }}"
+
+- fail: msg="unsupported or badly configured offer"
+  when: offer_conf not in vitam_offers
