@@ -4,6 +4,12 @@ usage: |
   Use to define global types for Vitam's administration
 
 types:
+
+  TenantRequest:
+      displayName: Tenant
+      type: integer
+      required: true  		
+
   AdminReindexationRequest:
       displayName: Requête de réindexation
       description: Requête Vitam de réindexation
@@ -13,7 +19,8 @@ types:
           type: string
           required: true
         tenants:
-          type: integer[]
+          type: array
+          items: TenantRequest
           required: false
       example: [{
         "collection": "ObjectGroup",
