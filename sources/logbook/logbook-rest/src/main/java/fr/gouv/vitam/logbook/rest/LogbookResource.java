@@ -872,6 +872,9 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error("Lifecycles is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (DatabaseException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Response.Status.CREATED).build();
     }
@@ -895,6 +898,9 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error("Lifecycles is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (DatabaseException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Response.Status.CREATED).build();
     }

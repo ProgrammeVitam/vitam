@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -404,7 +405,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void bulk(LogbookCollections collections, String idOp, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) {
+    public void bulk(LogbookCollections collections, String idOp, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
+        throws DatabaseException {
         mongoDbAccess.bulk(collections, logbookLifeCycleModels);
     }
 }

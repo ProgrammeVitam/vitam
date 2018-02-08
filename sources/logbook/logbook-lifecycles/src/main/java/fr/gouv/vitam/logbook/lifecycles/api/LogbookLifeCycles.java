@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
@@ -357,5 +358,5 @@ public interface LogbookLifeCycles {
      * @param logbookLifeCycleModels lifecycles to be created
      */
     void bulk(LogbookCollections collections, String idOp,
-        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels);
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException;
 }
