@@ -27,6 +27,7 @@ import static org.mockito.Matchers.endsWith;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -122,9 +123,19 @@ public class AgenciesServiceTest {
     private final static String HOST_NAME = "127.0.0.1";
     private final static String CLUSTER_NAME = "vitam-cluster";
 
+    private static List<AgenciesModel> usedAgenciesByContracts;
+    private static List<AgenciesModel> usedAgenciesByAU;
+    private static List<AgenciesModel> agenciesToInsert;
+    private static List<AgenciesModel> agenciesToUpdate;
+    private static List<AgenciesModel> agenciesToDelete;
+    private static List<AgenciesModel> agenciesInDb;
+
+
+
     @Mock
     private FunctionalBackupService functionalBackupService;
-
+    @Mock
+    private AgenciesManager manager;
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
@@ -168,9 +179,13 @@ public class AgenciesServiceTest {
 
     @Before
     public void setUp() {
-        agencyService =
-            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
-
+        agenciesInDb = new ArrayList<>();
+        agenciesToDelete = new ArrayList<>();
+        agenciesToInsert = new ArrayList<>();
+        agenciesToUpdate = new ArrayList<>();
+        usedAgenciesByAU = new ArrayList<>();
+        usedAgenciesByContracts = new ArrayList<>();
+        instantiateAgencyService();
     }
 
     @AfterClass
@@ -201,8 +216,7 @@ public class AgenciesServiceTest {
         when(logbookOperationsclient.selectOperation(anyObject()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
-        agencyService =
-            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
+        instantiateAgencyService();
 
         // import initial
 
@@ -236,8 +250,8 @@ public class AgenciesServiceTest {
         reportPath.toFile().delete();
 
         // import 3 error invalid
-        agencyService =
-            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
+        instantiateAgencyService();
+
         File fileAgencies3 = getResourceFile("agencies3.csv");
         //
         response = agencyService.importAgencies(new FileInputStream(fileAgencies3));
@@ -252,8 +266,8 @@ public class AgenciesServiceTest {
 
         //
         // import 4 error delete
-        agencyService =
-            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
+
+        instantiateAgencyService();
         Agencies doc = (Agencies) agencyService.findDocumentById("AG-000001");
         assertThat(doc.getName()).isEqualTo("agency222");
 
@@ -267,7 +281,25 @@ public class AgenciesServiceTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void no_warning_when_not_used_agencies_are_modifed() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
 
+        instantiateAgencyService();
+
+         agencyService.findAllAgenciesUsedByAccessContracts();
+         verify(manager).logEventSuccess("STP_IMPORT_AGENCIES.USED_CONTRACT");
+
+        usedAgenciesByContracts.add(new AgenciesModel());
+
+        agencyService.findAllAgenciesUsedByAccessContracts();
+        verify(manager).logEventWarning("STP_IMPORT_AGENCIES.USED_CONTRACT");
+
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -279,8 +311,8 @@ public class AgenciesServiceTest {
         when(logbookOperationsclient.selectOperation(anyObject()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
-        agencyService =
-            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
+        instantiateAgencyService();
+
         File file = getResourceFile("agencies_delete.csv");
         agencyService.checkFile(new FileInputStream(file));
     }
@@ -357,5 +389,20 @@ public class AgenciesServiceTest {
             report.delete();
         }
         return reportNode;
+    }
+
+    private   void instantiateAgencyService(){
+        agencyService =
+                new AgenciesService(dbImpl,
+                        vitamCounterService,
+                        functionalBackupService,
+                        logbookOperationsClientFactory,
+                        manager,
+                        agenciesInDb,
+                        agenciesToDelete,
+                        agenciesToInsert,
+                        agenciesToUpdate,
+                        usedAgenciesByAU,
+                        usedAgenciesByContracts);
     }
 }
