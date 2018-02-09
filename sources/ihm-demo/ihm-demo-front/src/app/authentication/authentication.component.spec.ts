@@ -17,6 +17,7 @@ const AuthenticationServiceStub = {
   getTenants : () => {
     return Observable.of([0, 1, 2]);
   },
+  storeTenantAdmin : () => {},
   getAuthenticationMode: () => {
     return Observable.of(['ldap', 'ini']);
   },

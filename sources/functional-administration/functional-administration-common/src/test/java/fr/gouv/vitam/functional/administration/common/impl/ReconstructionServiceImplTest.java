@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.impl;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -298,9 +299,7 @@ public class ReconstructionServiceImplTest {
         // testing the reconstruction service.
         LOGGER.debug(String.format("Reconstruction of Vitam tenants."));
 
-        // mock adminManagement configuration.
-        when(configuration.getTenants())
-            .thenReturn(Arrays.asList(0, 1, 2));
+        VitamConfiguration.setTenants(Arrays.asList(0, 1, 2));
 
         // Call the construction service of the all tenants.
         reconstructionService.reconstruct(FunctionalAdminCollections.RULES);
@@ -315,9 +314,7 @@ public class ReconstructionServiceImplTest {
     @RunWithCustomExecutor
     public void reconstructCollectionOnAllVitamTenantsKO() throws Exception {
 
-        // mock adminManagement configuration with empty list of Vitam tenants.
-        when(configuration.getTenants())
-            .thenReturn(new ArrayList<>());
+        VitamConfiguration.setTenants(new ArrayList<>());
 
         reconstructionService.reconstruct(FunctionalAdminCollections.RULES);
 

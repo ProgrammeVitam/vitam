@@ -32,6 +32,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -71,7 +72,7 @@ import static com.mongodb.client.model.Sorts.descending;
  */
 public class VitamCounterService {
 
-    private static final int DEFAULT_ADMIN_TENANT = 1;
+    private static final int DEFAULT_ADMIN_TENANT = VitamConfiguration.getAdminTenant();
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);

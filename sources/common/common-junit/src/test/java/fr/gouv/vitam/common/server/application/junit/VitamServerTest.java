@@ -86,16 +86,6 @@ public class VitamServerTest {
         }
 
         @Override
-        public List<Integer> getTenants() {
-            return new ArrayList<Integer>();
-        }
-
-        @Override
-        public VitamApplicationConfigurationInterface setTenants(List<Integer> tenants) {
-            return this;
-        }
-
-        @Override
         public boolean isAuthentication() {
             return false;
         }

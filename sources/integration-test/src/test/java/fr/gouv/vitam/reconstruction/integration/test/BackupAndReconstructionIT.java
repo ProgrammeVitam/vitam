@@ -409,13 +409,8 @@ public class BackupAndReconstructionIT {
         agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isEmpty();
 
-        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration configuration =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-
-
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(configuration, vitamRepository,
+            new ReconstructionServiceImpl(vitamRepository,
                 new RestoreBackupServiceImpl());
 
         reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
@@ -562,13 +557,9 @@ public class BackupAndReconstructionIT {
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isEmpty();
 
-        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration configuration =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(configuration, vitamRepository,
+            new ReconstructionServiceImpl(vitamRepository,
                 new RestoreBackupServiceImpl());
         reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
 

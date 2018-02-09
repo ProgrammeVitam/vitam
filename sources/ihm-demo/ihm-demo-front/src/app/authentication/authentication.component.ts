@@ -38,6 +38,7 @@ export class AuthenticationComponent implements OnInit {
         this.tenantId = tenants[0] + '';
       });
 
+    this.authenticationService.storeTenantAdmin();
     this.authenticationService.getAuthenticationMode().subscribe(
       (authenticationModes : string[]) => {
         for (let authenticationMode of authenticationModes) {

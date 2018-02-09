@@ -64,6 +64,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -185,7 +186,7 @@ public class LogbookResourceIT {
             logbookConf.setProcessingUrl("http://localhost:8097");
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
-            logbookConf.setTenants(tenantList);
+            VitamConfiguration.setTenants(tenantList);
             final List<LogbookEvent> alertEvents = new ArrayList<>();
             LogbookEvent alertEvent=new LogbookEvent();
             alertEvent.setEvType(ALERT_EVENT_TYPE);

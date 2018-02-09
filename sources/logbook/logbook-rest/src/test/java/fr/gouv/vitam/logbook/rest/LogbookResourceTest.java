@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -193,7 +194,7 @@ public class LogbookResourceTest {
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
-        logbookConfiguration.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         serverPort = junitHelper.findAvailablePort();
 

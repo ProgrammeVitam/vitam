@@ -229,7 +229,7 @@ public class VitamStarter {
             addShiroFilter(context);
         }
         if (configuration.isTenantFilter()) {
-            addTenantFilter(context, configuration.getTenants());
+            addTenantFilter(context, VitamConfiguration.getTenants());
         }
         StatisticsHandler stats = new StatisticsHandler();
         stats.setHandler(context);
@@ -469,7 +469,7 @@ public class VitamStarter {
             addShiroFilter(context);
         }
         if (configuration.isTenantFilter()) {
-            addTenantFilter(context, configuration.getTenants());
+            addTenantFilter(context, VitamConfiguration.getTenants());
         }
         StatisticsHandler stats = new StatisticsHandler();
         stats.setHandler(context);

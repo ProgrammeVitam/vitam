@@ -3,7 +3,6 @@ contextPath: /
 storagePath: {{vitam_folder_data}}
 jettyConfig: jetty-config.xml
 authentication : {{ vitam_struct.https_enabled }}
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-offer'] %}

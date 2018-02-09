@@ -53,6 +53,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -152,7 +153,7 @@ public class MongoDbAccessMetadataFactoryTest {
     public void testCreateMetadataMongoAccessWithAuthentication() {
         final MetaDataConfiguration config =
             new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, true, user, pwd);
-        config.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         new MongoDbAccessMetadataFactory();
         mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
         assertNotNull(mongoDbAccess);

@@ -49,7 +49,7 @@
     #password: "{{ keystores.client_external.vitam_admin_int }}"
     headers:
       Connection: "keep-alive"
-      X-Tenant-Id: "{{ item }}"
+      X-Tenant-Id: "{{ vitam_tenant_admin }}"
       Content-Type: "application/octet-stream"
       Host: "{{ vitam_struct.host }}"
       # FIXME beurk : Transfer-Encoding badly handled
@@ -63,8 +63,6 @@
   #ignore_errors: true
   run_once: true # Limit as this upload is not related to tenants
   #no_log: true
-  with_items:
-    - "{{vitam_tenant_ids|first}}"
   tags:
     - init_pronom
 

@@ -53,7 +53,7 @@ public class TestResourceImpl extends ApplicationStatusResource {
      * @param configuration to associate with TestResourceImpl
      */
     public TestResourceImpl(TestConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl(), tenants);
+        super(new BasicVitamStatusServiceImpl());
         LOGGER.debug("TestResource initialized");
     }
 
@@ -63,7 +63,7 @@ public class TestResourceImpl extends ApplicationStatusResource {
      * @param statusService
      */
     public TestResourceImpl(TestConfiguration configuration, VitamStatusService statusService) {
-        super(statusService, tenants);
+        super(statusService);
         LOGGER.debug("TestResource initialized");
     }
 

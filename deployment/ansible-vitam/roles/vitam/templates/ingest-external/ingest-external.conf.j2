@@ -1,6 +1,5 @@
 path: {{vitam_folder_data}}
 jettyConfig: jetty-config.xml
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 authentication: true
 tenantFilter : true
 antiVirusScriptName: scan-{{ vitam_struct.antivirus }}.sh

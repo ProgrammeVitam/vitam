@@ -60,6 +60,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -159,7 +160,7 @@ public class SelectObjectGroupResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
-        configuration.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
         File configurationFile = tempFolder.newFile();

@@ -41,6 +41,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import org.junit.AfterClass;
@@ -171,7 +172,7 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
         realAdminConfig.setAuthentication(false);
         realAdminConfig.setClusterName(CLUSTER_NAME);
-        realAdminConfig.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
 
         realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
         adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
@@ -204,7 +205,6 @@ public class WebApplicationResourceDeleteTest {
             new LogbookConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getLogbookDbName(),
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
-        logbookConfiguration.setTenants(realAdminConfig.getTenants());
 
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
@@ -212,8 +212,7 @@ public class WebApplicationResourceDeleteTest {
             new MetaDataConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMetadataDbName(),
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
-        metaDataConfiguration.setTenants(tenantList);
-        
+
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, esNodes));

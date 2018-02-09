@@ -80,12 +80,6 @@ public class IngestExternalApplicationTest {
         application = new IngestExternalMain("ingest-external-err1.conf");
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void shouldRaiseAnExceptionWhenConfigureApplicationWithoutTenant() throws Exception {
-        application = new IngestExternalMain("ingest-external-test-no-tenant.conf");
-        Assert.assertFalse(application.getVitamStarter().isStarted());
-    }
-
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
         application = new IngestExternalMain("ingest-external-test.conf");

@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -181,7 +182,7 @@ public class LogBookLifeCycleUnitTest {
             logbookConf.setProcessingUrl("http://localhost:8002");
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
-            logbookConf.setTenants(tenantList);
+            VitamConfiguration.setTenants(tenantList);
             logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
             logbookConf.setOpEventsNotInWf(new ArrayList<>());
             logbookConf.setOpWithLFC(new ArrayList<>());

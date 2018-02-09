@@ -177,7 +177,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param configuration config for constructing AdminManagement
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl(), configuration.getTenants());
+        super(new BasicVitamStatusServiceImpl());
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =

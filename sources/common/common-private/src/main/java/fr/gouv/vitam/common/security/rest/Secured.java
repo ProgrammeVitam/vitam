@@ -42,4 +42,6 @@ public @interface Secured {
     String permission();
 
     String description();
+
+    boolean isAdminOnly() default false;
 }

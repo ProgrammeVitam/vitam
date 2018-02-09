@@ -6,7 +6,6 @@ baseUri: "/{{ vitam_struct.baseuri }}"
 staticContent: "{{ vitam_struct.static_content }}"
 
 jettyConfig: jetty-config.xml
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 authentication: true
 secureMode:
 {% for securemode in vitam_struct.secure_mode %}

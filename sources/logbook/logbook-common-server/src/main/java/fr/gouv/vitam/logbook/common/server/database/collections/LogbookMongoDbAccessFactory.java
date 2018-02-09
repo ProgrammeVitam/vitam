@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 import com.mongodb.MongoClient;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
@@ -58,6 +59,6 @@ public final class LogbookMongoDbAccessFactory {
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
         return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false, esClient,
-            configuration.getTenants());
+            VitamConfiguration.getTenants());
     }
 }

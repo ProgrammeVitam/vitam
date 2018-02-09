@@ -50,6 +50,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -121,7 +122,7 @@ public class LogbookApplicationTest {
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
-        logbookConfiguration.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         logbookConfiguration.setOpLfcEventsToSkip(new ArrayList<>());
         logbookConfiguration.setOpEventsNotInWf(new ArrayList<>());
         logbookConfiguration.setOpWithLFC(new ArrayList<>());

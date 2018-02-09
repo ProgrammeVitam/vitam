@@ -39,6 +39,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.AddAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -145,6 +146,8 @@ public class SecurityProfileServiceTest {
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
+        VitamConfiguration.setTenants(tenants);
+        VitamConfiguration.setAdminTenant(TENANT_ID);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
         list_tenant.add("SECURITY_PROFILE");

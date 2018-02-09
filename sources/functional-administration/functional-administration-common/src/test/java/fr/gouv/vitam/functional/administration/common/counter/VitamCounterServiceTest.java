@@ -36,6 +36,8 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -112,6 +114,9 @@ public class VitamCounterServiceTest {
         list_tenant1.add("CONTEXT");
         listEnableExternalIdentifiers.put(0, list_tenant0);
         listEnableExternalIdentifiers.put(1, list_tenant1);
+        VitamConfiguration.setTenants(tenants);
+        VitamConfiguration.setAdminTenant(TENANT_ID);
+
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
     }
 

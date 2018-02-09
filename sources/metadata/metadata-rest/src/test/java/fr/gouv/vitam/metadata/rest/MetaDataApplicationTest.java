@@ -44,6 +44,7 @@ import org.junit.rules.TemporaryFolder;
 import com.mongodb.MongoClient;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -101,7 +102,7 @@ public class MetaDataApplicationTest {
         mongo_nodes.add(new MongoDbNode("localhost", mongoClient.getAddress().getPort()));
         // TODO: using configuration file ? Why not ?
         config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
-        config.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
     }
 

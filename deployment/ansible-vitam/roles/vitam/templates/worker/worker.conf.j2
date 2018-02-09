@@ -8,7 +8,6 @@ urlMetadata: {{vitam.metadata | client_url}}
 urlWorkspace: {{vitam.workspace | client_url}}
 # Configuration jetty
 jettyConfig: jetty-config.xml
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 #Configuration parallele
 capacity: {{vitam_worker_capacity}}
 {% if vitam_worker_workerFamily is defined %}

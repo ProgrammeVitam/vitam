@@ -78,7 +78,7 @@ public class FunctionalBackupService {
     public static final String FIELD_SEQUENCE = "sequence";
     public static final String FIELD_BACKUP_SEQUENCE = "backup_sequence";
     public static final String DEFAULT_EXTENSION = "json";
-    private static final int DEFAULT_ADMIN_TENANT = 1;
+    private static final int DEFAULT_ADMIN_TENANT = VitamConfiguration.getAdminTenant();
     private final BackupService backupService;
     private final VitamCounterService vitamCounterService;
     private final BackupLogbookManager backupLogbookManager;

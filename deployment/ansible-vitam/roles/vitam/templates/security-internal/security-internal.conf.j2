@@ -11,6 +11,5 @@ dbUserName: {{ mongodb.data.securityInternal.user }}
 dbPassword: {{ mongodb.data.securityInternal.password }}
 
 jettyConfig: jetty-config.xml
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 
 personalCertificatePermissionConfig: personal-certificate-permissions.conf

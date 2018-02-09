@@ -52,12 +52,6 @@ public class AccessExternalApplicationTest {
         application = new AccessExternalMain("access-external-test-err1.conf");
         Assert.assertFalse(application.getVitamServer().isStarted());
     }
-    
-    @Test(expected = IllegalStateException.class)
-    public void shouldThrowExceptionWhenConfigureApplicationWithoutTenant() throws Exception {
-        application = new AccessExternalMain("access-external-test-no-tenant.conf");
-        Assert.assertFalse(application.getVitamServer().isStarted());
-    }
 
     @Test
     public void shouldStartAndStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {

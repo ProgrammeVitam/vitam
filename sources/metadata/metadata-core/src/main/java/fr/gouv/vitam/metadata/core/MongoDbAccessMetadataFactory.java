@@ -33,6 +33,7 @@ import java.util.List;
 import com.mongodb.MongoClient;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
@@ -72,6 +73,6 @@ public class MongoDbAccessMetadataFactory {
 
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
-        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient, configuration.getTenants());
+        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient, VitamConfiguration.getTenants());
     }
 }

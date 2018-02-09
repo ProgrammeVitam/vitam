@@ -30,6 +30,29 @@ export class MenuComponent implements OnInit {
       if (value) {
         //FIXME change menu model or wait primeng fix the bug of visible https://github.com/primefaces/primeng/issues/3072
         if (this.authenticationService.isAdmin()) {
+          let importItems = [];
+          if (this.authenticationService.isTenantAdmin()) {
+            importItems = [
+              {label: 'Import d\'un arbre de positionnement', routerLink: ['admin/holdingScheme']},
+              {label: 'Import des contextes applicatifs', routerLink: ['admin/import/context']},
+              {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
+              {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
+              {label: 'Import des formats', routerLink: ['admin/import/format']},
+              {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
+              {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
+              {label: 'Import des services agents', routerLink: ['admin/import/agencies']}
+            ];
+          } else {
+            importItems = [
+              {label: 'Import d\'un arbre de positionnement', routerLink: ['admin/holdingScheme']},
+              {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
+              {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
+              {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
+              {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
+              {label: 'Import des services agents', routerLink: ['admin/import/agencies']}
+            ];
+          }
+
           this.items = [
             {
               label: 'Entrée',
@@ -65,16 +88,7 @@ export class MenuComponent implements OnInit {
                 },
                 {
                   label: 'Import des référentiels',
-                  items: [
-                    {label: 'Import d\'un arbre de positionnement', routerLink: ['admin/holdingScheme']},
-                    {label: 'Import des contextes applicatifs', routerLink: ['admin/import/context']},
-                    {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
-                    {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
-                    {label: 'Import des formats', routerLink: ['admin/import/format']},
-                    {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
-                    {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
-                    {label: 'Import des services agents', routerLink: ['admin/import/agencies']}
-                  ]
+                  items: importItems
                 },
                 {
                   label: 'Opérations',
