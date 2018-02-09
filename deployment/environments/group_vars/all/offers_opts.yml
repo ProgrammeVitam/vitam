@@ -6,7 +6,7 @@ vitam_strategy:
 
 # DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
 # ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage
-# WARNING : character "_" is forbidden for vitam_offers names !!!
+# WARNING : for offer names, please only use [a-z][a-z0-9-]* pattern
 vitam_offers:
   offer-fs-1:
     # param can be filesystem or filesystem-hash
