@@ -26,12 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-
 import java.io.File;
 import java.util.Locale;
+
+import com.google.common.base.Strings;
+
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -301,7 +302,7 @@ public class VitamConfiguration {
     /**
      * default offset for lifecycleSpliterator
      */
-    public static int defaultOffset = 0;
+    private static int defaultOffset = 0;
 
     /**
      * Max Thread for ES and MongoDB

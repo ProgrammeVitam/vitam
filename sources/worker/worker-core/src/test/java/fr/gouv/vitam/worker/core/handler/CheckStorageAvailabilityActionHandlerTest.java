@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,8 +43,11 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -69,7 +73,7 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() {
@@ -91,10 +95,10 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenThrow(new ProcessingException(""));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                        .setUrlMetadata("http://localhost:8083")
-                        .setObjectNameList(Lists.newArrayList("objectName.json"))
-                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -107,12 +111,20 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(83886800));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                        .setUrlMetadata("http://localhost:8083")
-                        .setObjectNameList(Lists.newArrayList("objectName.json"))
-                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
+        System.out.println(JsonHandler.prettyPrint(response));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
+        assertEquals(evDetData.get("offer1").textValue(), "KO");
+        assertEquals(evDetData.get("offer1_usableSpace").intValue(), 838860800);
+        assertEquals(evDetData.get("offer1_totalSizeToBeStored").intValue(), 922747600);
+        assertEquals(evDetData.get("offer2").textValue(), "KO");
+        assertEquals(evDetData.get("offer2_usableSpace").intValue(), 838860800);
+        assertEquals(evDetData.get("offer2_totalSizeToBeStored").intValue(), 922747600);
     }
 
 
@@ -125,15 +137,23 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                        .setUrlMetadata("http://localhost:8083")
-                        .setObjectNameList(Lists.newArrayList("objectName.json"))
-                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
+        assertEquals(evDetData.get("offer1").textValue(), "OK");
+        assertNull(evDetData.get("offer1_usableSpace"));
+        assertNull(evDetData.get("offer1_totalSizeToBeStored"));
+        assertEquals(evDetData.get("offer2").textValue(), "OK");
+        assertNull(evDetData.get("offer2_usableSpace"));
+        assertNull(evDetData.get("offer2_totalSizeToBeStored"));
     }
 
-    // This test checks that if a null is returned by the getStorageInformation, then we get an OK status, and a WARN log is displayed
+    // This test checks that if a null is returned by the getStorageInformation, then we get an OK status, and a WARN
+    // log is displayed
     @RunWithCustomExecutor
     @Test
     public void givenProblemWithOfferCheckStorageExecuteThenReturnResponseOK() throws Exception {
@@ -145,15 +165,16 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                        .setUrlMetadata("http://localhost:8083")
-                        .setObjectNameList(Lists.newArrayList("objectName.json"))
-                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
-    // This test checks that if empty informations is returned by the getStorageInformation (sthg like {\"capacities\": []}), then we get an OK status, and a WARN log is displayed
+    // This test checks that if empty informations is returned by the getStorageInformation (sthg like {\"capacities\":
+    // []}), then we get an OK status, and a WARN log is displayed
     @RunWithCustomExecutor
     @Test
     public void givenProblemWithOffersCheckStorageExecuteThenReturnResponseOK() throws Exception {
@@ -166,10 +187,10 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                        .setUrlMetadata("http://localhost:8083")
-                        .setObjectNameList(Lists.newArrayList("objectName.json"))
-                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
