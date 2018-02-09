@@ -137,6 +137,9 @@ public class SchemaValidationUtils {
                     archiveUnit.get(SedaConstants.TAG_RULE_START_DATE).asText());
                 final Date endDate = LocalDateUtil.getDate(
                     archiveUnit.get(SedaConstants.TAG_RULE_END_DATE).asText());
+
+                LOGGER.debug("in SchemaValidationUtils class, StartDate="+startDate+" EndDate="+endDate);
+
                 if (endDate.before(startDate)) {
                     final String errorMessage = "EndDate is before StartDate, unit Title : " + archiveUnit.get("Title").asText();
                     ObjectNode error = JsonHandler.createObjectNode();

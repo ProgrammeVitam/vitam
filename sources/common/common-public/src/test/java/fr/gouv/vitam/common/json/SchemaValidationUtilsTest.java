@@ -42,6 +42,7 @@ public class SchemaValidationUtilsTest {
     private static final String AU_INVALID_JSON_FILE = "archive-unit_Invalid.json";
     private static final String AU_INVALID_DATE_JSON_FILE = "archive-unit_date_Invalid.json";
     private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";
+    private static final String AU_SAME_DATES_JSON_FILE = "archive_unit_same_dates.json";
     private static final String OBJECT_BIRTH_PLACE_JSON_FILE = "object_birth_place_archive_unit.json";
     private static final String STRING_BIRTH_PLACE_JSON_FILE = "string_birth_place_archive_unit.json";
 
@@ -120,4 +121,12 @@ public class SchemaValidationUtilsTest {
         assertTrue(status.getValidationMessage().contains("EndDate is before StartDate"));
     }
 
+    @Test
+    public void givenSameDatesOK() throws Exception {
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        SchemaValidationStatus status = schemaValidation
+                .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_SAME_DATES_JSON_FILE))
+                        .get(TAG_ARCHIVE_UNIT));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
+    }
 }
