@@ -7,7 +7,6 @@ uses:
   StandardTraits: StandardTraits.raml
   AccessTypes: AccessTypes.raml
   DslTypes: DslTypes.raml
-  AdminTypes: AdminTypes.raml
 
 traits:
 
@@ -143,7 +142,6 @@ traits:
     body:
       application/json:
         description: Contient la requête de réindexation au format JSON.
-        schema: AdminTypes.AdminReindexationRequest
         example: !include examples/reindexation.json
     responses:
       200:
@@ -161,7 +159,6 @@ traits:
     body:
       application/json:
         description: Contient la requête de switch au format JSON.
-        schema: AdminTypes.AdminSwitchRequest
         example: !include examples/switch.json
     responses:
       200:
