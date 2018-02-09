@@ -12,5 +12,5 @@
   with_items:
     - "{{ vitam_strategy }}"
 
-- fail: msg="unsupported or badly configured offer"
-  when: offer_conf not in vitam_offers
+# - fail: msg="unsupported or badly configured offer"
+#   when: offer_conf not in vitam_offers
