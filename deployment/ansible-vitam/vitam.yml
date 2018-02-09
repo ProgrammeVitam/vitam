@@ -239,6 +239,17 @@
 - hosts: hosts-access-external
   roles:
     - vitam
+  vars:
+    vitam_struct: "{{ vitam.accessexternal }}"
+    password_keystore: "{{keystores.server.access_external}}"
+    password_manager_keystore: "{{keystores.server.access_external}}"
+    password_truststore: "{{truststores.client_external}}"
+    password_grantedstore: "{{grantedstores.client_external}}"
+    vitam_certificate_client_type: "external"
+
+# 2 differents steps, due to https://github.com/ansible/ansible/issues/15476
+- hosts: hosts-access-external
+  roles:
     - init_pronom
   vars:
     vitam_struct: "{{ vitam.accessexternal }}"
