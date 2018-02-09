@@ -1,7 +1,11 @@
 {
   "service": {
+{% if vitam_struct.vitam_component == 'offer' %}    
+    "name": "{{ offer_conf }}",
+{% else %}
     "name": "{{ vitam_struct.vitam_component }}",
-    "address": "{{ip_service}}",
+{% endif %}
+    "address": "{{ ip_service }}",
 {% if vitam_struct.https_enabled==true %}
     "port": {{ vitam_struct.port_service }},
 {% else %}

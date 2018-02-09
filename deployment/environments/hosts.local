@@ -113,7 +113,7 @@ localhost
 hosts-storage-offer-default
 
 [hosts-storage-offer-default]
-localhost offer_conf=offer_fs_1
+localhost offer_conf=offer-fs-1
 
 ##### Zone data
 

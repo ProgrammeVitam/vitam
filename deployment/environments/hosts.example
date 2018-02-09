@@ -144,9 +144,9 @@ hosts-storage-offer-default
 # TODO: Put here servers where this service will be deployed : storage-offer-default
 # LIMIT : only 1 offer per machine and 1 machine per offer
 # Mandatory param for each offer is offer_conf and points to offer_opts.yml & vault-vitam.yml (with same tree)
-# hostname-offre-1.vitam offer_conf=offer_swift_1
+# hostname-offre-1.vitam offer_conf=offer-swift-1
 # for filesystem
-# hostname-offre-2.vitam offer_conf=offer_fs_1
+# hostname-offre-2.vitam offer_conf=offer-fs-1
 
 
 ##### Zone data

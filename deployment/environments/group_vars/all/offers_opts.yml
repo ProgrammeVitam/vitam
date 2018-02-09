@@ -1,11 +1,17 @@
-# This list can and has to be completed if more offers are necessary
-# DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
+# This list is ordered. It can and has to be completed if more offers are necessary
+# Strategy order (1st has to be the prefered one)
+vitam_strategy:
+  - name: offer-fs-1
+#  - name: offer_swift_1
 
+# DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
+# ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage
+# WARNING : character "_" is forbidden for vitam_offers names !!!
 vitam_offers:
-  offer_fs_1:
+  offer-fs-1:
     # param can be filesystem or filesystem-hash
     provider: filesystem
-  offer_swift_1:
+  offer-swift-1:
     # provider : openstack-swift for v1 or openstack-swift-v3 for v3
     provider: openstack-swift
     # keystoneEndPoint : URL de connexion à keystone
@@ -20,6 +26,9 @@ vitam_offers:
     cephMode: false
     # projectName : tenant openstack
     projectName: monTenant
+
+
+    
   # example_swift_v1:
   #   provider: openstack-swift
   #   keystoneEndPoint: https://keystone/auth/1.0
