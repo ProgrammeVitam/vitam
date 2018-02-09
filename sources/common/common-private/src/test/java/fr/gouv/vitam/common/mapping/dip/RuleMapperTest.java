@@ -28,12 +28,15 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.Test;
+
 import com.google.common.collect.Lists;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
-import org.junit.Test;
 
 public class RuleMapperTest {
 
@@ -56,6 +59,20 @@ public class RuleMapperTest {
         assertThat(accessRuleType.getRuleAndStartDate().get(1).toString()).isEqualTo("2017-04-01");
     }
 
+    
+    @Test
+    public void should_map_empty_rule() throws Exception {
+        // Given
+        RuleMapper ruleMapper = new RuleMapper();
+        RuleCategoryModel ruleModel = new RuleCategoryModel();
+        ruleModel.getRules().add(new RuleModel(null, null));
+
+        // When
+        StorageRuleType storageRuleType = ruleMapper.fillCommonRule(ruleModel, StorageRuleType::new);
+
+        // Then
+        assertThat(storageRuleType.getRuleAndStartDate().size()).isEqualTo(0);
+    }
 
     @Test
     public void ruleWithNullStartDateOK() throws Exception {
