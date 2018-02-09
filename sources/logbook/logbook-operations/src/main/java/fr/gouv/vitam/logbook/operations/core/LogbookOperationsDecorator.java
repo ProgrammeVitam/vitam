@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,6 +38,9 @@ import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -48,6 +52,8 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
  * Decorator for LogbookOperations
  */
 public abstract class LogbookOperationsDecorator implements LogbookOperations {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsDecorator.class);
 
     protected LogbookOperations logbookOperations;
 
@@ -76,14 +82,16 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
 
     @Override
     public List<LogbookOperation> select(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
         return logbookOperations.select(select);
     }
 
     @Override
     public List<LogbookOperation> select(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        return logbookOperations.select(select, sliced);
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
+        List<LogbookOperation> operations = new ArrayList<>();
+            operations = logbookOperations.select(select, sliced);
+        return operations;
     }
 
     @Override
@@ -105,17 +113,18 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
 
     }
 
-	@Override
-	public MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(LocalDateTime date) throws LogbookDatabaseException,
-			LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
-		return logbookOperations.selectOperationsPersistedAfterDate(date);
-	}
+    @Override
+    public MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(LocalDateTime date)
+        throws LogbookDatabaseException,
+        LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        return logbookOperations.selectOperationsPersistedAfterDate(date);
+    }
 
-	@Override
-	public LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
-			throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException {
-		return logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
-	}
+    @Override
+    public LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException {
+        return logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
+    }
 
     @Override
     public LogbookOperation findLastTraceabilityOperationOK() throws InvalidCreateOperationException,

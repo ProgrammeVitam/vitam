@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.api;
 
 import java.util.List;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,7 +67,7 @@ public interface MetaData {
      */
     public void insertUnit(JsonNode insertRequest)
         throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
-        MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
+        MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException, VitamDBException;
 
 
     /**
@@ -93,7 +94,7 @@ public interface MetaData {
      */
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException;
 
     /**
      * Search ObjectGroups by Select {@link Select}Query
@@ -111,7 +112,7 @@ public interface MetaData {
      */
     RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException;
 
     /**
      * Search UNITs by Id {@link Select}Query <br>
@@ -134,7 +135,7 @@ public interface MetaData {
      */
     public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException;
 
     /**
      * Search ObjectGroups by its Id and a Select Query <br>
@@ -158,7 +159,7 @@ public interface MetaData {
      */
     RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        MetaDataNotFoundException, BadRequestException;
+        MetaDataNotFoundException, BadRequestException, VitamDBException;
 
     /**
      * Update UNITs by Id {@link UpdateMultiQuery}Query <br>
@@ -180,7 +181,7 @@ public interface MetaData {
      */
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException;
+        MetaDataDocumentSizeException, VitamDBException;
 
 
     /**
@@ -216,7 +217,7 @@ public interface MetaData {
      * @throws MetaDataExecutionException Thrown if error occurs when send Unit to database
      */
     void updateObjectGroupId(JsonNode updateRequest, String objectId)
-        throws InvalidParseOperationException, MetaDataExecutionException;
+        throws InvalidParseOperationException, MetaDataExecutionException, VitamDBException;
 
     /**
      * Flush Unit Index

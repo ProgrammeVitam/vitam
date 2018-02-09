@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -70,6 +71,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
     public static final String DESCRIPTION = "description";
+    public static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
+        "[Consistency ERROR] : An internal data consistency error has been detected !";
 
     /**
      * Constructor using given scheme (http)
@@ -118,7 +121,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        MetaDataClientServerException, VitamDBException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.SELECT_UNITS_QUERY_NULL.getMessage(), selectQuery);
         } catch (final IllegalArgumentException e) {
@@ -129,7 +132,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             response = performRequest(HttpMethod.GET, "/units", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+                throw new VitamDBException(CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {

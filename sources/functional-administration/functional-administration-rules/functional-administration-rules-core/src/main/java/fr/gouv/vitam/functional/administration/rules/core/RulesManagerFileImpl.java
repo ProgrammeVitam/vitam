@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -1138,7 +1139,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             result = dbRequest.execute(delete);
             result.close();
         } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
-            DatabaseException e) {
+            DatabaseException | VitamDBException e) {
             LOGGER.error(e);
         }
     }
@@ -1481,7 +1482,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             final JsonNode unitsResultNode = metaDataClient.selectUnits(select);
             resultUnitsArray = (ArrayNode) unitsResultNode.get(RESULTS);
 
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | VitamDBException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
         }

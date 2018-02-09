@@ -74,6 +74,7 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
@@ -247,7 +248,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      */
     @Override
     public JsonNode selectUnit(JsonNode jsonQuery)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
+        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
+        VitamDBException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException {
 
         JsonNode jsonNode = null;
         LOGGER.debug("DEBUG: start selectUnits {}", jsonQuery);
@@ -261,13 +263,16 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (!(parser instanceof SelectParserMultiple)) {
                 throw new InvalidParseOperationException("Not a Select operation");
             }
-            jsonNode = metaDataClient.selectUnits(jsonQuery);
+            jsonNode =
+                metaDataClient.selectUnits(jsonQuery);
             LOGGER.debug("DEBUG {}", jsonNode);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PARSING_ERROR, e);
             throw e;
         } catch (final IllegalArgumentException e) {
             LOGGER.error(ILLEGAL_ARGUMENT, e);
+            throw e;
+        } catch (final VitamDBException e) {
             throw e;
         } catch (final Exception e) {
             LOGGER.error("exeption thrown", e);

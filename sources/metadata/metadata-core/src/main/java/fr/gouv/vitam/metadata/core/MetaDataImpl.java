@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -142,7 +143,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public void insertUnit(JsonNode insertRequest)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        MetaDataAlreadyExistException, MetaDataNotFoundException {
+        MetaDataAlreadyExistException, MetaDataNotFoundException, VitamDBException {
         Result result = null;
         try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -170,7 +171,7 @@ public class MetaDataImpl implements MetaData {
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
-        } catch (InstantiationException | IllegalAccessException | BadRequestException e) {
+        } catch (InstantiationException | IllegalAccessException | BadRequestException | VitamDBException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
@@ -214,7 +215,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
 
@@ -223,7 +224,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("selectObjectGroupsByQuery/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
 
@@ -232,7 +233,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, unitId, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
     }
@@ -240,7 +241,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        MetaDataNotFoundException, BadRequestException {
+        MetaDataNotFoundException, BadRequestException, VitamDBException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
         return selectMetadataObject(selectQuery, objectGroupId,
@@ -251,7 +252,7 @@ public class MetaDataImpl implements MetaData {
     private RequestResponseOK<JsonNode> selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException {
 
         Result result = null;
         ArrayNode arrayNodeResponse;
@@ -308,8 +309,6 @@ public class MetaDataImpl implements MetaData {
             if (shouldComputeUnitRule && result.hasFinalResult()) {
                 computeRuleForUnit(arrayNodeResponse);
             }
-
-
         } catch (InstantiationException | IllegalAccessException | MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
@@ -332,7 +331,7 @@ public class MetaDataImpl implements MetaData {
     // TODO : handle version
     @Override
     public void updateObjectGroupId(JsonNode updateQuery, String objectId)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataExecutionException, VitamDBException {
         Result result = null;
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
@@ -370,7 +369,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException {
+        MetaDataDocumentSizeException, VitamDBException {
         Result result = null;
         ArrayNode arrayNodeResponse;
         if (updateQuery.isNull()) {
@@ -421,7 +420,7 @@ public class MetaDataImpl implements MetaData {
 
     private RequestResponse getUnitById(String id)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataNotFoundException, BadRequestException {
+        MetaDataNotFoundException, BadRequestException, VitamDBException {
         final SelectMultiQuery select = new SelectMultiQuery();
         return selectUnitsById(select.getFinalSelect(), id);
     }
@@ -442,7 +441,7 @@ public class MetaDataImpl implements MetaData {
 
     private void computeRuleForUnit(ArrayNode arrayNodeResponse)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
-        MetaDataNotFoundException, BadRequestException {
+        MetaDataNotFoundException, BadRequestException, VitamDBException {
         Map<String, UnitNode> allUnitNode = new HashMap<>();
         Set<String> rootList = new HashSet<>();
         List<String> unitParentIdList = new ArrayList<>();

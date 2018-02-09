@@ -44,6 +44,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.exception.VitamDBException;
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -341,7 +356,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @SuppressWarnings("unchecked")
     @Override
     public MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException {
+        throws LogbookDatabaseException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
 
         // TODO P1 Temporary fix as the obIdIn (MessageIdentifier in the SEDA manifest) is only available on the 2 to
@@ -360,7 +375,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public MongoCursor<LogbookLifeCycle> getLogbookLifeCycleUnits(JsonNode select, boolean sliced,
         LogbookCollections collection)
-        throws LogbookDatabaseException {
+        throws LogbookDatabaseException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         if (sliced) {
             final ObjectNode operationSlice = JsonHandler.createObjectNode();
@@ -387,7 +402,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public MongoCursor<LogbookLifeCycle> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced,
         LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException {
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         return select(collection, select, sliced);
 
@@ -555,7 +570,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     @SuppressWarnings("rawtypes")
     private final MongoCursor select(final LogbookCollections collection, final JsonNode select, boolean sliced)
-        throws LogbookDatabaseException {
+        throws LogbookDatabaseException, VitamDBException {
         if (sliced) {
             return select(collection, select, DEFAULT_SLICE);
         } else {
@@ -575,7 +590,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     @SuppressWarnings("rawtypes")
     private final MongoCursor select(final LogbookCollections collection, final JsonNode select, final ObjectNode slice)
-        throws LogbookDatabaseException {
+        throws LogbookDatabaseException, VitamDBException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
@@ -1432,7 +1447,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     private MongoCursor<?> findDocumentsElasticsearch(LogbookCollections collection,
         SelectParserSingle parser)
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookException {
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookException, VitamDBException {
         Integer tenantId = HeaderIdHelper.getTenantId();
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore());

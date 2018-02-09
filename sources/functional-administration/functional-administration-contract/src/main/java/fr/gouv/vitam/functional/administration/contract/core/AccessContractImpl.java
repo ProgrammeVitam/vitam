@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -726,7 +727,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 } catch (InvalidParseOperationException |
                     MetaDataExecutionException |
                     MetaDataDocumentSizeException |
-                    MetaDataClientServerException e) {
+                    MetaDataClientServerException |
+                    VitamDBException e) {
                     return Optional.of(GenericRejectionCause
                         .rejectExceptionOccurred(contract.getName(), "Error while select units", e));
                 }

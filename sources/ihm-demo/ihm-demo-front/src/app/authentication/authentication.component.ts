@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 import { AuthenticationService, UserInformation } from './authentication.service';
-import {TranslateService} from "@ngx-translate/core";
+import {TranslateService} from '@ngx-translate/core';
 
 @Component({
   selector: 'vitam-authentication',
@@ -28,7 +28,7 @@ export class AuthenticationComponent implements OnInit {
 
   ngOnInit() {
     if (this.authenticationService.isLoggedIn()) {
-      this.router.navigate(["ingest/sip"]);
+      this.router.navigate(['ingest/sip']);
     } else {
       this.authenticationService.loggedOut();
     }
@@ -40,8 +40,8 @@ export class AuthenticationComponent implements OnInit {
 
     this.authenticationService.storeTenantAdmin();
     this.authenticationService.getAuthenticationMode().subscribe(
-      (authenticationModes : string[]) => {
-        for (let authenticationMode of authenticationModes) {
+      (authenticationModes: string[]) => {
+        for (const authenticationMode of authenticationModes) {
           if (authenticationMode.indexOf('x509') > -1) {
             this.isTLSEnabled = true;
             if (authenticationModes.length === 1) {
@@ -60,11 +60,11 @@ export class AuthenticationComponent implements OnInit {
   login() {
     this.errorMessage = '';
     if (this.loginForm.valid && this.tenantId) {
-      let username = this.loginForm.controls.username.value;
-      let password = this.loginForm.controls.password.value;
+      const username = this.loginForm.controls.username.value;
+      const password = this.loginForm.controls.password.value;
       this.authenticationService.logIn(username, password).subscribe(
-        (user : UserInformation) => {
-          this.router.navigate(["ingest/sip"]);
+        (user: UserInformation) => {
+          this.router.navigate(['ingest/sip']);
           this.authenticationService.loggedIn(user, this.tenantId);
           this.translateService.reloadLang(this.translateService.getDefaultLang());
         },
@@ -99,18 +99,17 @@ export class AuthenticationComponent implements OnInit {
       this.errorMessage = 'Veuillez choisir un tenant';
     } else {
       this.authenticationService.logInWithCertificat().subscribe(
-        (user : UserInformation) => {
-          this.router.navigate(["ingest/sip"]);
+        (user: UserInformation) => {
+          this.router.navigate(['ingest/sip']);
           this.authenticationService.loggedIn(user, this.tenantId);
           this.translateService.reloadLang(this.translateService.getDefaultLang());
         },
         (error) => {
-          this.errorMessage = "Votre certificat n'est pas connu";
+          this.errorMessage = 'Votre certificat n\'est pas connu';
           this.authenticationService.loggedOut();
         }
       );
     }
 
   }
-
 }

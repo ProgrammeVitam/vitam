@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
@@ -148,7 +149,7 @@ public class DbRequestSingle {
      * @throws InstantiationException
      */
     public DbRequestResult execute(RequestSingle request)
-        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException, VitamDBException {
         return execute(request, 0);
     }
 
@@ -169,7 +170,7 @@ public class DbRequestSingle {
      * @throws InstantiationException
      */
     public DbRequestResult execute(RequestSingle request, Integer version)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException {
         if (request instanceof Insert) {
             ArrayNode data = ((Insert) request).getDatas();
             return insertDocuments(data, version);
@@ -332,7 +333,7 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private DbRequestResult findDocuments(JsonNode select) throws DatabaseException, BadRequestException {
+    private DbRequestResult findDocuments(JsonNode select) throws DatabaseException, BadRequestException, VitamDBException{
         MongoCursor<VitamDocument<?>> cursor = search(select);
         return new DbRequestResult().setCursor(cursor).setTotal(total > 0 ? total : count).setCount(count)
             .setLimit(limit).setOffset(offset);
@@ -346,7 +347,7 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private MongoCursor<VitamDocument<?>> search(JsonNode select) throws DatabaseException, BadRequestException {
+    private MongoCursor<VitamDocument<?>> search(JsonNode select) throws DatabaseException, BadRequestException, VitamDBException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
             parser.parse(select);
@@ -376,7 +377,7 @@ public class DbRequestSingle {
      * @throws BadRequestException
      */
     private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(SelectParserSingle parser)
-        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException {
+        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException, VitamDBException {
         SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         QueryBuilder query = QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0));
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(vitamCollection.isUseScore());
@@ -418,7 +419,7 @@ public class DbRequestSingle {
      */
     private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser, List<String> list,
         List<Float> score)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, InvalidCreateOperationException, VitamDBException {
         return DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(vitamCollection, parser,
             list, score);
     }
@@ -524,7 +525,7 @@ public class DbRequestSingle {
      * @throws InvalidCreateOperationException
      */
     private DbRequestResult updateDocuments(JsonNode request)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException {
         final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
         parser.parse(request);
         if (vitamCollection.isMultiTenant()) {
@@ -613,7 +614,7 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException
      */
     private DbRequestResult deleteDocuments(JsonNode request)
-        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException {
+        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException, VitamDBException {
         final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
         parser.parse(request);
         parser.addProjection(JsonHandler.createObjectNode(), JsonHandler.createObjectNode().put(VitamDocument.ID, 1));

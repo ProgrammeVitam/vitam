@@ -34,6 +34,9 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.server.application.resources.VitamResource;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
 /**
  * Access Resource REST API
@@ -46,7 +49,8 @@ public interface AccessInternalResource extends VitamResource {
      * @param dslQuery null not allowed
      * @return a archive unit result list
      */
-    Response getUnits(JsonNode dslQuery);
+    Response getUnits(JsonNode dslQuery)
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
 
     /**
      * @param queryDsl

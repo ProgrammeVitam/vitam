@@ -1,12 +1,12 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, ParamMap, Router, NavigationEnd } from '@angular/router';
-import { PageComponent } from "../../common/page/page-component";
+import { PageComponent } from '../../common/page/page-component';
 import { Title } from '@angular/platform-browser';
 import { BreadcrumbService } from '../../common/breadcrumb.service';
 import 'rxjs/add/operator/switchMap';
-import { ArchiveUnitService } from "../archive-unit.service";
-import { DialogService } from "../../common/dialog/dialog.service";
-import {ErrorService} from "../../common/error.service";
+import { ArchiveUnitService } from '../archive-unit.service';
+import { DialogService } from '../../common/dialog/dialog.service';
+import {ErrorService} from '../../common/error.service';
 
 @Component({
   selector: 'vitam-archive-unit-details',
@@ -49,7 +49,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
     this.route.paramMap
       .switchMap((params: ParamMap) => {
         this.id = params.get('id');
-        let newBreadcrumb = [
+        const newBreadcrumb = [
           {label: 'Recherche', routerLink: ''},
           {label: 'Recherche d\'archives', routerLink: 'search/archiveUnit'},
           {

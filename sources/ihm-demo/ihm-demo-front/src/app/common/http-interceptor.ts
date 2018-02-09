@@ -1,9 +1,9 @@
 import {Injectable} from '@angular/core';
 import {HttpEvent, HttpInterceptor, HttpHandler, HttpRequest} from '@angular/common/http';
-import {Observable} from "rxjs/Observable";
+import {Observable} from 'rxjs/Observable';
 import { Router } from '@angular/router';
-import {CookieService} from "angular2-cookie/core";
-import {DialogService} from "./dialog/dialog.service";
+import {CookieService} from 'angular2-cookie/core';
+import {DialogService} from './dialog/dialog.service';
 
 const USER = 'user';
 const LOGGED_IN = 'loggedIn';
@@ -12,7 +12,7 @@ const DEFAULT_TIMEOUT = 1800000;
 @Injectable()
 export class VitamInterceptor implements HttpInterceptor {
 
-  sessionTimeout : any;
+  sessionTimeout: any;
 
   constructor(private cookies: CookieService, private router: Router,
               private dialogService: DialogService) {
@@ -45,7 +45,7 @@ export class VitamInterceptor implements HttpInterceptor {
 
   restartLoginTimeOut() {
     if (localStorage.getItem(USER)) {
-      let userInformation = JSON.parse(localStorage.getItem(USER));
+      const userInformation = JSON.parse(localStorage.getItem(USER));
       if (this.sessionTimeout) {
         clearTimeout(this.sessionTimeout);
       }
@@ -56,7 +56,6 @@ export class VitamInterceptor implements HttpInterceptor {
       }
     }
   }
-
   logoutUser() {
     this.cookies.put(LOGGED_IN, 'false');
     localStorage.removeItem(USER);

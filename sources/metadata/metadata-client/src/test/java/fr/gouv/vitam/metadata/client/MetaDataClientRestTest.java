@@ -48,6 +48,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -429,7 +430,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
     @Test(expected = InvalidParseOperationException.class)
     public void selectUnitTest()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        MetaDataClientServerException, VitamDBException {
         when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
         client.selectUnits(JsonHandler.getFromString(QUERY));
     }

@@ -26,22 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -55,10 +39,18 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mockito;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest(WorkspaceClientFactory.class)
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class LogbookOperationsDecoratorTest {
 
     @Rule
@@ -68,33 +60,32 @@ public class LogbookOperationsDecoratorTest {
     private LogbookOperationsImpl logbookOperationsImpl;
     private LogbookOperationParameters logbookParameters;
     LogbookOperationParameters[] operationArray;
-    private String eventType="STP_IMPORT_ACCESS_CONTRACT";
-    private String outcome="OK";  
+    private String eventType = "STP_IMPORT_ACCESS_CONTRACT";
+    private String outcome = "OK";
     private LogbookDbAccess mongoDbAccess;
     private WorkspaceClient workspaceClient;
-    
-    
-    private static class TestClass extends LogbookOperationsDecorator{
+
+
+    private static class TestClass extends LogbookOperationsDecorator {
         TestClass(LogbookOperations logbookOperations) {
-            super(logbookOperations);     
-        }    
+            super(logbookOperations);
+        }
     }
-   
+
     @Before
     public void setUp() throws Exception {
         // Mock workspace and mongoDbAccess to avoid error on operation backup
         final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        mongoDbAccess = Mockito.mock(LogbookDbAccess.class);
-        logbookOperationsImpl=new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
-        logbookOperationsImpl=Mockito.spy(logbookOperationsImpl);
+
+        mongoDbAccess = mock(LogbookDbAccess.class);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
+        logbookOperationsImpl = Mockito.spy(logbookOperationsImpl);
         logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);
         logbookParameters.putParameterValue(LogbookParameterName.outcome, outcome);
         logbookParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, GUIDFactory
             .newOperationLogbookGUID(0).getId());
-        operationArray = new  LogbookOperationParameters[]{logbookParameters};
+        operationArray = new LogbookOperationParameters[] {logbookParameters};
 
         workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
@@ -110,8 +101,8 @@ public class LogbookOperationsDecoratorTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final TestClass tc = new TestClass(logbookOperationsImpl);
         tc.create(logbookParameters);
-        Mockito.verify(logbookOperationsImpl).create(logbookParameters);
-        Mockito.verify(mongoDbAccess).createLogbookOperation(logbookParameters);
+        verify(logbookOperationsImpl).create(logbookParameters);
+        verify(mongoDbAccess).createLogbookOperation(logbookParameters);
     }
 
     @RunWithCustomExecutor
@@ -120,8 +111,8 @@ public class LogbookOperationsDecoratorTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final TestClass tc = new TestClass(logbookOperationsImpl);
         tc.update(logbookParameters);
-        Mockito.verify(logbookOperationsImpl).update(logbookParameters);
-        Mockito.verify(mongoDbAccess).updateLogbookOperation(logbookParameters);
+        verify(logbookOperationsImpl).update(logbookParameters);
+        verify(mongoDbAccess).updateLogbookOperation(logbookParameters);
     }
 
     @RunWithCustomExecutor
@@ -130,18 +121,18 @@ public class LogbookOperationsDecoratorTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final TestClass tc = new TestClass(logbookOperationsImpl);
         tc.updateBulkLogbookOperation(operationArray);
-        Mockito.verify(mongoDbAccess).updateBulkLogbookOperation(operationArray);
+        verify(mongoDbAccess).updateBulkLogbookOperation(operationArray);
     }
 
     @RunWithCustomExecutor
-    @Test   
+    @Test
     public final void testCreateBulkLogbookOperation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final TestClass tc = new TestClass(logbookOperationsImpl); 
+        final TestClass tc = new TestClass(logbookOperationsImpl);
         tc.createBulkLogbookOperation(operationArray);
-        Mockito.verify(mongoDbAccess).createBulkLogbookOperation(operationArray);
+        verify(mongoDbAccess).createBulkLogbookOperation(operationArray);
     }
-   
- 
+
+
 
 }

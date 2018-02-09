@@ -190,7 +190,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, headers, select,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
-
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);

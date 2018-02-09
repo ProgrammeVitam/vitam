@@ -14,6 +14,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -69,7 +70,7 @@ public class LogbookAuditAdministration {
 
         } catch (LogbookNotFoundException e) {
             nbLog = 0;
-        } catch (InvalidParseOperationException | LogbookDatabaseException | InvalidCreateOperationException e) {
+        } catch (LogbookDatabaseException | InvalidParseOperationException | InvalidCreateOperationException | VitamDBException e) {
             throw new LogbookAuditException(e.getMessage());
         }
 

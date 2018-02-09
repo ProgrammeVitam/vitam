@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -130,9 +131,11 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public List<LogbookOperation> select(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
         // TODO: why true by default ? this is a queryDSL, all the request options are in, so why ?
-        return select(select, true);
+        List<LogbookOperation> operations = new ArrayList<>();
+            operations = select(select, true);
+        return operations;
     }
 
     private void filterFinalResponse(VitamDocument<?> document) {
@@ -168,9 +171,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public List<LogbookOperation> select(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException {
+        throws LogbookNotFoundException, LogbookDatabaseException, VitamDBException {
+        final List<LogbookOperation> result = new ArrayList<>();
         try (final MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, sliced)) {
-            final List<LogbookOperation> result = new ArrayList<>();
             if (logbook == null || !logbook.hasNext()) {
                 // TODO: seriously, thrown a not found exception here ??? Not found only if I search a specific
                 // operation with an ID, not if the logbook is empty ! But fix this and evreything may be broken
@@ -178,17 +181,12 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
             while (logbook.hasNext()) {
-                try {
-                    LogbookOperation doc = logbook.next();
-                    filterFinalResponse(doc);
-                    result.add(doc);
-                } catch (ClassCastException ex) {
-                    // Logbook cannot be cast, that means there is a gap between ES and Mongo
-                    LOGGER.error("Reindexation needed, data in ES is not in Mongo anymore", ex);
-                }
+                LogbookOperation doc = logbook.next();
+                filterFinalResponse(doc);
+                result.add(doc);
             }
-            return result;
         }
+        return result;
     }
 
     @Override
@@ -215,7 +213,14 @@ public class LogbookOperationsImpl implements LogbookOperations {
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidCreateOperationException,
         InvalidParseOperationException {
         final Select select = logbookOperationsAfterDateQuery(date);
-        return mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false);
+        MongoCursor<LogbookOperation> cursor = null;
+        try {
+            cursor =
+                mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false);
+        } catch (VitamDBException e) {
+            LOGGER.error(e);
+        }
+        return cursor;
     }
 
     private Select logbookOperationsAfterDateQuery(final LocalDateTime date)
@@ -237,7 +242,14 @@ public class LogbookOperationsImpl implements LogbookOperations {
             QueryHelper.eq(LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(), "STP_OP_SECURISATION.OK");
         select.setQuery(QueryHelper.and().add(query, type, status));
         select.setLimitFilter(0, 1);
-        return Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
+        LogbookOperation logbookOperation = null;
+        try {
+            logbookOperation =
+                Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
+        } catch (VitamDBException e) {
+            LOGGER.error(e);
+        }
+        return logbookOperation;
     }
 
     @Override
@@ -248,13 +260,17 @@ public class LogbookOperationsImpl implements LogbookOperations {
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
         final Query findEvent = QueryHelper
             .eq(String.format("%s.%s", LogbookDocument.EVENTS, outcomeDetail.getDbname()), "STP_OP_SECURISATION.OK");
-
         select.setLimitFilter(0, 1);
         select.setQuery(QueryHelper.and().add(type, findEvent));
-
         select.addOrderByDescFilter("evDateTime");
-
-        return Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
+        LogbookOperation logbookOperation = null;
+        try {
+            logbookOperation =
+                Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
+        } catch (VitamDBException e) {
+            LOGGER.error(e);
+        }
+        return logbookOperation;
     }
 
     @Override
@@ -264,7 +280,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             collection = LogbookCollections.valueOf(indexParameters.getCollectionName().toUpperCase());
         } catch (IllegalArgumentException exc) {
             String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
-                "logbook module",
+                    "logbook module",
                 indexParameters
                     .getCollectionName());
             LOGGER.error(message);
@@ -272,7 +288,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         }
         if (!LogbookCollections.OPERATION.equals(collection)) {
             String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
-                "logbook module",
+                    "logbook module",
                 indexParameters
                     .getCollectionName());
             LOGGER.error(message);

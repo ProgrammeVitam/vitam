@@ -65,6 +65,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -290,7 +291,7 @@ public class DbRequestTest {
      */
     @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
-    public void testExecRequest() throws MetaDataExecutionException, BadRequestException {
+    public void testExecRequest() throws MetaDataExecutionException, BadRequestException, VitamDBException {
         // input data
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -546,7 +547,9 @@ public class DbRequestTest {
      */
     @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
-    public void testExecRequestThroughRequestParserHelper() throws MetaDataExecutionException, BadRequestException {
+    public void testExecRequestThroughRequestParserHelper()
+        throws MetaDataExecutionException, BadRequestException, VitamDBException, MetaDataAlreadyExistException,
+        MetaDataNotFoundException, InvalidParseOperationException, IllegalAccessException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -625,18 +628,6 @@ public class DbRequestTest {
         } catch (final InstantiationException e1) {
             e1.printStackTrace();
             fail(e1.getMessage());
-        } catch (final IllegalAccessException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
-        } catch (final MetaDataAlreadyExistException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
-        } catch (final MetaDataNotFoundException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
-        } catch (final InvalidParseOperationException e1) {
-            e1.printStackTrace();
-            fail(e1.getMessage());
         } finally {
             // clean
             MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
@@ -658,7 +649,8 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequestThroughAllCommands()
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InvalidParseOperationException, InstantiationException, IllegalAccessException, BadRequestException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException, BadRequestException,
+        VitamDBException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -1075,7 +1067,8 @@ public class DbRequestTest {
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InvalidParseOperationException, InstantiationException, IllegalAccessException, BadRequestException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException, BadRequestException,
+        VitamDBException {
 
         final Result result = dbRequest.execRequest(requestParser, null);
         LOGGER.warn("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
@@ -1463,7 +1456,7 @@ public class DbRequestTest {
     private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException, InstantiationException, IllegalAccessException,
-        BadRequestException {
+        BadRequestException, VitamDBException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
         if (isOG) {

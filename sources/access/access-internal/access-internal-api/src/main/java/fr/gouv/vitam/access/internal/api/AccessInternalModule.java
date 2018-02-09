@@ -33,6 +33,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -51,7 +55,8 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     JsonNode selectUnit(JsonNode queryJson)
-        throws InvalidParseOperationException, AccessInternalExecutionException;
+        throws InvalidParseOperationException, AccessInternalExecutionException, VitamDBException,
+        MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException;
 
     /**
      * select Unit by id

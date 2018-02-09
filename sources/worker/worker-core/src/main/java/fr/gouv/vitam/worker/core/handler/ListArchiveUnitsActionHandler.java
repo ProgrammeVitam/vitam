@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -123,7 +124,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             LOGGER.error("Cannot parse json", e);
             throw new ProcessingException(e);
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
-            InvalidCreateOperationException e) {
+            InvalidCreateOperationException | VitamDBException e) {
             LOGGER.error("Metadata error: Cannot request Metadata", e);
             throw new ProcessingException(e);
         }
@@ -132,7 +133,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
 
     private void searchForInvolvedArchiveUnit(FileRulesModel fileRule)
         throws InvalidCreateOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
-        MetaDataClientServerException, InvalidParseOperationException {
+        MetaDataClientServerException, InvalidParseOperationException, VitamDBException {
         ArrayNode resultUnitsArray = null;
         final SelectMultiQuery selectMultiple = new SelectMultiQuery();
         StringBuffer sb = new StringBuffer();

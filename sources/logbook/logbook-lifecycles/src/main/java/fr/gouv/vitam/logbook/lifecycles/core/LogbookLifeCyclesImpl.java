@@ -34,6 +34,7 @@ import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
@@ -123,9 +124,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters, boolean commit)
-            throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
-            LogbookAlreadyExistsException {
+    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters,
+        boolean commit)
+        throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
+        LogbookAlreadyExistsException {
         checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
         mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, idLc, parameters, commit);
     }
@@ -145,47 +147,47 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     @Override
     public List<LogbookLifeCycle> selectUnit(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
         return selectUnit(select, true, collection);
     }
 
     @Override
     public List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
+        final List<LogbookLifeCycle> result = new ArrayList<>();
         try (final MongoCursor<LogbookLifeCycle> logbook =
             mongoDbAccess.getLogbookLifeCycleUnits(select, sliced, collection)) {
-            final List<LogbookLifeCycle> result = new ArrayList<>();
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
             while (logbook.hasNext()) {
                 result.add(logbook.next());
             }
-            return result;
         }
+        return result;
     }
 
     @Override
     public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
         return selectObjectGroup(select, true, collection);
     }
 
     @Override
     public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced,
         LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
+        final List<LogbookLifeCycle> result = new ArrayList<>();
         try (final MongoCursor<LogbookLifeCycle> logbookCursor =
             mongoDbAccess.getLogbookLifeCycleObjectGroups(select, sliced, collection)) {
-            final List<LogbookLifeCycle> result = new ArrayList<>();
             if (!logbookCursor.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
             while (logbookCursor.hasNext()) {
                 result.add(logbookCursor.next());
             }
-            return result;
         }
+        return result;
     }
 
     @Override
@@ -249,7 +251,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         }
 
         if (!(idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.objectIdentifier)) ||
-                idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier)))) {
+            idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier)))) {
             LOGGER.error("incoherence entry for idLifeCyclesObjectGroup");
             throw new IllegalArgumentException("incoherence entry for idLifeCyclesObjectGroup");
         }
@@ -299,7 +301,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
 
         // 1- Find temporary unit lifeCycle
-        LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess = mongoDbAccess.getLogbookLifeCycleUnitInProcess(idLc);
+        LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess =
+            mongoDbAccess.getLogbookLifeCycleUnitInProcess(idLc);
         if (logbookLifeCycleUnitInProcess == null) {
             LOGGER.error("The temporary lifeCycle wasn't found");
             throw new LogbookNotFoundException("The temporary lifeCycle wasn't found");
@@ -369,7 +372,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         if (isInProcessLfc) {
             return LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS;
         }
-        
+
         // 2- If it doesn't exist, then check in the production collection
         boolean isCommittedLfc = mongoDbAccess.existsLogbookLifeCycleUnit(unitId);
         if (isCommittedLfc) {
@@ -401,8 +404,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void bulk(LogbookCollections collections, String idOp, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
-        throws DatabaseException {
+    public void bulk(LogbookCollections collections, String idOp,
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException {
         mongoDbAccess.bulk(collections, logbookLifeCycleModels);
     }
 }

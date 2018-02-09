@@ -37,8 +37,10 @@ import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -68,9 +70,11 @@ import javax.ws.rs.core.Response.Status;
 @javax.ws.rs.ApplicationPath("webresources")
 public class LogbookExternalResource {
 
+    public static final String LOGBOOK = "Logbook";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String OB_ID = "obId";
+    public static final String VITAM_CODE = "vitam-code";
 
     /**
      * Constructor
@@ -96,7 +100,20 @@ public class LogbookExternalResource {
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(query);
-            RequestResponse<JsonNode> result = client.selectOperation(query);
+            RequestResponse<JsonNode> result = null;
+            try {
+                result = client.selectOperation(query);
+            } catch (final VitamDBException ve) {
+                LOGGER.error(ve);
+                status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status)
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                        .setContext(LOGBOOK)
+                        .setState(VITAM_CODE)
+                        .setMessage(ve.getMessage())
+                        .setDescription(status.getReasonPhrase()))
+                    .build();
+            }
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
