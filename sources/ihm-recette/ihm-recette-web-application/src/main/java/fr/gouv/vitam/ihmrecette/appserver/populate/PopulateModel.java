@@ -48,6 +48,22 @@ public class PopulateModel {
     
     private boolean withGots = true;
 
+    private boolean withLFCUnits = true;
+
+    private boolean withLFCGots = true;
+
+    /**
+     * The number of events to generate per LFCGot
+     */
+    @JsonProperty("LFCGotsEventsSize")
+    private int LFCGotsEventsSize=5;
+
+    /**
+     * The number of events to generate per LFCUnit
+     */
+    @JsonProperty("LFCUnitsEventsSize")
+    private int LFCUnitsEventsSize=5;
+
     @JsonProperty("objectSize")
     private Integer objectSize;
 
@@ -120,6 +136,22 @@ public class PopulateModel {
         this.withGots = withGots;
     }
 
+    public boolean isWithLFCUnits() {
+        return withLFCUnits;
+    }
+
+    public void setWithLFCUnits(boolean withLFCUnits) {
+        this.withLFCUnits = withLFCUnits;
+    }
+
+    public boolean isWithLFCGots() {
+        return withLFCGots;
+    }
+
+    public void setWithLFCGots(boolean withLFCGots) {
+        this.withLFCGots = withLFCGots;
+    }
+
     public boolean isWithRules() {
         return withRules;
     }
@@ -142,5 +174,21 @@ public class PopulateModel {
 
     public void setObjectSize(Integer objectSize) {
         this.objectSize = objectSize;
+    }
+
+    public int getLFCGotsEventsSize() {
+        return LFCGotsEventsSize;
+    }
+
+    public void setLFCGotsEventsSize(int LFCGotsEventsSize) {
+        this.LFCGotsEventsSize = LFCGotsEventsSize;
+    }
+
+    public int getLFCUnitsEventsSize() {
+        return LFCUnitsEventsSize;
+    }
+
+    public void setLFCUnitsEventsSize(int LFCUnitsEventsSize) {
+        this.LFCUnitsEventsSize = LFCUnitsEventsSize;
     }
 }

@@ -27,7 +27,8 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-import fr.gouv.vitam.ihmrecette.appserver.populate.MasterdataRepository;
+
+
 import static java.lang.String.format;
 
 import java.io.FileNotFoundException;
@@ -60,6 +61,8 @@ import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestResourc
 import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestService;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceService;
+import fr.gouv.vitam.ihmrecette.appserver.populate.LogbookRepository;
+import fr.gouv.vitam.ihmrecette.appserver.populate.MasterdataRepository;
 import fr.gouv.vitam.ihmrecette.appserver.populate.MetadataRepository;
 import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateResource;
 import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
@@ -126,16 +129,17 @@ public class BusinessApplication extends Application {
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
             MongoDatabase metadataDb = mongoClient.getDatabase(configuration.getMetadataDbName());
             MongoDatabase masterdataDb = mongoClient.getDatabase(configuration.getMasterdataDbName());
-            
+            MongoDatabase logbookDb = mongoClient.getDatabase(configuration.getLogbookDbName());
             List<ElasticsearchNode> elasticsearchNodes = configuration.getElasticsearchNodes();
             Settings settings = ElasticsearchAccess.getSettings(configuration.getClusterName());
             TransportClient esClient = getClient(settings, elasticsearchNodes);
 
             MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient);
             MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb, esClient);
+            LogbookRepository logbookRepository = new LogbookRepository(logbookDb);
             UnitGraph unitGraph = new UnitGraph(metadataRepository);
             PopulateService populateService =
-                new PopulateService(metadataRepository, masterdataRepository, unitGraph, configuration.getIngestMaxThread());
+                new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, configuration.getIngestMaxThread());
             PopulateResource populateResource = new PopulateResource(populateService);
 
             singletons.add(populateResource);
