@@ -1,0 +1,5 @@
+---
+
+- name: Check defined offer is present in vitam_offers
+  fail: msg="Unsupported or badly configured offer as {{ offer_conf }} is not declared in vitam_offers  "
+  when: offer_conf not in vitam_offers
