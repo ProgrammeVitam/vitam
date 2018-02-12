@@ -68,14 +68,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
         throws ContentAddressableStorageServerException {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        UnitType unitType = null;
-        if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty() && handlerIO.getInput(1) != null) {
-            unitType = UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(1)));
-            if (null == unitType) {
-                // TODO: 6/19/17 should throw exception ?!
-                unitType = UnitType.INGEST;
-            }
-        }
         try {
             if (Boolean.valueOf((String) handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
                 try (CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
@@ -88,8 +80,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
                     itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
 
-                    handlerIO.getInput().clear();
-                    extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
                     ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                     itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
@@ -115,8 +105,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                     ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
                     itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
 
-                    handlerIO.getInput().clear();
-                    extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
                     ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
                     itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
@@ -124,6 +112,8 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                         resetItemStatusMeter(itemStatus);
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
+
+                    handlerIO.getInput().clear();
                     List<IOParameter> inputList = new ArrayList<>();
                     inputList.add(
                         new IOParameter()

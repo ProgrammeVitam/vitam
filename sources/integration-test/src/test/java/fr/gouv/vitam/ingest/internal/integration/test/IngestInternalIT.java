@@ -706,7 +706,7 @@ public class IngestInternalIT {
 
             // get initial lfc version
             String unitId = unit.findValuesAsText("#id").get(0);
-            assertEquals(5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
+            assertEquals(4, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
 
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitBeforeUpdate =
@@ -728,7 +728,7 @@ public class IngestInternalIT {
 
             assertNull(responseUnitAfterUpdate.getFirstResult().get("#management").get("AccessRule"));
             // check version incremented in lfc
-            assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
+            assertEquals(5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
 
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);

@@ -39,6 +39,9 @@ public final class StorageInformation {
     @JsonProperty("usableSpace")
     private long usableSpace;
 
+    @JsonProperty("nbc")
+    private int nbCopies;
+
     /**
      * @return usableSpace
      */
@@ -71,4 +74,18 @@ public final class StorageInformation {
         return this;
     }
 
+    /**
+     * @return the number of copies
+     */
+    public int getNbCopies() {
+        return nbCopies;
+    }
+
+    /**
+     * Sets the number of copies
+     * @param nbCopies the number of copies
+     */
+    public void setNbCopies(int nbCopies) {
+        this.nbCopies = nbCopies;
+    }
 }

@@ -26,22 +26,14 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -51,14 +43,15 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
+import java.util.List;
+
 /**
  *
  */
 public abstract class StoreObjectActionHandler extends ActionHandler {
 
-
     private static final VitamLogger LOGGER =
-            VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
+        VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
 
     private static final String DEFAULT_STRATEGY = "default";
 
@@ -73,18 +66,17 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
      * @param description the object description
-     * @param itemStatus item status
+     * @param itemStatus  item status
      * @return StoredInfoResult
-     * @throws ProcessingException when error in execution
      */
     protected StoredInfoResult storeObject(ObjectDescription description,
-                                           ItemStatus itemStatus) throws ProcessingException {
+        ItemStatus itemStatus) {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
             return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
-                    description.getObjectName(),
-                    description);
+                description.getObjectName(),
+                description);
 
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.error(e);
@@ -104,11 +96,8 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      *
      * @param node
      * @param result
-     * @param update True will return an UpdateMultiQuery, else null
-     *
-     * @throws InvalidCreateOperationException
      */
-    protected UpdateMultiQuery storeStorageInfo(ObjectNode node, StoredInfoResult result, boolean update) throws InvalidCreateOperationException {
+    protected void storeStorageInfo(ObjectNode node, StoredInfoResult result) {
         LOGGER.debug("DEBUG result: {}", result);
         int nbc = result.getNbCopy();
         String strategy = result.getStrategy();
@@ -125,29 +114,6 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         storage.put(SedaConstants.STRATEGY_ID, strategy);
         node.set(SedaConstants.STORAGE, storage);
         LOGGER.debug("DEBUG node: {}", node);
-        if (update) {
-            return generateUpdateQuery(result);
-        }
-        return null;
-    }
-
-    /**
-     * Helper to set generate update query
-     *
-     * @param result
-     *
-     * @throws InvalidCreateOperationException
-     */
-    protected UpdateMultiQuery generateUpdateQuery(StoredInfoResult result) throws InvalidCreateOperationException {
-        int nbc = result.getNbCopy();
-        String strategy = result.getStrategy();
-        List<String> offers = result.getOfferIds();
-        UpdateMultiQuery query = new UpdateMultiQuery();
-        query.addActions(UpdateActionHelper.set(VitamFieldsHelper.storage() + "." + SedaConstants.TAG_NB, nbc)
-                .add(VitamFieldsHelper.storage() + "." + SedaConstants.STRATEGY_ID, strategy)
-                .add(VitamFieldsHelper.storage() + "." + SedaConstants.OFFER_IDS, offers));
-        LOGGER.debug("DEBUG query: {}", query);
-        return query;
     }
 
     /**
@@ -156,17 +122,17 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      * @param result
      * @return JSON String
      */
-    protected String detailsFromStorageInfo(StoredInfoResult result){
+    protected String detailsFromStorageInfo(StoredInfoResult result) {
         final ObjectNode object = JsonHandler.createObjectNode();
 
-        if(result != null){
-            object.put(FILE_NAME, result.getId() );
+        if (result != null) {
+            object.put(FILE_NAME, result.getId());
             object.put(ALGORITHM, result.getDigestType());
             object.put(DIGEST, result.getDigest());
             List<String> offers = result.getOfferIds();
             object.put(OFFERS, offers != null ? String.join(",", offers) : "");
         }
 
-        return JsonHandler.unprettyPrint( object );
+        return JsonHandler.unprettyPrint(object);
     }
 }

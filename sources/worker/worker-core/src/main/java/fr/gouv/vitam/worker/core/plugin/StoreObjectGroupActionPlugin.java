@@ -81,7 +81,9 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             // get list of object group's objects
             final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params);
             // get list of object uris
-            LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            }
             for (final Map.Entry<String, String> objectGuid : mapOfObjects.binaryObjectsToStore.entrySet()) {
                 // Execute action on the object
 
@@ -106,14 +108,12 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                     // update sub task itemStatus
                     subTaskItemStatus.setEvDetailData(detailsFromStorageInfo(result));
 
-                    try {
-                        storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result,
-                            false);
-                    } catch (InvalidCreateOperationException e) {
-                        LOGGER.error(e);
-                    }
+                    storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result);
                 }
-                LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
+
+                if(LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
+                }
 
                 // increment itemStatus with subtask 
                 itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus).increment(subTaskItemStatus.getGlobalStatus());
@@ -121,7 +121,9 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             }
             // store OG to workspace
             ((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
-            LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            if(LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            }
             try {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                     params.getObjectName(),
@@ -159,7 +161,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
      * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
      */
     private MapOfObjects getMapOfObjectsIdsAndUris(WorkerParameters params)
-        throws StepAlreadyExecutedException, ProcessingException {
+        throws ProcessingException {
         final MapOfObjects mapOfObjects = new MapOfObjects();
         mapOfObjects.binaryObjectsToStore = new HashMap<>();
         mapOfObjects.objectJsonMap = new HashMap<>();

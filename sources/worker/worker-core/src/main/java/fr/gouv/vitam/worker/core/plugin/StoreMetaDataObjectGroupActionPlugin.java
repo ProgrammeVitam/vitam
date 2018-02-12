@@ -143,28 +143,17 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
                 new ObjectDescription(DataCategory.OBJECTGROUP, params.getContainerName(),
                     fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
             // store metadata object from workspace
-            StoredInfoResult result = storeObject(description, itemStatus);
+            storeObject(description, itemStatus);
 
-            // check returned result
-            if (result != null) {
-                // update sub task itemStatus
-                itemStatus.setEvDetailData(detailsFromStorageInfo(result));
-
-                // Update got with store information
-                try {
-                    UpdateMultiQuery queryUpdate = storeStorageInfo((ObjectNode) got, result, true);
-                    queryUpdate.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-                    LOGGER.debug("Final OG: {}", got);
-                    metaDataClient.updateObjectGroupById(queryUpdate.getFinalUpdate(), guid);
-                } catch (InvalidCreateOperationException e) {
-                    LOGGER.error(e);
-                }
-            }
         } catch (MetaDataExecutionException | InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error(e);
             throw e;
         }
-
     }
 
+    @Override
+    public boolean lfcHandledInternally() {
+        // De not update LFC upon LFC storage (it would make stored version obsolete...)
+        return true;
+    }
 }

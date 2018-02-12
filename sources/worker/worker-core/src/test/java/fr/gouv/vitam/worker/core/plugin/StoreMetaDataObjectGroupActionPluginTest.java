@@ -209,7 +209,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -244,7 +244,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID_2));
         constructQuery = parser.getRequest().getFinalSelect();
         when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID_2, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
@@ -281,7 +281,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
@@ -322,7 +322,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             .getObjectGroupByIdRaw(OG_GUID);
 
         when(logbookClient.selectObjectGroupLifeCycleById(anyObject(), anyObject(),
-            eq(LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)))
+            eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
                 .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
@@ -342,7 +342,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID)).thenReturn(oGResponse);
 
         Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookClient)
-            .selectObjectGroupLifeCycleById(anyObject(), anyObject(), eq(LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS));
+            .selectObjectGroupLifeCycleById(anyObject(), anyObject(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -369,7 +369,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -404,7 +404,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,

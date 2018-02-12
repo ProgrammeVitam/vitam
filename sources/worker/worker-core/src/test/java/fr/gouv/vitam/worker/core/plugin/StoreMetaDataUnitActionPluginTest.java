@@ -203,7 +203,7 @@ public class StoreMetaDataUnitActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -238,7 +238,7 @@ public class StoreMetaDataUnitActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
@@ -279,7 +279,7 @@ public class StoreMetaDataUnitActionPluginTest {
             .getUnitByIdRaw(anyObject());
 
         when(logbookClient.selectUnitLifeCycleById(anyObject(), anyObject(),
-            eq(LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)))
+            eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
                 .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
@@ -301,7 +301,7 @@ public class StoreMetaDataUnitActionPluginTest {
             .getUnitByIdRaw(UNIT_GUID);
 
         when(logbookClient.selectUnitLifeCycleById(anyObject(), anyObject(),
-            eq(LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)))
+            eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
                 .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
@@ -322,7 +322,7 @@ public class StoreMetaDataUnitActionPluginTest {
         when(metadataClient.getUnitByIdRaw(anyObject())).thenReturn(unitResponse);
 
         Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookClient)
-            .selectUnitLifeCycleById(anyObject(), anyObject(), eq(LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS));
+            .selectUnitLifeCycleById(anyObject(), anyObject(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -349,7 +349,7 @@ public class StoreMetaDataUnitActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -384,7 +384,7 @@ public class StoreMetaDataUnitActionPluginTest {
         parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
         constructQuery = parser.getRequest().getFinalSelect();
         when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
+            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,

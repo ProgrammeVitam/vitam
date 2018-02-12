@@ -82,20 +82,19 @@ import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
-import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.FinalizeLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.GenerateAuditReportActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareAuditActionHandler;
+import fr.gouv.vitam.worker.core.handler.PrepareStorageInfoActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 
 /**
@@ -152,7 +151,6 @@ public class WorkerImpl implements Worker {
         /*
          * Pool of action 's object
          */
-        actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler());
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
         actions.put(CheckIngestContractActionHandler.getId(), new CheckIngestContractActionHandler());
         actions.put(CheckObjectsNumberActionHandler.getId(), new CheckObjectsNumberActionHandler());
@@ -162,6 +160,8 @@ public class WorkerImpl implements Worker {
             new CheckStorageAvailabilityActionHandler());
         actions.put(CheckObjectUnitConsistencyActionHandler.getId(),
             new CheckObjectUnitConsistencyActionHandler());
+        actions.put(PrepareStorageInfoActionHandler.getId(),
+            new PrepareStorageInfoActionHandler());
         actions.put(AccessionRegisterActionHandler.getId(),
             new AccessionRegisterActionHandler());
         actions.put(TransferNotificationActionHandler.getId(),
@@ -206,7 +206,7 @@ public class WorkerImpl implements Worker {
 
     @Override
     public ItemStatus run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, ProcessingException, ContentAddressableStorageServerException {
+        throws IllegalArgumentException, ProcessingException {
         // mandatory check
         ParameterHelper.checkNullOrEmptyParameters(workParams);
 

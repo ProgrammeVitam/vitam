@@ -16,6 +16,18 @@
       "actions": [
         {
           "action": {
+            "actionKey": "PREPARE_STORAGE_INFO",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_SEDA",
             "behavior": "BLOCKING"
           }
@@ -52,6 +64,10 @@
               {
                 "name": "UnitType",
                 "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
               }
             ],
             "out": [

@@ -45,6 +45,10 @@
               {
                 "name": "UnitType",
                 "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
               }
             ],
             "out": [
