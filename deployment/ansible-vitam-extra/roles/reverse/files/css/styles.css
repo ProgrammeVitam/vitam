@@ -173,12 +173,15 @@ md-dialog {
   *    NAVBAR NAV
   *
   */
-  .navbar-nav > li > a,
-  .navbar-nav > li > button,
-  .navbar-brand {
+  .navbar-nav > li > a {
     padding-top: 25px;
     padding-bottom: 25px;
-    height: 75px !important;
+}
+  .navbar-nav > li > button,
+  .navbar-brand {
+    padding-top: 15px;
+    padding-bottom: 10px;
+    height: 85px !important;
     background-color: transparent;
     border: none;
   }
@@ -198,8 +201,10 @@ md-dialog {
     font-weight: 100;
   }
   .navbar-brand .logo {
-    max-height: 30px;
+    max-height: 65px;
     margin-right: 10px;
+    padding-top: 0px;
+    padding-bottom: 0px;
   }
   /**
   *
