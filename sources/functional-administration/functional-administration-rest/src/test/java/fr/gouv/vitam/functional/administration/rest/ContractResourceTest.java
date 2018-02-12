@@ -230,7 +230,7 @@ public class ContractResourceTest {
                 VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
 
-                response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
+                response = agenciesService.importAgencies(new FileInputStream(fileAgencies),"test.json");
 
                 assertThat(response.isOk()).isTrue();
             } catch (VitamException | IOException e) {

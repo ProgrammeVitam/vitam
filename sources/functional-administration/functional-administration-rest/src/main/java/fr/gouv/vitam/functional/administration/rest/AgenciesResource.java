@@ -41,6 +41,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -116,13 +117,15 @@ public class AgenciesResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importAgencies(InputStream inputStream, @Context UriInfo uri) {
+    public Response importAgencies(@Context HttpHeaders headers,InputStream inputStream, @Context UriInfo uri) {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
 
         try (AgenciesService agencies = new AgenciesService(mongoAccess, vitamCounterService,
             functionalBackupService)) {
 
-            RequestResponse requestResponse = agencies.importAgencies(inputStream);
+            String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
+
+            RequestResponse requestResponse = agencies.importAgencies(inputStream,filename);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
