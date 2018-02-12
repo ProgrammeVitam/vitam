@@ -23,8 +23,7 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 
 /**
- * Map data base representation of rules to a jaxb representation
- * => Map RuleCategoryModel to CommonRule
+ * Map data base representation of rules to a jaxb representation => Map RuleCategoryModel to CommonRule
  */
 public class RuleMapper {
 
@@ -61,8 +60,10 @@ public class RuleMapper {
         List<RuleModel> rules = ruleCategory.getRules();
         for (RuleModel rule : rules) {
             RuleIdType ruleIdType = new RuleIdType();
-            ruleIdType.setValue(rule.getRule());
-            ruleAndStartDate.add(ruleIdType);
+            if (ParametersChecker.isNotEmpty(rule.getRule())) {
+                ruleIdType.setValue(rule.getRule());
+                ruleAndStartDate.add(ruleIdType);
+            }
 
             String startDate = rule.getStartDate();
             if (ParametersChecker.isNotEmpty(startDate)) {
