@@ -28,6 +28,8 @@ package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 public enum VitamDataType {
     UNIT("Unit", "unit_%d"),
+    LFC_UNIT("LogbookLifeCycleUnit", ""),
+    LFC_GOT("LogbookLifeCycleObjectGroup", ""),
     GOT("ObjectGroup", "objectgroup_%d"),
     RULES("FileRules", "filerules"),
     ACCESS_CONTRACT("AccessContract", "accesscontract"),
