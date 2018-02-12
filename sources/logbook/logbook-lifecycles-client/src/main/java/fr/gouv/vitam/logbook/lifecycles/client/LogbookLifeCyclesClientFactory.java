@@ -149,8 +149,8 @@ public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLi
         if (configuration == null) {
             LOGGER.error("Error when retrieving configuration file {}, using mock",
                 configurationPath);
-        } else if (configuration.getServerHost() == null || configuration.getServerHost().trim().isEmpty()
-            || configuration.getServerPort() <= 0) {
+        } else if (configuration.getServerHost() == null || configuration.getServerHost().trim().isEmpty() ||
+            configuration.getServerPort() <= 0) {
             configuration = null;
         }
         return configuration;

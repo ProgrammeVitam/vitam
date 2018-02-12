@@ -9,6 +9,13 @@
     <artifactId>functional-test</artifactId>
     <name>Functional test</name>
 
+	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <!-- Since this is a test part, no need to "sonarize" this module -->
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+	<properties>
+		<sonar.skip>true</sonar.skip>
+	</properties>
+
     <dependencies>
 
         <dependency>

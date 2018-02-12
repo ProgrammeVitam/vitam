@@ -54,11 +54,11 @@ public interface LogbookLifeCycles {
      * Create and insert logbook LifeCycle entries
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle unit identifier
-     * @param parameters  the logbook lifecycle parameters
+     * @param idLc the lifecycle unit identifier
+     * @param parameters the logbook lifecycle parameters
      * @throws LogbookAlreadyExistsException if an LifeCycle with the same eventIdentifierProcess and outcome="Started"
-     *                                       already exists
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     *         already exists
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
     void createUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
         throws LogbookAlreadyExistsException, LogbookDatabaseException;
@@ -67,11 +67,11 @@ public interface LogbookLifeCycles {
      * Create and insert logbook LifeCycle entries
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
-     * @param parameters  the logbook lifecycle parameters
+     * @param idLc the lifecycle identifier
+     * @param parameters the logbook lifecycle parameters
      * @throws LogbookAlreadyExistsException if an LifeCycle with the same eventIdentifierProcess and outcome="Started"
-     *                                       already exists
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     *         already exists
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
     void createObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
         throws LogbookAlreadyExistsException, LogbookDatabaseException;
@@ -81,10 +81,10 @@ public interface LogbookLifeCycles {
      * Update logbook LifeCycle entries
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
-     * @param parameters  the logbook lifecycle parameters
-     * @throws LogbookNotFoundException      if no LifeCycle with the same eventIdentifierProcess exists
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     * @param idLc the lifecycle identifier
+     * @param parameters the logbook lifecycle parameters
+     * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookAlreadyExistsException if the entry already exists
      */
     void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
@@ -94,10 +94,10 @@ public interface LogbookLifeCycles {
      * Update logbook LifeCycle entries
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
-     * @param parameters  the logbook lifecycle parameters
-     * @throws LogbookNotFoundException      if no LifeCycle with the same eventIdentifierProcess exists
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     * @param idLc the lifecycle identifier
+     * @param parameters the logbook lifecycle parameters
+     * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookAlreadyExistsException if the entry already exists
      */
     void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
@@ -108,11 +108,11 @@ public interface LogbookLifeCycles {
      * Update logbook LifeCycle entries
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
-     * @param parameters  the logbook lifecycle parameters
-     * @param commit      if true update is done on committed collection otherwise on inProcess one
-     * @throws LogbookNotFoundException      if no LifeCycle with the same eventIdentifierProcess exists
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     * @param idLc the lifecycle identifier
+     * @param parameters the logbook lifecycle parameters
+     * @param commit if true update is done on committed collection otherwise on inProcess one
+     * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookAlreadyExistsException if the entry already exists
      */
     void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters,
@@ -123,12 +123,12 @@ public interface LogbookLifeCycles {
     /**
      * Select logbook LifeCycle entries
      *
-     * @param select     the select request in format of JsonNode
+     * @param select the select request in format of JsonNode
      * @param collection the collection on which the select operation will be done : Production collection
-     *                   (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return List of the logbook LifeCycle
-     * @throws LogbookNotFoundException       if no LifeCycle selected cannot be found
-     * @throws LogbookDatabaseException       if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectUnit(JsonNode select, LogbookCollections collection)
@@ -137,13 +137,13 @@ public interface LogbookLifeCycles {
     /**
      * Select logbook LifeCycle entries
      *
-     * @param select     the select request in format of JsonNode
-     * @param sliced     the boolean sliced filtering events or not
+     * @param select the select request in format of JsonNode
+     * @param sliced the boolean sliced filtering events or not
      * @param collection the collection on which the select operation will be done : Production collection
-     *                   (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return List of the logbook LifeCycle
-     * @throws LogbookNotFoundException       if no LifeCycle selected cannot be found
-     * @throws LogbookDatabaseException       if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
@@ -152,12 +152,12 @@ public interface LogbookLifeCycles {
     /**
      * Selects object group life cycle entries
      *
-     * @param select     the select request in format of JsonNode
+     * @param select the select request in format of JsonNode
      * @param collection the collection on which the select operation will be done : Production collection
-     *                   (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
+     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return List of the logbook LifeCycle
-     * @throws LogbookNotFoundException       if no LifeCycle selected cannot be found
-     * @throws LogbookDatabaseException       if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
@@ -166,13 +166,13 @@ public interface LogbookLifeCycles {
     /**
      * Selects object group life cycle entries
      *
-     * @param select     the select request in format of JsonNode
-     * @param sliced     the boolean sliced filtering events or not
+     * @param select the select request in format of JsonNode
+     * @param sliced the boolean sliced filtering events or not
      * @param collection the collection on which the select operation will be done : Production collection
-     *                   (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
+     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return List of the logbook LifeCycle
-     * @throws LogbookNotFoundException       if no LifeCycle selected cannot be found
-     * @throws LogbookDatabaseException       if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced, LogbookCollections collection)
@@ -182,10 +182,10 @@ public interface LogbookLifeCycles {
      * Select logbook LifeCycle entry by operation
      *
      * @param idOperation the operation id
-     * @param idLc        the logbook identifier
+     * @param idLc the logbook identifier
      * @return the Unit Logbook Lifecycle
-     * @throws LogbookDatabaseException       if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException       if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     LogbookLifeCycleUnit getUnitByOperationIdAndByUnitId(String idOperation, String idLc)
@@ -195,10 +195,10 @@ public interface LogbookLifeCycles {
      * Select logbook LifeCycle entry by operation
      *
      * @param idOperation the operation identifier
-     * @param idLc        the logbook identifier
+     * @param idLc the logbook identifier
      * @return the ObjectGroup Logbook Lifecycle
-     * @throws LogbookDatabaseException       if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException       if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     LogbookLifeCycleObjectGroup getObjectGroupByOperationIdAndByObjectGroupId(String idOperation, String idLc)
@@ -209,7 +209,7 @@ public interface LogbookLifeCycles {
      * Rollback logbook LifeCycle entries
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
+     * @param idLc the lifecycle identifier
      * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
@@ -219,7 +219,7 @@ public interface LogbookLifeCycles {
      * Rollback logbook LifeCycle entries
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
+     * @param idLc the lifecycle identifier
      * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
@@ -238,9 +238,9 @@ public interface LogbookLifeCycles {
     /**
      * Selects logbook life cycle by lifecycle ID (using a queryDsl)
      *
-     * @param queryDsl   the query as a json
+     * @param queryDsl the query as a json
      * @param collection the collection on which the select operation will be done : Production collection
-     *                   (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the logbook LifeCycle found by the ID
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
@@ -262,10 +262,10 @@ public interface LogbookLifeCycles {
     /**
      * Create one Logbook Lifecycle with already multiple sub-events
      *
-     * @param idOp           Operation Id
+     * @param idOp Operation Id
      * @param lifecycleArray with first and next events to add/update
-     * @throws IllegalArgumentException      if first argument is null or null mandatory parameters for all
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookAlreadyExistsException if LifeCycle already exists
      */
     void createBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
@@ -276,11 +276,11 @@ public interface LogbookLifeCycles {
      * <br>
      * It adds this new entry within the very same Logbook Lifecycle entry in "events" array.
      *
-     * @param idOp           Operation Id
+     * @param idOp Operation Id
      * @param lifecycleArray containing all Lifecycle Logbook in order
-     * @throws IllegalArgumentException      if parameter has null or empty mandatory values
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException      if LifeCycle cannot be found
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if LifeCycle cannot be found
      * @throws LogbookAlreadyExistsException if LifeCycle already exists
      */
     void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
@@ -290,9 +290,9 @@ public interface LogbookLifeCycles {
      * Commits Unit lifeCycle
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException      if LifeCycle cannot be found
+     * @param idLc the lifecycle identifier
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if LifeCycle cannot be found
      * @throws LogbookAlreadyExistsException if LifeCycle already exists
      */
     void commitUnit(String idOperation, String idLc)
@@ -302,9 +302,9 @@ public interface LogbookLifeCycles {
      * Commits ObjectGroup lifeCycle
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException      if LifeCycle cannot be found
+     * @param idLc the lifecycle identifier
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if LifeCycle cannot be found
      * @throws LogbookAlreadyExistsException if LifeCycle already exists
      */
     void commitObjectGroup(String idOperation, String idLc)
@@ -353,10 +353,12 @@ public interface LogbookLifeCycles {
     /**
      * Bulk method
      *
-     * @param collections            the logbook collections
-     * @param idOp                   operation identifier
+     * @param collections the logbook collections
+     * @param idOp operation identifier
      * @param logbookLifeCycleModels lifecycles to be created
+     * @throws DatabaseException if database could not be reached
      */
     void bulk(LogbookCollections collections, String idOp,
-        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException;
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
+        throws DatabaseException;
 }
