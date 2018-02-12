@@ -101,23 +101,23 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
                 StorageInformation[].class);
             if (informations.length > 0) {
-                //TODO Store on logbook eventDetailData
                 for (StorageInformation information : informations) {
                     ItemStatus is = new ItemStatus(HANDLER_ID);
-                    // Useful information ?
-
                     ObjectNode info = JsonHandler.createObjectNode();
-                    info.put( "offerId", information.getOfferId() );
-                    is.setData( "offerId", info.toString() );
-                    is.setEvDetailData( info.toString() );
                     // if usable space not specified getUsableSpace() return -1
                     if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
+                        info.put(information.getOfferId(), StatusCode.OK.name());
                         is.increment(StatusCode.OK);
                     } else {
+                        LOGGER.error("storage capacity invalid on offer {} : usableSpace={}, totalSizeToBeStored={}",
+                            information.getOfferId(), information.getUsableSpace(), totalSizeToBeStored);
+                        info.put(information.getOfferId(), StatusCode.KO.name());
+                        info.put(information.getOfferId() + "_usableSpace", information.getUsableSpace());
+                        info.put(information.getOfferId() + "_totalSizeToBeStored", totalSizeToBeStored);
                         is.increment(StatusCode.KO);
                     }
+                    is.setEvDetailData(info.toString());
                     itemStatus.setItemsStatus(HANDLER_ID, is);
-                    itemStatus.setEvDetailData( info.toString() );
                 }
             } else {
                 LOGGER.warn("No information found for offers");

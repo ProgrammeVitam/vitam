@@ -40,10 +40,6 @@ public class VitamConfigurationParameters {
     private Integer maxConcurrentMultipleInputstreamHandler;
 
     /**
-     *
-     */
-    public Boolean enableJaxbParser;
-    /**
      * Distributor batch size
      */
     private Integer distributeurBatchSize;
@@ -66,16 +62,6 @@ public class VitamConfigurationParameters {
     private Integer numberEsQueue;
     private Integer maxCacheEntries;
     private Integer cacheControlDelay;
-
-
-
-    /**
-     * Setter for   enableJaxbParser;
-     */
-    public void setEnableJaxbParser(boolean ENABLE_JAXB_PARSER) {
-        this.enableJaxbParser = ENABLE_JAXB_PARSER;
-    }
-
 
     /**
      * /**
@@ -710,24 +696,6 @@ public class VitamConfigurationParameters {
      */
     public void setBufferNumber(Integer bufferNumber) {
         BUFFER_NUMBER = bufferNumber;
-    }
-
-    /**
-     * getter for enableJaxbParser
-     *
-     * @return
-     */
-    public Boolean isEnableJaxbParser() {
-        return enableJaxbParser;
-    }
-
-    /**
-     * setter for enableJaxbParser
-     *
-     * @return
-     */
-    public void setEnableJaxbParser(Boolean enableJaxbParser) {
-        this.enableJaxbParser = enableJaxbParser;
     }
 
     /**
