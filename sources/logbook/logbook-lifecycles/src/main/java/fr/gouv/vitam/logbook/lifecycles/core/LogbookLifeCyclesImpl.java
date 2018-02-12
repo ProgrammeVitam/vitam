@@ -28,38 +28,27 @@ package fr.gouv.vitam.logbook.lifecycles.core;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
-import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
-import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -114,9 +103,16 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookDatabaseException, IllegalArgumentException, LogbookNotFoundException,
         LogbookAlreadyExistsException {
         checkLifeCyclesUnitArgument(idOperation, idLc, parameters);
-        mongoDbAccess.updateLogbookLifeCycleUnit(idOperation, idLc, parameters);
+        updateUnit(idOperation, idLc, parameters, false);
     }
 
+    @Override
+    public void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters, boolean commit)
+        throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException {
+        checkLifeCyclesUnitArgument(idOperation, idLc, parameters);
+        mongoDbAccess.updateLogbookLifeCycleUnit(idOperation, idLc, parameters, commit);
+
+    }
 
     @Override
     public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)

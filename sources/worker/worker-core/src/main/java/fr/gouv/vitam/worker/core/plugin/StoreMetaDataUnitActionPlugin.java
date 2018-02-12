@@ -30,7 +30,6 @@ import java.io.File;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -55,7 +54,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
@@ -108,7 +106,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
 
     /**
      * saveDocumentWithLfcInStorage
-     * 
+     *
      * @param params
      * @param guid
      * @param fileName
@@ -130,6 +128,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             JsonNode docWithLfc = getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
             // transfer json to workspace
             try {
+                // FIXME: 2/12/18 Using the same foler Units for UnitWithLFC is not a good choice, we have to use an other folder
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, fileName,
                     docWithLfc, true, asyncIO);
             } catch (ProcessingException e) {

@@ -36,20 +36,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
@@ -74,6 +63,17 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -146,9 +146,8 @@ public class RunningIngestsUpdateActionPluginTest {
 
     @RunWithCustomExecutor
     @Test
-    public void givenRunningProcessWhenExecuteThenReturnResponseOK() throws Exception {
+    public void givenRunningProcessWhenExecuteThenCheckAllPossibleStatusCode() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final InputStream rulesUpdated = PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON);
         final File runningIngests = PropertiesUtils.getResourceFile(RUNNING_INGESTS);
 
         final JsonNode archiveUnitToBeUpdated =
@@ -156,26 +155,42 @@ public class RunningIngestsUpdateActionPluginTest {
         final JsonNode archiveUnitUpdated =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
 
-        try {
-            params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
-            reset(workspaceClient);
-            reset(metadataClient);
-            reset(processManagementClient);
-            when(handlerIO.getInputStreamFromWorkspace(
-                eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-                    .thenReturn(rulesUpdated);
-            when(handlerIO.getInput(0)).thenReturn(runningIngests);
-            when(processManagementClient.getOperationProcessStatus(anyObject()))
-                .thenReturn(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
+        params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
+        reset(workspaceClient);
+        reset(metadataClient);
+        reset(processManagementClient);
+        when(handlerIO.getInputStreamFromWorkspace(
+            eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
+            .then(o -> PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON));
+        when(handlerIO.getInput(0)).thenReturn(runningIngests);
+        when(processManagementClient.getOperationProcessStatus(anyObject()))
+            .thenReturn(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
 
-            when(metadataClient.selectUnits(anyObject())).thenReturn(archiveUnitToBeUpdated);
-            when(metadataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(archiveUnitUpdated);
+        when(metadataClient.selectUnits(anyObject())).thenReturn(archiveUnitToBeUpdated);
+        when(metadataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(archiveUnitUpdated);
 
-            final ItemStatus response = plugin.execute(params, handlerIO);
-            assertEquals(StatusCode.OK, response.getGlobalStatus());
-        } finally {
-            rulesUpdated.close();
-        }
+        StoreMetadataObjectActionHandler storeMetadataObjectActionHandler =
+            mock(StoreMetadataObjectActionHandler.class);
+        plugin.setStoreMetadataObjectActionHandler(storeMetadataObjectActionHandler);
+
+        List<StatusCode> statusCodeList = Lists.newArrayList(StatusCode.OK);
+        when(storeMetadataObjectActionHandler.execute(anyObject(), anyObject()))
+            .thenAnswer(o -> new ItemStatus().increment(
+                statusCodeList.get(0)));
+        ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        statusCodeList.set(0, StatusCode.WARNING);
+        response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        statusCodeList.set(0, StatusCode.KO);
+        response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+
+        statusCodeList.set(0, StatusCode.FATAL);
+        response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 
     }
 
@@ -192,7 +207,7 @@ public class RunningIngestsUpdateActionPluginTest {
             reset(processManagementClient);
             when(handlerIO.getInputStreamFromWorkspace(
                 eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-                    .thenReturn(rulesUpdated);
+                .thenReturn(rulesUpdated);
             final ItemStatus response = plugin.execute(params, handlerIO);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
         } finally {
@@ -214,7 +229,7 @@ public class RunningIngestsUpdateActionPluginTest {
             reset(processManagementClient);
             when(handlerIO.getInputStreamFromWorkspace(
                 eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-                    .thenReturn(rulesUpdated);
+                .thenReturn(rulesUpdated);
             final ItemStatus response = plugin.execute(params, handlerIO);
             assertEquals(StatusCode.KO, response.getGlobalStatus());
         } finally {
@@ -233,8 +248,8 @@ public class RunningIngestsUpdateActionPluginTest {
         reset(processManagementClient);
         when(handlerIO.getInputStreamFromWorkspace(
             eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-                .thenThrow(
-                    new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
+            .thenThrow(
+                new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 

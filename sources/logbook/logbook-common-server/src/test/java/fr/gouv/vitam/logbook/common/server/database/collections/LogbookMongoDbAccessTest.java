@@ -1061,6 +1061,84 @@ public class LogbookMongoDbAccessTest {
 
     @RunWithCustomExecutor
     @Test
+    public void logbookVersionUpdateCommittedTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(mongoDbAccess);
+        // create -> _v: 0
+        GUID eventIdentifierProcess = GUIDFactory.newGUID();
+        LogbookOperationParameters logbookOperationParameters = getLogbookOperationParameters(eventIdentifierProcess);
+
+        mongoDbAccess.createLogbookOperation(logbookOperationParameters);
+        LogbookOperation logbookOperation =
+            mongoDbAccess.getLogbookOperation(logbookOperationParameters.getParameterValue
+                (LogbookParameterName.eventIdentifierProcess));
+        assertNotNull(logbookOperation);
+        assertEquals(0, logbookOperation.get(VitamDocument.VERSION));
+
+        // lifecycle part
+        LogbookLifeCycleUnitParameters logbookLifeCycleUnitParameters = (LogbookLifeCycleUnitParameters)
+            getLogbookLifecyleParameters(eventIdentifierProcess, true);
+        String unitId = logbookLifeCycleUnitParameters.getParameterValue(LogbookParameterName.objectIdentifier);
+        assertNotNull(unitId);
+
+        mongoDbAccess.createLogbookLifeCycleUnit(eventIdentifierProcess.getId(), logbookLifeCycleUnitParameters);
+        // commit
+        mongoDbAccess.createLogbookLifeCycleUnit(mongoDbAccess.getLogbookLifeCycleUnitInProcess(unitId));
+        LogbookLifeCycleUnit logbookLifeCycleUnit = mongoDbAccess.getLogbookLifeCycleUnit(unitId);
+        assertNotNull(logbookLifeCycleUnit);
+        assertEquals(0, logbookLifeCycleUnit.get(VitamDocument.VERSION));
+
+
+
+        LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjectGroupParameters =
+            (LogbookLifeCycleObjectGroupParameters) getLogbookLifecyleParameters(eventIdentifierProcess, false);
+        String ogId = logbookLifeCycleObjectGroupParameters.getParameterValue(LogbookParameterName.objectIdentifier);
+        assertNotNull(ogId);
+
+        mongoDbAccess
+            .createLogbookLifeCycleObjectGroup(eventIdentifierProcess.getId(), logbookLifeCycleObjectGroupParameters);
+        // commit
+        mongoDbAccess.createLogbookLifeCycleObjectGroup(mongoDbAccess.getLogbookLifeCycleObjectGroupInProcess(ogId));
+        LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup = mongoDbAccess.getLogbookLifeCycleObjectGroup(ogId);
+        assertNotNull(logbookLifeCycleObjectGroup);
+        assertEquals(0, logbookLifeCycleObjectGroup.get(VitamDocument.VERSION));
+
+        mongoDbAccess.updateLogbookLifeCycleUnit(eventIdentifierProcess.getId(), unitId,
+            logbookLifeCycleUnitParameters);
+        // commit
+        mongoDbAccess.updateLogbookLifeCycleUnit(mongoDbAccess.getLogbookLifeCycleUnitInProcess(unitId));
+        logbookLifeCycleUnit = mongoDbAccess.getLogbookLifeCycleUnit(unitId);
+        assertNotNull(logbookLifeCycleUnit);
+        assertEquals(1, logbookLifeCycleUnit.get(VitamDocument.VERSION));
+
+
+        // Update committed Unit LFC
+        mongoDbAccess.updateLogbookLifeCycleUnit(eventIdentifierProcess.getId(), unitId,
+            logbookLifeCycleUnitParameters, true);
+        logbookLifeCycleUnit = mongoDbAccess.getLogbookLifeCycleUnit(unitId);
+        assertNotNull(logbookLifeCycleUnit);
+        assertEquals(2, logbookLifeCycleUnit.get(VitamDocument.VERSION));
+
+
+        mongoDbAccess.updateLogbookLifeCycleObjectGroup(eventIdentifierProcess.getId(), ogId,
+            logbookLifeCycleObjectGroupParameters);
+        // commit
+        mongoDbAccess.updateLogbookLifeCycleObjectGroup(mongoDbAccess.getLogbookLifeCycleObjectGroupInProcess(ogId));
+        logbookLifeCycleObjectGroup = mongoDbAccess.getLogbookLifeCycleObjectGroup(ogId);
+        assertNotNull(logbookLifeCycleObjectGroup);
+        assertEquals(1, logbookLifeCycleObjectGroup.get(VitamDocument.VERSION));
+
+
+        // Update committed ObjectGroup LFC
+        mongoDbAccess.updateLogbookLifeCycleObjectGroup(eventIdentifierProcess.getId(), ogId,
+            logbookLifeCycleObjectGroupParameters, true);
+        logbookLifeCycleObjectGroup = mongoDbAccess.getLogbookLifeCycleObjectGroup(ogId);
+        assertNotNull(logbookLifeCycleObjectGroup);
+        assertEquals(2, logbookLifeCycleObjectGroup.get(VitamDocument.VERSION));
+    }
+
+    @RunWithCustomExecutor
+    @Test
     public void logbookVersionTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(mongoDbAccess);

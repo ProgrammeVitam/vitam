@@ -171,10 +171,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * Constructor
      *
      * @param mongoClient MongoClient
-     * @param dbname MongoDB database name
-     * @param recreate True to recreate the index
-     * @param esClient elastic search client
-     * @param tenants the tenants list
+     * @param dbname      MongoDB database name
+     * @param recreate    True to recreate the index
+     * @param esClient    elastic search client
+     * @param tenants     the tenants list
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
@@ -454,8 +454,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP, objectGroupId);
     }
 
-    @SuppressWarnings("rawtypes")
-    final VitamDocument getLogbook(final LogbookCollections collection, final String id)
+    @SuppressWarnings("rawtypes") final VitamDocument getLogbook(final LogbookCollections collection, final String id)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter("Logbook item", id);
         VitamDocument item = null;
@@ -569,7 +568,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      *
      * @param collection
      * @param select
-     * @param slice may be null
+     * @param slice      may be null
      * @return the closeable MongoCursor
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -662,8 +661,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    @SuppressWarnings("unchecked")
-    final void createLogbook(LogbookCollections collection, LogbookParameters item)
+    @SuppressWarnings("unchecked") final void createLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
         try {
@@ -888,11 +886,23 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public void updateLogbookLifeCycleUnit(String idOperation, String idLfc,
         LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
+        updateLogbookLifeCycleUnit(idOperation, idLfc, lifecycleItem, false);
+    }
+
+
+    @Override
+    public void updateLogbookLifeCycleUnit(String idOperation, String idLfc,
+        LogbookLifeCycleUnitParameters lifecycleItem, boolean commit)
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to update the LifeCycle");
         }
 
-        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, idLfc, lifecycleItem);
+        if (commit) {
+            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT, idLfc, lifecycleItem);
+        } else {
+            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, idLfc, lifecycleItem);
+        }
     }
 
     @Override
@@ -1220,7 +1230,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     /**
-     * @param inProccessCollection collection of logbook in process
+     * @param inProccessCollection   collection of logbook in process
      * @param logbookLifeCycleInProd to create logbook lfc Unit/GroupObject
      * @throws LogbookDatabaseException      if mongo execution error
      * @throws LogbookAlreadyExistsException if duplicated key in mongo
@@ -1414,7 +1424,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * Search in elastic search then get object detail in MongoDb.
      *
      * @param collection the collection
-     * @param parser the parser containing the query
+     * @param parser     the parser containing the query
      * @return the cursor on the result datas
      * @throws InvalidParseOperationException  if the MongoDb query can't be translated to ES a valid query
      * @throws InvalidCreateOperationException if a MongoDb query can't be created from ES results
@@ -1461,7 +1471,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Insert a new document in ES.
      *
-     * @param collection the collection
+     * @param collection    the collection
      * @param vitamDocument the document to save in ES
      * @throws LogbookExecutionException if the ES insert was in error
      */
@@ -1487,7 +1497,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Update a document in ES
      *
-     * @param collection the collection
+     * @param collection       the collection
      * @param existingDocument the document to update
      * @throws LogbookExecutionException if the ES update was in error
      * @throws LogbookNotFoundException  if the document was not found in mongodb

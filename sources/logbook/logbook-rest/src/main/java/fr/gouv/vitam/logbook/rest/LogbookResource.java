@@ -695,8 +695,16 @@ public class LogbookResource extends ApplicationStatusResource {
                 }
                 logbookLifeCycle.updateUnit(operationId, unitLcId, parameters);
             } else {
-                // Commit the given unit lifeCycle
-                logbookLifeCycle.commitUnit(operationId, unitLcId);
+
+
+                if (null == parameters || parameters.getMapParameters().isEmpty()) {
+                    // Commit the given Unit lifeCycle
+                    logbookLifeCycle.commitUnit(operationId, unitLcId);
+                } else {
+                    // Update the already committed lifeCycle
+                    logbookLifeCycle.updateUnit(operationId, unitLcId, parameters, true);
+                }
+
             }
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
@@ -1250,7 +1258,7 @@ public class LogbookResource extends ApplicationStatusResource {
                  */
                 logbookLifeCycle.updateObjectGroup(operationId, objGrpId, parameters);
             } else {
-                if (parameters.getMapParameters().isEmpty()) {
+                if (null == parameters || parameters.getMapParameters().isEmpty()) {
                     // Commit the given objectGroup lifeCycle
                     logbookLifeCycle.commitObjectGroup(operationId, objGrpId);
                 } else {
