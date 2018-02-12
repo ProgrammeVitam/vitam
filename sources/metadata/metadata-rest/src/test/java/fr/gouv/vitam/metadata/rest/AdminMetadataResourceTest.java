@@ -27,7 +27,7 @@
 package fr.gouv.vitam.metadata.rest;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -48,6 +48,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
@@ -192,13 +193,15 @@ public class AdminMetadataResourceTest {
         objectGroup.set("_ops", JsonHandler.createArrayNode().add(operationId));
         objectGroup.set("_up", JsonHandler.createArrayNode().add(unitId));
         MetadataCollections.OBJECTGROUP.getCollection().insertOne(new ObjectGroup(objectGroup));
-        given()
+        String reponseString = given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/objectgroups/" + objectGroupId + "/raw").then()
-            .body("$results.size()", equalTo(1))
-            .statusCode(Status.OK.getStatusCode());
+            .get("/objectgroups/" + objectGroupId + "/raw")
+            .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
+
+        JsonNode responseUnit = JsonHandler.getFromString(reponseString);
+         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
     }
 
     @RunWithCustomExecutor
@@ -226,14 +229,19 @@ public class AdminMetadataResourceTest {
         unit.put("_id", unitId);
         unit.set("_ops", JsonHandler.createArrayNode().add(operationId));
         unit.set("_up", JsonHandler.createArrayNode().add(parentUnitId));
+        unit.put("_nbc", 1L);
         MetadataCollections.UNIT.getCollection().insertOne(new Unit(unit));
-        given()
+        
+        String reponseString = given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/units/" + unitId + "/raw").then()
-            .body("$results.size()", equalTo(1))
-            .statusCode(Status.OK.getStatusCode());
+            .get("/units/" + unitId + "/raw")
+            .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
+        
+        JsonNode responseUnit = JsonHandler.getFromString(reponseString);
+         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
+        
     }
 
     @RunWithCustomExecutor
