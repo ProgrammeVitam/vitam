@@ -387,8 +387,8 @@
 							</mapper>
 						</data>
 						<data>
-							<src>${project.build.directory}/systemd/vitam-${unix.name}.service</src>
-							<type>file</type>
+							<src>${project.build.directory}/systemd/</src>
+							<type>directory</type>
 							<mapper>
 								<type>perm</type>
 								<user>${unix.user}</user>
