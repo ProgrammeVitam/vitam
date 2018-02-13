@@ -19,7 +19,8 @@
 }
 
 .logo {
-    max-height: 60px;
+    max-height: 80px;
+    padding-top: 3px;
 }
 
 .title {

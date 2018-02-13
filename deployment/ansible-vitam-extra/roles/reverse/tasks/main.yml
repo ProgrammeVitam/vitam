@@ -80,6 +80,7 @@
       - css
       - images
       - js
+      - favicon.ico
   notify:
      - reload apache
 
