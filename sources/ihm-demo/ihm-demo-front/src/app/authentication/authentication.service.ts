@@ -27,13 +27,13 @@ export class AuthenticationService {
       let userInfo = localStorage.getItem(USER);
       this.userInformation = JSON.parse(localStorage.getItem(USER));
     }
-    if (this.cookies.get(LOGGED_IN) === 'true') {
+    if (localStorage.getItem(LOGGED_IN) === 'true') {
       this.loginState.next(true);
     }
   }
 
   loggedIn(user : UserInformation, tenantId : string) {
-    this.cookies.put(LOGGED_IN, 'true');
+    localStorage.setItem(LOGGED_IN, 'true');
     localStorage.setItem('XSRF-TOKEN', user.tokenCSRF);
     this.userInformation = user;
     localStorage.setItem(USER, JSON.stringify(user));
@@ -47,7 +47,7 @@ export class AuthenticationService {
   }
 
   loggedOut() {
-    this.cookies.put(LOGGED_IN, 'false');
+    localStorage.setItem(LOGGED_IN, 'false');
     this.loginState.next(false);
     localStorage.removeItem('XSRF-TOKEN');
     localStorage.removeItem(USER);
@@ -56,7 +56,7 @@ export class AuthenticationService {
   }
 
   isLoggedIn() {
-    return this.cookies.get(LOGGED_IN) == 'true';
+    return localStorage.getItem(LOGGED_IN) == 'true';
   }
 
   logOut() {
@@ -119,7 +119,7 @@ export class AuthenticationService {
   }
 
   loggedInWithCertificat(tenantId : string) {
-    this.cookies.put(LOGGED_IN, 'true');
+    localStorage.setItem(LOGGED_IN, 'true');
     this.loginState.next(true);
     this.setTenant(tenantId);
   }

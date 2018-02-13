@@ -41,8 +41,8 @@ export class AuthenticationComponent implements OnInit {
   }
 
   logIn() {
-    this.authenticationService.logIn(this.username, this.password).subscribe(response => {
-      this.authenticationService.loggedIn();
+    this.authenticationService.logIn(this.username, this.password).subscribe(tokenCSRF => {
+      this.authenticationService.loggedIn(tokenCSRF);
       this.router.navigate(["admin/collection"]);
     }, () => {
       this.showLoginErrorMessage = true;

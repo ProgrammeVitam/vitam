@@ -15,14 +15,7 @@ export class ResourcesService {
 
   get(url, header?: HttpHeaders, responsetype?: any): Observable<any> {
     const options: any = {};
-
-    if (!header) {
-      header = new HttpHeaders();
-    }
-    if ( this.getTenant()) {
-      header = header.set('X-Tenant-Id', this.getTenant());
-    }
-
+    header = this.setDefaultHeader(header);
     options.headers = header;
 
     if (responsetype && responsetype != 'json') {
@@ -37,24 +30,16 @@ export class ResourcesService {
 
   post(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
     const options: any = {};
-    if (!header) {
-      header = new HttpHeaders();
-    }
-    if (this.getTenant()) {
-      header = header.set('X-Tenant-Id', this.getTenant());
-    }
+    header = this.setDefaultHeader(header);
     options.headers = header;
     options.responseType = responsetype || 'json';
     return this.http.post(`${BASE_URL}${url}`, body, options);
   }
 
-  delete(url) {
+  delete(url, header?: HttpHeaders) {
     const options: any = {};
-    let headers: HttpHeaders = new HttpHeaders();
-    if ( this.getTenant()) {
-      headers = headers.set('X-Tenant-Id', this.getTenant());
-    }
-    options.headers = headers;
+    header = this.setDefaultHeader(header);
+    options.headers = header;
     return this.http.delete(`${BASE_URL}${url}`, options);
   }
 
@@ -63,11 +48,23 @@ export class ResourcesService {
   }
 
   setTenant(tenantId: string) {
-    this.cookies.put(TENANT_COOKIE, tenantId);
+    localStorage.setItem(TENANT_COOKIE, tenantId);
   }
 
   getTenant() {
     return this.cookies.get(TENANT_COOKIE);
   }
 
+  private setDefaultHeader(header?: HttpHeaders) {
+    if (!header) {
+      header = new HttpHeaders();
+    }
+    if (this.getTenant()) {
+      header = header.set('X-Tenant-Id', this.getTenant());
+    }
+    if (localStorage.getItem('XSRF-TOKEN')) {
+      header = header.set('X-CSRF-TOKEN', localStorage.getItem('XSRF-TOKEN'));
+    }
+    return header;
+  }
 }

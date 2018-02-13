@@ -15,6 +15,7 @@ vitam:
         secret_platform: "false"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
         session_timeout: 1800000
+        secure_cookie: true
     library:
         vitam_component: library
         host: "library.service.{{consul_domain}}"

@@ -16,7 +16,7 @@ export class AppComponent {
     router.events
       .filter(event => event instanceof NavigationEnd)
       .subscribe((event : NavigationStart) => {
-        if (this.cookies.get('loggedIn') != 'true') {
+        if (localStorage.getItem("loggedIn") !== 'true') {
           this.router.navigate(["login"]);
         }
       });

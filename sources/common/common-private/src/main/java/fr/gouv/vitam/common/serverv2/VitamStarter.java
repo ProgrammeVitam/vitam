@@ -457,11 +457,9 @@ public class VitamStarter {
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
         
-        if (!contextPath.equals(IHM_RECETTE)) {
-            context.addFilter(XSRFFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
-        }
+        context.addFilter(XSRFFilter.class, "/*", EnumSet.of(
+            DispatcherType.INCLUDE, DispatcherType.REQUEST,
+            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
 
         context.setVirtualHosts(new String[] {virtualHost});
 
