@@ -1,108 +1,122 @@
 ---
-  # TODO: clean up the list (hint : ensure everything is really used ... I fear not.).
-  - name: install ClamAV packages
-    package:
-      name: clamav,clamav-update,clamav-server,clamav-data,clamav-filesystem,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
-      state: latest
-    when: ansible_distribution == "CentOS"
+# TODO: clean up the list (hint : ensure everything is really used ... I fear not.).
+- name: install ClamAV packages
+  package:
+    name: clamav,clamav-update,clamav-server,clamav-data,clamav-filesystem,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
+    state: latest
+  when: ansible_distribution == "CentOS"
 
-  - name: install ClamAV packages
-    package:
-      name: clamav,clamav-freshclam,clamav-base,clamav-daemon,clamav-unofficial-sigs
-      state: latest
-    when: ansible_distribution == "Debian"
+- name: install ClamAV packages
+  package:
+    name: clamav,clamav-freshclam,clamav-base,clamav-daemon,clamav-unofficial-sigs
+    state: latest
+  when: ansible_distribution == "Debian"
 
-  - name: Adding {{ vitam_defaults.users.group }}  group to clamav so it can scan {{ vitam_defaults.users.group }}-based files
-    user:
-      name: clamav
-      groups: "{{ vitam_defaults.users.group }}"
-      append: yes
+- name: Adding {{ vitam_defaults.users.group }}  group to clamav so it can scan {{ vitam_defaults.users.group }}-based files
+  user:
+    name: clamav
+    groups: "{{ vitam_defaults.users.group }}"
+    append: yes
 
-  - name: ensure clam.d directory exists
-    file:
-      path: /etc/clamd.d
-      state: directory
-      owner: root
-      group: root
-      mode: 0755
-  #  when: ansible_distribution == "CentOS"
+- name: ensure clam.d directory exists
+  file:
+    path: /etc/clamd.d
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+#  when: ansible_distribution == "CentOS"
 
-  # - name: apply custom config file for clamAV
-  #   template:
-  #     src: scan.conf.j2
-  #     dest: /etc/clamd.conf
-  #     owner: root
-  #     group: root
-  #     mode: 0644
-  #   when: ansible_distribution == "Debian"
+# - name: apply custom config file for clamAV
+#   template:
+#     src: scan.conf.j2
+#     dest: /etc/clamd.conf
+#     owner: root
+#     group: root
+#     mode: 0644
+#   when: ansible_distribution == "Debian"
 
-  - name: apply custom config file for clamAV
+- name: apply custom config file for clamAV
+  template:
+    src: scan.conf.j2
+    dest: /etc/clamd.d/scan.conf
+    owner: root
+    group: root
+    mode: 0644
+#  when: ansible_distribution == "CentOS"
+# notify disabled as there are possibilities "debian" or "centos"
+  # notify:
+  #   - restart clamav
+
+- block:
+
+  - name: ensure clamAV daemon is started at boot
+    systemd:
+      name: "clamd@scan"
+      enabled: yes
+      state: started
+
+  - name: active clamav updates
+    replace:
+      path: "/etc/sysconfig/freshclam"
+      regexp: '^FRESHCLAM_DELAY(.)*'
+      replace: '#FRESHCLAM_DELAY\1'
+  
+  - name: change check periodicity for clamAV database updates 
+    lineinfile:
+      path: "/etc/freshclam.conf" 
+      regexp: '^[# \t]*Checks'
+      line: "Checks {{ clamav.db_update_periodicity }}"
+
+
+  when: ansible_distribution == "CentOS"
+
+- block:
+# cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
+  - name: apply systemD config file for clamAV under debian
     template:
-      src: scan.conf.j2
-      dest: /etc/clamd.d/scan.conf
+      src: extend.conf.j2
+      dest: /etc/systemd/system/clamav-daemon.socket.d/extend.conf
       owner: root
       group: root
       mode: 0644
-  #  when: ansible_distribution == "CentOS"
-  # notify disabled as there are possibilities "debian" or "centos"
-    # notify:
-    #   - restart clamav
 
-  - block:
+  - name: stop clamav-freshclam service to force update
+    systemd:
+      name: clamav-freshclam
+      daemon_reload: yes
+      enabled: yes
+      state: stopped
 
-      - name: ensure clamAV daemon is started at boot
-        systemd:
-          name: "clamd@scan"
-          enabled: yes
-          state: started
+  - name: update database for clamAV
+    shell: freshclam
+    ignore_errors: true
+    notify:
+      - restart debian_clamav
 
-      - name: active clamav updates
-        replace:
-          path: "/etc/sysconfig/freshclam"
-          regexp: '^FRESHCLAM_DELAY(.)*'
-          replace: '#FRESHCLAM_DELAY\1'
+  - name: restart clamav-freshclam service
+    systemd:
+      name: clamav-freshclam
+      enabled: yes
+      state: started
 
-    when: ansible_distribution == "CentOS"
+  - name: restart clamav-daemon service
+    systemd:
+      name: clamav-daemon
+      daemon_reload: yes
+      enabled: yes
+      state: restarted
 
-  - block:
-  # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
-    - name: apply systemD config file for clamAV under debian
-      template:
-        src: extend.conf.j2
-        dest: /etc/systemd/system/clamav-daemon.socket.d/extend.conf
-        owner: root
-        group: root
-        mode: 0644
+  - name: change check periodicity for clamAV database updates 
+    lineinfile:
+      path: "/etc/clamav/freshclam.conf" 
+      regexp: '^[# \t]*Checks'
+      line: "Checks {{ clamav.db_update_periodicity }}"
 
-    - name: stop clamav-freshclam service to force update
-      systemd:
-        name: clamav-freshclam
-        daemon_reload: yes
-        enabled: yes
-        state: stopped
+# - name: restart clamav-daemon.socket service
+#   systemd:
+#     name: clamav-daemon
+#     state: restarted
 
-    - name: update database for clamAV
-      shell: freshclam
-      ignore_errors: true
-      notify:
-        - restart debian_clamav
+  when: ansible_distribution == "Debian"
 
-    - name: restart clamav-freshclam service
-      systemd:
-        name: clamav-freshclam
-        enabled: yes
-        state: started
-
-    - name: restart clamav-daemon service
-      systemd:
-        name: clamav-daemon
-        daemon_reload: yes
-        enabled: yes
-        state: restarted
-
-    # - name: restart clamav-daemon.socket service
-    #   systemd:
-    #     name: clamav-daemon
-    #     state: restarted
-
-    when: ansible_distribution == "Debian"
