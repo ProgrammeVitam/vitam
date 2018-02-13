@@ -33,15 +33,14 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -75,10 +74,12 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -91,6 +92,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -103,6 +105,9 @@ import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public class ConnectionImplTest extends VitamJerseyTest {
@@ -137,7 +142,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
         driver.addOffer(offer, null);
         try {
-            connection = (AbstractConnection)driver.connect(offer.getId());
+            connection = (AbstractConnection) driver.connect(offer.getId());
         } catch (final StorageDriverException e) {
             throw new VitamApplicationServerException(e);
         }
@@ -275,6 +280,15 @@ public class ConnectionImplTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response removeObject(@PathParam("id") String objectId, @PathParam("type") String type) {
             return expectedResponse.delete();
+        }
+
+        @GET
+        @Path("/objects/{type}/log")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getOfferLogs(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+            @PathParam("type") String type, OfferLogRequest offerLogRequest) {
+            return expectedResponse.get();
         }
     }
 
@@ -744,7 +758,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     private StoragePutRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid,
         boolean putTenantId,
-        boolean putType) throws Exception {
+        boolean putType)
+        throws Exception {
         FileInputStream stream = null;
         String digest = null;
         String guid = null;
@@ -770,7 +785,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
     }
 
     private StorageCheckRequest getStorageCheckRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
-        boolean putTenantId, boolean putType) throws Exception {
+        boolean putTenantId, boolean putType)
+        throws Exception {
         DigestType digestType = null;
         String digest = null;
         String guid = null;
@@ -910,7 +926,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
     }
 
     private StorageRemoveRequest getStorageRemoveRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
-        boolean putTenantId, boolean putType) throws Exception {
+        boolean putTenantId, boolean putType)
+        throws Exception {
         DigestType digestType = null;
         String digest = null;
         String guid = null;
@@ -972,6 +989,60 @@ public class ConnectionImplTest extends VitamJerseyTest {
         final StorageObjectRequest request =
             new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         connection.getMetadatas(request);
+    }
+
+
+
+    @Test
+    public void getOfferLogsOK() throws Exception {
+
+        RequestResponseOK<OfferLog> requestResponse = new RequestResponseOK<>();
+        IntStream.range(1, 11).forEach(sequence -> {
+            OfferLog offerLog = new OfferLog();
+            offerLog.setContainer(DataCategory.OBJECT.getFolder() + "_" + tenant);
+            offerLog.setFileName(GUIDFactory.newGUID().getId());
+            offerLog.setSequence(sequence);
+            offerLog.setTime(LocalDateTime.now());
+            requestResponse.addResult(offerLog);
+        });
+        requestResponse.setHttpCode(Status.OK.getStatusCode());
+
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).header(GlobalDataRest.X_TENANT_ID, tenant).entity(JsonHandler.writeAsString(requestResponse)).build());
+
+        StorageOfferLogRequest offerLogRequest =
+            new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, Order.ASC);
+        final RequestResponse<OfferLog> result = connection.getOfferLogs(offerLogRequest);
+        assertNotNull(result);
+        assertEquals(String.valueOf(tenant), result.getHeaderString(GlobalDataRest.X_TENANT_ID));
+        assertEquals(true, result.isOk());
+        assertEquals(Status.OK.getStatusCode(), result.getHttpCode());
+        RequestResponseOK<OfferLog> resultOK = (RequestResponseOK<OfferLog>) result;
+        assertEquals(10, resultOK.getResults().size());
+    }
+
+    @Test
+    public void getOfferLogsInternalServerError() throws Exception {
+        when(mock.get()).thenReturn(
+            Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_TENANT_ID, tenant).build());
+        StorageOfferLogRequest offerLogRequest =
+            new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, Order.ASC);
+        final RequestResponse<OfferLog> result = connection.getOfferLogs(offerLogRequest);
+        assertNotNull(result);
+        assertEquals(false, result.isOk());
+        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), result.getHttpCode());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getOfferLogsInvalidRequest() throws Exception {
+        StorageOfferLogRequest offerLogRequest = new StorageOfferLogRequest(tenant, null, 2L, 10, Order.ASC);
+        connection.getOfferLogs(offerLogRequest);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void getOfferLogsInvalidRequestOrder() throws Exception {
+        StorageOfferLogRequest offerLogRequest = new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, null);
+        connection.getOfferLogs(offerLogRequest);
     }
 
     private StorageMetadatasResult mockMetadatasObjectResult() {

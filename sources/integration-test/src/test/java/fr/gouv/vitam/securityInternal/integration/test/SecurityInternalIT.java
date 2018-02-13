@@ -78,19 +78,18 @@ import fr.gouv.vitam.security.internal.rest.IdentityMain;
 import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
 
 public class SecurityInternalIT {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecurityInternalIT.class);
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    static JunitHelper junitHelper;
+    private static JunitHelper junitHelper;
 
-    final static String CLUSTER_NAME = "vitam-cluster";
-    static MongodProcess mongod;
-    static int mongoPort;
-    static MongodExecutable mongodExecutable;
+    private final static String CLUSTER_NAME = "vitam-cluster";
+    private static MongodProcess mongod;
+    private static int mongoPort;
+    private static MongodExecutable mongodExecutable;
 
     private static IdentityMain identityMain;
-    private static final String IDENTITY_CONF = "security-internal/security-internal.conf";
+    private static final String IDENTITY_CONF = "security-internal/security-internal-test.conf";
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -124,7 +123,7 @@ public class SecurityInternalIT {
         internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(mongoPort);
         PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
-        identityMain = new IdentityMain(IDENTITY_CONF);
+        identityMain = new IdentityMain(securityInternalConfigurationFile.getAbsolutePath());
 
         identityMain.start();
         internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
@@ -169,7 +168,7 @@ public class SecurityInternalIT {
 
     @Test
     @RunWithCustomExecutor
-    public void should_fail_when_no_certificate_transmitted() throws Exception {
+    public void should_fail_when_no_certificate_transmitted() {
         // When / Then
         VitamThreadUtils.getVitamSession().setTenantId(0);
         assertThatThrownBy(

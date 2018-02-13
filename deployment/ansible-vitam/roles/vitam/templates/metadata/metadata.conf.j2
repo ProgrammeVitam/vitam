@@ -1,14 +1,14 @@
 
 # Configuration MongoDB
 mongoDbNodes:
-{% for server in groups['mongos'] %}
+{% for server in groups['hosts-mongos-data'] %}
 - dbHost: {{hostvars[server]['ip_service']}}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: metadata
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{mongoMetadataUser}}
-dbPassword: {{mongoMetadataPassword}}
+dbUserName: {{ mongodb.data.metadata.user }}
+dbPassword: {{ mongodb.data.metadata.password }}
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

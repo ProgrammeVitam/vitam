@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -90,8 +91,10 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -215,7 +218,8 @@ public class LogbookCheckConsistencyIT {
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), VITAM_TEST,
             LogbookCollections.OPERATION.getName(), LogbookCollections.LIFECYCLE_UNIT.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName());
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
@@ -334,6 +338,12 @@ public class LogbookCheckConsistencyIT {
         // prepare offer
         SystemPropertyUtil
             .set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
+        final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
+        final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
+        List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
+        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
+        offerConfiguration.setMongoDbNodes(mongoDbNodes);
+        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
         defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);

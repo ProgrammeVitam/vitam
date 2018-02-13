@@ -1,0 +1,38 @@
+---
+
+# mongodb commons (yum install, etc...)
+- hosts: hosts-mongodb-data
+  roles:
+  - mongo_common
+
+# Mongoc replicas configuration
+- hosts: hosts-mongoc-data
+  roles:
+    - mongoc
+  vars:
+    mongo_bin: mongod
+    passphrase: "{{ mongodb.data.passphrase }}"
+    group_name: "hosts-mongoc-data"
+
+
+# Mongod replicas configuration
+- hosts: hosts-mongod-data
+  roles:
+    - mongod
+  vars:
+    mongo_bin: mongod
+    passphrase: "{{ mongodb.data.passphrase }}"
+    group_name: "hosts-mongod-data"
+
+# Mongos configuration
+- hosts: hosts-mongos-data
+  roles:
+    - mongos
+    - mongo_configure
+  vars:
+    mongo_bin: mongos
+    passphrase: "{{ mongodb.data.passphrase }}"
+    group_name: "hosts-mongos-data"
+    mongoc: "hosts-mongoc-data"
+    mongod: "hosts-mongod-data"
+    mongos: "hosts-mongos-data"

@@ -3,7 +3,7 @@
   "hot" : {
     "copy" : 1,
     "offers" : [
-      {"id" : "default"}
+      {"id" : "default", "referent": true}
     ]
   }
 }

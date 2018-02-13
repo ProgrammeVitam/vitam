@@ -1,0 +1,32 @@
+
+// Switch to identity database
+db = db.getSiblingDB('offer')
+
+// Create offer user
+
+if (! db.getUser("{{ mongodb.offer.offer.user }}")) {
+    db.createUser(
+        {
+            user: "{{ mongodb.offer.offer.user }}",
+            pwd: "{{ mongodb.offer.offer.password }}",
+            roles: [
+                { role: "readWrite", db: "offer" }
+            ]
+        }
+    )
+}
+
+// Create admin user
+
+if (! db.getUser("{{ mongodb.offer.admin.user }}")) {
+    db.createUser(
+        {
+            user: "{{ mongodb.offer.admin.user }}",
+            pwd: "{{ mongodb.offer.admin.password }}",
+            roles: [
+                { role: "readWrite", db: "offer" },
+                { role: "dbAdmin", db: "offer" }
+            ]
+        }
+    )
+}

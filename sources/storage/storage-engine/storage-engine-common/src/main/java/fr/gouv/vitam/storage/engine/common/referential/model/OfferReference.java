@@ -37,6 +37,7 @@ package fr.gouv.vitam.storage.engine.common.referential.model;
 
 public class OfferReference {
     private String id;
+    private boolean referent;
 
     /**
      * @return the id
@@ -50,5 +51,20 @@ public class OfferReference {
      */
     public void setId(String id) {
         this.id = id;
+    }
+
+    /**
+     * 
+     * @return is referent offer
+     */
+    public boolean isReferent() {
+        return referent;
+    }
+
+    /**
+     * @param referent is referent offer
+     */
+    public void setReferent(boolean referent) {
+        this.referent = referent;
     }
 }

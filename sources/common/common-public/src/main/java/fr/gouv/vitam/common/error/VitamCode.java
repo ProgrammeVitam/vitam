@@ -65,8 +65,7 @@ public enum VitamCode {
         "Storage Engine received a bad request "),
     STORAGE_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "00", Status.NOT_FOUND, "Storage not found"),
     STORAGE_TECHNICAL_INTERNAL_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "01", Status.INTERNAL_SERVER_ERROR,
-        "Storage technical" +
-            " error"),
+        "Storage technical error"),
     STORAGE_STRATEGY_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "02", Status.NOT_FOUND, "No suitable strategy" +
         " found to be able to store data"),
     STORAGE_OFFER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "03", Status.NOT_FOUND, "No suitable offer found" +
@@ -92,10 +91,12 @@ public enum VitamCode {
         " initialize FileDriverMapper, error on configuration file, please check it"),
     STORAGE_DRIVER_OBJECT_ALREADY_EXISTS(ServiceName.STORAGE, DomainName.ILLEGAL, "13", Status.METHOD_NOT_ALLOWED,
         "Cannot override an existing object (%s)"),
-
     STORAGE_CONTAINER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "13", Status.NOT_FOUND,
         "Container with name %s not " +
             "found in all strategy"),
+    STORAGE_GET_OFFER_LOG_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "14", Status.INTERNAL_SERVER_ERROR,
+        "Cannot retrieve objects stored on container"),
+
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),
     WORKSPACE_BAD_REQUEST(ServiceName.WORKSPACE, DomainName.STORAGE, "15", Status.BAD_REQUEST,
@@ -335,8 +336,8 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Ingest external client error in getOperationProcessExecutionDetails method."),
     INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "10",
-            Status.BAD_REQUEST,
-            "File error during local ingest attempt."),
+        Status.BAD_REQUEST,
+        "File error during local ingest attempt."),
     METADATA_INDEXATION_ERROR(ServiceName.METADATA, DomainName.DATABASE, "00", Status.INTERNAL_SERVER_ERROR,
         "Indexation error"),
     METADATA_SWITCH_INDEX_ERROR(ServiceName.METADATA, DomainName.DATABASE, "01", Status.INTERNAL_SERVER_ERROR,

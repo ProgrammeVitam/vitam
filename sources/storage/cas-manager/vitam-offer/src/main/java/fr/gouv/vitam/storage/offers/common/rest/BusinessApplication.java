@@ -26,38 +26,64 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoDatabase;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
+import fr.gouv.vitam.storage.offers.common.core.DefaultOfferServiceImpl;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
 
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
     private Set<Object> singletons;
 
-    public BusinessApplication(@Context ServletContext ServletContext) {
-        try {
-            commonBusinessApplication = new CommonBusinessApplication();
-            singletons = new HashSet<>();
+    public BusinessApplication(@Context ServletConfig servletConfig) {
+        singletons = new HashSet<>();
+        String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
+        commonBusinessApplication = new CommonBusinessApplication();
+
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+
+            final OfferConfiguration configuration = PropertiesUtils.readYaml(yamlIS, OfferConfiguration.class);
+
+            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+            MongoDatabase database = mongoClient.getDatabase(configuration.getDbName());
+            OfferSequenceDatabaseService offerSequenceDatabaseService = new OfferSequenceDatabaseService(database);
+            offerSequenceDatabaseService.initSequences();
+
+            OfferLogDatabaseService offerDatabaseService =
+                new OfferLogDatabaseService(offerSequenceDatabaseService, database);
+
+            DefaultOfferService defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService);
+            DefaultOfferResource defaultOfferResource = new DefaultOfferResource(defaultOfferService);
+
             singletons.addAll(commonBusinessApplication.getResources());
-            final DefaultOfferResource defaultOfferResource = new DefaultOfferResource();
             singletons.add(defaultOfferResource);
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
+
     @Override
     public Set<Class<?>> getClasses() {
         return commonBusinessApplication.getClasses();

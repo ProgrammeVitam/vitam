@@ -34,10 +34,22 @@
   notify:
     - restart mongos
 
+- name: Compute the mongoc server list
+  set_fact: mongoc_item="{{ item }}"
+  when:
+    - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+  with_items:
+    - "{{ groups[mongoc] }}"
+  register: mongoc_result
+
+- name: make a list from the result
+  set_fact:
+    mongoc_list: "{{ mongoc_result.results | remove_skipped_servers | map(attribute='ansible_facts.mongoc_item') | list }}"
+
 - name: Create the mongos configuration server file
   template:
     src: mongos.conf.j2
-    dest: "{{mongo_config_path}}/mongos.conf"
+    dest: "{{ mongo_config_path }}/mongos.conf"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:

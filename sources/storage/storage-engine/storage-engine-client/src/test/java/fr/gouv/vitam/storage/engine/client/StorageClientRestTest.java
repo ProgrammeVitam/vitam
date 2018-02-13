@@ -35,11 +35,13 @@ import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.stream.IntStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -58,12 +60,16 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -77,7 +83,10 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
@@ -86,14 +95,16 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 public class StorageClientRestTest extends VitamJerseyTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     protected static final String HOSTNAME = "localhost";
     protected StorageClientRest client;
     private static final Integer TENANT_ID = 0;
-    
-    private static final String OFFER_METADATA = "{\"offer1\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," +
-        "\"offer2\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"}";
+
+    private static final String OFFER_METADATA =
+        "{\"offer1\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," +
+            "\"offer2\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"}";
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -122,12 +133,12 @@ public class StorageClientRestTest extends VitamJerseyTest {
         }
 
         return new StartApplicationResponse<AbstractApplication>().setServerPort(application.getVitamServer().getPort())
-                .setApplication(application);
+            .setApplication(application);
     }
 
     // Define your Application class if necessary
     public final class AbstractApplication
-            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
         protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
             super(TestVitamApplicationConfiguration.class, configuration);
         }
@@ -171,7 +182,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         public Response getContainer() {
             return expectedResponse.get();
         }
-        
+
         @GET
         @Path("/objects/{id_object}")
         public Response getObjectInformation(@PathParam("id_object") String idObject) {
@@ -272,7 +283,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
         @Path("/objects/{id_object}")
         @GET
-        @Produces({ MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
+        @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
             return expectedResponse.get();
@@ -284,7 +295,17 @@ public class StorageClientRestTest extends VitamJerseyTest {
         public Response t() {
             return expectedResponse.post();
         }
-        //operations/traceability"
+        // operations/traceability"
+
+
+        @GET
+        @Path("/{type}/logs")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getOfferLogs(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+            @PathParam("type") String type, OfferLogRequest offerLogRequest) {
+            return expectedResponse.get();
+        }
     }
 
     @RunWithCustomExecutor
@@ -328,7 +349,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.getStorageInformation("idStrategy");
     }
-    
+
     @RunWithCustomExecutor
     @Test(expected = StorageServerClientException.class)
     public void getContainerInfosBadRequest() throws Exception {
@@ -342,7 +363,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post())
-                .thenReturn(Response.status(Response.Status.CREATED).entity(generateStoredInfoResult("idObject")).build());
+            .thenReturn(Response.status(Response.Status.CREATED).entity(generateStoredInfoResult("idObject")).build());
         client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "idObject", getDescription());
     }
 
@@ -403,7 +424,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
         description.setWorkspaceObjectURI(
-                "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
+            "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
         return description;
     }
 
@@ -416,7 +437,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
         assertTrue(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
         assertTrue(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
         assertTrue(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
-        assertTrue(client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
+        assertTrue(
+            client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
 
     @RunWithCustomExecutor
@@ -428,7 +450,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
         assertFalse(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
         assertFalse(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
         assertFalse(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
-        assertFalse(client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
+        assertFalse(
+            client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
 
     @RunWithCustomExecutor
@@ -491,13 +514,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.deleteContainer("idStrategy"));
         assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
         assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
         assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
         assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
     }
 
     @RunWithCustomExecutor
@@ -507,13 +530,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.deleteContainer("idStrategy"));
         assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
         assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
         assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
         assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
-                VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType()));
     }
 
     @RunWithCustomExecutor
@@ -587,7 +610,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test
     public void statusExecutionWithBody() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.NO_CONTENT)
-                .entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
+            .entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
         client.checkStatus();
     }
 
@@ -628,7 +651,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
         final InputStream stream = client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT)
-                .readEntity(InputStream.class);
+            .readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
@@ -638,8 +661,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test
     public void successBackupStorageLog() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(Status.OK).
-            entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
         client.backupStorageLog();
     }
 
@@ -651,15 +674,67 @@ public class StorageClientRestTest extends VitamJerseyTest {
         result.setLastModifiedTime(LocalDateUtil.getString(LocalDateTime.now()));
         return result;
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void successGetObjectInformation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(Status.OK).
-            entity(OFFER_METADATA).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(OFFER_METADATA).build());
         JsonNode metadata = client.getObjectInformation("idStrategy", "guid", SingletonUtils.singletonList());
         assertEquals(metadata.toString(), OFFER_METADATA);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void getOffsetLogOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponseOK<OfferLog> requestResponse = new RequestResponseOK<>();
+        IntStream.range(1, 11).forEach(sequence -> {
+            OfferLog offerLog = new OfferLog();
+            offerLog.setContainer(DataCategory.OBJECT.getFolder() + "_" + TENANT_ID);
+            offerLog.setFileName(GUIDFactory.newGUID().getId());
+            offerLog.setSequence(sequence);
+            offerLog.setTime(LocalDateTime.now());
+            requestResponse.addResult(offerLog);
+        });
+        requestResponse.setHttpCode(Status.OK.getStatusCode());
+
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).entity(JsonHandler.writeAsString(requestResponse)).build());
+
+        final RequestResponse<OfferLog> result = client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
+        assertNotNull(result);
+        assertEquals(String.valueOf(TENANT_ID), result.getHeaderString(GlobalDataRest.X_TENANT_ID));
+        assertEquals(true, result.isOk());
+        assertEquals(Status.OK.getStatusCode(), result.getHttpCode());
+        RequestResponseOK<OfferLog> resultOK = (RequestResponseOK<OfferLog>) result;
+        assertEquals(10, resultOK.getResults().size());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void getOfferLogInternalServerError() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(
+            Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).build());
+        final RequestResponse<OfferLog> result = client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
+        assertNotNull(result);
+        assertEquals(false, result.isOk());
+        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), result.getHttpCode());
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void getOfferLogInvalidRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        client.getOfferLogs("idStrategy", null, 2L, 10, Order.ASC);
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void getOfferLogInvalidRequestOrder() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, null);
     }
 
 }

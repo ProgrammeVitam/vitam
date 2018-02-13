@@ -57,7 +57,7 @@ public class IdentityMain {
             BusinessApplication.class, AdminIdentityApplication.class);
     }
 
-    public static void main(String[] args) throws VitamApplicationServerException {
+    public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));

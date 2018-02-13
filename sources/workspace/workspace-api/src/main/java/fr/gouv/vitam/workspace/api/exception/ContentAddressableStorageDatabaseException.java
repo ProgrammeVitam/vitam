@@ -24,22 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.security.internal.rest;
+package fr.gouv.vitam.workspace.api.exception;
 
-import com.mongodb.MongoClient;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 
 /**
- * simple implementation on MongoDbAccess
+ * Thrown when the workspace client server is unavailable
  */
-public class SimpleMongoDBAccess extends MongoDbAccess {
+public class ContentAddressableStorageDatabaseException extends ContentAddressableStorageException {
+
+    private static final long serialVersionUID = 2221417866533636710L;
+
     /**
-     * @param mongoClient MongoClient
-     * @param dbname      MongoDB database name
-     * @throws IllegalArgumentException if mongoClient or dbname is null
+     * Constructor
+     * 
+     * @param message to associate with a new ContentAddressableStorageServerException
+     *
      */
-    public SimpleMongoDBAccess(MongoClient mongoClient, String dbname) {
-        super(mongoClient, dbname, false);
+    public ContentAddressableStorageDatabaseException(String message) {
+        super(message);
     }
 
+    /**
+     * Constructor
+     * 
+     * @param cause cause to associate with the exception
+     */
+    public ContentAddressableStorageDatabaseException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * Constructor
+     * 
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public ContentAddressableStorageDatabaseException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

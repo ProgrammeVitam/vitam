@@ -4,21 +4,27 @@ rs.initiate(
         _id: "shard{{ mongo_shard_id }}",
         members:
         [
-                { _id: 0, host: "{{ ip_service }}:{{ mongodb.mongod_port }}" }
+            { _id: 0, host: "{{ ip_service }}:{{ mongodb.mongod_port }}" }
         ],
         settings: {
-    		    getLastErrorDefaults : { w: "majority" }
-		    }
+    	    getLastErrorDefaults : { w: "majority" }
+		}
     }
 )
 
 // Beurk FIXME: Try a while with rs.status()...
 sleep(10000)
 
-{% for host in groups['mongod'] %}
+{% for host in groups[group_name] %}
+    {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] %}
     {% if mongo_shard_id == hostvars[host]['mongo_shard_id'] %}
         {% if hostvars[host]['mongo_rs_bootstrap'] is not defined or hostvars[host]['mongo_rs_bootstrap']|lower != "true" %}
-            rs.add("{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
+            {% if hostvars[host]['mongo_arbiter'] is defined and hostvars[host]['mongo_arbiter']|lower == "true" %}
+                rs.addArb("{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
+            {% else %}
+                rs.add("{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
+            {% endif %}
         {% endif %}
+    {% endif %}
     {% endif %}
 {% endfor %}

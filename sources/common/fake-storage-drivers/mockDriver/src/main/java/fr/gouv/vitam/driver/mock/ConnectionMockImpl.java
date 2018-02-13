@@ -27,12 +27,13 @@
 package fr.gouv.vitam.driver.mock;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.core.MediaType;
@@ -70,6 +71,8 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -81,7 +84,7 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.storage.offers.common.core.DefaultOfferServiceImpl;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
 /**
  * Workspace Connection Implementation
@@ -98,6 +101,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
     private static final String ALGORITHM_IS_A_MANDATORY_PARAMETER = "Algorithm is a mandatory parameter";
     private static final String STREAM_IS_A_MANDATORY_PARAMETER = "Stream is a mandatory parameter";
     private static final String TYPE_IS_A_MANDATORY_PARAMETER = "Type is a mandatory parameter";
+    private static final String ORDER_IS_A_MANDATORY_PARAMETER = "Order is a mandatory parameter";
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
@@ -108,7 +112,8 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
     private final String driverName;
     private final String offerName;
     private static final Map<String, OfferMaps> GLOBAL_MAPS = new ConcurrentHashMap<>();
-    
+
+
     private static class OfferMaps {
         final Map<String, Long> FILES_MAP = new ConcurrentHashMap<>();
         final Map<String, String> FOLDERS_MAP = new ConcurrentHashMap<>();
@@ -130,7 +135,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
         this.driverName = driverName;
         this.parameters = parameters;
         offerName = (String) factory.parameters.get("id");
-        if (! GLOBAL_MAPS.containsKey(offerName)) {
+        if (!GLOBAL_MAPS.containsKey(offerName)) {
             OfferMaps offerMaps = new OfferMaps();
             GLOBAL_MAPS.put(offerName, offerMaps);
         }
@@ -224,8 +229,8 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
         headers.add(VitamHttpHeader.X_CONTENT_LENGTH.getName(), length);
         return new StorageGetResult(request.getTenantId(), request.getType(),
             request.getGuid(), new FakeInboundResponse(Status.OK,
-                new FakeInputStream(length),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, headers));
+            new FakeInputStream(length),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers));
     }
 
     @Override
@@ -439,14 +444,12 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
         String prefix =
             getName(request.getTenantId().toString(), DataCategory.getByFolder(request.getType()).getFolder(), null);
         if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
-            DefaultOfferServiceImpl.getInstance().finalizeCursor(prefix, xcursorId);
+
             final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
             response = VitamRequestIterator.setHeaders(builder, xcursor, null).build();
             return RequestResponse.<JsonNode>parseFromResponse(response);
         }
-        if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
-            xcursorId = "cursorId";
-        }
+
         final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
         List<JsonNode> list = new ArrayList<>();
         for (String filename : offerMaps.FILES_MAP.keySet()) {
@@ -455,6 +458,24 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
             }
         }
         return responseOK.addAllResults(list);
+    }
+
+    @Override
+    public RequestResponse<OfferLog> getOfferLogs(StorageOfferLogRequest request) {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(ORDER_IS_A_MANDATORY_PARAMETER, request.getOrder());
+
+        RequestResponseOK<OfferLog> requestResponseOK = new RequestResponseOK<>();
+        OfferLog offerLog = new OfferLog();
+        offerLog.setContainer(request.getType() + "_" + request.getTenantId());
+        offerLog.setFileName("fileName_" + (request.getOffset() + 1));
+        offerLog.setSequence(request.getOffset() + 1);
+        offerLog.setTime(LocalDateTime.of(2017, 12, 13, 12, 0, 0, 0));
+        requestResponseOK.addResult(offerLog);
+
+        return requestResponseOK;
     }
 
     public void deleteAll() {

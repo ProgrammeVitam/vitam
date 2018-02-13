@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -42,9 +41,6 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
 import fr.gouv.vitam.common.client.configuration.SSLKey;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.AbstractConnection;

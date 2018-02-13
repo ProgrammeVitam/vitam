@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
+
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -56,6 +59,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -68,6 +72,8 @@ import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 
 /**
  * Workspace Connection Implementation
@@ -82,6 +88,7 @@ public class ConnectionImpl extends AbstractConnection {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
     private static final String OBJECTS_PATH = "/objects";
+    private static final String LOGS_PATH = "/logs";
     private static final String COUNT_PATH = "/count";
     private static final String METADATAS = "/metadatas";
 
@@ -91,6 +98,7 @@ public class ConnectionImpl extends AbstractConnection {
     private static final String ALGORITHM_IS_A_MANDATORY_PARAMETER = "Algorithm is a mandatory parameter";
     private static final String STREAM_IS_A_MANDATORY_PARAMETER = "Stream is a mandatory parameter";
     private static final String TYPE_IS_A_MANDATORY_PARAMETER = "Type is a mandatory parameter";
+    private static final String ORDER_IS_A_MANDATORY_PARAMETER = "Order is a mandatory parameter";
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
@@ -171,7 +179,7 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET,  COUNT_PATH + OBJECTS_PATH +"/"+ request.getType(),
+            response = performRequest(HttpMethod.GET, COUNT_PATH + OBJECTS_PATH + "/" + request.getType(),
                 getDefaultHeaders(request.getTenantId(), null, null, null),
                 MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -259,7 +267,7 @@ public class ConnectionImpl extends AbstractConnection {
             objectInit.setDigestAlgorithm(DigestType.valueOf(request.getDigestAlgorithm()));
             objectInit.setType(DataCategory.getByFolder(request.getType()));
             response =
-                performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
+                performRequest(POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
                     getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null), objectInit,
                     MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -356,9 +364,9 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Common method to handle response status
      *
-     * @param response     the response to be handled
+     * @param response the response to be handled
      * @param responseType the type to map the response into
-     * @param <R>          the class type to be returned
+     * @param <R> the class type to be returned
      * @return the response mapped as a POJO
      * @throws StorageDriverException if any from the server
      */
@@ -392,9 +400,9 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Generate the default header map
      *
-     * @param tenantId   the tenantId
-     * @param command    the command to be added
-     * @param digest     the digest of the object to be added
+     * @param tenantId the tenantId
+     * @param command the command to be added
+     * @param digest the digest of the object to be added
      * @param digestType the type of the digest to be added
      * @return header map
      */
@@ -419,18 +427,18 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Method performing a PutRequests
      *
-     * @param stream   the stream to be chunked if necessary
-     * @param result   the result received from the server after the init
+     * @param stream the stream to be chunked if necessary
+     * @param result the result received from the server after the init
      * @param tenantId the tenant id
      * @return a PutObjectResult the final result received from the server
      * @throws StorageDriverException in case the server encounters an exception
      */
     private StoragePutResult performPutRequests(InputStream stream, ObjectInit result, Integer tenantId)
         throws StorageDriverException {
-        StoragePutResult finalResult = null;
+        StoragePutResult finalResult;
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
+            response = performRequest(PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
                 getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, null), stream,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
@@ -556,4 +564,31 @@ public class ConnectionImpl extends AbstractConnection {
         }
     }
 
+    @Override
+    public RequestResponse<OfferLog> getOfferLogs(StorageOfferLogRequest storageGetOfferLogRequest)
+        throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, storageGetOfferLogRequest);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, storageGetOfferLogRequest.getTenantId());
+        ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, storageGetOfferLogRequest.getType());
+        ParametersChecker.checkParameter(ORDER_IS_A_MANDATORY_PARAMETER, storageGetOfferLogRequest.getOrder());
+        Response response = null;
+        try {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, storageGetOfferLogRequest.getTenantId());
+            OfferLogRequest offerLogRequest = new OfferLogRequest();
+            offerLogRequest.setOffset(storageGetOfferLogRequest.getOffset());
+            offerLogRequest.setLimit(storageGetOfferLogRequest.getLimit());
+            offerLogRequest.setOrder(storageGetOfferLogRequest.getOrder());
+            response =
+                performRequest(HttpMethod.GET,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(storageGetOfferLogRequest.getType()) + LOGS_PATH,
+                    headers, offerLogRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, OfferLog.class);
+        } catch (Exception exc) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
+            throw new StorageDriverException(getDriverName(), exc);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

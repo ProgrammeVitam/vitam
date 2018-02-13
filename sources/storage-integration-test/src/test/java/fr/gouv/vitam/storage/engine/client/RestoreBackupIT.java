@@ -32,29 +32,43 @@ import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -67,7 +81,9 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
+import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -82,21 +98,29 @@ public class RestoreBackupIT {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RestoreBackupIT.class);
 
-    private static DefaultOfferMain defaultOfferApplication;
+    private static final String DATABASE_NAME = "Vitam-test";
+
+    private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
-    private static final String OFFER_FOLDER = "offer";
+    private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
+
+    // ports are overriden
+    private static int workspacePort = 8987;
+    private static int defaultOfferPort = 8575;
+    private static int storageEnginePort = 8583;
+
+    private static WorkspaceMain workspaceMain;
+    private static WorkspaceClient workspaceClient;
+    private static DefaultOfferMain defaultOfferApplication;
     private static StorageMain storageMain;
     private static StorageClient storageClient;
-    private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
+    
+    private static final String OFFER_FOLDER = "offer";
     private static final String BACKUP_COPY_FOLDER = "backup";
     private static final int TENANT_ID = 0;
     private static final String STRATEGY_ID = "default";
     private static String CONTAINER = "0_rules";
     private static String containerName = "";
-    private static WorkspaceMain workspaceMain;
-    private static WorkspaceClient workspaceClient;
-    private static int workspacePort = 8987;
-    private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
 
     static TemporaryFolder folder = new TemporaryFolder();
 
@@ -105,6 +129,10 @@ public class RestoreBackupIT {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
+        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
@@ -116,18 +144,27 @@ public class RestoreBackupIT {
         new JHades().overlappingJarsReport();
 
         // prepare workspace
+        workspacePort = JunitHelper.getInstance().findAvailablePort();
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, workspacePort);
         workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
         workspaceMain.start();
-
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
+        
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
         // prepare offer
-        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration =
-            readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
-                fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        defaultOfferPort = JunitHelper.getInstance().findAvailablePort();
+        SystemPropertyUtil.set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, defaultOfferPort);
+        final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
+        final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
+        List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
+        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
+        offerConfiguration.setMongoDbNodes(mongoDbNodes);
+        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
         defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
+        SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
 
         // storage engine
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
@@ -146,12 +183,24 @@ public class RestoreBackupIT {
         serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
 
         writeYaml(storageConfigurationFile, serverConfiguration);
+        
+        File staticOffersFile = PropertiesUtils.findFile("static-offer.json");
+        ArrayNode staticOffers = (ArrayNode) JsonHandler.getFromFile(staticOffersFile);
+        ObjectNode defaultOffer = (ObjectNode) staticOffers.get(0);
+        defaultOffer.put("baseUrl", "http://localhost:" + defaultOfferPort);
+        try (FileOutputStream outputStream = new FileOutputStream(staticOffersFile)) {
+            IOUtils.write(JsonHandler.prettyPrint(staticOffers), outputStream, CharsetUtils.UTF_8);
+        }
 
         // prepare storage
+        storageEnginePort = JunitHelper.getInstance().findAvailablePort();
+        SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, storageEnginePort);
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
-
+        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
+        
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
+        StorageClientFactory.changeMode("http://localhost:" + storageEnginePort);
         storageClient = StorageClientFactory.getInstance().getClient();
     }
 
@@ -171,6 +220,7 @@ public class RestoreBackupIT {
         }
         workspaceClient.close();
         workspaceMain.stop();
+        JunitHelper.getInstance().releasePort(workspacePort);
         File offerFolder = new File(OFFER_FOLDER);
         if (offerFolder.exists()) {
             try {
@@ -183,7 +233,9 @@ public class RestoreBackupIT {
         }
         storageClient.close();
         defaultOfferApplication.stop();
+        JunitHelper.getInstance().releasePort(defaultOfferPort);
         storageMain.stop();
+        JunitHelper.getInstance().releasePort(storageEnginePort);
         folder.delete();
     }
 
@@ -200,6 +252,7 @@ public class RestoreBackupIT {
     public void tearDown() throws Exception {
         // delete the container on the Workspace
         workspaceClient.deleteContainer(containerName, true);
+        mongoRule.handleAfter();
         // clean offers
         cleanOffers();
     }

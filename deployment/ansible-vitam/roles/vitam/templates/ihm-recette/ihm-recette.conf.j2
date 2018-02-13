@@ -21,7 +21,7 @@ ingestMaxThread: {{ ansible_processor_cores * ansible_processor_threads_per_core
 
 # Configuration MongoDB
 mongoDbNodes:
-{% for server in groups['mongos'] %}
+{% for server in groups['hosts-mongos-data'] %}
 - dbHost: {{hostvars[server]['ip_service']}}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
@@ -32,8 +32,8 @@ masterdataDbName: masterdata
 logbookDbName: logbook
 metadataDbName: metadata
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{mongoAdminUser}}
-dbPassword: {{mongoAdminPassword}}
+dbUserName: {{ mongodb.data.admin.user }}
+dbPassword: {{ mongodb.data.admin.password }}
 
 # ElasticSearch
 clusterName: {{ vitam_struct.cluster_name }}

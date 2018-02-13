@@ -106,38 +106,9 @@
 
 ### MONGO DB INSTALLATION ###
 
-# mongodb commons (yum install, etc...)
-- hosts: mongo_common
-  roles:
-  - mongo_common
+- import_playbook: mongodb_data.yml
 
-# Mongoc replicas configuration
-- hosts: mongoc
-  roles:
-    - mongoc
-  vars:
-    mongo_bin: mongod
-
-# Mongod replicas configuration
-- hosts: mongod
-  roles:
-    - mongod
-  vars:
-    mongo_bin: mongod
-
-# Mongos configuration
-- hosts: mongos
-  roles:
-    - mongos
-  vars:
-    mongo_bin: mongos
-
-# Mongo cluster configuration, database & users declaration
-- hosts: mongos
-  roles:
-    - mongo_configure
-
-
+- import_playbook: mongodb_offer.yml
 
 ## VITAM ####################################################################
 

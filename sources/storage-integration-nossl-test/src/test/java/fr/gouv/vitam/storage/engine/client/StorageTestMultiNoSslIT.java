@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.engine.client;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,25 +47,36 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -77,7 +89,9 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
+import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -86,25 +100,30 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import junit.framework.TestCase;
 
 public class StorageTestMultiNoSslIT {
+
+    private static final String DATABASE_NAME = "Vitam-test";
     private static final int NB_MULTIPLE_THREADS = 100;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiNoSslIT.class);
 
-    private static DefaultOfferMain defaultOfferApplication;
+    private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-nossl.conf";
-    private static final String OFFER_FOLDER = "offer";
-
-    private static StorageMain storageMain;
-    private static StorageClient storageClient;
     private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
 
+    // ports are overriden
+    private static int workspacePort = 8987;
+    private static int defaultOfferPort = 8575;
+    private static int storageEnginePort = 8583;
+    
     private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
-    private static int workspacePort = 8987;
-    private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
+    private static DefaultOfferMain defaultOfferApplication;
+    private static StorageMain storageMain;
+    private static StorageClient storageClient;
+
+    private static final String OFFER_FOLDER = "offer";
     private static final String WORKSPACE_FOLDER = "workspace";
     private static final String TMP_FOLDER = "tmp";
-
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;
     private static int size = 500;
@@ -113,20 +132,37 @@ public class StorageTestMultiNoSslIT {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
+        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
+
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
         // workspace
+        workspacePort = JunitHelper.getInstance().findAvailablePort();
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, workspacePort);
         workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
         workspaceMain.start();
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
 
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
+        // offer
+        defaultOfferPort = JunitHelper.getInstance().findAvailablePort();
+        SystemPropertyUtil.set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, defaultOfferPort);
+        final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
+        final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
+        List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
+        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
+        offerConfiguration.setMongoDbNodes(mongoDbNodes);
+        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
         defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
+        SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
 
         // storage engine
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
@@ -147,11 +183,24 @@ public class StorageTestMultiNoSslIT {
         serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
 
         PropertiesUtils.writeYaml(storageConfigurationFile, serverConfiguration);
-
+        
+        File staticOffersFile = PropertiesUtils.findFile("static-offer.json");
+        ArrayNode staticOffers = (ArrayNode) JsonHandler.getFromFile(staticOffersFile);
+        ObjectNode defaultOffer = (ObjectNode) staticOffers.get(0);
+        defaultOffer.put("baseUrl", "http://localhost:" + defaultOfferPort);
+        try (FileOutputStream outputStream = new FileOutputStream(staticOffersFile)) {
+            IOUtils.write(JsonHandler.prettyPrint(staticOffers), outputStream, CharsetUtils.UTF_8);
+        }
+        
+        // prepare storage
+        storageEnginePort = JunitHelper.getInstance().findAvailablePort();
+        SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, storageEnginePort);
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
+        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
 
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
+        StorageClientFactory.changeMode("http://localhost:" + storageEnginePort);
         storageClient = StorageClientFactory.getInstance().getClient();
     }
 
@@ -178,6 +227,7 @@ public class StorageTestMultiNoSslIT {
         }
         workspaceClient.close();
         workspaceMain.stop();
+        JunitHelper.getInstance().releasePort(workspacePort);
         cleanOffers();
         // delete offer parent folder
         File offerFolder = new File(OFFER_FOLDER);
@@ -192,12 +242,15 @@ public class StorageTestMultiNoSslIT {
         }
         storageClient.close();
         defaultOfferApplication.stop();
+        JunitHelper.getInstance().releasePort(defaultOfferPort);
         storageMain.stop();
+        JunitHelper.getInstance().releasePort(storageEnginePort);
         folder.delete();
     }
 
     public static void afterTest() {
         cleanWorkspace();
+        mongoRule.handleAfter();
         try {
             cleanOffers();
         } catch (Exception e) {

@@ -1,14 +1,14 @@
 
 # Configuration MongoDB
 mongoDbNodes:
-{% for server in groups['mongos'] %}
+{% for server in groups['hosts-mongos-data'] %}
 - dbHost: {{hostvars[server]['ip_service']}}
   dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: logbook
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{mongoLogbookUser}}
-dbPassword: {{mongoLogbookPassword}}
+dbUserName: {{ mongodb.data.logbook.user }}
+dbPassword: {{ mongodb.data.logbook.password }}
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 p12LogbookPassword: {{keystores.timestamping.secure_logbook}}
@@ -41,4 +41,3 @@ alertEvents:
 # Traceability params
 operationTraceabilityOverlapDelay: {{ vitam.logbook.operationTraceabilityOverlapDelay }}
 lifecycleTraceabilityOverlapDelay: {{ vitam.logbook.lifecycleTraceabilityOverlapDelay }}
-
