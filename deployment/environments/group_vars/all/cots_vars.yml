@@ -76,6 +76,7 @@ siegfried:
 
 clamav:
     port: 3310
+    db_update_periodicity: 1
 
 mongo_express:
     baseuri: "mongo-express"
