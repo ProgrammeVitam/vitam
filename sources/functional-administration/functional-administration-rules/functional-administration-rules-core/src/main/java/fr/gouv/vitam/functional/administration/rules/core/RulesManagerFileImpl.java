@@ -654,7 +654,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     /**
      * Update COMMIT_RULES logbookOperation step
-     * 
+     *
      * @param operationFileRules operationFileRules
      * @param statusCode statusCode
      * @param evIdentifierProcess evIdentifierProcess
@@ -801,7 +801,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     /**
      * Create a LogBook Entry related to object's update
-     * 
+     *
      * @param logbookParametersEnd logbookParametersEnd
      */
     private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
@@ -814,7 +814,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     /**
      * Create a LogBook Entry related to object's creation
-     * 
+     *
      * @param logbookParametersStart logbookParametersStart
      */
     private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
@@ -847,16 +847,16 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         throws IOException, ReferentialException, InvalidParseOperationException {
         ParametersChecker.checkParameter(RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER, rulesFileStream);
         File csvFileReader = convertInputStreamToFile(rulesFileStream, TXT);
+        int lineNumber = 1;
         try (FileReader reader = new FileReader(csvFileReader)) {
             @SuppressWarnings("resource")
             final CSVParser parser =
                 new CSVParser(reader, CSVFormat.DEFAULT.withHeader().withTrim());
             final HashSet<String> ruleIdSet = new HashSet<>();
-            int lineNumber = 1;
             try {
                 for (final CSVRecord record : parser) {
-                    List<ErrorReport> errors = new ArrayList<>();
                     lineNumber++;
+                    List<ErrorReport> errors = new ArrayList<>();
                     if (checkRecords(record)) {
                         final String ruleId = record.get(RULE_ID);
                         final String ruleType = record.get(RULE_TYPE);
@@ -899,21 +899,27 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 if (message.contains(RULE_ID + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_ID;
                 }
-                if (message.contains(RULE_TYPE + " not found")) {
+                else if (message.contains(RULE_TYPE + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_TYPE;
                 }
-                if (message.contains(RULE_VALUE + " not found")) {
+                else if (message.contains(RULE_VALUE + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_VALUE;
                 }
-                if (message.contains(RULE_DURATION + " not found")) {
+                else if (message.contains(RULE_DURATION + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_DURATION;
                 }
-                if (message.contains(RULE_DESCRIPTION + " not found")) {
+                else if (message.contains(RULE_DESCRIPTION + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_DESCRIPTION;
                 }
-                if (message.contains(RULE_MEASUREMENT + " not found")) {
+                else if (message.contains(RULE_MEASUREMENT + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_MEASUREMENT;
                 }
+                List<ErrorReport> errors = new ArrayList<>();
+                errors
+                    .add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_NOT_CSV_FORMAT,
+                        lineNumber, message));
+                    errorsMap.put(lineNumber, errors);
+
                 throw new FileRulesCsvException(message);
             } catch (Exception e) {
                 throw new ReferentialException(e);
@@ -1552,6 +1558,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                             error.getFileRulesModel().getRuleType()));
                         errorNode.set(ReportConstants.ADDITIONAL_INFORMATION, info);
                     case STP_IMPORT_RULES_NOT_CSV_FORMAT:
+                       errorNode.put(ADDITIONAL_INFORMATION,error.getMissingInformations());
+                        break;
                     case STP_IMPORT_RULES_DELETE_USED_RULES:
                     case STP_IMPORT_RULES_UPDATED_RULES:
                     default:
