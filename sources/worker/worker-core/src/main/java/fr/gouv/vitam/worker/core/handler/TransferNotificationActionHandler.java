@@ -775,6 +775,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
+            xmlsw.writeEndElement(); // END DATA_OBJECT_PACKAGE
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, statusPrefix + workflowStatus.name());
 
