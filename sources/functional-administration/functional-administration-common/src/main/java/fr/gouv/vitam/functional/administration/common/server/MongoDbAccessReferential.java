@@ -119,7 +119,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs;
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
-        throws ReferentialException;;
+        throws ReferentialException;
 
     /**
      * Update with queryDsl

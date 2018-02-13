@@ -118,6 +118,8 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION = "Begin siegFried format identification";
 
     private static final String CAN_NOT_READ_FILE = "Can not read file";
+    private static final int STATUS_ANTIVIRUS_NOT_PERFORMED = 3;
+    private static final int STATUS_ANTIVIRUS_NOT_PERFORMED_2 = -1;
     private static final int STATUS_ANTIVIRUS_KO = 2;
     private static final int STATUS_ANTIVIRUS_WARNING = 1;
     private static final int STATUS_ANTIVIRUS_OK = 0;
@@ -298,14 +300,16 @@ public class IngestExternalImpl implements IngestExternal {
                         messageLogbookEngineHelper.getLabelOp(SANITY_CHECK_SIP, StatusCode.KO));
                     isFileInfected = true;
                     break;
-                default:
-                    LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
+                case STATUS_ANTIVIRUS_NOT_PERFORMED:
+                case STATUS_ANTIVIRUS_NOT_PERFORMED_2:                    
+                    LOGGER.error(IngestExternalOutcomeMessage.FATAL_VIRUS.toString());
                     antivirusParameters.setStatus(StatusCode.FATAL);
                     antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                        messageLogbookEngineHelper.getOutcomeDetail(SANITY_CHECK_SIP, StatusCode.KO));
+                        messageLogbookEngineHelper.getOutcomeDetail(SANITY_CHECK_SIP, StatusCode.FATAL));
                     antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        messageLogbookEngineHelper.getLabelOp(SANITY_CHECK_SIP, StatusCode.KO));
+                        messageLogbookEngineHelper.getLabelOp(SANITY_CHECK_SIP, StatusCode.FATAL));
                     isFileInfected = true;
+                    break;
             }
 
             final LogbookOperationParameters endParameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -441,7 +445,8 @@ public class IngestExternalImpl implements IngestExternal {
                 helper.updateDelegate(endParameters);
                 helper.updateDelegate(antivirusParameters);
 
-                logbookAndGenerateATR(preUploadResume, operationId, StatusCode.KO, mimeType, isFileInfected, helper,
+                logbookAndGenerateATR(preUploadResume, operationId, antivirusParameters.getStatus(), mimeType,
+                    isFileInfected, helper,
                     SANITY_CHECK_SIP, "");
             }
 
@@ -576,7 +581,7 @@ public class IngestExternalImpl implements IngestExternal {
                     "TransferringAgencyToBeDefined",
                     atrEventType, additionalMessage, statusCode);
             }
-            if (!statusCode.equals(StatusCode.FATAL)) {
+            if (isFileInfected || !statusCode.equals(StatusCode.FATAL)) {
                 storeATR(operationId, atrKo);
             }
 
@@ -592,7 +597,7 @@ public class IngestExternalImpl implements IngestExternal {
         GUID finalisationEventId = GUIDFactory.newEventGUID(operationId);
         String outComeDetailMessage = VitamLogbookMessages.getCodeOp(eventType, finalisationStatusCode);
 
-        if (statusCode.equals(StatusCode.FATAL)) {
+        if (statusCode.equals(StatusCode.FATAL) && !isFileInfected) {
             finalisationStatusCode = statusCode;
             outComeDetailMessage = WORKSPACE_ERROR_MESSAGE;
         }

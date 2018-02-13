@@ -55,7 +55,7 @@ public class JavaExecuteScript {
      * @param arg the file to scan
      * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
-     * @throws FileNotFoundException if command file not found
+     * @throws JavaExecuteScriptException if script could not be executed
      */
     public static int executeCommand(String cmd, String arg, long timeoutScanDelay) throws JavaExecuteScriptException {
         int exitStatus = 3;

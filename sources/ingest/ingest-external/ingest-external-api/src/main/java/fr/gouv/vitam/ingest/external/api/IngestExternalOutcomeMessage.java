@@ -37,7 +37,11 @@ public enum IngestExternalOutcomeMessage {
     /**
      * Virus control / KO: Viral infection
      */
-    KO_VIRUS("Echec Contrôle sanitaire : présence de fichiers infectés");
+    KO_VIRUS("Echec Contrôle sanitaire : présence de fichiers infectés"),
+    /**
+     * Virus control / FATAL: Couldnt check files
+     */
+    FATAL_VIRUS("Echec Contrôle sanitaire : impossibilité de réaliser le contrôle");
 
     private String value;
 

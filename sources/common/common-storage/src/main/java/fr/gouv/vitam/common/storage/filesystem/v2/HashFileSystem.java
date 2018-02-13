@@ -268,36 +268,43 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
-        
+
         if (!isExistingObject(containerName, objectName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName);
         }
-        
+
         // Calculate the digest via the common method
         String digest = super.computeObjectDigest(containerName, objectName, algo);
-        
+
         // Update digest in XATTR if needed
         String digestFromMD = getObjectDigestFromMD(containerName, objectName, algo);
-        if (digest != digestFromMD) {
+        if (digest != null && !digest.equals(digestFromMD)) {
             storeDigest(containerName, objectName, algo, digest);
         }
-        
+
         // return the calculated digest
         return digest;
     }
-    
+
+    /**
+     * @param containerName the container name
+     * @param objectName the object name
+     * @param algo the algo type
+     * @return the digest
+     * @throws ContentAddressableStorageException if workspace could not be reached
+     */
     @VisibleForTesting
-    public String getObjectDigestFromMD(String containerName, String objectName, DigestType algo) 
+    public String getObjectDigestFromMD(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
         Path filePath = fsHelper.getPathObject(containerName, objectName);
-        
+
         // Retrieve Digest XATTR attribute
         String digestMetadata = null;
         try {
             digestMetadata = readExtendedMetadata(filePath, ExtendedAttributes.DIGEST.getKey());
         } catch (IOException e) {
             LOGGER.warn("Unable to retrieve DIGEST extended attribute for the object " + objectName +
-                    " in the container " + containerName, e);
+                " in the container " + containerName, e);
         }
 
         // See if the retrieved XATTR attribute is correct. If so, get it.
@@ -310,10 +317,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
                 }
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("DigestAlgorithm in the extended attribute of file " + containerName + "/" + objectName +
-                        " is unknown : " + digestTokens[0], e);
+                    " is unknown : " + digestTokens[0], e);
             }
         }
-        
+
         return digestFromMD;
     }
 

@@ -40,7 +40,7 @@ public interface LogbookDetailsCheckService {
     /**
      * Logbook events check.
      *
-     * @param event
+     * @param event the event to be checked
      * @return the list of results after check
      */
     List<LogbookCheckResult> checkEvent(EventModel event);
