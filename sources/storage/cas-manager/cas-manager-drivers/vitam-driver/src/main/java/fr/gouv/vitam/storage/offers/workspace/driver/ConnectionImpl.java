@@ -127,7 +127,7 @@ public class ConnectionImpl extends AbstractConnection {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + DataCategory.OBJECT,
-                getDefaultHeaders(tenantId, null, null, null),
+                getDefaultHeaders(tenantId, null, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
@@ -180,7 +180,7 @@ public class ConnectionImpl extends AbstractConnection {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, COUNT_PATH + OBJECTS_PATH + "/" + request.getType(),
-                getDefaultHeaders(request.getTenantId(), null, null, null),
+                getDefaultHeaders(request.getTenantId(), null, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
@@ -221,7 +221,8 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -267,11 +268,12 @@ public class ConnectionImpl extends AbstractConnection {
             objectInit.setDigestAlgorithm(DigestType.valueOf(request.getDigestAlgorithm()));
             objectInit.setType(DataCategory.getByFolder(request.getType()));
             response =
-                performRequest(POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null), objectInit,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null, request.getSize()),
+                    objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            return performPutRequests(stream, handleResponseStatus(response, ObjectInit.class), request.getTenantId());
+            return performPutRequests(stream, handleResponseStatus(response, ObjectInit.class), request.getTenantId(),
+                request.getSize());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             throw new StorageDriverPreconditionFailedException(getDriverName(), exc.getMessage());
@@ -298,7 +300,7 @@ public class ConnectionImpl extends AbstractConnection {
             response = performRequest(HttpMethod.DELETE,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
                 getDefaultHeaders(request.getTenantId(), null, request.getDigestHashBase16(),
-                    request.getDigestAlgorithm().getName()),
+                    request.getDigestAlgorithm().getName(), null),
                 MediaType.APPLICATION_JSON_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -337,7 +339,8 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.HEAD,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -364,9 +367,9 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Common method to handle response status
      *
-     * @param response the response to be handled
+     * @param response     the response to be handled
      * @param responseType the type to map the response into
-     * @param <R> the class type to be returned
+     * @param <R>          the class type to be returned
      * @return the response mapped as a POJO
      * @throws StorageDriverException if any from the server
      */
@@ -400,14 +403,15 @@ public class ConnectionImpl extends AbstractConnection {
     /**
      * Generate the default header map
      *
-     * @param tenantId the tenantId
-     * @param command the command to be added
-     * @param digest the digest of the object to be added
+     * @param tenantId   the tenantId
+     * @param command    the command to be added
+     * @param digest     the digest of the object to be added
      * @param digestType the type of the digest to be added
+     * @param size
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command, String digest,
-        String digestType) {
+        String digestType, Long size) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (tenantId != null) {
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
@@ -421,25 +425,28 @@ public class ConnectionImpl extends AbstractConnection {
         if (digestType != null) {
             headers.add(GlobalDataRest.X_DIGEST_ALGORITHM, digestType);
         }
+        if (size != null) {
+            headers.add(GlobalDataRest.VITAM_CONTENT_LENGTH, size);
+        }
         return headers;
     }
 
     /**
      * Method performing a PutRequests
      *
-     * @param stream the stream to be chunked if necessary
-     * @param result the result received from the server after the init
+     * @param stream   the stream to be chunked if necessary
+     * @param result   the result received from the server after the init
      * @param tenantId the tenant id
      * @return a PutObjectResult the final result received from the server
      * @throws StorageDriverException in case the server encounters an exception
      */
-    private StoragePutResult performPutRequests(InputStream stream, ObjectInit result, Integer tenantId)
+    private StoragePutResult performPutRequests(InputStream stream, ObjectInit result, Integer tenantId, long size)
         throws StorageDriverException {
         StoragePutResult finalResult;
         Response response = null;
         try {
-            response = performRequest(PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
-                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, null), stream,
+            response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
+                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, null, size), stream,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
             finalResult = new StoragePutResult(tenantId, result.getType().getFolder(), result.getId(), result.getId(),
@@ -473,7 +480,7 @@ public class ConnectionImpl extends AbstractConnection {
                 performRequest(HttpMethod.HEAD,
                     OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
                     getDefaultHeaders(request.getTenantId(), null,
-                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
+                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -515,7 +522,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS,
-                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(request.getTenantId(), null, null, null, null), MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:

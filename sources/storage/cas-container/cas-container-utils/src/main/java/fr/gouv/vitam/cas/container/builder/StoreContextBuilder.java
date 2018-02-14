@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -23,8 +23,14 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
 package fr.gouv.vitam.cas.container.builder;
+
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 import fr.gouv.vitam.cas.container.swift.OpenstackSwift;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -32,26 +38,26 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystem;
-import fr.gouv.vitam.common.storage.swift.SwiftKeystoneV2;
-import fr.gouv.vitam.common.storage.swift.SwiftKeystoneV3;
+import fr.gouv.vitam.common.storage.swift.Swift;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
 
 /**
  * Creates {@link ContentAddressableStorage} configured in a configuration file
  * <br/>
  * Ex. to build a {@link ContentAddressableStorage} of a particular store
  * context,
- * 
+ *
  * <pre>
  *    storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT_AUTH_V1.getValue())
- *      .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)      
- *      .setTenantName(swift) 
- *      .setUserName(user)  
- *      .setCredential(passwd) 
- *      .setCephMode(true);  
- *  
+ *      .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)
+ *      .setTenantName(swift)
+ *      .setUserName(user)
+ *      .setCredential(passwd)
+ *      .setCephMode(true);
+ *
  * contentAddressableStorage=StoreContextBuilder.newStoreContext(storeConfiguration);
  * </pre>
- * 
  *
  * @see ContentAddressableStorage
  * @see StorageConfiguration
@@ -61,15 +67,14 @@ import fr.gouv.vitam.common.storage.swift.SwiftKeystoneV3;
 public class StoreContextBuilder {
 
     /**
-     * 
      * Builds {@link ContentAddressableStorage}
-     * 
-     * @param configuration
-     *            {@link StorageConfiguration}
+     *
+     * @param configuration {@link StorageConfiguration}
      * @return ContentAddressableStorage : by default fileSystem or
-     *         openstack-swift if it is configured
+     * openstack-swift if it is configured
      */
-    public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration) {
+    public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration)
+        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
 
         if (StorageProvider.SWIFT_AUTH_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
             // TODO: keep keystone V1 authent ? No openstack4j keystone V1 authentication implementation, so we have
@@ -78,10 +83,12 @@ public class StoreContextBuilder {
         } else if (StorageProvider.HASHFILESYSTEM.getValue().equalsIgnoreCase(configuration.getProvider())) {
             return new HashFileSystem(configuration);
         } else if (StorageProvider.SWIFT_AUTH_V2.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            return new SwiftKeystoneV2(configuration);
-        } else if (StorageProvider.SWIFT_AUTH_V3.getValue().equalsIgnoreCase(configuration.getProvider()))  {
-            return new SwiftKeystoneV3(configuration);
-        }else{
+            SwiftKeystoneFactoryV2 swiftKeystoneFactoryV2 = new SwiftKeystoneFactoryV2(configuration);
+            return new Swift(swiftKeystoneFactoryV2, configuration);
+        } else if (StorageProvider.SWIFT_AUTH_V3.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configuration);
+            return new Swift(swiftKeystoneFactoryV3, configuration);
+        } else {
             // by default file system
             return new FileSystem(configuration);
         }

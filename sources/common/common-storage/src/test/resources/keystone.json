@@ -1,0 +1,84 @@
+{
+  "token": {
+    "is_domain": false,
+    "methods": [
+      "password"
+    ],
+    "roles": [
+      {
+        "id": "2b1eacd685514d53bfcdbf429f839071",
+        "name": "anotherrole"
+      },
+      {
+        "id": "e45bcc516c074821ac2682bc74e70568",
+        "name": "Member"
+      }
+    ],
+    "expires_at": "2018-02-23T16:40:07.000000Z",
+    "project": {
+      "domain": {
+        "id": "default",
+        "name": "Default"
+      },
+      "id": "28a8d44f5e1249eb86e12073e76cfe8e",
+      "name": "demo"
+    },
+    "catalog": [
+      {
+        "endpoints": [
+          {
+            "region_id": "RegionOne",
+            "url": "http://127.0.0.1:8080",
+            "region": "RegionOne",
+            "interface": "admin",
+            "id": "0c3ca481f8114bc680a64f590ec586c5"
+          },
+          {
+            "region_id": "RegionOne",
+            "url": "http://127.0.0.1:8080/v1/AUTH_28a8d44f5e1249eb86e12073e76cfe8e",
+            "region": "RegionOne",
+            "interface": "public",
+            "id": "20a5397551c949aca6ff0e6114de4207"
+          }
+        ],
+        "type": "object-store",
+        "id": "03d461198e454d4eb5195f61d429b216",
+        "name": "swift"
+      },
+      {
+        "endpoints": [
+          {
+            "region_id": "RegionOne",
+            "url": "http://127.0.0.1/identity",
+            "region": "RegionOne",
+            "interface": "public",
+            "id": "50e4249f64a8446a912e35305cf6505d"
+          },
+          {
+            "region_id": "RegionOne",
+            "url": "http://127.0.0.1/identity",
+            "region": "RegionOne",
+            "interface": "admin",
+            "id": "c39e03724cfb4df0bfd810d30ee9aef7"
+          }
+        ],
+        "type": "identity",
+        "id": "cd95f07689ab42e39a824c927dbaa047",
+        "name": "keystone"
+      }
+    ],
+    "user": {
+      "password_expires_at": null,
+      "domain": {
+        "id": "default",
+        "name": "Default"
+      },
+      "id": "8f8a478608ed4f558d2a775c75124693",
+      "name": "demo"
+    },
+    "audit_ids": [
+      "fE3W4R37Rbm7V_B2zRgyrQ"
+    ],
+    "issued_at": "2018-02-23T15:40:07.000000Z"
+  }
+}

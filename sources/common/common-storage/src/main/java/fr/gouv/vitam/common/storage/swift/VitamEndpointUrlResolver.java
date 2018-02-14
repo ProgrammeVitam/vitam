@@ -40,7 +40,7 @@ public class VitamEndpointUrlResolver implements EndpointURLResolver {
 
     private DefaultEndpointURLResolver resolver;
     private StorageConfiguration configuration;
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SwiftKeystoneV3.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SwiftKeystoneFactoryV3.class);
 
     /**
      * Constructor

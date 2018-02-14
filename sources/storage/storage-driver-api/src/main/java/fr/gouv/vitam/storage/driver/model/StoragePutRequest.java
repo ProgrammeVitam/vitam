@@ -37,22 +37,19 @@ public class StoragePutRequest extends StorageObjectRequest {
 
     private final String digestAlgorithm;
     private final InputStream dataStream;
+    private long size;
 
     /**
      * Initialize the needed parameters for put requests of an object.
      *
-     * @param tenantId
-     *            request tenantId
-     * @param type
-     *            the type
-     * @param guid
-     *            the object guid
-     * @param digestAlgorithm
-     *            the object digestAlgorithm
-     * @param dataStream
-     *            data stream of the object to put in offer
+     * @param tenantId        request tenantId
+     * @param type            the type
+     * @param guid            the object guid
+     * @param digestAlgorithm the object digestAlgorithm
+     * @param dataStream      data stream of the object to put in offer
      */
-    public StoragePutRequest(Integer tenantId, String type, String guid, String digestAlgorithm, InputStream dataStream) {
+    public StoragePutRequest(Integer tenantId, String type, String guid, String digestAlgorithm,
+        InputStream dataStream) {
         super(tenantId, type, guid);
         this.digestAlgorithm = digestAlgorithm;
         this.dataStream = dataStream;
@@ -60,7 +57,7 @@ public class StoragePutRequest extends StorageObjectRequest {
 
     /**
      * Gets the digestAlgorithm
-     * 
+     *
      * @return the digestAlgorithm
      */
     public String getDigestAlgorithm() {
@@ -69,11 +66,19 @@ public class StoragePutRequest extends StorageObjectRequest {
 
     /**
      * Gets the dataStream
-     * 
+     *
      * @return the dataStream
      */
     public InputStream getDataStream() {
         return dataStream;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
     }
 
     @Override

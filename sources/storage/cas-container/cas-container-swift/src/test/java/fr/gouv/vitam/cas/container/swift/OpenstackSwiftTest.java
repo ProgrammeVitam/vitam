@@ -81,7 +81,7 @@ public class OpenstackSwiftTest {
         // }
         storage.createContainer(containerName);
 
-        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512);
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512, null);
 
         // get metadata of file
         MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
@@ -96,7 +96,7 @@ public class OpenstackSwiftTest {
         assertNotNull(result.getFileOwner());
         assertNotNull(result.getLastModifiedDate());
 
-        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"), DigestType.SHA512);
+        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"), DigestType.SHA512, null);
         // get metadata of directory
         result = storage.getObjectMetadatas(containerName, null);
         assertEquals("object_1", result.getObjectName());

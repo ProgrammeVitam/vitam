@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -23,31 +23,25 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-
+ *******************************************************************************/
 package fr.gouv.vitam.common.storage.swift;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.function.Supplier;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
-import org.openstack4j.api.OSClient;
-import org.openstack4j.model.common.ActionResponse;
-import org.openstack4j.model.common.Payloads;
-import org.openstack4j.model.storage.object.SwiftObject;
-import org.openstack4j.model.storage.object.options.ObjectListOptions;
-import org.openstack4j.model.storage.object.options.ObjectLocation;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -62,16 +56,26 @@ import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.input.BoundedInputStream;
+import org.apache.commons.io.input.CountingInputStream;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.common.Payloads;
+import org.openstack4j.model.storage.object.SwiftObject;
+import org.openstack4j.model.storage.object.options.ObjectListOptions;
+import org.openstack4j.model.storage.object.options.ObjectLocation;
+import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
 /**
  * Swift abstract implementation
  * Manage with all common swift methods
  */
-public abstract class Swift extends ContentAddressableStorageAbstract {
+public class Swift extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Swift.class);
 
@@ -80,27 +84,39 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
     private static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
     private static final String X_CONTAINER_BYTES_USED = "X-Container-Bytes-Used";
 
+    private final Supplier<OSClient> osClient;
+
     protected StorageConfiguration configuration;
 
-    public Swift(StorageConfiguration configuration) {
+    private Long swiftLimit;
+
+    /**
+     * Constructor
+     *
+     * @param osClient the given type of osClient can be OSClientV2, OSClientV3
+     * @param configuration StorageConfiguration
+     */
+    public Swift(Supplier<OSClient> osClient, StorageConfiguration configuration) {
+        this(osClient, configuration, VitamConfiguration.getSwiftFileLimit());
+    }
+
+    @VisibleForTesting
+    Swift(Supplier<OSClient> osClient, StorageConfiguration configuration, Long swiftLimit) {
+        this.osClient = osClient;
         this.configuration = configuration;
+        this.swiftLimit = swiftLimit;
     }
 
     /**
      * Abstract method to get authenticated openstack client, allow to switch between Keystone V2 and Keystone V3
-     *
-     * @param <T> the wanted openstack client version
-     * @return authenticated openstack client
      */
-    public abstract <T extends OSClient> T getAuthenticatedClient();
-
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException,
         ContentAddressableStorageServerException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        OSClient osClient = getAuthenticatedClient();
-        ActionResponse response = osClient.objectStorage().containers().create(containerName);
+
+        ActionResponse response = osClient.get().objectStorage().containers().create(containerName);
         if (!response.isSuccess()) {
             LOGGER.error("Error when try to create container with name: {}", containerName);
             LOGGER.error("Reason: {}", response.getFault());
@@ -115,9 +131,8 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public boolean isExistingContainer(String containerName) {
-        OSClient osClient = getAuthenticatedClient();
         // Is this the best way to do that ?
-        Map<String, String> metadata = osClient.objectStorage().containers().getMetadata(containerName);
+        Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
         // more than 2 metadata then container exists (again, is this the best way ?)
         return metadata.size() > 2;
     }
@@ -126,8 +141,7 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
     public long countObjects(String containerName) throws ContentAddressableStorageNotFoundException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        OSClient osClient = getAuthenticatedClient();
-        Map<String, String> metadata = osClient.objectStorage().containers().getMetadata(containerName);
+        Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
         if (metadata.containsKey(X_CONTAINER_OBJECT_COUNT)) {
             return Long.valueOf(metadata.get(X_CONTAINER_OBJECT_COUNT));
         }
@@ -135,36 +149,84 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType) throws
+    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
+        Long size) throws
         ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
+        // Swift has a limit on the size of a single uploaded object; by default this is 5GB.
+        // However, the download size of a single object is virtually unlimited with the concept of segmentation.
+        // Segments of the larger object are uploaded and a special manifest file is created that,
+        // when downloaded, sends all the segments concatenated as a single object.
+        // This also offers much greater upload speed with the possibility of parallel uploads of the segments.
 
-        OSClient osClient = getAuthenticatedClient();
+        if (size != null && size > swiftLimit) {
+            bigFile(containerName, objectName, stream, size);
+        } else {
+            smallFile(containerName, objectName, stream, digestType);
+        }
 
-        osClient.objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
+    }
+
+    private void bigFile(String containerName, String objectName, InputStream stream, Long size) {
+        try {
+            CountingInputStream segmentInputStream;
+            int i = 1;
+            long fileSizeRead = 0;
+            do {
+                final String objectNameToPut = objectName + "/" + i;
+                BoundedInputStream boundedInputStream =
+                    new BoundedInputStream(stream, swiftLimit);
+                // for prevent closed stream in swift client
+                boundedInputStream.setPropagateClose(false);
+                LOGGER.info("number of segment: " + objectNameToPut);
+                // for get the number of byte read to the stream
+                segmentInputStream = new CountingInputStream(boundedInputStream);
+                osClient.get().objectStorage().objects()
+                    .put(containerName, objectNameToPut, Payloads.create(segmentInputStream));
+                i++;
+                fileSizeRead = fileSizeRead + segmentInputStream.getByteCount();
+            } while (fileSizeRead != size);
+
+            String dloManifest = "";
+            ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
+            objectPutOptions.getOptions().put("X-Object-Manifest", containerName + "/" + objectName + "/");
+            osClient.get().objectStorage().objects().put(
+                containerName,
+                objectName,
+                Payloads.create(new ByteArrayInputStream(dloManifest.getBytes())),
+                objectPutOptions);
+        } finally {
+            StreamUtils.closeSilently(stream);
+        }
+
+    }
+
+    private void smallFile(String containerName, String objectName, InputStream stream, DigestType digestType)
+        throws ContentAddressableStorageException {
+        osClient.get().objectStorage().objects().put(containerName, objectName, Payloads.create(stream));
         // Same as the others (like HashFileSystem) but clearly not the best way
         String digest = super.computeObjectDigest(containerName, objectName, digestType);
         Map<String, String> metadataToUpdate = new HashMap<>();
         // Not necessary to put the "X-Object-Meta-"
         metadataToUpdate.put(X_OBJECT_META_DIGEST, digest);
         metadataToUpdate.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
-        if (!osClient.objectStorage().objects().updateMetadata(ObjectLocation.create(containerName, objectName),
+        if (!osClient.get().objectStorage().objects().updateMetadata(ObjectLocation.create(containerName, objectName),
             metadataToUpdate)) {
             LOGGER.error("Failed to update object metadata -> remove object");
-            osClient.objectStorage().objects().delete(containerName, objectName);
+            osClient.get().objectStorage().objects().delete(containerName, objectName);
             throw new ContentAddressableStorageServerException("Cannot put object " + objectName + " on container " +
                 containerName);
         }
+
     }
 
     @Override
     public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        OSClient osClient = getAuthenticatedClient();
-        SwiftObject object = osClient.objectStorage().objects().get(containerName, objectName);
+        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
         if (object == null) {
             LOGGER.error(
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
@@ -186,8 +248,7 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
         ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        OSClient osClient = getAuthenticatedClient();
-        ActionResponse response = osClient.objectStorage().objects().delete(containerName, objectName);
+        ActionResponse response = osClient.get().objectStorage().objects().delete(containerName, objectName);
         if (!response.isSuccess()) {
             if (response.getCode() == 404) {
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName);
@@ -199,17 +260,16 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public boolean isExistingObject(String containerName, String objectName) {
-        OSClient osClient = getAuthenticatedClient();
-        SwiftObject object = osClient.objectStorage().objects().get(containerName, objectName);
+        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
         return object != null;
     }
 
     @Override
-    public ContainerInformation getContainerInformation(String containerName) throws ContentAddressableStorageNotFoundException{
+    public ContainerInformation getContainerInformation(String containerName)
+        throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter("Container name may not be null", containerName);
-        OSClient osClient = getAuthenticatedClient();
         final ContainerInformation containerInformation = new ContainerInformation();
-        Map<String, String> metadata = osClient.objectStorage().containers().getMetadata(containerName);
+        Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
         if (metadata.size() > 2) {
             containerInformation.setUsableSpace(-1);
             containerInformation.setUsedSpace(Long.valueOf(metadata.get(X_CONTAINER_BYTES_USED)));
@@ -224,10 +284,9 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
         ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        OSClient osClient = getAuthenticatedClient();
         // there is no object size in object metadata (weird)... So get the object directly
         // TODO: is there another way ?
-        SwiftObject object = osClient.objectStorage().objects().get(containerName, objectName);
+        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectName);
         if (object == null) {
             LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
             throw new ContentAddressableStorageNotFoundException(
@@ -245,10 +304,9 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
-        OSClient osClient = getAuthenticatedClient();
-        SwiftObject object = osClient.objectStorage().objects().get(containerName, objectId);
+        SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectId);
         if (object == null) {
-            Map<String, String> metadata = osClient.objectStorage().containers().getMetadata(containerName);
+            Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
             if (metadata.size() > 2) {
                 result.setObjectName(containerName);
                 result.setDigest(null);
@@ -273,9 +331,9 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageNotFoundException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        OSClient osClient = getAuthenticatedClient();
-        List<? extends SwiftObject> list = osClient.objectStorage().objects().list(containerName, ObjectListOptions
-            .create().path(containerName).limit(LISTING_MAX_RESULTS));
+        List<? extends SwiftObject> list =
+            osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
+                .create().path(containerName).limit(LISTING_MAX_RESULTS));
         if (list != null) {
             return OpenstackPageSetImpl.wrap(list);
         } else {
@@ -288,9 +346,9 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageNotFoundException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        OSClient osClient = getAuthenticatedClient();
-        List<? extends SwiftObject> list = osClient.objectStorage().objects().list(containerName, ObjectListOptions
-            .create().path(containerName).limit(LISTING_MAX_RESULTS).marker(nextMarker));
+        List<? extends SwiftObject> list =
+            osClient.get().objectStorage().objects().list(containerName, ObjectListOptions
+                .create().path(containerName).limit(LISTING_MAX_RESULTS).marker(nextMarker));
         if (list != null) {
             return OpenstackPageSetImpl.wrap(list);
         } else {
@@ -310,4 +368,5 @@ public abstract class Swift extends ContentAddressableStorageAbstract {
         headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
         return headers;
     }
+
 }

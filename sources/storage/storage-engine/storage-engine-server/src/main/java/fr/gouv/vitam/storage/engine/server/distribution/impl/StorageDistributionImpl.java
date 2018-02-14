@@ -163,7 +163,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     /**
      * Constructs the service with a given configuration
      *
-     * @param configuration the configuration of the storage
+     * @param configuration     the configuration of the storage
      * @param storageLogService
      */
     public StorageDistributionImpl(StorageConfiguration configuration, StorageLogService storageLogService) {
@@ -187,11 +187,10 @@ public class StorageDistributionImpl implements StorageDistribution {
     /**
      * For JUnit ONLY
      *
-     * @param wkClient a custom instance of workspace client
+     * @param wkClient   a custom instance of workspace client
      * @param digestType a custom digest
      */
-    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digestType,
-        StorageLogService storageLogService) {
+    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digestType, StorageLogService storageLogService) {
         urlWorkspace = null;
         millisecondsPerKB = 100;
         mockedWorkspaceClient = wkClient;
@@ -272,7 +271,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                         new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
                             streams.getInputStream(rank));
                     futureMap.put(offerReference.getId(),
-                        executor.submit(new TransferThread(driver, offerReference, request, globalDigest)));
+                        executor.submit(new TransferThread(driver, offerReference, request, globalDigest,
+                            Long.valueOf((String) streamAndInfos.get(SIZE_KEY)))));
                     rank++;
                 }
             } catch (NumberFormatException e) {
@@ -406,6 +406,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         try (WorkspaceClient workspaceClient =
             mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance().getClient()
                 : mockedWorkspaceClient) {
+
             return retrieveDataFromWorkspace(createObjectDescription.getWorkspaceContainerGUID(),
                 createObjectDescription.getWorkspaceObjectURI(), workspaceClient);
         }
@@ -442,8 +443,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String digest,
-        String strategy,
-        Map<String, Status> offerResults)
+        String strategy, Map<String, Status> offerResults)
         throws StorageTechnicalException, StorageAlreadyExistsException {
 
         final String offerIds = String.join(", ", offerResults.keySet());
@@ -542,11 +542,11 @@ public class StorageDistributionImpl implements StorageDistribution {
     /**
      * Storage logbook entry for ONE offer
      *
-     * @param objectGuid the object Guid
+     * @param objectGuid      the object Guid
      * @param putObjectResult the response
-     * @param messageDigest the computed digest
-     * @param offerId the offerId
-     * @param objectStored the operation status
+     * @param messageDigest   the computed digest
+     * @param offerId         the offerId
+     * @param objectStored    the operation status
      * @return storage logbook parameters
      */
     private StorageLogbookParameters getParameters(String objectGuid, StoragePutResult putObjectResult,
@@ -616,7 +616,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                     VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, containerGUID));
             }
             try {
-                ParametersChecker.checkParameter("Lenght is empty", length);
+                ParametersChecker.checkParameter("Length is empty", length);
                 Long.valueOf(length);
             } catch (IllegalArgumentException e) {
                 // Default value (hack)
@@ -859,8 +859,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                     return result;
                 }
             } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
-                LOGGER
-                    .warn("Error with the storage: object not found. Take next offer in strategy (by priority)", exc);
+                LOGGER.warn("Error with the storage: object not found. Take next offer in strategy (by priority)", exc);
                 offerOkNoBinary = true;
             } catch (final StorageDriverException exc) {
                 LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);
@@ -960,8 +959,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                         return false;
                     }
                 } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
-                    LOGGER.warn(
-                        "Error with the storage: object not found. Take next offer in strategy (by priority)", exc);
+                    LOGGER.warn("Error with the storage: object not found. Take next offer in strategy (by priority)",
+                        exc);
                     return false;
                 } catch (final StorageDriverException exc) {
                     LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);

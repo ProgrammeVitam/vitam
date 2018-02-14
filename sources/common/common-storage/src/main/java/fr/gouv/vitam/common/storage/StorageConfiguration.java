@@ -44,6 +44,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private boolean authentication;
     private String projectName;
     private String swiftUrl;
+    private String swiftTrustTore;
+    private String swiftTrustTorePassword;
 
     /**
      * @return the swiftUrl
@@ -228,6 +230,22 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     public StorageConfiguration setProjectName(String projectName) {
         this.projectName = projectName;
         return this;
+    }
+
+    public String getSwiftTrustTore() {
+        return swiftTrustTore;
+    }
+
+    public void setSwiftTrustTore(String swiftTrustTore) {
+        this.swiftTrustTore = swiftTrustTore;
+    }
+
+    public String getSwiftTrustTorePassword() {
+        return swiftTrustTorePassword;
+    }
+
+    public void setSwiftTrustTorePassword(String swiftTrustTorePassword) {
+        this.swiftTrustTorePassword = swiftTrustTorePassword;
     }
 
 }

@@ -579,6 +579,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                         if (!attrs.isDirectory()) {
+
                             Path relativize = Paths.get(target.getParent().toString()).relativize(file);
                             ArchiveEntry entry = new ZipArchiveEntry(relativize.toString());
                             archive.putArchiveEntry(entry);
