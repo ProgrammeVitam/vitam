@@ -171,13 +171,14 @@ public interface StorageClient extends BasicClient {
      * Get object information from objects in storage
      *
      * @param strategyId
+     * @param type
      * @param guid
      * @param offerIds
      * @return
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      */
-    JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds)
+    JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException, StorageNotFoundClientException;
 
     /**

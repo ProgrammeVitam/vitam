@@ -14,6 +14,8 @@
 	<modules>
 		<module>functional-administration-common</module>
 		<module>functional-administration-format</module>
+		<module>functional-administration-evidence</module>
+
 		<module>functional-administration-rest</module>
 		<module>functional-administration-client</module>
 		<module>functional-administration-rules</module>
@@ -22,7 +24,8 @@
         <module>functional-administration-profile</module>
         <module>functional-administration-context</module>
         <module>functional-administration-agencies</module>
-        <module>functional-administration-security-profile</module>
+
+		<module>functional-administration-security-profile</module>
 		<module>functional-administration-agencies-contracts</module>
     </modules>
     

@@ -1,0 +1,48 @@
+{
+  "_id": "aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq",
+  "_og": "aebaaaaaaaguu2zzaazsualbwlwdfkqaaaaq",
+  "_mgt": {
+    "OriginatingAgency": "FRAN_NP_009913"
+  },
+  "DescriptionLevel": "Item",
+  "Title": "BAD0431E2C5E80E5BD42D547zzzzzA3ED5966.odt",
+  "Titles": {
+    "fr": "BAD0431E2C5E80E5BD42D547zzzzzA3ED5966.odt"
+  },
+  "Description": "Aliquam pharetra diam nec ex sodales varius. Nulla quam lacus, viverra in vulputate vel, lobortis aliquam nulla. Mauris laoreet sem vel accumsan placerat. In ultricies risus id leo viverra, sed tempor elit elementum. Maecenas ac odio et nunc aliquam volutpat",
+  "Descriptions": {
+    "fr": "Aliquam pharetra diam nec ex sodales varius. Nulla quam lacus, viverra in vulputate vel, lobortis aliquam nulla. Mauris laoreet sem vel accumsan placerat. In ultricies risus id leo viverra, sed tempor elit elementum. Maecenas ac odio et nunc aliquam volutpat"
+  },
+  "TransactedDate": "2016-06-03T15:28:00",
+  "_storage": {
+    "_nbc": 1,
+    "offerIds": [
+      "offer-fs-1.service.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_sps": [
+    "FRAN_NP_009913"
+  ],
+  "_sp": "FRAN_NP_009913",
+  "_ops": [
+    "aeeaaaaaacgv27leaaifsalbwlwbrwyaaaaq"
+  ],
+  "_unitType": "INGEST",
+  "_max": 3,
+  "_min": 1,
+  "_up": [
+    "aeaqaaaaaaguu2zzaazsualbwlwdgoqaaaba"
+  ],
+  "_nbc": 0,
+  "_us": [
+    "aeaqaaaaaaguu2zzaazsualbwlwdfoiaaaba",
+    "aeaqaaaaaaguu2zzaazsualbwlwdgoqaaaba"
+  ],
+  "_uds": {
+    "aeaqaaaaaaguu2zzaazsualbwlwdfoiaaaba": 2,
+    "aeaqaaaaaaguu2zzaazsualbwlwdgoqaaaba": 1
+  },
+  "_v": 0,
+  "_tenant": 0
+}

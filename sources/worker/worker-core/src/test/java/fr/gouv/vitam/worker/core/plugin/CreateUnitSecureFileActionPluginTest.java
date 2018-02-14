@@ -25,48 +25,22 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -78,24 +52,59 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class})
+@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class, StorageClientFactory.class})
 public class CreateUnitSecureFileActionPluginTest {
 
     CreateUnitSecureFileActionPlugin plugin = new CreateUnitSecureFileActionPlugin();
 
     private static final Integer TENANT_ID = 0;
-    private static final String HANDLER_ID = "OG_CREATE_SECURED_FILE";
     private static final String UNIT_LFC_1 = "CreateUnitSecureFileActionPlugin/lfc_unit1.json";
-    private static final String UNIT = "CreateUnitSecureFileActionPlugin/unit_response.json";
     private static final String UNIT_MD = "CreateUnitSecureFileActionPlugin/unit_md.json";
+    private static final String LFC_UNIT_MD_FILE = "CreateUnitSecureFileActionPlugin/lfc_md_unit1.json";
+
     private GUID guid = GUIDFactory.newGUID();
     private String guidUnit = "aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq";
 
@@ -104,7 +113,7 @@ public class CreateUnitSecureFileActionPluginTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     private HandlerIO handler = mock(HandlerIO.class);
@@ -118,11 +127,14 @@ public class CreateUnitSecureFileActionPluginTest {
     private WorkspaceClientFactory workspaceClientFactory;
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataClientFactory;
-    
+
+    private StorageClientFactory storageClientFactory;
+    private StorageClient storageClient;
+
     public CreateUnitSecureFileActionPluginTest() {
         // do nothing
     }
-    
+
     @Before
     public void setUp() throws Exception {
         File tempFolder = folder.newFolder();
@@ -138,8 +150,15 @@ public class CreateUnitSecureFileActionPluginTest {
         PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
             .thenReturn(metadataClient);
         handler = new HandlerIOImpl(workspaceClient, "CreateUnitSecureFileActionPluginTest", "workerId");
+
+        PowerMockito.mockStatic(StorageClientFactory.class);
+        storageClientFactory = mock(StorageClientFactory.class);
+        storageClient = mock(StorageClient.class);
+        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
+        PowerMockito.when(StorageClientFactory.getInstance().getClient())
+            .thenReturn(storageClient);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenNothingDoneWhenExecuteThenReturnResponseKO() throws Exception {
@@ -148,48 +167,92 @@ public class CreateUnitSecureFileActionPluginTest {
         reset(metadataClient);
         when(workspaceClient.getObject(anyObject(),
             eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidUnit + ".json")))
-                .thenThrow(
-                    new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
+            .thenThrow(
+                new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
         final ItemStatus response = plugin.execute(params, handler);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenExistingAndCorrectFilesWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final JsonNode archiveFound =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_MD));
         reset(workspaceClient);
         reset(metadataClient);
         final InputStream object1 = PropertiesUtils.getResourceAsStream(UNIT_LFC_1);
         when(workspaceClient.getObject(anyObject(),
             eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidUnit + ".json")))
-                .thenReturn(Response.status(Status.OK).entity(object1).build());
-        when(metadataClient.selectUnitbyId(anyObject(), anyObject()))
-            .thenReturn(archiveFound);
+            .thenReturn(Response.status(Status.OK).entity(object1).build());
+        when(metadataClient.getUnitByIdRaw(anyObject()))
+            .thenReturn(new RequestResponseOK<JsonNode>().addResult(archiveFound));
         saveWorkspacePutObject(SedaConstants.LFC_UNITS_FOLDER + "/" + guidUnit + ".json");
-        final ItemStatus response = plugin.execute(params, handler);
+
+        final String[] offerIds = new String[] {"vitam-iaas-app-02.int", "vitam-iaas-app-03.int"};
+        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(LFC_UNIT_MD_FILE);
+
+        final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidUnit, "",
+            expectedMDLFCGlobalHashFromStorage, 7082, "file_owner",
+            LocalDateUtil.getString(LocalDateTime.now()), LocalDateUtil.getString(LocalDateTime.now())
+        );
+
+        final ObjectNode objectInformationResult = JsonHandler.createObjectNode();
+
+        objectInformationResult.set(offerIds[0], JsonHandler.toJsonNode(storageMDResult));
+
+        storageMDResult.setDigest("bad_digest_7654678299DGDIKSOqfzgzer$f$*lfkdj_just-/=first-digest-one");
+
+        objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
+
+        when(storageClient.getInformation(eq("default"), eq(DataCategory.UNIT), eq(guidUnit + ".json"), eq(Arrays.asList(offerIds))))
+            .thenReturn(objectInformationResult);
+
+        ItemStatus response = plugin.execute(params, handler);
+
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+
+        //Test with same global digest for all storage offers
+        storageMDResult.setDigest(expectedMDLFCGlobalHashFromStorage);
+        objectInformationResult.set(offerIds[0], JsonHandler.toJsonNode(storageMDResult));
+        objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
+
+        response = plugin.execute(params, handler);
+
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+
         String fileAsString = getSavedWorkspaceObject(SedaConstants.LFC_UNITS_FOLDER + "/" + guidUnit + ".json");
         assertNotNull(fileAsString);
-        //units have only 6 separators, objects 7
-        assertEquals(6, StringUtils.countMatches(fileAsString, "|"));
-
-        // check hash for LFC and for MD
+        //units data.txt file have only 9 separators, objects 10
+        assertEquals(9, StringUtils.countMatches(fileAsString, ","));
+        // check hash for LFC and for MD and global lfc+md from storage
         final String unitMDHash = generateExpectedDigest(UNIT_MD);
         final String unitLFCHash = generateExpectedDigest(UNIT_LFC_1);
-        assertTrue(fileAsString.startsWith("aedqaaaaasgxm4z4abt3gak55nwzxtyaaaba | INGEST | 2017-08-16T14:34:40.426 | " +
-            guidUnit+ " | OK | " + unitLFCHash + " | " + unitMDHash));
+
+        final LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLineExpected =
+            new LifeCycleTraceabilitySecureFileObject(
+                "aedqaaaaasgxm4z4abt3gak55nwzxtyaaaba",
+                "INGEST",
+                "2017-08-16T14:34:40.426",
+                guidUnit,
+                LifeCycleTraceabilitySecureFileObject.MetadataType.UNIT,
+                0,
+                "OK",
+                unitLFCHash,
+                unitMDHash,
+                expectedMDLFCGlobalHashFromStorage,
+                null
+            );
+        assertEquals(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected).toString(), fileAsString);
     }
 
     private String generateExpectedDigest(String resource) throws Exception {
         JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
         Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes());
+        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
         return digest.digest64();
     }
-    
+
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
             InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
@@ -202,7 +265,7 @@ public class CreateUnitSecureFileActionPluginTest {
         }).when(workspaceClient).putObject(org.mockito.Matchers.anyString(),
             org.mockito.Matchers.eq(filename), org.mockito.Matchers.any(InputStream.class));
     }
-    
+
     private String getSavedWorkspaceObject(String filename) throws IOException {
         byte[] encoded = Files
             .readAllBytes(Paths.get(System.getProperty("vitam.tmp.folder") + "/" + handler.getContainerName() + "_" +

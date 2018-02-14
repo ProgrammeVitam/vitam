@@ -165,7 +165,7 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         final JsonNode objectsLFC =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCycle(anyObject())).thenReturn(unitsLFC);
+        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
         when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(objectsLFC);
 
         saveWorkspacePutObject(
@@ -218,7 +218,7 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         handlerIO.addOutIOParameters(out);
 
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCycle(anyObject()))
+        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject()))
             .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
 
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -238,7 +238,7 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         final JsonNode objectsLFC =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCycle(anyObject())).thenReturn(unitsLFC);
+        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
         when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(objectsLFC);
 
         doThrow(new ContentAddressableStorageServerException("ContentAddressableStorageServerException"))
@@ -254,7 +254,7 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
         reset(logbookLifeCyclesClient);        
-        when(logbookLifeCyclesClient.selectUnitLifeCycle(anyObject()))
+        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
 
         final ItemStatus response = handler.execute(params, handlerIO);

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,16 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -52,9 +47,13 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Stores MetaData Unit plugin.
@@ -71,7 +70,8 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
     /**
      * Empty parameter Constructor
      */
-    public StoreMetaDataUnitActionPlugin() {}
+    public StoreMetaDataUnitActionPlugin() {
+    }
 
 
     @Override
@@ -125,12 +125,15 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
-            JsonNode docWithLfc = getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
+            JsonNode docWithLfc = DataCategory.getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
+
             // transfer json to workspace
             try {
-                // FIXME: 2/12/18 Using the same foler Units for UnitWithLFC is not a good choice, we have to use an other folder
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, fileName,
-                    docWithLfc, true, asyncIO);
+                String str = JsonHandler.unprettyPrint(docWithLfc);
+                InputStream is = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
+                handlerIO
+                    .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
+                        null, asyncIO);
             } catch (ProcessingException e) {
                 LOGGER.error(params.getObjectName(), e);
                 throw new WorkspaceClientServerException(e);

@@ -195,7 +195,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds)
+    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException, StorageNotFoundClientException {
         try {
             ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();

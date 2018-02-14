@@ -1,0 +1,321 @@
+{
+    "got" : {
+        "_id": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+        "_tenant": 0,
+        "_profil": "",
+        "FileInfo": {},
+        "_qualifiers": [
+            {
+                "qualifier": "TextContent",
+                "_nbc": 1,
+                "versions": [
+                    {
+                        "_id": "aeaaaaaaaahgausqab7boak55jchzzqaaaaq",
+                        "DataObjectGroupId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                        "DataObjectVersion": "TextContent_1",
+                        "FormatIdentification": {
+                            "FormatLitteral": "Plain Text File",
+                            "MimeType": "text/plain",
+                            "FormatId": "x-fmt/111"
+                        },
+                        "FileInfo": {
+                            "Filename": "object",
+                            "LastModified": "2017-06-20T07:10:05.629+02:00"
+                        },
+                        "Size": 3664,
+                        "Uri": "Content/ID1357.seda",
+                        "MessageDigest": "2e284ea9b5a2978cb211e84a619cc6c66a6cad5a0c5a880a98cff3020fe723fac39c9dae257542f73abc8b22c387880a8c6221d5e1d2235c96e25e9ed08c3f15",
+                        "Algorithm": "SHA-512",
+                        "_storage": {
+                            "_nbc": 2,
+                            "offerIds": [
+                                "vitam-iaas-app-02.int",
+                                "vitam-iaas-app-03.int"
+                            ],
+                            "strategyId": "default"
+                        }
+                    }
+                ]
+            },
+            {
+                "qualifier": "BinaryMaster",
+                "_nbc": 1,
+                "versions": [
+                    {
+                        "_id": "aeaaaaaaaahgausqab7boak55jchzyiaaabq",
+                        "DataObjectGroupId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                        "DataObjectVersion": "BinaryMaster_1",
+                        "FormatIdentification": {
+                            "FormatLitteral": "MIME Email",
+                            "MimeType": "message/rfc822",
+                            "FormatId": "fmt/950"
+                        },
+                        "FileInfo": {
+                            "Filename": "object",
+                            "LastModified": "2017-06-20T07:10:05.632+02:00"
+                        },
+                        "Size": 20027,
+                        "Uri": "Content/ID1356.seda",
+                        "MessageDigest": "f078e95eb46b4c928d466784c6d5c94b417b10b6fae558609a0d402ec5d4a1daaddd0f13d60a1d31fbbd68cf85547bb5a6f61c046e1fbf118d8448f6e166ae49",
+                        "Algorithm": "SHA-512",
+                        "_storage": {
+                            "_nbc": 2,
+                            "offerIds": [
+                                "vitam-iaas-app-02.int",
+                                "vitam-iaas-app-03.int"
+                            ],
+                            "strategyId": "default"
+                        }
+                    }
+                ]
+            }
+        ],
+        "_up": [
+            "aeaqaaaaaahgausqab7boak55jcmttqaaaaq"
+        ],
+        "_nbc": 0,
+        "_ops": [
+            "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba"
+        ],
+        "_sp": "Service_producteur",
+        "_sps": [
+            "Service_producteur"
+        ],
+        "_v": 1,
+        "_storage": {
+            "_nbc":2,
+            "strategyId": "default",
+            "offerIds": [
+                "vitam-iaas-app-02.int",
+                "vitam-iaas-app-03.int"
+            ]
+        }
+    },
+    "lfc": {
+        "_id": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+        "evId": "aedqaaaaachgausqab7boak55jchzyqaaaba",
+        "evType": "LFC.LFC_CREATION",
+        "evDateTime": "2017-08-16T08:59:03.266",
+        "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.LFC_CREATION.OK",
+        "outMessg": "Création du journal du cycle de vie",
+        "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+        "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+        "evDetData": null,
+        "events": [
+            {
+                "evId": "aedqaaaaachgausqab7boak55jchzyqaaaba",
+                "evParentId": null,
+                "evType": "LFC.CHECK_MANIFEST",
+                "evDateTime": "2017-08-16T08:59:03.266",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.CHECK_MANIFEST.OK",
+                "outMessg": "Succès de la vérification de la cohérence du bordereau",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jchzyqaaaba",
+                "evParentId": "aedqaaaaachgausqab7boak55jchzyqaaaba",
+                "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
+                "evDateTime": "2017-08-16T08:59:03.266",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+                "outMessg": "Succès de la création du journal du cycle de vie",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            },{
+                "evId": "aedqaaaaachgausqab7boak55jc62faaaaaq",
+                "evParentId": null,
+                "evType": "LFC.CHECK_CONSISTENCY",
+                "evDateTime": "2017-08-16T09:00:37.525",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.CHECK_CONSISTENCY.OK",
+                "outMessg": "Succès du contrôle de la cohérence entre objets, groupes d'objets et unités archivistiques",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jff4giaaaaq",
+                "evParentId": null,
+                "evType": "LFC.CHECK_DIGEST",
+                "evDateTime": "2017-08-16T09:05:28.637",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.CHECK_DIGEST.OK",
+                "outMessg": "Succès de la vérification de l'intégrité des objets versés",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jff4giaaaaq",
+                "evParentId": "aedqaaaaachgausqab7boak55jff4giaaaaq",
+                "evType": "LFC.CHECK_DIGEST.CALC_CHECK",
+                "evDateTime": "2017-08-16T09:05:28.625",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.CHECK_DIGEST.CALC_CHECK.OK",
+                "outMessg": "Succès du calcul d'une l'empreinte en SHA-512",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": "{\"MessageDigest\":\"f078e95eb46b4c928d466784c6d5c94b417b10b6fae558609a0d402ec5d4a1daaddd0f13d60a1d31fbbd68cf85547bb5a6f61c046e1fbf118d8448f6e166ae49\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"f078e95eb46b4c928d466784c6d5c94b417b10b6fae558609a0d402ec5d4a1daaddd0f13d60a1d31fbbd68cf85547bb5a6f61c046e1fbf118d8448f6e166ae49\", \"SystemAlgorithm\": \"SHA-512\"} ",
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jff4giaaaaq",
+                "evParentId": "aedqaaaaachgausqab7boak55jff4giaaaaq",
+                "evType": "LFC.CHECK_DIGEST.CALC_CHECK",
+                "evDateTime": "2017-08-16T09:05:28.617",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.CHECK_DIGEST.CALC_CHECK.OK",
+                "outMessg": "Succès du calcul d'une l'empreinte en SHA-512",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": "{\"MessageDigest\":\"f078e95eb46b4c928d466784c6d5c94b417b10b6fae558609a0d402ec5d4a1daaddd0f13d60a1d31fbbd68cf85547bb5a6f61c046e1fbf118d8448f6e166ae49\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"f078e95eb46b4c928d466784c6d5c94b417b10b6fae558609a0d402ec5d4a1daaddd0f13d60a1d31fbbd68cf85547bb5a6f61c046e1fbf118d8448f6e166ae49\", \"SystemAlgorithm\": \"SHA-512\"} ",
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jff4saaaaaq",
+                "evParentId": null,
+                "evType": "LFC.OG_OBJECTS_FORMAT_CHECK",
+                "evDateTime": "2017-08-16T09:05:28.709",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OG_OBJECTS_FORMAT_CHECK.OK",
+                "outMessg": "Succès de l'identification du format",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jff4saaaaaq",
+                "evParentId": "aedqaaaaachgausqab7boak55jff4saaaaaq",
+                "evType": "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT",
+                "evDateTime": "2017-08-16T09:05:28.682",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.OK",
+                "outMessg": "Format de l'objet identifié, référencé dans le référentiel interne et avec des informations cohérentes entre le manifeste et le résultat de l'outil d'identification.",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": "{}",
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jff4saaaaaq",
+                "evParentId": "aedqaaaaachgausqab7boak55jff4saaaaaq",
+                "evType": "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT",
+                "evDateTime": "2017-08-16T09:05:28.701",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.OK",
+                "outMessg": "Format de l'objet identifié, référencé dans le référentiel interne et avec des informations cohérentes entre le manifeste et le résultat de l'outil d'identification.",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": "{}",
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jlyfcaaaaaq",
+                "evParentId": null,
+                "evType": "LFC.OBJ_STORAGE",
+                "evDateTime": "2017-08-16T09:19:50.254",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OBJ_STORAGE.OK",
+                "outMessg": "Enregistrement de l'objet sur les offres de stockage réalisé avec succès",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jlyfcaaaaaq",
+                "evParentId": "aedqaaaaachgausqab7boak55jlyfcaaaaaq",
+                "evType": "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK",
+                "evDateTime": "2017-08-16T09:19:50.238",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK.OK",
+                "outMessg": "Enregistrement de l'objet réalisé avec succès",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": "{}",
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jlyfcaaaaaq",
+                "evParentId": "aedqaaaaachgausqab7boak55jlyfcaaaaaq",
+                "evType": "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK",
+                "evDateTime": "2017-08-16T09:19:50.245",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OBJ_STORAGE.OBJECT_STORAGE_SUB_TASK.OK",
+                "outMessg": "Enregistrement de l'objet réalisé avec succès",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": "{}",
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jlyh5iaaaaq",
+                "evParentId": null,
+                "evType": "LFC.OG_METADATA_INDEXATION",
+                "evDateTime": "2017-08-16T09:19:50.309",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OG_METADATA_INDEXATION.OK",
+                "outMessg": "Succès de l'indexation des métadonnées du groupe d'objets",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            },
+            {
+                "evId": "aedqaaaaachgausqab7boak55jqeumaaaaaq",
+                "evParentId": null,
+                "evType": "LFC.OG_METADATA_STORAGE",
+                "evDateTime": "2017-08-16T09:29:25.562",
+                "evIdProc": "aedqaaaaacgxm4z4abt3gak55jccrjyaaaba",
+                "evTypeProc": "INGEST",
+                "outcome": "OK",
+                "outDetail": "LFC.OG_METADATA_STORAGE.OK",
+                "outMessg": "Succès de l'enregistrement des métadonnées du groupe d'objet",
+                "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1851806288,\"SiteId\":1,\"GlobalPlatformId\":241193552}",
+                "obId": "aebaaaaaaahgausqab7boak55jchzyqaaaaq",
+                "evDetData": null,
+                "_tenant": 0
+            }
+        ],
+        "_tenant": 0,
+        "_v": 0
+    }
+}

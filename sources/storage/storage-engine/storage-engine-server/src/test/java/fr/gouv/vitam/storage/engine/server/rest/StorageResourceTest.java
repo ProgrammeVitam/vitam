@@ -97,6 +97,7 @@ public class StorageResourceTest {
     private static int serverPort;
 
     private static final String REST_URI = "/storage/v1";
+    private static final String INFO_URI = "/info";
     private static final String OBJECTS_URI = "/objects";
     private static final String REPORTS_URI = "/reports";
     private static final String PROFILE_URI = "/profiles";
@@ -219,24 +220,34 @@ public class StorageResourceTest {
     }
 
     @Test
-    public final void testObjects() {
-        given().contentType(ContentType.JSON)
+    public final void testGetObjectInformation() {
+
+        given().contentType(ContentType.JSON).accept(MediaType.APPLICATION_JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .body("").when().get(INFO_URI + OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        given().contentType(ContentType.JSON)
+
+        given().contentType(ContentType.JSON).accept(MediaType.APPLICATION_JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
-            .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .body("").when().get(INFO_URI + OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public final void testObjects() {
+
+        // GET (download)
         given().contentType(ContentType.JSON).body("").accept(MediaType.APPLICATION_OCTET_STREAM).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        given().contentType(ContentType.JSON)
+
+        given().contentType(ContentType.JSON).body("").accept(MediaType.APPLICATION_OCTET_STREAM).when()
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
-            .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
+        // POST
         given().contentType(ContentType.JSON).body("").when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
@@ -257,6 +268,7 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID).when()
             .post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
+        // DELETE
         given().contentType(ContentType.JSON).body("").when().delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -274,6 +286,8 @@ public class StorageResourceTest {
                 VitamConfiguration.getDefaultDigestType().getName())
             .body("").when().delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+
+        // HEAD
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E)
@@ -993,7 +1007,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode getContainerInformation(String strategyId)
+        public JsonNode getContainerInformations(String strategyId)
             throws StorageNotFoundException, StorageTechnicalException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
@@ -1051,7 +1065,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode getContainerObjectInformations(String strategyId, String objectId, List<String> offerIds)
+        public JsonNode getContainerInformations(String strategyId, DataCategory type, String objectId, List<String> offerIds)
             throws StorageNotFoundException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {

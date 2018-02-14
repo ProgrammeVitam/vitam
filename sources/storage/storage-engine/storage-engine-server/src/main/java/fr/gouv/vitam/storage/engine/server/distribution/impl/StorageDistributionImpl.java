@@ -636,7 +636,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerInformation(String strategyId) throws StorageException {
+    public JsonNode getContainerInformations(String strategyId) throws StorageException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
@@ -874,7 +874,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerObjectInformations(String strategyId, String objectId,
+    public JsonNode getContainerInformations(String strategyId, DataCategory type, String objectId,
         List<String> offerIds)
         throws StorageException {
 
@@ -903,7 +903,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 try (Connection connection = driver.connect(offer.getId())) {
 
                     final StorageObjectRequest request = new StorageObjectRequest(tenantId,
-                        DataCategory.OBJECT.getFolder(), objectId);
+                        type.getFolder(), objectId);
 
                     StorageMetadatasResult metaData = connection.getMetadatas(request);
                     offerIdToMetadata.put(offerId, JsonHandler.toJsonNode(metaData));

@@ -196,7 +196,7 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
         select.addOrderByAscFilter("evDateTime");
         try {
             RequestResponseOK requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookLifeCyclesClient.selectUnitLifeCycle(select.getFinalSelect()));
+                RequestResponseOK.getFromJsonNode(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(select.getFinalSelect()));
             List<JsonNode> foundUnitLifecycles = requestResponseOK.getResults();
             return foundUnitLifecycles;
         } catch (LogbookClientNotFoundException e) {

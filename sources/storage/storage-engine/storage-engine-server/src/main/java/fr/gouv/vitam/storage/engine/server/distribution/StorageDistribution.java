@@ -26,13 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.distribution;
 
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -45,6 +39,10 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * Interface Storage Distribution for Storage Operations
@@ -90,7 +88,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageTechnicalException
      *             Thrown in case of any technical problem
      */
-    JsonNode getContainerInformation(String strategyId) throws StorageException;
+    JsonNode getContainerInformations(String strategyId) throws StorageException;
 
     /**
      * Get Storage Container full content as an InputStream
@@ -187,18 +185,18 @@ public interface StorageDistribution extends VitamAutoCloseable {
     Response getContainerByCategory(String strategyId, String objectId, DataCategory category) throws StorageException;
 
     /**
-     * Get a specific Object informations
+     * Get a specific Object information
      *
-     * @param strategyId
-     *            id of the strategy
+     * @param strategyId id of the strategy
+     * @param type data category
      * @param objectId
      *            id of the object
      * @param offerIds list id of offers
      * @return JsonNode containing informations about the requested object
-     * 
-     * @throws StorageException 
+     *
+     * @throws StorageException
      */
-    JsonNode getContainerObjectInformations(String strategyId, String objectId,
+    JsonNode getContainerInformations(String strategyId, DataCategory type, String objectId,
         List<String> offerIds) throws StorageException;
 
 

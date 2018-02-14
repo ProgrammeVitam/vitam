@@ -26,7 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,6 +40,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -127,11 +131,14 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
-            JsonNode docWithLfc = getDocumentWithLFC(got, lfc, DataCategory.OBJECTGROUP);
+            JsonNode docWithLfc = DataCategory.getDocumentWithLFC(got, lfc, DataCategory.OBJECTGROUP);
             // transfer json to workspace
             try {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, fileName,
-                    docWithLfc, true, asyncIO);
+                String str = JsonHandler.unprettyPrint(docWithLfc);
+                InputStream is = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
+                handlerIO
+                    .transferInputStreamToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName, is,
+                        null, asyncIO);
             } catch (ProcessingException e) {
                 LOGGER.error(params.getObjectName(), e);
                 throw new WorkspaceClientServerException(e);

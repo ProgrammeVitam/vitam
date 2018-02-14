@@ -254,7 +254,7 @@ public class StoreMetaDataUnitActionPluginTest {
         assertEquals(lfc.get("_id").asText(), UNIT_GUID);
 
         // aggregate unit with lfc
-        JsonNode docWithLfc = plugin.getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
+        JsonNode docWithLfc = DataCategory.getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
         assertNotNull(docWithLfc);
         assertNotNull(docWithLfc.get("unit"));
         assertNotNull(docWithLfc.get("lfc"));

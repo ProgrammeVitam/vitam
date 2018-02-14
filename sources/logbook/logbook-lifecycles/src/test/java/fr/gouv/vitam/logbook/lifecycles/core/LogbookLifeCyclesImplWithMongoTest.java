@@ -324,7 +324,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
         logbookLifeCyclesImpl.selectUnit(JsonHandler.getFromString(select.getFinalSelect().toString()),
-            LogbookCollections.LIFECYCLE_UNIT);
+            true, LogbookCollections.LIFECYCLE_UNIT);
     }
 
     @Test(expected = LogbookNotFoundException.class)

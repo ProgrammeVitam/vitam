@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -517,21 +518,6 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object to transform
-     * @return the Json representation of the object in UnPretty Print format
-     */
-    public static String unprettyPrintLowerCamelCase(Object object) {
-        try {
-            ParametersChecker.checkParameter(OBJECT, object);
-            return OBJECT_MAPPER_LOWER_CAMEL_CASE.writeValueAsString(object);
-        } catch (final JsonProcessingException | IllegalArgumentException e) {
-            LOGGER.debug(e);
-            return "{}";
-        }
-    }
-
-    /**
-     *
      * @param object to write
      * @param file to write object 
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
@@ -570,7 +556,7 @@ public final class JsonHandler {
      * @throws InvalidParseOperationException
      */
     public static final InputStream writeToInpustream(final Object object) throws InvalidParseOperationException {
-        return new ByteArrayInputStream(writeAsString(object).getBytes());
+        return new ByteArrayInputStream(writeAsString(object).getBytes(StandardCharsets.UTF_8));
     }
     
     /**

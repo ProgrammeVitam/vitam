@@ -149,31 +149,6 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
     }
 
     /**
-     * getDocumentWithLFC, create a jsonNode with the document and its lfc
-     *
-     * @param document the document node
-     * @param lfc the lfc node
-     * @param dataCategory unit or got
-     * @return a new JsonNode with document and lfc inside
-     */
-    protected JsonNode getDocumentWithLFC(JsonNode document, JsonNode lfc, DataCategory dataCategory) {
-        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-        switch (dataCategory) {
-            case UNIT:
-            case OBJECTGROUP:
-                // get the document
-                docWithLFC.set(dataCategory.equals(DataCategory.UNIT) ? UNIT_KEY : GOT_KEY, document);
-                // get the lfc
-                docWithLFC.set(LFC_KEY, lfc);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported category " + dataCategory);
-        }
-
-        return docWithLFC;
-    }
-
-    /**
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
