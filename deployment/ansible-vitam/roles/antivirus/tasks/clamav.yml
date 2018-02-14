@@ -88,6 +88,19 @@
       enabled: yes
       state: stopped
 
+  - name: Add proxy directives to download databases when proxy is defined
+    blockinfile:
+      backup: yes
+      dest: /etc/clamav/freshclam.conf
+      insertbefore: EOF # necessary or this entry won't be asked
+      marker: "# {mark} ANSIBLE MANAGED BLOCK"
+      block: |
+        HTTPProxyServer {{ http_proxy_environnement | urlsplit('hostname') }}
+        HTTPProxyPort {{ http_proxy_environnement | urlsplit('port') }}
+    when: 
+      - http_proxy_environnement is defined 
+      - http_proxy_environnement != ''
+
   - name: update database for clamAV
     shell: freshclam
     ignore_errors: true
