@@ -1,12 +1,18 @@
 Administration
 ##############
 
-Cette partie décrit les fonctionnalités d'administration proposées à l'utilisateur :
+Cette partie décrit les fonctionnalités d'administration proposées à l'utilisateur ayant un rôle d'administrateur :
 
 - Consultation des référentiels (contextes applicatifs, contrats d'entrée. contrats d'accès, formats, profils d'archivage, règles de gestion et services agents)
 - Import des référentiels
 - Import d'un arbre de positionnement (arbre de positionnement, contextes applicatifs, contrats d'entrée. contrats d'accès, formats, profils d'archivage, règles de gestion et services agents)
 - Consultation et suivi des opérations et des opérations de sécurisation
+
+La plupart des fonctionnalités d'administration sont accessibles avec un compte d'administrateur sur tous les tenants. Les référentiels trans-tenants font exceptions à cette règle et ne peuvent être gérés que depuis le tenant d'administration.
+
+Fonctionnalités présentes sur tous les tenants
+++++++++++++++++++++++++++++++++++++++++++++++
+
 
 Journal des opérations
 ======================
@@ -120,41 +126,7 @@ Cette partie décrit les fonctionnalités d'import et de consultation du référ
 Import du référentiel des formats
 ---------------------------------
 
-Pour y accéder à l'écran d'import du référentiel, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des formats".
-
-|
-
-.. image:: images/menu_imports.png
-
-L'import du référentiel ne peut être effectué sans le fichier PRONOM. Pour cela, l'utilisateur peut récupérer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
-
-- http://www.nationalarchives.gov.uk
-- Section "PRONOM" > "DROID signature files"
-
-Le processus d'import du référentiel se décrit comme ceci :
-
-- Accéder à l'écran d'import du référentiel des formats et cliquer sur le bouton "sélectionner un fichier" ou faire glisser le fichier sur l'espace de téléchargement
-- Sélectionner le fichier .xml PRONOM récupéré précédemment
-- Cliquer sur le bouton "Importer"
-
-|
-
-.. image:: images/import_formats.png
-   :scale: 50
-   
-A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas sont possibles :
-
-- En cas d'erreur de fichier, la solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
-
-- En cas d'erreur pour cause de référentiel déjà existant détecté par la solution logicielle Vitam. Un message d'erreur s'affiche. L'import devient impossible.
-
-|
-
-.. image:: images/import_ko.png
-   :scale: 50
-
-- En cas de succès : La solution logicielle Vitam indique à l'utilisateur que son fichier est valide et lui propose d'importer définitivement le fichier. L'utilisateur peut ainsi accepter l'import définitif et le référentiel des formats est créé à partir des informations contenues dans le fichier XML soumis.
-
+Ce référentiel étant trans-tenant, cette fonctionnalité n'est présente que pour le tenant d'administration. Voir paragraphe : "Fonctionnalités présentes sur le tenant d'administration uniquement"
 
 Recherche d'un format
 ---------------------
@@ -220,7 +192,7 @@ Import du référentiel des règles de gestion
 
 L'import des règles de gestion est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des règles de gestion sont décrites dans la documentation du modèle de données.
 
-Pour y accéder, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des règles de gestion". 
+Pour y accéder, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des règles de gestion".
 
 |
 
@@ -253,8 +225,8 @@ Le processus d'import du référentiel se décrit comme ceci :
 
 .. image:: images/import_rg.png
    :scale: 50
-   
-   
+
+
 Une fenêtre modale s'ouvre alors pour indiquer soit :
 
 - Que le référentiel a bien été importé
@@ -420,7 +392,7 @@ Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modi
 
 |
  .. image:: images/ce_update.png
- 
+
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
 *Activation / désactivation*
@@ -533,8 +505,8 @@ Il est possible de modifier un contrat d'accès en cliquant sur le bouton "Modif
 |
 
  .. image:: images/ca_update.png
- 
- 
+
+
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
 *Activation / désactivation*
@@ -563,34 +535,10 @@ Un contrat peut restreindre l'accès aux unités archivistiques listées en tant
 Contextes applicatifs
 =======================
 
-Import de contextes
---------------------
+Import de contextes applicatifs
+--------------------------------
 
-L'import de contextes est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des contextes sont décrites dans la documentation du modèle de données.
-
-Pour importer un contexte, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contextes applicatifs".
-
-|
-
-.. image:: images/menu_imports.png
-
-L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
-
-|
-
-.. image:: images/import_contextes.png
-   :scale: 50
-   
-Une fenêtre modale s'ouvre alors pour indiquer soit :
-
-- Que les contextes ont bien été importés
-- Un échec de l'import du fichier, pouvant être causé par :
-
-    - Le fait que le contexte existe déjà dans le système
-    - Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
-    - Le fait que le contexte déclare des contrats d'entrée ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leur tenant.
-
-Cette opération est journalisée et disponible dans le Journal des opérations.
+Le référentiel étant trans-tenant, cette fonctionnalité n'est présente que sur le tenant d'administration. Voir paragraphe "Fonctionnalités présentes sur le tenant d'administration uniquement".
 
 Rechercher un contexte applicatif
 -----------------------------------
@@ -658,29 +606,6 @@ Les tenants sont affichés par bloc. Chaque bloc contenant les informations suiv
 
 .. image:: images/detail_contexte.png
 
-**Modifier un contexte applicatif**
-
-Il est possible de modifier un contexte applicatif depuis son l'écran de son détail en cliquant sur le bouton "Modifier" sur l'écran de détail d'un contexte. L'interface permet la modification de plusieurs champs du contexte, ainsi que de changer ses permissions (actif/inactif).
-
-*Activation / désactivation du contexte applicatif*
-
-L'administrateur a la possibilité d'activer / désactiver un contexte. Un bouton permet de sélectionner le statut actif ou inactif. Un clic sur ce bouton change la valeur du statut.
-
-*Activation / désactivation du contrôle des permissions*
-
-L'administrateur a la possibilité d'activer / désactiver le contrôle du contexte. Un bouton permet de sélectionner son état actif ou inactif. Un clic sur ce bouton change la valeur du statut.
-
-*Tenants*
-
-Il est possible d'ajouter ou supprimer des tenants concernés par le contexte en sélectionnant un identifiant de tenant en haut à droite et en cliquant sur "Ajouter". Il est impossible d'ajouter un tenant qui se trouve déjà dans la liste des tenants de ce contexte.
-Pour supprimer un tenant, il suffit de cliquer sur le bouton supprimer correspondant au tenant à retirer, et de valider cette suppression en utilisant le bouton "enregistrer".
-Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des contrats d'accès et des contrats d'entrée au travers un système de tag.
-
-
-.. image:: images/contexte_update.png
-
-Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contexte.
-
 
 Profils d'archivage
 ===================
@@ -708,7 +633,7 @@ L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant su
 
 .. image:: images/import_profils.png
    :scale: 50
-   
+
 Une fenêtre modale indique alors soit :
 
 - Les profils ont bien été importés
@@ -1015,3 +940,99 @@ Un clic sur le bouton "Télécharger" permet d'obtenir le journal sécurisé.
 |
 
 .. image:: images/verif_secu.png
+
+Fonctionnalités présentes sur le tenant d'administration uniquement
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Les fonctionnalités suivantes ne sont disponibles que sur le tenant d'administration de la solution logicielle Vitam, qui est configurable et dont le numéro dépend du paramétrage de la plateforme. Les opérations d'import de référentiels trans-tenant ne sont journalisées que sur ce tenant d'administration.
+
+Import du référentiel des formats
+=================================
+
+Pour y accéder à l'écran d'import du référentiel, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des formats".
+
+|
+
+.. image:: images/menu_imports.png
+
+L'import du référentiel ne peut être effectué sans le fichier PRONOM. Pour cela, l'utilisateur peut récupérer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
+
+- http://www.nationalarchives.gov.uk
+- Section "PRONOM" > "DROID signature files"
+
+Le processus d'import du référentiel se décrit comme ceci :
+
+- Accéder à l'écran d'import du référentiel des formats et cliquer sur le bouton "sélectionner un fichier" ou faire glisser le fichier sur l'espace de téléchargement
+- Sélectionner le fichier .xml PRONOM récupéré précédemment
+- Cliquer sur le bouton "Importer"
+
+|
+
+.. image:: images/import_formats.png
+   :scale: 50
+
+A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas sont possibles :
+
+- En cas d'erreur de fichier, la solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
+
+- En cas d'erreur pour cause de référentiel déjà existant détecté par la solution logicielle Vitam. Un message d'erreur s'affiche. L'import devient impossible.
+
+|
+
+.. image:: images/import_ko.png
+   :scale: 50
+
+- En cas de succès : La solution logicielle Vitam indique à l'utilisateur que son fichier est valide et lui propose d'importer définitivement le fichier. L'utilisateur peut ainsi accepter l'import définitif et le référentiel des formats est créé à partir des informations contenues dans le fichier XML soumis.
+
+
+Import de contextes applicatifs
+===============================
+
+L'import de contextes est une fonctionnalité réservée au tenant d'administration et pour un utilisateur ayant des droits d'administration. La structure et les valeurs des contextes sont décrites dans la documentation du modèle de données.
+
+Pour importer un contexte, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contextes applicatifs".
+
+|
+
+.. image:: images/menu_imports.png
+
+L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
+
+|
+
+.. image:: images/import_contextes.png
+   :scale: 50
+
+Une fenêtre modale s'ouvre alors pour indiquer soit :
+
+- Que les contextes ont bien été importés
+- Un échec de l'import du fichier, pouvant être causé par :
+
+    - Le fait que le contexte existe déjà dans le système
+    - Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
+    - Le fait que le contexte déclare des contrats d'entrée ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leur tenant.
+
+Cette opération est journalisée et disponible dans le Journal des opérations.
+
+**Modifier un contexte applicatif**
+
+Il est possible de modifier un contexte applicatif depuis son l'écran de son détail en cliquant sur le bouton "Modifier" sur l'écran de détail d'un contexte. L'interface permet la modification de plusieurs champs du contexte, ainsi que de changer ses permissions (actif/inactif).
+
+*Activation / désactivation du contexte applicatif*
+
+L'administrateur a la possibilité d'activer / désactiver un contexte. Un bouton permet de sélectionner le statut actif ou inactif. Un clic sur ce bouton change la valeur du statut.
+
+*Activation / désactivation du contrôle des permissions*
+
+L'administrateur a la possibilité d'activer / désactiver le contrôle du contexte. Un bouton permet de sélectionner son état actif ou inactif. Un clic sur ce bouton change la valeur du statut.
+
+*Tenants*
+
+Il est possible d'ajouter ou supprimer des tenants concernés par le contexte en sélectionnant un identifiant de tenant en haut à droite et en cliquant sur "Ajouter". Il est impossible d'ajouter un tenant qui se trouve déjà dans la liste des tenants de ce contexte.
+Pour supprimer un tenant, il suffit de cliquer sur le bouton supprimer correspondant au tenant à retirer, et de valider cette suppression en utilisant le bouton "enregistrer".
+Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des contrats d'accès et des contrats d'entrée au travers un système de tag.
+
+
+.. image:: images/contexte_update.png
+
+Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contexte.
