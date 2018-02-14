@@ -720,7 +720,7 @@ public class SedaUtils {
             List<String> fileVersions = sedaVersion.getVersionForType(manifestVersionEntry.getKey());
             for (final DataObjectInfo doi : manifestVersionEntry.getValue()) {
                 if (doi.getVersion() != null) {
-                    validVersionMap.put(doi.getId(),"");
+                    validVersionMap.put(doi.getId(), "");
                     final String versionParts[] = doi.getVersion().split("_");
                     String errorCode = manifestVersionEntry.getKey();
                     if (versionParts.length > 2 || !fileVersions.contains(versionParts[USAGE_POSITION])) {
@@ -728,6 +728,8 @@ public class SedaUtils {
                             sedaVersion.getVersionForOtherType(manifestVersionEntry.getKey());
                         if (otherFileVersions.contains(versionParts[USAGE_POSITION])) {
                             errorCode += CONTAINS_OTHER_TYPE;
+                        } else {
+                            errorCode += INCORRECT_VERSION_FORMAT;
                         }
                         invalidVersionMap.put(doi.getId() + "_" + errorCode, doi.getVersion());
                         validVersionMap.remove(doi.getId());
@@ -763,8 +765,8 @@ public class SedaUtils {
                 }
             }
         }
-        versionMap.put(INVALID_DATAOBJECT_VERSION,invalidVersionMap);
-        versionMap.put(VALID_DATAOBJECT_VERSION,validVersionMap);
+        versionMap.put(INVALID_DATAOBJECT_VERSION, invalidVersionMap);
+        versionMap.put(VALID_DATAOBJECT_VERSION, validVersionMap);
         return versionMap;
     }
 
