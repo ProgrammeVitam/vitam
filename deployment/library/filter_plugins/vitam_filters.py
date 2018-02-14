@@ -23,7 +23,6 @@ def remove_skipped_servers(result):
             new_list.append(elem)
         if 'skipped' in elem and elem['skipped'] != True:
             new_list.append(elem)
-
     return new_list
 
 

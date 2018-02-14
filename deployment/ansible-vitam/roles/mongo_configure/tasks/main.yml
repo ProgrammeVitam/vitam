@@ -1,5 +1,23 @@
 ---
 
+- name: Compute the mongos server list
+  set_fact: mongos_item="{{ item }}"
+  when:
+    - "mongo_cluster_name == hostvars[item]['mongo_cluster_name']"
+  with_items:
+    - "{{ groups[mongos] }}"
+  register: mongos_result
+
+- name: make a list from the result
+  set_fact:
+    mongos_list: "{{ mongos_result.results | remove_skipped_servers | map(attribute='ansible_facts.mongos_item') | list }}"
+  when: "inventory_hostname != 'localhost'"
+
+- name: make a list from the result (localhost deploy)
+  set_fact:
+    mongos_list: [ 'localhost' ]
+  when: "inventory_hostname == 'localhost'"
+
 - block:
 
     # Make sure the service is open (mongos listening on 27017)
@@ -10,10 +28,10 @@
     # Detect if authentication is enabled
 
     - name: Check if authent is enabled
-      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet --eval 'db.help()'"
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet --eval 'db.help()'"
       register: mongo_authent_enabled
       failed_when: false
-      no_log: false
+      no_log: true
 
     # Set mongo_no_auth facts
 
@@ -30,9 +48,9 @@
     # When authentication is required, we set mongodb admin credentials
     - name: Set mongodb authentication credentials
       set_fact:
-        mongo_credentials: " -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet"
+        mongo_credentials: " -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet"
       when: "mongo_authent_enabled.rc == 0"
-      no_log: false
+      no_log: true
 
     # Copy the mongodb scripts
 
@@ -64,7 +82,7 @@
 
     - name: Enable the sharding
       command: mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin {{ mongo_credentials }} {{ vitam_defaults.folder.root_path }}/app/mongos/enable-sharding.js
-      no_log: false
+      no_log: true
 
     # Initiate the databases and the related users
     # FIXME: use mongodb_user module which is curently in extras modules -> need to install pymongo on mongodb servers
@@ -77,7 +95,7 @@
         - masterdata
         - metadata
         - identity
-      no_log: false
+      no_log: true
       when: "mongo_cluster_name == 'mongo-data'"
 
     - name: Create the users
@@ -85,7 +103,7 @@
       with_items:
         - admin
         - offer
-      no_log: false
+      no_log: true
       when: "mongo_cluster_name != 'mongo-data'"
 
     # Activate security on mongo instances
@@ -173,22 +191,22 @@
     # Initiate the databases (now we know that authentication is enabled)
 
     - name: Initiate the databases
-      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
       with_items:
         - admin
         - logbook
         - masterdata
         - metadata
         - identity
-      no_log: false
+      no_log: true
       when: "mongo_cluster_name == 'mongo-data'"
 
     - name: Initiate the databases
-      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb.data.admin.user }} -p {{ mongodb.data.admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
+      command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
       with_items:
         - admin
         - offer
-      no_log: false
+      no_log: true
       when: "mongo_cluster_name != 'mongo-data'"
 
-  when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap|lower == "true"
+  when: mongos_list |last == inventory_hostname
