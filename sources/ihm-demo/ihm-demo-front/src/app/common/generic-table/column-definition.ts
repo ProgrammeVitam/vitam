@@ -62,7 +62,7 @@ export class ColumnDefinition {
   }
 
 
-  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any, onClick?: (item, httpService?, index?) => void, httpService?, sortable: any = true, sortFunction: (resultToSort) => any = (items) => true) {
+  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any, onClick?: (item, httpService?, index?) => void, httpService?, sortable: any = true, sortFunction: (resultToSort) => any = (items) => true, getLabel?: (iconType: string) => string) {
     const col = new ColumnDefinition('', label, []);
     if (computeCss !== undefined) {
       col.computeCss = computeCss;
@@ -76,7 +76,9 @@ export class ColumnDefinition {
     } else {
       col.onClick = onClick;
     }
-
+    if (getLabel !== undefined) {
+        col.getLabel = getLabel;                 
+    }
     col.sortable = sortable;
     col.sortFunction = sortFunction;
     col.getIcons = getIcons;
@@ -86,6 +88,7 @@ export class ColumnDefinition {
 
   public computeCss: () => any = () => '';
   public onClick: (item, iconType?: string) => void = () => null;
+  public getLabel: (iconType: string) => string = () => '';
   public transform: (value) => string = (x) => ObjectsService.stringify(x);
   public getValue: (item) => string = (x) => ObjectsService.stringify(x[this.field]);
   public getIcons: (item, icons: string[]) => string[] = (x, y) => y;

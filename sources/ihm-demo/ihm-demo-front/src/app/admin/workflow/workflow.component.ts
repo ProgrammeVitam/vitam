@@ -169,7 +169,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
     ColumnDefinition.makeStaticColumn('nextStep', 'Prochaine étape', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialIconColumn('Action', this.getIconsByGlobalState,
-      () => ({'width': '175px'}), this.onClickOnIcon, this.workflowService)
+      () => ({'width': '175px'}), this.onClickOnIcon, this.workflowService, false, undefined, this.getLabelIcon)
   ];
 
   public extraColumns = [];
@@ -337,4 +337,23 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
         break;
     }
   }
+    
+  getLabelIcon(iconType) {
+    if (!!iconType) {
+      iconType = iconType.split(' ')[0];
+    }
+    switch (iconType) {
+      case 'fa-play' :
+        return 'Suivant';
+      case 'fa-forward':
+        return 'Reprise';
+      case 'fa-refresh':
+        return 'Rejouer';
+      case 'fa-stop':
+        return 'Annuler';
+      case 'fa-pause':
+        return 'Pause';
+    }
+  }    
+    
 }
