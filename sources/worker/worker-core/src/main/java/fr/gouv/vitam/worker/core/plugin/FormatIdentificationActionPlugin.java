@@ -181,16 +181,13 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                     if (result.getStatus().equals(StatusCode.KO)) {
                                         switch (result.getSubStatus()) {
                                             case FILE_FORMAT_NOT_FOUND:
-                                                subTaskItemStatus.setItemId(FILE_FORMAT + "." + SUBSTATUS_UNKNOWN);
-                                                itemStatus.setItemId(FILE_FORMAT + "." + SUBSTATUS_UNKNOWN);
+                                                subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
                                                 break;
                                             case FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR:
-                                                subTaskItemStatus.setItemId(FILE_FORMAT + "." + SUBSTATUS_UNCHARTED);
-                                                itemStatus.setItemId(FILE_FORMAT + "." + SUBSTATUS_UNCHARTED);
+                                                subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
                                                 break;
                                             case FILE_FORMAT_PUID_NOT_FOUND:
-                                                subTaskItemStatus.setItemId(FILE_FORMAT + "." + SUBSTATUS_UNCHARTED);
-                                                itemStatus.setItemId(FILE_FORMAT + "." + SUBSTATUS_UNCHARTED);
+                                                subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
                                                 break;
                                         }
                                     }

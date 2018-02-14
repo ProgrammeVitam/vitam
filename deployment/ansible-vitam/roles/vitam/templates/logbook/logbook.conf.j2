@@ -24,8 +24,31 @@ elasticsearchNodes:
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
 
+## Configuration for logbook coherence check
 # disable purge of temporary LifeCycles
-disablePurge: {{ vitam.logbook.disablePurgeForTempLFC }}
+disableTempLfcPurge: {{ vitam.logbook.disablePurgeForTempLFC }}
+# list of operations that generate LFC
+opWithLFC: [
+  "PROCESS_SIP_UNITARY",
+  "FILINGSCHEME",
+  "HOLDINGSCHEME",
+  "UPDATE_RULES_ARCHIVE_UNITS",
+  "PROCESS_AUDIT",
+  "STP_UPDATE_UNIT"]
+# list of events not declared in wf
+opEventsNotInWf: [
+  "STP_SANITY_CHECK_SIP",
+  "SANITY_CHECK_SIP",
+  "CHECK_CONTAINER",
+  "STP_UPLOAD_SIP"
+]
+# list of events to skip for OP-LFC check
+opLfcEventsToSkip: [
+  "STP_SANITY_CHECK_SIP", "SANITY_CHECK_SIP", "CHECK_CONTAINER", "STP_UPLOAD_SIP", "ATR_NOTIFICATION", "ROLL_BACK",
+  "STORAGE_AVAILABILITY_CHECK", "ACCESSION_REGISTRATION",
+  "ROLL_BACK", "ATR_NOTIFICATION", "COMMIT_LIFE_CYCLE_OBJECT_GROUP", "COMMIT_LIFE_CYCLE_UNIT",
+  "LIST_OBJECTGROUP_ID", "REPORT_AUDIT",
+  "LIST_ARCHIVE_UNITS", "LIST_RUNNING_INGESTS"]
 
 # Configuration des alertes de securite
 alertEvents:

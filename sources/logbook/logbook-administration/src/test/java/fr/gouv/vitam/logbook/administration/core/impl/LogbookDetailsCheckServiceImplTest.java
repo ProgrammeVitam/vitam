@@ -3,9 +3,9 @@ package fr.gouv.vitam.logbook.administration.core.impl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookDetailsCheckService;
-import fr.gouv.vitam.logbook.common.model.EventModel;
-import fr.gouv.vitam.logbook.common.model.LogbookCheckResult;
-import fr.gouv.vitam.logbook.common.model.LogbookEventType;
+import fr.gouv.vitam.logbook.common.model.coherence.EventModel;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckError;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookEventType;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +33,7 @@ public class LogbookDetailsCheckServiceImplTest {
     public void checkEvents() throws Exception {
 
         logbookDetailsCheckService = new LogbookDetailsCheckServiceImpl();
-        List<LogbookCheckResult> logbookCheckResults;
+        List<LogbookCheckError> logbookCheckErrors;
 
         // check event "Action" conforme
         EventModel eventModel = new EventModel(LogbookEventType.ACTION, "aecaaaaabgheitkvabyhoalbapdzhniaaaaq",
@@ -41,8 +41,8 @@ public class LogbookDetailsCheckServiceImplTest {
             "SANITY_CHECK_SIP", "STP_PREPARE_LC_TRACEABILITY",
             "OK", "SANITY_CHECK_SIP.OK");
 
-        logbookCheckResults = logbookDetailsCheckService.checkEvent(eventModel);
-        Assert.assertTrue(logbookCheckResults.isEmpty());
+        logbookCheckErrors = logbookDetailsCheckService.checkEvent(eventModel);
+        Assert.assertTrue(logbookCheckErrors.isEmpty());
 
         // check event "Action" not conforme -> evDetails not conforme
         eventModel = new EventModel(LogbookEventType.ACTION, "aecaaaaabgheitkvabyhoalbapdzhniaaaaq",
@@ -50,14 +50,14 @@ public class LogbookDetailsCheckServiceImplTest {
             "SANITY_CHECK_SIP", "STP_PREPARE_LC_TRACEABILITY",
             "OK", "PREPARE_LC_TRACEABILITY.OK");
 
-        logbookCheckResults = logbookDetailsCheckService.checkEvent(eventModel);
-        Assert.assertEquals(1, logbookCheckResults.size());
-        Assert.assertEquals("aecaaaaabgheitkvabyhoalbapdzhniaaaaq", logbookCheckResults.get(0).getOperationId());
-        Assert.assertEquals("SANITY_CHECK_SIP", logbookCheckResults.get(0).getCheckedProperty());
+        logbookCheckErrors = logbookDetailsCheckService.checkEvent(eventModel);
+        Assert.assertEquals(1, logbookCheckErrors.size());
+        Assert.assertEquals("aecaaaaabgheitkvabyhoalbapdzhniaaaaq", logbookCheckErrors.get(0).getOperationId());
+        Assert.assertEquals("SANITY_CHECK_SIP", logbookCheckErrors.get(0).getCheckedProperty());
         Assert.assertTrue("The saved event outDetail value is : PREPARE_LC_TRACEABILITY.OK"
-            .contains(logbookCheckResults.get(0).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getSavedLogbookMsg()));
         Assert.assertTrue("The event outDetail value must be as : ^SANITY_CHECK_SIP(\\.(\\w+))*\\.OK$"
-            .contains(logbookCheckResults.get(0).getExpectedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getExpectedLogbookMsg()));
 
 
         // check event "Step" not conforme -> outcome and evDetails not conforme
@@ -65,19 +65,19 @@ public class LogbookDetailsCheckServiceImplTest {
             "", "aedqaaaabggsoscfaat22albarkwtviaaaaq", null,
             "STP_SANITY_CHECK_SIP", "",
             "WARNN", "PREPARE_LC_TRACEABILITY.FATAL");
-        logbookCheckResults = logbookDetailsCheckService.checkEvent(eventModel);
-        Assert.assertEquals(2, logbookCheckResults.size());
-        Assert.assertEquals("aecaaaaabgheitkvabyhoalbapdzhniaaaaq", logbookCheckResults.get(0).getOperationId());
-        Assert.assertEquals("STP_SANITY_CHECK_SIP", logbookCheckResults.get(0).getCheckedProperty());
+        logbookCheckErrors = logbookDetailsCheckService.checkEvent(eventModel);
+        Assert.assertEquals(2, logbookCheckErrors.size());
+        Assert.assertEquals("aecaaaaabgheitkvabyhoalbapdzhniaaaaq", logbookCheckErrors.get(0).getOperationId());
+        Assert.assertEquals("STP_SANITY_CHECK_SIP", logbookCheckErrors.get(0).getCheckedProperty());
         Assert.assertTrue("The saved event STP_SANITY_CHECK_SIP outcome value is : WARNN"
-            .contains(logbookCheckResults.get(0).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getSavedLogbookMsg()));
         Assert.assertTrue("The event outcome value must be as : STARTED, OK, WARNING, KO, FATAL"
-            .contains(logbookCheckResults.get(0).getExpectedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getExpectedLogbookMsg()));
 
         Assert.assertTrue("The saved event outDetail value is : PREPARE_LC_TRACEABILITY.FATAL"
-            .contains(logbookCheckResults.get(1).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(1).getSavedLogbookMsg()));
         Assert.assertTrue("The event outDetail value must be as : ^STP_SANITY_CHECK_SIP(\\.(\\w+))*\\.WARNN$"
-            .contains(logbookCheckResults.get(1).getExpectedLogbookMsg()));
+            .contains(logbookCheckErrors.get(1).getExpectedLogbookMsg()));
 
 
         // check event "Task" not conforme : Task/treatment with an incorrect evType
@@ -86,27 +86,27 @@ public class LogbookDetailsCheckServiceImplTest {
             "aedqaaaabgghay2jabzuaalbarkwxnyaaaaq",
             "LFC.CHECK_MANIFEST.LFC_CREATION", "LFC.CHECK_UNIT_SCHEMA", "KO", "LFC.CHECK_MANIFEST.LFC_CREATION.OK");
 
-        logbookCheckResults = logbookDetailsCheckService.checkEvent(eventModel);
-        Assert.assertEquals(2, logbookCheckResults.size());
-        Assert.assertEquals("aedqaaaabggsoscfaat22albarkwtiqaaaaq", logbookCheckResults.get(0).getOperationId());
-        Assert.assertEquals("aeaqaaaabeghay2jabzuaalbarkwwzyaaabq", logbookCheckResults.get(0).getLfcId());
-        Assert.assertEquals("LFC.CHECK_MANIFEST.LFC_CREATION", logbookCheckResults.get(0).getCheckedProperty());
+        logbookCheckErrors = logbookDetailsCheckService.checkEvent(eventModel);
+        Assert.assertEquals(2, logbookCheckErrors.size());
+        Assert.assertEquals("aedqaaaabggsoscfaat22albarkwtiqaaaaq", logbookCheckErrors.get(0).getOperationId());
+        Assert.assertEquals("aeaqaaaabeghay2jabzuaalbarkwwzyaaabq", logbookCheckErrors.get(0).getLfcId());
+        Assert.assertEquals("LFC.CHECK_MANIFEST.LFC_CREATION", logbookCheckErrors.get(0).getCheckedProperty());
         Assert.assertTrue("The saved event evType value is : LFC.CHECK_MANIFEST.LFC_CREATION"
-            .contains(logbookCheckResults.get(0).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getSavedLogbookMsg()));
         Assert.assertTrue("The event evType value must be as : LFC.CHECK_UNIT_SCHEMA.*"
-            .contains(logbookCheckResults.get(0).getExpectedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getExpectedLogbookMsg()));
 
         Assert.assertTrue("The saved event outDetail value is : LFC.CHECK_MANIFEST.LFC_CREATION.OK"
-            .contains(logbookCheckResults.get(1).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(1).getSavedLogbookMsg()));
         Assert.assertTrue(
             "The event outDetail value must be as : ^LFC.CHECK_MANIFEST.LFC_CREATION(\\.(\\w+))*\\.KO$"
-                .contains(logbookCheckResults.get(1).getExpectedLogbookMsg()));
+                .contains(logbookCheckErrors.get(1).getExpectedLogbookMsg()));
     }
 
     @Test
     public void checkLFCandOperation() throws Exception {
         logbookDetailsCheckService = new LogbookDetailsCheckServiceImpl();
-        List<LogbookCheckResult> logbookCheckResults = new ArrayList<>();
+        List<LogbookCheckError> logbookCheckErrors = new ArrayList<>();
         Map<String, EventModel> mapOpEvents = new HashMap<>();
         Map<String, EventModel> mapLfcEvents = new HashMap<>();
 
@@ -167,41 +167,38 @@ public class LogbookDetailsCheckServiceImplTest {
         );
 
         // Check coherence between logbook operation and lifecycles
-        logbookCheckResults = logbookDetailsCheckService.checkLFCandOperation(mapOpEvents, mapLfcEvents);
-        Assert.assertEquals(4, logbookCheckResults.size());
+        logbookCheckErrors = logbookDetailsCheckService.checkLFCandOperation(mapOpEvents, mapLfcEvents);
+        Assert.assertEquals(5, logbookCheckErrors.size());
 
-        // SANITY_CHECK_SIP is a System event -> it is skiped when check coherence between operation and lifecyles
-        Assert.assertTrue(!logbookCheckResults.contains("SANITY_CHECK_SIP"));
-
-        Assert.assertEquals("aedqaaaabggsoscfaat22albarkwtiqaaaaq", logbookCheckResults.get(0).getOperationId());
-        Assert.assertEquals("aeaqaaaabeghay2jabzuaalbarkwwzyaaabq", logbookCheckResults.get(0).getLfcId());
-        Assert.assertEquals("CHECK_UNIT_SCHEMA", logbookCheckResults.get(0).getCheckedProperty());
+        Assert.assertEquals("aedqaaaabggsoscfaat22albarkwtiqaaaaq", logbookCheckErrors.get(0).getOperationId());
+        Assert.assertEquals("aeaqaaaabeghay2jabzuaalbarkwwzyaaabq", logbookCheckErrors.get(0).getLfcId());
+        Assert.assertEquals("CHECK_UNIT_SCHEMA", logbookCheckErrors.get(0).getCheckedProperty());
         Assert.assertTrue("The saved LFC event evType value CHECK_UNIT_SCHEMA, is not present in logbook operation"
-            .contains(logbookCheckResults.get(0).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getSavedLogbookMsg()));
         Assert.assertTrue("The logbook operation must contains the lifecycle event value evType"
-            .contains(logbookCheckResults.get(0).getExpectedLogbookMsg()));
+            .contains(logbookCheckErrors.get(0).getExpectedLogbookMsg()));
 
-        Assert.assertEquals("CHECK_CLASSIFICATION_LEVEL", logbookCheckResults.get(1).getCheckedProperty());
+        Assert.assertEquals("CHECK_CLASSIFICATION_LEVEL", logbookCheckErrors.get(1).getCheckedProperty());
         Assert.assertTrue(
             "The saved LFC event evType value CHECK_CLASSIFICATION_LEVEL, is not present in logbook operation"
-                .contains(logbookCheckResults.get(1).getSavedLogbookMsg()));
+                .contains(logbookCheckErrors.get(1).getSavedLogbookMsg()));
         Assert.assertTrue(
             "The logbook operation must contains the lifecycle event value evType"
-                .contains(logbookCheckResults.get(1).getExpectedLogbookMsg()));
+                .contains(logbookCheckErrors.get(1).getExpectedLogbookMsg()));
 
-        Assert.assertEquals("UNIT_METADATA_STORAGE", logbookCheckResults.get(2).getCheckedProperty());
+        Assert.assertEquals("UNIT_METADATA_STORAGE", logbookCheckErrors.get(2).getCheckedProperty());
         Assert.assertTrue("The saved LFC event outcome value OK, is not conforme in logbook operation"
-            .contains(logbookCheckResults.get(2).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(2).getSavedLogbookMsg()));
         Assert.assertTrue(
             "The logbook operation must have the same event value outcome as in the lifecycle"
-                .contains(logbookCheckResults.get(2).getExpectedLogbookMsg()));
+                .contains(logbookCheckErrors.get(2).getExpectedLogbookMsg()));
 
-        Assert.assertEquals("CHECK_HEADER", logbookCheckResults.get(3).getCheckedProperty());
+        Assert.assertEquals("CHECK_HEADER", logbookCheckErrors.get(3).getCheckedProperty());
         Assert.assertTrue("The saved logbook operation event evType value CHECK_HEADER, is not present in the lifecycles"
-            .contains(logbookCheckResults.get(3).getSavedLogbookMsg()));
+            .contains(logbookCheckErrors.get(3).getSavedLogbookMsg()));
         Assert.assertTrue(
             "The logbook operation event evType, must be present in the lifecycles"
-                .contains(logbookCheckResults.get(3).getExpectedLogbookMsg()));
+                .contains(logbookCheckErrors.get(3).getExpectedLogbookMsg()));
 
     }
 }

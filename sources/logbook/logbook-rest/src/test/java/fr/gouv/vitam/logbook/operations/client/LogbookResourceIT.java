@@ -193,6 +193,9 @@ public class LogbookResourceIT {
             alertEvent.setOutDetail(ALERT_EVENT_TYPE + "." + ALERT_EVENT_OUTCOME);
             alertEvents.add(alertEvent);
             logbookConf.setAlertEvents(alertEvents);
+            logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
+            logbookConf.setOpWithLFC(new ArrayList<>());
+            logbookConf.setOpEventsNotInWf(new ArrayList<>());
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();
             PropertiesUtils.writeYaml(file, logbookConf);

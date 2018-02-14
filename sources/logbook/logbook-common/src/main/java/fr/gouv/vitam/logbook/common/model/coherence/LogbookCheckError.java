@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.model;
+package fr.gouv.vitam.logbook.common.model.coherence;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,8 +34,8 @@ import java.io.Serializable;
 /**
  * Description of LogbookCheckResult model. <br/>
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class LogbookCheckResult implements Serializable{
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class LogbookCheckError implements Serializable {
 
     /**
      * Operation identifier.
@@ -56,7 +56,7 @@ public class LogbookCheckResult implements Serializable{
     private String checkedProperty;
 
     /**
-     * actual logbook.
+     * Actual logbook.
      */
     @JsonProperty("savedLogbookMsg")
     private String savedLogbookMsg;
@@ -67,7 +67,7 @@ public class LogbookCheckResult implements Serializable{
     @JsonProperty("expectedLogbookMsg")
     private String expectedLogbookMsg;
 
-    public LogbookCheckResult() {
+    public LogbookCheckError() {
     }
 
     /**
@@ -79,7 +79,7 @@ public class LogbookCheckResult implements Serializable{
      * @param savedLogbookMsg
      * @param expectedLogbookMsg
      */
-    public LogbookCheckResult(String operationId, String lfcId, String checkedProperty, String savedLogbookMsg, String expectedLogbookMsg) {
+    public LogbookCheckError(String operationId, String lfcId, String checkedProperty, String savedLogbookMsg, String expectedLogbookMsg) {
         this.operationId = operationId;
         this.lfcId = lfcId;
         this.checkedProperty = checkedProperty;
@@ -125,5 +125,27 @@ public class LogbookCheckResult implements Serializable{
 
     public void setExpectedLogbookMsg(String expectedLogbookMsg) {
         this.expectedLogbookMsg = expectedLogbookMsg;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        LogbookCheckError that = (LogbookCheckError) o;
+
+        if (checkedProperty != null ? !checkedProperty.equals(that.checkedProperty) : that.checkedProperty != null)
+            return false;
+        if (savedLogbookMsg != null ? !savedLogbookMsg.equals(that.savedLogbookMsg) : that.savedLogbookMsg != null)
+            return false;
+        return expectedLogbookMsg != null ? expectedLogbookMsg.equals(that.expectedLogbookMsg) : that.expectedLogbookMsg == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = checkedProperty != null ? checkedProperty.hashCode() : 0;
+        result = 31 * result + (savedLogbookMsg != null ? savedLogbookMsg.hashCode() : 0);
+        result = 31 * result + (expectedLogbookMsg != null ? expectedLogbookMsg.hashCode() : 0);
+        return result;
     }
 }

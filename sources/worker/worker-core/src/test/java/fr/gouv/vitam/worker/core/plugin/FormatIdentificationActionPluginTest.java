@@ -192,8 +192,17 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT + "." + "UNCHARTED"));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
+        ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
+        assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
+        taskItemStatus.getSubTaskStatus().values().forEach(
+            subTaskItemStatus -> {
+                assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
+                assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNCHARTED"));
+            }
+        );
+        
     }
 
     private AdminManagementClient getMockedAdminManagementClient() {
@@ -286,10 +295,16 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT + "." + "UNKNOWN"));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT + "." + "UNKNOWN")
-            .getEvDetailData().equals( "{}" ));
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
+        ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
+        assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
+        taskItemStatus.getSubTaskStatus().values().forEach(
+                subTaskItemStatus -> {
+                    assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
+                    assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNKNOWN"));
+                }
+        );
     }
 
     @Test
@@ -312,8 +327,16 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT + "." + "UNCHARTED"));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
+        ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
+        assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
+        taskItemStatus.getSubTaskStatus().values().forEach(
+                subTaskItemStatus -> {
+                    assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
+                    assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNCHARTED"));
+                }
+        );
     }
 
     @Test

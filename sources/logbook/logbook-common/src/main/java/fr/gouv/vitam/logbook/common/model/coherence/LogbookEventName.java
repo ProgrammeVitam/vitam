@@ -24,35 +24,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.model;
+package fr.gouv.vitam.logbook.common.model.coherence;
 
 /**
- * Enumeration of the outcome status. <br/>
+ * Enumeration of the LogbookEvent names. <br/>
  */
-public enum OutcomeStatus {
+public enum LogbookEventName {
 
-    STARTED(0),
-    OK(1),
-    WARNING(2),
-    KO(3),
-    FATAL(4);
+    ID ("_id"),
 
-    private int weight;
+    EVID_PROC ("evIdProc"),
+
+    EVTYPE ("evType"),
+
+    EVTYPE_PARENT ("evTypeParent"),
+
+    OUTCOME("outcome"),
+
+    EVID("evId"),
+
+    OUTCOMEDETAILS("outDetail"),
+
+    EVPARENT_ID("evParentId");
 
     /**
-     * constructor. <br/>
+     * value.
      */
-    OutcomeStatus(int weight) {
-        this.weight = weight;
+    private String value;
+
+    /**
+     * constructor.
+     *
+     * @param value
+     */
+    LogbookEventName(String value) {
+        this.value = value;
     }
 
     /**
-     * Get Weight
-     * 
-     * @return weight
+     * getValue.
+     *
+     * @return
      */
-    public int getWeight() {
-        return weight;
+    public String getValue() {
+        return value;
     }
 
 }

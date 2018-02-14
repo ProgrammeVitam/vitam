@@ -27,13 +27,13 @@
 
 package fr.gouv.vitam.logbook.common.server;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+
+import java.util.List;
 
 /**
  * Logbook configuration class mapping
@@ -66,9 +66,26 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      * due to clock difference.
      */
     private Integer lifecycleTraceabilityOverlapDelay;
-    
-    private boolean disablePurge;
-    
+
+    /**
+     * Disable purge for temp LFC (used for coherence check)
+     */
+    private boolean disableTempLfcPurge;
+
+    /**
+     * List of events that are generated in a wf-operation but are not declared in the wf itself
+     */
+    private List<String> opEventsNotInWf;
+
+    /**
+     * List of operations that generate LFC (used for coherence check)
+     */
+    private List<String> opWithLFC;
+
+    /**
+     * List of events to skip for OP vs LFC check (used for coherence check)
+     */
+    private List<String> opLfcEventsToSkip;
 
     /**
      * LogbookConfiguration constructor
@@ -220,17 +237,59 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * @return disablePurge
+     * @return disableTempLfcPurge
      */
-    public boolean getDisablePurge() {
-        return disablePurge;
+    public boolean getDisableTempLfcPurge() {
+        return disableTempLfcPurge;
     }
 
     /**
-     * @param disablePurge to set
+     * @param disableTempLfcPurge to set
      */
-    public void setDisablePurge(boolean disablePurge) {
-        this.disablePurge = disablePurge;
+    public void setDisableTempLfcPurge(boolean disableTempLfcPurge) {
+        this.disableTempLfcPurge = disableTempLfcPurge;
+    }
+
+    /**
+     * @return opWithLFC
+     */
+    public List<String> getOpWithLFC() {
+        return opWithLFC;
+    }
+
+    /**
+     * @param opWithLFC to set
+     */
+    public void setOpWithLFC(List<String> opWithLFC) {
+        this.opWithLFC = opWithLFC;
+    }
+
+    /**
+     * @return opLfcEventsToSkip
+     */
+    public List<String> getOpLfcEventsToSkip() {
+        return opLfcEventsToSkip;
+    }
+
+    /**
+     * @param opLfcEventsToSkip to set
+     */
+    public void setOpLfcEventsToSkip(List<String> opLfcEventsToSkip) {
+        this.opLfcEventsToSkip = opLfcEventsToSkip;
+    }
+
+    /**
+     * @return opEventsNotInWf
+     */
+    public List<String> getOpEventsNotInWf() {
+        return opEventsNotInWf;
+    }
+
+    /**
+     * @param opEventsNotInWf to set
+     */
+    public void setOpEventsNotInWf(List<String> opEventsNotInWf) {
+        this.opEventsNotInWf = opEventsNotInWf;
     }
 
     /**

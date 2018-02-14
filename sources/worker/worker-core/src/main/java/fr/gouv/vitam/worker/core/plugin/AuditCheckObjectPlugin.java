@@ -115,7 +115,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         writeLfcFromItemStatus(param, itemStatus);
 
         if (actionType != null) {
-            return new ItemStatus(HANDLER_ID + "." + actionType).setItemsStatus(HANDLER_ID, itemStatus);
+            itemStatus.setGlobalOutcomeDetailSubcode(actionType);
         }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
@@ -140,20 +140,17 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     private void writeLfcFromItemStatus(WorkerParameters param, ItemStatus itemStatus){
         if(itemStatus.getGlobalStatus().isGreaterOrEqualToKo()){
             try (LogbookLifeCyclesClient lfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()){
-                // TODO : check if should write lfc for main task "AUDIT_CHECK_OBJECT" (see fix #3645)
-                // write logbook for subtasks
                 for (ItemStatus subtask: itemStatus.getItemsStatus().values()) {
                     if(subtask.getGlobalStatus().isGreaterOrEqualToKo()){
-                        String eventType = HANDLER_ID + "." + subtask.getItemId();
                         LogbookLifeCycleParameters logbookLfcParam = 
                                 LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
                             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                            VitamLogbookMessages.getEventTypeLfc(eventType),
+                            VitamLogbookMessages.getEventTypeLfc(HANDLER_ID),
                             GUIDReader.getGUID(param.getContainerName()),
                             param.getLogbookTypeProcess(),
                             StatusCode.KO,
-                            VitamLogbookMessages.getOutcomeDetailLfc(eventType, StatusCode.KO),
-                            VitamLogbookMessages.getCodeLfc(eventType, StatusCode.KO),
+                            VitamLogbookMessages.getOutcomeDetailLfc(HANDLER_ID, subtask.getItemId(), StatusCode.KO),
+                            VitamLogbookMessages.getCodeLfc(HANDLER_ID, subtask.getItemId(), StatusCode.KO),
                             GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(param)));
                         if (!subtask.getEvDetailData().isEmpty()) {
                             logbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
