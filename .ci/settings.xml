@@ -1,0 +1,103 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+	https://maven.apache.org/xsd/settings-1.0.0.xsd">
+	<!--
+	Note : Environment variables are used for the CI to configure platform-dependent options.
+	In particular, the names "*_USR" and "*_PSW" are named that way to ease the Jenkins configuration.
+	Cf. https://jenkins.io/doc/book/pipeline/syntax/#environment
+	-->
+	<servers>
+		<server>
+			<id>vitam</id>
+			<username>${env.CI_USR}</username>
+			<password>${env.CI_PSW}</password>
+		</server>
+		<server>
+			<id>vitam-interne</id>
+			<username>${env.CI_USR}</username>
+			<password>${env.CI_PSW}</password>
+		</server>
+		<server>
+			<id>snapshots</id>
+			<username>${env.CI_USR}</username>
+			<password>${env.CI_PSW}</password>
+		</server>
+		<server>
+			<id>releases</id>
+			<username>${env.CI_USR}</username>
+			<password>${env.CI_PSW}</password>
+		</server>
+		<server>
+			<id>vitam-gitlab</id>
+			<username>${env.CI_USR}</username>
+			<password>${env.CI_PSW}</password>
+		</server>
+		<server>
+			<id>npm-proxy</id>
+			<username>${env.CI_USR}</username>
+			<password>${env.CI_PSW}</password>
+		</server>
+	</servers>
+	<pluginGroups>
+		<pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+	</pluginGroups>
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<!-- Optional URL to server. Default value is http://localhost:9000 -->
+				<sonar.host.url>${env.SERVICE_SONAR_URL}</sonar.host.url>
+				<sonar.login>${env.CI_USR}</sonar.login>
+				<sonar.password>${env.CI_PSW}</sonar.password>
+			</properties>
+		</profile>
+		<profile>
+			<id>pic</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+                <nodeDownloadRoot>${env.SERVICE_NEXUS_URL}/repository/node-distrib/</nodeDownloadRoot>
+            </properties>
+		</profile>
+		<profile>
+			<id>user-vitam</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<username>${env.CI_USR}</username>
+				<password>${env.CI_PSW}</password>    
+			</properties>
+		</profile>
+	</profiles>
+	<mirrors>
+		<mirror>
+			<id>vitam-interne</id>
+			<name>vitam interne</name>
+			<url>${env.SERVICE_NEXUS_URL}/repository/maven-public/</url>
+			<mirrorOf>*,!node-dist-mirror</mirrorOf>
+		</mirror>
+		<mirror>
+			<id>node-interne</id>
+			<name>node installer interne</name>
+			<url>${env.SERVICE_NEXUS_URL}/repository/node-distrib/</url>
+			<mirrorOf>node-dist-mirror</mirrorOf>
+		</mirror>
+	</mirrors>
+<!--	  
+	<proxies>
+		<proxy>
+			<id>platform-proxy</id>
+			<active>true</active>
+			<protocol>http</protocol>
+			<host>${env.PROXY_HOSTNAME}</host>
+			<port>${env.PROXY_PORT}</port>
+		</proxy>
+	</proxies>
+-->
+</settings>

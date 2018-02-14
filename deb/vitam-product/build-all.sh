@@ -29,13 +29,13 @@ set -e
 WORKING_FOLDER=$(dirname $0)
 
 if [ ! -d ${WORKING_FOLDER}/target ]; then
-	mkdir ${WORKING_FOLDER}/target
+	mkdir -p ${WORKING_FOLDER}/target
 fi
 
 for item in $(ls -d ${WORKING_FOLDER}/*/ | grep -v "target" |grep -v _v2 | awk -F "/" '{print $(NF-1)}'); do
 	# Need to give the target folder relatively to the base folder...
 	echo ${item}
-	${WORKING_FOLDER}/build-generic.sh $item ${WORKING_FOLDER}/target
+	${WORKING_FOLDER}/build-generic.sh ${item} target
 done
 
 echo "vitam-consul"
