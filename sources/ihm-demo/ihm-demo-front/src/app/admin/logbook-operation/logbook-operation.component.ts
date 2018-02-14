@@ -60,7 +60,7 @@ export class LogbookOperationComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date', DateService.handleDateWithTime,
         () => ({'width': '100px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Statut',
-        LogbookOperationComponent.handleValue, LogbookOperationComponent.handleStatus,
+        LogbookOperationComponent.getOperationStatus, LogbookOperationComponent.handleStatus,
         () => ({'width': '125px'}), false),
     ColumnDefinition.makeStaticColumn('outMessg', 'Message', undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false)
@@ -118,6 +118,7 @@ export class LogbookOperationComponent extends PageComponent {
     switch (status) {
       case 'OK': return 'Succès';
       case 'STARTED': return 'En cours';
+      case 'En cours': return 'En cours';
       case 'KO': case 'FATAL': return 'Erreur';
       default: return 'Avertissement';
     }
