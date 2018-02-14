@@ -984,7 +984,7 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
   cursor: pointer; }
 
 .ui-menubar {
-  min-height: 50px; }
+  min-height: 80px; }
 
 #logout-text {
   text-decoration: underline; }

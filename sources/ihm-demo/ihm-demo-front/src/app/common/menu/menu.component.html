@@ -2,12 +2,12 @@
 <div class="fixed">
   <a routerLink="/admin/collection" class="vitam_logo">
     <!-- FIXME may be missed in dev build -->
-    <img src="assets/images/logoIHMPurpleR5.png"
+    <img src="assets/images/logo_vitam.png"
          class="logo" alt="Vitam" title="Vitam"/>
-    <span class="title">vitam</span>
+    <!-- <span class="title">vitam</span> -->
   </a>
 </div>
-<p-menubar [model]="items" [style]="{ 'text-align': 'left', 'padding-left': '200px'}">
+<p-menubar [model]="items" [style]="{ 'text-align': 'left', 'padding': '23px 0 0 230px'}">
   <div id="accessContract" *ngIf="isAuthenticated">
     <p-dropdown [style]="{'width':'200px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
                 [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
