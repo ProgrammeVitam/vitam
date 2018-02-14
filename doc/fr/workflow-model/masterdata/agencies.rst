@@ -83,31 +83,31 @@ Création du rapport au format JSON (STP_AGENCIES_REPORT)
 
     - FATAL : une erreur technique est survenue lors de la création du rapport d'import de référentiel des services agents (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de génération du rapport d'import du référentiel des services agents)
 
-Sauvegarde du CSV d'import (STP_AGENCIES_CSV)
+Sauvegarde du CSV d'import (STP_IMPORT_AGENCIES_BACKUP_CSV)
 ---------------------------------------------
 
   + **Règle** : sauvegarde de fichier d'import de référentiel des services agent
 
   + **Status** :
 
-    - OK : le fichier d'import du référentiel des services agent a bien été sauvegardé (STP_IMPORT_AGENCIES_CSV.OK=Succès du processus d'enregistrement du fichier d'import du référentiel des services agents)
+    - OK : le fichier d'import du référentiel des services agent a bien été sauvegardé (STP_IMPORT_AGENCIES_BACKUP_CSV.OK=Succès du processus de sauvegarde du fichier d''import de référentiel des services agents)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la sauvegarde de fichier d'import de référentiel des services agent (STP_IMPORT_AGENCIES_CSV.FATAL=Erreur fatale lors du processus d'enregistrement du fichier d'import du référentiel des services agents)
+    - FATAL : une erreur technique est survenue lors de la sauvegarde de fichier d'import de référentiel des services agent (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de sauvegarde du fichier d''import de référentiel des services agents)
 
-Sauvegarde d'une copie de la base de donnée (STP_AGENCIES_JSON)
+Sauvegarde d'une copie de la base de donnée (STP_BACKUP_AGENCIES)
 ---------------------------------------------------------------
 
   + **Règle** : création d'une copie de la base de données contenant le référentiel des services agent
 
   + **Status** :
 
-    - OK : la copie de la base de donnée contenant le référentiel des services agent a été crée avec succès (STP_IMPORT_AGENCIES_JSON.OK=Succès du processus d'enregistrement de la base de donnée contenant le référentiel des services agents)
+    - OK : la copie de la base de donnée contenant le référentiel des services agent a été crée avec succès (STP_BACKUP_AGENCIES.OK=Succès du processus de sauvegarde du référentiel des services agents)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la création d'une copie de la base de données contenant le référentiel des services agent (STP_IMPORT_AGENCIES_JSON.FATAL=Erreur fatale lors du processus d'enregistrement de la base de donnée contenant le référentiel des services agents)
+    - FATAL : une erreur technique est survenue lors de la création d'une copie de la base de données contenant le référentiel des services agent (STP_BACKUP_AGENCIES.FATAL=Erreur fatale lors du processus de sauvegarde du référentiel des services agents)
 
 Structure du rapport d'administration du référentiel des services agents
 ========================================================================
