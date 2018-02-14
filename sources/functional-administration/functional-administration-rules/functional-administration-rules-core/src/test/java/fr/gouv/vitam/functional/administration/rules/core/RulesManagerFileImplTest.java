@@ -697,6 +697,29 @@ public class RulesManagerFileImplTest {
     
     @Test
     @RunWithCustomExecutor
+    public void should_contains_report_in_error_report_when_csv_invalid()
+        throws Exception {
+        //Given
+        // mock Storage
+        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_MISSING_COLUMN);
+        // Then
+        final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
+        final JsonNode operationNode = errorReportAtJson.get(ReportConstants.JDO_DISPLAY);
+        final JsonNode errorNode = errorReportAtJson.get(ReportConstants.ERROR);
+        final ArrayNode line2ArrayNode = (ArrayNode) errorNode.get("line 2");
+
+        assertThat(operationNode.get("outMessg").asText())
+            .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
+
+        assertThat(line2ArrayNode.get(0).get("Code").asText())
+            .contains("STP_IMPORT_RULES_NOT_CSV_FORMAT.KO");
+
+        assertThat(line2ArrayNode.get(0).get("Message").asText()).contains(
+            "Le fichier importé n'est pas au format CSV");
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void should_contains_outMessg_in_error_report_when_csv_with_missing_Column()
         throws Exception {
         //Given
