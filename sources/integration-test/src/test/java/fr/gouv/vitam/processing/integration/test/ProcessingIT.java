@@ -1808,6 +1808,18 @@ public class ProcessingIT {
             .collect(Collectors.toList());
         assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
 
+
+
+        Document logbookLifeCycleGOT = db.getCollection("LogbookLifeCycleObjectGroup").find().first();
+
+        events = (List<Document>) logbookLifeCycleGOT.get("events");
+
+
+        lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.OBJECT_GROUP_UPDATE.OK"))
+            .collect(Collectors.toList());
+        assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase("diff");
+
+
         try {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {

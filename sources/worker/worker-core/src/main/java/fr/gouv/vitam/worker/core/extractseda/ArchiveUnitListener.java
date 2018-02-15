@@ -27,6 +27,13 @@
 package fr.gouv.vitam.worker.core.extractseda;
 
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OPERATIONS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +82,7 @@ import fr.gouv.vitam.common.mapping.serializer.LevelTypeSerializer;
 import fr.gouv.vitam.common.mapping.serializer.TextByLangSerializer;
 import fr.gouv.vitam.common.mapping.serializer.TextTypeSerializer;
 import fr.gouv.vitam.common.mapping.serializer.XMLGregorianCalendarSerializer;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
@@ -93,6 +101,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
@@ -139,7 +148,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Map<String, Set<String>> unitIdToSetOfRuleId;
     private UnitType workflowUnitType;
     private List<String> originatingAgencies;
-    private final List<String> existingGOTs;
+    private final Map<String, JsonNode> existingGOTs;
 
     public ArchiveUnitListener(HandlerIO handlerIO, ObjectNode archiveUnitTree, Map<String, String> unitIdToGuid,
         Map<String, String> unitIdToGroupId,
@@ -151,7 +160,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         MetaDataClientFactory metaDataClientFactory,
         Map<String, String> objectGroupIdToGuid,
         Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
-        List<String> originatingAgencies, List<String> existingGOTs) {
+        List<String> originatingAgencies, Map<String, JsonNode> existingGOTs) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -308,9 +317,9 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private String attachArchiveUnitToExisting(ArchiveUnitType archiveUnitType, String archiveUnitId) {
         String elementGUID;// check if systemId exist
         elementGUID = archiveUnitType.getManagement().getUpdateOperation().getSystemId();
-            existingUnitGuids.add(elementGUID);
-            ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
-            archiveUnitRoot.getArchiveUnit().setId(elementGUID);
+        existingUnitGuids.add(elementGUID);
+        ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
+        archiveUnitRoot.getArchiveUnit().setId(elementGUID);
 
         try {
             JsonNode existingData = loadExistingArchiveUnit(elementGUID, archiveUnitId);
@@ -322,8 +331,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     elementGUID, true);
             }
 
-
-            String type = existingData.get("$results").get(0).get("#unitType").asText();
+            JsonNode unitInDB = existingData.get("$results").get(0);
+            String type = unitInDB.get("#unitType").asText();
             UnitType dataUnitType = UnitType.valueOf(type);
 
             if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
@@ -335,7 +344,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             // Do not get originating agencies of holding
             if (!UnitType.HOLDING_UNIT.equals(dataUnitType)) {
                 ArrayNode originatingAgencies =
-                    (ArrayNode) existingData.get("$results").get(0).get(originatingAgencies());
+                    (ArrayNode) unitInDB.get(originatingAgencies());
                 List<String> originatingAgencyList = new ArrayList<>();
                 for (JsonNode agency : originatingAgencies) {
                     originatingAgencyList.add(agency.asText());
@@ -460,7 +469,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     groupId));
             }
 
-            existingGOTs.add(groupId);
             unitIdToGroupId.put(archiveUnitId, groupId);
             objectGroupIdToGuid.put(groupId, groupId);
 
@@ -475,6 +483,48 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 archiveUnitList.add(archiveUnitId);
                 objectGroupIdToUnitId.put(groupId, archiveUnitList);
             }
+
+
+
+                /*
+                 Add field _existing with value true in order to skip full indexation and just add necessary information like _sps, _ops, _up
+                  */
+            JsonNode ogInDB = existingObjectGroup.get("$results").get(0);
+            ObjectNode work = JsonHandler.createObjectNode();
+            ObjectNode originalOGGraphData =
+                JsonHandler.createObjectNode();// information to save in LFC, if no ok or warn then we can rollback
+            JsonNode ops = ogInDB.get(OPERATIONS.exactToken());
+
+            // prevent idempotence, if ObjectGroup have already the operation do not re-treat it
+            if (null != ops && ops.toString().contains(containerId)) {
+                existingGOTs.put(groupId, null);
+                return groupId;
+
+            }
+
+            originalOGGraphData.set(MetadataDocument.OPS, ops);
+            originalOGGraphData
+                .set(MetadataDocument.ORIGINATING_AGENCIES, ogInDB.get(ORIGINATING_AGENCIES.exactToken()));
+            originalOGGraphData.set(MetadataDocument.UP, ogInDB.get(UNITUPS.exactToken()));
+            work.set(SedaConstants.PREFIX_EXISTING, originalOGGraphData);
+
+            // This is used to be saved in ObjectGroup Folder and participate in distribution. But we must use it only to update LFC and save in storage.
+            ObjectNode existingOG = JsonHandler.createObjectNode();
+            existingOG.set(SedaConstants.PREFIX_WORK, work);
+
+            existingGOTs.put(groupId, existingOG);
+
+            // Write existing objectGroup to workspace
+            try {
+                final File tmpFile = handlerIO.getNewLocalFile(groupId + ".json");
+                JsonHandler.writeAsFile(existingOG, tmpFile);
+                handlerIO.transferFileToWorkspace(
+                    IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/" + groupId + ".json",
+                    tmpFile, true, true);
+            } catch (InvalidParseOperationException | ProcessingException e) {
+                throw new RuntimeException(new ProcessingException("Error while saving existing got to workspace", e));
+            }
+
             return groupId;
         }
         return null;
@@ -623,6 +673,17 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             final SelectParserMultiple selectRequest = new SelectParserMultiple();
             final SelectMultiQuery request = selectRequest.getRequest().reset();
+
+            ObjectNode projection = JsonHandler.createObjectNode();
+            ObjectNode fields = JsonHandler.createObjectNode();
+
+            fields.put(UNITTYPE.exactToken(), 1);
+            fields.put(ID.exactToken(), 1);
+            fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
+            fields.put(ORIGINATING_AGENCY.exactToken(), 1);
+            projection.set(FIELDS.exactToken(), fields);
+            request.setProjection(projection);
+
             return metadataClient.selectUnitbyId(request.getFinalSelect(), archiveUnitGuid);
 
         } catch (final MetaDataException e) {
@@ -650,6 +711,15 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             final SelectParserMultiple selectRequest = new SelectParserMultiple();
             final SelectMultiQuery request = selectRequest.getRequest().reset();
+            ObjectNode projection = JsonHandler.createObjectNode();
+            ObjectNode fields = JsonHandler.createObjectNode();
+            fields.put(UNITUPS.exactToken(), 1);
+            fields.put(ID.exactToken(), 1);
+            fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
+            fields.put(OPERATIONS.exactToken(), 1);
+            projection.set(FIELDS.exactToken(), fields);
+            request.setProjection(projection);
+
             return metadataClient.selectObjectGrouptbyId(request.getFinalSelect(), objectGroupId);
 
         } catch (final MetaDataException e) {
