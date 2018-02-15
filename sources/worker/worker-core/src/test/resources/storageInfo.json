@@ -1,0 +1,8 @@
+{
+  "_nbc": 2,
+  "offerIds": [
+    "offer1",
+    "offer2"
+  ],
+  "strategyId": "offerId"
+}

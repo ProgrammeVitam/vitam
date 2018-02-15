@@ -156,10 +156,12 @@ public class WorkerIT {
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static String CONTAINER_NAME = GUIDFactory.newGUID().toString();
-    private static String SIP_FILE_OK_NAME = "integration-worker/SIP.zip";
-    private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration-worker/SIP_arbor_OK.zip";
-    private static String SIP_WITHOUT_MANIFEST = "integration-worker/SIP_no_manifest.zip";
-    private static String SIP_CONFORMITY_KO = "integration-worker/SIP_Conformity_KO.zip";
+    private static final String SIP_FILE_OK_NAME = "integration-worker/SIP.zip";
+    private static final String SIP_ARBO_COMPLEXE_FILE_OK = "integration-worker/SIP_arbor_OK.zip";
+    private static final String SIP_WITHOUT_MANIFEST = "integration-worker/SIP_no_manifest.zip";
+    private static final String SIP_CONFORMITY_KO = "integration-worker/SIP_Conformity_KO.zip";
+    private static final String STORAGE_INFO_JSON = "integration-worker/storageInfo.json";
+    private static final String STORAGE_INFO_PATH = "StorageInfo/storageInfo.json";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -345,6 +347,10 @@ public class WorkerIT {
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
+        final InputStream storageInfoJson =
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
+
         // call processing
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
@@ -395,6 +401,10 @@ public class WorkerIT {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        final InputStream storageInfoJson =
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
 
         // call processing
@@ -450,6 +460,10 @@ public class WorkerIT {
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
+        final InputStream storageInfoJson =
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
+
         // call processing
         RestAssured.port = PORT_SERVICE_WORKER;
         RestAssured.basePath = WORKER_PATH;
@@ -481,6 +495,10 @@ public class WorkerIT {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(CONTAINER_NAME);
         workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        final InputStream storageInfoJson =
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        workspaceClient.putObject(CONTAINER_NAME, STORAGE_INFO_PATH, storageInfoJson);
 
         // call processing
         RestAssured.port = PORT_SERVICE_WORKER;

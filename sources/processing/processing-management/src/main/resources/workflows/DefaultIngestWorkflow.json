@@ -16,6 +16,18 @@
       "actions": [
         {
           "action": {
+            "actionKey": "PREPARE_STORAGE_INFO",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_SEDA",
             "behavior": "BLOCKING"
           }
@@ -52,6 +64,10 @@
               {
                 "name": "UnitType",
                 "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
               }
             ],
             "out": [
@@ -274,13 +290,13 @@
       "actions": [
         {
           "action": {
-            "actionKey": "OG_METADATA_STORAGE",
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "actionKey": "OG_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
         }
@@ -297,13 +313,13 @@
       "actions": [
         {
           "action": {
-            "actionKey": "UNIT_METADATA_STORAGE",
+            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
+            "actionKey": "UNIT_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
         }

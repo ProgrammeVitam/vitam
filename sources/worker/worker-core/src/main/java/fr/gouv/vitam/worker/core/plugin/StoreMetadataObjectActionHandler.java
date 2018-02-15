@@ -129,11 +129,11 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
             switch (dataCategory) {
                 case UNIT:
                     jsonResponse = loogbookClient.selectUnitLifeCycleById(idDocument, queryDsl,
-                        LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                        LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
                     break;
                 case OBJECTGROUP:
                     jsonResponse = loogbookClient.selectObjectGroupLifeCycleById(idDocument, queryDsl,
-                        LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                        LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported category " + dataCategory);

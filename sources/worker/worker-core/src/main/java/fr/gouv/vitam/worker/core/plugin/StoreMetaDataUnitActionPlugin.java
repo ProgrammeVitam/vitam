@@ -78,7 +78,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition)
-        throws ProcessingException, ContentAddressableStorageServerException {
+        throws ProcessingException {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(UNIT_METADATA_STORAGE);
@@ -143,29 +143,19 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
                 new ObjectDescription(DataCategory.UNIT, params.getContainerName(),
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store metadata object from workspace
-            StoredInfoResult result = storeObject(description, itemStatus);
+            storeObject(description, itemStatus);
 
-            // check returned result
-            if (result != null) {
-                // update sub task itemStatus
-                itemStatus.setEvDetailData(detailsFromStorageInfo(result));
-
-                // Update unit with store information
-                try {
-                    UpdateMultiQuery queryUpdate = storeStorageInfo((ObjectNode) unit, result, true);
-                    queryUpdate.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
-                    LOGGER.debug("Final Unit: {}", unit);
-                    metaDataClient.updateUnitbyId(queryUpdate.getFinalUpdate(), guid);
-                } catch (InvalidCreateOperationException e) {
-                    LOGGER.error(e);
-                }
-            }
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
             InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error(e);
             throw e;
         }
+    }
 
+    @Override
+    public boolean lfcHandledInternally() {
+        // De not update LFC upon LFC storage (it would make stored version obsolete...)
+        return true;
     }
 
 }

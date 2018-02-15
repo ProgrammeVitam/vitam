@@ -72,10 +72,8 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
  * Mock client implementation for storage
  */
 class StorageClientMock extends AbstractMockClient implements StorageClient {
-    static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
-    static final String MOCK_INFOS_RESULT = "{\"offerId\": \"offer1\",\"usableSpace\": 838860800}";
     static final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
-        "838860800}," + "{\"offerId\": " + "\"offer2\",\"usableSpace\": 838860800}]}";
+        "838860800, \"nbc\": 2}," + "{\"offerId\": " + "\"offer2\",\"usableSpace\": 838860800, \"nbc\": 2}]}";
     static final String MOCK_INFOS_EMPTY_RESULT_ARRAY = "{\"capacities\": []}";
     static final String MOCK_GET_FILE_CONTENT =
         "Vitam test of long long long long long long long long long long long long long long long long long long " +

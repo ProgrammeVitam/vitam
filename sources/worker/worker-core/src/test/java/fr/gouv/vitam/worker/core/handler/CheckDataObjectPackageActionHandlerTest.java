@@ -31,6 +31,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
@@ -96,6 +97,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class CheckDataObjectPackageActionHandlerTest {
     CheckDataObjectPackageActionHandler handler = new CheckDataObjectPackageActionHandler();
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
+    private static final String STORAGE_INFO_JSON = "storageInfo.json";
     private AdminManagementClient adminManagementClient;
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
@@ -176,6 +178,8 @@ public class CheckDataObjectPackageActionHandlerTest {
                 .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
         in.add(new IOParameter()
                 .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
 
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -196,6 +200,8 @@ public class CheckDataObjectPackageActionHandlerTest {
         assertNotNull(CheckDataObjectPackageActionHandler.getId());
         final InputStream seda_arborescence =
                 PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
+        final InputStream storageInfo =
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
@@ -203,7 +209,8 @@ public class CheckDataObjectPackageActionHandlerTest {
                 .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
                 .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
-
+        when(workspaceClient.getObject(anyObject(), eq("StorageInfo/storageInfo.json")))
+            .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         when(adminManagementClient.findIngestContractsByID(Matchers.anyString()))
                 .thenReturn(ClientMockResultHelper.getIngestContracts());
         action.addOutIOParameters(out);
@@ -216,6 +223,8 @@ public class CheckDataObjectPackageActionHandlerTest {
                 .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
         in.add(new IOParameter()
                 .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
         action.reset();
         action.addOutIOParameters(out);
         action.addInIOParameters(in);

@@ -23,15 +23,15 @@
   "savedLogbookMsg" : "The saved logbook operation event evType value CHECK_HEADER.CHECK_AGENT, is not present in the lifecycles",
   "expectedLogbookMsg" : "The logbook operation event evType, must be present in the lifecycles"
 }, {
+  "checkedProperty" : "PREPARE_STORAGE_INFO",
+  "savedLogbookMsg" : "The saved logbook operation event evType value PREPARE_STORAGE_INFO, is not present in the lifecycles",
+  "expectedLogbookMsg" : "The logbook operation event evType, must be present in the lifecycles"
+}, {
   "checkedProperty" : "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION",
   "savedLogbookMsg" : "The saved logbook operation event evType value CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION, is not present in the lifecycles",
   "expectedLogbookMsg" : "The logbook operation event evType, must be present in the lifecycles"
 }, {
   "checkedProperty" : "CHECK_HEADER.CHECK_CONTRACT_INGEST",
   "savedLogbookMsg" : "The saved logbook operation event evType value CHECK_HEADER.CHECK_CONTRACT_INGEST, is not present in the lifecycles",
-  "expectedLogbookMsg" : "The logbook operation event evType, must be present in the lifecycles"
-}, {
-  "checkedProperty" : "CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER",
-  "savedLogbookMsg" : "The saved logbook operation event evType value CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER, is not present in the lifecycles",
   "expectedLogbookMsg" : "The logbook operation event evType, must be present in the lifecycles"
 } ]

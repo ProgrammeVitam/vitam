@@ -676,7 +676,7 @@ public class ProcessingIT {
             assertThat(unitCheck.get("_storage")).isNotNull();
             Document storageUnit = (Document) unitCheck.get("_storage");
             assertThat(storageUnit.get("_nbc")).isNotNull();
-            assertThat(storageUnit.get("_nbc")).isEqualTo(1);
+            assertThat(storageUnit.get("_nbc")).isEqualTo(2);
 
             // check if units are valid
             MongoIterable<Document> resultCheckObjectGroups = db.getCollection("ObjectGroup").find();
@@ -684,7 +684,7 @@ public class ProcessingIT {
             assertThat(objectGroupCheck.get("_storage")).isNotNull();
             Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
             assertThat(storageObjectGroup.get("_nbc")).isNotNull();
-            assertThat(storageObjectGroup.get("_nbc")).isEqualTo(1);
+            assertThat(storageObjectGroup.get("_nbc")).isEqualTo(2);
 
             List<Document> qualifiers = (List<Document>) objectGroupCheck.get("_qualifiers");
             assertThat(qualifiers.size()).isEqualTo(3);
@@ -840,7 +840,7 @@ public class ProcessingIT {
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
         JsonNode logbookNode = logbookResult.get("$results").get(0);
-        assertEquals(logbookNode.get("events").get(5).get("outDetail").asText(),
+        assertEquals(logbookNode.get("events").get(6).get("outDetail").asText(),
             "CHECK_HEADER.CHECK_CONTRACT_INGEST.UNKNOWN.KO");
     }
 

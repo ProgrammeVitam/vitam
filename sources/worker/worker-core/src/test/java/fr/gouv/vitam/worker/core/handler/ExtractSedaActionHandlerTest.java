@@ -118,6 +118,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_WITH_SPECIAL_CHARACTERS =
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
+    private static final String STORAGE_INFO_JSON = "storageInfo.json";
     private static final String OK_MULTI_COMMENT = "extractSedaActionHandler/OK_multi_comment.xml";
     private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
     private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
@@ -164,7 +165,7 @@ public class ExtractSedaActionHandlerTest {
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws Exception {
 
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
@@ -201,6 +202,14 @@ public class ExtractSedaActionHandlerTest {
             .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+        in.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
+
+        final InputStream storageInfo =
+            PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
+        when(workspaceClient.getObject(anyObject(), eq("StorageInfo/storageInfo.json")))
+            .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
+        handlerIO.addInIOParameters(in);
     }
 
     @After

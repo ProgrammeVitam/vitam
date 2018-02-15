@@ -14,6 +14,14 @@
         "FR_ORG_AGEN"
     ],
     "_sp" : "FR_ORG_AGEN",
+    "_storage" : {
+        "_nbc": 2,
+        "offerIds": [
+            "offer1",
+            "offer2"
+        ],
+        "strategyId": "offerId"
+    },
     "_unitType" : "FILING_UNIT",
     "_tenant" : 0,
     "_max" : 1,
