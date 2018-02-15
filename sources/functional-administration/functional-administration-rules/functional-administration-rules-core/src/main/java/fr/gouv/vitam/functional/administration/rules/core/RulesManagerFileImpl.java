@@ -613,7 +613,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             for (FileRulesModel fileRulesModel : fileRulesModelToUpdate) {
                 updateFileRules(fileRulesModel, sequence);
             }
-            if (!fileRulesModelToInsert.isEmpty() &&
+            if (validatedRules.size() > 0 &&
                 fileRulesModelToInsert.containsAll(fileRulesModelsToImport)) {
                 commit(validatedRules);
                 secureRules = true;

@@ -156,7 +156,6 @@ public class RulesManagerFileImplTest {
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";    
-    private static final Integer TENANT_ID = 0;
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
 
@@ -234,7 +233,7 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         dbImpl = create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List<Integer> tenants = new ArrayList<>();
-        Integer tenantsList[] = {TENANT_ID, 1, 2, 3, 4, 5, 60, 70};
+        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10};
         tenants.addAll(Arrays.asList(tenantsList));
         createRuleDurationConfigration(tenants);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
@@ -248,6 +247,7 @@ public class RulesManagerFileImplTest {
     public void setUp() throws Exception {
         MongoDbAccessAdminImpl dbAccess = create(
             new DbConfigurationImpl(nodes, DATABASE_NAME));
+
         rulesFileManager =
             new RulesManagerFileImpl(dbAccess,
                 vitamCounterService, functionalBackupService, logbookOperationsClientFactory, metaDataClientFactory);
@@ -271,11 +271,12 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void testimportRulesFile() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(70);
+        int tenantId = 0;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-            .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
 
 
@@ -308,12 +309,11 @@ public class RulesManagerFileImplTest {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
 
-        // There are 22 rules in the file but, we don't now the order of test execution, so use the modulo to check
-        // if the number of rules in mongo is correct.
-        assertEquals(0, collection.count() % 22);
+        Select selectTenant = new Select();
+        selectTenant.setQuery(eq("#tenant", tenantId));
+        List<FileRules> fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(selectTenant.getFinalSelect()));
+        assertEquals(22, fileRules.size());
 
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00005"));
@@ -325,17 +325,17 @@ public class RulesManagerFileImplTest {
         assertEquals(file.getRuleid(), fileList.getResults().get(0).getRuleid());
 
         assertThat(file.getVersion()).isEqualTo(1);
-        client.close();
     }
 
     @Test(expected = FileRulesDurationException.class)
     @RunWithCustomExecutor
     public void testImportRuleDurationExceed() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(70);
+        int tenantId = 1;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-            .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         try {
             rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)), FILE_DURATION_EXCEED);
@@ -355,7 +355,7 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void testNoImportInProgess() throws Exception {
-        int tenantId = 1;
+        int tenantId = 2;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
 
@@ -365,7 +365,7 @@ public class RulesManagerFileImplTest {
         when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         when(client.selectOperation(Matchers.anyObject())).thenReturn(getEmptyJsonResponse());
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
     }
@@ -377,7 +377,7 @@ public class RulesManagerFileImplTest {
     @Test(expected = FileRulesImportInProgressException.class)
     @RunWithCustomExecutor
     public void testImportInProgess() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(60);
+        VitamThreadUtils.getVitamSession().setTenantId(3);
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
         when(client.selectOperation(Matchers.anyObject())).thenReturn(
@@ -463,12 +463,13 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void shouldInsertUpdateAndDeleteNewFileRules() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        int tenantId = 4;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final Select select = new Select();
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -476,9 +477,9 @@ public class RulesManagerFileImplTest {
 
 
         try {
-            List<FileRules> fileRules = new ArrayList<FileRules>();
+            List<FileRules> fileRules = new ArrayList<>();
             try {
-                select.setQuery(eq("#tenant", TENANT_ID));
+                select.setQuery(eq("#tenant", tenantId));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             } catch (ReferentialException e) {
             }
@@ -506,7 +507,8 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void shouldUpdateRulesType() throws DatabaseException, ReferentialException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        int tenantId = 5;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         MongoDbAccessAdminImpl dbAccess = create(
             new DbConfigurationImpl(nodes, DATABASE_NAME));
         dbAccess.deleteCollection(FunctionalAdminCollections.RULES);
@@ -515,7 +517,7 @@ public class RulesManagerFileImplTest {
             LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
             when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
             when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-                .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+                .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
             MetaDataClient metaDataClient = mock(MetaDataClient.class);
             when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -523,7 +525,7 @@ public class RulesManagerFileImplTest {
 
             List<FileRules> fileRules = new ArrayList<>();
             try {
-                select.setQuery(eq("#tenant", TENANT_ID));
+                select.setQuery(eq("#tenant", tenantId));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             } catch (ReferentialException e) {
             }
@@ -568,19 +570,21 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void shouldDoNothingOnFileRulesReferential() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        int tenantId = 6;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
         final Select select = new Select();
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
 
         try {
-            select.setQuery(eq("#tenant", TENANT_ID));
+            select.setQuery(eq("#tenant", tenantId));
             List<FileRules> fileRules =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
 
@@ -597,7 +601,7 @@ public class RulesManagerFileImplTest {
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
             assertEquals(fileRulesAfterInsert.stream().findAny().get().get(VitamFieldsHelper.version()),
-                vitamCounterService.getSequence(TENANT_ID, SequenceType.RULES_SEQUENCE));
+                vitamCounterService.getSequence(tenantId, SequenceType.RULES_SEQUENCE));
 
         } catch (ReferentialException | InvalidParseOperationException | IOException |
             InvalidCreateOperationException e) {
@@ -617,7 +621,8 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void should_retrieve_FileRulesCsvException_when_csv_with_bad_format_is_upload() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        int tenantId = 7;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         // mock Storage
 
@@ -628,7 +633,7 @@ public class RulesManagerFileImplTest {
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         assertThatThrownBy(
             () -> rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
@@ -640,7 +645,8 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void should_not_duplicate_error_on_each_line_in_report_when_error_append()
         throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        int tenantId = 8;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final InputStream inputStream =
             getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
 
@@ -748,7 +754,7 @@ public class RulesManagerFileImplTest {
 
 
         assertThatCode(() -> when(client.selectOperation(Matchers.anyObject()))
-            .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID))).doesNotThrowAnyException();
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, 0))).doesNotThrowAnyException();
 
         Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
@@ -774,13 +780,14 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void should_contains_evid_and_outMessg_in_report_when_csv_with_notUsedUpdatedRules_is_upload()
         throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        int tenantId = 9;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final Select select = new Select();
         // given
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-            .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -848,13 +855,14 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void should_assert_consistency_of_report_when_update_Rule_linked_to_au_append() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        int tenantId = 10;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final Select select = new Select();
         // given
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-            .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -900,7 +908,7 @@ public class RulesManagerFileImplTest {
             FILE_UPDATE_RULE_TYPE);
         List<FileRules> fileRulesAfterInsert =
             convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-        assertEquals(22, fileRulesAfterInsert.size());
+        assertEquals(23, fileRulesAfterInsert.size());
         final JsonNode reportAfterUpdateNode = JsonHandler.getFromFile(reportAfterUpdate.toFile());
         final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get(ReportConstants.JDO_DISPLAY);
         final String evIdAfterUpdate = jdoAfterUpdateNode.get("evId").asText();
@@ -953,7 +961,7 @@ public class RulesManagerFileImplTest {
         target = JsonDiff.asJson(json1, json1);
         assertEquals(target.toString(), "[]");
 
-        assertTrue(rulesFileManager.checkRuleConformity(JsonHandler.createArrayNode(), JsonHandler.createArrayNode(), TENANT_ID));
+        assertTrue(rulesFileManager.checkRuleConformity(JsonHandler.createArrayNode(), JsonHandler.createArrayNode(), 0));
     }
 
 }

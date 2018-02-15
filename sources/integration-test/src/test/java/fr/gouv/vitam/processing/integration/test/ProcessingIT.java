@@ -1048,6 +1048,12 @@ public class ProcessingIT {
         assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
             .get("R1"));
         assertNotNull(result.get("$hits").get("scrollId"));
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            client.importRulesFile(PropertiesUtils.getResourceAsStream("integration-processing/new_rule.csv"), "new_rule.csv");
+            JsonNode response = client.getRuleByID("R7");
+            assertTrue(response.get("$results").size() > 0);
+        }
+
     }
 
     @RunWithCustomExecutor
