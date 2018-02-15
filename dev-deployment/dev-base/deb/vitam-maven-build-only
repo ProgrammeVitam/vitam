@@ -29,14 +29,5 @@ set -e
 # Rebuild only the vitam code. To be executed at the root of a VITAM repository
 
 echo "Building maven rpm (with parallel build)..."
-mvn -T 1C -f sources/pom.xml clean package jdeb:jdeb -DskipTests
-
-echo "Creating local deb repository..."
-rm -f /code/Packages.gz
-# Génération du "repository"
-dpkg-scanpackages -m . | gzip --fast > /code/Packages.gz
-echo "Cleaning apt cache..."
-sudo apt-get clean
-echo "Creating apt cache..."
-sudo apt-get update
-echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"
+mvn -T 1C -f sources/pom.xml -Denv.SERVICE_NEXUS_URL=https://nexus.dev.programmevitam.fr/nexus/content/repositories/ clean package jdeb:jdeb -DskipTests
+vitam-recreate-repo

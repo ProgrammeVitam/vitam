@@ -109,5 +109,6 @@ COPY vitam-restart /usr/bin
 COPY vitam-bench-ingest /usr/bin
 COPY vitam-mongo-cli /usr/bin
 COPY vitam-mongo-cli-rs /usr/bin
+COPY rpm/vitam-recreate-repo /usr/bin
 
 RUN chmod a+x /usr/bin/vitam-*

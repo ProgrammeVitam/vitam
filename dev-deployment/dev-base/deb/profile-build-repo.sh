@@ -29,12 +29,10 @@
 if [[ "${EUID}" -ne 0 ]]; then
     if [ -f /code/Packages.gz ]; then
     	echo "Existing repository found in /code... Skipping generation."
-    	echo "Hint : you can refresh this repository using the following command : 'cd /code;dpkg-scanpackages -m . | gzip --fast > /code/Packages.gz'"
+    	echo "Hint : you can refresh this repository using the following command : 'vitam-recreate-repo'"
     else
     	echo "No existing /code repository found in /code... Building a fresh one..."
-    	pushd /code
-    	dpkg-scanpackages -m . | gzip --fast > /code/Packages.gz
-    	popd
+    	vitam-recreate-repo
     fi
 else
     echo "User root detected, repository will not be created automatically"

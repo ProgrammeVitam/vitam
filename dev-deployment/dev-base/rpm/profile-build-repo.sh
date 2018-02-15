@@ -29,10 +29,10 @@
 if [[ "${EUID}" -ne 0 ]]; then
     if [ -d /code/repodata ]; then
     	echo "Existing repository found in /code... Skipping generation."
-    	echo "Hint : you can refresh this repository using the following command : 'createrepo /code'"
+    	echo "Hint : you can refresh this repository using the following command : 'vitam-recreate-repo'"
     else
     	echo "No existing /code repository found in /code... Building a fresh one..."
-    	createrepo -x '.git/*' /code
+    	vitam-recreate-repo
     fi
 else
     echo "User root detected, repository will not be created automatically"
