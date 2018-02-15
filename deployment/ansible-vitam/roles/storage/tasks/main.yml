@@ -31,3 +31,12 @@
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
+
+- name: Ensure storage traceability systemd timer is enabled
+  systemd:
+    name: "vitam-storage-log-traceability.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
+  run_once: yes
+  delegate_to: "{{ groups['hosts-logbook'] | last }}"

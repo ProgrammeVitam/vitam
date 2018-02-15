@@ -1,30 +1,30 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.storage.log.backup;
+ *******************************************************************************/
+package fr.gouv.vitam.storage.log.traceability;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -43,13 +43,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Utility to launch the backup through command line and external scheduler
+ * Utility to launch the traceability through command line and external scheduler
  */
-public class StorageLogBackup {
+public class StorageLogTraceability {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogBackup.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogTraceability.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
-    private static final String VITAM_STORAGE_BACKUP_LOG_CONF_NAME = "storage-log-backup.conf";
+    private static final String VITAM_STORAGE_BACKUP_TRACEABILITY_CONF_NAME = "storage-log-traceability.conf";
 
     /**
      * @param args ignored
@@ -57,33 +57,33 @@ public class StorageLogBackup {
     public static void main(String[] args) {
         platformSecretConfiguration();
         try {
-            File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_LOG_CONF_NAME);
-            final StorageBackupConfiguration conf =
-                PropertiesUtils.readYaml(confFile, StorageBackupConfiguration.class);
+            File confFile = PropertiesUtils.findFile(VITAM_STORAGE_BACKUP_TRACEABILITY_CONF_NAME);
+            final StorageTraceabilityConfiguration conf =
+                PropertiesUtils.readYaml(confFile, StorageTraceabilityConfiguration.class);
 
-            storageLogBackup(conf);
+            storageLogTraceability(conf);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
-            throw new IllegalStateException("Storage log backup failed", e);
+            throw new IllegalStateException("Storage log backup traceability", e);
         }
     }
 
     /**
-     * Run storage log backup.
+     * Run storage log traceability.
      *
      * Start one thread per tenant and wait for all threads to proceed before returning.
      *
      * @param conf
      * @throws InterruptedException
      */
-    private static void storageLogBackup(StorageBackupConfiguration conf) throws InterruptedException {
+    private static void storageLogTraceability(StorageTraceabilityConfiguration conf) throws InterruptedException {
 
         CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
         AtomicBoolean reportError = new AtomicBoolean(false);
 
-        conf.getTenants().forEach((v) -> {
-            storageLogBackupByTenantId(v, doneSignal, reportError);
+        conf.getTenants().forEach((tenantId) -> {
+            storageLogTraceabilityForTenant(tenantId, doneSignal, reportError);
         });
 
         doneSignal.await();
@@ -93,7 +93,7 @@ public class StorageLogBackup {
         }
     }
 
-    private static void storageLogBackupByTenantId(int tenantId, CountDownLatch doneSignal,
+    private static void storageLogTraceabilityForTenant(int tenantId, CountDownLatch doneSignal,
         AtomicBoolean failedProcess) {
 
         VitamThreadFactory instance = VitamThreadFactory.getInstance();
@@ -103,7 +103,8 @@ public class StorageLogBackup {
                 final StorageClientFactory storageClientFactory =
                     StorageClientFactory.getInstance();
                 try (StorageClient client = storageClientFactory.getClient()) {
-                    client.storageLogBackup();
+                    // FIXME : Enable storage log traceability once server side is implemented
+                    // client.storageLogTraceability();
                 }
             } catch (Exception e) {
                 failedProcess.set(true);
@@ -115,7 +116,6 @@ public class StorageLogBackup {
         });
         thread.start();
     }
-
 
     private static void platformSecretConfiguration() {
         // Load Platform secret from vitam.conf file

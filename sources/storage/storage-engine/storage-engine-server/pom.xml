@@ -36,6 +36,11 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-log-traceability</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-common-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>

@@ -195,12 +195,18 @@ documentation:
         type: StorageResourceTraits.StoreWormItem
 
 /storage/backup:
-  displayName: Sauvegarde des logs storage par tenant
+  displayName: Sauvegarde des logs du storage par tenant
   description: Sert à sauvegarder les logs d'accès au moteur de stokage
   post:
     description: Sauvegarder les fichiers de logs par tenant. Les logs sont archivés puis stockés à travers le moteur de stockage
     is: [CollectionTraits.collection-get, StandardTraits.OverrideGet, StorageTraits.StrategyStorage]
 
+/storage/traceability:
+  displayName: Sécurisation (traçabilité) des logs du storage par tenant
+  description: Sert à sécuriser les logs d'accès au moteur de stokage
+  post:
+    description: Sécuriser les fichiers de logs du storage archivés par tenant.
+    is: [CollectionTraits.collection-get, StandardTraits.OverrideGet, StorageTraits.StrategyStorage]
 
 /status:
   get:

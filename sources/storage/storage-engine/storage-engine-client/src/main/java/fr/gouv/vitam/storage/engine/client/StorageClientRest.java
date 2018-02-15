@@ -77,7 +77,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String ORDER_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE =
         "Order of storage object must have a valid value";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
-    private static final String BACKUP_STORAGE_LOG_URI = "/storage/backup";
+    private static final String STORAGE_LOG_BACKUP_URI = "/storage/backup";
+    private static final String STORAGE_LOG_TRACEABILITY_URI = "/storage/traceability";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
 
     StorageClientRest(StorageClientFactory factory) {
@@ -427,14 +428,14 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK backupStorageLog()
-        throws StorageServerClientException, InvalidParseOperationException {
+    public RequestResponseOK storageLogBackup()
+        throws StorageServerClientException ,InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
             response =
-                performRequest(HttpMethod.POST, BACKUP_STORAGE_LOG_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.POST, STORAGE_LOG_BACKUP_URI, headers, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -452,6 +453,33 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             consumeAnyEntityAndClose(response);
         }
 
+    }
+
+    public RequestResponseOK storageLogTraceability()
+        throws StorageServerClientException, InvalidParseOperationException {
+
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            response = performRequest(HttpMethod.POST, STORAGE_LOG_TRACEABILITY_URI, headers,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
+                    throw new StorageServerClientException("Internal Server Error");
+            }
+            return RequestResponse.parseRequestResponseOk(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error:", e);
+            throw new StorageServerClientException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     @Override
@@ -478,5 +506,4 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             consumeAnyEntityAndClose(response);
         }
     }
-
 }

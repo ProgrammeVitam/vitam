@@ -150,18 +150,26 @@ public interface StorageClient extends BasicClient {
         throws StorageServerClientException;
 
     /**
-     * Call secure storage logbook operation <br>
-     * <br>
+     * Call storage log backup operation.
      *
-     * @return secured storage logbook as String
+     * @return Storage logbook backup response
      * @throws StorageServerClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponseOK backupStorageLog() throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK storageLogBackup() throws StorageServerClientException, InvalidParseOperationException;
+
+    /**
+     * Call storage log traceability operation.
+     *
+     * @return storage log traceability response
+     * @throws StorageServerClientException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponseOK storageLogTraceability() throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Get object information from objects in storage
-     * 
+     *
      * @param strategyId
      * @param guid
      * @param offerIds
