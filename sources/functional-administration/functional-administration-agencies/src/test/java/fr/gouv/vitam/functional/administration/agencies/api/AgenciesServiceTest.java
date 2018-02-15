@@ -291,10 +291,13 @@ public class AgenciesServiceTest {
 
         instantiateAgencyService();
 
-         agencyService.findAllAgenciesUsedByAccessContracts();
-         verify(manager).logEventSuccess("STP_IMPORT_AGENCIES.USED_CONTRACT");
+        agencyService.findAllAgenciesUsedByAccessContracts();
+        verify(manager).logEventSuccess("STP_IMPORT_AGENCIES.USED_CONTRACT");
 
-        usedAgenciesByContracts.add(new AgenciesModel());
+        AgenciesModel agModel = new AgenciesModel().setIdentifier("Test");
+        agenciesToUpdate.add(agModel);
+        usedAgenciesByContracts.add(agModel);
+        instantiateAgencyService();
 
         agencyService.findAllAgenciesUsedByAccessContracts();
         verify(manager).logEventWarning("STP_IMPORT_AGENCIES.USED_CONTRACT");
