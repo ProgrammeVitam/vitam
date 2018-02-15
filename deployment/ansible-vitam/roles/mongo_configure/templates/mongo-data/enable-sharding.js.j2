@@ -1,6 +1,6 @@
 
 // Add the shard to the configuration
-{% for host in groups[group_name] %}
+{% for host in groups[mongod] %}
     {% if hostvars[host]['mongo_rs_bootstrap'] is defined and hostvars[host]['mongo_rs_bootstrap']|lower == "true" %}
     {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] %}
         sh.addShard("shard{{ hostvars[host]['mongo_shard_id'] }}/{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
