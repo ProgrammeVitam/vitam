@@ -165,6 +165,8 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 public class IngestInternalIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     private static final int DATABASE_PORT = 12346;
+    private static final String LINE_3 = "line 3";
+    private static final String LINE_2 = "line 2";
     public static final String MONGO_DB_NAME = "Vitam";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -2031,7 +2033,7 @@ public class IngestInternalIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_DUPLICATED_REFERENCE));
         FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_CONTENT));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+        checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_3);
     }
 
 
@@ -2041,7 +2043,7 @@ public class IngestInternalIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_600000_DAY));
         FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_6000_DAYS));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+        checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
     @Test
@@ -2050,7 +2052,7 @@ public class IngestInternalIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_90000_YEAR));
         FileInputStream streamErrorReport = new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_9000_YEARS));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+        checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
     @Test
@@ -2060,7 +2062,7 @@ public class IngestInternalIT {
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_ANARCHY_RULE));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_ANARCHY_RULE));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+        checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
     @Test
@@ -2070,7 +2072,7 @@ public class IngestInternalIT {
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_DECADE_MEASURE));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_DECADE_MEASURE));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+        checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
     @Test
@@ -2080,7 +2082,7 @@ public class IngestInternalIT {
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_NEGATIVE_DURATION));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_NEGATIVE_DURATION));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+        checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
     @Test
@@ -2091,7 +2093,8 @@ public class IngestInternalIT {
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
         FileInputStream streamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_REFERENCE_WITH_WRONG_COMA));
-        checkFileRulesWithCustomReferential(stream, streamErrorReport);
+        checkFileRulesWithCustomReferential(stream, streamErrorReport,
+            LINE_3);
     }
 
     @Test
@@ -2102,25 +2105,26 @@ public class IngestInternalIT {
             new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_UNKNOWN_DURATION));
         final FileInputStream expectedStreamErrorReport =
             new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_UNKNOW_DURATION));
-        checkFileRulesWithCustomReferential(stream, expectedStreamErrorReport);
+        checkFileRulesWithCustomReferential(stream, expectedStreamErrorReport,
+            LINE_2);
     }
 
     /**
      * Check error report
-     *
-     * @param fileInputStreamToImport the given FileInputStream
+     *  @param fileInputStreamToImport the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
+     * @param lineNumber
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
-        final FileInputStream expectedStreamErrorReport)
+        final FileInputStream expectedStreamErrorReport, String lineNumber)
         throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.checkRulesFile(fileInputStreamToImport);
             final String readEntity = response.readEntity(String.class);
             final JsonNode responseEntityNode = JsonHandler.getFromString(readEntity);
-            final JsonNode responseError = responseEntityNode.get("error");
+            final JsonNode responseError = responseEntityNode.get("error").get(lineNumber).get(0).get("Code");
             final JsonNode expectedNode = JsonHandler.getFromInputStream(expectedStreamErrorReport);
-            final JsonNode expectedError = expectedNode.get("error");
+            final JsonNode expectedError = expectedNode.get("error").get(lineNumber).get(0).get("Code");
             assertEquals(expectedError, responseError);
             assertEquals(Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         }
