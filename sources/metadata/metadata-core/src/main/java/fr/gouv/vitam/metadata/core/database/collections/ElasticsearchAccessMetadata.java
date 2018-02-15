@@ -514,7 +514,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
 
         if (response.status() != RestStatus.OK) {
-            LOGGER.error("Error " + response.status() + " from : " + request + ":" + query + " # " + filter);
+            LOGGER.debug("Error " + response.status() + " from : " + request + ":" + query + " # " + filter);
             throw new MetaDataExecutionException("Error " + response.status());
         }
         final SearchHits hits = response.getHits();
@@ -522,7 +522,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.warn("Warning, more than " + GlobalDatas.LIMIT_LOAD + " hits: " + hits.getTotalHits());
         }
         if (hits.getTotalHits() == 0) {
-            LOGGER.error("No result from : " + request);
+            LOGGER.debug("No result from : " + request);
             return isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
@@ -536,7 +536,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             if (src != null && isUnit) {
                 final Object val = src.get(Unit.NBCHILD);
                 if (val == null) {
-                    LOGGER.error("Not found " + Unit.NBCHILD);
+                    LOGGER.debug("Not found " + Unit.NBCHILD);
                 } else if (val instanceof Integer) {
                     nb += (Integer) val;
                     if (GlobalDatasDb.PRINT_REQUEST) {

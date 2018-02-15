@@ -130,10 +130,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final BadRequestException e) {
             throw new BadRequestException(BAD_REQUEST_EXCEPTION);
@@ -172,10 +172,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response);
 
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final InvalidParseOperationException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
@@ -226,10 +226,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             ItemStatus itemStatus = response.readEntity(ItemStatus.class);
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).parseHeadersFromResponse(response);
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -263,13 +263,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
 
         } catch (final WorkflowNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new WorkflowNotFoundException(NOT_FOUND, e);
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -338,13 +338,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             // Don't we thrown an exception if it is another status ?
             return response.readEntity(ItemStatus.class);
         } catch (final WorkflowNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new WorkflowNotFoundException(NOT_FOUND, e);
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -374,10 +374,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             // Don't we thrown an exception if it is another status ?
             return response.readEntity(ItemStatus.class);
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -403,7 +403,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new WorkerAlreadyExistsException("Worker already exist");
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR2, e);
         } catch (final InvalidParseOperationException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
@@ -427,7 +427,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new ProcessingBadRequestException("Worker Family, or worker does not exist");
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR2, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -460,10 +460,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -480,7 +480,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.debug("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } catch (final InvalidParseOperationException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
@@ -527,10 +527,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             // Return the created verification logbookOperation
             return Response.fromResponse(response).build();
         } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            LOGGER.debug(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -546,10 +546,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.debug("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.debug("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);

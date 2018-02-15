@@ -184,7 +184,7 @@ public class DbRequest {
             if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
             } else {
-                LOGGER.error(
+                LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(requestParser.model())
@@ -200,7 +200,7 @@ public class DbRequest {
         for (; !result.getCurrentIds().isEmpty() && rank < maxQuery; rank++) {
             final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result);
             if (newResult == null) {
-                LOGGER.error(
+                LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(result.type)
@@ -212,7 +212,7 @@ public class DbRequest {
             if (!newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
             } else {
-                LOGGER.error(
+                LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
                 // XXX TODO P1 should be adapted to have a correct error feedback
                 result = new ResultError(newResult.type)
@@ -239,7 +239,7 @@ public class DbRequest {
         }
         // others do not allow empty result
         if (result.getCurrentIds().isEmpty()) {
-            LOGGER.error(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
+            LOGGER.debug(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
             // XXX TODO P1 should be adapted to have a correct error feedback
             result = new ResultError(result.type)
                 .addError(result != null ? result.getCurrentIds().toString() : NO_RESULT_TRUE)
@@ -841,7 +841,7 @@ public class DbRequest {
                     }
                     last.addFinal(unit);
                 } else {
-                    LOGGER.error("Result with Id {} was not found but should!", id);
+                    LOGGER.debug("Result with Id {} was not found but should!", id);
                 }
             }
             return last;
@@ -882,7 +882,7 @@ public class DbRequest {
                 }
                 last.addFinal(og);
             } else {
-                LOGGER.error("Result with Id {} was not found but should!", id);
+                LOGGER.debug("Result with Id {} was not found but should!", id);
             }
         }
         return last;
@@ -930,7 +930,7 @@ public class DbRequest {
         try {
             validator = new SchemaValidationUtils();
         } catch (FileNotFoundException | ProcessingException e) {
-            LOGGER.error("Unable to initialize Json Validator");
+            LOGGER.debug("Unable to initialize Json Validator");
             throw new MetaDataExecutionException(e);
         }
 

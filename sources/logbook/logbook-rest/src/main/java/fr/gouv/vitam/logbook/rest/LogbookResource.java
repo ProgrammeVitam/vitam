@@ -209,7 +209,7 @@ public class LogbookResource extends ApplicationStatusResource {
                         .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -267,7 +267,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .build();
             }
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -360,7 +360,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             logbookOperation.update(operation);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             finalResponse = Response.status(Response.Status.NOT_FOUND).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -475,7 +475,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -514,7 +514,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 JsonHandler.getFromString(arrayNodeOperations, LogbookOperationParameters[].class);
             logbookOperation.updateBulkLogbookOperation(arrayOperations);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -699,7 +699,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 logbookLifeCycle.commitUnit(operationId, unitLcId);
             }
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -751,7 +751,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             logbookLifeCycle.rollbackUnit(operationId, unitLcId);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -799,7 +799,7 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } catch (LogbookNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (LogbookAlreadyExistsException e) {
             LOGGER.error(e);
@@ -922,7 +922,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 JsonHandler.getFromString(arrayNodeLifecycle, LogbookLifeCycleUnitParameters[].class);
             logbookLifeCycle.updateBulkLogbookLifecycle(idOp, arrayLifecycles);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -1016,7 +1016,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
 
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .addResult(JsonHandler.createArrayNode())
@@ -1259,7 +1259,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 }
             }
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -1311,7 +1311,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             logbookLifeCycle.rollbackObjectGroup(operationId, objGrpId);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -1359,7 +1359,7 @@ public class LogbookResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } catch (LogbookNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.debug(e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (LogbookAlreadyExistsException e) {
             LOGGER.error(e);
@@ -1430,7 +1430,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 JsonHandler.getFromString(arrayNodeLifecycle, LogbookLifeCycleObjectGroupParameters[].class);
             logbookLifeCycle.updateBulkLogbookLifecycle(idOp, arrayLifecycles);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (final LogbookDatabaseException exc) {
             LOGGER.error(exc);
@@ -1577,7 +1577,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     String.format("No lifeCycle found for the given id %s.", objectGroupLifeCycleId));
             }
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .addResult(JsonHandler.createArrayNode())
@@ -1612,7 +1612,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             logbookLifeCycle.rollBackUnitsByOperation(operationId);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -1652,7 +1652,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             logbookLifeCycle.rollBackObjectGroupsByOperation(operationId);
         } catch (final LogbookNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.debug(exc);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())

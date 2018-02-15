@@ -374,12 +374,12 @@ public class WorkspaceClient extends DefaultClient {
                 }));
             } else {
                 if (response != null) {
-                    LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                    LOGGER.debug(response.getStatusInfo().getReasonPhrase());
                 }
                 return new RequestResponseOK().addResult(Collections.<URI>emptyList());
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            LOGGER.debug(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -396,7 +396,7 @@ public class WorkspaceClient extends DefaultClient {
             response = performRequest(HttpMethod.POST, CONTAINERS + containerName, null,
                 compressInformation, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
         } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            LOGGER.debug(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -426,7 +426,7 @@ public class WorkspaceClient extends DefaultClient {
                         LOGGER.debug(containerName + File.separator + folderName + " : " +
                             Response.Status.CREATED.getReasonPhrase());
                     } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-                        LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+                        LOGGER.debug(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
                         throw new ContentAddressableStorageNotFoundException(
                             ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                     } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
@@ -434,7 +434,7 @@ public class WorkspaceClient extends DefaultClient {
                         throw new ContentAddressableStorageAlreadyExistException(
                             ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                     } else if (Status.NOT_ACCEPTABLE.getStatusCode() == response.getStatus()) {
-                        LOGGER.error(ErrorMessage.FOLDER_OR_FILE_NAME_NOT_ALLOWED.getMessage());
+                        LOGGER.debug(ErrorMessage.FOLDER_OR_FILE_NAME_NOT_ALLOWED.getMessage());
                         RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
                         if (!requestResponse.isOk()) {
                             VitamError vitamError = (VitamError) requestResponse;
@@ -449,12 +449,12 @@ public class WorkspaceClient extends DefaultClient {
                         throw new ContentAddressableStorageZipException(
                             ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     } else {
-                        LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                        LOGGER.debug(response.getStatusInfo().getReasonPhrase());
                         throw new ContentAddressableStorageServerException(
                             ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     }
                 } catch (final VitamClientInternalException e) {
-                    LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+                    LOGGER.debug(INTERNAL_SERVER_ERROR2, e);
                     throw new ContentAddressableStorageServerException(e);
                 } finally {
                     consumeAnyEntityAndClose(response);
@@ -467,7 +467,7 @@ public class WorkspaceClient extends DefaultClient {
             }
 
         } else {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+            LOGGER.debug(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
         }
     }
@@ -489,14 +489,14 @@ public class WorkspaceClient extends DefaultClient {
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return new RequestResponseOK().addResult(response.getHeaderString(GlobalDataRest.X_DIGEST));
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                LOGGER.debug(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
             } else {
-                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                LOGGER.debug(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            LOGGER.debug(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -515,11 +515,11 @@ public class WorkspaceClient extends DefaultClient {
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return new RequestResponseOK().addResult(response.readEntity(ContainerInformation.class));
             } else {
-                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                LOGGER.debug(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageNotFoundException(response.getStatusInfo().getReasonPhrase());
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            LOGGER.debug(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -539,14 +539,14 @@ public class WorkspaceClient extends DefaultClient {
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                LOGGER.debug(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
             } else {
-                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                LOGGER.debug(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            LOGGER.debug(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
         } finally {
             consumeAnyEntityAndClose(response);

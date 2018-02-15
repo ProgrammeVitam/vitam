@@ -280,20 +280,16 @@ public class SedaUtils {
             ValidationXsdUtils.checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
-            LOGGER.error("Manifest.xml not found", e);
             return CheckSedaValidationStatus.NO_FILE;
         } catch (final XMLStreamException e) {
-            LOGGER.error("Manifest.xml is not a correct xml file", e);
             return CheckSedaValidationStatus.NOT_XML_FILE;
         } catch (final SAXException e) {
             // if the cause is null, that means the file is an xml, but it does not validate the XSD
             if (e.getCause() == null) {
-                LOGGER.error("Manifest.xml is not valid with the XSD", e);
                 JsonNode errorNode = JsonHandler.createObjectNode().put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
                 itemStatus.setEvDetailData(errorNode.toString());
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }
-            LOGGER.error("Manifest.xml is not a correct xml file", e);
             return CheckSedaValidationStatus.NOT_XML_FILE;
         }
     }
@@ -338,7 +334,7 @@ public class SedaUtils {
             manifest = handlerIO.getInputStreamFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            LOGGER.error("Manifest not found");
+            LOGGER.debug("Manifest not found");
             throw new ProcessingException("Manifest not found", e);
         }
         return manifest;

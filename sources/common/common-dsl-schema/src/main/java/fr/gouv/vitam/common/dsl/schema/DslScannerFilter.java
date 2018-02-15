@@ -101,11 +101,11 @@ public class DslScannerFilter implements ContainerRequestFilter {
             }
             requestContext.setEntityStream(new ByteArrayInputStream(bout.toByteArray()));
         } catch (ValidationException e) {
-            LOGGER.error(e);
+            LOGGER.info(e);
             requestContext.abortWith(
                 e.getVitamError().toResponse());
         } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
+            LOGGER.info(e);
             requestContext.abortWith(
                 VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
                     "Can not read Dsl query").toResponse());

@@ -247,7 +247,7 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
             }
             return lastOperationTraceabilityLifecycle;
         } catch (LogbookClientNotFoundException e) {
-            LOGGER.warn("Logbook not found, this is the first Operation of this type");
+            LOGGER.debug("Logbook not found, this is the first Operation of this type");
         }
         return null;
     }
