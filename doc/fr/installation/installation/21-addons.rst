@@ -48,6 +48,8 @@ L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; p
 
 .. caution:: En cas de remplacement de clamAV par un autre antivirus, l'installation de celui-ci devient dès lors un prérequis de l'installation et le script doit être testé.
 
+.. warning:: Sur plate-forme Debian, ClamAV est installé sans base de données. Pour que l'antivirus soit fonctionnel, il est nécessaire, durant l'installation, de la télécharger ; il est donc nécessaire de renseigner dans l'inventaire la directive ``http_proxy_environnement``.
+
 Paramétrage des certificats externes (\*-externe)
 -------------------------------------------------
 
