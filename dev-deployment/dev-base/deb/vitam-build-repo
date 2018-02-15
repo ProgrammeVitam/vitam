@@ -28,19 +28,10 @@ set -e
 #*******************************************************************************
 # Rebuild the entire repository. To be executed at the root of a VITAM repository
 echo "Building maven deb (with parallel build)..."
-mvn -T 1C -f sources/pom.xml clean package jdeb:jdeb -DskipTests
+vitam-maven-build-only
 echo "Building platform rpm..."
 /code/deb/vitam-product/clean-all.sh
 /code/deb/vitam-product/build-all.sh
 /code/deb/vitam-external/build_repo.sh
 
-echo "Creating local deb repository..."
-rm -f /code/Packages.gz
-# Génération du "repository"
-dpkg-scanpackages -m . | gzip --fast > /code/Packages.gz
-echo "Cleaning apt cache..."
-sudo apt-get clean
-echo "Creating apt cache..."
-sudo apt-get update
-echo "Done ! Available rpm packages in local vitam-product repository :"
-echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"
+vitam-recreate-repo

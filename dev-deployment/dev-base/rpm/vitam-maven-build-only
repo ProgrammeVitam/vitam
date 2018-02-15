@@ -29,15 +29,6 @@ set -e
 # Rebuild only the vitam code. To be executed at the root of a VITAM repository
 
 echo "Building maven rpm (with parallel build)..."
-mvn -T 1C -f sources/pom.xml clean package rpm:rpm -DskipTests
+mvn -T 1C -f sources/pom.xml -Denv.SERVICE_NEXUS_URL=https://nexus.dev.programmevitam.fr/nexus/content/repositories/ clean package rpm:rpm -DskipTests
 
-echo "Creating local yum repository..."
-rm -rf /code/repodata
-createrepo -x '.git/*' .
-echo "Cleaning up yum cache..."
-sudo yum clean all
-echo "Creating cache"
-sudo yum --disablerepo="*" --enablerepo="local" makecache
-echo "Done ! Available rpm packages in local vitam-product repository :"
-yum --disablerepo="*" --enablerepo="local" list available
-echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"
+vitam-recreate-repo

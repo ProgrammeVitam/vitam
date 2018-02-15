@@ -170,11 +170,11 @@
             <distributionManagement>
                 <repository>
                     <id>releases</id>
-                    <url>${env.SERVICE_NEXUS_URL}/repository/maven-releases/</url>
+                    <url>${env.SERVICE_NEXUS_URL}releases/</url>
                 </repository>
                 <snapshotRepository>
                     <id>snapshots</id>
-                    <url>${env.SERVICE_NEXUS_URL}/repository/maven-snapshots/</url>
+                    <url>${env.SERVICE_NEXUS_URL}snapshots/</url>
                 </snapshotRepository>
             </distributionManagement>
 
