@@ -9,3 +9,5 @@
   service:
     name: "{{ package_name }}"
     state: restarted
+  when: ( primary_site | lower == "true" ) or
+        ( vitam_struct.vitam_component in vitam_secondary_site_components )

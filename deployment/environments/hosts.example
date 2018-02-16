@@ -276,8 +276,6 @@ hosts-logstash
 ansible_ssh_user=
 # Can target user become as root ? ; true is required by VITAM (usage of a sudoer is mandatory)
 ansible_become=true
-# Environment (defines consul environment name ; in extra on homepage)
-environnement=
 
 # Related to Consul ; apply in a table your DNS server(s)
 # Example : dns_servers=["8.8.8.8","8.8.4.4"]
@@ -297,9 +295,18 @@ days_to_delete_logstash_indexes=
 #	Days before closing "old" indexes on log management cluster; 30 for production environment
 days_to_close_logstash_indexes=
 
+# Define local Consul datacenter name
+vitam_site_name=prod-dc1
+# EXAMPLE : vitam_site_name = prod-dc1
+# check whether on primary site (true) or secondary (false)
+primary_site=true
+
+
 # ===============================
 # EXTRA
 # ===============================
+# Environment (defines title in extra on reverse homepage). Variable is DEPRECATED !
+#environnement=   
 
 ### vitam-itest repository ###
 vitam_tests_branch=master

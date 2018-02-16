@@ -100,6 +100,9 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
      :language: yaml
      :linenos:
 
+
+.. note:: installation multi-sites. Déclarer dans ``consul_remote_sites`` les datacenters Consul des autres site ; se référer à l'exemple fourni pour renseigner les informations.
+
 ** |repertoire_inventory| ``/group_vars/all/jvm_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/jvm_opts.yml
