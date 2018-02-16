@@ -45,7 +45,7 @@ public class ObjectGroupModel {
     private List<ObjectGroupQualifiersModel> qualifiers;
 
     @JsonProperty("_up")
-    private Set<String> up = new HashSet<>(); // change to array
+    private Set<String> up = new HashSet<>();
 
     @JsonProperty("_sp")
     private String sp;

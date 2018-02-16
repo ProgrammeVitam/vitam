@@ -39,8 +39,10 @@ import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+
 import com.mongodb.client.model.InsertOneModel;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -83,11 +85,11 @@ public class MasterdataRepository {
         this.transportClient = transportClient;
         try {
             AGENCY_TEMPLATE = StringUtils.getStringFromInputStream(
-                MasterdataRepository.class.getResourceAsStream("/agency-template.json"));
+                    MasterdataRepository.class.getResourceAsStream("/agency-template.json"));
             RULE_TEMPLATE = StringUtils.getStringFromInputStream(
-                MasterdataRepository.class.getResourceAsStream("/rule-template.json"));
+                    MasterdataRepository.class.getResourceAsStream("/rule-template.json"));
             ACCESS_CONTRACTS_TEMPLATE = StringUtils.getStringFromInputStream(
-                MasterdataRepository.class.getResourceAsStream("/access-contract-template.json"));
+                    MasterdataRepository.class.getResourceAsStream("/access-contract-template.json"));
         } catch (IOException e) {
             LOGGER.error("Fail to init referential template");
         }
@@ -95,22 +97,72 @@ public class MasterdataRepository {
         initCollections();
     }
 
+    /**
+     * Find a document by key-value
+     * 
+     * @param tenant
+     * @param identifier
+     * @return Document if found
+     */
+    public Optional<Document> findAgency(int tenant, String identifier) {
+
+        List<Bson> conditions = new ArrayList<>();
+        conditions.add(eq(PopulateService.TENANT, tenant));
+        conditions.add(eq("Identifier", identifier));
+
+        FindIterable<Document> models = this.getCollection(VitamDataType.AGENCIES).find(and(conditions));
+
+        Document first = models.first();
+        if (first == null) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(first);
+        } catch (final IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Find a document by key-value
+     * 
+     * @param tenant
+     * @param ruleId
+     * @return Document if found
+     */
+    public Optional<Document> findRule(int tenant, String ruleId) {
+
+        List<Bson> conditions = new ArrayList<>();
+        conditions.add(eq(PopulateService.TENANT, tenant));
+        conditions.add(eq("RuleId", ruleId));
+
+        FindIterable<Document> models = this.getCollection(VitamDataType.RULES).find(and(conditions));
+
+        Document first = models.first();
+        if (first == null) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(first);
+        } catch (final IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Find a document by key-value
      *
-     * @param  documentType to fetch
-     * @param  options to fetch
+     * @param contract
      * @return Document if found
      */
-    public Optional<Document> findDocumentByMap(VitamDataType documentType,
-        Map<String, String> options) {
+    public Optional<Document> findAccessContract(String contract) {
 
         List<Bson> conditions = new ArrayList<>();
-        for (String option : options.keySet()) {
-            conditions.add(eq(option, options.get(option)));
-        }
-        FindIterable<Document> models = this.getCollection(documentType).find(and(conditions));
+        conditions.add(eq("Name", contract));
+
+        FindIterable<Document> models = this.getCollection(VitamDataType.ACCESS_CONTRACT).find(and(conditions));
 
         Document first = models.first();
         if (first == null) {
@@ -126,14 +178,15 @@ public class MasterdataRepository {
 
     /**
      * import agency by name
-     *
-     * @param agencyName identifier to import
+     * 
+     * @param agencyName
+     * @param tenantId
      */
     public void importAgency(String agencyName, int tenantId) {
         String agencyToImport = AGENCY_TEMPLATE
-            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-            .replace(TENANT_ID, tenantId + "")
-            .replace(AGENCY_NAME, agencyName);
+                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+                .replace(TENANT_ID, tenantId + "")
+                .replace(AGENCY_NAME, agencyName);
 
         Document agency = Document.parse(agencyToImport);
         try {
@@ -149,15 +202,16 @@ public class MasterdataRepository {
 
     /**
      * import rule by id
-     *
-     * @param ruleId id to import
+     * 
+     * @param ruleId
+     * @param tenantId
      */
     public void importRule(String ruleId, int tenantId) {
         String ruleToImport = RULE_TEMPLATE
-            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-            .replace(TENANT_ID, tenantId + "")
-            .replace(RULE_ID, ruleId)
-            .replace(RULE_CATEGORY, getRuleCategoryByRuleId(ruleId));
+                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+                .replace(TENANT_ID, tenantId + "")
+                .replace(RULE_ID, ruleId)
+                .replace(RULE_CATEGORY, getRuleCategoryByRuleId(ruleId));
 
         Document rule = Document.parse(ruleToImport);
         try {
@@ -172,14 +226,15 @@ public class MasterdataRepository {
 
     /**
      * import access contract by id
-     *
-     * @param contractId id to import
+     * 
+     * @param contractId
+     * @param tenantId
      */
     public void importAccessContract(String contractId, int tenantId) {
         String ruleToImport = ACCESS_CONTRACTS_TEMPLATE
-            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
-            .replace(TENANT_ID, tenantId + "")
-            .replace(CONTRACT_NAME, contractId);
+                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+                .replace(TENANT_ID, tenantId + "")
+                .replace(CONTRACT_NAME, contractId);
 
         Document rule = Document.parse(ruleToImport);
         this.getCollection(VitamDataType.ACCESS_CONTRACT).insertOne(rule);
@@ -189,44 +244,11 @@ public class MasterdataRepository {
     }
 
     /**
-     * Store and index a document list 
-     * 
-     * @param tenant        tenant identifier
-     * @param documents     documents to store and index
-     * @param vitamDataType  dataType of documents
-     * @param storeInDb     if true documents will be saved in DB
-     * @param indexInEs     if true documents will be indexed in ES
-     */
-    private void storeAndIndex(int tenant, List<Document> documents, VitamDataType vitamDataType,
-                               boolean storeInDb, boolean indexInEs){
-        if(storeInDb){
-            storeDocuments(documents, vitamDataType);
-        }
-        if(indexInEs) {
-            indexDocuments(documents, vitamDataType, tenant);
-        }
-    }
-
-    /**
-     * store a list of documents in db
-     *
-     * @param documents    to store
-     * @param vitamDataType of the documents to store
-     */
-    private void storeDocuments(List<Document> documents, VitamDataType vitamDataType) {
-        List<InsertOneModel<Document>> collect =
-                documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
-
-        BulkWriteResult bulkWriteResult = this.getCollection(vitamDataType).bulkWrite(collect);
-        LOGGER.info("{}", bulkWriteResult.getInsertedCount());
-    }
-
-    /**
      * index a list of documents
      *
-     * @param documents    to index
+     * @param documents     to index
      * @param vitamDataType of the documents
-     * @param tenant       related tenant
+     * @param tenant        related tenant
      */
     private void indexDocuments(List<Document> documents, VitamDataType vitamDataType, int tenant) {
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
