@@ -657,7 +657,7 @@ public class DbRequestSingle {
         final Client client = vitamCollection.getEsClient().getClient();
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         int max = VitamConfiguration.getMaxElasticsearchBulk();
-        int count = 0;
+        int countDeleted = 0;
         for (final String id : list) {
             max--;
             bulkRequest
@@ -672,7 +672,7 @@ public class DbRequestSingle {
                     LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
                     throw new DatabaseException(bulkResponse.buildFailureMessage());
                 }
-                count += bulkResponse.getItems().length;
+                countDeleted += bulkResponse.getItems().length;
                 bulkRequest = client.prepareBulk();
             }
         }
@@ -684,8 +684,8 @@ public class DbRequestSingle {
                 LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
                 throw new DatabaseException(bulkResponse.buildFailureMessage());
             }
-            return count + bulkResponse.getItems().length;
+            return countDeleted + bulkResponse.getItems().length;
         }
-        return count;
+        return countDeleted;
     }
 }

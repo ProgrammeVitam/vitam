@@ -72,23 +72,30 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
     Optional<GenericRejectionCause> validate(T contract, String contractName);
 
 
+    /**
+     * Generic Rejection Cause inner class
+     */
     public class GenericRejectionCause {
 
-        public static String ERR_DUPLICATE_CONTRACT_ENTRY =
+        private static final String ERR_DUPLICATE_CONTRACT_ENTRY =
             "One or many contracts in the imported list have the same name : %s";
-        public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
-        public static String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
-        public static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT =
+        private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
+        private static final String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
+        private static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT =
             "One or multiple archive profiles or the contract %s not found in db";
-        public static String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validate contract (%s), %s : %s";
-        public static String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
+        private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validate contract (%s), %s : %s";
+        private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
             "Error while validate contract (%s), RootUnits (%s) not found in database";
-        public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
-        public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
-        public static String ERR_WRONG_LINK_PARENT_ID = "the id of the AU %s is not in filing nor holding schema";
+        private static final String ERR_INVALID_FIELD = "The field %s has an invalid format";
+        private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        private static final String ERR_WRONG_LINK_PARENT_ID = "the id of the AU %s is not in filing nor holding schema";
 
         private String reason;
 
+        /**
+         * Constructor 
+         * @param error the error
+         */
         public GenericRejectionCause(String error) {
             setReason(error);
         }

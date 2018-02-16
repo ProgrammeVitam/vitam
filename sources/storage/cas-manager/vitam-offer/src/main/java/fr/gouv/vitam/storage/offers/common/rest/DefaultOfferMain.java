@@ -38,6 +38,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 
+/**
+ * DefaultOfferMain class
+ */
 public class DefaultOfferMain {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferMain.class);
@@ -46,6 +49,11 @@ public class DefaultOfferMain {
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.offer.port";
     private VitamStarter vitamStarter;
 
+    /**
+     * Constructor
+     * 
+     * @param configurationFile 
+     */
     public DefaultOfferMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
@@ -53,6 +61,11 @@ public class DefaultOfferMain {
             BusinessApplication.class,  AdminApplication.class);
     }
 
+    /**
+     * main method, will start the server
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
@@ -70,14 +83,29 @@ public class DefaultOfferMain {
         }
     }
 
+    /**
+     * Start the server
+     * 
+     * @throws VitamApplicationServerException in case the server could not be started
+     */
     public void start() throws VitamApplicationServerException {
         vitamStarter.start();
     }
 
+    /**
+     * Start and join the server
+     * 
+     * @throws VitamApplicationServerException in case the server could not be started
+     */
     public void startAndJoin() throws VitamApplicationServerException {
         vitamStarter.run();
     }
 
+    /**
+     * Stop the server
+     * 
+     * @throws VitamApplicationServerException in case the server could not be stopped
+     */
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }

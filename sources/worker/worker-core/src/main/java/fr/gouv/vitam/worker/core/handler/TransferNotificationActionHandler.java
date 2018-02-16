@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -46,7 +42,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.StreamSupport;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import org.bson.Document;
+import org.xml.sax.SAXException;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -95,8 +101,6 @@ import fr.gouv.vitam.worker.model.BinaryDataObjectTypeRoot;
 import fr.gouv.vitam.worker.model.DataObjectTypeRoot;
 import fr.gouv.vitam.worker.model.PhysicalDataObjectTypeRoot;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import org.bson.Document;
-import org.xml.sax.SAXException;
 
 /**
  * Transfer notification reply handler
@@ -273,13 +277,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
     /**
      * createATROK When processing is Ok
      *
-     * @param params  of type WorkerParameters
+     * @param params of type WorkerParameters
      * @param ioParam of type HandlerIO
-     * @throws ProcessingException                ProcessingException
-     * @throws URISyntaxException                 URISyntaxException
+     * @throws ProcessingException ProcessingException
+     * @throws URISyntaxException URISyntaxException
      * @throws ContentAddressableStorageException ContentAddressableStorageException
-     * @throws IOException                        IOException
-     * @throws InvalidParseOperationException     InvalidParseOperationException
+     * @throws IOException IOException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     private File createATROK(WorkerParameters params, HandlerIO ioParam, LogbookOperation logbookOperation)
         throws ProcessingException, URISyntaxException, ContentAddressableStorageException, IOException,
@@ -334,7 +338,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                 (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
-                    ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
+                    ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue()
+                    : "");
 
             if (logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
                 final JsonNode evDetDataNode = JsonHandler.getFromString(
@@ -350,23 +355,23 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
                     (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
                         .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null)
-                        ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                        .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
-                        .textValue()
-                        : "");
+                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
+                                .textValue()
+                            : "");
                 writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
                     (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
                         .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null)
-                        ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                        .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()
-                        : "");
+                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()
+                            : "");
                 writeAttributeValue(xmlsw, SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION,
                     (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
                         .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) != null)
-                        ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                        .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
-                        .textValue()
-                        : "");
+                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
+                                .textValue()
+                            : "");
             }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_CODE_LIST_VERSIONS
 
@@ -472,7 +477,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
                     (infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER) != null)
                         ? infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER)
-                        .textValue()
+                            .textValue()
                         : "");
             }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_TRANSFERRING_AGENCY
@@ -497,9 +502,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
         statusToBeChecked.add(StatusCode.WARNING.toString());
         final Set<String> usedDataObjectGroup = new HashSet<>();
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            LifecyclesSpliterator<JsonNode>
-                lifecyclesSpliterator = handleLogbookLifeCyclesObjectGroup(params.getContainerName(), client,
-                LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+            LifecyclesSpliterator<JsonNode> lifecyclesSpliterator =
+                handleLogbookLifeCyclesObjectGroup(params.getContainerName(), client,
+                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
 
             final Map<String, String> objectGroupGuid = new HashMap<>();
             final Map<String, List<String>> dataObjectsForOG = new HashMap<>();
@@ -547,9 +552,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
             final String ogGUID =
                 logbookLifeCycleObjectGroup != null &&
                     logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname()) != null
-                    ? logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname())
-                    .toString()
-                    : "";
+                        ? logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname())
+                            .toString()
+                        : "";
             String igId = "";
             if (objectGroupGuid.containsKey(ogGUID)) {
                 igId = objectGroupGuid.get(ogGUID);
@@ -601,7 +606,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
     }
 
     private void handleWarningArchiveUnits(Map<String, Object> archiveUnitSystemGuid, XMLStreamWriter xmlsw,
-        WorkerParameters params) throws ProcessingException, XMLStreamException {
+        WorkerParameters params)
+        throws ProcessingException, XMLStreamException {
         List<String> statusToBeChecked = new ArrayList();
         statusToBeChecked.add(StatusCode.WARNING.toString());
 
@@ -665,7 +671,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeEvent(xmlsw, event, SedaConstants.TAG_ARCHIVE_UNIT,
                     statusToBeChecked);
             }
-            //                        }
+            // }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT
 
         } catch (XMLStreamException e) {
@@ -676,13 +682,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
     /**
      * createATRKO when workflowStatus.isGreaterOrEqualToKo()
      *
-     * @param params  of type WorkerParameters
+     * @param params of type WorkerParameters
      * @param ioParam of type HandlerIO
-     * @throws ProcessingException                when execute process failed
-     * @throws URISyntaxException                 URISyntaxException
+     * @throws ProcessingException when execute process failed
+     * @throws URISyntaxException URISyntaxException
      * @throws ContentAddressableStorageException ContentAddressableStorageException
-     * @throws IOException                        IOException
-     * @throws InvalidParseOperationException     InvalidParseOperationException
+     * @throws IOException IOException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
 
     private File createATRKO(WorkerParameters params, HandlerIO ioParam, LogbookOperation logbookOperation)
@@ -735,30 +741,31 @@ public class TransferNotificationActionHandler extends ActionHandler {
             if (infoATR != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                     (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
-                        ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
+                        ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue()
+                        : "");
 
                 xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
                 if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
                     writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
                         (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
                             .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null)
-                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
-                            .textValue()
-                            : "");
+                                ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                    .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
+                                    .textValue()
+                                : "");
                     writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
                         (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
                             .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null)
-                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()
-                            : "");
+                                ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                    .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()
+                                : "");
                     writeAttributeValue(xmlsw, SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION,
                         (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
                             .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) != null)
-                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
-                            .textValue()
-                            : "");
+                                ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                    .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
+                                    .textValue()
+                                : "");
                 }
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_CODE_LIST_VERSIONS
             }
@@ -801,7 +808,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
                     (infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER) != null)
                         ? infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER)
-                        .textValue()
+                            .textValue()
                         : "");
             }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_TRANSFERRING_AGENCY
@@ -819,7 +826,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
     }
 
     private LifecyclesSpliterator<JsonNode> handlerLogbookLifeCycleUnit(String operationId,
-        LogbookLifeCyclesClient client, LifeCycleStatusCode lifeCycleStatusCode) throws LogbookClientException {
+        LogbookLifeCyclesClient client, LifeCycleStatusCode lifeCycleStatusCode)
+        throws LogbookClientException {
         final Select select = new Select();
         LifecyclesSpliterator<JsonNode> scrollRequest = new LifecyclesSpliterator<>(select,
             query -> {
@@ -845,12 +853,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
     /**
      * Add the KO (which could be KO or FATAL) replyOutcome to the ATR xml
      *
-     * @param xmlsw         xml writer
+     * @param xmlsw xml writer
      * @param containerName the operation identifier
-     * @throws ProcessingException             thrown if a logbook could not be retrieved
-     * @throws XMLStreamException              XMLStreamException
-     * @throws FileNotFoundException           FileNotFoundException
-     * @throws InvalidParseOperationException  InvalidParseOperationException
+     * @throws ProcessingException thrown if a logbook could not be retrieved
+     * @throws XMLStreamException XMLStreamException
+     * @throws FileNotFoundException FileNotFoundException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      * @throws InvalidCreateOperationException InvalidCreateOperationException
      */
     private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName,
@@ -914,11 +922,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 Map<String, Object> dataObjectSystemGuid;
                 if (file1 != null && file2 != null) {
-                    final InputStream binaryDataObjectMapTmpFile = new FileInputStream(file1);
-                    final InputStream bdoObjectGroupStoredMapTmpFile = new FileInputStream(file2);
+                    try (InputStream binaryDataObjectMapTmpFile = new FileInputStream(file1);
+                        InputStream bdoObjectGroupStoredMapTmpFile = new FileInputStream(file2);) {
 
-                    dataObjectSystemGuid = JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
-                    doObjectGroupSystemGuid = JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
+                        dataObjectSystemGuid = JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFile);
+                        doObjectGroupSystemGuid = JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFile);
+                    } catch (IOException e) {
+                        throw new ProcessingException(e);
+                    }
                 } else {
                     dataObjectSystemGuid = new HashMap<>();
                 }
@@ -966,7 +977,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                         statusToBeChecked, objectGroupGuid, dataObjectsForOG, dataObjectSystemGuid,
                         dataObjectToDetailDataObject, logbookLifeCycleObjectGroup));
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_LIST
-            } catch (final LogbookClientException | IllegalStateException | InvalidParseOperationException | IllegalArgumentException e) {
+            } catch (final LogbookClientException | IllegalStateException | InvalidParseOperationException |
+                IllegalArgumentException e) {
                 throw new ProcessingException(e);
             }
         }
@@ -984,8 +996,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             if (!systemGuidArchiveUnitId.isEmpty() &&
                 logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID) != null &&
                 systemGuidArchiveUnitId
-                    .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString())
-                    != null) {
+                    .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()) != null) {
                 xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID, systemGuidArchiveUnitId
                     .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()));
                 writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_SYSTEM_ID,
@@ -1011,10 +1022,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
             final String eventIdentifier = null;
             xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);
             final String ogGUID =
-                logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname()) !=
-                    null
+                logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname()) != null
                     ? logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname())
-                    .toString()
+                        .toString()
                     : "";
 
             String igId = "";
@@ -1094,9 +1104,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
     /**
      * Write an attribute with only one value
      *
-     * @param writer    : The XMLStreamWriter on which the attribute is written
+     * @param writer : The XMLStreamWriter on which the attribute is written
      * @param attribute Attribute Name
-     * @param value     Attribute Value
+     * @param value Attribute Value
      * @throws XMLStreamException XMLStreamException
      */
 

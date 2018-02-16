@@ -49,6 +49,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class StorageLogServiceImpl implements StorageLogService {
 
@@ -110,9 +111,11 @@ public class StorageLogServiceImpl implements StorageLogService {
      * @throws IOException thrown on IO error
      */
     private void checkExistingStorageLogFiles(Path storageLogPath) throws IOException {
-        List<Path> exitingFiles = Files.list(storageLogPath).collect(Collectors.toList());
-        if (!exitingFiles.isEmpty()) {
-            LOGGER.warn("Existing storage log files found: " + exitingFiles.toString());
+        try (Stream<Path> list = Files.list(storageLogPath)) {
+            List<Path> exitingFiles = list.collect(Collectors.toList());
+            if (!exitingFiles.isEmpty()) {
+                LOGGER.warn("Existing storage log files found: " + exitingFiles.toString());
+            }
         }
     }
 
@@ -125,11 +128,8 @@ public class StorageLogServiceImpl implements StorageLogService {
     private StorageLogAppender createAppender(Integer tenant) throws IOException {
         LocalDateTime date = LocalDateUtil.now();
         DateTimeFormatter formatter = getDateTimeFormatter();
-        String file_name
-            = tenant.toString()
-            + "_" + date.format(formatter)
-            + "_" + UUID.randomUUID().toString()
-            + ".log";
+        String file_name =
+            tenant.toString() + "_" + date.format(formatter) + "_" + UUID.randomUUID().toString() + ".log";
         Path appenderPath = this.storageLogPath.resolve(file_name);
         return new StorageLogAppender(appenderPath);
     }

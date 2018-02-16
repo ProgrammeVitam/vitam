@@ -25,10 +25,10 @@ public interface ContractValidator {
     public class RejectionCause {
 
         private static final String ERR_INVALID_CONTRACT = "The input contract json is is invalid";
-        public static String ERR_DUPLICATE_CONTRACT_ENTRY = "One or many contracts in the imported list have the same name : %s";
-        public static String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
-        public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
-        public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        private static final String ERR_DUPLICATE_CONTRACT_ENTRY = "One or many contracts in the imported list have the same name : %s";
+        private static final String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
+        private static final String ERR_INVALID_FIELD = "The field %s has an invalid format";
+        private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
 
         private String reason;
         

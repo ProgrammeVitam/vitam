@@ -50,21 +50,21 @@ public interface AgenciesValidator {
         /**
          * Error label for id not null
          */
-        public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating agency (%s)";
+        private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating agency (%s)";
         
         /**
          * Error label for duplication of agency in the database
          */
-        public static String ERR_DUPLICATE_AGENCY_ENTRY =
+        private static final String ERR_DUPLICATE_AGENCY_ENTRY =
             "One or many Agencies in the imported list have the same name : %s";
         /**
          * Error label for a mandatory field missing
          */
-        public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         /**
          * Error label for duplication of agency in the database
          */
-        public static String ERR_DUPLICATE_AGENCY = "The agency %s already exists in database";
+        private static final String ERR_DUPLICATE_AGENCY = "The agency %s already exists in database";
 
 
         private String reason;

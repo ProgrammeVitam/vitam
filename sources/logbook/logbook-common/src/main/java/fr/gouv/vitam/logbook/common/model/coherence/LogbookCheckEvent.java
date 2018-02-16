@@ -90,13 +90,21 @@ public class LogbookCheckEvent implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         LogbookCheckEvent that = (LogbookCheckEvent) o;
 
-        if (eventType != null ? !eventType.equals(that.eventType) : that.eventType != null) return false;
-        if (outcome != null ? !outcome.equals(that.outcome) : that.outcome != null) return false;
+        if (eventType != null ? !eventType.equals(that.eventType) : that.eventType != null) {
+            return false;
+        }
+        if (outcome != null ? !outcome.equals(that.outcome) : that.outcome != null) {
+            return false;
+        }
         return outcomeDetail != null ? outcomeDetail.equals(that.outcomeDetail) : that.outcomeDetail == null;
     }
 

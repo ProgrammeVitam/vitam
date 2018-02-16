@@ -64,8 +64,8 @@ public abstract class Format {
     protected void consumeAllFields(JsonNode node, Consumer<String> fieldReport) {
         if (fieldReport != null) {
             for (Iterator<String> it = node.fieldNames(); it.hasNext(); ) {
-                final String name = it.next();
-                fieldReport.accept(name);
+                final String fieldname = it.next();
+                fieldReport.accept(fieldname);
             }
         }
     }

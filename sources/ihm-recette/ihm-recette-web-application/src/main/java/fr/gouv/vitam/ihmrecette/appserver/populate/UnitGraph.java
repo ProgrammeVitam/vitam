@@ -1,3 +1,31 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+
+
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 import java.time.LocalDateTime;
@@ -12,9 +40,8 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
@@ -23,14 +50,20 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 
+/**
+ * Unit Graph class
+ */
 public class UnitGraph {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitGraph.class);
 
     private final LoadingCache<String, UnitModel> cache;
 
+    /**
+     * Constructor
+     * 
+     * @param metadataRepository metadata repository
+     */
     public UnitGraph(MetadataRepository metadataRepository) {
 
         cache = CacheBuilder.newBuilder()
@@ -48,7 +81,7 @@ public class UnitGraph {
     /**
      * Create a graph
      *
-     * @param i             used to generate dynamic metadata
+     * @param i used to generate dynamic metadata
      * @param populateModel model of populate service
      * @return new UnitGotModel (unitModel, gotModel)
      */
@@ -67,10 +100,11 @@ public class UnitGraph {
 
         UnitGotModel unitGotModel = new UnitGotModel(unitModel);
 
-        //Create a LogbookLifecycleUnit
+        // Create a LogbookLifecycleUnit
         if (withLFCUnits) {
             String id = GUIDFactory.newWriteLogbookGUID(tenantId).toString();
-            LogbookLifecycle logbookLifecycle = this.createLogbookLifecycle(id, tenantId, unitGotModel.getUnit().getId(), populateModel.getLFCUnitsEventsSize());
+            LogbookLifecycle logbookLifecycle = this.createLogbookLifecycle(id, tenantId,
+                unitGotModel.getUnit().getId(), populateModel.getLFCUnitsEventsSize());
             unitGotModel.setLogbookLifecycleUnit(logbookLifecycle);
         }
 
@@ -86,10 +120,11 @@ public class UnitGraph {
                 DescriptiveMetadataGenerator.generateFileInfoModel(i), unitModel, populateModel.getObjectSize());
             unitGotModel.setGot(gotModel);
 
-            //Create a LogbookLifeCycleObjectGroup
+            // Create a LogbookLifeCycleObjectGroup
             if (withLFCGots) {
                 String id = GUIDFactory.newWriteLogbookGUID(tenantId).toString();
-                LogbookLifecycle logbookLifecycle = this.createLogbookLifecycle(id, tenantId, unitGotModel.getGot().getId(), populateModel.getLFCGotsEventsSize());
+                LogbookLifecycle logbookLifecycle = this.createLogbookLifecycle(id, tenantId,
+                    unitGotModel.getGot().getId(), populateModel.getLFCGotsEventsSize());
                 unitGotModel.setLogbookLifeCycleObjectGroup(logbookLifecycle);
             }
 
@@ -100,9 +135,9 @@ public class UnitGraph {
     /**
      * Create a unitModel
      *
-     * @param uuid                     Guid
+     * @param uuid Guid
      * @param descriptiveMetadataModel MetadataModel
-     * @param populateModel            populate Model
+     * @param populateModel populate Model
      * @return a UnitModel
      */
     private UnitModel createUnitModel(String uuid, DescriptiveMetadataModel descriptiveMetadataModel,
@@ -169,10 +204,10 @@ public class UnitGraph {
     /**
      * Create a GotModel
      *
-     * @param guid          GUID
-     * @param tenantId      tenant identifier
+     * @param guid GUID
+     * @param tenantId tenant identifier
      * @param fileInfoModel fileInfo
-     * @param parentUnit    unitModel of the parent AU
+     * @param parentUnit unitModel of the parent AU
      * @return a ObjectGroupModel
      */
     private ObjectGroupModel createObjectGroupModel(String guid, int tenantId, FileInfoModel fileInfoModel,
