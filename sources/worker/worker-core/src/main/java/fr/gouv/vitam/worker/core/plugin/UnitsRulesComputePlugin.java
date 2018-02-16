@@ -115,20 +115,18 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         final long time = System.currentTimeMillis();
         handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_TASK_ID);
-        boolean invalidRule = false;
         
         try {
             calculateMaturityDate(params, itemStatus);
             itemStatus.increment(StatusCode.OK);
         } catch (InvalidRuleException e) {
-            invalidRule = true;
             itemStatus.increment(StatusCode.KO);
             switch (e.getUnitRulesComputeStatus()) {
                 case UNKNOWN:
-                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.UNKNOWN.toString());
+                    itemStatus.setGlobalOutcomeDetailSubcode(UnitRulesComputeStatus.UNKNOWN.toString());
                     break;
                 case REF_INCONSISTENCY:
-                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.REF_INCONSISTENCY.toString());
+                    itemStatus.setGlobalOutcomeDetailSubcode(UnitRulesComputeStatus.REF_INCONSISTENCY.toString());
                     break;
             }
 
@@ -140,12 +138,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
         }
 
-        if (!invalidRule) {
-            itemStatus.setItemId(CHECK_RULES_TASK_ID);
-        }
-
         LOGGER.debug("[exit] execute... /Elapsed Time:" + (System.currentTimeMillis() - time) / 1000 + "s");
-        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
+        return new ItemStatus(CHECK_RULES_TASK_ID).setItemsStatus(CHECK_RULES_TASK_ID, itemStatus);
     }
 
     @Override

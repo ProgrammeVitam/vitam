@@ -91,7 +91,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PrepareForTest({WorkspaceClientFactory.class, AdminManagementClientFactory.class})
 public class UnitsRulesComputePluginTest {
 
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -303,9 +302,8 @@ public class UnitsRulesComputePluginTest {
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_RULES_TASK_ID + "." + "UNKNOWN"));
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-
+        assertEquals(response.getItemsStatus().get(CHECK_RULES_TASK_ID).getGlobalOutcomeDetailSubcode(), "UNKNOWN");
     }
 
 
@@ -332,8 +330,8 @@ public class UnitsRulesComputePluginTest {
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_RULES_TASK_ID + "." + "REF_INCONSISTENCY"));
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(response.getItemsStatus().get(CHECK_RULES_TASK_ID).getGlobalOutcomeDetailSubcode(), "REF_INCONSISTENCY");
     }
 
     @RunWithCustomExecutor

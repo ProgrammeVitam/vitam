@@ -296,7 +296,12 @@ public class AgenciesService implements VitamAutoCloseable {
      * @throws VitamException thrown if query could not be executed
      */
     public void findAllAgenciesUsedByUnits() throws VitamException {
-
+        // no need to do the check, just log status ok
+        if (agenciesToUpdate.isEmpty()) {
+            manager.logEventSuccess(AGENCIES_IMPORT_AU_USAGE);
+            return;
+        }
+        
         for (AgenciesModel agency : agenciesToUpdate) {
             final SelectMultiQuery selectMultiple = new SelectMultiQuery();
             try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
@@ -322,10 +327,13 @@ public class AgenciesService implements VitamAutoCloseable {
             }
         }
 
+        // no update is done on used agencies, just log success
         if (usedAgenciesByAU.isEmpty()) {
             manager.logEventSuccess(AGENCIES_IMPORT_AU_USAGE);
             return;
         }
+        
+        // log warning 
         final ArrayNode usedAgenciesAUNode = JsonHandler.createArrayNode();
         usedAgenciesByAU.forEach(agency -> usedAgenciesAUNode.add(agency.getIdentifier()));
 
@@ -344,7 +352,12 @@ public class AgenciesService implements VitamAutoCloseable {
      * @throws VitamException thrown if an error is encountered
      */
     public void findAllAgenciesUsedByAccessContracts() throws InvalidCreateOperationException, VitamException {
-
+        // no need to do the check, just log status ok
+        if (agenciesToUpdate.isEmpty()) {
+            manager.logEventSuccess(AGENCIES_IMPORT_CONTRACT_USAGE);
+            return;
+        }
+        
         for (AgenciesModel agency : agenciesToUpdate) {
 
             final Select select = new Select();
@@ -359,13 +372,14 @@ public class AgenciesService implements VitamAutoCloseable {
             }
         }
 
+        // no update is done on used agencies, just log success
         if (usedAgenciesByContracts.isEmpty()) {
             manager.logEventSuccess(AGENCIES_IMPORT_CONTRACT_USAGE);
             return;
         }
 
+        // log warning
         final ArrayNode usedAgenciesContractNode = JsonHandler.createArrayNode();
-
         usedAgenciesByContracts.forEach(agency -> usedAgenciesContractNode.add(agency.getIdentifier()));
 
         final ObjectNode data = JsonHandler.createObjectNode();
