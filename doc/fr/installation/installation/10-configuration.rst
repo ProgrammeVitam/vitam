@@ -30,6 +30,8 @@ Pour configurer le déploiement, il est nécessaire de créer dans le répertoir
 
 Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible (Cf. le paragraphe idoine du :term:`DAT`)
 
+.. note:: Concernant le groupe "hosts-consul-server", il est nécessaire de déclarer un minimum de 3 machines.
+
 
 La configuration des droits d'accès à VITAM est ralisée dans le fichier |repertoire_inventory| ``/group_vars/all/vitam_security.yml``, comme suit :
 
@@ -66,13 +68,13 @@ La première étape consiste à changer les mots de passe de tous les vault pré
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-vitam.yml`` contient les secrets généraux :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.txt
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.example
      :language: ini
      :linenos:
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
   
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.txt
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.example
      :language: ini
      :linenos:
 
@@ -83,7 +85,7 @@ Cas des extra
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-extra.yml`` contient les mot de passe des magasins de certificats utilisés dans VITAM :
   
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.txt
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.example
      :language: ini
      :linenos:
 

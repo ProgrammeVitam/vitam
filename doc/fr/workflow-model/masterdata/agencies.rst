@@ -84,7 +84,7 @@ Création du rapport au format JSON (STP_AGENCIES_REPORT)
     - FATAL : une erreur technique est survenue lors de la création du rapport d'import de référentiel des services agents (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de génération du rapport d'import du référentiel des services agents)
 
 Sauvegarde du CSV d'import (STP_IMPORT_AGENCIES_BACKUP_CSV)
----------------------------------------------
+------------------------------------------------------------
 
   + **Règle** : sauvegarde de fichier d'import de référentiel des services agent
 
@@ -97,7 +97,7 @@ Sauvegarde du CSV d'import (STP_IMPORT_AGENCIES_BACKUP_CSV)
     - FATAL : une erreur technique est survenue lors de la sauvegarde de fichier d'import de référentiel des services agent (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de sauvegarde du fichier d''import de référentiel des services agents)
 
 Sauvegarde d'une copie de la base de donnée (STP_BACKUP_AGENCIES)
----------------------------------------------------------------
+------------------------------------------------------------------
 
   + **Règle** : création d'une copie de la base de données contenant le référentiel des services agent
 

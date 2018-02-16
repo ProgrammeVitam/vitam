@@ -1,5 +1,4 @@
 
-
 .. |repertoire_deploiement| replace:: ``deployment``
 .. |repertoire_inventory| replace:: ``environments``
 .. |repertoire_playbook ansible| replace:: ``ansible-vitam``
@@ -100,3 +99,11 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
      :language: yaml
      :linenos:
+
+** |repertoire_inventory| ``/group_vars/all/jvm_vars.yml``, comme suit :
+
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/jvm_opts.yml
+     :language: yaml
+     :linenos:
+
+.. note:: Cette configuration est appliquée à la solution logicielle :term:`VITAM`  ; il est possible de créer un tuning par "groupe" défini dans ansible.

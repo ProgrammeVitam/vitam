@@ -26,14 +26,14 @@ Editer le fichier ``environments/group_vars/all/repositories.yml`` à partir des
 
 Pour une cible de déploiement CentOS :
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/example_bootstrap_repo_centos.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_centos_example.yml
    :language: yaml
    :linenos:
 
 
 Pour une cible de déploiement Debian :
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/example_bootstrap_repo_debian.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/repositories_debian_example.yml
    :language: yaml
    :linenos:
 
@@ -47,8 +47,8 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 
 .. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
 
-Réseaux
--------
+Génération des hostvars
+-----------------------
 
 Une fois l'étape de PKI effectuée avec succès, il convient de procéder à la génération des hostvars, qui permettent de définir quelles interfaces réseau utiliser.
 Actuellement la solution logicielle Vitam est capable de gérer 2 interfaces réseau:
