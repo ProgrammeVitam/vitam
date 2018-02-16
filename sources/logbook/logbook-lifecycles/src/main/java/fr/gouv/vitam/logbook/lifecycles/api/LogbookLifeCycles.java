@@ -90,6 +90,21 @@ public interface LogbookLifeCycles {
     void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
         throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException;
 
+
+    /**
+     * Update logbook LifeCycle entries committed or in progress
+     *
+     * @param idOperation the operation identifier
+     * @param idLc        the lifecycle identifier
+     * @param parameters  the logbook lifecycle parameters
+     * @param commit  if false update in progress collection else update committed LFC
+     * @throws LogbookNotFoundException      if no LifeCycle with the same eventIdentifierProcess exists
+     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     * @throws LogbookAlreadyExistsException if the entry already exists
+     */
+    void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters, boolean commit)
+        throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException;
+
     /**
      * Update logbook LifeCycle entries
      *

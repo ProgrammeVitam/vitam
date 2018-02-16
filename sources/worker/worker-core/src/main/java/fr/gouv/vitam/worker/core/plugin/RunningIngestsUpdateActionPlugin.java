@@ -37,7 +37,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -69,6 +69,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -79,11 +80,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 /**
  * CheckArchiveUnitSchema Plugin.<br>
- *
  */
 
 public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RunningIngestsUpdateActionPlugin.class);
+
+    private StoreMetadataObjectActionHandler storeMetadataObjectActionHandler =
+        new StoreMetaDataUnitActionPlugin();
 
     private static final String RUNNING_INGESTS_UPDATE_TASK_ID = "UPDATE_RUNNING_INGESTS";
     private static final int RANK_RUNNING_INGESTS_FILE = 0;
@@ -108,7 +111,6 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
 
     /**
      * Empty constructor UnitsRulesComputePlugin
-     *
      */
     public RunningIngestsUpdateActionPlugin() {
         // Empty
@@ -164,7 +166,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                     List<JsonNode> listIngest = JsonHandler.toArrayList((ArrayNode) runningIngests);
                     long nbTry = 0;
                     while (true) {
-                        for (Iterator<JsonNode> it = listIngest.iterator(); it.hasNext();) {
+                        for (Iterator<JsonNode> it = listIngest.iterator(); it.hasNext(); ) {
                             JsonNode currentIngest = it.next();
                             checkAndProcessIngest(currentIngest, it, params);
                         }
@@ -197,9 +199,23 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private void checkAndProcessIngest(JsonNode currentIngest, Iterator<JsonNode> iterator, WorkerParameters params)
         throws ProcessingException {
         String operationId = currentIngest.get(PROCESS_ID_FIELD).asText();
+
+        final WorkerParameters paramsCopy = WorkerParametersFactory.newWorkerParameters();
+        paramsCopy.setContainerName(params.getContainerName());
+        paramsCopy.setCurrentStep(params.getCurrentStep());
+        paramsCopy.setUrlWorkspace(params.getUrlWorkspace());
+        paramsCopy.setUrlMetadata(params.getUrlMetadata());
+        paramsCopy.setObjectNameList(new ArrayList<>());
         try {
             ItemStatus status = processManagementClient.getOperationProcessStatus(operationId);
             if (ProcessState.COMPLETED.equals(status.getGlobalState())) {
+
+                // Treat only OK or WARNING ingests else remove from list and return
+                if (status.getGlobalStatus().isGreaterOrEqualToKo()) {
+                    iterator.remove();
+                    return;
+                }
+
                 ObjectNode projectionNode = JsonHandler.createObjectNode();
                 final SelectMultiQuery selectMultiple = new SelectMultiQuery();
                 ObjectNode objectNode = JsonHandler.createObjectNode();
@@ -235,7 +251,8 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                             if (nbUpdates > 0) {
                                 try {
                                     query.addActions(
-                                        UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
+                                        UpdateActionHelper
+                                            .push(VitamFieldsHelper.operations(), params.getContainerName()));
                                     JsonNode updateResultJson =
                                         metaDataClient.updateUnitbyId(query.getFinalUpdate(), auGuid);
                                     archiveUnitUpdateUtils.logLifecycle(params, auGuid, StatusCode.OK,
@@ -243,6 +260,13 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                                         logbookLifeCycleClient);
                                     archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), auGuid,
                                         logbookLifeCycleClient);
+
+
+                                    // Save updated archive unit in the storage offer
+                                    paramsCopy.setObjectName(auGuid);
+                                    saveMetadataWithLfcInTheStorage(paramsCopy);
+
+
                                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
                                     MetaDataClientServerException | InvalidCreateOperationException |
                                     InvalidParseOperationException | MetaDataNotFoundException e) {
@@ -252,6 +276,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                                         LogbookClientServerException ex) {
                                         LOGGER.error("Couldn't rollback lifecycles", ex);
                                     }
+                                    throw new ProcessingException(e);
                                 }
                             }
                         }
@@ -265,6 +290,32 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             InvalidCreateOperationException e) {
             throw new ProcessingException(e);
         }
+    }
+
+    /**
+     * @param workerParameters
+     * @throws ProcessingException
+     */
+    private void saveMetadataWithLfcInTheStorage(WorkerParameters workerParameters) throws ProcessingException {
+        try {
+            ItemStatus itemStaus =
+                storeMetadataObjectActionHandler.execute(workerParameters, handlerIO);
+
+            if (itemStaus.getGlobalStatus().isGreaterOrEqualToKo()) {
+                throw new ProcessingException(
+                    String.format("The ArchiveUnit %s with LifeCyle isn't saved in the storage",
+                        workerParameters.getObjectName()));
+            }
+        } catch (ContentAddressableStorageServerException e) {
+            throw new ProcessingException(e);
+        }
+    }
+
+
+    @VisibleForTesting
+    void setStoreMetadataObjectActionHandler(
+        StoreMetadataObjectActionHandler storeMetadataObjectActionHandler) {
+        this.storeMetadataObjectActionHandler = storeMetadataObjectActionHandler;
     }
 
     @Override

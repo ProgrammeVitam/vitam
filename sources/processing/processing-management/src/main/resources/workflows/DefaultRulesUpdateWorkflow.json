@@ -54,6 +54,12 @@
             "actionKey": "UPDATE_UNIT_RULES",
             "behavior": "BLOCKING"
           }
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING"
+          }
         }
       ]
     },

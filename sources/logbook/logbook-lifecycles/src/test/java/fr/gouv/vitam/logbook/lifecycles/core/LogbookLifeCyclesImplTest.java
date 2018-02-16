@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.core;
 
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -134,7 +135,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenUpdateLCUnitWhenErrorInMongoThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).updateLogbookLifeCycleUnit(anyObject(),
-            anyObject(), anyObject());
+            anyObject(), anyObject(), anyBoolean());
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateUnit(iop.toString(), ioL.toString(), logbookLCUnitParameters);
@@ -153,7 +154,7 @@ public class LogbookLifeCyclesImplTest {
     @Test(expected = LogbookNotFoundException.class)
     public void givenUpdateLCUnitWhenLCUnitNotExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).updateLogbookLifeCycleUnit(anyObject(),
-            anyObject(), anyObject());
+            anyObject(), anyObject(), anyBoolean());
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateUnit(iop.toString(), ioL.toString(), logbookLCUnitParameters);
     }

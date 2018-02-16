@@ -500,14 +500,16 @@ public class IngestInternalIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {});
+                    new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 client.importIngestContracts(IngestContractModelList);
 
                 // import contrat
                 File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                    });
                 client.importAccessContracts(accessContractModelList);
 
             } catch (final Exception e) {
@@ -632,9 +634,7 @@ public class IngestInternalIT {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
-            // processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
-            // ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
+
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2017,7 +2017,8 @@ public class IngestInternalIT {
         // import contrat
         File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
         List<AccessContractModel> accessContractModelList = JsonHandler
-            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+            });
         client.importAccessContracts(accessContractModelList);
 
         status = client.importAgenciesFile(stream, FILE_AGENCIES_AU_update);
@@ -2113,7 +2114,6 @@ public class IngestInternalIT {
      * Check error report
      *  @param fileInputStreamToImport the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
-     * @param lineNumber
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
         final FileInputStream expectedStreamErrorReport, String lineNumber)
