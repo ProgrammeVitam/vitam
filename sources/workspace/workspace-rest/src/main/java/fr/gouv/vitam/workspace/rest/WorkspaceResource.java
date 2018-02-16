@@ -81,7 +81,6 @@ import org.apache.commons.compress.compressors.CompressorException;
  * The Workspace Resource.
  */
 @Path("/workspace/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class WorkspaceResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceResource.class);

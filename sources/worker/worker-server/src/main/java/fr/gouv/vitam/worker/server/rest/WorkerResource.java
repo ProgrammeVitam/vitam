@@ -62,7 +62,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  * Worker Resource implementation
  */
 @Path("/worker/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class WorkerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
     private static final String WORKER_MODULE = "WORKER";

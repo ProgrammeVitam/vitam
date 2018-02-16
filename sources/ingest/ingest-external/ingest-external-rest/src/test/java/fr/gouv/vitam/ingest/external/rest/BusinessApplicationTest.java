@@ -44,7 +44,6 @@ public class BusinessApplicationTest extends Application {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override

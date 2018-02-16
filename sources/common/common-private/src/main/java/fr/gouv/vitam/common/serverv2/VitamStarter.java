@@ -225,9 +225,6 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@business"});
 
-        if (configuration.isAuthentication()) {
-            addShiroFilter(context);
-        }
         if (configuration.isTenantFilter()) {
             addTenantFilter(context, VitamConfiguration.getTenants());
         }
@@ -358,7 +355,7 @@ public class VitamStarter {
         List<ServletContextListener> customListeners) {
 
         VitamStarter vitamStarter =
-            new VitamStarter(configurationType, configurationFile, 
+            new VitamStarter(configurationType, configurationFile,
                 businessApplication, adminApplication, customListeners);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
@@ -374,7 +371,7 @@ public class VitamStarter {
             throw new IllegalStateException("Cannot start the " + vitamStarter.role + " Application Server", e);
         }
 
-        return vitamStarter;        
+        return vitamStarter;
     }
 
     /**
@@ -421,7 +418,7 @@ public class VitamStarter {
         vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
         vitamServer.configure(applicationHandlers);
     }
-    
+
     /**
      * Re Implement this method to construct your application specific handler if necessary. </br>
      * </br>
