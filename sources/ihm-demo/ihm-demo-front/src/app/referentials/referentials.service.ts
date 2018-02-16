@@ -127,7 +127,7 @@ export class ReferentialsService {
   }
 
   getFormatById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.post('admin/formats/' + id, null, {});
+    return this.resourceService.post('admin/formats/' + decodeURIComponent(id), null, {});
   }
 
   getRuleById(id : string) : Observable<VitamResponse> {
