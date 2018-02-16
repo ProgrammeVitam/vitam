@@ -87,6 +87,7 @@ COPY profile-prompt-usage.sh /etc/profile.d
 COPY .bashrc /devhome
 COPY vitam-usage.txt /etc
 COPY rpm/wheel-nopwd /etc/sudoers.d
+RUN chmod 664 /etc/sudoers.d/wheel-nopwd
 
 # Disable fastestmirror ; helps gain several seconds per yum invocation
 COPY rpm/fastestmirror.conf /etc/yum/pluginconf.d

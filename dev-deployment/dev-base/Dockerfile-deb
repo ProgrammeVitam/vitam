@@ -141,6 +141,7 @@ COPY profile-prompt-usage.sh /etc/profile.d
 COPY .bashrc /devhome
 COPY vitam-usage.txt /etc
 COPY deb/sudo-nopwd /etc/sudoers.d
+RUN chmod 664 /etc/sudoers.d/sudo-nopwd
 
 ENV TERM xterm
 
