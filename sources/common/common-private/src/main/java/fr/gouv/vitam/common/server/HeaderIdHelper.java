@@ -80,7 +80,6 @@ public class HeaderIdHelper {
             extractApplicationSessionIdFromHeaders(requestHeaders, ctx);
 
         } catch (final VitamThreadAccessException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             LOGGER.warn(
                 "Got an exception while trying to set the headers in the current session {}; exception was : {}",
                 requestHeaders, e.getMessage());
@@ -104,8 +103,7 @@ public class HeaderIdHelper {
             extractApplicationSessionIdFromHeaders(requestHeaders, ctx);
 
         } catch (final VitamThreadAccessException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            LOGGER.warn(
+            LOGGER.debug(
                 "Got an exception while trying to set the headers in the current session {}; exception was : {}",
                 requestHeaders, e.getMessage());
             // the processing should not be interrupted by this exception
@@ -337,7 +335,7 @@ public class HeaderIdHelper {
                     LOGGER.debug("tenantId {} found in session and set in the {} header.", tenantId, ctx);
                 }
             } else {
-                LOGGER.warn(
+                LOGGER.debug(
                     "No tenantId found in session (somebody should have set it) ! " +
                         "{} header will not be set in the http {}.",
                     GlobalDataRest.X_TENANT_ID, ctx);

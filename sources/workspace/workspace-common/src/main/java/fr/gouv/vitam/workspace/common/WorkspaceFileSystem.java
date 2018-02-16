@@ -251,7 +251,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
         }
         if (!isExistingFolder(containerName, folderName)) {
-            LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
+            LOGGER.debug(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
             // throw new ContentAddressableStorageNotFoundException(
             // ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
             // TODO: ugly retro-compatibility !

@@ -101,18 +101,18 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                     LOGGER.debug(eip + " " + Response.Status.CREATED.getReasonPhrase());
                     break;
                 case CONFLICT:
-                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                    LOGGER.debug(eip + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
                     throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
                 case BAD_REQUEST:
-                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    LOGGER.debug(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                     throw new LogbookClientBadRequestException(
                         ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                 default:
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -134,18 +134,18 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                     LOGGER.debug(eip + " " + Response.Status.OK.getReasonPhrase());
                     break;
                 case NOT_FOUND:
-                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    LOGGER.debug(eip + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                     throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 case BAD_REQUEST:
-                    LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    LOGGER.debug(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                     throw new LogbookClientBadRequestException(
                         ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                 default:
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -160,19 +160,19 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                LOGGER.debug(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
+                LOGGER.debug("Illegal Entry Parameter");
                 throw new LogbookClientException("Request procondition failed");
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -188,16 +188,16 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                 MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                LOGGER.debug(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
+                LOGGER.debug("Illegal Entry Parameter");
                 throw new LogbookClientException("Request precondition failed");
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -229,24 +229,24 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                         LOGGER.debug(eventIdProc + " " + Response.Status.CREATED.getReasonPhrase());
                         break;
                     case CONFLICT:
-                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                        LOGGER.debug(eventIdProc + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
                         throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
                     case BAD_REQUEST:
-                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                        LOGGER.debug(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                         throw new LogbookClientBadRequestException(
                             ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                     default:
-                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                        LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                         throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 }
             } catch (final VitamClientInternalException e) {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+                LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             } finally {
                 consumeAnyEntityAndClose(response);
             }
         } else {
-            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            LOGGER.debug(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
             throw new LogbookClientBadRequestException(
                 ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
@@ -274,24 +274,24 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                         LOGGER.debug(eventIdProc + " " + Response.Status.OK.getReasonPhrase());
                         break;
                     case NOT_FOUND:
-                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                        LOGGER.debug(eventIdProc + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                         throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                     case BAD_REQUEST:
-                        LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                        LOGGER.debug(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                         throw new LogbookClientBadRequestException(
                             ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                     default:
-                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                        LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                         throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 }
             } catch (final VitamClientInternalException e) {
-                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+                LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             } finally {
                 consumeAnyEntityAndClose(response);
             }
         } else {
-            LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            LOGGER.debug(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
             throw new LogbookClientBadRequestException(
                 ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
@@ -323,12 +323,12 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                     LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
                     break;
                 default:
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
             return RequestResponse.parseRequestResponseOk(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -349,12 +349,12 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                     LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
                     break;
                 default:
-                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
             return RequestResponse.parseRequestResponseOk(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -373,7 +373,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             return response.readEntity(JsonNode.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
+            LOGGER.debug("Internal Server Error", e);
             throw new LogbookClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -392,7 +392,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             return response.readEntity(JsonNode.class);
 
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
+            LOGGER.debug("Internal Server Error", e);
             throw new LogbookClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -409,7 +409,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             LOGGER.debug("Traceability audit OK");
         } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
+            LOGGER.debug("Internal Server Error", e);
             throw new LogbookClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -419,13 +419,12 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     @Override
     public Response checkLogbookCoherence() throws VitamException {
-        Response response = null;
         try {
             return performRequest(HttpMethod.POST, CHECK_LOGBOOK_COHERENCE_URI,  null, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
         } catch (VitamException e) {
-            LOGGER.error("Internal Server Error", e);
+            LOGGER.debug("Internal Server Error", e);
             throw new LogbookClientServerException("Internal Server Error", e);
         }
     }

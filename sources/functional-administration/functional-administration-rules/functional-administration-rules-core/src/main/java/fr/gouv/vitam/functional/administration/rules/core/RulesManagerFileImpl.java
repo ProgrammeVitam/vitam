@@ -1663,7 +1663,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             try {
                 arrayNode = (ArrayNode) JsonHandler.toJsonNode(collectionBackup.get().getDocuments());
             } catch (InvalidParseOperationException e) {
-                LOGGER.error("ERROR: The file isn't in JSON type");
+                LOGGER.debug("ERROR: The file isn't in JSON type");
             }
         }
 
@@ -1683,8 +1683,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
         if (!array1.toString().equals(array2.toString())) {
             JsonNode patch = JsonDiff.asJson(array1, array2);
-            LOGGER.error(array1.toString());
-            LOGGER.error(array2.toString());
             alertService.createAlert("Check failed: the security save of the rules repository of tenant " + tenant +
                 " is not equal to its value in database.\n" + patch);
             return false;
