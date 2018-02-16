@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 
@@ -51,8 +52,11 @@ public class UnitModel {
     @JsonProperty("_mgt")
     private ManagementModel managementModel;
 
+    @JsonProperty("_unitType")
+    private UnitType unitType = UnitType.INGEST;
+
     @JsonProperty("_up")
-    private Set<String> up = new HashSet<>(); // change to array
+    private Set<String> up = new HashSet<>();
 
     @JsonProperty("_us")
     private Set<String> us = new HashSet<>();
@@ -68,6 +72,9 @@ public class UnitModel {
 
     @JsonProperty("_tenant")
     private int tenant;
+
+    @JsonProperty("_max")
+    private int max = 1;
 
     /*
      * getter and setter
@@ -150,5 +157,21 @@ public class UnitModel {
 
     public void setManagementModel(ManagementModel managementModel) {
         this.managementModel = managementModel;
+    }
+
+    public UnitType getUnitType() {
+        return unitType;
+    }
+
+    public void setUnitType(UnitType unitType) {
+        this.unitType = unitType;
+    }
+
+    public int getMax() {
+        return max;
+    }
+
+    public void setMax(int max) {
+        this.max = max;
     }
 }

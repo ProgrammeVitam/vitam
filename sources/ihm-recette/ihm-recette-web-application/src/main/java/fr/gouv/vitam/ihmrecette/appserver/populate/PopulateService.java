@@ -37,6 +37,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import io.reactivex.Flowable;
@@ -50,7 +53,8 @@ public class PopulateService {
     public static final String TENANT = "_tenant";
     public static final String CONTRACT_POPULATE = "ContractPopulate";
     public static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
-
+    private static String POPULATE_FILE_DIGEST;
+    
     private AtomicBoolean populateInProgress = new AtomicBoolean(false);
 
     private final MetadataRepository metadataRepository;
@@ -61,7 +65,7 @@ public class PopulateService {
 
     private UnitGraph unitGraph;
     private int nbThreads;
-
+    private final DigestType digestType;
 
     public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository,
         LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads) {
@@ -70,6 +74,7 @@ public class PopulateService {
         this.logbookRepository = logbookRepository;
         this.unitGraph = unitGraph;
         this.nbThreads = nThreads;
+        this.digestType = VitamConfiguration.getDefaultDigestType();
     }
 
     /**
@@ -93,7 +98,7 @@ public class PopulateService {
         options.put("Identifier", identifier);
         options.put(TENANT, populateModel.getTenant() + "");
         Optional<Document> agencyDocuments =
-            this.masterdataRepository.findDocumentByMap(VitamDataType.AGENCIES, options);
+            this.masterdataRepository.findAgency(populateModel.getTenant(), identifier);
 
         if (!agencyDocuments.isPresent()) {
             this.masterdataRepository.importAgency(identifier, tenantId);
@@ -102,7 +107,7 @@ public class PopulateService {
         options.clear();
         options.put("Name", CONTRACT_POPULATE);
         Optional<Document> contractDocument =
-            this.masterdataRepository.findDocumentByMap(VitamDataType.ACCESS_CONTRACT, options);
+            this.masterdataRepository.findAccessContract(CONTRACT_POPULATE);
 
         if (!contractDocument.isPresent()) {
             this.masterdataRepository.importAccessContract(CONTRACT_POPULATE, tenantId);
@@ -114,7 +119,7 @@ public class PopulateService {
                 options.clear();
                 options.put("RuleId", rule);
                 options.put(TENANT, populateModel.getTenant() + "");
-                Optional<Document> ruleDocuments = this.masterdataRepository.findDocumentByMap(VitamDataType.RULES, options);
+                Optional<Document> ruleDocuments = this.masterdataRepository.findRule(tenantId, rule);
                 if (!ruleDocuments.isPresent()) {
                     this.masterdataRepository.importRule(rule, tenantId);
                 }
@@ -127,6 +132,7 @@ public class PopulateService {
                 RandomAccessFile file = new RandomAccessFile(POPULATE_FILE, "rw");
                 file.writeChars(text);
                 file.close();
+                POPULATE_FILE_DIGEST = new Digest(digestType).update(text).digestHex();
             } catch (IOException e) {
                 LOGGER.error(e);
             }
@@ -165,6 +171,10 @@ public class PopulateService {
      */
     public boolean inProgress() {
         return populateInProgress.get();
+    }
+    
+    public static String getPopulateFileDigest() {
+        return POPULATE_FILE_DIGEST;
     }
 
 }

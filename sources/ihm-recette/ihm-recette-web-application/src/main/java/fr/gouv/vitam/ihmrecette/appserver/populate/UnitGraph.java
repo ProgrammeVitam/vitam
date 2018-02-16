@@ -67,11 +67,6 @@ public class UnitGraph {
 
         UnitGotModel unitGotModel = new UnitGotModel(unitModel);
 
-        int objectSize = 0;
-        if (populateModel.getObjectSize() != null) {
-            objectSize = populateModel.getObjectSize();
-        }
-
         //Create a LogbookLifecycleUnit
         if (withLFCUnits) {
             String id = GUIDFactory.newWriteLogbookGUID(tenantId).toString();
@@ -88,7 +83,7 @@ public class UnitGraph {
 
             // create gotModel
             ObjectGroupModel gotModel = createObjectGroupModel(guid, tenantId,
-                DescriptiveMetadataGenerator.generateFileInfoModel(i), unitModel, objectSize);
+                DescriptiveMetadataGenerator.generateFileInfoModel(i), unitModel, populateModel.getObjectSize());
             unitGotModel.setGot(gotModel);
 
             //Create a LogbookLifeCycleObjectGroup
@@ -198,6 +193,7 @@ public class UnitGraph {
             String uuid = GUIDFactory.newObjectGUID(tenantId).toString();
             version.setId(uuid);
             version.setAlgorithm("SHA-512");
+            version.setMessageDigest(PopulateService.getPopulateFileDigest());
             version.setDataObjectGroupId(guid);
             version.setFileInfoModel(fileInfoModel);
             version.setUri("Content/" + fileInfoModel.getFilename());
