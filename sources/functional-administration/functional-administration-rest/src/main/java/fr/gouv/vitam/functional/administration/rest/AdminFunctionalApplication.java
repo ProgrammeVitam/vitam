@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
@@ -69,11 +70,11 @@ public class AdminFunctionalApplication extends Application {
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
-            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider));
+            singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =
-                new VitamCounterService(mongoDbAccess, configuration.getTenants(), externalIdentifiers);
+                new VitamCounterService(mongoDbAccess, VitamConfiguration.getTenants(), externalIdentifiers);
 
             FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 

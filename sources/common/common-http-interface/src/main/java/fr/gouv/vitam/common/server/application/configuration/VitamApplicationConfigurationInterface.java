@@ -50,21 +50,6 @@ public interface VitamApplicationConfigurationInterface {
     VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig);
 
     /**
-     * getter tenants
-     *
-     * @return the tenant list
-     */
-    List<Integer> getTenants();
-
-    /**
-     * setter tenants
-     *
-     * @param tenants the list of tenants
-     * @return this
-     */
-    VitamApplicationConfigurationInterface setTenants(List<Integer> tenants);
-
-    /**
      * getter authentication
      * 
      * @return true if authentication is on for the application, false if not

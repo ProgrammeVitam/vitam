@@ -6,6 +6,7 @@ import { BehaviorSubject } from "rxjs/BehaviorSubject"
 import { ResourcesService } from '../common/resources.service';
 
 const LOGGED_IN = 'loggedIn';
+const ADMIN_TENANT = 'admintenant';
 const USER = 'user';
 
 export class UserInformation {
@@ -100,6 +101,21 @@ export class AuthenticationService {
 
   getAuthenticationMode() {
     return this.resourceService.get('securemode');
+  }
+
+  storeTenantAdmin() {
+    this.resourceService.get(ADMIN_TENANT).subscribe(
+      (tenantAdmin : string) => {
+        this.cookies.put(ADMIN_TENANT, tenantAdmin);
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
+  }
+
+  isTenantAdmin() {
+    return this.cookies.get(ADMIN_TENANT) === this.resourceService.getTenant();
   }
 
   loggedInWithCertificat(tenantId : string) {

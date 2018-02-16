@@ -32,6 +32,7 @@ import java.util.Optional;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -57,23 +58,18 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionServiceImpl.class);
 
     private static final String STRATEGY_ID = "default";
-    public static final int ADMIN_TENANT = 1;
-
-    private AdminManagementConfiguration adminManagementConfig;
+    private static final int ADMIN_TENANT = VitamConfiguration.getAdminTenant();
 
     private RestoreBackupService recoverBuckupService;
 
     private VitamRepositoryProvider vitamRepositoryProvider;
 
-    public ReconstructionServiceImpl(AdminManagementConfiguration adminManagementConfig,
-        VitamRepositoryProvider vitamRepositoryProvider) {
-        this(adminManagementConfig, vitamRepositoryProvider, new RestoreBackupServiceImpl());
+    public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider) {
+        this(vitamRepositoryProvider, new RestoreBackupServiceImpl());
     }
 
     @VisibleForTesting
-    public ReconstructionServiceImpl(AdminManagementConfiguration adminManagementConfig,
-        VitamRepositoryProvider vitamRepositoryProvider, RestoreBackupService recoverBuckupService) {
-        this.adminManagementConfig = adminManagementConfig;
+    public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider, RestoreBackupService recoverBuckupService) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.recoverBuckupService = recoverBuckupService;
     }
@@ -169,7 +165,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 collection.getType()));
 
         // get the list of vitam tenants from the configuration.
-        List<Integer> tenants = adminManagementConfig.getTenants();
+        List<Integer> tenants = VitamConfiguration.getTenants();
 
         // reconstruct all the Vitam tenants from the backup copy.
         if (null != tenants && !tenants.isEmpty()) {

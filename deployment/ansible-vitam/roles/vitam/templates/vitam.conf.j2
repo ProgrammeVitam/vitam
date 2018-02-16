@@ -7,4 +7,5 @@ workerBulkSize: 16
 intervalDelayCheckIdle : 5000
 maxDelayUnusedConnection : 5000
 delayValidationAfterInactivity : 2500
-
+tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
+adminTenant : {{vitam_tenant_admin}}

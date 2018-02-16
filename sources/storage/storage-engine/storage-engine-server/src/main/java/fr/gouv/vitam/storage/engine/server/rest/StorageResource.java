@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -116,7 +117,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public StorageResource(String configurationFile) {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final StorageConfiguration configuration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
-            storageLogService = new StorageLogServiceImpl(configuration.getTenants(),
+            storageLogService = new StorageLogServiceImpl(VitamConfiguration.getTenants(),
                 Paths.get(configuration.getLoggingDirectory()));
             distribution = new StorageDistributionImpl(configuration, storageLogService);
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());

@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -133,7 +134,7 @@ public class LogbookLFCAdministrationTest {
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
-        logbookConfiguration.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
     }
 

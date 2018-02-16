@@ -185,7 +185,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "formatsfile:check",
+    @Secured(permission = "formatsfile:check", isAdminOnly = true,
         description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
     public Response checkDocument(InputStream document) {
 
@@ -305,7 +305,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "formats:create", description = "Importer un référentiel des formats")
+    @Secured(permission = "formats:create", description = "Importer un référentiel des formats", isAdminOnly = true)
     public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
@@ -511,7 +511,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "contexts:create:json", description = "Importer des contextes dans le référentiel")
+    @Secured(permission = "contexts:create:json",
+        description = "Importer des contextes dans le référentiel", isAdminOnly = true)
     public Response importContexts(JsonNode select) {
 
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
@@ -1345,7 +1346,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "contexts:id:update", description = "Effectuer une mise à jour sur un contexte")
+    @Secured(permission = "contexts:id:update",
+        description = "Effectuer une mise à jour sur un contexte", isAdminOnly = true)
     public Response updateContext(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
@@ -1374,7 +1376,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * Update context
+     * Update profile
      *
      * @param identifier
      * @param queryDsl
@@ -1627,7 +1629,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:create:json",
+    @Secured(permission = "securityprofiles:create:json", isAdminOnly = true,
         description = "Importer des profiles de sécurité dans le référentiel")
     public Response importSecurityProfiles(JsonNode document) {
 
@@ -1737,7 +1739,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:id:update",
+    @Secured(permission = "securityprofiles:id:update", isAdminOnly = true,
         description = "Effectuer une mise à jour sur un profil de sécurité")
     public Response updateSecurityProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)

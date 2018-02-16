@@ -86,6 +86,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -177,7 +178,9 @@ public class WebApplicationResourceTest {
                 .setServerHost(DEFAULT_HOST)
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
                 .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2)
-                .setJettyConfig(JETTY_CONFIG).setTenants(tenants);
+                .setJettyConfig(JETTY_CONFIG);
+        VitamConfiguration.setTenants(tenants);
+        VitamConfiguration.setAdminTenant(1);
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
         final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, webApplicationConfig);
@@ -1670,6 +1673,17 @@ public class WebApplicationResourceTest {
             .contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/archiveunit/dipexport");
+    }
+
+    @Test
+    public void testGetAdminTenant() throws InvalidParseOperationException, AccessExternalClientException {
+
+        final ResponseBody response =
+            given().contentType(ContentType.JSON)
+                .expect()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get("/admintenant").getBody();
+        assertEquals("1", response.print());
     }
 
     private static String getAppSessionId() {

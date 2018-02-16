@@ -55,7 +55,6 @@ public class ApplicationStatusResource implements VitamResource {
     public static final String TENANTS_URL = VitamConfiguration.TENANTS_URL;
 
     private final VitamStatusService statusService;
-    private List<Integer> tenants;
 
     /**
      *
@@ -63,7 +62,6 @@ public class ApplicationStatusResource implements VitamResource {
      */
     public ApplicationStatusResource() {
         statusService = new BasicVitamStatusServiceImpl();
-        this.tenants = new ArrayList<>();
     }
 
     /**
@@ -71,11 +69,9 @@ public class ApplicationStatusResource implements VitamResource {
      * Constructor InternalVitamResources
      *
      * @param statusService
-     * @param tenantList
      */
-    public ApplicationStatusResource(VitamStatusService statusService, List<Integer> tenantList) {
+    public ApplicationStatusResource(VitamStatusService statusService) {
         this.statusService = statusService;
-        this.tenants = tenantList;
     }
 
     /**
@@ -106,7 +102,7 @@ public class ApplicationStatusResource implements VitamResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Unsecured
     public Response getServerTenants() {
-        return Response.status(Status.OK).entity(tenants).build();
+        return Response.status(Status.OK).entity(VitamConfiguration.getTenants()).build();
     }
 
 }

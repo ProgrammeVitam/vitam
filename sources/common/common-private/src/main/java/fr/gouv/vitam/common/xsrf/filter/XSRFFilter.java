@@ -110,6 +110,7 @@ public class XSRFFilter implements Filter {
             requestURI.contains(VitamConfiguration.OBJECT_DOWNLOAD_URL) ||
             requestURI.contains(VitamConfiguration.DIP_EXPORT_URL) ||
             requestURI.contains(VitamConfiguration.SECURE_MODE_URL) ||
+            requestURI.contains(VitamConfiguration.ADMIN_TENANT_URL) ||
             requestURI.contains(VitamConfiguration.PERMISSIONS_URL);
     }
 }

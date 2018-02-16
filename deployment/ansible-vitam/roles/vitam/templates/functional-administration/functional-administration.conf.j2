@@ -16,7 +16,6 @@ adminBasicAuth:
   password: {{ admin_basic_auth_password }}
 
 jettyConfig: jetty-config.xml
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 workspaceUrl: {{vitam.workspace | client_url}}
 processingUrl: {{vitam.processing | client_url}}
 

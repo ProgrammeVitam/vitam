@@ -98,6 +98,7 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -208,7 +209,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param permissions list of permissions
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig, Set<String> permissions) {
-        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
+        super(new BasicVitamStatusServiceImpl());
         this.permissions = permissions;
         this.secureMode = webApplicationConfig.getSecureMode();
     }
@@ -2827,5 +2828,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getSecureMode() {
         return Response.status(Status.OK).entity(this.secureMode).build();
+    }
+
+    /**
+     * Return admin tenant
+     *
+     * @return admin tenant number
+     */
+    @GET
+    @Path("/admintenant")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAdminTenant() {
+        return Response.status(Status.OK).entity(VitamConfiguration.getAdminTenant()).build();
     }
 }

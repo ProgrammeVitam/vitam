@@ -27,6 +27,8 @@
 package fr.gouv.vitam.functional.administration.test;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -179,7 +181,8 @@ public class FunctionalAdminIT {
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
-
+        VitamConfiguration.setTenants(tenants);
+        VitamConfiguration.setAdminTenant(1);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
 
         // ES
@@ -216,7 +219,6 @@ public class FunctionalAdminIT {
         }
         serverConfiguration
             .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
-        serverConfiguration.setTenants(tenants);
         serverConfiguration.setZippingDirecorty(TMP_FOLDER);
         serverConfiguration.setLoggingDirectory(TMP_FOLDER);
         storagePort = junitHelper.findAvailablePort();

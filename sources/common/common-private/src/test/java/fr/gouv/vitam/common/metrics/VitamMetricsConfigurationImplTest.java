@@ -118,12 +118,8 @@ public class VitamMetricsConfigurationImplTest {
         // Get the business metric registry
         final private VitamMetricRegistry registry = AbstractVitamApplication.getBusinessMetricsRegistry();
 
-        /**
-         *
-         * @param configuration to associate with TestResourceImpl
-         */
         public TestResourceImpl() {
-            super(new BasicVitamStatusServiceImpl(), tenants);
+            super(new BasicVitamStatusServiceImpl());
             // register the gauge if it doesn't exist
             registry.register(TEST_GAUGE_NAME, new Gauge<Integer>() {
                 @Override

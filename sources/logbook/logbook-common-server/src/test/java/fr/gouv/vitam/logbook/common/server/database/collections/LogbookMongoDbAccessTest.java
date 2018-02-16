@@ -59,6 +59,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
@@ -143,7 +144,7 @@ public class LogbookMongoDbAccessTest {
 
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
-        logbookConfiguration.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
 
         mongoDbAccess =
             LogbookMongoDbAccessFactory

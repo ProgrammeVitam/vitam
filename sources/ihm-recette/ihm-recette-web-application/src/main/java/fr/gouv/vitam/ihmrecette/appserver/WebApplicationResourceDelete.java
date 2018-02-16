@@ -29,7 +29,6 @@ package fr.gouv.vitam.ihmrecette.appserver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -147,9 +146,6 @@ public class WebApplicationResourceDelete {
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                     .getElasticsearchNodes());
         }
-        adminConfiguration.setTenants(webApplicationConfig.getTenants());
-        logbookConfiguration.setTenants(webApplicationConfig.getTenants());
-        metaDataConfiguration.setTenants(webApplicationConfig.getTenants());
         mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(),
             webApplicationConfig.getElasticsearchNodes());
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);

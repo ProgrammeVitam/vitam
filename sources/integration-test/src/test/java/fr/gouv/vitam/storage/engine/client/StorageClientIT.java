@@ -136,7 +136,7 @@ public class StorageClientIT {
         TemporaryFolder folder = new TemporaryFolder();
         folder.create();
         ArrayList<Integer> tenants = new ArrayList<Integer>();
-        serverConfiguration.setTenants(tenants);
+        VitamConfiguration.setTenants(tenants);
         serverConfiguration.setZippingDirecorty(TMP_FOLDER);
         serverConfiguration.setLoggingDirectory(TMP_FOLDER);
 

@@ -49,6 +49,7 @@ import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -115,8 +116,7 @@ public class WorkspaceResourceTest {
         final File tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         configuration.setJettyConfig("jetty-config-test.xml");
-        configuration.setTenants(tenantList);
-
+        VitamConfiguration.setTenants(tenantList);
         port = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 

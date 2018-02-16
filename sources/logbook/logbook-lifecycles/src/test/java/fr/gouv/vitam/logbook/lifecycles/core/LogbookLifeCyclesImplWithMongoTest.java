@@ -35,6 +35,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -142,7 +143,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
-        logbookConfiguration.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
 
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 

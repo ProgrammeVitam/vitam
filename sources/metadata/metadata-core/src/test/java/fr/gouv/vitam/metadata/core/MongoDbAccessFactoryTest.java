@@ -45,6 +45,8 @@ import com.mongodb.MongoClient;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -127,7 +129,7 @@ public class MongoDbAccessFactoryTest {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, mongoClient.getAddress().getPort()));
         final MetaDataConfiguration config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
-        config.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());

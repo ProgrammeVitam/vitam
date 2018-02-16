@@ -14,6 +14,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -159,6 +160,7 @@ public class AdminReconstructionResourceTest {
             throw new IllegalStateException(
                 "Cannot start the AdminManagement Application Server", e);
         }
+        VitamConfiguration.setTenants(new ArrayList<>());
     }
 
     @AfterClass

@@ -55,6 +55,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -167,6 +168,8 @@ public class ContextServiceImplTest {
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
+        VitamConfiguration.setTenants(tenants);
+        VitamConfiguration.setAdminTenant(TENANT_ID);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
         list_tenant.add("CONTEXT");

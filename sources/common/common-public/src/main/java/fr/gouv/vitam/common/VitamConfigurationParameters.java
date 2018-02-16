@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common;
 
+import java.util.List;
+
 import com.google.common.base.Strings;
 
 
@@ -62,6 +64,10 @@ public class VitamConfigurationParameters {
     private Integer numberEsQueue;
     private Integer maxCacheEntries;
     private Integer cacheControlDelay;
+
+    private Integer adminTenant;
+
+    private List<Integer> tenants;
 
     /**
      * /**
@@ -834,4 +840,37 @@ public class VitamConfigurationParameters {
     }
 
 
+    /**
+     * Getter for tenant admin
+     *
+     * @return adminTenant
+     */
+    public Integer getAdminTenant() {
+        return adminTenant;
+    }
+
+    /**
+     * Setter for tenantAdmin
+     *
+     * @param adminTenant
+     */
+    public void setAdminTenant(Integer adminTenant) {
+        this.adminTenant = adminTenant;
+    }
+
+    /**
+     * Setter for list of tenant
+     *
+     * @return
+     */
+    public List<Integer> getTenants() {
+        return tenants;
+    }
+
+    /**
+     * @param tenants
+     */
+    public void setTenants(List<Integer> tenants) {
+        this.tenants = tenants;
+    }
 }

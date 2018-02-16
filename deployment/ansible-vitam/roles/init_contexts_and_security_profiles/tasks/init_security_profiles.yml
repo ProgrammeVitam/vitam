@@ -30,6 +30,8 @@
     status_code: 200,201
     url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/securityprofiles"
     body_format: "json"
+    headers:
+      X-Tenant-Id: "{{ vitam_tenant_admin }}"
   run_once: true
   register: functional_adm_response
   when: securityprofile_check_json.hits.total < 1

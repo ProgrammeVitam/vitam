@@ -27,6 +27,8 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -53,7 +55,7 @@ public class AdminSecurityProfileResource {
 
     private SecurityProfileResource securityProfileResource;
 
-    public static final int ADMIN_TENANT = 1;
+    public static final int ADMIN_TENANT = VitamConfiguration.getAdminTenant();
 
     /**
      *

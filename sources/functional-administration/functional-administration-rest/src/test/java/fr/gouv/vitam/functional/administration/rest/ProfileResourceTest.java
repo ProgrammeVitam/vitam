@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
@@ -53,6 +54,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -199,6 +201,7 @@ public class ProfileResourceTest {
             throw new IllegalStateException(
                 "Cannot start the AdminManagement Application Server", e);
         }
+        VitamConfiguration.setTenants(Arrays.asList(TENANT_ID));
 
     }
 

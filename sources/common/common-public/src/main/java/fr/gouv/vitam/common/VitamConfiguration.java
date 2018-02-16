@@ -27,6 +27,8 @@
 package fr.gouv.vitam.common;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import com.google.common.base.Strings;
@@ -87,6 +89,10 @@ public class VitamConfiguration {
      * path for securemode
      */
     public static final String SECURE_MODE_URL = "/securemode";
+        /**
+     * path for admintenant
+     */
+    public static final String ADMIN_TENANT_URL = "/admintenant";
     /**
      * path for permissions
      */
@@ -339,6 +345,16 @@ public class VitamConfiguration {
      */
     private static int maxResultWindow = 10000;
 
+    /*
+     * List of TENANTS
+     */
+    private static List<Integer> TENANTS = new ArrayList<>();
+
+    /*
+     * Admin Tenant
+     */
+    private static int ADMIN_TENANT = -1;
+
     static {
         getConfiguration().setDefault();
     }
@@ -369,6 +385,40 @@ public class VitamConfiguration {
      */
     public static VitamConfiguration getConfiguration() {
         return DEFAULT_CONFIGURATION;
+    }
+
+    /**
+     * Getter for admin Tenant
+     *
+     * @return adminTenant
+     */
+    public static Integer getAdminTenant() {
+        return ADMIN_TENANT;
+    }
+
+    /**
+     * Setter for admin Tenant
+     *
+     * @param adminTenant
+     */
+    public static void setAdminTenant(Integer adminTenant) {
+        ADMIN_TENANT = adminTenant;
+    }
+
+    /**
+     * Setter for list of tenant
+     *
+     * @return
+     */
+    public static List<Integer> getTenants() {
+        return TENANTS;
+    }
+
+    /**
+     * @param tenants
+     */
+    public static void setTenants(List<Integer> tenants) {
+        TENANTS = tenants;
     }
 
     /**
@@ -644,6 +694,14 @@ public class VitamConfiguration {
         }
         if (null != parameters.getMaxCacheEntries()) {
             setMaxCacheEntries(parameters.getMaxCacheEntries());
+        }
+
+        if (null != parameters.getAdminTenant()) {
+            setAdminTenant(parameters.getAdminTenant());
+        }
+
+        if (null != parameters.getTenants()) {
+            setTenants(parameters.getTenants());
         }
 
     }

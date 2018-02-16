@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -98,7 +99,7 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
 
         LogbookConfiguration config =
             new LogbookConfiguration(nodes, databaseName, ES_CLUSTER_NAME, esNodes, true, user, pwd);
-        config.setTenants(tenantList);
+        VitamConfiguration.setTenants(tenantList);
         new LogbookMongoDbAccessFactory();
         mongoDbAccess = LogbookMongoDbAccessFactory.create(config);
         assertNotNull(mongoDbAccess);

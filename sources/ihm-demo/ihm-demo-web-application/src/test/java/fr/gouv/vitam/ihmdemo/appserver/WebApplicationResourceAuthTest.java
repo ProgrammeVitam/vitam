@@ -51,6 +51,7 @@ import com.jayway.restassured.response.Response;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -102,8 +103,8 @@ public class WebApplicationResourceAuthTest {
             (WebApplicationConfig) new WebApplicationConfig().setPort(port)
                 .setServerHost(DEFAULT_HOST).setJettyConfig(JETTY_CONFIG)
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT).setAuthentication(true)
-                .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2)
-                .setTenants(tenants);
+                .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2);
+        VitamConfiguration.setTenants(tenants);
         webApplicationConfig.setSecureMode(Arrays.asList("File", "LDAP"));
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
         final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());

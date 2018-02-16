@@ -10,7 +10,6 @@ dbAuthentication: {{ mongodb.mongo_authentication }}
 dbUserName: {{ mongodb.data.logbook.user }}
 dbPassword: {{ mongodb.data.logbook.password }}
 jettyConfig: jetty-config.xml
-tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 p12LogbookPassword: {{keystores.timestamping.secure_logbook}}
 p12LogbookFile: keystore_secure-logbook.p12
 workspaceUrl: {{ vitam.workspace | client_url }}

@@ -246,6 +246,7 @@ dns_servers=
 
 # Vitam tenants to create
 vitam_tenant_ids=[0,1,2]
+vitam_tenant_admin=1
 
 ### Logback configuration ###
 # Days before deleting logback log files (java & access logs for vitam components)

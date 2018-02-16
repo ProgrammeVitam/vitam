@@ -232,7 +232,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
     public void logbookCoherenceCheck() throws VitamException {
 
         // get the list of vitam tenants from the configuration.
-        List<Integer> tenants = configuration.getTenants();
+        List<Integer> tenants = VitamConfiguration.getTenants();
         if (null != tenants && !tenants.isEmpty()) {
             LOGGER.debug(String.format("Logbook coherence check on the %s Vitam tenants", tenants.size()));
 
