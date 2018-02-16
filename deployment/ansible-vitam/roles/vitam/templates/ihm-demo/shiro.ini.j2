@@ -15,9 +15,9 @@ builtInCacheManager = org.apache.shiro.cache.MemoryConstrainedCacheManager
 securityManager.cacheManager = $builtInCacheManager
 
 sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
-securityManager.sessionMode=native
-securityManager.sessionManager.globalSessionTimeout = 60000
 securityManager.sessionManager = $sessionManager
+securityManager.sessionMode = native
+securityManager.sessionManager.globalSessionTimeout = {{ vitam_struct.session_timeout }}
 
 # Notice how we didn't define the class for the FormAuthenticationFilter ('authc') - it is instantiated and available already:
 authc.loginUrl = /#!/login
