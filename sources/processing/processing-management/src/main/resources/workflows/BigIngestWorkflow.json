@@ -108,7 +108,7 @@
                 "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
               },
               {
-                "name": "existingObjectGorup.file",
+                "name": "existingObjectGroup.file",
                 "uri": "WORKSPACE:UpdateObjectGroup/existing_object_group.json"
               }
             ]
@@ -316,7 +316,7 @@
       ]
     },
     {
-      "workerGroupId": "BigWorker",
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
       "distribution": {

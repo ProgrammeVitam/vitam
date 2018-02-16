@@ -57,18 +57,6 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -80,7 +68,6 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -126,6 +113,7 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -170,6 +158,16 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Processing integration test
@@ -509,7 +507,8 @@ public class ProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                    });
                 client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
@@ -522,14 +521,16 @@ public class ProcessingIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {});
+                    new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
                 // import access contract
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                    });
                 client.importAccessContracts(accessContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
@@ -623,7 +624,8 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -1049,7 +1051,8 @@ public class ProcessingIT {
             .get("R1"));
         assertNotNull(result.get("$hits").get("scrollId"));
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importRulesFile(PropertiesUtils.getResourceAsStream("integration-processing/new_rule.csv"), "new_rule.csv");
+            client.importRulesFile(PropertiesUtils.getResourceAsStream("integration-processing/new_rule.csv"),
+                "new_rule.csv");
             JsonNode response = client.getRuleByID("R7");
             assertTrue(response.get("$results").size() > 0);
         }
@@ -1459,7 +1462,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setRequestId(objectGuid);
 
         createLogbookOperation(operationGuid, objectGuid);
-        
+
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
         // upload SIP
@@ -1810,9 +1813,15 @@ public class ProcessingIT {
 
 
 
-        Document logbookLifeCycleGOT = db.getCollection("LogbookLifeCycleObjectGroup").find().first();
+        ArrayList<Document> logbookLifeCycleGOTs =
+            Lists.newArrayList(db.getCollection("LogbookLifeCycleObjectGroup").find().iterator());
 
-        events = (List<Document>) logbookLifeCycleGOT.get("events");
+
+        List<Document> currentLogbookLifeCycleGots =
+            logbookLifeCycleGOTs.stream().filter(t -> t.get("evIdProc").equals(containerName))
+                .collect(Collectors.toList());
+
+        events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleGots).get("events");
 
 
         lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.OBJECT_GROUP_UPDATE.OK"))
@@ -2804,7 +2813,8 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 

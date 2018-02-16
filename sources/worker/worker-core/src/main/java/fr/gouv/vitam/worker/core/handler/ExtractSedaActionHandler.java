@@ -799,7 +799,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             comment = oldCommentCurrentLang.asText() + "_" + comment;
                         }
 
-                        if (evDetReq == null || "fr" .equalsIgnoreCase(lang)) {
+                        if (evDetReq == null || "fr".equalsIgnoreCase(lang)) {
                             evDetData.put(EV_DETAIL_REQ, comment);
                         }
 
@@ -2115,11 +2115,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
 
-        uuids.clear();
-
-
         manageExistingObjectGroups(containerId, logbookLifeCycleClient, typeProcess, uuids);
-
     }
 
     /**
@@ -2134,7 +2130,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void manageExistingObjectGroups(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient,
         LogbookTypeProcess typeProcess, List<String> uuids) throws ProcessingException {
         final Set<String> collect =
-            existingGOTs.entrySet().stream().filter(e -> e.getValue() != null).map(entry -> entry.getKey()+".json")
+            existingGOTs.entrySet().stream().filter(e -> e.getValue() != null).map(entry -> entry.getKey() + ".json")
                 .collect(Collectors.toSet());
 
         File existingGotsFile = handlerIO.getNewLocalFile(handlerIO.getOutput(EXISTING_GOT_RANK).getPath());
@@ -2286,7 +2282,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void completeDataObjectToObjectGroupMap() {
         for (final String key : dataObjectIdToObjectGroupId.keySet()) {
-            if ("" .equals(dataObjectIdToObjectGroupId.get(key))) {
+            if ("".equals(dataObjectIdToObjectGroupId.get(key))) {
                 final List<String> dataOjectList = new ArrayList<>();
                 dataOjectList.add(key);
                 objectGroupIdToDataObjectId.put(GUIDFactory.newGUID().toString(), dataOjectList);

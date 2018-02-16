@@ -1,7 +1,16 @@
 package fr.gouv.vitam.functional.administration.rest;
 
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assume.assumeTrue;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -31,7 +40,6 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -39,16 +47,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assume.assumeTrue;
 
 /**
  * AdminReconstruction tests.
@@ -62,7 +60,7 @@ public class AdminReconstructionResourceTest {
     private static final String STATUS_URI = "/status";
 
     private static final String RECONSTRUCTION_URI = "/reconstruction";
-    private static final String  RECONSTRUCTION_COLLECTION_URI = "/rules";
+    private static final String RECONSTRUCTION_COLLECTION_URI = "/rules";
 
     private static final int TENANT_ID = 0;
 
@@ -78,9 +76,6 @@ public class AdminReconstructionResourceTest {
     private static File adminConfigFile;
     private static AdminManagementMain application;
 
-
-    private static int workspacePort = junitHelper.findAvailablePort();
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -90,19 +85,11 @@ public class AdminReconstructionResourceTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    @ClassRule
-    public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
-
-    @Rule
-    public WireMockClassRule instanceRule = wireMockRule;
-
 
     private final static String CLUSTER_NAME = "vitam-cluster";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        new JHades().overlappingJarsReport();
-
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
@@ -128,8 +115,6 @@ public class AdminReconstructionResourceTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(CLUSTER_NAME);
-
-        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
 
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
