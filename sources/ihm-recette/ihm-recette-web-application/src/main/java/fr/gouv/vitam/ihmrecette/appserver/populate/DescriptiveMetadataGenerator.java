@@ -47,7 +47,7 @@ public class DescriptiveMetadataGenerator {
         textType.setLang("fr");
         textType.setValue(title);
 
-        content.setTitles(new TextByLang(newArrayList(textType)));
+        content.setTitle_(new TextByLang(newArrayList(textType)));
 
         content.setDescription("un exemple de description" + index);
         return content;

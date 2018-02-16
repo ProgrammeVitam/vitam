@@ -3,6 +3,14 @@
   "id": "http:\/\/example.com\/root.json",
   "type": "object",
   "additionalProperties": true,
+  "anyOf": [
+    {
+      "required": ["_id", "Management", "DescriptionLevel", "Title"]
+    },
+    {
+      "required": ["_id", "Management", "DescriptionLevel", "Title_"]
+    }
+  ],
   "properties": {
     "_id": {
       "type": "string"
@@ -2242,11 +2250,5 @@
         }
       }
     }
-  },
-  "required": [
-    "_id",
-    "Management",
-    "DescriptionLevel",
-    "Title"
-  ]
+  }
 }

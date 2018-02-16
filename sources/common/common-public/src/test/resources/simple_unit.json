@@ -2,7 +2,6 @@
   "ArchiveUnit": {
     "_id": "aeaqaaaaaadd4sjaaa34yak66ewcooyaaaaq",
     "DescriptionLevel": "RecordGrp",
-    "Title": "AU plan",
     "Title_": {
       "fr": "AU plan"
     },
@@ -13,10 +12,7 @@
         "BirthName": "HERVE",
         "GivenName": "HERVE",
         "Gender": "F",
-        "BirthPlace": {
-          "City": "Paris",
-          "Country": "FR"
-        },
+        "BirthPlace": "Paris",
         "Identifier": "ID03"
       }
     ],

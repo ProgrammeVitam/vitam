@@ -26,28 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import org.junit.Test;
 
-public class TextByLang {
+public class TextByLangTest {
 
-    private List<TextType> textTypes;
+    @Test
+    public void should_remove_default_lang() {
+        // Given
+        ArrayList<TextType> textTypes = new ArrayList<>();
+        TextType textType = new TextType();
+        textType.setValue("value");
 
-    public TextByLang() {
-    }
+        textTypes.add(textType);
 
-    public TextByLang(List<TextType> textTypes) {
-        this.textTypes = textTypes.stream().filter(t -> t.getLang() != null).collect(Collectors.toList());
-    }
+        // When
+        TextByLang textByLang = new TextByLang(textTypes);
 
-    public List<TextType> getTextTypes() {
-        return textTypes;
-    }
-
-    public boolean isNotEmpty() {
-        return !textTypes.isEmpty();
+        // Then
+        assertThat(textByLang.getTextTypes()).hasSize(0);
     }
 
 }

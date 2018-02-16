@@ -26,13 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.mapping;
 
-import static fr.gouv.vitam.common.VitamConfiguration.getDefaultLang;
-
 import java.util.List;
-import java.util.Objects;
-import javax.xml.datatype.DatatypeConfigurationException;
 
-import com.google.common.collect.Iterables;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -70,8 +65,7 @@ public class DescriptiveMetadataMapper {
      * @param metadataContentType JAXB Object
      * @return DescriptiveMetadataModel
      */
-    public DescriptiveMetadataModel map(DescriptiveMetadataContentType metadataContentType)
-        throws DatatypeConfigurationException {
+    public DescriptiveMetadataModel map(DescriptiveMetadataContentType metadataContentType) {
 
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setAcquiredDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getAcquiredDate()));
@@ -90,8 +84,13 @@ public class DescriptiveMetadataMapper {
             custodialHistoryMapper.map(metadataContentType.getCustodialHistory());
         descriptiveMetadataModel.setCustodialHistory(custodialHistoryModel);
 
-        descriptiveMetadataModel.setDescription(findTextTypeByLang(metadataContentType.getDescription()));
-        descriptiveMetadataModel.setDescriptions(new TextByLang(metadataContentType.getDescription()));
+        descriptiveMetadataModel.setDescription(findDefaultTextType(metadataContentType.getDescription()));
+        TextByLang description_ = new TextByLang(metadataContentType.getDescription());
+
+        if (description_.isNotEmpty()) {
+            descriptiveMetadataModel.setDescription_(description_);
+        }
+
         descriptiveMetadataModel.setDescriptionLanguage(metadataContentType.getDescriptionLanguage());
         descriptiveMetadataModel.setDescriptionLevel(metadataContentType.getDescriptionLevel());
         descriptiveMetadataModel.setDocumentType(metadataContentType.getDocumentType());
@@ -125,8 +124,13 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setSubmissionAgency(metadataContentType.getSubmissionAgency());
         descriptiveMetadataModel.setSystemId(metadataContentType.getSystemId());
         descriptiveMetadataModel.setTag(metadataContentType.getTag());
-        descriptiveMetadataModel.setTitle(findTextTypeByLang(metadataContentType.getTitle()));
-        descriptiveMetadataModel.setTitles(new TextByLang(metadataContentType.getTitle()));
+
+        descriptiveMetadataModel.setTitle(findDefaultTextType(metadataContentType.getTitle()));
+        TextByLang title_ = new TextByLang(metadataContentType.getTitle());
+        if (title_.isNotEmpty()) {
+            descriptiveMetadataModel.setTitle_(title_);
+        }
+
         descriptiveMetadataModel.setTransactedDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getTransactedDate()));
         descriptiveMetadataModel.setTransferringAgencyArchiveUnitIdentifier(
             metadataContentType.getTransferringAgencyArchiveUnitIdentifier());
@@ -137,19 +141,11 @@ public class DescriptiveMetadataMapper {
         return descriptiveMetadataModel;
     }
 
-    public String findTextTypeByLang(List<TextType> textTypes) {
-        if (Iterables.isEmpty(textTypes)) {
-            return null;
-        }
-        for (TextType textType : textTypes) {
-            if (Objects.isNull(textType.getLang())) {
-                return textType.getValue();
-            }
-            if (getDefaultLang().equals(textType.getLang().toLowerCase())) {
-                return textType.getValue();
-            }
-        }
-        return Iterables.getLast(textTypes).getValue();
+    public String findDefaultTextType(List<TextType> textTypes) {
+        return textTypes.stream()
+            .filter(t -> t.getLang() == null)
+            .findFirst()
+            .map(TextType::getValue).orElse(null);
     }
 
 }
