@@ -39,4 +39,4 @@
     enabled: "yes"
     state: "started"
   run_once: yes
-  delegate_to: "{{ groups['hosts-logbook'] | last }}"
+  delegate_to: "{{ groups['hosts-storage-engine'] | last }}"
