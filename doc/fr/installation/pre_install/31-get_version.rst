@@ -29,6 +29,7 @@ Sur les partitions cibles, configurer le fichier ``/etc/yum.repos.d/vitam-reposi
    repo_gpgcheck=0
    enabled=1
 
+.. note:: remplacer <branche_vitam> par la version à déployer.
 
 Repository pour environnement Debian
 -------------------------------------
@@ -37,6 +38,8 @@ Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam
 
    deb [trusted=yes] https://dl.bintray.com/programmevitam/vitam-deb-release jessie vitam-product-<branche_vitam> vitam-external-<branche_vitam>
 
+
+.. note:: remplacer <branche_vitam> par la version à déployer.
 
 Utilisation du package global d'installation
 ============================================
@@ -51,6 +54,6 @@ Le package global d'installation contient :
 
 Sur la machine "ansible" dévouée au déploiement de :term:`VITAM`, décompacter le package (au format ``tar.gz``).
 
-Sur le repository "VITAM", récupérer également depuis le tar.gz les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le repository.
+Sur le repository "VITAM", récupérer également depuis le fichier d'extension tar.gz les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le repository.
 
 

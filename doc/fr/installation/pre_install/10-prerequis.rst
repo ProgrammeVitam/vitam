@@ -20,8 +20,10 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
   + openssh-clients (client SSH utilisé par ansible)
   + java-1.8.0-openjdk & openssl (du fait de la génération de certificats / stores, l'utilitaire ``keytool`` est nécessaire)
 
-* un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.
-* Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs cibles (fichier ~/.ssh/known_hosts correctement renseigné)
+* un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.  
+* Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs sur lesquels la solution logicielle :term:`VITAM` doit être installée (fichier ``~/.ssh/known_hosts`` correctement renseigné)
+
+.. note:: Se référer à la `documentation d'usage <http://docs.ansible.com/ansible/latest/intro_getting_started.html>`_ pour les procédures de connexion aux machines-cibles depuis le serveur ansible.
 
 .. caution:: Les IP des machines sur lesquelles la solution Vitam sera installée ne doivent pas changer d'IP au cours du temps, en cas de changement d'IP, la plateforme ne pourra plus fonctionner.
 
@@ -39,6 +41,8 @@ Seules deux distributions Linux suivantes sont supportées à ce jour :
 * Debian 8 (jessie)
 
 SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
+
+.. note:: En cas de changement de mode SELinux, redémarrer les machines pour la bonne prise en compte de la modification.
 
 .. Sujets à adresser : préciser la version minimale ; donner une matrice de compatibilité -> post-V1
 
