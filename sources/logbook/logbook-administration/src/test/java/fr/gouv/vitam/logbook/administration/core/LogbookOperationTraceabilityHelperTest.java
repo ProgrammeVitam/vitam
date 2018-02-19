@@ -118,7 +118,7 @@ public class LogbookOperationTraceabilityHelperTest {
 
         // Then
         assertThat(startDate)
-            .isEqualTo(LogbookTraceabilityHelper.INITIAL_START_DATE.minusSeconds(OPERATION_TRACEABILITY_OVERLAP_DELAY));
+            .isEqualTo(LogbookTraceabilityHelper.INITIAL_START_DATE);
     }
 
     @Test

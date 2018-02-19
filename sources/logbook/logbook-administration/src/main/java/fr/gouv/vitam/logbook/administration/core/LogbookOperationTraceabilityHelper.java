@@ -156,11 +156,12 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
             } catch (ParseException e) {
                 throw new TraceabilityException("Invalid date");
             }
-            startDate = LocalDateUtil.fromDate(date);
+            LocalDateTime lastStartDate = LocalDateUtil.fromDate(date);
+            startDate = lastStartDate.minusSeconds(delay);
             expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
 
-        return startDate.minusSeconds(delay);
+        return startDate;
     }
 
     @Override
