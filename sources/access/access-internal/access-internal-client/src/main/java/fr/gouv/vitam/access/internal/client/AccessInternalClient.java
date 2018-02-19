@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -61,7 +62,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException;
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException;
 
     /**
      * select Unit By Id
@@ -136,7 +137,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessUnauthorizedException
      */
     RequestResponse<JsonNode> selectOperation(JsonNode select)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException, VitamDBException;
 
     /**
      * selectOperationbyId

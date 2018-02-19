@@ -2,6 +2,7 @@ package fr.gouv.vitam.metadata.client;
 
 import static org.junit.Assert.assertNotNull;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +38,7 @@ public class MetaDataClientMockTest {
     @Test
     public void selectUnitsTest()
         throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, VitamDBException {
         assertNotNull(client.selectUnits(JsonHandler.getFromString(VALID_QUERY)));
     }
 

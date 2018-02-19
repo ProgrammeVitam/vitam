@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -741,7 +742,7 @@ public class RulesManagerFileImplTest {
 
     private InputStream getInputStreamAndInitialiseMockWhenCheckRulesFile(String filename)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataClientServerException, FileRulesException {
+        MetaDataClientServerException, FileRulesException, VitamDBException {
 
         // mock logbook client
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);

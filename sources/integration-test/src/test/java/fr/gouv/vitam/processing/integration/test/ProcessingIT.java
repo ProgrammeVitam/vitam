@@ -1053,7 +1053,6 @@ public class ProcessingIT {
             JsonNode response = client.getRuleByID("R7");
             assertTrue(response.get("$results").size() > 0);
         }
-
     }
 
     @RunWithCustomExecutor
@@ -1097,7 +1096,7 @@ public class ProcessingIT {
 
         MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
         SelectMultiQuery query = new SelectMultiQuery();
-        query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
+        query.addQueries(QueryHelper.eq("Title", "ArchiveUnite4").setRelativeDepthLimit(5));
         query.addProjection(JsonHandler.createObjectNode().set(FIELDS.exactToken(),
             JsonHandler.createObjectNode()
                 .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)

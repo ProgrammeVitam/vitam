@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import {DialogService} from "./dialog/dialog.service";
-import {Router} from "@angular/router";
+import {DialogService} from './dialog/dialog.service';
+import {Router} from '@angular/router';
 
 @Injectable()
 export class ErrorService {

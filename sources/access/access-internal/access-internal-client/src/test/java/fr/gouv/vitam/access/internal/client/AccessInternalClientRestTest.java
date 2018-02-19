@@ -29,6 +29,7 @@ package fr.gouv.vitam.access.internal.client;
 
 import java.io.InputStream;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -277,7 +278,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     }
 
     @RunWithCustomExecutor
-    @Test(expected = AccessInternalClientServerException.class)
+    @Test(expected = VitamDBException.class)
     public void givenInternalServerError_whenSelect_ThenRaiseAnExeption() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);

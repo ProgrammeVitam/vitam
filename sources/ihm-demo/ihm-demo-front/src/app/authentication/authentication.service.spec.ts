@@ -1,11 +1,12 @@
 import { TestBed, inject } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import {CookieService} from 'angular2-cookie/core';
-import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { AuthenticationService } from './authentication.service';
 import { ResourcesService } from '../common/resources.service';
+import { DialogService } from '../common/dialog/dialog.service';
 
 describe('AuthenticationService', () => {
   let authenticationService: AuthenticationService;
@@ -16,6 +17,7 @@ describe('AuthenticationService', () => {
         AuthenticationService,
         ResourcesService,
         CookieService,
+        DialogService,
         {
           provide: HttpClient,
           useValue: {} }

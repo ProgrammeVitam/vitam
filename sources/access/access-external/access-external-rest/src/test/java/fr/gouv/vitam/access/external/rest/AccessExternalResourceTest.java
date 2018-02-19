@@ -43,6 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.VitamDBException;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -1001,7 +1002,7 @@ public class AccessExternalResourceTest {
     @Test
     public void testErrorsSelectUnits()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, VitamDBException {
 
         given()
             .contentType(ContentType.JSON)
@@ -1092,7 +1093,7 @@ public class AccessExternalResourceTest {
     @Test
     public void testhttpOverrideErrorsSelectUnits()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException {
+        InvalidParseOperationException, AccessUnauthorizedException, BadRequestException, VitamDBException {
 
         given()
             .contentType(ContentType.JSON)

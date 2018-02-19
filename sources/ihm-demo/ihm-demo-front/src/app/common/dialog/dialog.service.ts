@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from "rxjs/BehaviorSubject"
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 @Injectable()
 export class DialogService {
@@ -13,14 +13,13 @@ export class DialogService {
   constructor() {
   }
 
-  displayMessage(message : string, header : string ) {
+  displayMessage(message: string, header: string ) {
     this.dialogState.next({
       message : message,
       header : header,
       isDisplay : true
     });
   }
-
 
   getdialogState(): BehaviorSubject<VitamDialog> {
     return this.dialogState;
@@ -29,7 +28,7 @@ export class DialogService {
 }
 
 export class VitamDialog {
-  message : string;
-  header : string;
-  isDisplay : boolean;
+  message: string;
+  header: string;
+  isDisplay: boolean;
 }

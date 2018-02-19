@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
-import {CookieService} from "angular2-cookie/core";
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {Observable} from "rxjs/Observable";
+import { Injectable } from '@angular/core';
+import { CookieService } from 'angular2-cookie/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs/Observable';
 
-import {VitamResponse} from "./utils/response";
-import {DialogService} from "./dialog/dialog.service";
-import {Router} from "@angular/router";
+import { VitamResponse } from './utils/response';
+import { DialogService } from './dialog/dialog.service';
+import { Router } from '@angular/router';
 
 const TENANT_COOKIE = 'tenant';
 const CONTRACT_COOKIE = 'accessContract';
@@ -15,13 +15,14 @@ const TENANTS = 'tenants';
 @Injectable()
 export class ResourcesService {
 
-  constructor(private cookies: CookieService, private http: HttpClient) {
+  constructor(private cookies: CookieService, private http: HttpClient,
+    private dialogService: DialogService) {
   }
 
   get(url, header?: HttpHeaders, responsetype?: any): Observable<any> {
     header = this.setDefaultHeader(header);
 
-    if (responsetype && responsetype != 'json') {
+    if (responsetype && responsetype !== 'json') {
       return this.http.get(`${BASE_URL}${url}`, {
         headers: header,
         responseType: responsetype,
@@ -38,17 +39,24 @@ export class ResourcesService {
 
   post(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
     header = this.setDefaultHeader(header);
-    return this.http.post(`${BASE_URL}${url}`, body, {headers: header, responseType: responsetype || 'json'});
+    return this.http.post(`${BASE_URL}${url}`, body, { headers: header, responseType: responsetype || 'json' })
+      .catch((err) => {
+        if (err.status === 500) {
+          this.dialogService.displayMessage(err.error.message +
+            ' Veuillez contacter votre administrateur', 'Erreur système');
+          return Observable.throw(err);
+        }
+      })
   }
 
   put(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
     header = this.setDefaultHeader(header);
-    return this.http.put(`${BASE_URL}${url}`, body, {headers: header, responseType: responsetype || 'json'});
+    return this.http.put(`${BASE_URL}${url}`, body, { headers: header, responseType: responsetype || 'json' });
   }
 
   delete(url, header?: HttpHeaders): Observable<any> {
     header = this.setDefaultHeader(header);
-    return this.http.delete(`${BASE_URL}${url}`, {headers: header});
+    return this.http.delete(`${BASE_URL}${url}`, { headers: header });
   }
 
   getTenants() {
@@ -56,7 +64,7 @@ export class ResourcesService {
   }
 
   getAccessContrats(): Observable<VitamResponse> {
-    return this.post('accesscontracts', null, {"ContractName": "all", "Status": "ACTIVE"});
+    return this.post('accesscontracts', null, { 'ContractName': 'all', 'Status': 'ACTIVE' });
   }
 
   setAccessContract(contractIdentifier: string) {

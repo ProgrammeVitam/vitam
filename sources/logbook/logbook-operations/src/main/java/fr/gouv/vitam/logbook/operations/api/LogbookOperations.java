@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -80,7 +81,7 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      */
     List<LogbookOperation> select(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
      * Select logbook operation entries
@@ -93,7 +94,7 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      */
     List<LogbookOperation> select(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
      * Select logbook operation by the operation's ID

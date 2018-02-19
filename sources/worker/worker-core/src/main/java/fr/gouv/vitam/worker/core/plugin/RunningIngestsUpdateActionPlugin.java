@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -127,7 +128,11 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
         logbookLifeCycleClient =
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         try {
-            getRunningIngests(params);
+            try {
+                getRunningIngests(params);
+            } catch (VitamDBException e) {
+                LOGGER.error(e);
+            }
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
             LOGGER.error("Processing exception", e);
@@ -144,7 +149,8 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             itemStatus);
     }
 
-    private void getRunningIngests(WorkerParameters params) throws ProcessingException, InvalidParseOperationException {
+    private void getRunningIngests(WorkerParameters params)
+        throws ProcessingException, InvalidParseOperationException, VitamDBException {
         try {
             JsonNode rulesUpdated = JsonHandler.getFromInputStream(this.handlerIO.getInputStreamFromWorkspace(
                 UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON));
@@ -197,7 +203,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
 
 
     private void checkAndProcessIngest(JsonNode currentIngest, Iterator<JsonNode> iterator, WorkerParameters params)
-        throws ProcessingException {
+        throws ProcessingException, VitamDBException {
         String operationId = currentIngest.get(PROCESS_ID_FIELD).asText();
 
         final WorkerParameters paramsCopy = WorkerParametersFactory.newWorkerParameters();

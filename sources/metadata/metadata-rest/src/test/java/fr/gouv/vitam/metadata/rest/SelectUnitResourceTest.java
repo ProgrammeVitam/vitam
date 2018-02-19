@@ -404,21 +404,6 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
-    
-    @Test
-    @RunWithCustomExecutor
-    public void given_pathWithId_when_get_SelectByID_thenReturn_Found() throws InvalidParseOperationException {
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(SEARCH_QUERY))
-            .when()
-            .get("/units/" + GUID_0)
-            .then()
-            .statusCode(Status.FOUND.getStatusCode());
-    }
-
-
     @Test
     public void shouldReturnErrorRequestBadRequestIfDocumentIsTooLarge() throws Exception {
         final int limitRequest = GlobalDatasParser.limitRequest;

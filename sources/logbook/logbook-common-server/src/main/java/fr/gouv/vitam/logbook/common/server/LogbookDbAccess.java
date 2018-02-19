@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -423,7 +424,7 @@ public interface LogbookDbAccess {
      * @throws LogbookNotFoundException
      */
     MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
-        throws LogbookDatabaseException, LogbookNotFoundException;
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
@@ -439,7 +440,7 @@ public interface LogbookDbAccess {
      */
     MongoCursor<LogbookLifeCycle> getLogbookLifeCycleUnits(JsonNode select, boolean sliced,
         LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException;
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
@@ -468,7 +469,7 @@ public interface LogbookDbAccess {
      */
     MongoCursor<LogbookLifeCycle> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced,
         LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException;
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
 
 
     /**

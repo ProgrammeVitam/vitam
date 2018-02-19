@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -147,7 +148,7 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectUnit(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
      * Select logbook LifeCycle entries
@@ -162,7 +163,7 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
      * Selects object group life cycle entries
@@ -176,7 +177,7 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
      * Selects object group life cycle entries
@@ -191,7 +192,7 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
      * Select logbook LifeCycle entry by operation
