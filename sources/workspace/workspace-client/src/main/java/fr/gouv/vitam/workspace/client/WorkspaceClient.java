@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -85,6 +86,13 @@ public class WorkspaceClient extends DefaultClient {
         super(factory);
     }
 
+    /**
+     * Create container
+     * 
+     * @param containerName the container name
+     * @throws ContentAddressableStorageAlreadyExistException in case the container already exists
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public void createContainer(String containerName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
 
@@ -113,6 +121,14 @@ public class WorkspaceClient extends DefaultClient {
 
     }
 
+    /**
+     * Delete container
+     * 
+     * @param containerName the container name
+     * @param recursive true if should be deleted recursively
+     * @throws ContentAddressableStorageNotFoundException if the container could not be found
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public void deleteContainer(String containerName, boolean recursive)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -141,6 +157,13 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Check if container exists
+     * 
+     * @param containerName the container name
+     * @return true if it exists, false if not
+     * @throws ContentAddressableStorageServerException in case of any error
+     */
     public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
@@ -157,6 +180,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Count the number of object in a container
+     * 
+     * @param containerName the container name
+     * @return the number of objects
+     * @throws ContentAddressableStorageNotFoundException in case the container could not be found
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public long countObjects(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -183,6 +214,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Create a folder
+     * 
+     * @param containerName the container name
+     * @param folderName the folder name
+     * @throws ContentAddressableStorageAlreadyExistException in case the folder already exists
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public void createFolder(String containerName, String folderName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -209,6 +248,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Delete folder
+     * 
+     * @param containerName the container name
+     * @param folderName the folder name
+     * @throws ContentAddressableStorageNotFoundException if the folder does not exist
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public void deleteFolder(String containerName, String folderName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -236,6 +283,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Check if folder exists
+     * 
+     * @param containerName the container name
+     * @param folderName the folder name
+     * @return true if it exists, false if not
+     * @throws ContentAddressableStorageServerException in case of error
+     */
     public boolean isExistingFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -253,6 +308,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Put object
+     * 
+     * @param containerName the container name
+     * @param objectName the object name
+     * @param stream the input stream to be put
+     * @throws ContentAddressableStorageServerException in case of error
+     */
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -280,11 +343,13 @@ public class WorkspaceClient extends DefaultClient {
     }
 
     /**
-     * @param containerName
-     * @param objectName
+     * Get Object
+     * 
+     * @param containerName the container name
+     * @param objectName the object name
      * @return the original Response
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageNotFoundException in case the object couldnt be found
+     * @throws ContentAddressableStorageServerException in case of any other error
      */
     public Response getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
@@ -314,6 +379,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Delete object
+     * 
+     * @param containerName the name of the container
+     * @param objectName the name of object
+     * @throws ContentAddressableStorageNotFoundException in case the object could not be found
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public void deleteObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
 
@@ -342,6 +415,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Check if obejct is existing
+     * 
+     * @param containerName the container name
+     * @param objectName the object name
+     * @return true if it exist, false if not
+     * @throws ContentAddressableStorageServerException in case of error
+     */
     public boolean isExistingObject(String containerName, String objectName)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -359,6 +440,14 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Get List of digital object
+     * 
+     * @param containerName the container name
+     * @param folderName the folder name
+     * @return a list of URI
+     * @throws ContentAddressableStorageServerException in case of error
+     */
     public RequestResponse<List<URI>> getListUriDigitalObjectFromFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -386,6 +475,13 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Compress
+     * 
+     * @param containerName the container name
+     * @param compressInformation information on compression
+     * @throws ContentAddressableStorageServerException
+     */
     public void compress(String containerName, CompressInformation compressInformation)
         throws ContentAddressableStorageServerException {
         ParametersChecker
@@ -405,6 +501,15 @@ public class WorkspaceClient extends DefaultClient {
 
     }
 
+    /**
+     * Uncompress object
+     * 
+     * @param containerName the name of the container
+     * @param folderName the folder name
+     * @param archiveType the archive type
+     * @param inputStreamObject the input stream to be uncompress
+     * @throws ContentAddressableStorageException in case of error
+     */
     public void uncompressObject(String containerName, String folderName, String archiveType,
         InputStream inputStreamObject)
         throws ContentAddressableStorageException {
@@ -472,6 +577,15 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Compute digest for an object
+     * 
+     * @param containerName the container name
+     * @param objectName the object name
+     * @param algo the digest type
+     * @return the computed digest
+     * @throws ContentAddressableStorageException in case of error
+     */
     public RequestResponse<String> computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
 
@@ -503,6 +617,13 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * 
+     * @param containerName the container name
+     * @return information on the container
+     * @throws ContentAddressableStorageNotFoundException in case the container could not be found
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public RequestResponse<ContainerInformation> getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -526,6 +647,15 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Get Object Information
+     * 
+     * @param containerName the container name
+     * @param objectName the object name
+     * @return object information
+     * @throws ContentAddressableStorageNotFoundException in case the object couldnt be found
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
     public RequestResponse<JsonNode> getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -553,13 +683,33 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
+    /**
+     * Check object
+     * 
+     * @param containerName the name of the container
+     * @param objectId the object id
+     * @param digest the digest
+     * @param digestAlgorithm the digest algorithm
+     * @return true if the object matches
+     * @throws ContentAddressableStorageException in case the object couldnt be found
+     */
     public boolean checkObject(String containerName, String objectId, String digest,
-        DigestType digestAlgorithm) throws ContentAddressableStorageException {
+        DigestType digestAlgorithm)
+        throws ContentAddressableStorageException {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm)
             .toJsonNode().get("$results").get(0).asText();
         return offerDigest.equals(digest);
     }
 
+    /**
+     * Get Object Metadata
+     * 
+     * @param containerName the name of the container
+     * @param objectId the object id
+     * @return a response containing the MetadatasObject
+     * @throws ContentAddressableStorageException
+     * @throws IOException
+     */
     public RequestResponse<MetadatasObject> getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
         // FIXME implémente dans workspace

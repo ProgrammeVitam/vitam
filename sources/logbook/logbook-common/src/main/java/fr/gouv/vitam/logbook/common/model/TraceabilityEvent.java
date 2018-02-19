@@ -101,6 +101,22 @@ public class TraceabilityEvent {
         // Empty
     }
 
+    /**
+     * Constructor 
+     * 
+     * @param logType
+     * @param startDate
+     * @param endDate
+     * @param hash
+     * @param timeStampToken
+     * @param previousLogbookTraceabilityDate
+     * @param minusOneMonthLogbookTraceabilityDate
+     * @param minusOneYearLogbookTraceabilityDate
+     * @param numberOfElement
+     * @param fileName
+     * @param size
+     * @param digestAlgorithm
+     */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash,
         byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
         String minusOneYearLogbookTraceabilityDate, long numberOfElement, String fileName, long size,

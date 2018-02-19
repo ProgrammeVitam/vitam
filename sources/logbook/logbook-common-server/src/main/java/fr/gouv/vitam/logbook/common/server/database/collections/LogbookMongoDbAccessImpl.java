@@ -599,7 +599,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             } else {
                 parser.addProjection(slice, DEFAULT_ALLKEYS);
             }
-            // FIXME filter on traceability to adapt
             if (LogbookCollections.OPERATION.equals(collection)) {
                 return findDocumentsElasticsearch(collection, parser);
             } else {

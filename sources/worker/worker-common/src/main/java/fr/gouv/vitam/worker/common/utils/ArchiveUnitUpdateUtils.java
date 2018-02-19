@@ -155,7 +155,7 @@ public class ArchiveUnitUpdateUtils {
                 endDate = startDate.plus(Integer.parseInt(duration), ruleMeasurement.getTemporalUnit());
             }
         }
-        // FIXME End of duplicated method
+        // End of duplicated method
         if (endDate != null) {
             updatingRule.put("EndDate", endDate.format(timeFormatter));
         }
