@@ -78,7 +78,10 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
-public class AdminMetadataResourceTest {
+/**
+ * MetadataRawResource test
+ */
+public class MetadataRawResourceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -184,7 +187,7 @@ public class AdminMetadataResourceTest {
     @RunWithCustomExecutor
     @Test
     public void should_find_objectgroup_on_getByIdRaw() throws Exception {
-        
+
         String operationId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).getId();
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         String objectGroupId = GUIDFactory.newObjectGroupGUID(TENANT_ID).getId();
@@ -202,13 +205,13 @@ public class AdminMetadataResourceTest {
             .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
-         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
+        assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
     }
 
     @RunWithCustomExecutor
     @Test
     public void should_not_find_objectgroup_on_getByIdRaw() throws Exception {
-        
+
         String objectGroupId = GUIDFactory.newObjectGroupGUID(TENANT_ID).getId();
         given()
             .contentType(MediaType.APPLICATION_JSON)
@@ -221,7 +224,7 @@ public class AdminMetadataResourceTest {
     @RunWithCustomExecutor
     @Test
     public void should_find_unit_on_getByIdRaw() throws Exception {
-        
+
         String operationId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).getId();
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         String parentUnitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
@@ -232,23 +235,23 @@ public class AdminMetadataResourceTest {
         unit.set("_up", JsonHandler.createArrayNode().add(parentUnitId));
         unit.put("_nbc", 1L);
         MetadataCollections.UNIT.getCollection().insertOne(new Unit(unit));
-        
+
         String reponseString = given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/units/" + unitId + "/raw")
             .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
-        
+
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
-         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
-        
+        assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
+
     }
 
     @RunWithCustomExecutor
     @Test
     public void should_not_find_unit_on_getByIdRaw() throws Exception {
-        
+
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         given()
             .contentType(MediaType.APPLICATION_JSON)

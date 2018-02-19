@@ -113,5 +113,21 @@ public enum MetadataCollections {
     public boolean useScore() {
         return vitamCollection.isUseScore();
     }
+    
+    /**
+     * get collection from value.
+     *
+     * @param collection
+     * @return the corresponding MetadataCollections
+     */
+    public static MetadataCollections getFromValue(String collection) {
+        for (MetadataCollections coll : MetadataCollections.values()) {
+            if (coll.name().equalsIgnoreCase(collection)) {
+                return coll;
+            }
+        }
+        return null;
+    }
+
 }
 

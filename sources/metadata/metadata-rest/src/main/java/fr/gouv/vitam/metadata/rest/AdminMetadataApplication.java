@@ -40,51 +40,48 @@ import javax.ws.rs.core.Context;
 import com.google.common.base.Throwables;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
-import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
+import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
-public class BusinessApplication extends Application {
+/**
+ * Admin application.
+ */
+public class AdminMetadataApplication extends Application {
 
-    private final CommonBusinessApplication commonBusinessApplication;
+    private final AdminApplication adminApplication;
 
     private Set<Object> singletons;
 
-    public BusinessApplication(@Context ServletConfig servletConfig) {
+    /**
+     * Constructor
+     * 
+     * @param servletConfig servletConfig
+     */
+    public AdminMetadataApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final MetaDataConfiguration metaDataConfiguration =
                 PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
-            commonBusinessApplication = new CommonBusinessApplication();
-            final MetadataResource metaDataResource = new MetadataResource(metaDataConfiguration);
-            final MetadataRawResource metadataRawResource =
-                new MetadataRawResource(VitamRepositoryFactory.getInstance());
+            adminApplication = new AdminApplication();
+            // Hack to instance metadatas collections
+            new MetadataResource(metaDataConfiguration);
             final MetadataReconstructionResource metadataReconstructionResource =
                 new MetadataReconstructionResource(VitamRepositoryFactory.getInstance());
 
             singletons = new HashSet<>();
-            singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(metaDataResource);
-            singletons.add(metadataRawResource);
+            singletons.addAll(adminApplication.getSingletons());
             singletons.add(metadataReconstructionResource);
-            singletons.add(new SanityCheckerCommonFilter());
-            singletons.add(new SanityDynamicFeature());
+            singletons.add(new BasicAuthenticationFilter(metaDataConfiguration));
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }
     }
 
     @Override
-    public Set<Class<?>> getClasses() {
-        return commonBusinessApplication.getClasses();
-    }
-
-    @Override
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

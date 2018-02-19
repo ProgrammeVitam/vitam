@@ -50,10 +50,10 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataRepositoryServic
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 
 /**
- * Admin metadata resource REST API
+ * Metadata Raw resource REST API
  */
 @Path("/metadata/v1")
-public class AdminMetadataResource {
+public class MetadataRawResource {
 
     /**
      * Repository service.
@@ -65,7 +65,7 @@ public class AdminMetadataResource {
      * 
      * @param vitamRepositoryProvider vitam repository provider
      */
-    public AdminMetadataResource(VitamRepositoryProvider vitamRepositoryProvider) {
+    public MetadataRawResource(VitamRepositoryProvider vitamRepositoryProvider) {
         this.metadataRepositoryService = new MetadataRepositoryService(vitamRepositoryProvider);
     }
 

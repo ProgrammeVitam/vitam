@@ -26,24 +26,25 @@
  *******************************************************************************/
 package fr.gouv.vitam.security.internal.filter;
 
+import static org.apache.commons.httpclient.auth.AuthPolicy.BASIC;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import sun.misc.BASE64Decoder;
-
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.apache.commons.httpclient.auth.AuthPolicy.BASIC;
 
 /**
  * Filter used to handle the basic authentication for REST endpoints,
@@ -61,7 +62,7 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
     /**
      * VitamAdmin configuration.
      */
-    private AdminManagementConfiguration configuration;
+    private DbConfigurationImpl configuration;
 
     /**
      * Constructor with authentication level. <br/>
@@ -69,9 +70,9 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
      * @param authentLevel
      */
     public EndpointAuthenticationFilter(AuthenticationLevel authentLevel,
-        AdminManagementConfiguration adminManagementConfig) {
+        DbConfigurationImpl configuration) {
         this.authentLevel = authentLevel;
-        this.configuration = adminManagementConfig;
+        this.configuration = configuration;
     }
 
     /**

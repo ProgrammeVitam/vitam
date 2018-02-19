@@ -20,6 +20,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-security</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 		</dependency>
@@ -71,6 +76,10 @@
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.jhades</groupId>

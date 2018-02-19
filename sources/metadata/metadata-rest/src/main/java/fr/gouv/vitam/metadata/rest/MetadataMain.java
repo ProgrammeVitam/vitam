@@ -9,7 +9,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
-import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 
@@ -39,7 +38,7 @@ public class MetadataMain {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
         vitamStarter = new VitamStarter(MetaDataConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
+            BusinessApplication.class, AdminMetadataApplication.class);
     }
 
     /**
