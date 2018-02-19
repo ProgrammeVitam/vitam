@@ -41,7 +41,7 @@ export class LogbookDetailsComponent extends PageComponent {
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Message', (item) => item.events[item.events.length - 1].outMessg,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('agIdExt', 'Acteur de l\'opération', undefined,
+    ColumnDefinition.makeStaticColumn('agIdExt', 'Identifiants des agents externes', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false)
   ];
 
