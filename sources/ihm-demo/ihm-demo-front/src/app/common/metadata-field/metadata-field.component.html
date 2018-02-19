@@ -17,7 +17,8 @@
     <input pInputText *ngIf="displayMode === 'TextInput'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" (blur)="valueChange()"/>
     <p-toggleButton *ngIf="displayMode === 'SwitchButton'" onLabel="Oui" offLabel="Non" [(ngModel)]="value" (onChange)="valueChange()"></p-toggleButton>
     <p-chips [disabled]="disabled" *ngIf="displayMode === 'Chips'" [(ngModel)]="value" (onAdd)="valueChange()" (onRemove)="valueChange()"></p-chips>
-    <p-multiSelect [disabled]="disabled" *ngIf="displayMode === 'MultiSelect'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()"></p-multiSelect>
+    <p-multiSelect [disabled]="disabled" *ngIf="displayMode === 'MultiSelect'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()" 
+    	defaultLabel="Sélectionner" selectedItemsLabel="{0} items sélectionnés"></p-multiSelect>
   </div>
 </ng-container>
 

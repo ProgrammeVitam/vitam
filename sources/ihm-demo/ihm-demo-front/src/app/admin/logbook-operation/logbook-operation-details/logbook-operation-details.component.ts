@@ -29,7 +29,7 @@ export class LogbookOperationDetailsComponent extends PageComponent {
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evType', 'Opération', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('agIdExt', 'Acteur de l\'opération', undefined,
+    ColumnDefinition.makeStaticColumn('agIdExt', 'Identifiants des agents externes', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('rightsStatementIdentifier', 'Contrat associé', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),

@@ -35,15 +35,15 @@ export class ArchiveUnitHelper {
   public selectionOptions = {
     'DescriptionLevel': [
       {label: 'Fonds', value: 'Fonds'},
-      {label: 'Subfonds', value: 'Subfonds'},
-      {label: 'Class', value: 'Class'},
+      {label: 'Sous-fonds', value: 'Subfonds'},
+      {label: 'Classe', value: 'Class'},
       {label: 'Collection', value: 'Collection'},
-      {label: 'Series', value: 'Series'},
-      {label: 'Subseries', value: 'Subseries'},
-      {label: 'RecordGrp', value: 'RecordGrp'},
-      {label: 'SubGrp', value: 'SubGrp'},
-      {label: 'File', value: 'File'},
-      {label: 'Item', value: 'Item'}
+      {label: 'Série', value: 'Series'},
+      {label: 'Sous-série', value: 'Subseries'},
+      {label: 'Sous-groupe d\'articles', value: 'RecordGrp'},
+      {label: 'Groupe d\'articles', value: 'SubGrp'},
+      {label: 'Document', value: 'File'},
+      {label: 'Article', value: 'Item'}
     ],
     '#unitType': [
       {label: 'Standard', value: 'INGEST'},
