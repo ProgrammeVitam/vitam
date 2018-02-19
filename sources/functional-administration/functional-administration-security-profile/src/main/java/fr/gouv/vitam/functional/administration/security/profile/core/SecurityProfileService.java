@@ -86,21 +86,21 @@ public class SecurityProfileService implements VitamAutoCloseable {
     private static final String SECURITY_PROFILE_IS_MANDATORY_PARAMETER =
         "The collection of security profiles is mandatory";
     private static final String SECURITY_PROFILE_NOT_FOUND = "Security profile not found";
-    public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating security profiles (%s)";
+    private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating security profiles (%s)";
 
-    public static String ERR_MISSING_SECURITY_PROFILE_IDENTIFIER =
+    private static final String ERR_MISSING_SECURITY_PROFILE_IDENTIFIER =
         "Identifier must not be null when creating security profiles (%s)";
-    public static String ERR_DUPLICATE_IDENTIFIER_IN_CREATE =
+    private static final String ERR_DUPLICATE_IDENTIFIER_IN_CREATE =
         "One or many security profiles in the imported list have the same identifier : %s";
 
-    public static String ERR_MISSING_SECURITY_PROFILE_NAME = "Security profile name is mandatory (%s)";
+    private static final String ERR_MISSING_SECURITY_PROFILE_NAME = "Security profile name is mandatory (%s)";
 
-    public static String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS =
+    private static final String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS =
         "Permission set cannot be set with full access mode : %s";
 
-    public static final String SECURITY_PROFILE_IMPORT_EVENT = "STP_IMPORT_SECURITY_PROFILE";
-    public static final String SECURITY_PROFILE_UPDATE_EVENT = "STP_UPDATE_SECURITY_PROFILE";
-    public static final String SECURITY_PROFILE_BACKUP_EVENT = "STP_BACKUP_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_IMPORT_EVENT = "STP_IMPORT_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_UPDATE_EVENT = "STP_UPDATE_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_BACKUP_EVENT = "STP_BACKUP_SECURITY_PROFILE";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
@@ -183,8 +183,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 SECURITY_PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.SECURITY_PROFILE
-            );
+                FunctionalAdminCollections.SECURITY_PROFILE);
 
             manager.logImportSuccess();
 
@@ -321,8 +320,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 SECURITY_PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.SECURITY_PROFILE
-            );
+                FunctionalAdminCollections.SECURITY_PROFILE);
 
             manager.logUpdateSuccess(securityProfileModel.getId(), updateDiffs.get(securityProfileModel.getId()));
             return new RequestResponseOK<>();

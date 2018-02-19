@@ -28,21 +28,29 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import java.util.Map;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
 /**
  * Vitam rule service
  */
 public class VitamRuleService {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRuleService.class);
-    
+
     private static Map<Integer, Map<String, String>> listMinimumRuleDuration;
-    
+
+    /**
+     * Constructor
+     * 
+     * @param listMinimumRuleDuration the list of minimum rules duration
+     */
     public VitamRuleService(Map<Integer, Map<String, String>> listMinimumRuleDuration) {
         VitamRuleService.listMinimumRuleDuration = listMinimumRuleDuration;
     }
-    
+
+    /**
+     * Get minimum rule duration for a rule, "0 day" if not found
+     * 
+     * @param tenant the tenant id
+     * @param ruleType the rule type
+     * @return the minimum duration
+     */
     public static String getMinimumRuleDuration(Integer tenant, String ruleType) {
         if (listMinimumRuleDuration != null) {
             Map<String, String> ruleDurationMap = listMinimumRuleDuration.get(tenant);
@@ -51,7 +59,7 @@ public class VitamRuleService {
                 if (minRule != null) {
                     return minRule;
                 }
-            } 
+            }
         }
         return "0 day";
     }

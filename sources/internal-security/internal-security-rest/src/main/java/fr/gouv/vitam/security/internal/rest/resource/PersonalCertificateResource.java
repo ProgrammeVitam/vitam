@@ -26,19 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
-import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
-import fr.gouv.vitam.security.internal.rest.server.PersonalCertificatePermissionConfig;
-import fr.gouv.vitam.security.internal.rest.service.PermissionService;
-import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -46,18 +33,32 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
+import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
+import fr.gouv.vitam.security.internal.rest.service.PermissionService;
+import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
+
 /**
  * public resource to personal resource
  */
 @Path("/v1/api/personalCertificate")
 public class PersonalCertificateResource {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateResource.class);
-
     private final PermissionService permissionService;
 
     private final PersonalCertificateService personalCertificateService;
 
+    /**
+     * Constructor
+     * 
+     * @param permissionService
+     * @param personalCertificateService
+     */
     public PersonalCertificateResource(
         PermissionService permissionService,
         PersonalCertificateService personalCertificateService) {
@@ -65,6 +66,17 @@ public class PersonalCertificateResource {
         this.personalCertificateService = personalCertificateService;
     }
 
+    /**
+     * Check personal certificate
+     * 
+     * @param certificate the certificate
+     * @param permission the permission
+     * @throws LogbookClientServerException
+     * @throws LogbookClientAlreadyExistsException
+     * @throws LogbookClientBadRequestException
+     * @throws InvalidParseOperationException
+     * @throws PersonalCertificateException
+     */
     @Path("/personal-certificate-check/{permission}")
     @GET
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -81,7 +93,7 @@ public class PersonalCertificateResource {
      * Gets whether personal certificate if required for the provided endpoint permission
      *
      * @param permission the endpoint permission
-     * @return
+     * @return the requirement as a IsPersonalCertificateRequiredModel object
      */
     @GET
     @Path("/permission-check/{permission}")

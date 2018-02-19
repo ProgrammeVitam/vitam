@@ -64,11 +64,11 @@ public interface ProfileValidator {
 
     public class RejectionCause {
 
-        public static String ERR_DUPLICATE_PROFILE_ENTRY =
+        private static final String ERR_DUPLICATE_PROFILE_ENTRY =
             "One or many profiles in the imported list have the same name : %s";
-        public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating profile (%s)";
-        public static String ERR_DUPLICATE_PROFILE = "The profile %s already exists in database";
-        public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating profile (%s)";
+        private static final String ERR_DUPLICATE_PROFILE = "The profile %s already exists in database";
+        private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
 
         private String reason;
 

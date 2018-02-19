@@ -45,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -71,8 +72,6 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
-import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
@@ -93,8 +92,9 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     private static final int DEFAULT_MINIMUM_TIMEOUT = 60000;
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoragePopulateImpl.class);
-    private static final StorageStrategyProvider STRATEGY_PROVIDER = StorageStrategyProviderFactory.getDefaultProvider();
-    private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
+    private static final StorageStrategyProvider STRATEGY_PROVIDER =
+        StorageStrategyProviderFactory.getDefaultProvider();
+
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
 
@@ -150,7 +150,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             tryAndRetry(objectId, category, file, tenantId, datas, 1);
 
             return buildStoreDataResponse(objectId, category,
-                    strategyId, datas.getGlobalOfferResult());
+                strategyId, datas.getGlobalOfferResult());
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
@@ -289,7 +289,8 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     }
 
     private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category, String strategy,
-        Map<String, Status> offerResults) throws StorageTechnicalException, StorageAlreadyExistsException {
+        Map<String, Status> offerResults)
+        throws StorageTechnicalException, StorageAlreadyExistsException {
 
         String digest = DigestType.SHA512.getName();
         final String offerIds = String.join(", ", offerResults.keySet());

@@ -613,7 +613,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             for (FileRulesModel fileRulesModel : fileRulesModelToUpdate) {
                 updateFileRules(fileRulesModel, sequence);
             }
-            if (validatedRules.size() > 0 &&
+            if (validatedRules != null && validatedRules.size() > 0 &&
                 fileRulesModelToInsert.containsAll(fileRulesModelsToImport)) {
                 commit(validatedRules);
                 secureRules = true;
@@ -898,27 +898,22 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
                 if (message.contains(RULE_ID + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_ID;
-                }
-                else if (message.contains(RULE_TYPE + " not found")) {
+                } else if (message.contains(RULE_TYPE + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_TYPE;
-                }
-                else if (message.contains(RULE_VALUE + " not found")) {
+                } else if (message.contains(RULE_VALUE + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_VALUE;
-                }
-                else if (message.contains(RULE_DURATION + " not found")) {
+                } else if (message.contains(RULE_DURATION + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_DURATION;
-                }
-                else if (message.contains(RULE_DESCRIPTION + " not found")) {
+                } else if (message.contains(RULE_DESCRIPTION + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_DESCRIPTION;
-                }
-                else if (message.contains(RULE_MEASUREMENT + " not found")) {
+                } else if (message.contains(RULE_MEASUREMENT + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_MEASUREMENT;
                 }
                 List<ErrorReport> errors = new ArrayList<>();
                 errors
                     .add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_NOT_CSV_FORMAT,
                         lineNumber, message));
-                    errorsMap.put(lineNumber, errors);
+                errorsMap.put(lineNumber, errors);
 
                 throw new FileRulesCsvException(message);
             } catch (Exception e) {
@@ -1558,7 +1553,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                             error.getFileRulesModel().getRuleType()));
                         errorNode.set(ReportConstants.ADDITIONAL_INFORMATION, info);
                     case STP_IMPORT_RULES_NOT_CSV_FORMAT:
-                       errorNode.put(ADDITIONAL_INFORMATION,error.getMissingInformations());
+                        errorNode.put(ADDITIONAL_INFORMATION, error.getMissingInformations());
                         break;
                     case STP_IMPORT_RULES_DELETE_USED_RULES:
                     case STP_IMPORT_RULES_UPDATED_RULES:

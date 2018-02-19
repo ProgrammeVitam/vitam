@@ -188,7 +188,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String UPDATE_RULES_KEY = "UpdatedRules";
     private static final String FIELD_ID_KEY = "fieldId";
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
-    private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
 
     private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";

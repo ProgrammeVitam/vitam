@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.StreamSupport;
+
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
@@ -56,6 +57,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
+
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -66,8 +68,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -87,8 +87,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
  */
 public class CreateManifest extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CreateManifest.class);
-
     private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
 
     static final int MANIFEST_XML_RANK = 0;
@@ -107,7 +105,8 @@ public class CreateManifest extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting CreateManifest(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting
+    CreateManifest(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
 
         ObjectNode projection = JsonHandler.createObjectNode();
@@ -145,14 +144,14 @@ public class CreateManifest extends ActionHandler {
                     try {
                         JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
                         return RequestResponseOK.getFromJsonNode(jsonNode);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
+                        MetaDataClientServerException | InvalidParseOperationException e) {
                         throw new IllegalStateException(e);
                     }
                 }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
 
             StreamSupport.stream(scrollRequest, false).forEach(
-                item -> createGraph(multimap, originatingAgencies, ogs, item)
-            );
+                item -> createGraph(multimap, originatingAgencies, ogs, item));
 
             if (checkNumberOfUnit(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
@@ -200,20 +199,20 @@ public class CreateManifest extends ActionHandler {
                         try {
                             JsonNode node = client.selectUnits(query.getFinalSelect());
                             return RequestResponseOK.getFromJsonNode(node);
-                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
+                            MetaDataClientServerException | InvalidParseOperationException e) {
                             throw new IllegalStateException(e);
                         }
                     }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
 
                 manifestBuilder.startDescriptiveMetadata();
                 StreamSupport.stream(scrollRequest, false).forEach(result -> {
-                        try {
-                            manifestBuilder.writeArchiveUnit(result, multimap, ogs);
-                        } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
-                            throw new IllegalArgumentException(e);
-                        }
+                    try {
+                        manifestBuilder.writeArchiveUnit(result, multimap, ogs);
+                    } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
+                        throw new IllegalArgumentException(e);
                     }
-                );
+                });
                 manifestBuilder.endDescriptiveMetadata();
 
                 manifestBuilder.endDataObjectPackage();

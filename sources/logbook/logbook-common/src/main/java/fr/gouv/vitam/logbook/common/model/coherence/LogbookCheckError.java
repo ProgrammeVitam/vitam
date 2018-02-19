@@ -26,10 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.model.coherence;
 
+import java.io.Serializable;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.io.Serializable;
 
 /**
  * Description of LogbookCheckResult model. <br/>
@@ -67,8 +67,7 @@ public class LogbookCheckError implements Serializable {
     @JsonProperty("expectedLogbookMsg")
     private String expectedLogbookMsg;
 
-    public LogbookCheckError() {
-    }
+    public LogbookCheckError() {}
 
     /**
      * LogbookCheckResult constructor.
@@ -79,7 +78,8 @@ public class LogbookCheckError implements Serializable {
      * @param savedLogbookMsg
      * @param expectedLogbookMsg
      */
-    public LogbookCheckError(String operationId, String lfcId, String checkedProperty, String savedLogbookMsg, String expectedLogbookMsg) {
+    public LogbookCheckError(String operationId, String lfcId, String checkedProperty, String savedLogbookMsg,
+        String expectedLogbookMsg) {
         this.operationId = operationId;
         this.lfcId = lfcId;
         this.checkedProperty = checkedProperty;
@@ -102,7 +102,7 @@ public class LogbookCheckError implements Serializable {
     public void setLfcId(String lfcId) {
         this.lfcId = lfcId;
     }
-    
+
     public String getCheckedProperty() {
         return checkedProperty;
     }
@@ -129,8 +129,12 @@ public class LogbookCheckError implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         LogbookCheckError that = (LogbookCheckError) o;
 
@@ -138,7 +142,8 @@ public class LogbookCheckError implements Serializable {
             return false;
         if (savedLogbookMsg != null ? !savedLogbookMsg.equals(that.savedLogbookMsg) : that.savedLogbookMsg != null)
             return false;
-        return expectedLogbookMsg != null ? expectedLogbookMsg.equals(that.expectedLogbookMsg) : that.expectedLogbookMsg == null;
+        return expectedLogbookMsg != null ? expectedLogbookMsg.equals(that.expectedLogbookMsg)
+            : that.expectedLogbookMsg == null;
     }
 
     @Override
