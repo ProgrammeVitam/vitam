@@ -1,5 +1,5 @@
 Package: vitam-consul
-Version: 1.0.2
+Version: 1.0.6
 Section: admin
 Priority: optional
 Architecture: amd64
