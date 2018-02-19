@@ -801,9 +801,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      * Accession register test
      *
      ***/
-
-    // TODO gafou
-
     @Test
     public void selectAccessionExternalSumary() throws Exception {
         when(mock.get()).thenReturn(

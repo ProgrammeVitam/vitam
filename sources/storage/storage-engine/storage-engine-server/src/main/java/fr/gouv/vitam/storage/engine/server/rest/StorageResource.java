@@ -100,6 +100,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Storage Resource implementation
+ * 
  */
 @Path("/storage/v1")
 public class StorageResource extends ApplicationStatusResource implements VitamAutoCloseable {
@@ -523,16 +524,46 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param createObjectDescription the object description for storage
      * @return
      */
-    @Path("/backupoperation/{id_operation}")
+    @Path("/backupoperations/{id_operation}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrUpdateBackupOperation(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers,
         @PathParam("id_operation") String operationId, ObjectDescription createObjectDescription) {
-        // TODO check nullity and emptiness
         return createObjectByType(headers, operationId, createObjectDescription, DataCategory.BACKUP_OPERATION,
             httpServletRequest.getRemoteAddr());
+    }
+
+
+    /**
+     * Get a backup operation
+     *
+     * @param headers http header
+     * @param operationId the id of the operation
+     * @return the stream
+     */
+    @Path("/backupoperations/{id_operation}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    public Response getBackupOperation(@Context HttpHeaders headers, @PathParam("id_operation") String operationId) {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(operationId, DataCategory.BACKUP_OPERATION, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
     }
 
     private Response getObjectInformationWithPost(HttpHeaders headers, String objectId) {

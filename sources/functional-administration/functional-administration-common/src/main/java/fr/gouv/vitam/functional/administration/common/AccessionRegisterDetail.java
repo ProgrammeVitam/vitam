@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Accession Register Detail document
@@ -64,8 +63,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     /**
      * Empty Constructor
      */
-    public AccessionRegisterDetail() {
-    }
+    public AccessionRegisterDetail() {}
 
     /**
      * Constructor
@@ -260,6 +258,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
             append(OPERATION_IDS, ids);
         }
         return this;
+    }
+
+    public List<String> getOperationIds() {
+        return (List<String>) get(OPERATION_IDS);
     }
 
     public AccessionRegisterDetail setSymbolic(boolean symbolic) {

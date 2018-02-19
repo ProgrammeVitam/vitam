@@ -121,7 +121,7 @@ public class StorageResourceTest {
     private static final String CHECKLOGBOOKREPORTS = "/checklogbookreports";
     private static final String CHECKLOGBOOKREPORTS_URI = "/{logbookreportfile}";
 
-    private static final String STORAGE_BACKUP_OPERATION = "/backupoperation";
+    private static final String STORAGE_BACKUP_OPERATION = "/backupoperations";
     private static final String STORAGE_BACKUP_OPERATION_ID_URI = "/{operationId}";
 
     private static final String ID_O1 = "idO1";
@@ -521,6 +521,30 @@ public class StorageResourceTest {
     }
 
     @Test
+    public void getBackupOperationOk() {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(STORAGE_BACKUP_OPERATION + STORAGE_BACKUP_OPERATION_ID_URI, "id0").then()
+            .statusCode(Status.OK.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).when()
+            .get(STORAGE_BACKUP_OPERATION + STORAGE_BACKUP_OPERATION_ID_URI, "id0").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E, VitamHttpHeader.STRATEGY_ID.getName(),
+                STRATEGY_ID)
+            .when().get(STORAGE_BACKUP_OPERATION + STORAGE_BACKUP_OPERATION_ID_URI, "id0").then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E, VitamHttpHeader.STRATEGY_ID.getName(),
+                STRATEGY_ID)
+            .when().get(STORAGE_BACKUP_OPERATION + STORAGE_BACKUP_OPERATION_ID_URI, "id0").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
     public final void testLogbooks() {
 
         given().contentType(ContentType.JSON)
@@ -786,7 +810,8 @@ public class StorageResourceTest {
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E)
-            .when().get(OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1").then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when().get(OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1").then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
 
     }
 
@@ -1202,8 +1227,6 @@ public class StorageResourceTest {
             }
             return new RequestResponseOK<OfferLog>().setHttpCode(Status.OK.getStatusCode());
         }
-
-
 
     }
 

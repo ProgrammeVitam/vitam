@@ -345,10 +345,6 @@ public class ReconstructionServiceTest {
             .thenReturn(metadataBackupModel100);
         Mockito.when(restoreBackupService.loadData("default", MetadataCollections.UNIT, "101", 101L))
             .thenReturn(getUnitMetadataBackupModel("101", 101L));
-        Mockito.doThrow(new LogbookClientServerException("logbook error"))
-            .when(logbookLifecycleClient)
-            .createRawbulkUnitlifecycles(Mockito.any());
-
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory);
@@ -383,7 +379,7 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
         assertThat(realResponseItem.getOffset()).isEqualTo(100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
-        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
 
     private MetadataBackupModel getUnitMetadataBackupModel(String id, Long offset) {

@@ -26,121 +26,64 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import java.util.List;
-
-import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuthenticationLevel;
+import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyService;
 import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookRepositoryService;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
 
 /**
  * Logbook admin Service.
  */
 @Path("/logbook/v1")
-@ApplicationPath("webresources")
-public class AdminLogbookResource {
+public class LogbookAdminResource {
 
     /**
      * Vitam Logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminLogbookResource.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookAdminResource.class);
 
     private final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
-    /**
-     * LogbookRepository service.
-     */
-    private LogbookRepositoryService logbookRepositoryService;
 
     /**
      * logbookCoherenceCheck service.
      */
     private LogbookCheckConsistencyService checkLogbookService;
 
-    public AdminLogbookResource(VitamRepositoryProvider vitamRepositoryProvider, LogbookConfiguration configuration) {
-        this.logbookRepositoryService = new LogbookRepositoryService(vitamRepositoryProvider);
+    public LogbookAdminResource(VitamRepositoryProvider vitamRepositoryProvider, LogbookConfiguration configuration) {
         this.checkLogbookService = new LogbookCheckConsistencyServiceImpl(configuration, vitamRepositoryProvider);
     }
 
     /**
-     * Lifecycle Unit Bulk Create raw JsonNode objects
-     *
-     * @param logbookLifecycles Lifecycle Unit Logbooks as list of jsonNodes
-     * @return Response of CREATED
-     */
-    @POST
-    @Path("/unitlifecycles/bulk/raw")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createLifeCycleUnitBulkRaw(List<JsonNode> logbookLifecycles) {
-        return createLifecycleBulk(LogbookCollections.LIFECYCLE_UNIT, logbookLifecycles);
-    }
-
-    /**
-     * Lifecycle object group Bulk Create raw JsonNode objects
-     *
-     * @param logbookLifecycles Lifecycle objectGroup Logbooks as list of jsonNodes
-     * @return Response of CREATED
-     */
-    @POST
-    @Path("/objectgrouplifecycles/bulk/raw")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createLifeCycleObjectGroupBulkRaw(List<JsonNode> logbookLifecycles) {
-        return createLifecycleBulk(LogbookCollections.LIFECYCLE_OBJECTGROUP, logbookLifecycles);
-    }
-
-    /**
-     * Lifecycle Bulk Create raw JsonNode objects
-     * 
-     * @param collection lifecycle collection
-     * @param logbookLifecycles Lifecycle Logbooks as list of jsonNodes
-     * @return
-     */
-    private Response createLifecycleBulk(LogbookCollections collection, List<JsonNode> logbookLifecycles) {
-        ParametersChecker.checkParameter("Logbook parameters", logbookLifecycles);
-        try {
-            logbookRepositoryService.saveBulk(collection, logbookLifecycles);
-        } catch (DatabaseException e) {
-            LOGGER.error("Lifecycles could not be inserted in database", e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        return Response.status(Response.Status.CREATED).build();
-    }
-
-    /**
      * API to access and lanch the Check logbook coherence service.<br/>
-     *
-     * @return
+     * 
+     * @param uri uri
+     * @return OK or error
      */
     @Path(CHECK_LOGBOOK_COHERENCE_URI)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkLogbookCoherence (@Context UriInfo uri) {
-
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response checkLogbookCoherence(@Context UriInfo uri) {
         LOGGER.debug("Starting Check logbook coherence service :");
         try {
             checkLogbookService.logbookCoherenceCheckByTenant(VitamThreadUtils.getVitamSession().getTenantId());

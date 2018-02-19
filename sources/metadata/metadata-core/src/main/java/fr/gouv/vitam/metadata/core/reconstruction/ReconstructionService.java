@@ -57,6 +57,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
 /**
@@ -122,7 +123,8 @@ public class ReconstructionService {
             throw new IllegalArgumentException(RECONSTRUCTION_LIMIT_POSITIVE_MSG);
         }
         LOGGER
-            .info(String.format("[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant from {%s} offset",
+            .info(String.format(
+                "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant from {%s} offset",
                 reconstructionItem.getCollection(), reconstructionItem.getTenant(), reconstructionItem.getOffset()));
         return reconstructCollection(MetadataCollections.getFromValue(reconstructionItem.getCollection()),
             reconstructionItem.getTenant(), reconstructionItem.getOffset(), reconstructionItem.getLimit());
@@ -170,10 +172,11 @@ public class ReconstructionService {
                 for (OfferLog offerLog : listingBulk) {
                     MetadataBackupModel model = restoreBackupService.loadData(STRATEGY_ID, collection,
                         offerLog.getFileName(), offerLog.getSequence());
-                    if (model != null) {
+                    if (model != null && model.getMetadatas() != null && model.getLifecycle() != null &&
+                        model.getOffset() != null) {
                         bulkData.add(model);
                     } else {
-                        LOGGER.error(String.format(
+                        throw new StorageException(String.format(
                             "[Reconstruction]: Metadatas or Logbooklifecycle is not present in file {%s} for the collection {%s} on the tenant {%s}",
                             offerLog.getFileName(), collection, tenant));
                     }
@@ -192,16 +195,20 @@ public class ReconstructionService {
                     collection.name(), tenant, offset, LocalDateUtil.now()));
             }
             response.setStatus(StatusCode.OK);
-        } catch (DatabaseException em) {
+        } catch (DatabaseException de) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
-                collection, tenant, offset), em);
+                collection, tenant, offset), de);
             response.setOffset(offset);
             response.setStatus(StatusCode.KO);
-        } catch (LogbookClientException | InvalidParseOperationException el) {
+        } catch (StorageException se) {
+            LOGGER.error(se.getMessage());
+            response.setOffset(offset);
+            response.setStatus(StatusCode.KO);
+        } catch (LogbookClientException | InvalidParseOperationException exc) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} lifecycles on the tenant {%s} from {offset:%s}",
-                collection, tenant, offset), el);
+                collection, tenant, offset), exc);
             response.setOffset(offset);
             response.setStatus(StatusCode.KO);
         } finally {
@@ -221,7 +228,7 @@ public class ReconstructionService {
     private void reconstructCollectionLifecycles(MetadataCollections collection, List<MetadataBackupModel> bulk)
         throws LogbookClientException, InvalidParseOperationException {
         LOGGER.info(String.format("[Reconstruction]: Back up of lifecycles bulk"));
-        try (LogbookLifeCyclesClient logbookLifecycleClient = logbookLifeCyclesClientFactory.getClient()){
+        try (LogbookLifeCyclesClient logbookLifecycleClient = logbookLifeCyclesClientFactory.getClient()) {
             List<JsonNode> lifecycles =
                 bulk.stream()
                     .map(model -> {

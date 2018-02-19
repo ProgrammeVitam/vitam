@@ -1,0 +1,52 @@
+{
+	"Volumetry": [
+		{
+			"ObjectSize": {
+				"ingested": 29403,
+				"deleted": 0,
+				"remained": 29403,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"_id": "aehaaaaabahs6u2aaadqyalbty2ya3qaaaaq",
+			"OriginatingAgency": "FRAN_NP_005568",
+			"SubmissionAgency": "FRAN_NP_005061",
+			"ArchivalAgreement": "ArchivalAgreement0",
+			"EndDate": "2018-02-20T15:30:09.784",
+			"StartDate": "2018-02-20T15:30:09.784",
+			"LastUpdate": "2018-02-20T15:30:09.784",
+			"Status": "STORED_AND_COMPLETED",
+			"TotalObjectGroups": {
+				"ingested": 1,
+				"deleted": 0,
+				"remained": 1,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"TotalUnits": {
+				"ingested": 1,
+				"deleted": 0,
+				"remained": 1,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"TotalObjects": {
+				"ingested": 1,
+				"deleted": 0,
+				"remained": 1,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"OperationIds": [
+				"aecaaaaaaceeytj5abrzmalbvy426faaaaaq"
+			],
+			"Symbolic": false,
+    		"_v": 0,
+    		"_tenant": 0
+		}
+	]
+}

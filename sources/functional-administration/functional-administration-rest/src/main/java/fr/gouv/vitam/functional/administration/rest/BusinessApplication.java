@@ -81,7 +81,8 @@ public class BusinessApplication extends Application {
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ReindexationResource());
-
+            
+            singletons.add(new AdminManagementRawResource(VitamRepositoryFactory.getInstance()));
             singletons.add(new AdminReconstructionResource(VitamRepositoryFactory.getInstance()));
 
             singletons.add(profileResource);

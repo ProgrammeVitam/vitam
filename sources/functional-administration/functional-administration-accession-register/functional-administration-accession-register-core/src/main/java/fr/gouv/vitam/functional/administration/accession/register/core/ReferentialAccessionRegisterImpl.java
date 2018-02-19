@@ -28,18 +28,10 @@ package fr.gouv.vitam.functional.administration.accession.register.core;
 
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.IncAction;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
@@ -50,10 +42,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -66,14 +58,18 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAccessionRegisterImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
+    private final ReferentialAccessionRegisterSummaryUtil referentialAccessionRegisterSummaryUtil;
 
     /**
      * Constructor
      *
      * @param dbConfiguration the mongo access configuration
+     * @param referentialAccessionRegisterSummaryUtil the accession register summary
      */
-    public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration) {
+    public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration,
+        ReferentialAccessionRegisterSummaryUtil referentialAccessionRegisterSummaryUtil) {
         mongoAccess = dbConfiguration;
+        this.referentialAccessionRegisterSummaryUtil = referentialAccessionRegisterSummaryUtil;
     }
 
     /**
@@ -95,18 +91,10 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
 
         // store accession register summary
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
         try {
-            final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
-            accessionRegister
-                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId())
-                .setOriginatingAgency(registerDetail.getOriginatingAgency())
-                .setTotalObjects(initialValue)
-                .setTotalObjectGroups(initialValue)
-                .setTotalUnits(initialValue)
-                .setObjectSize(initialValue)
-                .setCreationDate(LocalDateUtil.now().toString());
-
+            final AccessionRegisterSummary accessionRegister = referentialAccessionRegisterSummaryUtil
+                .initAccessionRegisterSummary(registerDetail.getOriginatingAgency(),
+                    GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId());
 
             LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
                 registerDetail.getOriginatingAgency());
@@ -124,11 +112,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
 
         try {
-            List<Action> actions = createActions(registerDetail);
-            Update update = new Update();
-            update.setQuery(QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail
-                .getOriginatingAgency()));
-            update.addActions(actions.toArray(new IncAction[actions.size()]));
+            Update update = referentialAccessionRegisterSummaryUtil.generateUpdateQuery(registerDetail);
 
             mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_SUMMARY);
         } catch (final Exception e) {
@@ -138,64 +122,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     }
 
-    private List<Action> createActions(AccessionRegisterDetail registerDetail)
-        throws InvalidCreateOperationException {
-        ArrayList<Action> actions = new ArrayList<>();
 
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjectGroups().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjectGroups().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjectGroups().getRemained()));
-
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjectGroups().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjectGroups().getAttached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalObjectGroups().getSymbolicRemained()));
-
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjects().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjects().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjects().getRemained()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjects().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjects().getAttached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalObjects().getSymbolicRemained()));
-
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalUnits().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalUnits().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalUnits().getRemained()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalUnits().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalUnits().getAttached()));
-        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalUnits().getSymbolicRemained()));
-
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjectSize().getIngested()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjectSize().getDeleted()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjectSize().getRemained()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjectSize().getDetached()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjectSize().getAttached()));
-        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalObjectSize().getSymbolicRemained()));
-        return actions;
-    }
 
     @Override
     public void close() {

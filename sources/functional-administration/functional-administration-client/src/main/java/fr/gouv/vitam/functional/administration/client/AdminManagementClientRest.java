@@ -27,7 +27,9 @@
 package fr.gouv.vitam.functional.administration.client;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -48,6 +50,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -64,7 +67,6 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Context;
@@ -519,6 +521,40 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
+    
+
+
+    @Override
+    public void createorUpdateAccessionRegisterRaw(JsonNode accessionRegisterDetail)
+        throws ReferentialException, AdminManagementClientServerException, VitamClientException {
+        ParametersChecker.checkParameter("accessionRegisterDetail is a mandatory parameter", accessionRegisterDetail);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/raw" + ACCESSION_REGISTER_GET_DETAIL_URL,
+                null, accessionRegisterDetail, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case CREATED:
+                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case BAD_REQUEST:
+                    LOGGER.debug(status.getReasonPhrase());
+                    throw new ReferentialException(status.getReasonPhrase());
+                default:
+                    LOGGER.debug(status.getReasonPhrase());
+                    throw new AdminManagementClientServerException(status.getReasonPhrase());
+            }
+
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 
     @Override
     public RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query)
@@ -587,6 +623,33 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+
+    @Override
+    public RequestResponse<JsonNode> getAccessionRegisterDetailRaw(String operationId, String originatingAgency)
+        throws VitamClientException {
+        ParametersChecker.checkParameter("operationId is a mandatory parameter", operationId);
+        ParametersChecker.checkParameter("originatingAgency is a mandatory parameter", originatingAgency);
+        Response response = null;
+        try {
+            Map<String, String> filter = new HashMap<>();
+            filter.put("OperationIds", operationId);
+            filter.put("OriginatingAgency", originatingAgency);
+            response = performRequest(HttpMethod.GET, "/raw" + ACCESSION_REGISTER_GET_DETAIL_URL,
+                null, filter, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -1201,7 +1264,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         RequestResponse result = null;
         try {
             response = performRequest(HttpMethod.POST, AUDIT_RULE_URI, null, null,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {

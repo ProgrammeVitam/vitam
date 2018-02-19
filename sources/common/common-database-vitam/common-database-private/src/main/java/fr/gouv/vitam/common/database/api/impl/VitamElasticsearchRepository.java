@@ -31,6 +31,7 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.Document;
@@ -58,6 +59,7 @@ import com.mongodb.client.FindIterable;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepository;
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -93,6 +95,11 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     @Override
     public void save(Document document) throws DatabaseException {
+        saveOrUpdate(document);
+    }
+
+    @Override
+    public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
         ParametersChecker.checkParameter("All params are required", document);
         Document internalDocument = new Document(document);
         String id = internalDocument.getString(VitamDocument.ID);
@@ -107,14 +114,16 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
 
         IndexResponse response = client.prepareIndex(index, VitamCollection.getTypeunique(), id)
+            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
             .setSource(source, XContentType.JSON).get();
 
         RestStatus status = response.status();
 
         switch (status) {
             case OK:
+                return VitamRepositoryStatus.UPDATED;
             case CREATED:
-                break;
+                return VitamRepositoryStatus.CREATED;
             default:
                 String result = response.getResult().getLowercase();
                 LOGGER.error(String.format("Insert Documents Exception caused by : %s", result));
@@ -492,6 +501,13 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
+        Integer tenant) {
+        // Not implement yet
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override

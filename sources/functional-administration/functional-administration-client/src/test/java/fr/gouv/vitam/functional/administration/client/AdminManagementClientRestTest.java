@@ -38,6 +38,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -65,6 +66,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -307,6 +310,22 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getAccessionRegisterDetail() {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/raw/accession-register/detail")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getAccessionRegisterDetailRaw(Map<String, String> fields) {
+            return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/raw/accession-register/detail")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createOrUpdateAccessionRegisterDetailRaw(JsonNode accessionRegisterDetail) {
             return expectedResponse.post();
         }
 
@@ -626,6 +645,39 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             .setLastUpdate(DATE));
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void createAccessionRegisterRaw()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
+        client.createorUpdateAccessionRegisterRaw(
+            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setStartDate(DATE).setEndDate(DATE)
+                .setLastUpdate(DATE)));
+    }
+
+    @Test(expected = AdminManagementClientServerException.class)
+    @RunWithCustomExecutor
+    public void createAccessionRegisterRawError()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.createorUpdateAccessionRegisterRaw(
+            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setStartDate(DATE).setEndDate(DATE)
+                .setLastUpdate(DATE)));
+    }
+
+    @Test(expected = ReferentialException.class)
+    @RunWithCustomExecutor
+    public void createAccessionRegisterRawUnknownError()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.createorUpdateAccessionRegisterRaw(
+            JsonHandler.toJsonNode(new AccessionRegisterDetailModel().setStartDate(DATE).setEndDate(DATE)
+                .setLastUpdate(DATE)));
+    }
+
     /**
      * Accession Register Detail
      **/
@@ -649,6 +701,39 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.getAccessionRegisterDetail("id", JsonHandler.getFromString(QUERY));
+    }
+
+    /**
+     * Accession Register Detail raw
+     **/
+    @Test
+    public void getAccessionRegisterDetailRaw()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode())).build());
+        RequestResponse<JsonNode> response = client.getAccessionRegisterDetailRaw("operationId", "originatingAgency");
+        assertThat(response.isOk()).isTrue();
+        assertThat(response.toJsonNode().get("httpCode").asInt()).isEqualTo(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void getAccessionRegisterDetailRawError()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        RequestResponse<JsonNode> response = client.getAccessionRegisterDetailRaw("operationId", "originatingAgency");
+        assertThat(response.isOk()).isFalse();
+        assertThat(response.toJsonNode().get("httpCode").asInt()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+
+    }
+
+    @Test
+    public void getAccessionRegisterDetailRawUnknownError()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST)
+            .entity(VitamCodeHelper.toVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR, "message")).build());
+        RequestResponse<JsonNode> response = client.getAccessionRegisterDetailRaw("operationId", "originatingAgency");
+        assertThat(response.isOk()).isFalse();
+        assertThat(response.toJsonNode().get("httpCode").asInt()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     /**
@@ -1023,11 +1108,11 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     @Test
     @RunWithCustomExecutor
     public void launchRuleAuditWithCorrectJsonReturnAccepted()
-            throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
+        throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED)
-                .build());
+            .build());
         RequestResponse<JsonNode> resp = client.launchRuleAudit();
         assertEquals(resp.getStatus(), Status.ACCEPTED.getStatusCode());
     }

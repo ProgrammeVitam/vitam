@@ -1,0 +1,100 @@
+{
+	"Volumetry": [
+		{
+			"ObjectSize": {
+				"ingested": 16392863,
+				"deleted": 0,
+				"remained": 16392863,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"_id": "aehaaaaaa4gf2rjkaa4kkalbspwgjtiaaaaq",
+			"OriginatingAgency": "MICHEL_MERCIER",
+			"SubmissionAgency": "FRAN_NP_005061",
+			"ArchivalAgreement": "ArchivalAgreement0",
+			"EndDate": "2018-02-20T15:30:09.784",
+			"StartDate": "2018-02-20T15:30:09.784",
+			"LastUpdate": "2018-02-20T15:30:09.784",
+			"Status": "STORED_AND_COMPLETED",
+			"TotalObjectGroups": {
+				"ingested": 244,
+				"deleted": 0,
+				"remained": 244,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"TotalUnits": {
+				"ingested": 249,
+				"deleted": 0,
+				"remained": 249,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"TotalObjects": {
+				"ingested": 244,
+				"deleted": 0,
+				"remained": 244,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"OperationIds": [
+				"aecaaaaaaceeytj5abrzmalbvy42qsaaaaaq"
+			],
+			"Symbolic": false,
+    		"_v": 0,
+    		"_tenant": 0
+		},
+		{
+			"ObjectSize": {
+				"ingested": 29403,
+				"deleted": 0,
+				"remained": 29403,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"_id": "aehaaaaaaagvm7jmaalysalbwplb56aaaaaq",
+			"OriginatingAgency": "FRAN_NP_005568",
+			"SubmissionAgency": "FRAN_NP_005061",
+			"ArchivalAgreement": "ArchivalAgreement0",
+			"EndDate": "2018-02-20T15:30:09.784",
+			"StartDate": "2018-02-20T15:30:09.784",
+			"LastUpdate": "2018-02-20T15:30:09.784",
+			"Status": "STORED_AND_COMPLETED",
+			"TotalObjectGroups": {
+				"ingested": 1,
+				"deleted": 0,
+				"remained": 1,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"TotalUnits": {
+				"ingested": 1,
+				"deleted": 0,
+				"remained": 1,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"TotalObjects": {
+				"ingested": 1,
+				"deleted": 0,
+				"remained": 1,
+				"attached": 0,
+				"detached": 0,
+				"symbolicRemained": 0
+			},
+			"OperationIds": [
+				"aecaaaaaaceeytj5abrzmalbvy42qsaaaaaq"
+			],
+			"Symbolic": false,
+    		"_v": 0,
+    		"_tenant": 0
+		}
+	]
+}

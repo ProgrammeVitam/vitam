@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.api;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.bson.Document;
@@ -46,6 +47,15 @@ public interface VitamRepository {
      * @throws DatabaseException in case error with database occurs
      */
     void save(Document document) throws DatabaseException;
+
+    /**
+     * Save or updatevitam document
+     *
+     * @param document the document to be saved
+     * @return status CREATED or UPDATED
+     * @throws DatabaseException in case error with database occurs
+     */
+    VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException;
 
     /**
      * Save a list of vitam documents
@@ -88,7 +98,7 @@ public interface VitamRepository {
      *
      * 
      * @param tenant the tenant
-     * @return the number of deleted documents 
+     * @return the number of deleted documents
      * @throws DatabaseException in case error with database occurs
      */
     long purge(Integer tenant) throws DatabaseException;
@@ -131,7 +141,7 @@ public interface VitamRepository {
      * @throws DatabaseException in case error with database occurs
      */
     Optional<Document> findByIdentifier(String identifier) throws DatabaseException;
-
+    
     /**
      * Return iterable over document for the given collection for a specific tenant
      *
@@ -140,6 +150,16 @@ public interface VitamRepository {
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant);
+    
+    /**
+     * Return iterable over document for the given collection for a specific tenant and fields
+     * 
+     * @param fields list of fields for filter
+     * @param mongoBatchSize mongoBatchSize
+     * @param tenant tenant id
+     * @return iterable over document for the given collection
+     */
+    FindIterable<Document> findByFieldsDocuments(Map<String,String> fields, int mongoBatchSize, Integer tenant);
 
     /**
      * Return iterable over document for the given collection

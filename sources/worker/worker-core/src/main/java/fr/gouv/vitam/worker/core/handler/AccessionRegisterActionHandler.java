@@ -39,10 +39,11 @@ import com.google.common.collect.Maps;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -129,7 +130,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient();
             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
-
             checkMandatoryIOParameter(handler);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Params: " + params);
@@ -163,38 +163,37 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                         register.getOriginatingAgency());
                 }
                 VitamThreadUtils.getVitamSession().setContractId(VitamConstants.EVERY_ORIGINATING_AGENCY);
-                Select select = new Select();
                 try {
-                    select
-                        .setQuery(QueryHelper.and().add(QueryHelper.in("OperationIds", operationId)));
-
-                    RequestResponse<AccessionRegisterDetailModel> response =
-                        adminClient.getAccessionRegisterDetail(agency.getId(), select.getFinalSelect());
+                    RequestResponse<JsonNode> response =
+                        adminClient.getAccessionRegisterDetailRaw(operationId, agency.getId());
                     if (response.isOk()) {
-                        RequestResponseOK<AccessionRegisterDetailModel> responseOK =
-                            (RequestResponseOK<AccessionRegisterDetailModel>) response;
+                        RequestResponseOK<JsonNode> responseOK =
+                            (RequestResponseOK<JsonNode>) response;
                         if (responseOK.getResults().size() > 0) {
-                            LOGGER.warn(
-                                "Step already executed, this is a replayed step for this operation : " + operationId);
+                            LOGGER.warn(String.format(
+                                "Step already executed, this is a replayed step for this operation : %s .",
+                                operationId));
                             itemStatus.increment(StatusCode.ALREADY_EXECUTED);
                             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                         }
+                    } else {
+                        LOGGER.warn(String.format(
+                            "Couldnt check accession register for this operation : %s . Lets continue anyways.",
+                            operationId));
                     }
-                } catch (InvalidCreateOperationException | InvalidParseOperationException | ReferentialException e) {
-                    LOGGER.warn("Couldnt check accession register for this operation : " + operationId +
-                        ". Lets continue anyways.");
+                } catch (VitamClientException e) {
+                    LOGGER.warn(String.format(
+                        "Couldnt check accession register for this operation : %s . Lets continue anyways.",
+                        operationId));
                 }
 
-                ArrayNode agencyVolumetry = JsonHandler.createArrayNode();
-                agencyVolumetry.addPOJO(JsonHandler.createObjectNode().set("TotalObjects",
-                    JsonHandler.toJsonNode(register.getTotalObjects())));
-                agencyVolumetry.addPOJO(JsonHandler.createObjectNode().set("TotalObjectsGroups",
-                    JsonHandler.toJsonNode(register.getTotalObjectsGroups())));
-                agencyVolumetry.addPOJO(
-                    JsonHandler.createObjectNode().set("TotalUnits", JsonHandler.toJsonNode(register.getTotalUnits())));
-                agencyVolumetry.addPOJO(
-                    JsonHandler.createObjectNode().set("ObjectSize", JsonHandler.toJsonNode(register.getObjectSize())));
-                arrayInformation.addPOJO(JsonHandler.createObjectNode().set(agency.getId(), agencyVolumetry));
+                // ugly hack > using raw and non raw method
+                ObjectNode jsonNodeRegister = (ObjectNode) JsonHandler.toJsonNode(register);
+                jsonNodeRegister.put("_id", register.getId());
+                jsonNodeRegister.put("_tenant", tenantId);
+                jsonNodeRegister.put("_v", 0);
+                jsonNodeRegister.remove("#id");
+                arrayInformation.addPOJO(jsonNodeRegister);
                 adminClient.createorUpdateAccessionRegister(register);
             }
 

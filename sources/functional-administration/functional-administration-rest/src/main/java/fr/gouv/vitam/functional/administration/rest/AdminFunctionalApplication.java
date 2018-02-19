@@ -71,6 +71,7 @@ public class AdminFunctionalApplication extends Application {
 
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
             singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
+            singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =
@@ -93,7 +94,7 @@ public class AdminFunctionalApplication extends Application {
             AdminSecurityProfileResource adminSecurityProfileResource =
                     new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);
-
+            
             singletons.add(new BasicAuthenticationFilter(configuration));
 
         } catch (VitamException | IOException e) {
