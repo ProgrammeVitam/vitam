@@ -26,6 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -71,20 +85,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
@@ -164,7 +164,7 @@ public class ProcessManagementImplTest {
         Assert.assertNotNull(workflowDefinitions.get("PROCESS_SIP_UNITARY"));
         Assert.assertEquals("FILINGSCHEME",
             workflowDefinitions.get("FILINGSCHEME").getIdentifier());
-        Assert.assertEquals(10,
+        Assert.assertEquals(11,
             workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().size());
         Assert.assertEquals(3,
             workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().get(2).getActions().size());

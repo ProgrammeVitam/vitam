@@ -170,6 +170,12 @@ public class SedaConstants {
      */
     public static final String PREFIX_WORK = "_work";
 
+
+    /**
+     * Prefix to be added in _work, it can be boolean or object. Used for linked AU to AU and/or GOT
+     */
+    public static final String PREFIX_EXISTING = "_existing";
+
     /**
      * Prefix of qualifiers element
      */

@@ -1,0 +1,9 @@
+{
+  "_work": {
+    "_existing": {
+        "_up": ["up1"],
+        "_sps": ["sps1"],
+        "_ops": ["ops1"]
+    }
+  }
+}

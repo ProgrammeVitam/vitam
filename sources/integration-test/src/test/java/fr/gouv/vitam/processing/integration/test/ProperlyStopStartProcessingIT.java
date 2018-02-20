@@ -27,6 +27,15 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.nio.file.Files;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -76,14 +85,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.nio.file.Files;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class ProperlyStopStartProcessingIT {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProperlyStopStartProcessingIT.class);
@@ -100,15 +101,19 @@ public class ProperlyStopStartProcessingIT {
         "integration-processing/ingestLevelStack.json";
     public static final String UNITS_LEVEL_STACK_PATH = "UnitsLevel/ingestLevelStack.json";
 
+    public static final String EXISING_GOT_FILE =
+        "integration-processing/existing_object_group.json";
+
+    public static final String EXISTING_GOT = "UpdateObjectGroup/existing_object_group.json";
+
     private static JunitHelper junitHelper = JunitHelper.getInstance();
 
     private static int workerPort = junitHelper.findAvailablePort();
-    private static int logbookPort = junitHelper.findAvailablePort();
 
     @ClassRule
     public static WireMockClassRule workerMockRule = new WireMockClassRule(workerPort);
     @Rule
-    public WireMockClassRule worckerInstance = workerMockRule;
+    public WireMockClassRule workerInstance = workerMockRule;
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -142,12 +147,12 @@ public class ProperlyStopStartProcessingIT {
         workerBean.setWorkerId("FakeWorkerId");
         processingClient.registerWorker("DefaultWorker", "1", workerBean);
 
-        worckerInstance.stubFor(WireMock.get(urlMatching("/worker/v1/status"))
+        workerInstance.stubFor(WireMock.get(urlMatching("/worker/v1/status"))
             .willReturn(
                 aResponse().withStatus(200).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
 
 
-        worckerInstance.stubFor(WireMock.post(urlMatching("/worker/v1/tasks"))
+        workerInstance.stubFor(WireMock.post(urlMatching("/worker/v1/tasks"))
             .willReturn(
                 aResponse()
                     .withStatus(200)
@@ -173,12 +178,12 @@ public class ProperlyStopStartProcessingIT {
 
         File vitamTempFolder = tempFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
-        
+
         VitamConfiguration.getConfiguration()
             .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration-processing/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-processing/processing.conf").toString();
-        
+
         // launch workspace
         File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
         final StorageConfiguration workspaceConfiguration =
@@ -207,7 +212,7 @@ public class ProperlyStopStartProcessingIT {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.setWorkerBulkSize(10);
-        
+
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             workspaceClient.deleteContainer("process", true);
         } catch (Exception e) {
@@ -294,9 +299,13 @@ public class ProperlyStopStartProcessingIT {
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
         final File resourceFile = PropertiesUtils.getResourceFile(INGEST_LEVEL_STACK_JSON);
-
         workspaceClient
             .putObject(containerName, UNITS_LEVEL_STACK_PATH, Files.newInputStream(resourceFile.toPath()));
+
+        final File existing_got = PropertiesUtils.getResourceFile(EXISING_GOT_FILE);
+        workspaceClient
+            .putObject(containerName, EXISTING_GOT, Files.newInputStream(existing_got.toPath()));
+
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);

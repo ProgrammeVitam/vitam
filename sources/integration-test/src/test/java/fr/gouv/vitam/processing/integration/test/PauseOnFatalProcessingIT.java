@@ -102,6 +102,7 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -139,7 +140,7 @@ public class PauseOnFatalProcessingIT {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static String CONFIG_WORKER_PATH;
     private static String CONFIG_WORKSPACE_PATH;
@@ -169,7 +170,7 @@ public class PauseOnFatalProcessingIT {
 
     private boolean imported = false;
     // used to check processed elements per step
-    private int[] elementCountPerStep = {1,2,5,1,2,5,2,5,1,1};
+    private int[] elementCountPerStep = {1, 2, 5, 1, 2, 5, 0, 2, 5, 1, 1};
 
 
     @BeforeClass
@@ -182,32 +183,32 @@ public class PauseOnFatalProcessingIT {
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
 
         VitamConfiguration.getConfiguration()
-                .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
+            .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
 
         CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration-processing/metadata.conf").toString();
         CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/worker.conf").toString();
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration-processing/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-processing/processing.conf").toString();
         CONFIG_SIEGFRIED_PATH =
-                PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         CONFIG_FUNCTIONAL_ADMIN_PATH =
-                PropertiesUtils.getResourcePath("integration-processing/functional-administration.conf").toString();
+            PropertiesUtils.getResourcePath("integration-processing/functional-administration.conf").toString();
         CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath("integration-processing/logbook.conf").toString();
         CONFIG_SIEGFRIED_PATH =
-                PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
         configES = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
-                .withLaunchArgument("--enableMajorityReadConcern")
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
-                .build());
+            .withLaunchArgument("--enableMajorityReadConcern")
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(DATABASE_PORT, Network.localhostIsIPv6()))
+            .build());
         mongod = mongodExecutable.start();
 
         // launch metadata
         SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
-                Integer.toString(PORT_SERVICE_METADATA));
+            Integer.toString(PORT_SERVICE_METADATA));
         metadataApplication = new MetadataMain(CONFIG_METADATA_PATH);
         metadataApplication.start();
         SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
@@ -222,7 +223,7 @@ public class PauseOnFatalProcessingIT {
         PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
 
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-                Integer.toString(PORT_SERVICE_WORKSPACE));
+            Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
         workspaceMain.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
@@ -231,7 +232,7 @@ public class PauseOnFatalProcessingIT {
 
         // launch logbook
         SystemPropertyUtil
-                .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         logbookApplication = new LogbookMain(CONFIG_LOGBOOK_PATH);
         logbookApplication.start();
         SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
@@ -241,7 +242,7 @@ public class PauseOnFatalProcessingIT {
 
         // launch processing
         SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
-                Integer.toString(PORT_SERVICE_PROCESSING));
+            Integer.toString(PORT_SERVICE_PROCESSING));
         processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
         processManagementMain.start();
         SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
@@ -259,7 +260,7 @@ public class PauseOnFatalProcessingIT {
         adminManagementApplication.start();
 
         AdminManagementClientFactory
-                .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
     }
 
     @AfterClass
@@ -273,10 +274,10 @@ public class PauseOnFatalProcessingIT {
         if (configES != null) {
             JunitHelper.stopElasticsearchForTest(configES);
         }
-        if(mongod != null) {
+        if (mongod != null) {
             mongod.stop();
         }
-        if(mongodExecutable != null) {
+        if (mongodExecutable != null) {
             mongodExecutable.stop();
         }
         if (workspaceMain != null) {
@@ -360,15 +361,15 @@ public class PauseOnFatalProcessingIT {
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationId, "Process_SIP_unitary", objectId,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationId != null ? operationId.toString() : "outcomeDetailMessage",
-                operationId);
+            operationId, "Process_SIP_unitary", objectId,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationId != null ? operationId.toString() : "outcomeDetailMessage",
+            operationId);
         logbookClient.create(initParameters);
     }
 
@@ -385,7 +386,7 @@ public class PauseOnFatalProcessingIT {
          */
         testPauseOnFatal(true, false);
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testPauseProcessWorkflowOnFatalThenRecoverThenRestartProcessingAndResume() throws Exception {
@@ -415,13 +416,14 @@ public class PauseOnFatalProcessingIT {
     }
 
     /**
-     * test pause on fatal then resume 
-     * 
-     * @param restartMDServerAfterFatal if true MD server will be started after pause on Fatal
+     * test pause on fatal then resume
+     *
+     * @param restartMDServerAfterFatal                if true MD server will be started after pause on Fatal
      * @param stopAndRestartProcessingServerAfterFatal if true Processing Server wil be stopped and restarted after pause on Fatal
      * @throws Exception
      */
-    public void testPauseOnFatal(boolean restartMDServerAfterFatal, boolean stopAndRestartProcessingServerAfterFatal) throws Exception {
+    public void testPauseOnFatal(boolean restartMDServerAfterFatal, boolean stopAndRestartProcessingServerAfterFatal)
+        throws Exception {
         try {
             // prepare
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -440,17 +442,18 @@ public class PauseOnFatalProcessingIT {
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
-                    WORFKLOW_NAME);
+                WORFKLOW_NAME);
 
             // process execute
             RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
             assertNotNull(resp);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
             // check process
             wait(containerName);
-            ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
@@ -459,12 +462,13 @@ public class PauseOnFatalProcessingIT {
             // shutdown metadata, this should generate FATAl status
             metadataApplication.stop();
             waitServer(true, MetaDataClientFactory.getInstance().getClient());
-            
+
             // resume process
-            RequestResponse<ItemStatus> ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-            
+
             // check process status
             wait(containerName);
             processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
@@ -472,11 +476,11 @@ public class PauseOnFatalProcessingIT {
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
             assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
             assertEquals(PauseRecover.RECOVER_FROM_API_PAUSE, processWorkflow.getPauseRecover());
-            
+
             // restart metadata 
-            if(restartMDServerAfterFatal){
+            if (restartMDServerAfterFatal) {
                 SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
-                        Integer.toString(PORT_SERVICE_METADATA));
+                    Integer.toString(PORT_SERVICE_METADATA));
                 metadataApplication = new MetadataMain(CONFIG_METADATA_PATH);
                 metadataApplication.start();
                 SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
@@ -484,14 +488,14 @@ public class PauseOnFatalProcessingIT {
             }
 
             // stop and restart processing
-            if(stopAndRestartProcessingServerAfterFatal){
+            if (stopAndRestartProcessingServerAfterFatal) {
                 // shutdown processing
                 processManagementMain.stop();
                 // wait a little bit
                 waitServer(true, processingClient);
                 // restart processing
                 SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
-                        Integer.toString(PORT_SERVICE_PROCESSING));
+                    Integer.toString(PORT_SERVICE_PROCESSING));
                 processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
                 processManagementMain.start();
                 SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
@@ -502,16 +506,18 @@ public class PauseOnFatalProcessingIT {
             ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-            
+
             // check process status
             wait(containerName);
             processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
             // if MD server restarted process should complete with status Warning, otherwise it must still in pause with status Fatal
-            if(restartMDServerAfterFatal){
-                assertEquals(restartMDServerAfterFatal ? ProcessState.COMPLETED : ProcessState.PAUSE, processWorkflow.getState());
-                assertEquals(restartMDServerAfterFatal ? StatusCode.WARNING : StatusCode.FATAL, processWorkflow.getStatus());
-                
+            if (restartMDServerAfterFatal) {
+                assertEquals(restartMDServerAfterFatal ? ProcessState.COMPLETED : ProcessState.PAUSE,
+                    processWorkflow.getState());
+                assertEquals(restartMDServerAfterFatal ? StatusCode.WARNING : StatusCode.FATAL,
+                    processWorkflow.getStatus());
+
                 // check if all steps are OK 
                 checkAllSteps(processWorkflow);
             } else {
@@ -520,9 +526,9 @@ public class PauseOnFatalProcessingIT {
             }
         } finally {
             // restart metadata if not already done 
-            if(!restartMDServerAfterFatal){
+            if (!restartMDServerAfterFatal) {
                 SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
-                        Integer.toString(PORT_SERVICE_METADATA));
+                    Integer.toString(PORT_SERVICE_METADATA));
                 metadataApplication = new MetadataMain(CONFIG_METADATA_PATH);
                 metadataApplication.start();
                 SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
@@ -530,17 +536,17 @@ public class PauseOnFatalProcessingIT {
             }
         }
     }
-    
-    private void checkAllSteps(ProcessWorkflow processWorkflow){
+
+    private void checkAllSteps(ProcessWorkflow processWorkflow) {
         int stepIndex = 0;
-        for (ProcessStep step: processWorkflow.getSteps()) {
+        for (ProcessStep step : processWorkflow.getSteps()) {
             // check status
             assertTrue(step.getStepStatusCode().equals(StatusCode.OK) ||
-                    step.getStepStatusCode().equals(StatusCode.WARNING));
-            
+                step.getStepStatusCode().equals(StatusCode.WARNING));
+
             // check processed elements
-            assertTrue(step.getElementProcessed() == step.getElementToProcess());
-            assertTrue (step.getElementProcessed() == elementCountPerStep[stepIndex++]);
+            Assertions.assertThat(step.getElementProcessed()).isEqualTo(step.getElementToProcess());
+            Assertions.assertThat(step.getElementProcessed()).isEqualTo(elementCountPerStep[stepIndex++]);
         }
     }
 
@@ -556,7 +562,7 @@ public class PauseOnFatalProcessingIT {
 
             if (nbTry < 0) {
                 LOGGER.error("SERVER ALREADY {} {}", checkStop ? "UP" : "DOWN",
-                        client.getServiceUrl());
+                    client.getServiceUrl());
             }
         }
         if (nbTry >= 0) {

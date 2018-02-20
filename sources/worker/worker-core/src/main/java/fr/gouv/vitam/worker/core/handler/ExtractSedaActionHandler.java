@@ -45,6 +45,7 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -170,11 +171,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
-    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 9;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 10;
 
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
     private static final int STORAGE_INFO_INPUT_RANK = 2;
+    private static final int EXISTING_GOT_RANK = 9;
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
@@ -188,6 +190,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String ARCHIVAL_AGENCY = "ArchivalAgency";
     public static final int BATCH_SIZE = 50;
     public static final String RULES = "Rules";
+    public static final String UPDATE_EXISTING_GOT_WHEN_LINK_AU = "UPDATE_EXISTING_GOT_WHEN_LINK_AU";
     private static String ORIGIN_ANGENCY_NAME = "originatingAgency";
     private static final String ORIGIN_ANGENCY_SUBMISSION = "submissionAgency";
     private static final String ARCHIVAl_AGREEMENT = "ArchivalAgreement";
@@ -280,7 +283,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
     private ObjectNode archiveUnitTree;
-    private List<String> existingGOTs;
+    private Map<String, JsonNode> existingGOTs;
     private boolean asyncIO = true;
 
     /**
@@ -290,8 +293,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance());
     }
 
-    @VisibleForTesting
-    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -309,7 +312,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         existingUnitGuids = new HashSet<>();
         physicalDataObjetsGuids = new HashSet<>();
         originatingAgencies = new ArrayList<>();
-        existingGOTs = new ArrayList<>();
+        existingGOTs = new HashMap<>();
 
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
@@ -465,6 +468,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("ProcessingException: Linking FILING_UNIT or HOLDING_UNIT to INGEST Unauthorized", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException | WorkerspaceQueueException e) {
+            e.printStackTrace();
             LOGGER.debug("ProcessingException", e);
             globalCompositeItemStatus.increment(StatusCode.FATAL);
         } catch (final CycleFoundException e) {
@@ -483,6 +487,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             guidToLifeCycleParameters.clear();
             objectGuidToDataObject.clear();
             dataObjectIdToDetailDataObject.clear();
+            existingGOTs.clear();
             // Except if they are to be used in MEMORY just after in the same STEP
             // objectGroupIdToGuid
             // objectGroupIdToUnitId
@@ -494,7 +499,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private UnitType getUnitType() {
-        UnitType unitType = UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(UNIT_TYPE_INPUT_RANK)));
+        UnitType unitType =
+            UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(UNIT_TYPE_INPUT_RANK)));
         return unitType;
     }
 
@@ -527,7 +533,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params parameters of workspace server
+     * @param params                    parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @param workflowUnitType
      * @throws ProcessingException throw when can't read or extract element from SEDA
@@ -756,7 +762,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 GRAPH_WITH_LONGEST_PATH_IO_RANK);
 
             checkArchiveUnitIdReference();
-            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency, storageInfo);
+            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
+                storageInfo);
 
             // Add parents to archive units and save them into workspace
             finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
@@ -1155,7 +1162,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit archiveUnit
+     * @param archiveUnit      archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1208,9 +1215,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode global management node
+     * @param globalMgtRuleNode          global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType category of rule
+     * @param ruleType                   category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1348,7 +1355,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 evDetData.set(ATTACHMENT_IDS, arrayNode);
             }
 
-            if (unitIdToGroupId.containsKey(unitId) && existingGOTs.contains(unitIdToGroupId.get(unitId))) {
+            if (unitIdToGroupId.containsKey(unitId) && existingGOTs.containsKey(unitIdToGroupId.get(unitId))) {
                 evDetData.put(OBJECT_GROUP_ID, unitIdToGroupId.get(unitId));
             }
 
@@ -2098,6 +2105,77 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
         }
+
+        if (!uuids.isEmpty()) {
+            try {
+                bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
+                uuids.clear();
+            } catch (LogbookClientBadRequestException | LogbookClientServerException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        manageExistingObjectGroups(containerId, logbookLifeCycleClient, typeProcess, uuids);
+    }
+
+    /**
+     * Particular treatment for existing object group
+     *
+     * @param containerId
+     * @param logbookLifeCycleClient
+     * @param typeProcess
+     * @param uuids
+     * @throws ProcessingException
+     */
+    private void manageExistingObjectGroups(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient,
+        LogbookTypeProcess typeProcess, List<String> uuids) throws ProcessingException {
+        final Set<String> collect =
+            existingGOTs.entrySet().stream().filter(e -> e.getValue() != null).map(entry -> entry.getKey() + ".json")
+                .collect(Collectors.toSet());
+
+        File existingGotsFile = handlerIO.getNewLocalFile(handlerIO.getOutput(EXISTING_GOT_RANK).getPath());
+
+        try {
+            JsonHandler.writeAsFile(collect, existingGotsFile);
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingException(e);
+        }
+        handlerIO.addOuputResult(EXISTING_GOT_RANK, existingGotsFile, true, false);
+
+        // Update LFC of exiting object group
+        for (String gotGuid : existingGOTs.keySet()) {
+            try {
+
+                // Get original information from got and save them in LFC in order to keep possibility to rollback if ingest >= KO
+                JsonNode existingGot = existingGOTs.get(gotGuid);
+                if (existingGot == null) {
+                    // Idempotence, GOT already treated. @see ArchiveUnitListener for more information
+                    continue;
+                }
+
+
+                uuids.add(gotGuid);
+
+
+                createObjectGroupLifeCycle(gotGuid, containerId, typeProcess);
+
+                if (uuids.size() == BATCH_SIZE) {
+                    bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
+                    uuids.clear();
+                }
+
+            } catch (final LogbookClientBadRequestException e) {
+                LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
+                throw new ProcessingException(e);
+            } catch (final LogbookClientServerException e) {
+                LOGGER.error(LOGBOOK_SERVER_INTERNAL_EXCEPTION_MSG, e);
+                throw new ProcessingException(e);
+            } catch (final LogbookClientAlreadyExistsException e) {
+                LOGGER.error(LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG, e);
+                throw new ProcessingException(e);
+            }
+        }
+
         if (!uuids.isEmpty()) {
             try {
                 bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
@@ -2164,7 +2242,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid guid of data object
+     * @param guid       guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2312,7 +2390,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             lfcParameters.setFinalStatus(HANDLER_ID, subTask, StatusCode.KO, null, null);
             ObjectNode llcEvDetData = JsonHandler.createObjectNode();
             llcEvDetData.put(SedaConstants.EV_DET_TECH_DATA, message);
-            lfcParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.writeAsString(llcEvDetData));
+            lfcParameters
+                .putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.writeAsString(llcEvDetData));
             logbookLifeCycleClient.update(lfcParameters);
 
         } catch (final InvalidGuidOperationException e) {

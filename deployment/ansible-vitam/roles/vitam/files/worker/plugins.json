@@ -81,6 +81,10 @@
 	"STORE_MANIFEST": {
 		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreDIP",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"OBJECT_GROUP_UPDATE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
+		"propertiesFile": "object_group_update.properties"
 	}
 }
 

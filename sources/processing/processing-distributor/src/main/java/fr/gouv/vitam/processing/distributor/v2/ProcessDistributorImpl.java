@@ -321,7 +321,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final String uniqueStepId = step.getId();
         if (objectsList == null || objectsList.isEmpty()) {
             step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
-                new ItemStatus(OBJECTS_LIST_EMPTY).increment(StatusCode.WARNING));
+                new ItemStatus(OBJECTS_LIST_EMPTY).increment(step.getDistribution().getStatusOnEmptyDistribution()));
             return false;
         }
         int offset = 0;

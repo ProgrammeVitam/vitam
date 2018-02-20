@@ -106,6 +106,10 @@
               {
                 "name": "mapsObjectGroup.file",
                 "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "existingObjectGroup.file",
+                "uri": "WORKSPACE:UpdateObjectGroup/existing_object_group.json"
               }
             ]
           }

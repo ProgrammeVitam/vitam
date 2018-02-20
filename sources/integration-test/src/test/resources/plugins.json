@@ -81,6 +81,10 @@
 	"CHECK_CLASSIFICATION_LEVEL": {
 		"className": "fr.gouv.vitam.worker.core.plugin.CheckClassificationLevelActionPlugin",
 		"propertiesFile": "check_classification_level_plugin.properties"
+	},
+	"OBJECT_GROUP_UPDATE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
+		"propertiesFile": "object_group_update.properties"
 	}
 
 }

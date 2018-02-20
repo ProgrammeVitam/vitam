@@ -83,6 +83,12 @@ public class IngestWorkflowConstants {
      * Sub folder for object groups metadata in Worskpace folder of container : containerId/ObjectGroup
      */
     public static final String OBJECT_GROUP_FOLDER = "ObjectGroup";
+
+    /**
+     * Sub folder for existing object groups metadata in Worskpace folder of container : containerId/UpdateObjectGroup
+     */
+    public static final String UPDATE_OBJECT_GROUP_FOLDER = "UpdateObjectGroup";
+
     /**
      * Sub folder for archive units metadata in Worskpace folder of container : containerId/Units
      */

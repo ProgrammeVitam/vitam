@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.processing;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
  * Distribution object in each step of workflow processing
@@ -40,6 +41,10 @@ public class Distribution {
     private DistributionKind kind;
     @JsonProperty("element")
     private String element;
+    @JsonProperty("type")
+    private DistributionType type;
+    @JsonProperty("statusOnEmptyDistribution")
+    private StatusCode statusOnEmptyDistribution = StatusCode.WARNING;
 
     /**
      * getKind(), get the object kind
@@ -47,7 +52,7 @@ public class Distribution {
      * @return the reference of DistributionKind
      */
     public DistributionKind getKind() {
-        if (kind == null) {            
+        if (kind == null) {
             return DistributionKind.REF;
         }
         return kind;
@@ -86,6 +91,42 @@ public class Distribution {
         this.element = element;
         return this;
     }
-    
-    
+
+    /**
+     * get the type of the distribution
+     *
+     * @return Distribution instance with element setted
+     */
+    public DistributionType getType() {
+        return type;
+    }
+
+    /**
+     * set the type of the distribution
+     *
+     * @param type the type of the distribution
+     * @return Distribution instance with element setted
+     */
+    public Distribution setType(DistributionType type) {
+        this.type = type;
+        return this;
+    }
+
+    /**
+     * Get the status to be used in the logbook if no distribution occurred
+     * @return StatusCode
+     */
+    public StatusCode getStatusOnEmptyDistribution() {
+        return statusOnEmptyDistribution;
+    }
+
+    /**
+     * Set the status to be used in the logbook if no distribution occurred
+     * @param statusOnEmptyDistribution
+     * @return Distribution instance with element setted
+     */
+    public Distribution setStatusOnEmptyDistribution(StatusCode statusOnEmptyDistribution) {
+        this.statusOnEmptyDistribution = statusOnEmptyDistribution;
+        return this;
+    }
 }

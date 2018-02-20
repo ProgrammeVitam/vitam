@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Action;
 import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.DistributionKind;
+import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -135,7 +136,7 @@ public class WorkerImpl implements Worker {
     /**
      * Add an actionhandler in the pool of action
      *
-     * @param actionName action name
+     * @param actionName    action name
      * @param actionHandler action handler
      * @return WorkerImpl
      */
@@ -339,7 +340,8 @@ public class WorkerImpl implements Worker {
                 VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         } else if (step.getDistribution().getElement()
-            .equals(LogbookType.OBJECTGROUP.getType())) {
+            .equals(LogbookType.OBJECTGROUP.getType()) ||
+            DistributionType.ObjectGroup .equals(step.getDistribution().getType())) {
             lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
                 GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
                 VitamLogbookMessages.getEventTypeLfc(handlerName),
@@ -404,8 +406,8 @@ public class WorkerImpl implements Worker {
                 subLogbookLfcParam.putParameterValue(LogbookParameterName.parentEventIdentifier,
                     logbookParam.getParameterValue(LogbookParameterName.eventIdentifier));
                 // set obId and gotId (used to determine the LFC to update)
-                subLogbookLfcParam.putParameterValue(LogbookParameterName.lifeCycleIdentifier, 
-                        subLogbookLfcParam.getParameterValue(LogbookParameterName.objectIdentifier));
+                subLogbookLfcParam.putParameterValue(LogbookParameterName.lifeCycleIdentifier,
+                    subLogbookLfcParam.getParameterValue(LogbookParameterName.objectIdentifier));
                 subLogbookLfcParam.putParameterValue(LogbookParameterName.objectIdentifier, subTaskEntry.getKey());
 
                 // set status
@@ -420,7 +422,7 @@ public class WorkerImpl implements Worker {
                 // set detailed message
                 if (subItemStatus.getGlobalOutcomeDetailSubcode() != null) {
                     subLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetail,
-                        VitamLogbookMessages.getOutcomeDetailLfc(handlerName, entry.getKey(), 
+                        VitamLogbookMessages.getOutcomeDetailLfc(handlerName, entry.getKey(),
                             subItemStatus.getGlobalOutcomeDetailSubcode(), subItemStatus.getGlobalStatus()));
                     subLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeLfc(handlerName, entry.getKey(),

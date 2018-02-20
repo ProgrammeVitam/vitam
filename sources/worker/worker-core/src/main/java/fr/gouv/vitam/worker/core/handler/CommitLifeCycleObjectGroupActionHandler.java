@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 /**
  * CommitLifeCycleObjectGroup Handler
@@ -50,7 +49,7 @@ public class CommitLifeCycleObjectGroupActionHandler extends CommitLifeCycleActi
 
     @Override
     public void commitLifeCycle(HandlerIO handlerIO, String objectID, String operationId)
-        throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException,
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException,
         LogbookClientServerException {
 
         if (handlerIO.getInput() != null && handlerIO.getInput().size() > 0) {
