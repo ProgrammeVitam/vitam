@@ -325,6 +325,8 @@ public class UnitInheritedRule {
         String unitRuleCategory, Map<String, ObjectNode> ruleCategoryFromUnit,
         List<String> parentCategoryList) {
         Map<String, JsonNode> categoryFinalAction = new HashMap<>();
+        Map<String, JsonNode> categoryClassificationLevel = new HashMap<>();
+        Map<String, JsonNode> categoryClassificationOwner = new HashMap<>();
         for (JsonNode rule : unitManagementRuleCategory.get(RULES)) {
             ObjectNode ruleToEdit = (ObjectNode) rule;
             if (!parentCategoryList.contains(unitRuleCategory) && rule.has(RULE)) {
@@ -334,6 +336,11 @@ public class UnitInheritedRule {
                 JsonNode unitRuleNode = ruleCategories.get(ruleName);
                 categoryFinalAction
                     .put(unitRuleCategory, unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_FINAL_ACTION));
+                categoryClassificationLevel
+                    .put(unitRuleCategory, unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL));
+                categoryClassificationOwner
+                    .put(unitRuleCategory, unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER));
+
                 ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
                 parentCategoryList.add(unitRuleCategory);
             } else {
@@ -342,6 +349,17 @@ public class UnitInheritedRule {
                 JsonNode finalActionNode = categoryFinalAction.get(unitRuleCategory);
                 if (null != finalActionNode) {
                     ruleToEdit.set(SedaConstants.TAG_RULE_FINAL_ACTION, finalActionNode);
+                }
+
+                // Add ClassificationLevel
+                JsonNode classificationLevel = categoryClassificationLevel.get(unitRuleCategory);
+                if (null != classificationLevel) {
+                    ruleToEdit.set(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL, classificationLevel);
+                }
+                // Add ClassificationOwner
+                JsonNode classificationOwner = categoryClassificationOwner.get(unitRuleCategory);
+                if (null != classificationOwner) {
+                    ruleToEdit.set(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER, classificationOwner);
                 }
 
                 addInheritedRuleFromManagement(newRule, ruleToEdit, unitRuleCategory, newRule.unitId,
@@ -440,6 +458,17 @@ public class UnitInheritedRule {
         JsonNode finalActionNode = unitManagementRuleCategory.get(SedaConstants.TAG_RULE_FINAL_ACTION);
         if (null != finalActionNode) {
             newValue.set(SedaConstants.TAG_RULE_FINAL_ACTION, finalActionNode);
+        }
+
+        // Add ClassificationLevel
+        JsonNode classificationLevel = unitManagementRuleCategory.get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+        if (null != classificationLevel) {
+            newValue.set(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL, classificationLevel);
+        }
+        // Add ClassificationOwner
+        JsonNode classificationOwner = unitManagementRuleCategory.get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
+        if (null != classificationOwner) {
+            newValue.set(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER, classificationOwner);
         }
 
         // Create Origin of rule (arrayNode)
