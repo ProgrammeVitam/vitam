@@ -240,7 +240,7 @@ public class ContextServiceImpl implements ContextService {
 
             mongoAccess.insertDocuments(contextsToPersist, FunctionalAdminCollections.CONTEXT).close();
 
-            functionalBackupService.saveCollectionAndSequence(
+            functionalBackupService.saveCollectionAndSequence(contextsToPersist.getId(),
                 eip,
                 CONTEXTS_BACKUP_EVENT,
                 FunctionalAdminCollections.CONTEXT
@@ -359,7 +359,7 @@ public class ContextServiceImpl implements ContextService {
                 diff = SanityChecker.sanitizeJson(diffObject);
             }
 
-            functionalBackupService.saveCollectionAndSequence(
+            functionalBackupService.saveCollectionAndSequence(contextModel.getId(),
                 eip,
                 CONTEXTS_BACKUP_EVENT,
                 FunctionalAdminCollections.CONTEXT

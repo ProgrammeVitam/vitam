@@ -99,12 +99,13 @@ public class FunctionalBackupService {
     }
 
     /**
+     * @param objectIdentifier
      * @param eipMaster  logbookMaster
      * @param eventCode  logbook evType
      * @param collection collection
      * @throws VitamException vitamException
      */
-    public void saveCollectionAndSequence(GUID eipMaster, String eventCode,
+    public void saveCollectionAndSequence(String objectIdentifier, GUID eipMaster, String eventCode,
         FunctionalAdminCollections collection)
         throws VitamException {
 
