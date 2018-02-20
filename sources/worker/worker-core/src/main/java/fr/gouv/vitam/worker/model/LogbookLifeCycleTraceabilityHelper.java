@@ -200,9 +200,10 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
 
     @Override
     public void saveEvent(TraceabilityEvent event) {
-        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(event));
+        String evDetailData = JsonHandler.unprettyPrint(event);
+        itemStatus.setEvDetailData(evDetailData);
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-            JsonHandler.unprettyPrint(event));
+            evDetailData);
     }
 
     @Override
