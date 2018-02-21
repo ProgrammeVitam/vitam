@@ -61,8 +61,6 @@ Formulaire de recherche globale
 
 Les formulaires de recherche globale sont composés d'un seul champ de recherche.
 
-|
-
 .. image:: images/au_rechchs.png
 
 Formulaire de recherche avancée
@@ -70,7 +68,6 @@ Formulaire de recherche avancée
 
 Les formulaires de recherche avancée sont composés d'au moins deux champs de recherche .
 
-|
 
 .. image:: images/au_rechcha.png
 
