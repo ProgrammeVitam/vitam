@@ -153,6 +153,7 @@ class AgenciesManager {
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.WARNING), eip);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
             JsonHandler.unprettyPrint(evDetData));
+        logbookClient.update(logbookParameters);
 
     }
 
