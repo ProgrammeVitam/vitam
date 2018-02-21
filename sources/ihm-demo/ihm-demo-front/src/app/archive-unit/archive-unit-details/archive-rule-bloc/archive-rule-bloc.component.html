@@ -45,6 +45,16 @@
           <span class="ui-g-4">{{finalActions[category.rule][management[category.rule].FinalAction].label}}</span>
         </div>
 
+        <div class="ui-g-12" *ngIf="(category.rule === 'ClassificationRule') && management['ClassificationRule']">
+          <div *ngIf="management['ClassificationRule'].ClassificationLevel">
+            <span class="ui-g-7">Niveau de la classification : </span>
+            <span class="ui-g-5">{{management['ClassificationRule'].ClassificationLevel}}</span>
+          </div>
+          <div *ngIf="management['ClassificationRule'].ClassificationOwner">
+            <span class="ui-g-7">Propriétaire de la classification : </span>
+            <span class="ui-g-5">{{management['ClassificationRule'].ClassificationOwner}}</span>
+          </div>
+        </div>
         <div class="ui-g-12">
           <ng-template [ngIf]="inheritedRules[category.rule] || update || hasFinalActionEmptyRule(category.rule)">
             <div class="ui-g">
