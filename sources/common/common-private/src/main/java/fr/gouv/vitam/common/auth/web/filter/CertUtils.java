@@ -65,7 +65,7 @@ public class CertUtils {
                 try {
 
                     /*
-                     * TODO fixme : use instead the official PemReader that implement RFC 7468 when released
+                     * TODO use instead the official PemReader that implement RFC 7468 when released
                      * Implementation of RFC 7468 (PEM can have empty space, an other characters
                      * PemReader is RFC 1421 and do not handle character other than \n
                      * This implementation replace those characters with \n

@@ -34,57 +34,157 @@ public class AccessExtAPI {
 
     private AccessExtAPI() {}
     
+    /**
+     * Accession register base uri
+     */
     public static final String ACCESSION_REGISTERS = "accessionregisters";
+    /**
+     * Accession register uri
+     */
     public static final String ACCESSION_REGISTERS_API = "/" + ACCESSION_REGISTERS;
-    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accessionregisters";
-    
+    /**
+     * Accession register update uri
+     */
+    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accessionregisters";    
+    /**
+     * Accession register details uri
+     */
     public static final String ACCESSION_REGISTERS_DETAIL = "accessionregisterdetails";
-    
+    /**
+     * Ingest contracts base uri
+     */
     public static final String INGEST_CONTRACT = "ingestcontracts";
+    /**
+     * Agencies base uri
+     */
     public static final String AGENCIES = "agencies";
+    /**
+     * Agencies check uri
+     */
     public static final String AGENCIESCHECK = "agenciesfilecheck";
 
+    /**
+     * Ingest contracts uri
+     */
     public static final String INGEST_CONTRACT_API = "/" + INGEST_CONTRACT;
+    /**
+     * Ingest contracts update uri
+     */
     public static final String INGEST_CONTRACT_API_UPDATE = "/ingestcontracts";
-    
+    /**
+     * Access contracts base uri
+     */
     public static final String ACCESS_CONTRACT = "accesscontracts";
+    /**
+     * Access contracts uri
+     */
     public static final String ACCESS_CONTRACT_API = "/" + ACCESS_CONTRACT;
+    /**
+     * Access contracts update uri
+     */
     public static final String ACCESS_CONTRACT_API_UPDATE = "/accesscontracts";
-    
+    /**
+     * Profiles base uri
+     */
     public static final String PROFILES = "profiles";
+    /**
+     * Profiles uri
+     */
     public static final String PROFILES_API = "/" + PROFILES;
+    /**
+     * Profiles update uri
+     */
     public static final String PROFILES_API_UPDATE = "profiles";
     
+    /**
+     * Contexts base uri
+     */
     public static final String CONTEXTS = "contexts";
+    /**
+     * Contexts uri
+     */
     public static final String CONTEXTS_API = "/" + CONTEXTS;
+    /**
+     * Contexts update
+     */
     public static final String CONTEXTS_API_UPDATE = "contexts";
     
+    /**
+     * Formats base uri
+     */
     public static final String FORMATS = "formats";
+    /**
+     * Formats check uri
+     */
     public static final String FORMATSCHECK = "formatsfilecheck";
     
+    /**
+     * Rules uri
+     */
     public static final String RULES = "rules";
+    /**
+     * Rules check uri
+     */
     public static final String RULESCHECK = "rulesfilecheck";
     
+    /**
+     * Traceability base uri
+     */
     public static final String TRACEABILITY = "traceability";
+    /**
+     * Traceability uri
+     */
     public static final String TRACEABILITY_API = "/" + TRACEABILITY;
+    /**
+     * Traceability check uri
+     */
     public static final String TRACEABILITYCHECKS = TRACEABILITY + "checks";
     
+    /**
+     * Audits base uri
+     */
     public static final String AUDITS = "audits";
+    /**
+     * Audits uri
+     */
     public static final String AUDITS_API = "/" + AUDITS;
 
+    /**
+     * Operations base uri
+     */
     public static final String OPERATIONS = "operations";
+    /**
+     * Operations uri
+     */
     public static final String OPERATIONS_API = "/" + OPERATIONS;
-    
+    /**
+     * Workflows base uri
+     */
     public static final String WORKFLOWS = "workflows";
+    /**
+     * Workflows uri
+     */
     public static final String WORKFLOWS_API = "/" + WORKFLOWS;
-    
+    /**
+     * DIP base uri
+     */
     public static final String DIP = "dipexport";
+    /**
+     * DIP uri
+     */
     public static final String DIP_API = "/" + DIP;
     
-    
+    /**
+     * Security profiles uri
+     */
     public static final String SECURITY_PROFILES = "securityprofiles";
-
+    /**
+     * Rules report base uri
+     */
     public static final String RULES_REPORT = "rulesreport";
+    /**
+     * Rules report uri
+     */
     public static final String RULES_REPORT_API = "/" + RULES_REPORT;
 
 }

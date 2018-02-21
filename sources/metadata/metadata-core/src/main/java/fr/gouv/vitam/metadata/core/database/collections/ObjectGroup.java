@@ -77,8 +77,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
             .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Versions
-     */
-    // FIXME P2 WRONG
+     */    
     public static final String VERSIONS = "_qualifiers.versions";
     /**
      * DataObjectVersion

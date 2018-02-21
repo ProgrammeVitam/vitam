@@ -114,6 +114,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private StorageLogService storageLogService;
     private StorageLogAdministration storageLogAdministration;
 
+    /**
+     * Constructor 
+     * 
+     * @param configurationFile
+     */
     public StorageResource(String configurationFile) {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final StorageConfiguration configuration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);

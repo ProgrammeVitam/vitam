@@ -27,7 +27,6 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
-import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 import static fr.gouv.vitam.common.server.application.AsyncInputStreamHelper.asyncResponseResume;
 
 import java.io.File;
@@ -41,6 +40,7 @@ import java.nio.channels.FileChannel;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +51,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -70,7 +68,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -86,7 +83,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 
-import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -126,7 +122,6 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -141,7 +136,6 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -155,7 +149,6 @@ import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
-import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
@@ -246,8 +239,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         String requestId;
         RequestResponse result;
-        OffsetBasedPagination pagination;
+        OffsetBasedPagination pagination;        
         try {
+            Enumeration<String> headersReqId = request.getHeaders(IhmWebAppHeader.REQUEST_ID.name());
+            while (headersReqId.hasMoreElements()) {
+                SanityChecker.checkParameter(headersReqId.nextElement());
+            }
             pagination = new OffsetBasedPagination(request);
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -368,6 +365,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             pagination = new OffsetBasedPagination(request);
+            Enumeration<String> headersReqId = request.getHeaders(IhmWebAppHeader.REQUEST_ID.name());
+            while (headersReqId.hasMoreElements()) {
+                SanityChecker.checkParameter(headersReqId.nextElement());
+            }
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -501,6 +502,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
             uploadMap.put(operationGuid, writtenByteSize);
         } else {
             operationGuid = request.getHeader(GlobalDataRest.X_REQUEST_ID);
+            try {
+                SanityChecker.checkParameter(operationGuid);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.error("Bad request exception", e);
+                return Response.status(Status.BAD_REQUEST).build();
+            }
         }
         FileChannel fileChannel = null;
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(
@@ -1372,6 +1379,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             pagination = new OffsetBasedPagination(request);
+            Enumeration<String> headersReqId = request.getHeaders(IhmWebAppHeader.REQUEST_ID.name());
+            while (headersReqId.hasMoreElements()) {
+                SanityChecker.checkParameter(headersReqId.nextElement());
+            }
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -2480,7 +2491,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(result).build();
 
         } catch (AccessExternalClientServerException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.error(Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.VITAM.getName())
