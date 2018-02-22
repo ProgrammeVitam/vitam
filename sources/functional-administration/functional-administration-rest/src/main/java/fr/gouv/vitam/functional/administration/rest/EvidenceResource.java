@@ -26,17 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.GlobalDataRest;
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.functional.administration.evidence.EvidenceService;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -47,12 +46,13 @@ import javax.ws.rs.core.Response;
 /**
  * EvidenceResource class
  */
-@Path("/v1/admin")
+@Path("/adminmanagement/v1")
+@ApplicationPath("webresources")
 public class EvidenceResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
-    private static final String UNIT_IS_MANDATORY = "unit is mandatory";
-    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
-        "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
+    private static final String UNIT_IS_MANDATORY = "Unit is mandatory";
+    private static final String OBJECT_GROUP_IS_MANDATORY = "Object group is mandatory";
 
     /**
      * Evidence service
@@ -66,22 +66,16 @@ public class EvidenceResource {
      * @return  OK if everything OK
      */
     @POST
-    @Path("/evidenceAudit/unit/{id}")
+    @Path("/evidenceaudit/unit/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkUnitEvidenceAudit(@PathParam("id") String unitId,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
         ParametersChecker.checkParameter(UNIT_IS_MANDATORY, unitId);
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        Integer tenantId = Integer.parseInt(xTenantId);
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-        evidenceService.launchEvidence(unitId, LifeCycleTraceabilitySecureFileObject.MetadataType.UNIT);
+        RequestResponse<JsonNode> requestResponse = evidenceService
+            .launchEvidence(unitId, LifeCycleTraceabilitySecureFileObject.MetadataType.UNIT);
 
-        return Response.status(Response.Status.OK).build();
+        return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
     }
 
     /**
@@ -91,21 +85,15 @@ public class EvidenceResource {
      * @return  OK if everything OK
      */
     @POST
-    @Path("/evidenceAudit/objectgroup/{id}")
+    @Path("/evidenceaudit/objects/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-        ParametersChecker.checkParameter(UNIT_IS_MANDATORY, objectGroupId);
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        Integer tenantId = Integer.parseInt(xTenantId);
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+    public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
+        ParametersChecker.checkParameter(OBJECT_GROUP_IS_MANDATORY, objectGroupId);
 
-        evidenceService.launchEvidence(objectGroupId, LifeCycleTraceabilitySecureFileObject.MetadataType.OBJECTGROUP);
+        RequestResponse<JsonNode> requestResponse = evidenceService
+            .launchEvidence(objectGroupId, LifeCycleTraceabilitySecureFileObject.MetadataType.OBJECTGROUP);
 
-        return Response.status(Response.Status.OK).build();
+        return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
     }
 }

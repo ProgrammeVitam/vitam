@@ -443,4 +443,16 @@ public class AdminManagementClientMockTest {
         assertTrue(resp.isOk());
     }
 
+    @Test
+    public void unitEvidenceAuditTest() throws Exception {
+        RequestResponse<JsonNode> resp = client.unitEvidenceAudit("ID");
+        assertTrue(resp.isOk());
+    }
+
+    @Test
+    public void objectGroupEvidenceAuditTest() throws Exception {
+        RequestResponse<JsonNode> resp = client.objectGroupEvidenceAudit("ID");
+        assertTrue(resp.isOk());
+    }
+
 }

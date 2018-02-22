@@ -412,4 +412,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.getObjectStream();
     }
 
+    @Override
+    public RequestResponse unitEvidenceAudit(VitamContext vitamContext, String unitId) {
+        return ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId) {
+        return ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
+    }
 }

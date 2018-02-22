@@ -513,4 +513,14 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("createorUpdateAccessionRegisterRaw ");
         ParametersChecker.checkParameter("accessionRegisterDetail is a mandatory parameter", accessionRegisterDetail);
     }
+
+    @Override
+    public RequestResponse<JsonNode> unitEvidenceAudit(String unitId) throws AdminManagementClientServerException {
+        return new RequestResponseOK();
+    }
+
+    @Override
+    public RequestResponse<JsonNode> objectGroupEvidenceAudit(String objectGroupId) throws AdminManagementClientServerException {
+        return new RequestResponseOK();
+    }
 }

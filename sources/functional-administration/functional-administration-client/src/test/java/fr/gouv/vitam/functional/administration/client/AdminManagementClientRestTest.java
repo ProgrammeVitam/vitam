@@ -1141,4 +1141,28 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void unitEvidenceAuditTest()
+        throws ReferentialException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK)
+            .build());
+        RequestResponse<JsonNode> resp = client.unitEvidenceAudit("ID");
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void objectGroupEvidenceAuditTest()
+        throws ReferentialException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK)
+            .build());
+        RequestResponse<JsonNode> resp = client.objectGroupEvidenceAudit("ID");
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+    }
+
 }

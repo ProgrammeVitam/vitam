@@ -596,4 +596,24 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<IndexationResult> switchIndexes(JsonNode options)
         throws AdminManagementClientServerException;
+
+    /**
+     * launch a traceability audit for the unit
+     *
+     * @param unitId the id
+     * @return the server response
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<JsonNode> unitEvidenceAudit(String unitId)
+        throws AdminManagementClientServerException;
+
+    /**
+     * launch a traceability audit for the object group
+     *
+     * @param objectGroupId the id
+     * @return the server response
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<JsonNode> objectGroupEvidenceAudit(String objectGroupId)
+        throws AdminManagementClientServerException;
 }

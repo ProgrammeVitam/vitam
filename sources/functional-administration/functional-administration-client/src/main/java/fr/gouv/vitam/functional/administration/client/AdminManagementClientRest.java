@@ -116,6 +116,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String UPDATE_CONTEXT_URI = "/context/";
     private static final String UPDATE_PROFIL_URI = "/profiles/";
     private static final String SECURITY_PROFILES_URI = "/securityprofiles";
+    private static final String UNIT_EVIDENCE_AUDIT_URI = "/evidenceaudit/unit";
+    private static final String OG_EVIDENCE_AUDIT_URI = "/evidenceaudit/objects";
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
@@ -1409,6 +1411,44 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response, IndexationResult.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> unitEvidenceAudit(String unitId) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The unitId is mandatory", unitId);
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, UNIT_EVIDENCE_AUDIT_URI + "/" + unitId, null, null,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> objectGroupEvidenceAudit(String objectGroupId) throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The objectGroupId is mandatory", objectGroupId);
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, OG_EVIDENCE_AUDIT_URI + "/" + objectGroupId, null, null,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
