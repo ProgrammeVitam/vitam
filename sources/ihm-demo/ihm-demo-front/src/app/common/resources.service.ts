@@ -68,24 +68,24 @@ export class ResourcesService {
   }
 
   setAccessContract(contractIdentifier: string) {
-    this.cookies.put(CONTRACT_COOKIE, contractIdentifier);
+      localStorage.setItem(CONTRACT_COOKIE, contractIdentifier);
   }
 
   getAccessContract() {
-    return this.cookies.get(CONTRACT_COOKIE);
+    return localStorage.getItem(CONTRACT_COOKIE);
   }
 
   setTenant(tenantId: string) {
-    this.cookies.put(TENANT_COOKIE, tenantId);
+    localStorage.setItem(TENANT_COOKIE, tenantId);
   }
 
   getTenant() {
-    return this.cookies.get(TENANT_COOKIE);
+    return localStorage.getItem(TENANT_COOKIE);
   }
 
   removeSessionInfo() {
-    this.cookies.remove(TENANT_COOKIE);
-    this.cookies.remove(CONTRACT_COOKIE);
+    localStorage.removeItem(TENANT_COOKIE);
+    localStorage.removeItem(CONTRACT_COOKIE);
   }
 
   private setDefaultHeader(header?: HttpHeaders) {

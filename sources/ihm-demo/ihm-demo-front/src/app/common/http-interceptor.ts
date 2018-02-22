@@ -57,7 +57,7 @@ export class VitamInterceptor implements HttpInterceptor {
     }
   }
   logoutUser() {
-    this.cookies.put(LOGGED_IN, 'false');
+    localStorage.setItem(LOGGED_IN, 'false');
     localStorage.removeItem(USER);
     this.router.navigate(['login']);
   }

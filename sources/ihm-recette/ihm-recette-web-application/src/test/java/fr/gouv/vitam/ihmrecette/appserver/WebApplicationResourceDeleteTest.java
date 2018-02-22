@@ -29,6 +29,9 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
+import com.jayway.restassured.response.Cookie;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -144,6 +147,9 @@ public class WebApplicationResourceDeleteTest {
     static final int tenantId = 0;
     static final List<Integer> tenantList = Arrays.asList(0);
 
+    final static String tokenCSRF = XSRFHelper.generateCSRFToken();
+    private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -226,6 +232,8 @@ public class WebApplicationResourceDeleteTest {
             throw new IllegalStateException(
                 "Cannot start the Logbook Application Server", e);
         }
+
+        XSRFFilter.addToken("testId", tokenCSRF);
     }
 
     @AfterClass
@@ -260,7 +268,8 @@ public class WebApplicationResourceDeleteTest {
 
     @Test
     public void testSuccessStatus() {
-        given().expect().statusCode(Status.NO_CONTENT.getStatusCode()).when().get("status");
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+             .cookie(COOKIE).expect().statusCode(Status.NO_CONTENT.getStatusCode()).when().get("status");
     }
 
     @Test
@@ -269,7 +278,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/formats");
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
         } catch (final Exception e) {
@@ -285,7 +295,8 @@ public class WebApplicationResourceDeleteTest {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/rules");
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
         } catch (final Exception e) {
@@ -302,7 +313,8 @@ public class WebApplicationResourceDeleteTest {
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/accessionregisters");
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
@@ -316,7 +328,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idOperation = addData(LogbookCollections.OPERATION);
             assertTrue(existsData(LogbookCollections.OPERATION, idOperation.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/logbook/operation");
             assertFalse(existsData(LogbookCollections.OPERATION, idOperation.getId()));
         } catch (final Exception e) {
@@ -330,7 +343,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idLfcOg = addData(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/logbook/lifecycle/objectgroup");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
         } catch (final Exception e) {
@@ -344,7 +358,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idLfcUnit = addData(LogbookCollections.LIFECYCLE_UNIT);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/logbook/lifecycle/unit");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
         } catch (final Exception e) {
@@ -358,7 +373,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idOg = addData(MetadataCollections.OBJECTGROUP);
             assertTrue(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/metadata/objectgroup");
             assertFalse(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
         } catch (final Exception e) {
@@ -372,7 +388,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idUnit = addData(MetadataCollections.UNIT);
             assertTrue(existsData(MetadataCollections.UNIT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/metadata/unit");
             assertFalse(existsData(MetadataCollections.UNIT, idUnit.getId()));
         } catch (final Exception e) {
@@ -389,7 +406,8 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idUnit = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/accessContract");
             assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
         } catch (final Exception e) {
@@ -406,7 +424,8 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idUnit = addData(FunctionalAdminCollections.INGEST_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/ingestContract");
             assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
         } catch (final Exception e) {
@@ -438,7 +457,8 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             // delete all
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/deleteTnr");
             // check deleted
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
@@ -463,7 +483,8 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idProfile = addData(FunctionalAdminCollections.PROFILE);
             assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/profile");
             assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
         } catch (final Exception e) {
@@ -480,8 +501,9 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idAgency = addData(FunctionalAdminCollections.AGENCIES);
             assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
-                    .delete("delete/masterdata/agencies");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/masterdata/agencies");
             assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -500,7 +522,8 @@ public class WebApplicationResourceDeleteTest {
             final GUID idContext2 = addData(FunctionalAdminCollections.CONTEXT);
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/context");
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
             assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
@@ -521,7 +544,8 @@ public class WebApplicationResourceDeleteTest {
             final GUID idSecurity = addData(FunctionalAdminCollections.SECURITY_PROFILE);
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/securityProfil");
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
             assertFalse(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
@@ -559,7 +583,8 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
             // delete all
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete");
             // check not deleted
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));

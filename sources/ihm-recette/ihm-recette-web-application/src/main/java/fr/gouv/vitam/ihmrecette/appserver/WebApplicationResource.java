@@ -97,6 +97,8 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -192,7 +194,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(JsonNode object) {
+    public Response login(@Context HttpServletRequest httpRequest, JsonNode object) {
         final Subject subject = ThreadContext.getSubject();
         final String username = object.get("token").get("principal").textValue();
         final String password = object.get("token").get("credentials").textValue();
@@ -202,6 +204,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         final UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+        final String tokenCSRF = XSRFHelper.generateCSRFToken();
+        XSRFFilter.addToken(httpRequest.getSession().getId(), tokenCSRF);
+
 
         try {
             subject.login(token);
@@ -212,7 +217,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        return Response.status(Status.OK).build();
+        return Response.status(Status.OK).entity(tokenCSRF).build();
     }
 
     /**

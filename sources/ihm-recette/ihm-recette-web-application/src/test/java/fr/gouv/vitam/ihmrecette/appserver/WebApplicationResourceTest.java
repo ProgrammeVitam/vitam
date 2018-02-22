@@ -28,7 +28,10 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
+import com.jayway.restassured.response.Cookie;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -75,8 +78,10 @@ public class WebApplicationResourceTest {
     private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
     private static JunitHelper junitHelper;
     private static int port;
+    private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
 
     final int TENANT_ID = 0;
+    final static String tokenCSRF = XSRFHelper.generateCSRFToken();
 
     private static IhmRecetteMainWithoutMongo application;
 
@@ -97,6 +102,8 @@ public class WebApplicationResourceTest {
 
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
+
+        XSRFFilter.addToken("testId", tokenCSRF);
 
         sampleLogbookOperation = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_LOGBOOKOPERATION_FILENAME));
 
@@ -132,8 +139,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(
             UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation, LogbookOperation.class));
-        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
-            .get("/stat/" + FAKE_OPERATION_ID);
+        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .expect().statusCode(Status.OK.getStatusCode()).when().get("/stat/" + FAKE_OPERATION_ID);
     }
 
     @SuppressWarnings("unchecked")
@@ -145,8 +152,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(
             UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenThrow(LogbookClientException.class);
-        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .get("/stat/" + FAKE_OPERATION_ID);
+        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/stat/" + FAKE_OPERATION_ID);
     }
 
     @SuppressWarnings("unchecked")
@@ -158,8 +165,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(
             UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenThrow(InvalidParseOperationException.class);
-        given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
+        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
     }
 
@@ -176,7 +183,9 @@ public class WebApplicationResourceTest {
     @Test
     public final void testTraceabilityEndpointIsWorking() {
         given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_TENANT_ID, "0")
+            .cookie(COOKIE)
             .body("")
             .post(TRACEABILITY_URI)
             .then()
@@ -186,7 +195,9 @@ public class WebApplicationResourceTest {
     @Test
     public final void testTraceabilityLFCEndpointIsWorking() {
         given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_TENANT_ID, "0")
+            .cookie(COOKIE)
             .body("")
             .post(TRACEABILITY_LFC_URI)
             .then()

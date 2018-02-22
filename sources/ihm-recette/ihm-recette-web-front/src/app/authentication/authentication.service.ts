@@ -16,7 +16,7 @@ export class AuthenticationService {
   constructor(private resourceService: ResourcesService, private cookies: CookieService,
               private tenantService: TenantService, private resourcesService: ResourcesService) {
 
-    let loggedIn = this.cookies.get(LOGGED_IN) === 'true';
+    let loggedIn = localStorage.getItem(LOGGED_IN) === 'true';
     this.loginState =  new BehaviorSubject<boolean>(loggedIn);
   }
 
@@ -29,8 +29,11 @@ export class AuthenticationService {
   }
 
 
-  loggedIn() {
-    this.cookies.put(LOGGED_IN, 'true');
+  loggedIn(tokenCSRF?: string) {
+    localStorage.setItem(LOGGED_IN, 'true');
+    if (tokenCSRF !== null) {
+        localStorage.setItem('XSRF-TOKEN', tokenCSRF);
+    }
     this.loginState.next(true);
   }
 
@@ -45,7 +48,8 @@ export class AuthenticationService {
   loggedOut() {
     this.resourceService.setTenant("");
     this.tenantService.changeState(this.resourcesService.getTenant());
-    this.cookies.put(LOGGED_IN, 'false');
+    localStorage.setItem(LOGGED_IN, 'false');
+    localStorage.removeItem('XSRF-TOKEN');
     this.loginState.next(false);
   }
 
