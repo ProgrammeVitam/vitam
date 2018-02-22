@@ -145,10 +145,10 @@ public class PopulateService {
             .buffer(populateModel.getBulkSize())
             .parallel(nbThreads)
             .map(unitGotList -> {
-                return metadataRepository.store(populateModel.getTenant(), unitGotList,
+                return metadataRepository.store(tenantId, unitGotList,
                     populateModel.isStoreInDb(), populateModel.isIndexInEs()) &&
-                    logbookRepository.storeLogbookLifecycleUnit(populateModel.getTenant(), unitGotList) &&
-                    logbookRepository.storeLogbookLifeCycleObjectGroup(populateModel.getTenant(), unitGotList);
+                    logbookRepository.storeLogbookLifecycleUnit(tenantId, unitGotList) &&
+                    logbookRepository.storeLogbookLifeCycleObjectGroup(tenantId, unitGotList);
             })
             .sequential()
             .subscribe(t -> {
@@ -161,6 +161,15 @@ public class PopulateService {
                 POPULATE_FILE.delete();
                 long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
                 LOGGER.info("save time: {}", elapsed);
+                
+                // update accession register if complete with success
+                Optional<Document> accessionresgiterSummary =
+                        this.masterdataRepository.findAccessionRegitserSummary(tenantId, identifier);
+
+                if (!accessionresgiterSummary.isPresent()) {
+                    this.masterdataRepository.createAccessionRegisterSummary(tenantId, identifier,
+                        populateModel.getNumberOfUnit(), populateModel.getNumberOfUnit() * populateModel.getObjectSize());
+                }
             });
     }
 

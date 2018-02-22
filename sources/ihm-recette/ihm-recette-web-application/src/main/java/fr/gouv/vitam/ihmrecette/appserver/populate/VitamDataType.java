@@ -33,7 +33,8 @@ public enum VitamDataType {
     GOT("ObjectGroup", "objectgroup_%d"),
     RULES("FileRules", "filerules"),
     ACCESS_CONTRACT("AccessContract", "accesscontract"),
-    AGENCIES("Agencies", "agencies");
+    AGENCIES("Agencies", "agencies"),
+    ACCESSION_REGISTER_SUMMARY("AccessionRegisterSummary", "accessionregistersummary");
     
     private String collectionName;
     private String indexName;

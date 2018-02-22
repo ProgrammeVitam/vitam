@@ -1,0 +1,38 @@
+{
+    "_id": "GUID",
+    "OriginatingAgency": "AGENCY_NAME",
+    "TotalObjects": {
+        "ingested": "TOTAL_DOCUMENTS",
+        "deleted": 0,
+        "remained": "TOTAL_DOCUMENTS",
+        "attached": 0,
+        "detached": 0,
+        "symbolicRemained": 0
+    },
+    "TotalObjectGroups": {
+        "ingested": "TOTAL_DOCUMENTS",
+        "deleted": 0,
+        "remained": "TOTAL_DOCUMENTS",
+        "attached": 0,
+        "detached": 0,
+        "symbolicRemained": 0
+    },
+    "TotalUnits": {
+        "ingested": "TOTAL_DOCUMENTS",
+        "deleted": 0,
+        "remained": "TOTAL_DOCUMENTS",
+        "attached": 0,
+        "detached": 0,
+        "symbolicRemained": 0
+    },
+    "ObjectSize": {
+        "ingested": "TOTAL_OBJECTS_SIZE",
+        "deleted": 0,
+        "remained": "TOTAL_OBJECTS_SIZE",
+        "attached": 0,
+        "detached": 0,
+        "symbolicRemained": 0
+    },
+    "_v": 1,
+    "_tenant": "TENANT_ID"
+}

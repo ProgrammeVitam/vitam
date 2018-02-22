@@ -62,12 +62,14 @@ import org.elasticsearch.common.xcontent.XContentType;
 public class MasterdataRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MasterdataRepository.class);
-    public static final String GUID = "GUID";
-    public static final String TENANT_ID = "\"TENANT_ID\"";
-    public static final String AGENCY_NAME = "AGENCY_NAME";
-    public static final String CONTRACT_NAME = "CONTRACT_NAME";
-    public static final String RULE_ID = "RULE_ID";
-    public static final String RULE_CATEGORY = "RULE_CATEGORY";
+    private static final String GUID = "GUID";
+    private static final String TENANT_ID = "\"TENANT_ID\"";
+    private static final String AGENCY_NAME = "AGENCY_NAME";
+    private static final String TOTAL_DOCUMENTS = "TOTAL_DOCUMENTS";
+    private static final String TOTAL_OBJECTS_SIZE = "TOTAL_OBJECTS_SIZE";
+    private static final String CONTRACT_NAME = "CONTRACT_NAME";
+    private static final String RULE_ID = "RULE_ID";
+    private static final String RULE_CATEGORY = "RULE_CATEGORY";
 
     private MongoDatabase metadataDb;
     private TransportClient transportClient;
@@ -77,7 +79,8 @@ public class MasterdataRepository {
     private static String RULE_TEMPLATE;
 
     private static String AGENCY_TEMPLATE;
-
+    private static String ACCESSION_REGISTER_SUMMARY_TEMPLATE;
+    
     private static String ACCESS_CONTRACTS_TEMPLATE;
 
     public MasterdataRepository(MongoDatabase metadataDb, TransportClient transportClient) {
@@ -86,6 +89,8 @@ public class MasterdataRepository {
         try {
             AGENCY_TEMPLATE = StringUtils.getStringFromInputStream(
                     MasterdataRepository.class.getResourceAsStream("/agency-template.json"));
+            ACCESSION_REGISTER_SUMMARY_TEMPLATE = StringUtils.getStringFromInputStream(
+                    MasterdataRepository.class.getResourceAsStream("/accession-register-summary.json"));
             RULE_TEMPLATE = StringUtils.getStringFromInputStream(
                     MasterdataRepository.class.getResourceAsStream("/rule-template.json"));
             ACCESS_CONTRACTS_TEMPLATE = StringUtils.getStringFromInputStream(
@@ -111,6 +116,33 @@ public class MasterdataRepository {
         conditions.add(eq("Identifier", identifier));
 
         FindIterable<Document> models = this.getCollection(VitamDataType.AGENCIES).find(and(conditions));
+
+        Document first = models.first();
+        if (first == null) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(first);
+        } catch (final IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Find a document by key-value
+     *
+     * @param tenant
+     * @param identifier
+     * @return Document if found
+     */
+    public Optional<Document> findAccessionRegitserSummary(int tenant, String identifier) {
+
+        List<Bson> conditions = new ArrayList<>();
+        conditions.add(eq(PopulateService.TENANT, tenant));
+        conditions.add(eq("OriginatingAgency", identifier));
+
+        FindIterable<Document> models = this.getCollection(VitamDataType.ACCESSION_REGISTER_SUMMARY).find(and(conditions));
 
         Document first = models.first();
         if (first == null) {
@@ -200,6 +232,25 @@ public class MasterdataRepository {
 
     }
 
+    public void createAccessionRegisterSummary(int tenantId, String agencyName, int objectCount, int totalObjectSize) {
+        String accessionRegisterSummaryToInsert = ACCESSION_REGISTER_SUMMARY_TEMPLATE
+                .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+                .replace(TENANT_ID, Integer.toString(tenantId))
+                .replace(AGENCY_NAME, agencyName)
+                .replace(TOTAL_DOCUMENTS, Integer.toString(objectCount))
+                .replace(TOTAL_OBJECTS_SIZE, Integer.toString(totalObjectSize));
+
+        Document accessionRegisterSummary = Document.parse(accessionRegisterSummaryToInsert);
+        try {
+            this.getCollection(VitamDataType.ACCESSION_REGISTER_SUMMARY).insertOne(accessionRegisterSummary);
+        } catch (MongoException e) {
+            LOGGER.error(e);
+        }
+        List<Document> accessionRegisterSummaries = new ArrayList<>();
+        accessionRegisterSummaries.add(accessionRegisterSummary);
+        indexDocuments(accessionRegisterSummaries, VitamDataType.ACCESSION_REGISTER_SUMMARY, tenantId);
+    }
+
     /**
      * import rule by id
      * 
@@ -277,6 +328,9 @@ public class MasterdataRepository {
         mongoCollections.put(VitamDataType.RULES, ruleCollection);
         MongoCollection<Document> agencyCollection = metadataDb.getCollection(VitamDataType.AGENCIES.getCollectionName());
         mongoCollections.put(VitamDataType.AGENCIES, agencyCollection);
+        MongoCollection<Document> AccessionRegisterSummary = metadataDb.getCollection(
+                VitamDataType.ACCESSION_REGISTER_SUMMARY.getCollectionName());
+        mongoCollections.put(VitamDataType.ACCESSION_REGISTER_SUMMARY, AccessionRegisterSummary);
         MongoCollection<Document> contractCollection = metadataDb.getCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName());
         mongoCollections.put(VitamDataType.ACCESS_CONTRACT, contractCollection);
     }
@@ -311,5 +365,4 @@ public class MasterdataRepository {
         }
         return "StorageRule";
     }
-
 }
