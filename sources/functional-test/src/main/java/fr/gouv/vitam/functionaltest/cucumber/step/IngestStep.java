@@ -176,6 +176,13 @@ public class IngestStep {
         attachMode = true;
     }
 
+
+    @When("je construit le SIP de rattachement au groupe d'objet existant avec le template")
+    public void build_the_attachenment_to_existing_object_group() throws IOException {
+        this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getObjectGroupId());
+        attachMode = true;
+    }
+
     /**
      * Execute an ingest OK and saves the operationId in test set map.
      * 

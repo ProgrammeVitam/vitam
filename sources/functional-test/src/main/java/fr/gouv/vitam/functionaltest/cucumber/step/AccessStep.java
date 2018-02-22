@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
-import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
@@ -49,12 +49,9 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -74,6 +71,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import org.assertj.core.api.Fail;
 
 /**
  * step defining access glue
@@ -126,7 +124,7 @@ public class AccessStep {
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable dataTable
+     * @param dataTable    dataTable
      * @param resultNumber resultNumber
      * @throws Throwable
      */
@@ -205,7 +203,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field field name
+     * @param field     field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -301,9 +299,9 @@ public class AccessStep {
 
     /**
      * replace in the loaded query the given parameter by the given value
-     * 
+     *
      * @param parameter parameter name in the query
-     * @param value the valeur to replace the parameter
+     * @param value     the valeur to replace the parameter
      * @throws Throwable
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
@@ -314,7 +312,7 @@ public class AccessStep {
 
     /**
      * replace in the loaded query the string {{guid}} by the guid of the first unit found for given title
-     * 
+     *
      * @param title title of the unit
      * @throws Throwable
      */
@@ -414,7 +412,34 @@ public class AccessStep {
             queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            world.setUnitId(requestResponseOK.getResults().get(0).get("#id").asText());
+            assertThat(requestResponseOK.getResults()).isNotEmpty();
+            JsonNode unit = requestResponseOK.getResults().iterator().next();
+            world.setUnitId(unit.get("#id").asText());
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
+
+    /**
+     * search an archive unit according to the query define before
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche une unité archivistique ayant un groupe d'objets et je recupère son id et son objet$")
+    public void search_one_object_group() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            assertThat(requestResponseOK.getResults()).isNotEmpty();
+            JsonNode unit = requestResponseOK.getResults().iterator().next();
+            world.setUnitId(unit.get("#id").asText());
+            world.setObjectGroupId(unit.get("#object").asText());
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
@@ -567,8 +592,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename name of the file to import or check
+     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename   name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
