@@ -119,6 +119,8 @@ public class UnitGraph {
             ObjectGroupModel gotModel = createObjectGroupModel(guid, tenantId,
                 DescriptiveMetadataGenerator.generateFileInfoModel(i), unitModel, populateModel.getObjectSize());
             unitGotModel.setGot(gotModel);
+            // set object size
+            unitGotModel.setObjectSize(populateModel.getObjectSize());
 
             // Create a LogbookLifeCycleObjectGroup
             if (withLFCGots) {
@@ -229,6 +231,7 @@ public class UnitGraph {
             version.setId(uuid);
             version.setAlgorithm("SHA-512");
             version.setMessageDigest(PopulateService.getPopulateFileDigest());
+            version.setDataObjectVersion("BinaryMaster_1");
             version.setDataObjectGroupId(guid);
             version.setFileInfoModel(fileInfoModel);
             version.setUri("Content/" + fileInfoModel.getFilename());
