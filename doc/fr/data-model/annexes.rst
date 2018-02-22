@@ -2,12 +2,12 @@ Annexes
 #######
 
 Valeurs possibles pour le champ evType du LogBook Operation
-------------------------------------------------------------
+-----------------------------------------------------------
 
 L'ensemble des étapes, tâches et traitements sont détaillés dans la documentation modèle de workflow
 
 Valeurs possibles pour le champ evType du LogBook LifeCycle
-------------------------------------------------------------
+-----------------------------------------------------------
   
 L'ensemble des étapes, tâches et traitements sont détaillées dans la documentation modèle de workflow
 
@@ -27,7 +27,7 @@ Valeurs possibles pour le champ evTypeProc (type de processus)
   "Update process","UPDATE", "Mise à jour"
 
 Catégories de règles possibles
---------------------------------
+------------------------------
 
 .. csv-table::
   :header: "Prefixe (Peut être modifié)", "Type de règle correspondante", "Description du type de règle"
@@ -187,6 +187,7 @@ Type d'indexation dans ElasticSearch par collection et par champ
   "Metadata.", "Analysé"
   "OtherMetadata", "Analysé"
   "_ops", "Non analysé"
+  "_opi", "Non analysé"
   "_profil", "Non analysé"
   "_qualifiers.qualifier", "Non analysé"
   "_qualifiers.versions.Algorithm", "Non analysé"
@@ -448,6 +449,7 @@ Type d'indexation dans ElasticSearch par collection et par champ
 	"_mgt.StorageRule.Rules.Rule", "Non analysé"
 	"_og", "Non analysé"
 	"_ops", "Non analysé"
+   "_opi", "Non analysé"
 	"_sp", "Non analysé"
 	"_sps", "Non analysé"
 	"_storage.offerIds", "Non analysé"
@@ -572,6 +574,7 @@ Les champs dont le nom est préfixé d'un "_" ne sont pas accessible directement
     "#unitType","_unitType"
     "#storage","_storage"
     "#operations","_ops"
+    "#opi","_opi"
     "#score","_score"
     "#version","_v"
 	"#tenant","_tenant"
@@ -591,6 +594,7 @@ Les champs dont le nom est préfixé d'un "_" ne sont pas accessible directement
     "#unitups","_up"
     "#storage","_storage"
     "#operations","_ops"
+    "#opi","_opi"
     "#score","_score"
     "#version","_v"
 	"#tenant","_tenant"

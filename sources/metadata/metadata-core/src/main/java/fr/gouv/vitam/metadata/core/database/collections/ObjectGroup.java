@@ -144,6 +144,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         new BasicDBObject(TENANT_ID, 1),
         new BasicDBObject(OBJECTVERSION, 1),
         new BasicDBObject(OPS, 1),
+        new BasicDBObject(OPI, 1),
         new BasicDBObject(OBJECTID, 1),
         new BasicDBObject(OBJECTSIZE, 1),
         new BasicDBObject(OBJECTFORMAT, 1),

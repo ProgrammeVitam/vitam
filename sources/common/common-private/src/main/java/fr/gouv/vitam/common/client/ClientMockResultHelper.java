@@ -74,6 +74,7 @@ public class ClientMockResultHelper {
         "    \"TransactedDate\": \"2016-09-22T12:33:02\"," + 
         "    \"_og\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," + 
         "    \"_ops\":[\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"],"+
+        "    \"_opi\":\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\","+
         "    \"_up\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," + 
         "    \"_us\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," + 
         "    \"_sp\": \"vitam\"," + 

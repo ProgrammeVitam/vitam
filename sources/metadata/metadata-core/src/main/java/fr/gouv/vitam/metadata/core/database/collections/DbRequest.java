@@ -1179,6 +1179,7 @@ public class DbRequest {
                     // find the unit that we just save, to take sps field, and save it in the object group
                     String ogId = unit.getString(MetadataDocument.OG);
                     String unitId = unit.getString(MetadataDocument.ID);
+                    String opi = unit.getString(MetadataDocument.OPI);
                     final MetadataDocument newUnit =
                         MongoDbMetadataHelper.findOne(MetadataCollections.UNIT, unitId);
                     final List originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES, List.class);
@@ -1188,8 +1189,6 @@ public class DbRequest {
                     final Bson updateUp = Updates.addToSet(MetadataDocument.UP, unitId);
                     final Bson updateOps =
                         Updates.addToSet(MetadataDocument.OPS, VitamThreadUtils.getVitamSession().getRequestId());
-
-
                     final Bson update = combine(updateSps, updateUp, updateOps);
                     ObjectGroup object = null;
                     try {

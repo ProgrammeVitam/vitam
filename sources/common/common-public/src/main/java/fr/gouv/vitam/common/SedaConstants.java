@@ -205,6 +205,10 @@ public class SedaConstants {
      */
     public static final String PREFIX_OPS = "_ops";
     /**
+     * Prefix of opi
+     */
+    public static final String PREFIX_OPI = "_opi";
+    /**
      * Prefix of type
      */
     public static final String PREFIX_TYPE = "_profil";

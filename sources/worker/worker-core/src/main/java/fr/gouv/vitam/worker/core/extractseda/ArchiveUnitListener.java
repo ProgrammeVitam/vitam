@@ -503,6 +503,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             }
 
             originalOGGraphData.set(MetadataDocument.OPS, ops);
+            originalOGGraphData.put(MetadataDocument.OPI, containerId);
             originalOGGraphData
                 .set(MetadataDocument.ORIGINATING_AGENCIES, ogInDB.get(ORIGINATING_AGENCIES.exactToken()));
             originalOGGraphData.set(MetadataDocument.UP, ogInDB.get(UNITUPS.exactToken()));

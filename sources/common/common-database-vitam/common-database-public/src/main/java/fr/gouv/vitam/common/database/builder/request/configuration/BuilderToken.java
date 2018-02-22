@@ -592,6 +592,10 @@ public abstract class BuilderToken {
          */
         OPERATIONS("operations"),
         /**
+         * Unit or GOT's initial operation
+         */
+        INITIAL_OPERATION("opi"),
+        /**
          * Document's version (number of update on document)
          */
         VERSION("version"),

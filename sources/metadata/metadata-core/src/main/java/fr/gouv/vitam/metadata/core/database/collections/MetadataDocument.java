@@ -84,6 +84,10 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      */
     public static final String OPS = "_ops";
     /**
+     * Initial Operation (both Unit and ObjectGroup)
+     */
+    public static final String OPI = "_opi";
+    /**
      * ORIGINATING_AGENCy : Principal originating agency for unit
      */
     public static final String ORIGINATING_AGENCY = "_sp";

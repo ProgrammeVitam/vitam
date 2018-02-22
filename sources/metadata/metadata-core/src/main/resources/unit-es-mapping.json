@@ -1093,6 +1093,9 @@
       "_ops": {
         "type": "keyword"
       },
+      "_opi": {
+        "type": "keyword"
+      },
       "_tenant": {
         "type": "long"
       },

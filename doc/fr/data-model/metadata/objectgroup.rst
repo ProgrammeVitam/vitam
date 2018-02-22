@@ -159,6 +159,7 @@ Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustiv
       "_ops": [
           "aedqaaaaachxqyktaai4aak7ube557iaaaaq"
       ],
+      "_opi": "aedqaaaaachxqyktaai4aak7ube557iaaaaq",
       "_sp": "Vitam",
       "_sps": [
           "Vitam"
@@ -269,7 +270,14 @@ Détail des champs du JSON
 
 **"_ops" (operations):** tableau des identifiants d'opérations auxquelles ce GOT a participé.
         
-  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu contenue dans le champ _id de la collection LogBookOperation.
+  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu dans le champ _id de la collection LogBookOperation.
+  * Champ peuplé par Vitam.
+  * Ne peut être vide
+  * Cardinalité : 1-1
+
+**"_opi" :** identifiant de l'opération à l'origine de la création de ce GOT.
+        
+  * Il s'agit d'une chaînes de 36 caractères correspondant au GUID contenue dans le champ _id de la collection LogBookOperation.
   * Champ peuplé par Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1

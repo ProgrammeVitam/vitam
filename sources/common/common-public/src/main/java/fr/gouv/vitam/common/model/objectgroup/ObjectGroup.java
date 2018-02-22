@@ -53,6 +53,9 @@ public class ObjectGroup {
 
     @JsonProperty("_ops")
     private List<String> ops;
+    
+    @JsonProperty("_opi")
+    private String opi;
 
     @JsonProperty("OriginatingAgency")
     private String originatingAgency;
@@ -103,6 +106,14 @@ public class ObjectGroup {
         this.ops = ops;
     }
 
+    public String getOpi() {
+        return opi;
+    }
+
+    public void setOpi(String opi) {
+        this.opi = opi;
+    }
+    
     public String getOriginatingAgency() {
         return originatingAgency;
     }
