@@ -445,7 +445,6 @@ public class ProcessingIT {
         db.getCollection("ObjectGroup").deleteMany(new Document());
         db.getCollection("AccessionRegisterSummary").deleteMany(new Document());
         db.getCollection("AccessionRegisterDetail").deleteMany(new Document());
-        db.getCollection("LogbookOperation").deleteMany(new Document());
         FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
             .deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
         FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
@@ -493,7 +492,6 @@ public class ProcessingIT {
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
                     "jeu_donnees_OK_regles_CSV_regles.csv");
-
                 client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
                 // lets check evdetdata for rules import
                 LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();

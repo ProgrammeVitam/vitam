@@ -156,9 +156,9 @@ public class DbRequestHelper {
             if (!finalList.get(i).isEmpty()) {
                 // delete fakeDocuments from desynchronized results
                 finalListWithoutFakeDocs.add(finalList.get(i));
-            } else if (!firstList.get(i).isEmpty()) {
+            } else {
                 // get the identifiers of the desynchronized results
-                listDesynchronizedResults.add(firstList.get(i).getId());
+                listDesynchronizedResults.add(list.get(i));
             }
         }
 
