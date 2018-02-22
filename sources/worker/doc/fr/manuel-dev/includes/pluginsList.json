@@ -7,7 +7,7 @@
 	"OG_OBJECTS_FORMAT_CHECK": {
 		"className": "fr.gouv.vitam.worker.core.plugin.FormatIdentificationActionPlugin",
 		"propertiesFile": "format_check_plugin.properties"
-	}, 	
+	},
 
 	"UNIT_METADATA_INDEXATION": {
 		"className": "fr.gouv.vitam.worker.core.plugin.IndexUnitActionPlugin",
@@ -17,7 +17,7 @@
 	"OG_METADATA_INDEXATION": {
 		"className": "fr.gouv.vitam.worker.core.plugin.IndexObjectGroupActionPlugin",
 		"propertiesFile": "index_object_group_plugin.properties"
-        },
+	},
 	"OBJ_STORAGE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin",
 		"propertiesFile": "store_object_group_plugin.properties"
@@ -33,7 +33,57 @@
 	"UNIT_METADATA_STORAGE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.StoreMetaDataUnitActionPlugin",
 		"propertiesFile": "store_metadata_unit_plugin.properties"
-	}	
-
+	},
+	"CHECK_UNIT_SCHEMA": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckArchiveUnitSchemaActionPlugin",
+		"propertiesFile": "check_archive_unit_schema_plugin.properties"
+	},
+	"CHECK_CLASSIFICATION_LEVEL": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckClassificationLevelActionPlugin",
+		"propertiesFile": "check_classification_level_plugin.properties"
+	},
+	"UPDATE_UNIT_RULES": {
+		"className": "fr.gouv.vitam.worker.core.plugin.ArchiveUnitRulesUpdateActionPlugin",
+		"propertiesFile": "archive_units_rules_update_plugin.properties"
+	},
+	"UPDATE_RUNNING_INGESTS": {
+		"className": "fr.gouv.vitam.worker.core.plugin.RunningIngestsUpdateActionPlugin",
+		"propertiesFile": "running_ingests_update_plugin.properties"
+	},
+	"AUDIT_CHECK_OBJECT": {
+		"className": "fr.gouv.vitam.worker.core.plugin.AuditCheckObjectPlugin",
+		"propertiesFile": "audit_check_object_plugin.properties"
+	},
+	"AUDIT_FILE_INTEGRITY": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin",
+		"propertiesFile": "audit_integrity_object_plugin.properties"
+	},
+	"AUDIT_FILE_EXISTING": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin",
+		"propertiesFile": "audit_existence_object_plugin.properties"
+	},
+	"OG_CREATE_SECURED_FILE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CreateObjectSecureFileActionPlugin",
+		"propertiesFile": "create_object_secure_file_plugin.properties"
+	},
+	"UNITS_CREATE_SECURED_FILE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CreateUnitSecureFileActionPlugin",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"CREATE_MANIFEST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.CreateManifest",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"PUT_BINARY_ON_WORKSPACE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"STORE_MANIFEST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreDIP",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"OBJECT_GROUP_UPDATE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
+		"propertiesFile": "object_group_update.properties"
+	}
 }
-

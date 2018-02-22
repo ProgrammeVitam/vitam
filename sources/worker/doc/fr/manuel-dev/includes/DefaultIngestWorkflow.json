@@ -16,6 +16,18 @@
       "actions": [
         {
           "action": {
+            "actionKey": "PREPARE_STORAGE_INFO",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_SEDA",
             "behavior": "BLOCKING"
           }
@@ -52,6 +64,10 @@
               {
                 "name": "UnitType",
                 "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
               }
             ],
             "out": [
@@ -90,6 +106,10 @@
               {
                 "name": "mapsObjectGroup.file",
                 "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "existingObjectGroup.file",
+                "uri": "WORKSPACE:UpdateObjectGroup/existing_object_group.json"
               }
             ]
           }
@@ -114,13 +134,25 @@
                 "name": "algo",
                 "uri": "VALUE:SHA-512"
               }
+            ],
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
             ]
           }
         },
         {
           "action": {
             "actionKey": "OG_OBJECTS_FORMAT_CHECK",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         }
       ]
@@ -137,13 +169,37 @@
         {
           "action": {
             "actionKey": "CHECK_UNIT_SCHEMA",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_CLASSIFICATION_LEVEL",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
           }
         },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
           }
         }
       ]
@@ -177,13 +233,25 @@
         {
           "action": {
             "actionKey": "OBJ_STORAGE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         },
         {
           "action": {
             "actionKey": "OG_METADATA_INDEXATION",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
           }
         }
       ]
@@ -226,13 +294,13 @@
       "actions": [
         {
           "action": {
-            "actionKey": "OG_METADATA_STORAGE",
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "actionKey": "OG_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
         }
@@ -249,13 +317,44 @@
       "actions": [
         {
           "action": {
-            "actionKey": "UNIT_METADATA_STORAGE",
+            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
             "behavior": "BLOCKING"
           }
         },
         {
           "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UPDATE_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_FILE",
+        "element": "UpdateObjectGroup/existing_object_group.json",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OBJECT_GROUP_UPDATE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
         }

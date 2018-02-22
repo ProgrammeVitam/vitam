@@ -170,7 +170,7 @@ public class PauseOnFatalProcessingIT {
 
     private boolean imported = false;
     // used to check processed elements per step
-    private int[] elementCountPerStep = {1, 2, 5, 1, 2, 5, 0, 2, 5, 1, 1};
+    private int[] elementCountPerStep = {1, 2, 5, 1, 2, 5, 2, 5, 0, 1, 1};
 
 
     @BeforeClass

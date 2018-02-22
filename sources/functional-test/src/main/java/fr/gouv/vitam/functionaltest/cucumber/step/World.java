@@ -60,7 +60,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.api.Fail;
 
 public class World {
 
@@ -74,6 +73,7 @@ public class World {
     private int tenantId;
     private String contractId;
     private String unitId;
+    private String objectGroupId;
     private String applicationSessionId;
 
     /**
@@ -308,6 +308,22 @@ public class World {
      */
     public void setUnitId(String unitId) {
         this.unitId = unitId;
+    }
+
+    /**
+     *
+     * @param objectGroupId
+     */
+    public void setObjectGroupId(String objectGroupId) {
+        this.objectGroupId = objectGroupId;
+    }
+
+    /**
+     *
+     * @return objectGroupId
+     */
+    public String getObjectGroupId() {
+        return objectGroupId;
     }
 
     /**

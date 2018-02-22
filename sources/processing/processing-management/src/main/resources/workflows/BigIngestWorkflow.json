@@ -285,37 +285,6 @@
       ]
     },
     {
-      "workerGroupId": "BigWorker",
-      "stepName": "STP_UPDATE_OBJECT_GROUP",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "LIST_IN_FILE",
-        "element": "UpdateObjectGroup/existing_object_group.json",
-        "type": "ObjectGroup",
-        "statusOnEmptyDistribution": "OK"
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "OBJECT_GROUP_UPDATE",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "OG_COMMIT_LIFE_CYCLE",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "OG_METADATA_STORAGE",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
-    },
-    {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
@@ -356,6 +325,37 @@
         {
           "action": {
             "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "BigWorker",
+      "stepName": "STP_UPDATE_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_FILE",
+        "element": "UpdateObjectGroup/existing_object_group.json",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OBJECT_GROUP_UPDATE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_COMMIT_LIFE_CYCLE",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
         }
