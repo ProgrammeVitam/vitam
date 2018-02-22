@@ -1095,12 +1095,33 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
         throws VitamDBException {
+        return getUnitLifeCycle(queryDsl, evtStatus, true);
+    }
+
+    /**
+     * Gets a list of raw unit lifeCycles using a queryDsl
+     *
+     * @param queryDsl  a DSL query
+     * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
+     * @return a list of unit lifeCycles
+     */
+    @GET
+    @Path("/unitlifecyclesraw")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getUnitLifeCyclesRaw(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
+        throws VitamDBException {
+        return getUnitLifeCycle(queryDsl, evtStatus, false);
+    }
+
+    private Response getUnitLifeCycle(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+        boolean sliced) throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
-            final List<LogbookLifeCycle> result;
-            result =
-                logbookLifeCycle.selectUnit(queryDsl, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
+            final List<LogbookLifeCycle> result =
+                logbookLifeCycle.selectUnit(queryDsl, sliced, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
+
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
                     .addAllResults(result)

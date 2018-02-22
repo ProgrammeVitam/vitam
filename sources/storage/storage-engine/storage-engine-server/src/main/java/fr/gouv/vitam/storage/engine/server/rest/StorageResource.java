@@ -218,7 +218,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             VitamCode vitamCode;
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                final JsonNode result = distribution.getContainerInformation(strategyId);
+                final JsonNode result = distribution.getContainerInformations(strategyId);
                 return Response.status(Status.OK).entity(result).build();
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
@@ -379,11 +379,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
-    @Path("/objects/{id_object}")
+    @Path("/info/{type}/{id_object}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getObjectInformation(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
+    public Response getInformation(@Context HttpHeaders headers,
+        @PathParam("type") String typeStr, @PathParam("id_object") String objectId) {
+
+        DataCategory type = DataCategory.getByCollectionName(typeStr);
+
         String strategyId;
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
@@ -396,7 +400,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
             JsonNode offerMetadataInfo;
             try {
-                offerMetadataInfo = distribution.getContainerObjectInformations(strategyId, objectId, offerIds);
+                offerMetadataInfo = distribution.getContainerInformations(strategyId, type, objectId, offerIds);
             } catch (StorageException e) {
                 LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
@@ -532,13 +536,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     private Response getObjectInformationWithPost(HttpHeaders headers, String objectId) {
+        // FIXME : What is this used for? Do we really need to support X_HTTP_METHOD_OVERRIDE for internal APIs?
         final Response response = checkTenantStrategyHeader(headers);
         if (response != null) {
             return response;
         }
         final Response responsePost = checkPostHeader(headers);
         if (responsePost == null) {
-            return getObjectInformation(headers, objectId);
+            return getInformation(headers, DataCategory.OBJECT.getCollectionName(), objectId);
         } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
             return Response.status(Status.PRECONDITION_FAILED).build();
         } else {

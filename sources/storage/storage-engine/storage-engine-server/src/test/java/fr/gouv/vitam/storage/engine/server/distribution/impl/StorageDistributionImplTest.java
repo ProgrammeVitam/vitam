@@ -425,7 +425,7 @@ public class StorageDistributionImplTest {
     @Test
     public void getContainerInformationOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final JsonNode jsonNode = simpleDistribution.getContainerInformation(STRATEGY_ID);
+        final JsonNode jsonNode = simpleDistribution.getContainerInformations(STRATEGY_ID);
         assertNotNull(jsonNode);
     }
 
@@ -433,7 +433,7 @@ public class StorageDistributionImplTest {
     @Test(expected = StorageTechnicalException.class)
     public void getContainerInformationTechnicalException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-1);
-        customDistribution.getContainerInformation(STRATEGY_ID);
+        customDistribution.getContainerInformations(STRATEGY_ID);
     }
 
     @RunWithCustomExecutor

@@ -77,6 +77,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     // For Lifecycles under operations
     private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
+    private static final String UNIT_LIFECYCLES_RAW_URL = "/unitlifecyclesraw";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL = "/objectgrouplifecycles/bulk/raw";
     private static final String UNIT_LIFECYCLES_RAW_BULK_URL = "/unitlifecycles/bulk/raw";
@@ -317,6 +318,30 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL, null,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectUnitLifeCyclesRaw(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_RAW_URL, null,
                 queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {

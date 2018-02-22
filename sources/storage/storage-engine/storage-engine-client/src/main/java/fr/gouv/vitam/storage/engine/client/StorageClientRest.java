@@ -27,15 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -60,6 +52,12 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * StorageClient Abstract class use to set generic client configuration (not depending on client type)
@@ -186,7 +184,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds)
+    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException, StorageNotFoundClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -199,7 +197,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
 
         try {
-            response = performRequest(HttpMethod.GET, "/objects/" + guid, headers, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, "/info/" + type.getCollectionName() + "/" + guid,
+                headers, MediaType.APPLICATION_JSON_TYPE);
             return handleCommonResponseStatus(response, JsonNode.class);
         } catch (VitamClientInternalException e) {
             final String errorMessage =

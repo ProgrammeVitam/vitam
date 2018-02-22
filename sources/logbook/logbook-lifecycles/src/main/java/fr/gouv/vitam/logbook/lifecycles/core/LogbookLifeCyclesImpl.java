@@ -124,10 +124,9 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters,
-        boolean commit)
-        throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
-        LogbookAlreadyExistsException {
+    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters, boolean commit)
+            throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
+            LogbookAlreadyExistsException {
         checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
         mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, idLc, parameters, commit);
     }
@@ -143,12 +142,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
         IllegalArgumentException {
         return mongoDbAccess.getLogbookLifeCycleObjectGroup(idOperation, idLc);
-    }
-
-    @Override
-    public List<LogbookLifeCycle> selectUnit(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        return selectUnit(select, true, collection);
     }
 
     @Override

@@ -41,6 +41,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Used to handle zip file for traceability
@@ -84,7 +85,7 @@ public class TraceabilityFile implements AutoCloseable {
     public void storeMerkleTree(MerkleTree merkleTree) throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(MEKLE_TREE_FILENAME);
         archive.putArchiveEntry(entry);
-        archive.write(JsonHandler.unprettyPrint(merkleTree).getBytes());
+        archive.write(JsonHandler.unprettyPrint(merkleTree).getBytes(StandardCharsets.UTF_8));
         archive.closeArchiveEntry();
     }
 

@@ -155,6 +155,16 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
+     * returns the raw version of unit life cycle
+     *
+     * @param queryDsl dsl query
+     * @return the unit life cycles
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectUnitLifeCyclesRaw(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
      * returns the object group life cycle
      *
      * @param id the object group life cycle id

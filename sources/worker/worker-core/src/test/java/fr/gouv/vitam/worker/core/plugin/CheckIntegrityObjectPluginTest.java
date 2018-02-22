@@ -3,6 +3,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -13,6 +14,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -110,7 +112,7 @@ public class CheckIntegrityObjectPluginTest {
             6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
         offerIdToMetadata.set("localhost", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
-        when(storageClient.getObjectInformation(anyObject(), anyObject(), anyObject())).thenReturn(offerIdToMetadata);
+        when(storageClient.getInformation(anyObject(), eq(DataCategory.OBJECT), anyObject(), anyObject())).thenReturn(offerIdToMetadata);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -122,7 +124,7 @@ public class CheckIntegrityObjectPluginTest {
         action.addOutIOParameters(out);
         JsonNode metadataInfo = JsonHandler.getFromString("{}");
         reset(storageClient);
-        when(storageClient.getObjectInformation(anyObject(), anyObject(), anyObject())).thenReturn(metadataInfo);
+        when(storageClient.getInformation(anyObject(), eq(DataCategory.OBJECT), anyObject(), anyObject())).thenReturn(metadataInfo);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());

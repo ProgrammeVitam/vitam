@@ -26,24 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -138,6 +120,25 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 
@@ -673,7 +674,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 File file = null;
                 try {
                     file = File.createTempFile(idUnit, JSON);
-                    JsonHandler.writeAsFile(unit, file);
+                    FileUtils
+                        .writeByteArrayToFile(file, JsonHandler.unprettyPrint(unit).getBytes(StandardCharsets.UTF_8));
                 } catch (IOException e1) {
                     throw new AccessInternalExecutionException(CANNOT_CREATE_A_FILE + file, e1);
                 }
@@ -998,20 +1000,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 rightsStatementIdentifier.toString());
         }
         return parameters;
-    }
-
-    protected String detailsFromStorageInfo(StoredInfoResult result) {
-        final ObjectNode object = JsonHandler.createObjectNode();
-
-        if (result != null) {
-            object.put(FILE_NAME, result.getId());
-            object.put(ALGORITHM, result.getDigestType());
-            object.put(DIGEST, result.getDigest());
-            List<String> offers = result.getOfferIds();
-            object.put(OFFERS, offers != null ? String.join(",", offers) : "");
-        }
-
-        return JsonHandler.unprettyPrint(object);
     }
 
     private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {

@@ -18,6 +18,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -74,7 +75,8 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                         offerIds.add(offerId.textValue());
                     }
                     
-                    JsonNode offerToMetadata = storageClient.getObjectInformation(strategy, version.get("#id").asText(), offerIds);
+                    JsonNode offerToMetadata = storageClient.getInformation(strategy, DataCategory.OBJECT,
+                        version.get("#id").asText(), offerIds);
                     for (String offerId : offerIds) {
                         String digest = null;
                         JsonNode metadata = offerToMetadata.findValue(offerId);

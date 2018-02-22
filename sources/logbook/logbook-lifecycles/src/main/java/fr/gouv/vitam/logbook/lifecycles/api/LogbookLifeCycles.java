@@ -140,20 +140,6 @@ public interface LogbookLifeCycles {
      * Select logbook LifeCycle entries
      *
      * @param select the select request in format of JsonNode
-     * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
-     * @return List of the logbook LifeCycle
-     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
-     */
-    List<LogbookLifeCycle> selectUnit(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
-
-    /**
-     * Select logbook LifeCycle entries
-     *
-     * @param select the select request in format of JsonNode
      * @param sliced the boolean sliced filtering events or not
      * @param collection the collection on which the select operation will be done : Production collection
      *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)

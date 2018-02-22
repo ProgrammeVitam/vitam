@@ -298,7 +298,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         assertEquals(lfc.get("_id").asText(), OG_GUID);
 
         // aggregate unit with lfc
-        JsonNode docWithLfc = plugin.getDocumentWithLFC(og, lfc, DataCategory.OBJECTGROUP);
+        JsonNode docWithLfc = DataCategory.getDocumentWithLFC(og, lfc, DataCategory.OBJECTGROUP);
         assertNotNull(docWithLfc);
         assertNotNull(docWithLfc.get("got"));
         assertNotNull(docWithLfc.get("lfc"));

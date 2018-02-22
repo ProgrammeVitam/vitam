@@ -69,10 +69,9 @@ public class MetadataRawResource {
         this.metadataRepositoryService = new MetadataRepositoryService(vitamRepositoryProvider);
     }
 
-
     /**
      * Get Unit as raw data
-     * 
+     *
      * @param unitId the unit id to get
      * @return {@link Response} contains a request response json filled with unit result
      * @see entity(java.lang.Object, java.lang.annotation.Annotation[])

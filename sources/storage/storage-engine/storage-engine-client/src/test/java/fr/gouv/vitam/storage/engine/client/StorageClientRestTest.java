@@ -98,7 +98,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    protected static final String HOSTNAME = "localhost";
     protected StorageClientRest client;
     private static final Integer TENANT_ID = 0;
 
@@ -184,8 +183,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/objects/{id_object}")
-        public Response getObjectInformation(@PathParam("id_object") String idObject) {
+        @Path("/info/{type}/{id_object}")
+        public Response getInformation(@PathParam("id_object") String idObject) {
             return expectedResponse.get();
         }
 
@@ -680,7 +679,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void successGetObjectInformation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(OFFER_METADATA).build());
-        JsonNode metadata = client.getObjectInformation("idStrategy", "guid", SingletonUtils.singletonList());
+        JsonNode metadata = client.getInformation("idStrategy", DataCategory.OBJECT, "guid", SingletonUtils.singletonList());
         assertEquals(metadata.toString(), OFFER_METADATA);
     }
 
