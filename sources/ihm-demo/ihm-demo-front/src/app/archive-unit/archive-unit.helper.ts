@@ -171,7 +171,7 @@ export class ArchiveUnitHelper {
 
   personOrEntityGroup = {
     '@@': 'Entité',
-    'CorpName': 'Nom de l\'entité',
+    'Corpname': 'Nom de l\'entité',
     'Gender': 'Sexe',
     'Nationality': 'Nationalité',
     'BirthDate': 'Date de naissance',
