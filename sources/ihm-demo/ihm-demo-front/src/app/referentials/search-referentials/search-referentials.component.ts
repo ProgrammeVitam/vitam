@@ -11,6 +11,7 @@ import {DateService} from '../../common/utils/date.service';
 import {ColumnDefinition} from '../../common/generic-table/column-definition';
 import {ReferentialsService} from "./../referentials.service";
 import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
+import { AuthenticationService } from '../../authentication/authentication.service';
 
 @Component({
   selector: 'vitam-search-referentials',
@@ -28,13 +29,14 @@ export class SearchReferentialsComponent extends PageComponent {
   public searchForm: any = {};
   initialSortKey: string;
   searchButtonLabel: string;
+  isImportable :boolean;
 
   referentialData = [];
   public columns = [];
   public extraColumns = [];
 
 
-  constructor(private activatedRoute: ActivatedRoute, private router: Router,
+  constructor(private activatedRoute: ActivatedRoute, private router: Router, private authenticationService : AuthenticationService,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService: ReferentialsService, private archiveUnitHelper: ArchiveUnitHelper) {
     super('Recherche du référentiel', [], titleService, breadcrumbService);
@@ -42,6 +44,8 @@ export class SearchReferentialsComponent extends PageComponent {
     this.activatedRoute.params.subscribe(params => {
       this.referentialType = params['referentialType'];
       let newBreadcrumb = [];
+      this.isImportable = true;
+      this.searchButtonLabel = '';
       switch (this.referentialType) {
         case "accessContract":
           this.searchReferentialsService.setSearchAPI('accesscontracts');
@@ -134,6 +138,9 @@ export class SearchReferentialsComponent extends PageComponent {
           this.extraColumns = [];
           this.referentialPath = 'admin/format';
           this.referentialIdentifier = 'PUID';
+          if (!this.authenticationService.isTenantAdmin()) {
+            this.isImportable = false;
+          }
           break;
         case "rule":
           this.searchReferentialsService.setSearchAPI('admin/rules');
@@ -230,6 +237,9 @@ export class SearchReferentialsComponent extends PageComponent {
           ];
           this.referentialPath = 'admin/context';
           this.referentialIdentifier = 'Identifier';
+          if (!this.authenticationService.isTenantAdmin()) {
+            this.isImportable = false;
+          }
           break;
 
         case "agencies":
@@ -282,7 +292,9 @@ export class SearchReferentialsComponent extends PageComponent {
         default:
           this.router.navigate(['ingest/sip']);
       }
-      this.searchButtonLabel =  'Accèder à l\'import des référentiels';
+      if (this.isImportable) {
+        this.searchButtonLabel =  'Accèder à l\'import des référentiels';
+      }
 
       if (newBreadcrumb.length == 0) {
         newBreadcrumb = [

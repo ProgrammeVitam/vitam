@@ -18,7 +18,7 @@
     </div>
 
     <div class="ui-g-2" *ngIf="!update"></div>
-    <div class="ui-g-2" *ngIf="!update">
+    <div class="ui-g-2" *ngIf="!update && isModifiable">
       <button pButton class="ui-button" (click)="switchUpdateMode()" label="Modifier"
               icon="fa-edit" iconPos="left"></button>
     </div>

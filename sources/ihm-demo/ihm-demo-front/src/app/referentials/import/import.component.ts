@@ -5,6 +5,7 @@ import { SelectItem } from 'primeng/primeng';
 
 import { BreadcrumbService } from '../../common/breadcrumb.service';
 import {PageComponent} from "../../common/page/page-component";
+import { AuthenticationService } from '../../authentication/authentication.service';
 
 @Component({
   selector: 'vitam-import',
@@ -29,11 +30,15 @@ export class ImportComponent  extends PageComponent {
   importSucessMsg: string;
   importErrorMsg: string;
 
-  constructor(private activatedRoute: ActivatedRoute, private router : Router,
+  constructor(private activatedRoute: ActivatedRoute, private router : Router, private authenticationService : AuthenticationService,
               public titleService: Title, public breadcrumbService: BreadcrumbService) {
     super('Import du référentiel', [], titleService, breadcrumbService);
     this.activatedRoute.params.subscribe( params => {
       this.referentialType = params['referentialType'];
+      if (!this.authenticationService.isTenantAdmin()) {
+        this.referentialTypes.splice(3, 1);
+        this.referentialTypes.shift();
+      }
       switch (this.referentialType)
       {
         case "accessContract":

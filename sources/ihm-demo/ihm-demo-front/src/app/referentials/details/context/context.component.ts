@@ -10,6 +10,7 @@ import {PageComponent} from "../../../common/page/page-component";
 import {DialogService} from "../../../common/dialog/dialog.service";
 import {Context} from "./context";
 import {ErrorService} from "../../../common/error.service";
+import { AuthenticationService } from '../../../authentication/authentication.service';
 
 const CONTEXT_KEY_TRANSLATION = {
   Identifier: 'Identifiant',
@@ -40,15 +41,19 @@ export class ContextComponent extends PageComponent {
   update: boolean;
   updatedFields = {};
   saveRunning = false;
+  isModifiable = true;
 
   constructor(private activatedRoute: ActivatedRoute, private router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               public referentialsService: ReferentialsService, private dialogService: DialogService,
-              private errorService: ErrorService) {
+              private errorService: ErrorService, private authenticationService : AuthenticationService) {
     super('Détail du contexte applicatif ', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
+    if (!this.authenticationService.isTenantAdmin()) {
+      this.isModifiable = false;
+    }
     this.referentialsService.getTenants()
       .subscribe((tenants: Array<number>) => {
         this.tenants = tenants;
