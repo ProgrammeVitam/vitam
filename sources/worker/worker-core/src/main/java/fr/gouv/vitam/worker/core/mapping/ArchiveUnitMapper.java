@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 
 /**
  * map archive unit to model
@@ -76,7 +77,7 @@ public class ArchiveUnitMapper {
      * @return ArchiveUnitRoot
      */
     public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId)
-        throws DatatypeConfigurationException {
+        throws DatatypeConfigurationException, ProcessingMalformedDataException {
 
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
         ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
@@ -138,7 +139,8 @@ public class ArchiveUnitMapper {
         }
     }
 
-    private void fillStorageRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
+    private void fillStorageRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit)
+        throws ProcessingMalformedDataException {
         StorageRuleType storageRule = archiveUnitType.getManagement().getStorageRule();
         RuleCategoryModel storageRuleCategory = ruleMapper.fillCommonRule(storageRule);
         if (storageRule != null && storageRule.getFinalAction() != null && storageRuleCategory == null) {
@@ -161,7 +163,7 @@ public class ArchiveUnitMapper {
             if (sfa != null) {
                 storageRuleCategory.setFinalAction(sfa.value());
             } else {
-                throw new RuntimeException("FinalAction is required for StorageRule");
+                throw new ProcessingMalformedDataException("FinalAction is required for StorageRule");
             }
         }
     }
@@ -219,7 +221,8 @@ public class ArchiveUnitMapper {
         }
     }
 
-    private void fillAppraisalRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
+    private void fillAppraisalRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit)
+        throws ProcessingMalformedDataException {
         AppraisalRuleType appraisalRule = archiveUnitType.getManagement().getAppraisalRule();
         RuleCategoryModel appraisalRuleCategory = ruleMapper.fillCommonRule(appraisalRule);
 
@@ -238,7 +241,7 @@ public class ArchiveUnitMapper {
             if (afa != null) {
                 appraisalRuleCategory.setFinalAction(afa.value());
             } else {
-                throw new RuntimeException("FinalAction is required for AppraisalRule");
+                throw new ProcessingMalformedDataException("FinalAction is required for AppraisalRule");
             }
         }
     }

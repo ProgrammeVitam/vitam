@@ -135,6 +135,7 @@ import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharac
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
@@ -181,6 +182,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
     private static final String SUBTASK_ATTACHEMENT = "CHECK_MANIFEST_WRONG_ATTACHMENT";
+    private static final String SUBTASK_MALFORMED = "CHECK_MANIFEST_MALFORMED_DATA";
     private static final String EXISTING_OG_NOT_DECLARED = "EXISTING_OG_NOT_DECLARED";
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_ID = "LFC_CREATION";
@@ -440,6 +442,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("ProcessingException : unit not found", e);
             updateDetailItemStatus(globalCompositeItemStatus,
                 getMessageItemStatusAUNotFound(e.getUnitId(), e.getUnitGuid()), SUBTASK_ATTACHEMENT);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingMalformedDataException e) {
+            LOGGER.debug("ProcessingException : Missing or malformed data in the manifest", e);
+            ObjectNode error = JsonHandler.createObjectNode();
+            error.put("error", e.getMessage());
+            updateDetailItemStatus(globalCompositeItemStatus, JsonHandler.unprettyPrint(error), SUBTASK_MALFORMED);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingObjectGroupNotFoundException e) {
             LOGGER.debug("ProcessingException : ObjectGroup not found", e);
@@ -814,7 +822,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 JsonNode date = metadataAsJson.get(SedaConstants.TAG_DATE);
                 if (date != null) {
                     LOGGER.debug("Find a date: " + date);
-                    evDetData.put("EvDateTimeReq", date.asText());
+                    evDetData.put("EvDateTimeReq", date.asText().trim());
                 }
 
                 JsonNode archAgreement = metadataAsJson.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);

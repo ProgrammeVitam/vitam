@@ -103,6 +103,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
@@ -204,6 +205,11 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             if (archiveUnitType.getArchiveUnitRefId() != null && !jaxbElementParent.isGlobalScope()) {
                 // fillArchiveUnitTree(archiveUnitId, archiveUnitType);
+                if (!archiveUnitType.getArchiveUnitRefId().equals(archiveUnitType.getArchiveUnitRefId().trim())) {
+                    throw new RuntimeException(new ProcessingMalformedDataException(
+                        "The ArchiveUnitRefId " + archiveUnitType.getArchiveUnitRefId() +
+                            " contains line break or spaces"));
+                }
                 return;
             }
             if (archiveUnitType.getArchiveUnitRefId() != null) {
@@ -250,7 +256,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             ArchiveUnitRoot archiveUnitRoot;
             try {
                 archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
-            } catch (DatatypeConfigurationException e) {
+            } catch (DatatypeConfigurationException | ProcessingMalformedDataException e) {
                 throw new RuntimeException(e);
             }
 
