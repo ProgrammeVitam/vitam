@@ -45,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -476,14 +477,14 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     }
 
     public static List<String> getOfferIds() {
-        List<String> objectIds = new ArrayList<>();
         try {
             List<OfferReference> offerReferences =
                 STRATEGY_PROVIDER.getStorageStrategy("default").getHotStrategy().getOffers();
-            offerReferences.stream().map(offer -> objectIds.add(offer.getId()));
+            return offerReferences.stream().map(offer -> offer.getId()).collect(Collectors.toList());
         } catch (StorageTechnicalException e) {
             LOGGER.error(e);
         }
-        return objectIds;
+        
+        return null;
     }
 }
