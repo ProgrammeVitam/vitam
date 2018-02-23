@@ -75,7 +75,6 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -104,6 +103,7 @@ import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
@@ -454,7 +454,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final FileRulesImportInProgressException e) {
             LOGGER.warn(e);
             return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
-        } catch (final FileRulesException e) {
+        } catch (final FileRulesException | FileRulesCsvException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage())
                 .build();

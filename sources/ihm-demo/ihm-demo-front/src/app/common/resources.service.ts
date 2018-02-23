@@ -42,8 +42,11 @@ export class ResourcesService {
     return this.http.post(`${BASE_URL}${url}`, body, { headers: header, responseType: responsetype || 'json' })
       .catch((err) => {
         if (err.status === 500) {
-          this.dialogService.displayMessage(err.error.message +
-            ' Veuillez contacter votre administrateur', 'Erreur système');
+          let jsonError = err.error != undefined ? JSON.parse(err.error) : undefined;
+          if (jsonError === undefined || (jsonError !== undefined && jsonError.httpCode === 500)) {
+            this.dialogService.displayMessage(err.error.message +
+            ' Veuillez contacter votre administrateur', 'Erreur système');              
+          }
           return Observable.throw(err);
         }
       })
