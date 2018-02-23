@@ -148,7 +148,7 @@ export class ReferentialsService {
     return this.resourceService.post('admin/accession-register', null, searchForm);
   }
   getFundRegisterDetailById(id : string) : Observable<VitamResponse> {
-    let searchForm = {"OriginatingAgency":id};
+    let searchForm = {"OriginatingAgency":id ,'orderby' : {"field":"EndDate","sortType":"DESC"}};
     return this.resourceService.post('admin/accession-register/'+ id +'/accession-register-detail', null, searchForm);
   }
   getContextById(id : string) : Observable<VitamResponse> {
