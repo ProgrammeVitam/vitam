@@ -26,11 +26,44 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
-import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
-import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
+import cucumber.api.DataTable;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import org.assertj.core.api.Fail;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,35 +76,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Iterables;
-import cucumber.api.DataTable;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import org.assertj.core.api.Fail;
+import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
+import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
+import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * step defining access glue
@@ -95,6 +111,8 @@ public class AccessStep {
     private static final String OPERATION_ID = "Operation-Id";
 
     private static final String UNIT_PREFIX = "unit:";
+
+    private static final String EVIDENCE_AUDIT = "EVIDENCEAUDIT";
 
     private static final String REGEX = "(\\{\\{(.*?)\\}\\})";
 
@@ -437,6 +455,7 @@ public class AccessStep {
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
+            results = requestResponseOK.getResults();
             JsonNode unit = requestResponseOK.getResults().iterator().next();
             world.setUnitId(unit.get("#id").asText());
             world.setObjectGroupId(unit.get("#object").asText());
@@ -798,5 +817,101 @@ public class AccessStep {
         assertThat(auditStatus.getStatusCode()).isEqualTo(202);
     }
 
+    @When("^je réalise un audit de traçabilité de l'unité$")
+    public void unit_traceability_audit() throws Throwable {
+
+        String unitId = world.getUnitId();
+
+        // Run unit traceability audit
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
+        world.getAdminClient().unitEvidenceAudit(vitamContext, unitId);
+    }
+
+    @When("^je réalise un audit de traçabilité de l'objet group$")
+    public void object_group_traceability_audit() throws Throwable {
+
+        String objectGroupId = world.getObjectGroupId();
+
+        // Run unit traceability audit
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
+        world.getAdminClient().objectGroupEvidenceAudit(vitamContext, objectGroupId);
+    }
+
+    @Then("^le journal d'opération de l'audit de traçabilité a pour statut (.*)$")
+    public void check_traceability_audit_status(String expectedStatus) throws Throwable {
+
+        // Select operation
+        Select select = new Select();
+        BooleanQuery query = and().add(
+            eq(LogbookMongoDbName.eventType.getDbname(), EVIDENCE_AUDIT)
+        );
+        select.setQuery(query);
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter("events.evDateTime");
+
+        JsonNode logbookOperation = world.getLogbookOperationsClient().selectOperation(select.getFinalSelect());
+        assertThat(logbookOperation.get(TAG_RESULTS)).hasSize(1);
+
+        ArrayNode events = (ArrayNode) logbookOperation.get(TAG_RESULTS).get(0).get("events");
+        ObjectNode lastEvent = (ObjectNode) events.get(events.size() - 1);
+
+        assertThat(lastEvent.get(LogbookLifeCycleMongoDbName.eventType.getDbname()).asText()).isEqualTo(EVIDENCE_AUDIT);
+
+        String traceabilityAuditStatus = lastEvent.get(LogbookLifeCycleMongoDbName.outcome.getDbname()).asText();
+        assertThat(traceabilityAuditStatus).isEqualTo(expectedStatus);
+    }
+
+    @When("^on lance la traçabilité des journaux de cycles de vie$")
+    public void lfc_traceability() {
+        runInVitamThread(() -> {
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+
+                RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLFC();
+                assertThat(requestResponseOK.isOk()).isTrue();
+
+                final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                assertThat(traceabilityOperationId).isNotNull();
+
+                final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+                boolean process_timeout = vitamPoolingClient
+                    .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
+                        TimeUnit.MILLISECONDS);
+                if (!process_timeout) {
+                    fail("Traceability processing not finished. Timeout exceeded.");
+                }
+
+                VitamContext vitamContext =
+                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                        .setApplicationSessionId(world.getApplicationSessionId());
+                RequestResponse<ItemStatus> operationProcessExecutionDetails =
+                    world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
+
+                assertThat(operationProcessExecutionDetails.isOk()).isTrue();
+                assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
+                    .getGlobalStatus()).isEqualTo(StatusCode.OK);
+            } catch (Throwable e) {
+                LOGGER.error(e);
+                fail(e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * runInVitamThread.
+     *
+     * @param
+     */
+    private void runInVitamThread(Runnable r) {
+        Thread thread = VitamThreadFactory.getInstance().newThread(r);
+        thread.start();
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
 

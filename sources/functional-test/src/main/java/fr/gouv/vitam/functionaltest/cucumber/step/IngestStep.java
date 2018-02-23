@@ -102,7 +102,7 @@ public class IngestStep {
             boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
-                fail("Sip processing not finished. Timeout exeedeed.");
+                fail("Sip processing not finished. Timeout exceeded.");
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -130,7 +130,7 @@ public class IngestStep {
             boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 200, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
-                fail("Sip processing not finished. Timeout exeedeed.");
+                fail("Sip processing not finished. Timeout exceeded.");
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -160,7 +160,7 @@ public class IngestStep {
             boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
-                fail("Sip processing not finished. Timeout exeedeed.");
+                fail("Sip processing not finished. Timeout exceeded.");
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
