@@ -47,9 +47,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.exception.VitamDBException;
 import org.bson.Document;
@@ -140,7 +138,7 @@ public class DbRequest {
     private static final String DEPTH_ARRAY = "deptharray";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-    public static final String
+    private static final String
         CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
@@ -172,6 +170,7 @@ public class DbRequest {
         final RequestMultiple request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
         final int maxQuery = request.getNbQueries();
+        boolean checkConsistency = false;
         Result<MetadataDocument<?>> roots;
         if (requestParser.model() == FILTERARGS.UNITS) {
             VitamCollection.set(FILTERARGS.UNITS);
@@ -190,9 +189,9 @@ public class DbRequest {
         if (result.getCurrentIds().isEmpty() && maxQuery > 0) {
             final Result<MetadataDocument<?>> newResult = executeQuery(requestParser, requestToMongodb, rank, result);
 
-            // manage synchronization errors between elasticSearch and MongoDB.
             if (newResult != null && !newResult.getCurrentIds().isEmpty() && !newResult.isError()) {
                 result = newResult;
+                checkConsistency = true;
             } else {
                 LOGGER.debug(
                     NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
@@ -272,31 +271,8 @@ public class DbRequest {
         } else {
             // Select part
             final Result<MetadataDocument<?>> newResult =
-                lastSelectFilterProjection((SelectToMongodb) requestToMongodb, result);
-            List<String> foundResults = new ArrayList<>();
-            if(newResult.finalResult != null && newResult.finalResult.isEmpty()){
-                foundResults = newResult.finalResult.stream().map(x -> x.getId()).filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            }
-            List<String> desynchronizedResults = null;
-            if (!foundResults.isEmpty()){
-                // check the consistency between elasticSearch and MongoDB
-                desynchronizedResults = new ArrayList<>(result.getCurrentIds());
-                desynchronizedResults.removeAll(foundResults);
-            }
-            if (desynchronizedResults != null && !desynchronizedResults.isEmpty()) {
-                // desynchronization logs
-                desynchronizedResults.forEach(
-                    x -> LOGGER.error(String.format(
-                        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
-                        x,
-                        ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId())));
-                // As soon as we detect a synchronization error MongoDB / ES, we return an error.
-                if (!desynchronizedResults.isEmpty()) {
-                    throw new VitamDBException(
-                        "[Consistency ERROR] : An internal data consistency error has been detected !");
-                }
-            }
+                lastSelectFilterProjection((SelectToMongodb) requestToMongodb, result, checkConsistency);
+
             if (newResult != null) {
                 result = newResult;
             }
@@ -376,7 +352,7 @@ public class DbRequest {
     /**
      * Check Unit parents against Roots
      *
-     * @param current set of result id
+     * @param current         set of result id
      * @param defaultStartSet
      * @return the valid root ids set
      * @throws InvalidParseOperationException
@@ -408,8 +384,8 @@ public class DbRequest {
      * Execute one request
      *
      * @param requestToMongodb
-     * @param rank current rank query
-     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
+     * @param rank             current rank query
+     * @param previous         previous Result from previous level (except in level == 0 where it is the subset of valid roots)
      * @return the new Result from this request
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
@@ -614,7 +590,6 @@ public class DbRequest {
             LOGGER.debug("Req1LevelMD: {}", query);
         }
 
-        // get results from elasticSearch.
         final Result<MetadataDocument<?>> resultPreviousFilter =
             MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
                 VitamCollection.getTypeunique(), query, null, sorts, offset, limit, scrollId, scrollTimeout);
@@ -624,8 +599,7 @@ public class DbRequest {
         if (!previous.getCurrentIds().isEmpty() && relativeDepth > 1) {
             result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
             final Bson newRoots = QueryToMongodb.getRoots(MetadataDocument.ID, resultPreviousFilter.getCurrentIds());
-            @SuppressWarnings("unchecked") 
-            final FindIterable<Unit> iterable =
+            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT, newRoots,
                     Unit.UNIT_VITAM_PROJECTION);
             final List<String> finalList = new ArrayList<>();
@@ -749,7 +723,7 @@ public class DbRequest {
      * Execute one relative Depth ObjectGroup Query
      *
      * @param realQuery
-     * @param previous units, Note: only immediate Unit parents are allowed
+     * @param previous  units, Note: only immediate Unit parents are allowed
      * @param tenantId
      * @param sorts
      * @param offset
@@ -827,12 +801,13 @@ public class DbRequest {
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> lastSelectFilterProjection(SelectToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        Result<MetadataDocument<?>> last, boolean checkConsistency)
+        throws InvalidParseOperationException, MetaDataExecutionException, VitamDBException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson projection = requestToMongodb.getFinalProjection();
         final boolean isIdIncluded = requestToMongodb.idWasInProjection();
         final FILTERARGS model = requestToMongodb.model();
+        final List<String> desynchronizedResults = new ArrayList<>();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("To Select: " + MongoDbHelper.bsonToString(roots, false) + " " +
                 (projection != null ? MongoDbHelper.bsonToString(projection, false) : ""));
@@ -871,10 +846,22 @@ public class DbRequest {
                         unit.remove(VitamDocument.ID);
                     }
                     last.addFinal(unit);
-                } else {
-                    LOGGER.warn("Result with Id {} was not found but should!", id);
+                } else if (checkConsistency) {
+                    // check the consistency between elasticSearch and MongoDB
+                    desynchronizedResults.add(id);
+                    //desynchronization logs
+                    LOGGER.error(String.format(
+                        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
+                        id, ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
                 }
             }
+
+            // As soon as we detect a synchronization error MongoDB / ES, we return an error.
+            if (!desynchronizedResults.isEmpty()) {
+                throw new VitamDBException(
+                    "[Consistency ERROR] : An internal data consistency error has been detected !");
+            }
+
             return last;
         }
         // OBJECTGROUPS:
@@ -911,10 +898,22 @@ public class DbRequest {
                     og.remove(VitamDocument.ID);
                 }
                 last.addFinal(og);
-            } else {
-                LOGGER.debug("Result with Id {} was not found but should!", id);
+            } else if (checkConsistency) {
+                // check the consistency between elasticSearch and MongoDB
+                desynchronizedResults.add(id);
+                //desynchronization logs
+                LOGGER.error(String.format(
+                    CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
+                    id, ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
             }
         }
+
+        // As soon as we detect a synchronization error MongoDB / ES, we return an error.
+        if (!desynchronizedResults.isEmpty()) {
+            throw new VitamDBException(
+                "[Consistency ERROR] : An internal data consistency error has been detected !");
+        }
+
         return last;
     }
 
@@ -1062,9 +1061,7 @@ public class DbRequest {
      * indexFieldsOGUpdated : Update index OG related to Fields updated
      *
      * @param last : contains the Result to be indexed
-     *
      * @throws Exception
-     *
      */
     private void indexFieldsOGUpdated(Result<MetadataDocument<?>> last, Integer tenantId) throws Exception {
         final Bson finalQuery;
@@ -1093,9 +1090,7 @@ public class DbRequest {
      * removeOGIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
-     *
      * @throws Exception
-     *
      */
     private void removeOGIndexFields(Result<MetadataDocument<?>> last) throws Exception {
         final Integer tenantId = ParameterHelper.getTenantParameter();
@@ -1112,9 +1107,7 @@ public class DbRequest {
      * removeUnitIndexFields : remove index related to Fields deleted
      *
      * @param last : contains the Result to be removed
-     *
      * @throws Exception
-     *
      */
     private void removeUnitIndexFields(Result<MetadataDocument<?>> last) throws Exception {
         final Integer tenantId = ParameterHelper.getTenantParameter();

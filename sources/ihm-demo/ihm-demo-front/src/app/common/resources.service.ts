@@ -41,12 +41,10 @@ export class ResourcesService {
     header = this.setDefaultHeader(header);
     return this.http.post(`${BASE_URL}${url}`, body, { headers: header, responseType: responsetype || 'json' })
       .catch((err) => {
-        if (err.status === 500) {
-          let jsonError = err.error != undefined ? JSON.parse(err.error) : undefined;
-          if (jsonError === undefined || (jsonError !== undefined && jsonError.httpCode === 500)) {
-            this.dialogService.displayMessage(err.error.message +
-            ' Veuillez contacter votre administrateur', 'Erreur système');              
-          }
+        if (err.status === 500 && err.error !== undefined && err.error.httpCode === 500 && err.error.message !== undefined
+          && (err.error.state === 'code_vitam' || err.error.state === 'vitam-code')) {
+          this.dialogService.displayMessage(err.error.message +
+            ' Please contact your administrator', 'System error');
           return Observable.throw(err);
         }
       })
@@ -71,7 +69,7 @@ export class ResourcesService {
   }
 
   setAccessContract(contractIdentifier: string) {
-      localStorage.setItem(CONTRACT_COOKIE, contractIdentifier);
+    localStorage.setItem(CONTRACT_COOKIE, contractIdentifier);
   }
 
   getAccessContract() {
