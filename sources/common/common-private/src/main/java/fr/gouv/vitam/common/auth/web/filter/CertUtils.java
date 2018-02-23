@@ -49,7 +49,7 @@ public class CertUtils {
      *
      * @param request
      * @param useHeader
-     * @return
+     * @return the extracted certificate
      */
     public static X509Certificate[] extractCert(ServletRequest request, boolean useHeader) {
         Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");

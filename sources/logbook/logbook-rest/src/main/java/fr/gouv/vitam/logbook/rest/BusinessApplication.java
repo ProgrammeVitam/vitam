@@ -43,12 +43,20 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 
+/**
+ * Logbook application declaring resources and filters
+ */
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
 
     private Set<Object> singletons;
 
+    /**
+     * Constructor
+     * 
+     * @param servletConfig the servlet configuration
+     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 

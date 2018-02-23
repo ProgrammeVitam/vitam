@@ -30,15 +30,33 @@ package fr.gouv.vitam.common.dsl.schema.meta;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 
+/**
+ * Json Type Name enum
+ */
 public enum JsonTypeName {
+    /**
+     * Json Object type
+     */
     @JsonProperty("object")
     OBJECT,
+    /**
+     * Json Array type
+     */
     @JsonProperty("array")
     ARRAY,
+    /**
+     * Json string type
+     */
     @JsonProperty("string")
     STRING,
+    /**
+     * Json number type
+     */
     @JsonProperty("number")
     NUMBER,
+    /**
+     * Json boolean type
+     */
     @JsonProperty("boolean")
     BOOLEAN;
 

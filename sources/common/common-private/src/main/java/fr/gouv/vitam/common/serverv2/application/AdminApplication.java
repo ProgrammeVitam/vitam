@@ -35,10 +35,16 @@ import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 
+/**
+ * Admin application class
+ */
 public class AdminApplication extends ConfigurationApplication {
 
     private Set<Object> singletons;
 
+    /**
+     * Constructor adding GenericExceptionMapper and AdminStatusResource
+     */
     public AdminApplication() {
         singletons = new HashSet<>();
         singletons.add(new GenericExceptionMapper());

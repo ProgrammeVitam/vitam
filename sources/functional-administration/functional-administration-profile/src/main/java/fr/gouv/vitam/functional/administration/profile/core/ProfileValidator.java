@@ -62,16 +62,22 @@ public interface ProfileValidator {
     Optional<RejectionCause> validate(ProfileModel profile);
 
 
+    /**
+     * Rejection Cause
+     */
     public class RejectionCause {
 
-        private static final String ERR_DUPLICATE_PROFILE_ENTRY =
-            "One or many profiles in the imported list have the same name : %s";
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating profile (%s)";
         private static final String ERR_DUPLICATE_PROFILE = "The profile %s already exists in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
 
         private String reason;
 
+        /**
+         * Constructor
+         * 
+         * @param error
+         */
         public RejectionCause(String error) {
             setReason(error);
         }
@@ -107,6 +113,11 @@ public interface ProfileValidator {
             return new RejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
         }
 
+        /**
+         * Get reason
+         * 
+         * @return reason
+         */
         public String getReason() {
             return reason;
         }

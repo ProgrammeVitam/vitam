@@ -53,33 +53,51 @@ public class ObjectGroup {
 
     @JsonProperty("_ops")
     private List<String> ops;
-    
+
     @JsonProperty("_opi")
     private String opi;
 
     @JsonProperty("OriginatingAgency")
     private String originatingAgency;
 
+    /**
+     * @return id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    /**
+     * @return tenant
+     */
     public int getTenant() {
         return tenant;
     }
 
+    /**
+     * @param tenant
+     */
     public void setTenant(int tenant) {
         this.tenant = tenant;
     }
 
+    /**
+     * @return up
+     */
     public List<String> getUp() {
         return up;
     }
 
+    /**
+     * @param up
+     */
     public void setUp(List<String> up) {
         if (this.up == null) {
             this.up = new ArrayList<>();
@@ -87,18 +105,30 @@ public class ObjectGroup {
         this.up = up;
     }
 
+    /**
+     * @return nbc
+     */
     public int getNbc() {
         return nbc;
     }
 
+    /**
+     * @param nbc
+     */
     public void setNbc(int nbc) {
         this.nbc = nbc;
     }
 
+    /**
+     * @return ops
+     */
     public List<String> getOps() {
         return ops;
     }
 
+    /**
+     * @param ops
+     */
     public void setOps(List<String> ops) {
         if (this.ops == null) {
             this.ops = new ArrayList<>();
@@ -106,30 +136,46 @@ public class ObjectGroup {
         this.ops = ops;
     }
 
+    /**
+     * @return opi
+     */
     public String getOpi() {
         return opi;
     }
 
+    /**
+     * @param opi
+     */
     public void setOpi(String opi) {
         this.opi = opi;
     }
-    
+
+    /**
+     * @return originatingAgency
+     */
     public String getOriginatingAgency() {
         return originatingAgency;
     }
 
+    /**
+     * @param originatingAgency
+     */
     public void setOriginatingAgency(String originatingAgency) {
         this.originatingAgency = originatingAgency;
     }
 
+    /**
+     * @return fileInfo
+     */
     public FileInfoModel getFileInfo() {
         return fileInfo;
     }
 
+    /**
+     * @param fileInfo
+     */
     public void setFileInfo(FileInfoModel fileInfo) {
         this.fileInfo = fileInfo;
     }
-
-
 
 }

@@ -47,12 +47,20 @@ import java.util.Set;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
+/**
+ * Business application for ingest external declaring resources ad filters
+ */
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
 
     private Set<Object> singletons;
 
+    /**
+     * Constructor
+     * 
+     * @param servletConfig the servlet configuration
+     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 

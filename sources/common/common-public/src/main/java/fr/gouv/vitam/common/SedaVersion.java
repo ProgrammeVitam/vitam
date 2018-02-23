@@ -45,10 +45,10 @@ public class SedaVersion {
         binaryDataObjectVersions = new ArrayList<String>();
         physicalDataObjectVersions = new ArrayList<String>();
     }
-    
+
     /**
      * @param type
-     * @return
+     * @return version list for this type
      */
     public List<String> getVersionForType(String type) {
         if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
@@ -56,12 +56,12 @@ public class SedaVersion {
         } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
             return physicalDataObjectVersions;
         }
-        return null;
+        return new ArrayList<>();
     }
 
     /**
      * @param type
-     * @return
+     * @return version list for other type than the one requested
      */
     public List<String> getVersionForOtherType(String type) {
         if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
@@ -69,9 +69,9 @@ public class SedaVersion {
         } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
             return binaryDataObjectVersions;
         }
-        return null;
+        return new ArrayList<>();
     }
-    
+
     /**
      * @param binaryDataObjectVersions
      */
@@ -85,10 +85,10 @@ public class SedaVersion {
     public void setPhysicalDataObjectVersions(String[] physicalDataObjectVersions) {
         this.physicalDataObjectVersions = Arrays.asList(physicalDataObjectVersions);
     }
-    
+
     /**
      * @param version
-     * @return
+     * @return true if version is supported
      */
     public boolean isSupportedVesion(final String version) {
         if (binaryDataObjectVersions.contains(version) || physicalDataObjectVersions.contains(version)) {

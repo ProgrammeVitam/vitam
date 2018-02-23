@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
+/**
+ * InterruptSignal 
+ */
 public class InterruptSignal implements Runnable {
 
     @Override

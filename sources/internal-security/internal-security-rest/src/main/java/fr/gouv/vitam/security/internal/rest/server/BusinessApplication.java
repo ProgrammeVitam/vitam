@@ -27,16 +27,27 @@
 
 package fr.gouv.vitam.security.internal.rest.server;
 
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Context;
+
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.mapper.IllegalArgumentExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.mapper.PersonalCertificateExceptionMapper;
@@ -48,15 +59,6 @@ import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 import fr.gouv.vitam.security.internal.rest.service.PermissionService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Context;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
 /**
  * module declaring business resource
  */
@@ -66,6 +68,11 @@ public class BusinessApplication extends ConfigurationApplication {
 
     private String configurationFile;
 
+    /**
+     * Constructor
+     * 
+     * @param servletConfig
+     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         this.configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 

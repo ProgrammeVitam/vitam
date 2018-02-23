@@ -52,66 +52,114 @@ public class ProcessDetail {
     @JsonProperty("processDate")
     private String processDate;
 
+    /**
+     * @return stepStatus
+     */
     public String getStepStatus() {
         return stepStatus;
     }
 
+    /**
+     * @param stepStatus
+     */
     public void setStepStatus(String stepStatus) {
         this.stepStatus = stepStatus;
     }
 
+    /**
+     * @return previousStep
+     */
     public String getPreviousStep() {
         return previousStep;
     }
 
+    /**
+     * @param previousStep
+     */
     public void setPreviousStep(String previousStep) {
         this.previousStep = previousStep;
     }
 
+    /**
+     * @return nextStep
+     */
     public String getNextStep() {
         return nextStep;
     }
 
+    /**
+     * @param nextStep
+     */
     public void setNextStep(String nextStep) {
         this.nextStep = nextStep;
     }
 
+    /**
+     * @return operationId
+     */
     public String getOperationId() {
         return operationId;
     }
 
+    /**
+     * @param operationId
+     */
     public void setOperationId(String operationId) {
         this.operationId = operationId;
     }
 
+    /**
+     * @return processType
+     */
     public String getProcessType() {
         return processType;
     }
 
+    /**
+     * @param processType
+     */
     public void setProcessType(String processType) {
         this.processType = processType;
     }
 
+    /**
+     * @return stepByStep
+     */
     public boolean isStepByStep() {
         return stepByStep;
     }
 
+    /**
+     * @param stepByStep
+     */
     public void setStepByStep(boolean stepByStep) {
         this.stepByStep = stepByStep;
     }
 
+    /**
+     * @return globalState
+     */
     public String getGlobalState() {
         return globalState;
     }
 
+    /**
+     * @param globalState
+     */
     public void setGlobalState(String globalState) {
         this.globalState = globalState;
     }
 
+    /**
+     * @return processDate
+     */
     public String getProcessDate() {
         return processDate;
     }
 
+    /**
+     * @param processDate
+     */
     public void setProcessDate(String processDate) {
         this.processDate = processDate;
     }

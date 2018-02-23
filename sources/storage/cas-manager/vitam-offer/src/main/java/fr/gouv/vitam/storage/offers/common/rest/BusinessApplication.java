@@ -50,11 +50,18 @@ import fr.gouv.vitam.storage.offers.common.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
 
+/**
+ * Offer register resources and filters
+ */
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
     private Set<Object> singletons;
 
+    /**
+     * Constructor 
+     * @param servletConfig the servlet configuration
+     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         singletons = new HashSet<>();
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);

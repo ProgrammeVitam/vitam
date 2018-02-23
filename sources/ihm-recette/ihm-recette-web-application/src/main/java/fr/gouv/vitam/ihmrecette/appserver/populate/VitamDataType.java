@@ -26,16 +26,43 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+/**
+ * The Vitam Data Type enum
+ */
 public enum VitamDataType {
+    /**
+     * Unit Data Type
+     */
     UNIT("Unit", "unit_%d"),
+    /**
+     * LogbookLifeCycleUnit Data Type
+     */
     LFC_UNIT("LogbookLifeCycleUnit", ""),
+    /**
+     * LogbookLifeCycleObjectGroup Data Type
+     */
     LFC_GOT("LogbookLifeCycleObjectGroup", ""),
+    /**
+     * ObjectGroup Data Type
+     */
     GOT("ObjectGroup", "objectgroup_%d"),
+    /**
+     * FileRules Data Type
+     */
     RULES("FileRules", "filerules"),
+    /**
+     * AccessContract Data Type
+     */
     ACCESS_CONTRACT("AccessContract", "accesscontract"),
+    /**
+     * Agencies Data Type
+     */
     AGENCIES("Agencies", "agencies"),
+    /**
+     * AccessionRegisterSummary Data Type
+     */
     ACCESSION_REGISTER_SUMMARY("AccessionRegisterSummary", "accessionregistersummary");
-    
+
     private String collectionName;
     private String indexName;
 
@@ -44,14 +71,24 @@ public enum VitamDataType {
         this.indexName = indexName;
     }
 
+    /**
+     * @return the name of the collection
+     */
     public String getCollectionName() {
         return collectionName;
     }
 
+    /**
+     * @return the index name
+     */
     public String getIndexName() {
         return indexName;
     }
 
+    /**
+     * @param tenantId
+     * @return the index name
+     */
     public String getIndexName(int tenantId) {
         return String.format(indexName, tenantId);
     }

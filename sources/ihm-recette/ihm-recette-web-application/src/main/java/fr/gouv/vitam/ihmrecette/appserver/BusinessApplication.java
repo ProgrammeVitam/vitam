@@ -27,8 +27,6 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-
 import static java.lang.String.format;
 
 import java.io.FileNotFoundException;
@@ -42,14 +40,21 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import com.google.common.base.Throwables;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -67,11 +72,10 @@ import fr.gouv.vitam.ihmrecette.appserver.populate.MetadataRepository;
 import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateResource;
 import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
 import fr.gouv.vitam.ihmrecette.appserver.populate.UnitGraph;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
+/**
+ * Business Application for ihm recette declaring resources and filters
+ */
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
@@ -81,7 +85,7 @@ public class BusinessApplication extends Application {
     /**
      * BusinessApplication Constructor
      *
-     * @param servletConfig
+     * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
@@ -139,7 +143,8 @@ public class BusinessApplication extends Application {
             LogbookRepository logbookRepository = new LogbookRepository(logbookDb);
             UnitGraph unitGraph = new UnitGraph(metadataRepository);
             PopulateService populateService =
-                new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, configuration.getIngestMaxThread());
+                new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph,
+                    configuration.getIngestMaxThread());
             PopulateResource populateResource = new PopulateResource(populateService);
 
             singletons.add(populateResource);

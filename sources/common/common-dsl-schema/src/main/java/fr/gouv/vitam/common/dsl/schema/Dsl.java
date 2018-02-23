@@ -31,8 +31,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Dsl schema interface
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface Dsl {
+    /**
+     * Get the DslSchema value
+     * 
+     * @return value
+     */
     DslSchema value();
 }

@@ -34,19 +34,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * transform a {@link Element} to a {@link Map}
  */
 public class ElementMapper {
 
+
+    /**
+     * Transform list to map
+     * 
+     * @param elements to be transformed
+     * @return the map
+     */
     public Map<String, Object> toMap(List<Object> elements) {
 
         List<Map<String, List>> collect = elements.stream()
@@ -78,8 +86,7 @@ public class ElementMapper {
             Node child = childNodes.item(i);
             if (child.getNodeType() == Node.ELEMENT_NODE) {
                 objectObjectHashMap.put(child.getLocalName(), child);
-            }
-            else if (child.getNodeType() == Node.TEXT_NODE) {
+            } else if (child.getNodeType() == Node.TEXT_NODE) {
                 if (Strings.isNullOrEmpty(child.getTextContent().trim())) {
                     continue;
                 }

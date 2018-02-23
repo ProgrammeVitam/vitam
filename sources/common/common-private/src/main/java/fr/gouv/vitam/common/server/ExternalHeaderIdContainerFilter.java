@@ -44,7 +44,7 @@ public class ExternalHeaderIdContainerFilter implements ContainerRequestFilter {
      * Extracts the ids from the headers to save it in the VitamSession
      *
      * @param requestContext {@link ContainerRequestFilter#filter(ContainerRequestContext)}
-     * @throws IOException {@see ContainerRequestFilter#filter(ContainerRequestContext)}
+     * @throws IOException {@link ContainerRequestFilter#filter(ContainerRequestContext)}
      * @see ContainerRequestFilter#filter(ContainerRequestContext)
      */
     @Override

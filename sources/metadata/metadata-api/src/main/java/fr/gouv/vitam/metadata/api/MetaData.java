@@ -64,6 +64,7 @@ public interface MetaData {
      * @throws MetaDataAlreadyExistException Throw if Unit id already exists
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     public void insertUnit(JsonNode insertRequest)
         throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
@@ -90,7 +91,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Throw if unit by id not found
      * @throws BadRequestException if a bad request is being used
-     *
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
@@ -108,6 +109,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Throw if unit by id not found
      * @throws BadRequestException if a bad request is being used
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      *
      */
     RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
@@ -131,6 +133,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Throw if unit by id not found
      * @throws BadRequestException if a bad request is being used
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      *
      */
     public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
@@ -154,7 +157,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Thrown if no objectGroup is found
      * @throws BadRequestException if a bad request is being used
-     * 
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      * 
      */
     RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
@@ -177,7 +180,7 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Throw if unit does not exist
-     *
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
@@ -215,6 +218,7 @@ public interface MetaData {
      * @param objectId the id of the object to be updated
      * @throws InvalidParseOperationException Thrown when json format is not correct
      * @throws MetaDataExecutionException Thrown if error occurs when send Unit to database
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     void updateObjectGroupId(JsonNode updateRequest, String objectId)
         throws InvalidParseOperationException, MetaDataExecutionException, VitamDBException;

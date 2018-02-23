@@ -11,8 +11,17 @@ import fr.gouv.vitam.common.model.unit.CommonRule;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 
+/**
+ * Map data base representation of rules to a jaxb representation => Map RuleCategoryModel to CommonRule
+ */
 public class RuleMapper {
 
+    /**
+     * This generic method is used to map data base model of rule to jaxb
+     * 
+     * @param rule
+     * @return rule category
+     */
     public RuleCategoryModel fillCommonRule(CommonRule rule) {
         if (rule == null) {
             return null;

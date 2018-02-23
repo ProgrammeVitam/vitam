@@ -29,7 +29,7 @@ Les codes retours HTTP standards utilisés sont :
 
 Les codes d'erreurs HTTP standards utilisés sont :
 - 400: Requête mal formulée
-- 401: Requête non autorisée
+- 401: Requête non autorisée (dans certains cas, certaines opérations critiques d'administration doivent être réalisées par l'administrateur sur le tenant d'administration)
 - 404: Resource non trouvée
 - 409: Requête en conflit
 - 412: Des préconditions ne sont pas respectées
@@ -92,5 +92,3 @@ Néanmoins, il est possible de paginer les résultats en utilisant le DSL avec l
 
 A noter qu'en raison du modèle State-less, les requêtes suivantes (en manipulant notamment $offset) seront à nouveau exécutées, conduisant à des performances réduites.
 Le nombre de résultats ne doit être être trop important (**$limit** + **$offset** > 10000+) au risque d'un comportement de recherche non déterminé (la recherche ne pourra aboutir).
-
-

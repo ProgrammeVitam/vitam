@@ -89,7 +89,7 @@ public class VitamConfiguration {
      * path for securemode
      */
     public static final String SECURE_MODE_URL = "/securemode";
-        /**
+    /**
      * path for admintenant
      */
     public static final String ADMIN_TENANT_URL = "/admintenant";
@@ -285,7 +285,7 @@ public class VitamConfiguration {
     /**
      * Worker bulk size
      */
-    private static int workerBulkSize = 10;    
+    private static int workerBulkSize = 10;
     /**
      * Restore bulk size
      */
@@ -411,9 +411,9 @@ public class VitamConfiguration {
     }
 
     /**
-     * Setter for list of tenant
+     * Getter for list of tenant
      *
-     * @return
+     * @return tenant list
      */
     public static List<Integer> getTenants() {
         return TENANTS;
@@ -996,6 +996,8 @@ public class VitamConfiguration {
 
     /**
      * setIntegrationTest
+     * 
+     * @param value
      */
     public static void setIntegrationTest(boolean value) {
         SystemPropertyUtil.set(VITAM_JUNIT_PROPERTY, value);
@@ -1005,7 +1007,7 @@ public class VitamConfiguration {
     /**
      * getter for VITAM_CONFIG_PROPERTY
      *
-     * @return
+     * @return vitam config property
      */
     public static String getVitamConfigProperty() {
         return VITAM_CONFIG_PROPERTY;
@@ -1016,7 +1018,7 @@ public class VitamConfiguration {
     /**
      * getter for VITAM_DATA_PROPERTY
      *
-     * @return
+     * @return VITAM_DATA_PROPERTY
      */
     public static String getVitamDataProperty() {
         return VITAM_DATA_PROPERTY;
@@ -1026,7 +1028,7 @@ public class VitamConfiguration {
     /**
      * getter for VITAM_LOG_PROPERTY
      *
-     * @return
+     * @return VITAM_LOG_PROPERTY
      */
     public static String getVitamLogProperty() {
         return VITAM_LOG_PROPERTY;
@@ -1035,7 +1037,7 @@ public class VitamConfiguration {
     /**
      * getter for VITAM_TMP_PROPERTY
      *
-     * @return
+     * @return VITAM_TMP_PROPERTY
      */
     public static String getVitamTmpProperty() {
         return VITAM_TMP_PROPERTY;
@@ -1045,7 +1047,7 @@ public class VitamConfiguration {
     /**
      * getter for vitamConfigFolderDefault
      *
-     * @return
+     * @return vitamConfigFolderDefault
      */
     public static String getVitamConfigFolderDefault() {
         return vitamConfigFolderDefault;
@@ -1053,8 +1055,8 @@ public class VitamConfiguration {
 
     /**
      * setter for vitamConfigFolderDefault
-     *
-     * @return
+     * 
+     * @param vitamConfigFolderDefault
      */
     private static void setVitamConfigFolderDefault(String vitamConfigFolderDefault) {
         VitamConfiguration.vitamConfigFolderDefault = vitamConfigFolderDefault;
@@ -1063,7 +1065,7 @@ public class VitamConfiguration {
     /**
      * getter for vitamDataFolderDefault
      *
-     * @return
+     * @return vitamDataFolderDefault
      */
     public static String getVitamDataFolderDefault() {
         return vitamDataFolderDefault;
@@ -1071,8 +1073,8 @@ public class VitamConfiguration {
 
     /**
      * setter for vitamDataFolderDefault
-     *
-     * @return
+     * 
+     * @param vitamDataFolderDefault
      */
     private static void setVitamDataFolderDefault(String vitamDataFolderDefault) {
         VitamConfiguration.vitamDataFolderDefault = vitamDataFolderDefault;
@@ -1081,7 +1083,7 @@ public class VitamConfiguration {
     /**
      * getter for vitamLogFolderDefault
      *
-     * @return
+     * @return vitamLogFolderDefault
      */
     public static String getVitamLogFolderDefault() {
         return vitamLogFolderDefault;
@@ -1089,8 +1091,8 @@ public class VitamConfiguration {
 
     /**
      * setter for vitamLogFolderDefault
-     *
-     * @return
+     * 
+     * @param vitamLogFolderDefault
      */
     private static void setVitamLogFolderDefault(String vitamLogFolderDefault) {
         VitamConfiguration.vitamLogFolderDefault = vitamLogFolderDefault;
@@ -1099,7 +1101,7 @@ public class VitamConfiguration {
     /**
      * getter for vitamTmpFolderDefault
      *
-     * @return
+     * @return vitamCleanPeriod
      */
     public static Integer getVitamCleanPeriod() {
         return vitamCleanPeriod;
@@ -1109,7 +1111,7 @@ public class VitamConfiguration {
     /**
      * setter for vitamLogFolderDefault
      *
-     * @return
+     * @param vitamCleanPeriod
      */
     private static void setVitamCleanPeriod(Integer vitamCleanPeriod) {
         VitamConfiguration.vitamCleanPeriod = vitamCleanPeriod;
@@ -1118,7 +1120,7 @@ public class VitamConfiguration {
     /**
      * getter for vitamTmpFolderDefault
      *
-     * @return
+     * @return vitamTmpFolderDefault
      */
     public static String getVitamTmpFolderDefault() {
         return vitamTmpFolderDefault;
@@ -1127,7 +1129,7 @@ public class VitamConfiguration {
     /**
      * setter for vitamTmpFolderDefault
      *
-     * @return
+     * @param vitamTmpFolderDefault
      */
     private static void setVitamTmpFolderDefault(String vitamTmpFolderDefault) {
         VitamConfiguration.vitamTmpFolderDefault = vitamTmpFolderDefault;
@@ -1135,15 +1137,17 @@ public class VitamConfiguration {
 
     /**
      * setter for chunkSize
-     *
-     * @return
+     * 
+     * @param chunkSize
      */
     private static void setChunkSize(int chunkSize) {
         VitamConfiguration.chunkSize = chunkSize;
     }
 
     /**
-     * @return the size of the queue of async workspace
+     * set the size of the queue of async workspace
+     * 
+     * @param queueSize
      */
     public static void setAsyncWorkspaceQueueSize(int queueSize) {
         asyncWorkspaceQueueSize = queueSize;
@@ -1152,8 +1156,8 @@ public class VitamConfiguration {
 
     /**
      * setter for recvBufferSize
-     *
-     * @return
+     * 
+     * @param recvBufferSize
      */
     private static void setRecvBufferSize(int recvBufferSize) {
         VitamConfiguration.recvBufferSize = recvBufferSize;
@@ -1162,7 +1166,7 @@ public class VitamConfiguration {
     /**
      * setter for readTimeout
      *
-     * @return
+     * @param readTimeout
      */
     private static void setReadTimeout(int readTimeout) {
         VitamConfiguration.readTimeout = readTimeout;
@@ -1171,7 +1175,7 @@ public class VitamConfiguration {
     /**
      * setter for maxTotalClient
      *
-     * @return
+     * @param maxTotalClient
      */
     private static void setMaxTotalClient(int maxTotalClient) {
         VitamConfiguration.maxTotalClient = maxTotalClient;
@@ -1180,7 +1184,7 @@ public class VitamConfiguration {
     /**
      * setter for maxClientPerHost
      *
-     * @return
+     * @param maxClientPerHost
      */
     private static void setMaxClientPerHost(int maxClientPerHost) {
         VitamConfiguration.maxClientPerHost = maxClientPerHost;
@@ -1189,7 +1193,7 @@ public class VitamConfiguration {
     /**
      * setter for delayValidationAfterInactivity
      *
-     * @return
+     * @param delayValidationAfterInactivity
      */
     private static void setDelayValidationAfterInactivity(int delayValidationAfterInactivity) {
         VitamConfiguration.delayValidationAfterInactivity = delayValidationAfterInactivity;
@@ -1198,7 +1202,7 @@ public class VitamConfiguration {
     /**
      * getter for delayMultipleInputstream
      *
-     * @return
+     * @return delayMultipleInputstream
      */
     public static Integer getDelayMultipleInputstream() {
         return delayMultipleInputstream;
@@ -1207,7 +1211,7 @@ public class VitamConfiguration {
     /**
      * setter for delayMultipleSubinputstream
      *
-     * @return
+     * @param delayMultipleInputstream
      */
     public static void setDelayMultipleInputstream(int delayMultipleInputstream) {
         VitamConfiguration.delayMultipleInputstream = delayMultipleInputstream;
@@ -1216,7 +1220,7 @@ public class VitamConfiguration {
     /**
      * getter for delayMultipleSubinputstream
      *
-     * @return
+     * @return delayMultipleSubinputstream
      */
     public static Integer getDelayMultipleSubinputstream() {
         return delayMultipleSubinputstream;
@@ -1225,7 +1229,7 @@ public class VitamConfiguration {
     /**
      * setter for delayMultipleSubinputstream
      *
-     * @return
+     * @param delayMultipleSubinputstream 
      */
     private static void setDelayMultipleSubinputstream(int delayMultipleSubinputstream) {
         VitamConfiguration.delayMultipleSubinputstream = delayMultipleSubinputstream;
@@ -1234,7 +1238,7 @@ public class VitamConfiguration {
     /**
      * getter for minimumThreadPoolSize
      *
-     * @return
+     * @return minimumThreadPoolSize
      */
     public static Integer getMinimumThreadPoolSize() {
         return minimumThreadPoolSize;
@@ -1243,7 +1247,7 @@ public class VitamConfiguration {
     /**
      * setter for minimumThreadPoolSize
      *
-     * @return
+     * @param minimumThreadPoolSize
      */
     private static void setMinimumThreadPoolSize(int minimumThreadPoolSize) {
         VitamConfiguration.minimumThreadPoolSize = minimumThreadPoolSize;
@@ -1252,7 +1256,7 @@ public class VitamConfiguration {
     /**
      * getter for noValidationAfterInactivity
      *
-     * @return
+     * @return noValidationAfterInactivity
      */
     public static Integer getNoValidationAfterInactivity() {
         return noValidationAfterInactivity;
@@ -1261,7 +1265,7 @@ public class VitamConfiguration {
     /**
      * setter for noValidationAfterInactivity
      *
-     * @return
+     * @param noValidationAfterInactivity
      */
     private static void setNoValidationAfterInactivity(int noValidationAfterInactivity) {
         VitamConfiguration.noValidationAfterInactivity = noValidationAfterInactivity;
@@ -1270,7 +1274,7 @@ public class VitamConfiguration {
     /**
      * setter for delayGetClient
      *
-     * @return
+     * @param delayGetClient
      */
     private static void setDelayGetClient(int delayGetClient) {
         VitamConfiguration.delayGetClient = delayGetClient;
@@ -1279,7 +1283,7 @@ public class VitamConfiguration {
     /**
      * setter for intervalDelayCheckIdle
      *
-     * @return
+     * @param intervalDelayCheckIdle
      */
     private static void setIntervalDelayCheckIdle(int intervalDelayCheckIdle) {
         VitamConfiguration.intervalDelayCheckIdle = intervalDelayCheckIdle;
@@ -1288,7 +1292,7 @@ public class VitamConfiguration {
     /**
      * setter for maxDelayUnusedConnection
      *
-     * @return
+     * @param maxDelayUnusedConnection
      */
     private static void setMaxDelayUnusedConnection(int maxDelayUnusedConnection) {
         VitamConfiguration.maxDelayUnusedConnection = maxDelayUnusedConnection;
@@ -1297,7 +1301,7 @@ public class VitamConfiguration {
     /**
      * setter for useNewJaxrClient
      *
-     * @return
+     * @param useNewJaxrClient
      */
     private static void setUseNewJaxrClient(Boolean useNewJaxrClient) {
         VitamConfiguration.useNewJaxrClient = useNewJaxrClient;
@@ -1308,7 +1312,7 @@ public class VitamConfiguration {
     /**
      * setter for securityDigestType
      *
-     * @return
+     * @param securityDigestType
      */
     private static void setSecurityDigestType(DigestType securityDigestType) {
         VitamConfiguration.securityDigestType = securityDigestType;
@@ -1317,7 +1321,7 @@ public class VitamConfiguration {
     /**
      * setter for defaultDigestType
      *
-     * @return
+     * @param defaultDigestType
      */
     private static void setDefaultDigestType(DigestType defaultDigestType) {
         VitamConfiguration.defaultDigestType = defaultDigestType;
@@ -1326,7 +1330,7 @@ public class VitamConfiguration {
     /**
      * setter for defaultTimestampDigestType
      *
-     * @return
+     * @param defaultTimestampDigestType
      */
     private static void setDefaultTimestampDigestType(DigestType defaultTimestampDigestType) {
         VitamConfiguration.defaultTimestampDigestType = defaultTimestampDigestType;
@@ -1335,7 +1339,7 @@ public class VitamConfiguration {
     /**
      * setter for acceptableRequestTime
      *
-     * @return
+     * @param acceptableRequestTime
      */
     private static void setAcceptableRequestTime(Long acceptableRequestTime) {
         VitamConfiguration.acceptableRequestTime = acceptableRequestTime;
@@ -1344,7 +1348,7 @@ public class VitamConfiguration {
     /**
      * setter for threadsAllowedToBlockForConnectionMultipliers
      *
-     * @return
+     * @param threadsAllowedToBlockForConnectionMultipliers
      */
     private static void setThreadsAllowedToBlockForConnectionMultipliers(
         Integer threadsAllowedToBlockForConnectionMultipliers) {
@@ -1355,7 +1359,7 @@ public class VitamConfiguration {
     /**
      * setter for retryNumber
      *
-     * @return
+     * @param retryNumber
      */
     private static void setRetryNumber(int retryNumber) {
         VitamConfiguration.retryNumber = retryNumber;
@@ -1364,7 +1368,7 @@ public class VitamConfiguration {
     /**
      * setter for retryDelay
      *
-     * @return
+     * @param retryDelay
      */
     private static void setRetryDelay(int retryDelay) {
         VitamConfiguration.retryDelay = retryDelay;
@@ -1373,7 +1377,7 @@ public class VitamConfiguration {
     /**
      * setter for waitingDelay
      *
-     * @return
+     * @param waitingDelay
      */
     private static void setWaitingDelay(int waitingDelay) {
         VitamConfiguration.waitingDelay = waitingDelay;
@@ -1382,7 +1386,7 @@ public class VitamConfiguration {
     /**
      * getter for allowGzipEncoding
      *
-     * @return
+     * @return allowGzipEncoding
      */
     public static Boolean isAllowGzipEncoding() {
         return allowGzipEncoding;
@@ -1391,7 +1395,7 @@ public class VitamConfiguration {
     /**
      * setter for allowGzipEncoding
      *
-     * @return
+     * @param allowGzipEncoding
      */
     private static void setAllowGzipEncoding(Boolean allowGzipEncoding) {
         VitamConfiguration.allowGzipEncoding = allowGzipEncoding;
@@ -1400,7 +1404,7 @@ public class VitamConfiguration {
     /**
      * getter for allowGzipDecoding
      *
-     * @return
+     * @return allowGzipDecoding
      */
     public static Boolean isAllowGzipDecoding() {
         return allowGzipDecoding;
@@ -1409,7 +1413,7 @@ public class VitamConfiguration {
     /**
      * setter for allowGzipDecoding
      *
-     * @return
+     * @param allowGzipDecoding
      */
     private static void setAllowGzipDecoding(Boolean allowGzipDecoding) {
         VitamConfiguration.allowGzipDecoding = allowGzipDecoding;
@@ -1418,7 +1422,7 @@ public class VitamConfiguration {
     /**
      * getter for bufferNumber
      *
-     * @return
+     * @return bufferNumber
      */
     public static Integer getBufferNumber() {
         return bufferNumber;
@@ -1427,7 +1431,7 @@ public class VitamConfiguration {
     /**
      * setter for bufferNumber
      *
-     * @return
+     * @param bufferNumber
      */
     private static void setBufferNumber(int bufferNumber) {
         VitamConfiguration.bufferNumber = bufferNumber;
@@ -1436,7 +1440,7 @@ public class VitamConfiguration {
     /**
      * getter for maxConcurrentMultipleInputstreamHandler
      *
-     * @return
+     * @return maxConcurrentMultipleInputstreamHandler
      */
     public static Integer getMaxConcurrentMultipleInputstreamHandler() {
         return maxConcurrentMultipleInputstreamHandler;
@@ -1445,7 +1449,7 @@ public class VitamConfiguration {
     /**
      * setter for maxConcurrentMultipleInputstreamHandler
      *
-     * @return
+     * @param maxConcurrentMultipleInputstreamHandler
      */
     private static void setMaxConcurrentMultipleInputstreamHandler(int maxConcurrentMultipleInputstreamHandler) {
         VitamConfiguration.maxConcurrentMultipleInputstreamHandler = maxConcurrentMultipleInputstreamHandler;
@@ -1454,7 +1458,7 @@ public class VitamConfiguration {
     /**
      * getter for DEFAULT_LANG
      *
-     * @return
+     * @return DEFAULT_LANG
      */
     public static String getDefaultLang() {
         return DEFAULT_LANG;
@@ -1463,7 +1467,7 @@ public class VitamConfiguration {
     /**
      * setter for DEFAULT_LANG
      *
-     * @return
+     * @param defaultLang
      */
     public static void setDefaultLang(String defaultLang) {
         DEFAULT_LANG = defaultLang;
@@ -1471,6 +1475,8 @@ public class VitamConfiguration {
 
     /**
      * Getter for distributeurBatchSize;
+     * 
+     * @return distributeurBatchSize
      */
     public static int getDistributeurBatchSize() {
         return distributeurBatchSize;
@@ -1478,6 +1484,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for distributeurBatchSize;
+     * @param distributeurBatchSize
      */
     public static void setDistributeurBatchSize(int distributeurBatchSize) {
         VitamConfiguration.distributeurBatchSize = distributeurBatchSize;
@@ -1486,7 +1493,7 @@ public class VitamConfiguration {
     /**
      * Getter for worker bulk size
      *
-     * @return
+     * @return getWorkerBulkSize
      */
     public static int getWorkerBulkSize() {
         return workerBulkSize;
@@ -1521,6 +1528,8 @@ public class VitamConfiguration {
 
     /**
      * Getter for cacheControlDelay;
+     * 
+     * @return cacheControlDelay
      */
     public static int getCacheControlDelay() {
         return cacheControlDelay;
@@ -1528,6 +1537,8 @@ public class VitamConfiguration {
 
     /**
      * Setter for cacheControlDelay;
+     * 
+     * @param cacheControlDelay
      */
     public static void setCacheControlDelay(int cacheControlDelay) {
         VitamConfiguration.cacheControlDelay = cacheControlDelay;
@@ -1535,6 +1546,8 @@ public class VitamConfiguration {
 
     /**
      * Getter for maxCacheEntries;
+     * 
+     * @return maxCacheEntries
      */
     public static int getMaxCacheEntries() {
         return maxCacheEntries;
@@ -1542,6 +1555,8 @@ public class VitamConfiguration {
 
     /**
      * Setter for maxCacheEntries;
+     * 
+     * @param maxCacheEntries
      */
     public static void setMaxCacheEntries(int maxCacheEntries) {
         VitamConfiguration.maxCacheEntries = maxCacheEntries;
@@ -1549,6 +1564,8 @@ public class VitamConfiguration {
 
     /**
      * Getter for exportScore;
+     * 
+     * @return exportScore
      */
     public static boolean isExportScore() {
         return exportScore;
@@ -1556,6 +1573,8 @@ public class VitamConfiguration {
 
     /**
      * Setter for exportScore;
+     * 
+     * @param exportScore
      */
     private static void setExportScore(boolean exportScore) {
         VitamConfiguration.exportScore = exportScore;
@@ -1565,6 +1584,8 @@ public class VitamConfiguration {
 
     /**
      * Getter for maxElasticsearchBulk;
+     * 
+     * @return maxElasticsearchBulk
      */
     public static int getMaxElasticsearchBulk() {
         return maxElasticsearchBulk;
@@ -1572,6 +1593,8 @@ public class VitamConfiguration {
 
     /**
      * Setter for maxElasticsearchBulk;
+     * 
+     * @param maxElasticsearchBulk
      */
     private static void setMaxElasticsearchBulk(int maxElasticsearchBulk) {
         VitamConfiguration.maxElasticsearchBulk = maxElasticsearchBulk;
@@ -1579,6 +1602,8 @@ public class VitamConfiguration {
 
     /**
      * Getter for numberDbClientThread;
+     * 
+     * @return numberDbClientThread
      */
     public static int getNumberDbClientThread() {
         return numberDbClientThread;
@@ -1586,6 +1611,8 @@ public class VitamConfiguration {
 
     /**
      * Setter for numberDbClientThread;
+     * 
+     * @param numberDbClientThread
      */
     private static void setNumberDbClientThread(int numberDbClientThread) {
         VitamConfiguration.numberDbClientThread = numberDbClientThread;
@@ -1593,6 +1620,8 @@ public class VitamConfiguration {
 
     /**
      * Getter for numberEsQueue;
+     * 
+     * @return numberEsQueue
      */
 
     public static Integer getNumberEsQueue() {
@@ -1601,6 +1630,8 @@ public class VitamConfiguration {
 
     /**
      * Setter for numberEsQueue;
+     * 
+     * @param numberEsQueue
      */
     private static void setNumberEsQueue(int numberEsQueue) {
         VitamConfiguration.numberEsQueue = numberEsQueue;

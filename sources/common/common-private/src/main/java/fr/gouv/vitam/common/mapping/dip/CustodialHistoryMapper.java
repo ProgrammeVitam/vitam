@@ -27,15 +27,26 @@
 package fr.gouv.vitam.common.mapping.dip;
 
 
+import java.util.List;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 
-import java.util.List;
-
+/**
+ * Custodial History Mapper
+ */
 public class CustodialHistoryMapper {
 
+    // TODO : there is two CustodialHistoryMapper, refactor should be done
+    
+    /**
+     * Map an object {@link CustodialHistory} to a {@link CustodialHistoryModel}
+     * 
+     * @param custodialHistoryModel the custodial history
+     * @return the custodial history as a {@link CustodialHistoryMapper} object
+     */
     public CustodialHistory map(CustodialHistoryModel custodialHistoryModel) {
 
         if (custodialHistoryModel == null) {
@@ -54,13 +65,13 @@ public class CustodialHistoryMapper {
         });
 
         DataObjectReference dataObjectReference = custodialHistoryModel.getCustodialHistoryFile();
-        if(dataObjectReference != null) {
+        if (dataObjectReference != null) {
             DataObjectRefType custodialHistoryFile = new DataObjectRefType();
             custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectReference.getDataObjectGroupReferenceId());
 
             custodialHistory.setCustodialHistoryFile(custodialHistoryFile);
         }
-        
+
         return custodialHistory;
     }
 }

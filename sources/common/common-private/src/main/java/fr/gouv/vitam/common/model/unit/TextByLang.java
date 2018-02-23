@@ -31,17 +31,32 @@ import java.util.stream.Collectors;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
+/**
+ * TextByLang class
+ */
 public class TextByLang {
 
     private List<TextType> textTypes;
 
+    /**
+     * Default Constructor
+     */
     public TextByLang() {
+        // nothing
     }
 
+    /**
+     * Constructor
+     * 
+     * @param textTypes the textTypes list
+     */
     public TextByLang(List<TextType> textTypes) {
         this.textTypes = textTypes.stream().filter(t -> t.getLang() != null).collect(Collectors.toList());
     }
 
+    /**
+     * @return the text types as a list
+     */
     public List<TextType> getTextTypes() {
         return textTypes;
     }

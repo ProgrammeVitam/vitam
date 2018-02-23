@@ -38,6 +38,9 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
+/**
+ * Business application for storage engine declaring resources and fiters
+ */
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
@@ -45,6 +48,11 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
     private final String configurationFile;
 
+    /**
+     * Constructor
+     * 
+     * @param servletConfig the servlet configuration
+     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         commonBusinessApplication = new CommonBusinessApplication();
         configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);

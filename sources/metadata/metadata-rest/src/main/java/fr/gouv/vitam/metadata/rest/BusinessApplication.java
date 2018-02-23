@@ -46,12 +46,20 @@ import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
 
+/**
+ * Metadata resources and filter
+ */
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
 
     private Set<Object> singletons;
 
+    /**
+     * Constructor
+     * 
+     * @param servletConfig the servlet configuration
+     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 

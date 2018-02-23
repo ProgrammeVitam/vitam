@@ -33,6 +33,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.common.SedaConstants;
 
+/**
+ * Management model
+ */
 @JsonIgnoreProperties({"OriginatingAgency"})
 public class ManagementModel {
 
@@ -58,70 +61,124 @@ public class ManagementModel {
 
     private UpdateOperationType updateOperationType;
 
+    /**
+     * @param storage
+     */
     public void setStorage(RuleCategoryModel storage) {
         this.storage = storage;
     }
 
+    /**
+     * @return the storage
+     */
     public RuleCategoryModel getStorage() {
         return storage;
     }
 
+    /**
+     * @return appraisal
+     */
     public RuleCategoryModel getAppraisal() {
         return appraisal;
     }
 
+    /**
+     * @param appraisal
+     */
     public void setAppraisal(RuleCategoryModel appraisal) {
         this.appraisal = appraisal;
     }
 
+    /**
+     * @param access
+     */
     public void setAccess(RuleCategoryModel access) {
         this.access = access;
     }
 
+    /**
+     * @return access
+     */
     public RuleCategoryModel getAccess() {
         return access;
     }
 
+    /**
+     * @return dissemination
+     */
     public RuleCategoryModel getDissemination() {
         return dissemination;
     }
 
+    /**
+     * @param dissemination
+     */
     public void setDissemination(RuleCategoryModel dissemination) {
         this.dissemination = dissemination;
     }
 
+    /**
+     * @return reuse
+     */
     public RuleCategoryModel getReuse() {
         return reuse;
     }
 
+    /**
+     * @param reuse
+     */
     public void setReuse(RuleCategoryModel reuse) {
         this.reuse = reuse;
     }
 
+    /**
+     * @return classification
+     */
     public RuleCategoryModel getClassification() {
         return classification;
     }
 
+    /**
+     * @param classification
+     */
     public void setClassification(RuleCategoryModel classification) {
         this.classification = classification;
     }
 
+    /**
+     * @return needAuthorization
+     */
     public Boolean isNeedAuthorization() {
         return needAuthorization;
     }
 
+    /**
+     * @param needAuthorization
+     */
     public void setNeedAuthorization(Boolean needAuthorization) {
         this.needAuthorization = needAuthorization;
     }
 
+    /**
+     * @return updateOperationType
+     */
     public UpdateOperationType getUpdateOperationType() {
         return updateOperationType;
     }
 
+    /**
+     * @param updateOperationType
+     */
     public void setUpdateOperationType(UpdateOperationType updateOperationType) {
         this.updateOperationType = updateOperationType;
     }
 
+    /**
+     * Set the rule category model
+     * 
+     * @param ruleCategoryModel the model
+     * @param type the rule category type
+     */
     @JsonIgnore
     public void setRuleCategoryModel(RuleCategoryModel ruleCategoryModel, String type) {
         switch (type) {
@@ -148,6 +205,12 @@ public class ManagementModel {
         }
     }
 
+    /**
+     * Get the rule category model
+     * 
+     * @param type rule category type
+     * @return the Rule category as a {@link RuleCategoryModel}
+     */
     @JsonIgnore
     public RuleCategoryModel getRuleCategoryModel(String type) {
         switch (type) {

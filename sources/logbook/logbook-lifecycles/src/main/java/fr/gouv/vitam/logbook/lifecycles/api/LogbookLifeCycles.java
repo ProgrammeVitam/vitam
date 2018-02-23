@@ -96,11 +96,11 @@ public interface LogbookLifeCycles {
      * Update logbook LifeCycle entries committed or in progress
      *
      * @param idOperation the operation identifier
-     * @param idLc        the lifecycle identifier
-     * @param parameters  the logbook lifecycle parameters
-     * @param commit  if false update in progress collection else update committed LFC
-     * @throws LogbookNotFoundException      if no LifeCycle with the same eventIdentifierProcess exists
-     * @throws LogbookDatabaseException      if errors occur while connecting or writing to the database
+     * @param idLc the lifecycle identifier
+     * @param parameters the logbook lifecycle parameters
+     * @param commit if false update in progress collection else update committed LFC
+     * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookAlreadyExistsException if the entry already exists
      */
     void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters, boolean commit)
@@ -147,6 +147,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
@@ -161,6 +162,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
@@ -176,6 +178,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
