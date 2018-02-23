@@ -52,7 +52,7 @@ export class ResourcesService {
   }
 
   getTenant() {
-    return this.cookies.get(TENANT_COOKIE);
+    return localStorage.getItem(TENANT_COOKIE);
   }
 
   private setDefaultHeader(header?: HttpHeaders) {
