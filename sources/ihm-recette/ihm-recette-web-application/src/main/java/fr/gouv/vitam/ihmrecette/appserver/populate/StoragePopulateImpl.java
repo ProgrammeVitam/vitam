@@ -485,6 +485,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             LOGGER.error(e);
         }
         
-        return null;
+        return new ArrayList<>();
     }
 }
