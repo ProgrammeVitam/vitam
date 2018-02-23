@@ -95,6 +95,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.lte;
+import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
 
@@ -150,9 +151,9 @@ public class EvidenceService {
     }
 
     /**
-     * launch aud
-     *
-     * @param id id
+     * launchEvidence
+     * @param id the id
+     * @param metadataType the metadataType
      */
     public void launchEvidence(String id, LifeCycleTraceabilitySecureFileObject.MetadataType metadataType) {
 
@@ -215,7 +216,7 @@ public class EvidenceService {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put("Id", id);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                JsonHandler.unprettyPrint(evDetData));
+                unprettyPrint(evDetData));
             client.create(logbookParameters);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not create logbook operation", e);
@@ -449,7 +450,7 @@ public class EvidenceService {
 
         boolean databaseAuditSuccess = computeAuditForDatabaseInformations(auditParameters, eip);
 
-        boolean storageAuditSuccess = computeAuditForForStorage(auditParameters, eip);
+        boolean storageAuditSuccess = computeAuditForStorage(auditParameters, eip);
 
         boolean auditSuccess = databaseAuditSuccess && storageAuditSuccess;
 
@@ -458,7 +459,7 @@ public class EvidenceService {
         createLogbookAuditEvents(eip, globalStatusCode, JsonHandler.createObjectNode(), EVIDENCE_AUDIT);
     }
 
-    private boolean computeAuditForForStorage(EvidenceAuditParameters auditParameters,
+    private boolean computeAuditForStorage(EvidenceAuditParameters auditParameters,
         GUID eip) throws EvidenceAuditException {
 
 
@@ -486,7 +487,7 @@ public class EvidenceService {
             .getDocumentWithLFC(auditParameters.getMetadata(), auditParameters.getLifecycle(), dataCategory);
 
         final Digest digest = new Digest(auditParameters.getDigestType());
-        digest.update(JsonHandler.unprettyPrint(docWithLfc).getBytes(StandardCharsets.UTF_8));
+        digest.update(unprettyPrint(docWithLfc).getBytes(StandardCharsets.UTF_8));
         String docWithLfcDigest = digest.digestHex();
 
         ArrayNode errorMessages = JsonHandler.createArrayNode();
@@ -572,7 +573,7 @@ public class EvidenceService {
         // compare Md digest
         final String hashMdFromDatabase =
             metadataDigest
-                .update(JsonHandler.unprettyPrint(auditParameters.getMetadata()).getBytes(StandardCharsets.UTF_8))
+                .update(unprettyPrint(auditParameters.getMetadata()).getBytes(StandardCharsets.UTF_8))
                 .digest64();
 
         String hashMetadata = auditParameters.getTraceabilityLine().getHashMetadata();
@@ -587,7 +588,7 @@ public class EvidenceService {
         Digest lifecycleDigest = new Digest(digestType);
         final String hashLfcFromDatabase =
             lifecycleDigest
-                .update(JsonHandler.unprettyPrint(auditParameters.getLifecycle()).getBytes(StandardCharsets.UTF_8))
+                .update(unprettyPrint(auditParameters.getLifecycle()).getBytes(StandardCharsets.UTF_8))
                 .digest64();
         String hashLfc = auditParameters.getTraceabilityLine().getHashLFC();
 
@@ -627,7 +628,8 @@ public class EvidenceService {
                     status,
                     VitamLogbookMessages.getCodeOp(evidenceAuditDatabase, status), eip);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                JsonHandler.unprettyPrint(evDetData));
+                unprettyPrint(evDetData));
+            logbookParameters.putParameterValue(LogbookParameterName.masterData, unprettyPrint(evDetData));
             client.update(logbookParameters);
 
         } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e) {
@@ -713,7 +715,7 @@ public class EvidenceService {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put("Message", message);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                JsonHandler.unprettyPrint(evDetData));
+                unprettyPrint(evDetData));
             client.update(logbookParameters);
         } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e) {
             LOGGER.error("Could not update logbook operation " + eip + " with status " + status, e);
