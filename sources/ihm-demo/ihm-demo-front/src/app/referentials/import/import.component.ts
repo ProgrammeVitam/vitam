@@ -91,7 +91,7 @@ export class ImportComponent  extends PageComponent {
 
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: this.breadcrumbName, routerLink: 'import/' + this.referentialType}
+        {label: this.breadcrumbName, routerLink: 'admin/import/' + this.referentialType}
       ];
       this.setBreadcrumb(newBreadcrumb);
 
