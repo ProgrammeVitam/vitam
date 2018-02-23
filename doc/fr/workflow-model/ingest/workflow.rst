@@ -428,6 +428,25 @@ Indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATIO
   - FATAL : une erreur technique est survenue lors de l'indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATION.FATAL = Erreur fatale lors de l'indexation des métadonnées de l'unité archivistique)
 
 
+
+Mise à jour du groupe d'objet (STP_UPDATE_OBJECT_GROUP)
+========================================================
+
+Etablissement de la liste des objets (OBJECTS_LIST_EMPTY)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++ **Règle** : Etablissement de la liste des objets pré existante dans le groupe d'objet technique avant le rattachement à l'unité archivistique. Si aucun rattachement n'est déclaré dans le bordereau de transfert, alors cette tâche est OK.
+
++ **Type** : bloquant
+
++ **Statuts** :
+
+  - OK :  La liste des objets a été créé avec succès (STP_UPDATE_OBJECT_GROUP.OK = Succès lors de l' établissement de la liste des objets  )
+
+  - FATAL : La liste des objets n'a pas été créée (STP_UPDATE_OBJECT_GROUP.FATAL = Erreur fatale lors de l' établissement de la liste des objets  )
+
+
+
 Enregistrement et écriture des métadonnées des objets et groupes d'objets(STP_OG_STORING)
 ================================================================================================================
 
