@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -117,7 +118,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
                 mongoAccess.insertDocuments(pronomList, FORMATS).close();
 
-                backupService.saveCollectionAndSequence(eip, BACKUP_FORMAT_EVENT, FORMATS);
+                backupService.saveCollectionAndSequence(eip, BACKUP_FORMAT_EVENT, FORMATS, eip.toString());
                 //store collection
 
                 final LogbookOperationParameters logbookParametersEnd =

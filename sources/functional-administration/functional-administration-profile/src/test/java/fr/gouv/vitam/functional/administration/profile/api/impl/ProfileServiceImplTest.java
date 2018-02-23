@@ -191,7 +191,7 @@ public class ProfileServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE));
+                eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -207,7 +207,7 @@ public class ProfileServiceImplTest {
         verify(functionalBackupService).saveFile(any(), any(), eq(OP_PROFILE_STORAGE),
                 eq(DataCategory.PROFILE), anyString());
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE));
+                eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
     }
 
@@ -553,7 +553,7 @@ public class ProfileServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE));
+                eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -571,7 +571,7 @@ public class ProfileServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE));
+                eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
 
     }

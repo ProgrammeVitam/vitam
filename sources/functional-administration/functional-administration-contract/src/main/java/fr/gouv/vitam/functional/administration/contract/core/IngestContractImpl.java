@@ -254,7 +254,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 CONTRACT_BACKUP_EVENT,
-                FunctionalAdminCollections.INGEST_CONTRACT
+                FunctionalAdminCollections.INGEST_CONTRACT,
+                eip.toString()
             );
 
         } catch (final Exception exp) {
@@ -770,7 +771,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 CONTRACT_BACKUP_EVENT,
-                FunctionalAdminCollections.INGEST_CONTRACT
+                FunctionalAdminCollections.INGEST_CONTRACT,
+                ingestContractModel.getId()
             );
 
         } catch (Exception e) {

@@ -183,7 +183,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 SECURITY_PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.SECURITY_PROFILE);
+                FunctionalAdminCollections.SECURITY_PROFILE, eip.toString());
 
             manager.logImportSuccess();
 
@@ -320,7 +320,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 SECURITY_PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.SECURITY_PROFILE);
+                FunctionalAdminCollections.SECURITY_PROFILE, identifier);
 
             manager.logUpdateSuccess(securityProfileModel.getId(), updateDiffs.get(securityProfileModel.getId()));
             return new RequestResponseOK<>();

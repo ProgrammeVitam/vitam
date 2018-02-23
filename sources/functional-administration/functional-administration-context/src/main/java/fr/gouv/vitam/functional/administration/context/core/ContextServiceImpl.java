@@ -240,10 +240,11 @@ public class ContextServiceImpl implements ContextService {
 
             mongoAccess.insertDocuments(contextsToPersist, FunctionalAdminCollections.CONTEXT).close();
 
-            functionalBackupService.saveCollectionAndSequence(contextsToPersist.getId(),
+            functionalBackupService.saveCollectionAndSequence(
                 eip,
                 CONTEXTS_BACKUP_EVENT,
-                FunctionalAdminCollections.CONTEXT
+                FunctionalAdminCollections.CONTEXT,
+                eip.toString()
             );
 
         } catch (final Exception exp) {
@@ -359,10 +360,10 @@ public class ContextServiceImpl implements ContextService {
                 diff = SanityChecker.sanitizeJson(diffObject);
             }
 
-            functionalBackupService.saveCollectionAndSequence(contextModel.getId(),
-                eip,
+            functionalBackupService.saveCollectionAndSequence(eip,
                 CONTEXTS_BACKUP_EVENT,
-                FunctionalAdminCollections.CONTEXT
+                FunctionalAdminCollections.CONTEXT,
+                contextModel.getId()
             );
 
         } catch (final Exception e) {

@@ -89,7 +89,7 @@ public class BackupLogbookManagerTest {
         evdetData.put(BackupLogbookManager.DIGESTTYPE, VitamConfiguration.getDefaultDigestType().getName());
 
         // When
-        manager.logEventSuccess(newOperationLogbookGUID(0), "STP_TEST", digest.digestHex(), "toto.json");
+        manager.logEventSuccess(newOperationLogbookGUID(0), "STP_TEST", digest.digestHex(), "toto.json", null);
 
         // Then
         verify(logbookOperationsClient).update(captor.capture());

@@ -76,7 +76,7 @@ public class BackupLogbookManager {
      * @param eventType the event type to be logged
      * @throws VitamException thrown if the logbook could not be updated
      */
-    public void logEventSuccess(GUID logbookOperationMasterId, String eventType, String digestStr, String fileName)
+    public void logEventSuccess(GUID logbookOperationMasterId, String eventType, String digestStr, String fileName, String objectIdentifier)
         throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
@@ -84,6 +84,10 @@ public class BackupLogbookManager {
             .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId, LogbookTypeProcess.MASTERDATA,
                 StatusCode.OK,
                 getCodeOp(eventType, StatusCode.OK), logbookOperationMasterId);
+
+        if (objectIdentifier != null && !objectIdentifier.isEmpty()) {
+            logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier);
+        }
 
         ObjectNode evDetData = JsonHandler.createObjectNode();
         evDetData.put(FILE_NAME, fileName);

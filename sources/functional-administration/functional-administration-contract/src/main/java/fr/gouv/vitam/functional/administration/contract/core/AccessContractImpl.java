@@ -257,7 +257,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 CONTRACT_BACKUP_EVENT,
-                FunctionalAdminCollections.ACCESS_CONTRACT
+                FunctionalAdminCollections.ACCESS_CONTRACT,
+                eip.toString()
             );
 
         } catch (final Exception exp) {
@@ -798,7 +799,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 CONTRACT_BACKUP_EVENT,
-                FunctionalAdminCollections.ACCESS_CONTRACT
+                FunctionalAdminCollections.ACCESS_CONTRACT,
+                accContractModel.getId()
             );
 
         } catch (Exception exp) {

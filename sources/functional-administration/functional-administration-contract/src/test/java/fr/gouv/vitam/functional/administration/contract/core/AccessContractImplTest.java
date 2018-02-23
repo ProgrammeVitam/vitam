@@ -249,7 +249,7 @@ public class AccessContractImplTest {
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("AC-000");
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(CONTRACT_BACKUP_EVENT), eq(
-            FunctionalAdminCollections.ACCESS_CONTRACT));
+            FunctionalAdminCollections.ACCESS_CONTRACT), any());
     }
 
     @Test

@@ -151,12 +151,12 @@ public class FunctionalBackupServiceTest {
         // When
         GUID guid = newEventGUID(0);
         functionalBackupService.saveCollectionAndSequence(guid, "STP_TEST",
-            agencies);
+            agencies, guid.toString());
         //Then
 
         ArgumentCaptor<String> hashArgCaptor = ArgumentCaptor.forClass(String.class);
         verify(backupLogbookManager)
-            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_Agencies_10.json"));
+            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_Agencies_10.json"), any());
 
         String expectedDump = "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + ",\"backup_sequence\":" + BACKUP_SEQUENCE_DOC + "}";
         String expectedDigest = new Digest(VitamConfiguration.getDefaultDigestType()).update(expectedDump).digestHex();
@@ -177,7 +177,7 @@ public class FunctionalBackupServiceTest {
 
         // When / then
         assertThatThrownBy(() -> functionalBackupService
-            .saveCollectionAndSequence(guid, "STP_TEST", agencies))
+            .saveCollectionAndSequence(guid, "STP_TEST", agencies, guid.toString()))
             .isInstanceOf(FunctionalBackupServiceException.class)
             .withFailMessage("Error Message");
         verify(backupLogbookManager).logError(guid, "STP_TEST", "Error Message");

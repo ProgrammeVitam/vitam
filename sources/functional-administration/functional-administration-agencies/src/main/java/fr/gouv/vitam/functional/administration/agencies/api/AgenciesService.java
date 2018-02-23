@@ -120,10 +120,10 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
  */
 public class AgenciesService implements VitamAutoCloseable {
 
-    public static final String AGENCIES_IMPORT_EVENT = "IMPORT_AGENCIES";
-    public static final String AGENCIES_REPORT_EVENT = "AGENCIES_REPORT";
-    public static final String AGENCIES_BACKUP_EVENT = "BACKUP_AGENCIES";
-    public static final String STP_IMPORT_AGENCIES_BACKUP_CSV = "IMPORT_AGENCIES_BACKUP_CSV";
+    public static final String AGENCIES_IMPORT_EVENT = "STP_IMPORT_AGENCIES";
+    public static final String AGENCIES_REPORT_EVENT = "STP_AGENCIES_REPORT";
+    public static final String AGENCIES_BACKUP_EVENT = "STP_BACKUP_AGENCIES";
+    public static final String STP_IMPORT_AGENCIES_BACKUP_CSV = "STP_IMPORT_AGENCIES_BACKUP_CSV";
 
     private static final String AGENCIES_IMPORT_DELETION_ERROR = "DELETION";
     private static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
@@ -593,7 +593,7 @@ public class AgenciesService implements VitamAutoCloseable {
                 eip + ".csv");
             // store collection
             backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
-                FunctionalAdminCollections.AGENCIES);
+                FunctionalAdminCollections.AGENCIES, eip.toString());
 
             manager.logFinish(filename);
         } catch (final AgencyImportDeletionException e) {
