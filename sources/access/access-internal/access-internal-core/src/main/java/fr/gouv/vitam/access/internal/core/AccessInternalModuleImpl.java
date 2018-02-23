@@ -214,7 +214,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     /**
      * AccessModuleImpl constructor
-     * 
+     *
      * @param configuration of mongoDB access
      */
     // constructor
