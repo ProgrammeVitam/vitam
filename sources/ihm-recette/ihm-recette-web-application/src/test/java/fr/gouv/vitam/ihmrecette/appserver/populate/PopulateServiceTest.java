@@ -8,7 +8,10 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
+
+import com.mongodb.client.model.Filters;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -78,7 +81,7 @@ public class PopulateServiceTest {
         populateModel.setWithRules(true);
         populateModel.setObjectSize(1024);
         Map<String, Integer> ruleMap = new HashMap<>();
-        ruleMap.put("STR-00059", 20);
+        ruleMap.put("STR-00059", 100);
         ruleMap.put("ACC-000111", 20);
         populateModel.setRuleTemplatePercent(ruleMap);
 
@@ -105,6 +108,8 @@ public class PopulateServiceTest {
         int[] idx = {0};
         int portMongo = MongoRule.getDataBasePort();
         assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count()).isEqualTo(11);
+        Bson filter = Filters.eq("_mgt.StorageRule.Rules.Rule", "STR-00059");
+        assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count(filter)).isEqualTo(10);
         assertThat(mongoRule.getMongoCollection(VitamDataType.AGENCIES.getCollectionName()).count()).isEqualTo(1);
         assertThat(mongoRule.getMongoCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName()).count()).isEqualTo(1);
         assertThat(mongoRule.getMongoCollection(VitamDataType.RULES.getCollectionName()).count()).isEqualTo(2);
