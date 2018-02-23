@@ -79,6 +79,7 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
       "_ops": [
           "aedqaaaaacfeavznabdrgak7pkvyhgiaaaaq"
       ],
+      "_opi": "aedqaaaaacfeavznabdrgak7pkvyhgiaaaaq",
       "_unitType": "INGEST",
       "_v": 1,
       "_tenant": 0,
@@ -174,6 +175,12 @@ Cette transposition se fait comme suit :
   * Se reporter à la documentation descriptive du SEDA 2.0 et notamment le schéma ontology.xsd pour connaître la liste des métadonnées facultatives).
 
 **"_ops"** (operations): tableau contenant les identifiants d'opérations auxquelles cette unité archivistique a participé.
+
+  * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champs _id de la collection LogBookOperation.
+  * Ne peut être vide
+  * Cardinalité : 1-1
+
+**"_opi"** : identifiant de l'opération à l'origide de la création de cette unité archivistique.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champs _id de la collection LogBookOperation.
   * Ne peut être vide

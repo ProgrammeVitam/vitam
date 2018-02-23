@@ -56,6 +56,9 @@ public class ObjectGroupResponse {
     @JsonProperty("#operations")
     private List<String> ops;
 
+    @JsonProperty("#opi")
+    private String opi;
+
     @JsonProperty("#originating_agency")
     private String originatingAgency;
 
@@ -165,5 +168,23 @@ public class ObjectGroupResponse {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    /**
+     * Get Opi
+     * 
+     * @return opi
+     */
+    public String getOpi() {
+        return opi;
+    }
+
+    /**
+     * Set the opi
+     * 
+     * @param opi
+     */
+    public void setOpi(String opi) {
+        this.opi = opi;
     }
 }

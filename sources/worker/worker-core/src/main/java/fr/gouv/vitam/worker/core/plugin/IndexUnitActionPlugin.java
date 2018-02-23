@@ -248,6 +248,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
         // add #operations
         archiveUnitNode.putArray(VitamFieldsHelper.operations()).add(containerId);
+        archiveUnitNode.put(SedaConstants.PREFIX_OPI, containerId);
 
         return archiveUnit;
 

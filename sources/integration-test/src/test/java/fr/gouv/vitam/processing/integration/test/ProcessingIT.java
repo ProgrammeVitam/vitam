@@ -2660,6 +2660,7 @@ public class ProcessingIT {
         MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
         Document unit = resultUnits.first();
         String idUnit = (String) unit.get("_id");
+        String opiBefore = (String) unit.get("_opi");
         replaceStringInFile(SIP_PROD_SERV_B_ATTACHED + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
@@ -2705,6 +2706,12 @@ public class ProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
 
+        MongoIterable<Document> resultUnitsAfter = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
+        Document unitAfter = resultUnitsAfter.first();
+        String opiAfter = (String) unitAfter.get("_opi");
+        
+        assertEquals(opiBefore, opiAfter);
+        
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName2,
             new fr.gouv.vitam.common.database.builder.request.single.Select().getFinalSelect());

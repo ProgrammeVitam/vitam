@@ -730,8 +730,8 @@ public class IngestInternalIT {
 
             assertNull(responseUnitAfterUpdate.getFirstResult().get("#management").get("AccessRule"));
             // check version incremented in lfc
-            assertEquals(5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
-
+            assertEquals(5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));            
+            assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"), responseUnitAfterUpdate.getFirstResult().get("#opi"));
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
             LOGGER.warn("read: " + size2);

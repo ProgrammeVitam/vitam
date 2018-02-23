@@ -218,6 +218,7 @@ public class ParserTokens extends BuilderToken {
         "_nbc",
         "_og",
         "_ops",
+        "_opi",
         "_score",
         "_sp",
         "_sps",
@@ -239,6 +240,7 @@ public class ParserTokens extends BuilderToken {
         "OtherMetadata",
         "_nbc",
         "_ops",
+        "_opi",
         "_profil",
         "_qualifiers._nbc",
         "_qualifiers.qualifier",
@@ -538,6 +540,10 @@ public class ParserTokens extends BuilderToken {
          */
         OPERATIONS("operations"),
         /**
+         * Unit or GOT's initial operation 
+         */
+        INITIAL_OPERATION("opi"),
+        /**
          * originating agency
          */
         ORIGINATING_AGENCY("originating_agency"),
@@ -653,6 +659,8 @@ public class ParserTokens extends BuilderToken {
                         return OBJECT;
                     case "_ops":
                         return OPERATIONS;
+                    case "_opi":
+                        return INITIAL_OPERATION;                                                
                     case "_up":
                         return UNITUPS;
                     case "_us":
@@ -809,6 +817,7 @@ public class ParserTokens extends BuilderToken {
                         case VERSION:
                         case USAGE:
                         case OPERATIONS:
+                        case INITIAL_OPERATION:
                         case SCORE:
                         case LAST_PERSISTED_DATE:
                             return true;
