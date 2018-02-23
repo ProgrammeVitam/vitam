@@ -100,7 +100,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     }
 
     @VisibleForTesting
-    public InternalSecurityFilter(HttpServletRequest httpServletRequest,
+    InternalSecurityFilter(HttpServletRequest httpServletRequest,
                                   InternalSecurityClient internalSecurityClient,
                                   AdminManagementClient adminManagementClient) {
         this.httpServletRequest = httpServletRequest;
@@ -109,7 +109,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     }
 
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext) {
         X509Certificate[] clientCertChain = CertUtils.extractCert(httpServletRequest, true);
         if (clientCertChain == null || clientCertChain.length < 1) {
             throw new VitamSecurityException("Request do not contain any X509Certificate ");
@@ -127,8 +127,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
         final X509Certificate cert = clientCertChain[0];
 
         try {
-            Optional<IdentityModel> result =
-                    internalSecurityClient.findIdentity(cert.getEncoded());
+            Optional<IdentityModel> result = internalSecurityClient.findIdentity(cert.getEncoded());
 
             IdentityModel identityModel = result
                     .orElseThrow(() -> new VitamSecurityException("Certificate not found in database."));
@@ -157,10 +156,8 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
             VitamThreadUtils.getVitamSession().setContextId(contextModel.getIdentifier());
             VitamThreadUtils.getVitamSession().setSecurityProfileIdentifier(contextModel.getSecurityProfileIdentifier());
 
-        } catch (VitamClientInternalException |
-                InternalSecurityException |
-                CertificateEncodingException |
-                VitamSecurityException e) {
+        } catch (VitamClientInternalException | InternalSecurityException |
+                CertificateEncodingException | VitamSecurityException e) {
 
             LOGGER.error("Security Error :", e);
             final VitamError vitamError = generateVitamError(e);
@@ -168,7 +165,6 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
             requestContext.abortWith(
                     Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
                             .build());
-            return;
         }
     }
 

@@ -28,19 +28,19 @@
  */
 package fr.gouv.vitam.common.auth.web.filter;
 
+import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
+
+import java.security.cert.X509Certificate;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
-import java.security.cert.X509Certificate;
-
-import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
@@ -81,7 +81,7 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
     protected boolean onLoginSuccess(AuthenticationToken token, Subject subject,
         ServletRequest request, ServletResponse response) throws Exception {
 
-        X509AuthenticationToken x509Token =(X509AuthenticationToken)token;
+        X509AuthenticationToken x509Token = (X509AuthenticationToken) token;
         X509Certificate x509Certificate = x509Token.getX509Certificate();
         byte[] derEncodedCertificate = x509Certificate.getEncoded();
         String base64Certificate = BaseXx.getBase64(derEncodedCertificate);
@@ -91,8 +91,7 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
     }
 
     @Override
-    protected AuthenticationToken createToken(ServletRequest request, ServletResponse response)
-        throws Exception {
+    protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) {
         X509Certificate[] clientCertChain = CertUtils.extractCert(request, useHeader);
 
         if (clientCertChain == null || clientCertChain.length < 1) {
@@ -100,8 +99,6 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
         }
 
         return new X509AuthenticationToken(clientCertChain, getHost(request));
-
     }
-
 
 }
