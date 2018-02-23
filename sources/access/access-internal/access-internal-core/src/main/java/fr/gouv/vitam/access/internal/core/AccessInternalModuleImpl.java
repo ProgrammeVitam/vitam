@@ -873,34 +873,33 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                 logbookOperationClient.update(logbookOpParamEnd);
 
-                if (!stepLFCCommit) {
-                    // STEP COMMIT_LIFE_CYCLE_UNIT KO
+                if (!stepStorageUpdate) {
+                    // STEP UNIT_METADATA_STORAGE KO
                     logbookOpParamEnd =
                         getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
                             updateOpGuidStart,
-                            StatusCode.KO, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.KO),
+                            StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.KO),
                             idRequest,
-                            COMMIT_LIFE_CYCLE_UNIT, false);
+                            UNIT_METADATA_STORAGE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                     logbookOperationClient.update(logbookOpParamEnd);
                 } else {
-                    // STEP COMMIT_LIFE_CYCLE_UNIT OK
-                    logbookOpParamEnd =
-                        getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
-                            updateOpGuidStart, StatusCode.OK,
-                            VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.OK),
-                            idRequest, COMMIT_LIFE_CYCLE_UNIT, false);
+                    // STEP UNIT_METADATA_STORAGE OK
+                    logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(
+                        GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                        StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idRequest,
+                        UNIT_METADATA_STORAGE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                     logbookOperationClient.update(logbookOpParamEnd);
 
-                    if (!stepStorageUpdate) {
-                        // STEP UNIT_METADATA_STORAGE KO
+                    if (!stepLFCCommit) {
+                        // STEP COMMIT_LIFE_CYCLE_UNIT KO
                         logbookOpParamEnd =
                             getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
                                 updateOpGuidStart,
-                                StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.KO),
+                                StatusCode.KO, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.KO),
                                 idRequest,
-                                UNIT_METADATA_STORAGE, false);
+                                COMMIT_LIFE_CYCLE_UNIT, false);
                         logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                         logbookOperationClient.update(logbookOpParamEnd);
                     } else {

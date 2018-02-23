@@ -81,8 +81,8 @@ class AgenciesManager {
      * @param eventType the event type to be logged
      */
     public void logStarted(String eventType) throws VitamException {
-        final LogbookOperationParameters logbookParameters;
-        logbookParameters = LogbookParametersFactory
+
+        final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, eventType, eip,
                 LogbookTypeProcess.MASTERDATA,
                 StatusCode.STARTED,
@@ -92,7 +92,7 @@ class AgenciesManager {
 
     /**
      * log end success process
-     * 
+     *
      * @param fileName name of the file
      * @throws VitamException thrown if the logbook could not be updated
      */
@@ -129,11 +129,9 @@ class AgenciesManager {
      * @throws VitamException thrown if the logbook could not be updated
      */
     public void logEventSuccess(String eventType) throws VitamException {
-        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
+            .newLogbookOperationParameters(GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
+                eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
         logbookClient.update(logbookParameters);
     }
@@ -145,11 +143,12 @@ class AgenciesManager {
      * @throws VitamException thrown if the logbook could not be updated
      */
     public void logEventWarning(String eventType) throws VitamException {
-        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        warning = true;
+        if (!warning) {
+            warning = true;
+        }
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.WARNING,
+            .newLogbookOperationParameters(GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
+                eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.WARNING,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.WARNING), eip);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
             JsonHandler.unprettyPrint(evDetData));
@@ -168,11 +167,10 @@ class AgenciesManager {
      */
     public void logError(String errorsDetails, String subEvenType) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
-
+        
         // create logbook parameters
-        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eipId, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+            .newLogbookOperationParameters(eip, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
                 VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, StatusCode.KO), eip);
         // set outcomeDetail
