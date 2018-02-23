@@ -82,4 +82,10 @@ public class CreateObjectSecureFileActionPlugin extends CreateSecureFileActionPl
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Nothing to do
     }
+
+    @Override
+    public boolean lfcHandledInternally() {
+        // De not create LFC in @see WorkerImpl
+        return true;
+    }
 }
