@@ -169,13 +169,14 @@ public final class SystemPropertyUtil {
     public static final String get(final String key, final String def) {
         ParametersChecker.checkParameter("Key", key);
         final String value = PROPS.getProperty(key);
+        if (value == null) {
+            return def;
+        }
+
         try {
             StringUtils.checkSanityString(value);
         } catch (InvalidParseOperationException e) {
             SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
-            return def;
-        }
-        if (value == null) {
             return def;
         }
 
