@@ -10,6 +10,7 @@
    plugin-icu-elasticsearch.rst
    gestion-database.rst
    client-ressource-rest.rst
+   devstack_vm.rst
 
 .. only:: latex
 
