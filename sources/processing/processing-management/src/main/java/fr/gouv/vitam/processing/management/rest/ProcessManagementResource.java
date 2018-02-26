@@ -54,8 +54,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -207,10 +210,12 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
         ParametersChecker.checkParameter(ERR_PROCESS_INPUT_ISMANDATORY, process);
+        final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
 
         final WorkerParameters workParams = WorkerParametersFactory
             .newWorkerParameters()
             .setContainerName(process.getContainer())
+            .setRequestId(reqId)
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
         workParams.setMap(process.getExtraParams());
@@ -357,16 +362,19 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
+    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id)
+        throws InvalidGuidOperationException {
 
         ParametersChecker.checkParameter("actionId is a mandatory parameter",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
 
         final WorkerParameters workParams = WorkerParametersFactory
             .newWorkerParameters()
             .setContainerName(id)
+            .setRequestId(reqId)
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
 

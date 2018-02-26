@@ -169,8 +169,6 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      */
     WorkerParameters setObjectNameList(List<String> objectNameList);
 
-
-
     /**
      * Get the metadata request parameter
      *
@@ -276,4 +274,18 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      * @throws IllegalArgumentException if parameters is null
      */
     WorkerParameters setFromParameters(WorkerParameters parameters);
+
+    /**
+     * @return the current X-Request-Id
+     */
+    String getRequestId();
+
+    /**
+     * setRequestId.
+     *
+     * @param newRequestId
+     * @return
+     */
+    WorkerParameters setRequestId(String newRequestId);
+
 }

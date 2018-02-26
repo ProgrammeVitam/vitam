@@ -151,6 +151,7 @@ public class VitamSession {
      * @param newRequestId the request id
      */
     public void setInternalRequestId(String newRequestId) {
+
         internalRequestId = newRequestId;
     }
 
