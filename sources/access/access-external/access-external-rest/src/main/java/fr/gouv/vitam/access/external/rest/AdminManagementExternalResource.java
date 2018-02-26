@@ -2186,13 +2186,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
+            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            return Response.serverError()
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
+                    e.getLocalizedMessage()))
+                .build();
         }
     }
 
@@ -2214,13 +2212,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
+            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            return Response.serverError()
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_OBJECT_GROUP_TRACREABILITY_AUDIT,
+                    e.getLocalizedMessage()))
+                .build();
         }
     }
 }

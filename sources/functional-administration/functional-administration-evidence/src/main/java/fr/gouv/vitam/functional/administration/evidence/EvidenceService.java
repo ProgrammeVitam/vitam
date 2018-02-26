@@ -209,7 +209,7 @@ public class EvidenceService {
             LOGGER.error(e);
             StatusCode statusCode = getStatus(e.getStatus());
             buildAuditReportReportFailure(eip, e.getMessage(), statusCode);
-            return getErrorEntity(statusCode.getEquivalentHttpStatus(), e.getMessage(), null);
+            return getErrorEntity(statusCode.getEquivalentHttpStatus(), e.getMessage());
         }
     }
 
@@ -827,15 +827,12 @@ public class EvidenceService {
      *
      * @param status  Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
      * @return
      */
-    private VitamError getErrorEntity(Response.Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ADMIN_MODULE)
-            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    private VitamError getErrorEntity(Response.Status status, String message) {
+        return new VitamError(String.valueOf(status.getStatusCode()))
+            .setHttpCode(status.getStatusCode())
+            .setContext(ADMIN_MODULE)
+            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(message);
     }
 }

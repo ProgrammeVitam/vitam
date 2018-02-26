@@ -101,8 +101,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    protected static final String HOSTNAME = "localhost";
-    protected static final String PATH = "/adminmanagement/v1";
     protected AdminManagementClientRest client;
     static final String QUERY =
         "{\"$query\":{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"OriginatingAgency\"}}]},\"$filter\":{},\"$projection\":{}}";
@@ -446,6 +444,21 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @POST
+        @Path("/evidenceaudit/unit/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/evidenceaudit/objects/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
+            return expectedResponse.post();
+        }
     }
 
 

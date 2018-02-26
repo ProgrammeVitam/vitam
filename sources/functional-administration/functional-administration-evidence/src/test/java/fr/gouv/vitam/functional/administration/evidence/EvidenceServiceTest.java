@@ -210,7 +210,7 @@ public class EvidenceServiceTest {
         assertThat(events.get(2).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("EVIDENCEAUDIT.OK");
 
         String detData =
-            "{\"DatabaseMetadataAndLifecycleDigest\":\"66ebea803269b6c768fda751718b3a984c8e4d339c38aeedd8de812ab4362f0ab1225606aada1635652bece913e59779d662aa7e843713fa85291b91a5608246\",\"OfferMetadataAndLifeCycleDigests\":{\"offer-fs-1.service.consul\":\"66ebea803269b6c768fda751718b3a984c8e4d339c38aeedd8de812ab4362f0ab1225606aada1635652bece913e59779d662aa7e843713fa85291b91a5608246\"}}";
+            "{\"TraceabilityFile\":\"0_LogbookLifecycles_20180220_111512.zip\",\"TraceabilityMetadataAndLifecycleDigest\":\"66ebea803269b6c768fda751718b3a984c8e4d339c38aeedd8de812ab4362f0ab1225606aada1635652bece913e59779d662aa7e843713fa85291b91a5608246\",\"OfferMetadataAndLifeCycleDigests\":{\"offer-fs-1.service.consul\":\"66ebea803269b6c768fda751718b3a984c8e4d339c38aeedd8de812ab4362f0ab1225606aada1635652bece913e59779d662aa7e843713fa85291b91a5608246\"}}";
 
         assertThat(detData).isEqualTo(events.get(1).getParameterValue(LogbookParameterName.eventDetailData));
 
