@@ -26,9 +26,9 @@
   <div class="ui-g" *ngIf="dataToDisplay && !saveRunning">
     <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'#id'" [value]="dataToDisplay['#id']" [keyToLabel]="keyToLabel" [labelSize]="2"
                           class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Date de début'" [originalTitle]="'StartDate'" [value]="dataToDisplay.StartDate" [keyToLabel]="keyToLabel" [labelSize]="6"
+    <vitam-metadata-field [title]="'Date de début'" [originalTitle]="'StartDate'" [value]="dataToDisplay.StartDate" [yearRange]="'400:2500'" [keyToLabel]="keyToLabel" [labelSize]="6"
                           class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Date de fin'" [originalTitle]="'EndDate'" [value]="dataToDisplay.EndDate" [keyToLabel]="keyToLabel" [labelSize]="5"
+    <vitam-metadata-field [title]="'Date de fin'" [originalTitle]="'EndDate'" [yearRange]="'400:2500'" [value]="dataToDisplay.EndDate"  [keyToLabel]="keyToLabel" [labelSize]="5"
                           class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Titre'" [originalTitle]="'Title'" [value]="dataToDisplay.Title" [keyToLabel]="keyToLabel" [labelSize]="2"
                           class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
