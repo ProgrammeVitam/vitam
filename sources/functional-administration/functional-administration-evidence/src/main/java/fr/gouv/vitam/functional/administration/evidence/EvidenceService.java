@@ -165,7 +165,7 @@ public class EvidenceService {
         GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
         try {
-            createEvidenceAuditOperation(eip, id);
+            createEvidenceAuditOperation(eip, id, metadataType);
 
             auditParameters.setId(id);
             auditParameters.setMetadataType(metadataType);
@@ -213,7 +213,8 @@ public class EvidenceService {
         }
     }
 
-    private void createEvidenceAuditOperation(GUID eip, String id) throws EvidenceAuditException {
+    private void createEvidenceAuditOperation(GUID eip, String id,
+        LifeCycleTraceabilitySecureFileObject.MetadataType metadataType) throws EvidenceAuditException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
@@ -225,6 +226,7 @@ public class EvidenceService {
                     VitamLogbookMessages.getCodeOp(EVIDENCE_AUDIT, StatusCode.STARTED), eip);
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put("Id", id);
+            evDetData.put("MetadataType", metadataType.getName());
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 unprettyPrint(evDetData));
             client.create(logbookParameters);
@@ -492,12 +494,7 @@ public class EvidenceService {
                 "An error occurred during last traceability operation retrieval", e);
         }
 
-        JsonNode docWithLfc = DataCategory
-            .getDocumentWithLFC(auditParameters.getMetadata(), auditParameters.getLifecycle(), dataCategory);
-
-        final Digest digest = new Digest(auditParameters.getDigestType());
-        digest.update(unprettyPrint(docWithLfc).getBytes(StandardCharsets.UTF_8));
-        String docWithLfcDigest = digest.digestHex();
+        String docWithLfcDigest = auditParameters.getTraceabilityLine().getHashGlobalFromStorage();
 
         ArrayNode errorMessages = JsonHandler.createArrayNode();
 
@@ -538,7 +535,8 @@ public class EvidenceService {
         }
 
         ObjectNode evDetData = JsonHandler.createObjectNode();
-        evDetData.put("DatabaseMetadataAndLifecycleDigest", docWithLfcDigest);
+        evDetData.put("TraceabilityFile", auditParameters.getFileName());
+        evDetData.put("TraceabilityMetadataAndLifecycleDigest", docWithLfcDigest);
         evDetData.set("OfferMetadataAndLifeCycleDigests", objectOffersHash);
 
         boolean hasErrors = errorMessages.size() > 0;
@@ -573,6 +571,7 @@ public class EvidenceService {
         GUID eip) throws EvidenceAuditException {
 
         ObjectNode evDetData = JsonHandler.createObjectNode();
+        evDetData.put("TraceabilityFile", auditParameters.getFileName());
 
         ArrayNode errorMessages = JsonHandler.createArrayNode();
 
