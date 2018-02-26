@@ -98,7 +98,7 @@ public interface LogbookTraceabilityHelper {
     /**
      * @return the uri of the tmp file
      */
-    Object getUriName();
+    String getUriName();
 
     /**
      * Warning: This method MUST be used after "saveDataInZip" witch initialize traceabilityIterator
@@ -173,10 +173,18 @@ public interface LogbookTraceabilityHelper {
     String getPreviousYearStartDate(LocalDateTime currentDate) throws InvalidParseOperationException, TraceabilityException;
 
     /**
-     * Save the finalized event
+     * Save the finalized event if needed
      * 
      * @param event The TraceabilityEvent of the operation
      */
     void saveEvent(TraceabilityEvent event);
+
+    /**
+     * Save the close master event if needed
+     * 
+     * @param tenantId the tenant used for log
+     * @throws TraceabilityException 
+     */
+    void saveEmpty(Integer tenantId) throws TraceabilityException;
 
 }

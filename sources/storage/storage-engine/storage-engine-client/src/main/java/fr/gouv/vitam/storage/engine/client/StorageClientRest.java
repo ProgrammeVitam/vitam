@@ -454,6 +454,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     }
 
+    @Override
     public RequestResponseOK storageLogTraceability()
         throws StorageServerClientException, InvalidParseOperationException {
 

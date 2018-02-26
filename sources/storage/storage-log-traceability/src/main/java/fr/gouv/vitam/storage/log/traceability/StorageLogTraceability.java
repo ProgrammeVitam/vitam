@@ -104,7 +104,7 @@ public class StorageLogTraceability {
                     StorageClientFactory.getInstance();
                 try (StorageClient client = storageClientFactory.getClient()) {
                     // FIXME : Enable storage log traceability once server side is implemented
-                    // client.storageLogTraceability();
+                    client.storageLogTraceability();
                 }
             } catch (Exception e) {
                 failedProcess.set(true);

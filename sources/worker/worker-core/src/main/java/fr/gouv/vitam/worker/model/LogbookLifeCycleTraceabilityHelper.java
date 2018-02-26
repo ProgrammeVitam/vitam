@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
 import org.bouncycastle.util.Strings;
 
 public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHelper {
@@ -205,6 +207,11 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
             evDetailData);
     }
+    
+    @Override
+    public void saveEmpty(Integer tenantId) throws TraceabilityException {
+        // Nothing to do. Empty master event will be close by workflow
+    }
 
     @Override
     public void storeAndDeleteZip(Integer tenant, File zipFile,
@@ -269,7 +276,7 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public Object getUriName() {
+    public String getUriName() {
         return LOGBOOK;
     }
 

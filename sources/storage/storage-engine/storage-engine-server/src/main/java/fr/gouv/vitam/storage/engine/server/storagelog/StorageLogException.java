@@ -29,7 +29,7 @@ package fr.gouv.vitam.storage.engine.server.storagelog;
 import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * exception when the traceability task failed
+ * exception when the backup task failed
  */
 public class StorageLogException extends VitamException {
 

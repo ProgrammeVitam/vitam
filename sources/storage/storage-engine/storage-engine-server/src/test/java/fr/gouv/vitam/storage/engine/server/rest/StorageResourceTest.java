@@ -30,7 +30,13 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +59,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -71,6 +78,9 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.common.serverv2.application.ApplicationParameter;
+import fr.gouv.vitam.common.timestamp.TimeStampSignature;
+import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
+import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -981,7 +991,19 @@ public class StorageResourceTest {
             if (singletons == null) {
                 singletons = new HashSet<>();
                 singletons.add(new GenericExceptionMapper());
-                StorageResource storageResource = new StorageResource(new StorageDistributionInnerClass());
+
+                TimeStampSignature timeStampSignature;
+                try {
+                    final File file = PropertiesUtils.findFile("keystore_logbook.p12");
+                    timeStampSignature =
+                        new TimeStampSignatureWithKeystore(file, "azerty8".toCharArray());
+                } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
+                    NoSuchAlgorithmException e) {
+                    LOGGER.error("unable to instantiate TimeStampGenerator", e);
+                    throw new RuntimeException(e);
+                }
+
+                StorageResource storageResource = new StorageResource(new StorageDistributionInnerClass(), new TimestampGenerator(timeStampSignature));
                 singletons.add(storageResource);
             }
             return singletons;

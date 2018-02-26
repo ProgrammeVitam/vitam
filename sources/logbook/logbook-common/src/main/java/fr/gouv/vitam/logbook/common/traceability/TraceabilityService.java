@@ -144,6 +144,7 @@ public class TraceabilityService {
             } else {
                 // do nothing, nothing to be handled
                 LOGGER.warn("No entries to be processed");
+                helper.saveEmpty(tenantId);
                 return;
             }
 
@@ -177,7 +178,7 @@ public class TraceabilityService {
         final byte[] timestampToken1 = helper.getPreviousTimestampToken();
         final byte[] timestampToken2 = helper.getPreviousMonthTimestampToken(currentDate);
         final byte[] timestampToken3 = helper.getPreviousYearTimestampToken(currentDate);
-
+        
         final String timestampToken1Base64 =
             (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1);
         final String timestampToken2Base64 =

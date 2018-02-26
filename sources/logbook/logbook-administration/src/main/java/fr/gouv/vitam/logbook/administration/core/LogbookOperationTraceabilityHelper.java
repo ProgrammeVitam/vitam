@@ -285,6 +285,11 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     public void saveEvent(TraceabilityEvent event) {
         // Nothing to do, event is saved in logbook after with 'createLogbookOperationEvent'
     }
+    
+    @Override
+    public void saveEmpty(Integer tenantId) throws TraceabilityException {
+        createLogbookOperationEvent(tenantId, STP_OP_SECURISATION, StatusCode.WARNING, null);
+    }
 
     @Override
     public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
@@ -343,7 +348,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public Object getUriName() {
+    public String getUriName() {
         return LOGBOOK;
     }
 

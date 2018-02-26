@@ -4,8 +4,8 @@ import { Title } from '@angular/platform-browser';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
 import { PageComponent } from '../../common/page/page-component';
 import { LogbookService } from './logbook.service';
-import {Message} from 'primeng/primeng';
-import {Subscription} from "rxjs/Subscription";
+import { Message } from 'primeng/primeng';
+import { Subscription } from "rxjs/Subscription";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Sécurisation', routerLink: ''},
@@ -22,7 +22,7 @@ export class LogbookComponent extends PageComponent {
   messages: Message[] = [];
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private logbookservice : LogbookService) {
+              private logbookService : LogbookService) {
     super('Sécurisation des opérations', breadcrumb, titleService, breadcrumbService);
   }
 
@@ -31,24 +31,35 @@ export class LogbookComponent extends PageComponent {
   }
 
   launchTraceability() {
-    this.logbookservice.launchTraceability()
-      .subscribe(response => {
+    this.logbookService.launchTraceability()
+      .subscribe(() => {
         this.messages = [];
         this.messages.push({severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des journaux'});
-      }, error => {
+      }, () => {
         this.messages = [];
         this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des journaux`});
       })
   }
 
   launchTraceabilityLFC() {
-    this.logbookservice.launchTraceabilityLFC()
-      .subscribe(response => {
+    this.logbookService.launchTraceabilityLFC()
+      .subscribe(() => {
         this.messages = [];
         this.messages.push({severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des cycles de vie'});
-      }, error => {
+      }, () => {
         this.messages = [];
         this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des cycles de vie`});
+      })
+  }
+
+  launchTraceabilityStorage() {
+    this.logbookService.launchTraceabilityStorage()
+      .subscribe(() => {
+        this.messages = [];
+        this.messages.push({severity: 'info', summary: 'Sécurisation', detail: `Succès de l'opération de sécurisation des offres`});
+      }, () => {
+        this.messages = [];
+        this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des offres`});
       })
   }
 }

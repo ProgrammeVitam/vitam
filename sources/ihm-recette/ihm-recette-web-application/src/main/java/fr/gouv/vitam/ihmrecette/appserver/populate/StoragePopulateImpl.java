@@ -343,6 +343,9 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             case STORAGELOG:
                 description.append("Storagelog ");
                 break;
+            case STORAGETRACEABILITY:
+                description.append("Storagetraceability");
+                break;
             case RULES:
                 description.append("Rules ");
                 break;

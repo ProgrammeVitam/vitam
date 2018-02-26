@@ -24,31 +24,18 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.storagelog;
+package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
-import java.io.IOException;
-import java.util.List;
+import java.time.LocalDateTime;
 
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.common.BaseXx;
 
-/**
- * Storage log service interface. It describes methods to be implemented.
- */
-public interface StorageLogService extends VitamAutoCloseable {
-
-    /**
-     * Add a storage log entry.
-     *
-     * @param parameters the entry parameters
-     * @throws IOException if an error is encountered
-     */
-    void append(Integer tenant, StorageLogbookParameters parameters) throws IOException;
-
-    /**
-     * Rotate log file, and return previous log information
-     *
-     * @param tenantId
-     */
-    List<LogInformation> rotateLogFile(Integer tenantId) throws IOException;
+public class StorageTraceabilityData {
+    public final byte[] token;
+    public final LocalDateTime startDate;
+    
+    public StorageTraceabilityData(byte[] token, LocalDateTime startDate) {
+        this.token = BaseXx.getFromBase64(new String(token));
+        this.startDate = startDate;
+    }
 }

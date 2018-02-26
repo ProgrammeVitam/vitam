@@ -38,6 +38,10 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private Integer timeoutMsPerKB;
     protected String loggingDirectory ;
     protected String  zippingDirecorty;
+    private String p12LogbookPassword;
+    private String p12LogbookFile;
+    private Integer storageTraceabilityOverlapDelay;
+    
     /**
      * StorageConfiguration empty constructor for YAMLFactory
      */
@@ -114,5 +118,49 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
         this.zippingDirecorty = zippingDirecorty;
     }
 
+    /**
+     * @return password of p12
+     */
+    public String getP12LogbookPassword() {
+        return p12LogbookPassword;
+    }
+
+    /**
+     * @param p12LogbookPassword file to set
+     */
+    public void setP12LogbookPassword(String p12LogbookPassword) {
+        this.p12LogbookPassword = p12LogbookPassword;
+    }
+
+    /**
+     * @return p12 logbook file
+     */
+    public String getP12LogbookFile() {
+        return p12LogbookFile;
+    }
+
+    /**
+     * @param p12LogbookFile file to set
+     */
+    public void setP12LogbookFile(String p12LogbookFile) {
+        this.p12LogbookFile = p12LogbookFile;
+    }
+    
+
+    /**
+     * Gets the overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
+     * due to clock difference.
+     * @return The overlap delay (in seconds).
+     */
+    public Integer getStorageTraceabilityOverlapDelay() {
+        return storageTraceabilityOverlapDelay;
+    }
+
+    /**
+     * Sets the overlap delay (in seconds) for logbook operation traceability events.
+     */
+    public void setStorageTraceabilityOverlapDelay(Integer storageTraceabilityOverlapDelay) {
+        this.storageTraceabilityOverlapDelay = storageTraceabilityOverlapDelay;
+    }
 
 }

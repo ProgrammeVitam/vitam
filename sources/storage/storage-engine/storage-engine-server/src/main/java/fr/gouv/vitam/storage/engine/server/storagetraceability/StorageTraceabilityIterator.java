@@ -24,31 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.storagelog;
+package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
-import java.io.IOException;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
-/**
- * Storage log service interface. It describes methods to be implemented.
- */
-public interface StorageLogService extends VitamAutoCloseable {
+public class StorageTraceabilityIterator implements TraceabilityIterator<OfferLog> {
 
-    /**
-     * Add a storage log entry.
-     *
-     * @param parameters the entry parameters
-     * @throws IOException if an error is encountered
-     */
-    void append(Integer tenant, StorageLogbookParameters parameters) throws IOException;
+    private final Iterator<OfferLog> iterator;
+    private Long numberOfLines = 0L;
+    
+    public StorageTraceabilityIterator(List<OfferLog> files) {
+        this.iterator = files.iterator();
+    }
 
-    /**
-     * Rotate log file, and return previous log information
-     *
-     * @param tenantId
-     */
-    List<LogInformation> rotateLogFile(Integer tenantId) throws IOException;
+    @Override
+    public boolean hasNext() {
+        return iterator.hasNext(); // Should get the data somewhere ?
+    }
+    
+    @Override
+    public OfferLog next() {
+        OfferLog next = iterator.next();
+        numberOfLines++;
+        return next;
+    }
+    
+    @Override
+    public long getNumberOfLines() {
+        return numberOfLines;
+    }
+    
+    @Override
+    public String endDate() {
+        // How to get EndDate ?
+        return null;
+    }
+
 }

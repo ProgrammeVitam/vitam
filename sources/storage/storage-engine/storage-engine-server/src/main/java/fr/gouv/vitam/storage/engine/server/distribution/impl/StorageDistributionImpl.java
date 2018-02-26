@@ -498,6 +498,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case STORAGELOG:
                 description.append("Storagelog ");
                 break;
+            case STORAGETRACEABILITY:
+                description.append("STORAGETRACEABILITY");
+                break;
             case RULES:
                 description.append("Rules ");
                 break;
