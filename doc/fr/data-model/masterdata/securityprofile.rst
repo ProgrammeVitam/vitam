@@ -1,8 +1,8 @@
 Collection SecurityProfile
 ##########################
 
-Utilisation de collection
-=========================
+Utilisation de la collection
+============================
 
 Cette collection contient les profils de sécurité mobilisés par les contextes applicatifs.
 
@@ -34,12 +34,12 @@ Détail des champs
 **"_id":** identifiant unique du profil de sécurité.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"Identifier":** identifiant signifiant donné au profil de sécurité.
   
-  * Il est consituté du préfixe "SEC_PROFILE-" suivi d'une suite de 6 chiffres tant qu'il est définit par la solution logicielle Vitam. Par exemple : SEC_PROFILE-001573. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du profil de sécurité.
+  * Il est constitué du préfixe "SEC_PROFILE-" suivi d'une suite de 6 chiffres tant qu'il est défini par la solution logicielle Vitam. Par exemple : SEC_PROFILE-001573. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du profil de sécurité.
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Cardinalité : 1-1
 
@@ -54,14 +54,14 @@ Détail des champs
   * S'il est à "false", le mode super-administrateur n'est pas activé et les valeurs du champ permission sont utilisées. S'il est à "true", le champ permission doit être vide.
   * Cardinalité : 1-1
 
-"Permissions": décrit l'ensemble des permissions auxquelles le profil de sécurité donne accès. Chaque API externe contient un verbe OPTION qui retourne la liste des services avec leur description et permissions associées.
+**"Permissions":** décrit l'ensemble des permissions auxquelles le profil de sécurité donne accès. Chaque API externe contient un verbe OPTION qui retourne la liste des services avec leur description et permissions associées.
   
   * Il s'agit d'un tableau de chaînes de caractères.
   * Peut être vide
   * Cardinalité : 0-1
 
-**"_v":** version de l'enregistrement décrit
+**"_v":** version de l'enregistrement décrit.
 
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1

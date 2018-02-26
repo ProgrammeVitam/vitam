@@ -9,7 +9,7 @@ La collection ObjectGroup contient les informations relatives aux groupes d'obje
 Exemple de XML
 ==============
 
-Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour compléter les champs du JSON.
+Ci-après, la porpartietion d'un bordereau de transfert (manifest.xml) utilisée pour compléter les champs du JSON correspondant à un groupe d'objets.
 
 ::
 
@@ -178,21 +178,21 @@ Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustiv
 Détail des champs du JSON
 =========================
 
-**"_id":** identifiant du groupe d'objet.
+**"_id":** identifiant du groupe d'objets.
       
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_tenant":** identifiant du tenant.
       
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_profil":** catégorie de l'objet.
       
-  * Repris du nom de la balise présente dans la partie <Metadata> du <DataObjectPackage> du bordereau au niveau du le BinaryMaster.
+  * Repris du nom de la balise présente dans le bloc Metadata du DataObjectPackage présent dans le bordereau de transfert au niveau du BinaryMaster.
 
   Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
   Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...).
@@ -201,8 +201,8 @@ Détail des champs du JSON
 
 **"FileInfo":** : informations sur le fichier constituant l'objet-données numérique de référence.
 
-  * reprend le bloc FileInfo du BinaryMaster.
-  * L'objet de ce bloc est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait éliminé (selon les règles de conservation).
+  * reprend le bloc FileInfo du BinaryMaster présent dans le bordereau de transfert.
+  * L'objet de ce bloc est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait éliminée (en application de règle de gestion).
   * Cardinalité : 1-1
 
 **"_qualifiers":** tableau de structures décrivant les objets inclus dans ce groupe d'objets. Il est composé comme suit :
@@ -212,15 +212,15 @@ Détail des champs du JSON
     Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>, c'est la valeur "BinaryMaster" qui est reportée.
 
     - "_nbc": nombre d'objets correspondant à cet usage.
-    - "versions": tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau.
+    - "versions": tableau des objets par version (une version = une entrée dans le tableau).
 
-      - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères corresppondant à un GUID.
+      - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères corresppondant à un GUID, généré par la solution logicielle Vitam.
       - "DataObjectGroupId": identifiant du groupe d'objets, composé d'une chaîne de 36 caractères.
       - "DataObjectVersion": version de l'objet par rapport à son usage.
 
-      Par exemple, si on a *binaryMaster* sur l'usage, on aura au moins un objet *binarymaster_1*. Ces champs sont renseignés avec les valeurs récupérées dans les balises <DataObjectVersion> du bordereau.
+      Par exemple, si on a *BinaryMaster* sur l'usage, on aura au moins un objet *BinaryMaster_1*. Ces champs sont renseignés avec les valeurs récupérées dans les balises <DataObjectVersion> du bordereau de transfert.
 
-      - "FormatIdentification": contient trois champs qui permettent d'identifier le format du fichier. Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel pronom et les valeurs que porte le document est faite.
+      - "FormatIdentification": contient trois champs qui permettent d'identifier le format du fichier. Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel PRONOM et les valeurs que porte le document est faite.
 
         - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du message ArchiveTransfer.
         - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du message ArchiveTransfer ou des valeurs correspondant au format tel qu'identifié par la solution logicielle Vitam.
@@ -230,9 +230,9 @@ Détail des champs du JSON
           
           - "Filename": nom de l'objet.
           - "CreatingApplicationName": nom de l'application avec laquelle l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
-          - "CreatingApplicationVersion": numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*
-          - "CreatingOs": système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*
-          - "CreatingOsVersion": Version du système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*
+          - "CreatingApplicationVersion": numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
+          - "CreatingOs": système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
+          - "CreatingOsVersion": Version du système d'exploitation avec lequel l'objet a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le message ArchiveTransfer. *Ce champ est facultatif et n'est pas présent systématiquement*.
           - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. ``Exemple : 2016-08-19T16:36:07.942+02:00`` Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
           - "Size": taille de l'objet (en octet). Ce champ contient un nombre entier.
       
@@ -255,49 +255,49 @@ Détail des champs du JSON
           - "offerIds": liste des offres de stockage pour une stratégie donnée
           - "_nbc": nombre d'offres.
 
-**"_up" (unitup):** tableau identifiant les unités archivistiques représentée par ce groupe d'objets.
+**"_up" (unit up):** tableau identifiant les unités archivistiques représentée par ce groupe d'objets.
         
-  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu dans le champ _id de la collection Unit.
-  * Champ peuplé par Vitam.
+  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu dans le champ _id des unités archivistiques enregistrées dans la collection Unit.
+  * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
 **"_nbc" (nbobjects):** nombre d'objets dans le groupe d'objets.
         
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_ops" (operations):** tableau des identifiants d'opérations auxquelles ce GOT a participé.
+**"_ops" (operations):** tableau des identifiants d'opérations auxquelles ce groupe d'objets a participé.
         
-  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu dans le champ _id de la collection LogBookOperation.
-  * Champ peuplé par Vitam.
+  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant au GUID contenu dans le champ _id d'opération enregistré dans la collection LogBookOperation.
+  * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
 **"_opi" :** identifiant de l'opération à l'origine de la création de ce GOT.
         
   * Il s'agit d'une chaînes de 36 caractères correspondant au GUID contenue dans le champ _id de la collection LogBookOperation.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
 **"_sp":** service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
         
   * Il s'agit d'une chaîne de caractères.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_sps":** service producteur d'origine déclaré lors de la prise en charge du groupe d'objet par la solution logicielle Vitam.
+**"_sps":** service producteur d'origine déclaré lors de la prise en charge du groupe d'objets par la solution logicielle Vitam.
         
-  * Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objet.    
-  * Il s'agit d'un tableau de chaînes de caractère.
-  * Champ peuplé par Vitam.
+  * Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objets.    
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Champ peuplé par la solution logicielle Vitam.
   * Ne peut être vide
   * Cardinalité : 1-1
 
-**"_v":** version de l'enregistrement décrit
+**"_v":** version de l'enregistrement décrit.
         
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1

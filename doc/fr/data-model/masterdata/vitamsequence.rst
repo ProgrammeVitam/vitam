@@ -1,8 +1,8 @@
 Collection VitamSequence
 ########################
 
-Utilisation de collection
-=========================
+Utilisation de la collection
+============================
 
 Cette collection permet de générer des identifiants signifiants pour les enregistrements des collections suivantes :
 
@@ -10,7 +10,7 @@ Cette collection permet de générer des identifiants signifiants pour les enreg
   * AccesContract
   * Context
   * Profile
-  * FileRule
+  * FileRules
   * SecurityProfile
   * Agencies
   
@@ -35,29 +35,32 @@ Détail des champs
 **"_id":** identifiant unique.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Name":**. Il s'agit du préfixe utilisé pour générer un identifiant signifiant. La valeur contenue dans ce champ doit correspondre à la table de concordance du service VitamCounterService.java. La liste des valeurs possibles est détaillée en annexe 5.6.
+**"Name":**. Il s'agit du préfixe utilisé pour générer un identifiant signifiant. 
 
+  * La valeur contenue dans ce champ doit correspondre à la table de concordance du service VitamCounterService.java. La liste des valeurs possibles est détaillée en annexe.
   * Il s'agit d'une chaîne de caractères.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Counter":** numéro incrémental. Il s'agit du dernier numéro utilisé pour générer un identifiant signifiant.
+**"Counter":** numéro incrémental. 
 
+  * Il s'agit du dernier numéro utilisé pour générer un identifiant signifiant.
   * Il s'agit d'un entier.
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
-**"_tenant":** information sur le tenant. Il s'agit de l'identifiant du tenant utilisant l'enregistrement
+**"_tenant":** information sur le tenant. 
 
+  * Il s'agit de l'identifiant du tenant utilisant l'enregistrement
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_v":** version de l'enregistrement décrit
 
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
