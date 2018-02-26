@@ -361,7 +361,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 }
             } else {
                 if (isStartMode) {
-                    parameters = logbookInitialisation(GUIDFactory.newEventGUID(containerGUID), containerGUID,
+                    parameters = logbookInitialisation(containerGUID, containerGUID,
                         LogbookTypeProcess.INGEST);
                     if (contentType == null) {
                         throw new IngestInternalException("mimeType null");
@@ -738,7 +738,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     ProcessAction.INIT.equals(ProcessAction.valueOf(actionId));
                 boolean isStartMode =
                     ProcessAction.START.equals(ProcessAction.valueOf(actionId));
-                parameters = logbookInitialisation(GUIDFactory.newEventGUID(containerGUID), containerGUID, logbookTypeProcess);
+                parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
 
                 if (isInitMode) {
                     workspaceClient.checkStatus();
@@ -1065,7 +1065,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         StatusCode statusCode)
         throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientAlreadyExistsException,
         LogbookClientBadRequestException {
-        LogbookOperationParameters parameters = logbookInitialisation(GUIDFactory.newEventGUID(containerGUID), 
+        LogbookOperationParameters parameters = logbookInitialisation(containerGUID,
             containerGUID, logbookTypeProcess);
         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
         callLogbookUpdate(null, parameters, statusCode,
@@ -1078,7 +1078,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         throws LogbookClientNotFoundException,
         LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException {
         return LogbookParametersFactory.newLogbookOperationParameters(
-            ingestGuid, INGEST_INT_UPLOAD, containerGUID,
+            GUIDFactory.newEventGUID(ingestGuid), INGEST_INT_UPLOAD, containerGUID,
             logbookTypeProcess, StatusCode.STARTED,
             ingestGuid != null ? ingestGuid.toString() : "outcomeDetailMessage",
             ingestGuid);

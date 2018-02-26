@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -762,7 +763,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             final GUID operationGuid = GUIDReader.getGUID(operationId);
             final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
             logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
-                .getParameterValue(WorkerParameterName.context));
+                .getParameterValue(WorkerParameterName.context), GUIDReader.getGUID(workParams.getRequestId()));
 
         } catch (Exception e) {
             LOGGER.error("Error while finalize logbook of the process workflow, do retry ...", e);
@@ -776,7 +777,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
                 final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
                 logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
-                    .getParameterValue(WorkerParameterName.context));
+                    .getParameterValue(WorkerParameterName.context), GUIDReader.getGUID(workParams.getRequestId()));
 
             } catch (Exception ex) {
                 LOGGER.error("Retry > error while finalize logbook of the process workflow", e);
@@ -817,7 +818,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     }
 
     private void logbook(LogbookOperationsClient client, GUID eventIdentifier, GUID operationGuid, LogbookTypeProcess logbookTypeProcess,
-        StatusCode statusCode, String eventType) throws Exception {
+        StatusCode statusCode, String eventType, GUID requestId) throws Exception {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationParameters parameters = LogbookParametersFactory
             .newLogbookOperationParameters(
@@ -827,7 +828,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 logbookTypeProcess,
                 statusCode,
                 messageLogbookEngineHelper.getLabelOp(eventType, statusCode),
-                operationGuid);
+                requestId);
         parameters.putParameterValue(LogbookParameterName.outcomeDetail,
             messageLogbookEngineHelper.getOutcomeDetail(eventType, statusCode));
         client.update(parameters);

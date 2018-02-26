@@ -500,7 +500,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
 
         // eventidentifierprocess for lifecycle
-        final GUID updateOpGuidStart = GUIDFactory.newOperationLogbookGUID(tenant);
+        final GUID updateOpGuidStart = idRequest;
         LogbookOperationsClient logbookOperationClient = logbookOperationClientMock;
         LogbookLifeCyclesClient logbookLifeCycleClient = logbookLifeCycleClientMock;
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
