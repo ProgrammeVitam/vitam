@@ -343,7 +343,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             StorageClientFactory.getInstance().getClient()) {
             RequestResponseOK result;
             try {
-                // TODO add tenantId as param
                 VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
                 result = storageClient.storageLogTraceability();
             } catch (final InvalidParseOperationException | StorageServerClientException e) {

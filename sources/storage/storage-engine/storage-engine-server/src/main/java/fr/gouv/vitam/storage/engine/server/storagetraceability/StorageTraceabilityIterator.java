@@ -27,12 +27,16 @@
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
+/**
+ * Implementation of TraceabilityIterator for Storage.
+ * 
+ * Iterate over OfferLog for the traceability
+ */
 public class StorageTraceabilityIterator implements TraceabilityIterator<OfferLog> {
 
     private final Iterator<OfferLog> iterator;

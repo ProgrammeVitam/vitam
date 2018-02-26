@@ -94,7 +94,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityIterator;
-import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityLogbookService;
+import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -132,7 +132,7 @@ public class StorageTraceabilityAdministrationTest {
         TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
         WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        TraceabilityLogbookService traceabilityLogbookService = mock(TraceabilityLogbookService.class);
+        TraceabilityStorageService traceabilityLogbookService = mock(TraceabilityStorageService.class);
         ArgumentCaptor<byte[]> hashCapture = ArgumentCaptor.forClass(byte[].class);
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
@@ -170,7 +170,7 @@ public class StorageTraceabilityAdministrationTest {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
         StorageClient storageClient = mock(StorageClient.class);
-        TraceabilityLogbookService traceabilityLogbookService = mock(TraceabilityLogbookService.class);
+        TraceabilityStorageService traceabilityLogbookService = mock(TraceabilityStorageService.class);
 
         Path archive = Paths.get(file.getAbsolutePath(), "archive.zip");
         Path archive2= Paths.get(file.getAbsolutePath(), "archive2.zip");

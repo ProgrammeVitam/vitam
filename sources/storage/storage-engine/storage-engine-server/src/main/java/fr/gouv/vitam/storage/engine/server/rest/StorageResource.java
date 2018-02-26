@@ -106,7 +106,7 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
-import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityLogbookService;
+import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
@@ -121,7 +121,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
 
     private final StorageDistribution distribution;
-    private final TraceabilityLogbookService traceabilityLogbookService;
+    private final TraceabilityStorageService traceabilityLogbookService;
     private final TimestampGenerator timestampGenerator;
 
     private StorageLogService storageLogService;
@@ -143,7 +143,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             storageLogAdministration =
                 new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
 
-            traceabilityLogbookService = new TraceabilityLogbookService(distribution);
+            traceabilityLogbookService = new TraceabilityStorageService(distribution);
 
             TimeStampSignature timeStampSignature;
             try {
@@ -181,7 +181,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
         storageLogAdministration =
             new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
-        traceabilityLogbookService = new TraceabilityLogbookService(distribution);
+        traceabilityLogbookService = new TraceabilityStorageService(distribution);
 
         TimeStampSignature timeStampSignature;
         try {
@@ -209,7 +209,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     StorageResource(StorageDistribution storageDistribution, TimestampGenerator timestampGenerator) {
         distribution = storageDistribution;
-        traceabilityLogbookService = new TraceabilityLogbookService(distribution);
+        traceabilityLogbookService = new TraceabilityStorageService(distribution);
         this.timestampGenerator = timestampGenerator;
     }
 
@@ -1336,15 +1336,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             Integer tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID guid = traceabilityLogbookAdministration.generateTraceabilityStorageLogbook();
-            final List<String> resultAsJson = new ArrayList<>();
-            resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<String>()
-                    .addAllResults(resultAsJson))
+                .entity(new RequestResponseOK<GUID>()
+                    .addResult(guid))
                 .build();
 
-        } catch (LogbookClientServerException | TraceabilityException | IOException |
-            StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
+        } catch (TraceabilityException e) {
             LOGGER.error("unable to generate secure  log", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(new RequestResponseOK())

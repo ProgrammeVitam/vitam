@@ -30,10 +30,21 @@ import java.time.LocalDateTime;
 
 import fr.gouv.vitam.common.BaseXx;
 
+/**
+ * Tuple that contains information of a previous Storage treaceability operation (from zip file)
+ * 
+ */
 public class StorageTraceabilityData {
+    /**
+     * The operation token.tsp content
+     */
     public final byte[] token;
+
+    /**
+     * The operation start date
+     */
     public final LocalDateTime startDate;
-    
+
     public StorageTraceabilityData(byte[] token, LocalDateTime startDate) {
         this.token = BaseXx.getFromBase64(new String(token));
         this.startDate = startDate;

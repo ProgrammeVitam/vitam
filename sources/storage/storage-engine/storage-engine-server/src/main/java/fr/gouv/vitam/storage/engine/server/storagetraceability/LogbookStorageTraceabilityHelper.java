@@ -40,13 +40,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -92,6 +90,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.common.compress.VitamArchiveStreamFactory;
 
+/**
+ * Handle specific steps of the traceability process for Storage
+ */
 public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookStorageTraceabilityHelper.class);
@@ -104,7 +105,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private static final String CONTAINER = DataCategory.STORAGETRACEABILITY.getFolder();
 
     private final LogbookOperationsClient logbookOperationsClient;
-    private final TraceabilityLogbookService traceabilityLogbookService;
+    private final TraceabilityStorageService traceabilityLogbookService;
     private final WorkspaceClient workspaceClient;
     private final GUID operationID;
     private final int delay;
@@ -122,7 +123,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
      * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
     public LogbookStorageTraceabilityHelper(LogbookOperationsClient logbookOperations, WorkspaceClient workspaceClient,
-        TraceabilityLogbookService traceabilityLogbookService, GUID operationID, int overlapDelayInSeconds) {
+        TraceabilityStorageService traceabilityLogbookService, GUID operationID, int overlapDelayInSeconds) {
         this.logbookOperationsClient = logbookOperations;
         this.workspaceClient = workspaceClient;
         this.traceabilityLogbookService = traceabilityLogbookService;

@@ -27,37 +27,33 @@
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
 import java.io.File;
-import java.io.IOException;
-import java.time.format.DateTimeFormatter;
 
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+/**
+ * Business class for Storage Traceability Administration
+ */
 public class StorageTraceabilityAdministration {
 
     public static final String STORAGE_LOGBOOK_OPERATION_ZIP = "StorageLogbookOperation";
-    private final TraceabilityLogbookService traceabilityLogbookService;
+    private final TraceabilityStorageService traceabilityLogbookService;
     private final LogbookOperationsClient logbookOperations;
     private final WorkspaceClient workspaceClient;
     private final TimestampGenerator timestampGenerator;
     private final int operationTraceabilityOverlapDelayInSeconds;
     private final File tmpFolder;
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd-HH-mm-ss");
 
-    public StorageTraceabilityAdministration(TraceabilityLogbookService traceabilityLogbookService,
+    public StorageTraceabilityAdministration(TraceabilityStorageService traceabilityLogbookService,
         String tmpFolder, TimestampGenerator timestampGenerator, Integer operationTraceabilityOverlapDelay) {
         this.traceabilityLogbookService = traceabilityLogbookService;
         this.timestampGenerator = timestampGenerator;
@@ -69,7 +65,7 @@ public class StorageTraceabilityAdministration {
         this.tmpFolder.mkdir();
     }
     
-    public StorageTraceabilityAdministration(TraceabilityLogbookService traceabilityLogbookService,
+    public StorageTraceabilityAdministration(TraceabilityStorageService traceabilityLogbookService,
         LogbookOperationsClient mockedLogbookOperations, File mockedFile, WorkspaceClient mockedWorkspaceClient,
         TimestampGenerator timestampGenerator, Integer operationTraceabilityOverlapDelay) {
         this.traceabilityLogbookService = traceabilityLogbookService;
@@ -92,9 +88,14 @@ public class StorageTraceabilityAdministration {
        return operationTraceabilityOverlapDelay;
     }
 
+    /**
+     * secure the logbook operation since last traceability
+     * 
+     * @return the traceability operation GUID
+     * @throws TraceabilityException for any trouble in the traceability process
+     */
     public GUID generateTraceabilityStorageLogbook()
-        throws TraceabilityException, IOException, StorageLogException,
-        LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws TraceabilityException {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);

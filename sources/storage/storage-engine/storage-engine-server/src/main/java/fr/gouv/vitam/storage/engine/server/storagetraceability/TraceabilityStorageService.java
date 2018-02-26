@@ -26,19 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -47,15 +41,26 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
-public class TraceabilityLogbookService {
+/**
+ * Service that allow Storage Traceability to use StorageDistribution in order to get some file and information in Offers
+ */
+public class TraceabilityStorageService {
 
     private static final Integer GET_LAST_BASE = 100;
     private final StorageDistribution distribution;
 
-    public TraceabilityLogbookService(StorageDistribution distribution) {
+    public TraceabilityStorageService(StorageDistribution distribution) {
         this.distribution = distribution;
     }
 
+    /**
+     * Get the files of the last storage backup since the last traceability (fromDate) as a StorageTraceabilityIterator
+     * 
+     * @param strategyId The storage strategy ID
+     * @param fromDate the limit date to get backup files
+     * @return list of last saved files as iterator
+     * @throws StorageException if some error technical problem while call StorageDistribution
+     */
     public StorageTraceabilityIterator getLastSaved(String strategyId, LocalDateTime fromDate) throws StorageException {
         List<OfferLog> allFiles = new ArrayList<>();
         Long offset = null;
@@ -91,19 +96,41 @@ public class TraceabilityLogbookService {
         return new StorageTraceabilityIterator(allFiles.subList(0, index));
     }
 
+    /**
+     * Get the last storage traceability zip fileName
+     * 
+     * @param strategyId The storage strategy ID
+     * @return the zip's fileName of the last storage traceability operation
+     * @throws StorageException if some error technical problem while call StorageDistribution
+     */
     public String getLastTraceability(String strategyId) throws StorageException {
         List<OfferLog> file = getLast(strategyId, DataCategory.STORAGETRACEABILITY, null, 1);
         if (file.isEmpty()) {
-            // FIXME What should be returned when no elements ?
             return null;
         }
         return file.get(0).getFileName();
     }
 
+    /**
+     * Only direct call to @StorageDistribution.getContainerByCategory
+     * 
+     * @param strategyId strategyID
+     * @param objectId file id or name
+     * @param category storage category of the file
+     * @return the file as stream
+     * @throws StorageException if some error technical problem while call StorageDistribution
+     */
     public Response getObject(String strategyId, String objectId, DataCategory category) throws StorageException {
         return this.distribution.getContainerByCategory(strategyId, objectId, category);
     }
 
+    /**
+     * parse @DataCategory.STORAGETRACEABILITY or @DataCategory.STORAGELOG fileName in order to get the startDate of the operation
+     * 
+     * @param fileName the fileName to parse
+     * @param isTraceability the king of file (true for Traceability, false for backup)
+     * @return The startDate of the linked operation
+     */
     public LocalDateTime parseDateFromFileName(String fileName, boolean isTraceability) {
         String date;
         String[] splittedFileName = fileName.split("\\.")[0].split("_");
@@ -123,7 +150,6 @@ public class TraceabilityLogbookService {
         if (response.isOk()) {
             return ((RequestResponseOK<OfferLog>)response).getResults();
         }
-        // FIXME What should be returned in error case ?
         throw new StorageException("Response KO ?");
     }
 
