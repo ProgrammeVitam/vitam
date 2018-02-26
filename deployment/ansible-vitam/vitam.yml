@@ -134,6 +134,7 @@
   vars:
     vitam_struct: "{{ vitam.storageengine }}"
     vitam_certificate_client_type: "storage"
+    vitam_timestamp_usage: secure-storage
 
 
 

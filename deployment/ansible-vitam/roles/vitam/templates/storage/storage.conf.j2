@@ -3,3 +3,6 @@ timeoutMsPerKB: 100
 jettyConfig: jetty-config.xml
 zippingDirecorty: {{vitam_folder_data}}/storage_archives
 loggingDirectory: {{vitam_folder_log}}
+p12LogbookPassword: {{keystores.timestamping.secure_storage}}
+p12LogbookFile: keystore_{{vitam_timestamp_usage}}.p12
+storageTraceabilityOverlapDelay: {{ vitam.storageengine.storageTraceabilityOverlapDelay }}
