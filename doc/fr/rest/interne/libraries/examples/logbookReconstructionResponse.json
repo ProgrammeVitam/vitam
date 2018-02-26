@@ -1,0 +1,17 @@
+[
+    {
+        "tenant":0,
+        "offset":2535,
+        "status":"OK"
+    },
+    {
+        "tenant":2,
+        "offset":135,
+        "status":"OK"
+    },
+    {
+        "tenant":9,
+        "offset":9389,
+        "status":"KO"
+    }
+]

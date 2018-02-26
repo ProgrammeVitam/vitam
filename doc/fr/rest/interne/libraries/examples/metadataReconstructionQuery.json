@@ -1,0 +1,32 @@
+[
+    {
+        "collection":"UNIT",
+        "tenant":0,
+        "offset":0,
+        "limit":100
+    },
+    {
+        "collection":"OBJECTGROUP",
+        "tenant":0,
+        "offset":0,
+        "limit":100
+    },
+    {
+        "collection":"UNIT",
+        "tenant":1,
+        "offset":0,
+        "limit":100
+    },
+    {
+        "collection":"UNIT",
+        "tenant":2,
+        "offset":8220,
+        "limit":100
+    },
+    {
+        "collection":"OBJECTGROUP",
+        "tenant":2,
+        "offset":535,
+        "limit":100
+    }
+]

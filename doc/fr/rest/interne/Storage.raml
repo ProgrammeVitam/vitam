@@ -208,6 +208,13 @@ documentation:
     description: Sécuriser les fichiers de logs du storage archivés par tenant.
     is: [CollectionTraits.collection-get, StandardTraits.OverrideGet, StorageTraits.StrategyStorage]
 
+/{type}/logs:
+  displayName: Offer logs
+  description: Accès au logs de l'offre de stockage référente d'une stratégie
+  get:
+    description: Recherche des logs de l'offre de stockage reférente pour la stratégie
+    is: [StorageTraits.StorageLog, CollectionTraits.collection-get, StorageTraits.StrategyStorage]
+
 /status:
   get:
     is: [ StandardTraits.Status, StandardTraits.StandardHeader200,

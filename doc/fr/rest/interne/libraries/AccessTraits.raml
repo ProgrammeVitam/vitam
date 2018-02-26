@@ -304,3 +304,27 @@ traits:
             description: Metadata
             schema: AccessTypes.AccessResponse
             example: !include examples/accessUnitResponse.json
+
+  AccessUnitRawResponse:
+    description: Response model for raw Units collection in access
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, 
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Returns the list of Units results containing one result
+        body:
+          application/json:
+            description: Metadata
+            example: !include examples/accessUnitRawResponse.json
+
+  AccessObjectRawResponse:
+    description: Response model for raw Objects collection in access
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, 
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Returns the list of Objects results containing one result
+        body:
+          application/json:
+            description: Metadata
+            example: !include examples/accessObjectRawResponse.json

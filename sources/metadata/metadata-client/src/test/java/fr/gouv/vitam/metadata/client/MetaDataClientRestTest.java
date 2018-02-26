@@ -165,7 +165,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @Path("units/{id_unit}/raw")
+        @Path("raw/units/{id_unit}")
         @GET
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
@@ -197,7 +197,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @Path("objectgroups/{id_og}/raw")
+        @Path("raw/objectgroups/{id_og}")
         @GET
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)

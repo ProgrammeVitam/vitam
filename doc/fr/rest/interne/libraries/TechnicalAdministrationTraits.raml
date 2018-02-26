@@ -1,0 +1,41 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global headers for Technical Administration
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+
+traits:
+  LogbookReconstruction:
+    displayName: Logbook Reconstruction
+    description: Logbook Reconstruction
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: logbook reconstruction query
+        example: !include examples/logbookReconstructionQuery.json
+    responses:
+      200:
+        body:
+          application/json:
+            description: Logbook Reconstruction Response
+            example: !include examples/logbookReconstructionResponse.json
+  MetadataReconstruction:
+    displayName: Metadata Reconstruction
+    description: Metadata Reconstruction
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: metadata reconstruction query
+        example: !include examples/metadataReconstructionQuery.json
+    responses:
+      200:
+        body:
+          application/json:
+            description: Metadata Reconstruction Response
+            example: !include examples/metadataReconstructionResponse.json
+
+  

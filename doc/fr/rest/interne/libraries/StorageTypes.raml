@@ -50,3 +50,22 @@ types:
         type: datetime
       last_checked_time:
         type: datetime
+  
+  StorageLogQuery:
+    displayName: Storage Log query
+    description: Query to search storage logs
+    type: object
+    properties:
+      offset:
+        description: Offset
+        type: number
+        required: false
+      limit:
+        description: Limit
+        type: number
+        required: false
+      order:
+        description: Order
+        type: string
+        required: true
+

@@ -1,0 +1,31 @@
+{
+    "$hits": {
+      "total": 3,
+      "size": 3,
+      "offset": 0,
+      "limit": 3
+    },
+    "$context": {},
+    "$results": [
+        {
+            "Sequence": 3,
+            "Time": "2018-02-26T09:26:39.665",
+            "Container": "1_backup_operation",
+            "FileName": "aecaaaaaaggem7dyaa7hgalb2fxxdtaaaaaq",
+            "Action": "write"
+        },{
+            "Sequence": 4,
+            "Time": "2018-02-26T09:28:39.665",
+            "Container": "1_backup_operation",
+            "FileName": "aecaaaaaaggem7dyaa7hgalb2fxxdtaaaaaq",
+            "Action": "write"
+        },{
+            "Sequence": 9,
+            "Time": "2018-02-26T09:29:24.869",
+            "Container": "1_backup_operation",
+            "FileName": "aecaaaaaaggem7dyaa7hgalb2fy76bqaaaaq",
+            "Action": "write"
+        }
+    ]
+  }
+  

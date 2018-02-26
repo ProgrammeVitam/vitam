@@ -264,6 +264,31 @@ documentation:
        Allow to know the life cycle status
       is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
 
+/raw:
+  displayName: Raw
+  description: |
+    API d'accès aux Journaux en mode brut (pas de traduction Vitam).
+
+  /unitlifecycles/bulk:
+    displayName: Unit Life Cycle Bulk
+    description:  |
+     Insertion des cycles de vie des Unit en masse.
+    
+    post:
+      description : |
+        Insert or replace existing Lifecycle Units 
+      is: [LogbookTraits.LogbookBulkRawInsert]
+
+  /objectgrouplifecycles/bulk:
+    displayName: Object Group Life Cycle Bulk
+    description:  |
+     Insertion des cycles de vie des Objets en masse.
+    
+    post:
+      description : |
+        Insert or replace existing Lifecycle Objects 
+      is: [LogbookTraits.LogbookBulkRawInsert]
+
 /status:
   get:
     is: [ StandardTraits.Status, StandardTraits.StandardHeader200,

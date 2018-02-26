@@ -195,6 +195,26 @@ documentation:
          Update the given Security Profile
        is: [RegisterTraits.RegisterUpload]
 
+/raw:
+  displayName: Raw
+  description: |
+    API d'accès aux référentiels en mode brut (pas de traduction Vitam).
+
+  /accession-register/detail:
+    displayName: Accession Register Detail access
+    description:  |
+     Accès au détail d'un registre de fond.
+    
+    get:
+      description : |
+        Get an Accession Register Detail
+      is: [RegisterTraits.AccessionRegisterDetailRawGet]
+
+    post:
+      description : |
+        Insert or replace Accession Register Detail
+      is: [RegisterTraits.AccessionRegisterDetailRawCreate]
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,

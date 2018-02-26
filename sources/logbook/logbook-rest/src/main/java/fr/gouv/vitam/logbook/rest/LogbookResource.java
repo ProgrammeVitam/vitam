@@ -260,7 +260,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Selects an operation
      *
-     * @param id       operation ID
+     * @param id operation ID
      * @param queryDsl the query containing the ID
      * @return the response with a specific HTTP status
      */
@@ -321,7 +321,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create or Select a new operation
      *
      * @param operationId path param, the operation id
-     * @param operation   the json serialized as a LogbookOperationParameters.
+     * @param operation the json serialized as a LogbookOperationParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -366,7 +366,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Append a new item on the given operation
      *
      * @param operationId the operation id
-     * @param operation   the json serialized as a LogbookOperationParameters.
+     * @param operation the json serialized as a LogbookOperationParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -570,8 +570,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
-     * @param evtStatus   the evenement status (commited / not_commited)
-     * @param query       as JsonNode
+     * @param evtStatus the evenement status (commited / not_commited)
+     * @param query as JsonNode
      * @return the response with a specific HTTP status
      */
     @GET
@@ -597,7 +597,8 @@ public class LogbookResource extends ApplicationStatusResource {
                         .entity(new RequestResponseOK<JsonNode>().addAllResults(objects));
                 return builder.build();
             }
-        } catch (final LogbookDatabaseException | InvalidParseOperationException | InvalidCreateOperationException exc) {
+        } catch (final LogbookDatabaseException | InvalidParseOperationException |
+            InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             final ResponseBuilder builder = Response.status(status)
@@ -634,8 +635,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
-     * @param parameters  the json serialized as a LogbookLifeCycleUnitParameters.
+     * @param unitLcId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -697,9 +698,9 @@ public class LogbookResource extends ApplicationStatusResource {
      * Update Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
-     * @param evtStatus   the operation type : Update or Commit the lifeCycle
-     * @param parameters  the json serialized as a LogbookLifeCycleUnitParameters.
+     * @param unitLcId the life cycle id
+     * @param evtStatus the operation type : Update or Commit the lifeCycle
+     * @param parameters the json serialized as a LogbookLifeCycleUnitParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -784,7 +785,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Delete Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
+     * @param unitLcId the life cycle id
      * @return the response with a specific HTTP status
      */
     @DELETE
@@ -828,7 +829,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Commit Unit Life Cycle
      *
      * @param operationId the operation id
-     * @param unitLcId    the life cycle id
+     * @param unitLcId the life cycle id
      * @return the response with a specific HTTP status
      */
     @Deprecated
@@ -858,7 +859,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Lifecycle Unit Bulk Create
      *
-     * @param idOp  the operation id
+     * @param idOp the operation id
      * @param array Lifecycle Unit Logbooks as ArrayNode
      * @return Response of CREATED
      */
@@ -901,7 +902,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Lifecycle Unit Bulk Create
      *
-     * @param idOp                   the operation id
+     * @param idOp the operation id
      * @param logbookLifeCycleModels Lifecycle Unit Logbooks as ArrayNode
      * @return Response of CREATED
      */
@@ -927,7 +928,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Lifecycle Unit Bulk Create
      *
-     * @param idOp                   the operation id
+     * @param idOp the operation id
      * @param logbookLifeCycleModels Lifecycle Unit Logbooks as ArrayNode
      * @return Response of CREATED
      */
@@ -953,7 +954,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Update Lifecycle With Bulk Mode
      *
-     * @param idOp               the operation id
+     * @param idOp the operation id
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
      * @return Response with a status of OK if updated aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq
      */
@@ -987,8 +988,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * gets the unit life cycle based on its id
      *
      * @param unitLifeCycleId the unit life cycle id
-     * @param evtStatus       the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
-     * @param queryDsl        the query to get unit lfc
+     * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
+     * @param queryDsl the query to get unit lfc
      * @return the unit life cycle
      */
     @GET
@@ -1085,7 +1086,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Gets a list of unit lifeCycles using a queryDsl
      *
-     * @param queryDsl  a DSL query
+     * @param queryDsl a DSL query
      * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
      * @return a list of unit lifeCycles
      */
@@ -1100,8 +1101,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Gets a list of raw unit lifeCycles using a queryDsl
-     *
-     * @param queryDsl  a DSL query
+     * 
+     * @param queryDsl a DSL query
      * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
      * @return a list of unit lifeCycles
      */
@@ -1109,13 +1110,17 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/unitlifecyclesraw")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCyclesRaw(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
+    public Response getUnitLifeCyclesRaw(JsonNode queryDsl,
+        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
         throws VitamDBException {
+        // FIXME : this is not a raw service, it should use a VitamRepository instead of current mongoDbAccess, this is
+        // a list service with full data at most. Please rename or make a real raw API point.
         return getUnitLifeCycle(queryDsl, evtStatus, false);
     }
 
     private Response getUnitLifeCycle(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
-        boolean sliced) throws VitamDBException {
+        boolean sliced)
+        throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
@@ -1167,8 +1172,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * GET multiple Unit Life Cycles through VitamRequestIterator
      *
      * @param operationId the operation id
-     * @param evtStatus   the evenement status (commited / not_commited)
-     * @param query       as JsonNode
+     * @param evtStatus the evenement status (commited / not_commited)
+     * @param query as JsonNode
      * @return the response with a specific HTTP status
      */
     @GET
@@ -1193,7 +1198,8 @@ public class LogbookResource extends ApplicationStatusResource {
                         .entity(new RequestResponseOK<JsonNode>().addAllResults(objects));
                 return builder.build();
             }
-        } catch (final LogbookDatabaseException | InvalidParseOperationException | InvalidCreateOperationException exc) {
+        } catch (final LogbookDatabaseException | InvalidParseOperationException |
+            InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.INTERNAL_SERVER_ERROR;
             final ResponseBuilder builder = Response.status(status)
@@ -1216,8 +1222,8 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
-     * @param parameters  the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @param objGrpId the life cycle id
+     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -1278,9 +1284,9 @@ public class LogbookResource extends ApplicationStatusResource {
      * Update object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
-     * @param evtStatus   the operation type : Update or Commit the lifeCycle
-     * @param parameters  the json serialized as a LogbookLifeCycleObjectGroupParameters.
+     * @param objGrpId the life cycle id
+     * @param evtStatus the operation type : Update or Commit the lifeCycle
+     * @param parameters the json serialized as a LogbookLifeCycleObjectGroupParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
@@ -1366,7 +1372,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Delete object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
+     * @param objGrpId the life cycle id
      * @return the response with a specific HTTP status
      */
     @DELETE
@@ -1410,7 +1416,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Commit object Group Life Cycle
      *
      * @param operationId the operation id
-     * @param objGrpId    the life cycle id
+     * @param objGrpId the life cycle id
      * @return the response with a specific HTTP status
      */
     @Deprecated
@@ -1440,7 +1446,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Lifecycle ObjectGroup Bulk Create
      *
-     * @param idOp  the operation id
+     * @param idOp the operation id
      * @param array Lifecycle ObjectGroup Logbooks as ArrayNode
      * @return Response of CREATED
      */
@@ -1483,7 +1489,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Update Lifecycle ObjectGroup With Bulk Mode
      *
-     * @param idOp               the operation id
+     * @param idOp the operation id
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
      * @return Response with a status of OK if updated
      */
@@ -1517,15 +1523,16 @@ public class LogbookResource extends ApplicationStatusResource {
      * Gets the object group life cycle based on its id and using the passed DSL query
      *
      * @param objectGroupLifeCycleId the object group life cycle id
-     * @param evtStatus              the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
-     * @param queryDsl               the DSL query
+     * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
+     * @param queryDsl the DSL query
      * @return a Response that contains the object group life cycle
      */
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
-        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl) throws VitamDBException {
+        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl)
+        throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode requiredLifeCycleStatus = getSelectLifeCycleStatusCode(evtStatus);
@@ -1575,14 +1582,15 @@ public class LogbookResource extends ApplicationStatusResource {
      * Gets the object group life cycles based on the passed DSL query
      *
      * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
-     * @param queryDsl  the DSL query
+     * @param queryDsl the DSL query
      * @return a Response that contains the object group life cycle
      */
     @GET
     @Path("/objectgrouplifecycles")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycle(@HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
-        JsonNode queryDsl) throws VitamDBException {
+        JsonNode queryDsl)
+        throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode requiredLifeCycleStatus = getSelectLifeCycleStatusCode(evtStatus);
@@ -1926,7 +1934,8 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (LogbookAuditException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(
                 new VitamError(Status.INTERNAL_SERVER_ERROR.name())
-                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())).build();
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                .build();
         }
 
     }
