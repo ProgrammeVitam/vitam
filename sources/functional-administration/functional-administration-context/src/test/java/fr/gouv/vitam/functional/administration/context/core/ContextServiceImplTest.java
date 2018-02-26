@@ -234,7 +234,7 @@ public class ContextServiceImplTest {
         verifyZeroInteractions(accessContractService);
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
-            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT));
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -266,7 +266,7 @@ public class ContextServiceImplTest {
         assertTrue(updateResponse.isOk());
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
-            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT));
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -304,7 +304,7 @@ public class ContextServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
-            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT));
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT), any());
         verifyNoMoreInteractions(functionalBackupService);
 
         verifyZeroInteractions(ingestContractService);

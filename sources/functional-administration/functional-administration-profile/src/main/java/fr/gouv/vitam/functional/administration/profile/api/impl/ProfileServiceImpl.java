@@ -252,15 +252,16 @@ public class ProfileServiceImpl implements ProfileService {
             mongoAccess.insertDocuments(profilesToPersist, FunctionalAdminCollections.PROFILE).close();
 
             functionalBackupService.saveCollectionAndSequence(
-                    eip,
-                    PROFILE_BACKUP_EVENT,
-                    FunctionalAdminCollections.PROFILE
+                eip,
+                PROFILE_BACKUP_EVENT,
+                FunctionalAdminCollections.PROFILE,
+                eip.toString()
             );
         } catch (final Exception exp) {
             final String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
             manager.logFatalError(PROFILES_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err).setHttpCode(
-                    Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
 
         manager.logSuccess(PROFILES_IMPORT_EVENT, null, null);
@@ -355,7 +356,8 @@ public class ProfileServiceImpl implements ProfileService {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.PROFILE
+                FunctionalAdminCollections.PROFILE,
+                eip.toString()
             );
 
             String wellFormedJson = null;
@@ -511,10 +513,11 @@ public class ProfileServiceImpl implements ProfileService {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.PROFILE
+                FunctionalAdminCollections.PROFILE,
+                profileModel.getId()
             );
 
-        }catch (final Exception e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
             final String err = new StringBuilder("Update profile error : ").append(e.getMessage()).toString();
             manager.logFatalError(PROFILES_UPDATE_EVENT, profileModel.getId(), err);

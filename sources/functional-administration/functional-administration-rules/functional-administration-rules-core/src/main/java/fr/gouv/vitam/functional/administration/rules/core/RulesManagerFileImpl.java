@@ -351,7 +351,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
-            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
+            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES, eip.toString());
 
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.OK, filename);
         } catch (final FileRulesException e) {
@@ -409,7 +409,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
-            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
+            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES, eip.toString());
 
             if (!usedUpdateRulesForReport.isEmpty()) {
                 // #2201 - we now launch the process that will update units

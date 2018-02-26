@@ -98,9 +98,9 @@ public class SecurityProfileService implements VitamAutoCloseable {
     private static final String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS =
         "Permission set cannot be set with full access mode : %s";
 
-    private static final String SECURITY_PROFILE_IMPORT_EVENT = "STP_IMPORT_SECURITY_PROFILE";
-    private static final String SECURITY_PROFILE_UPDATE_EVENT = "STP_UPDATE_SECURITY_PROFILE";
-    private static final String SECURITY_PROFILE_BACKUP_EVENT = "STP_BACKUP_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_IMPORT_EVENT = "IMPORT_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_UPDATE_EVENT = "UPDATE_SECURITY_PROFILE";
+    private static final String SECURITY_PROFILE_BACKUP_EVENT = "BACKUP_SECURITY_PROFILE";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
@@ -183,7 +183,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 SECURITY_PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.SECURITY_PROFILE);
+                FunctionalAdminCollections.SECURITY_PROFILE, eip.toString());
 
             manager.logImportSuccess();
 
@@ -320,7 +320,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 SECURITY_PROFILE_BACKUP_EVENT,
-                FunctionalAdminCollections.SECURITY_PROFILE);
+                FunctionalAdminCollections.SECURITY_PROFILE, identifier);
 
             manager.logUpdateSuccess(securityProfileModel.getId(), updateDiffs.get(securityProfileModel.getId()));
             return new RequestResponseOK<>();

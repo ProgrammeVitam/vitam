@@ -243,7 +243,8 @@ public class ContextServiceImpl implements ContextService {
             functionalBackupService.saveCollectionAndSequence(
                 eip,
                 CONTEXTS_BACKUP_EVENT,
-                FunctionalAdminCollections.CONTEXT
+                FunctionalAdminCollections.CONTEXT,
+                eip.toString()
             );
 
         } catch (final Exception exp) {
@@ -359,10 +360,10 @@ public class ContextServiceImpl implements ContextService {
                 diff = SanityChecker.sanitizeJson(diffObject);
             }
 
-            functionalBackupService.saveCollectionAndSequence(
-                eip,
+            functionalBackupService.saveCollectionAndSequence(eip,
                 CONTEXTS_BACKUP_EVENT,
-                FunctionalAdminCollections.CONTEXT
+                FunctionalAdminCollections.CONTEXT,
+                contextModel.getId()
             );
 
         } catch (final Exception e) {

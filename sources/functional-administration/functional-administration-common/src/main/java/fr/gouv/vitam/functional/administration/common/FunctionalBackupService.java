@@ -99,15 +99,15 @@ public class FunctionalBackupService {
     }
 
     /**
+     * @param objectIdentifier
      * @param eipMaster  logbookMaster
      * @param eventCode  logbook evType
      * @param collection collection
      * @throws VitamException vitamException
      */
     public void saveCollectionAndSequence(GUID eipMaster, String eventCode,
-        FunctionalAdminCollections collection)
+        FunctionalAdminCollections collection, String objectIdentifier)
         throws VitamException {
-
         try {
 
             // FIXME : Cross-tenant collections should only be updated using admin tenant (1).
@@ -140,7 +140,7 @@ public class FunctionalBackupService {
                 deleteTmpFile(file);
             }
 
-            backupLogbookManager.logEventSuccess(eipMaster, eventCode, digestStr, fileName);
+            backupLogbookManager.logEventSuccess(eipMaster, eventCode, digestStr, fileName, objectIdentifier);
 
         } catch (ReferentialException | IOException | BackupServiceException e) {
             try {
@@ -208,7 +208,7 @@ public class FunctionalBackupService {
         try {
             backupService.backup(digestInputStream, dataCategory, fileName);
 
-            backupLogbookManager.logEventSuccess(eipMaster, eventCode, digest.digestHex(), fileName);
+            backupLogbookManager.logEventSuccess(eipMaster, eventCode, digest.digestHex(), fileName, null);
         } catch (BackupServiceException e) {
             LOGGER.error(e);
             backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());

@@ -184,7 +184,7 @@ public class IngestContractImplTest {
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("IC-000");
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(IngestContractImpl.CONTRACT_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.INGEST_CONTRACT));
+            eq(FunctionalAdminCollections.INGEST_CONTRACT), any());
     }
 
     @Test
