@@ -76,6 +76,9 @@ public class UnitModel {
     @JsonProperty("_max")
     private int max = 1;
 
+    @JsonProperty("_v")
+    private int version = 0;
+
     /*
      * getter and setter
      */
@@ -173,5 +176,13 @@ public class UnitModel {
 
     public void setMax(int max) {
         this.max = max;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }
