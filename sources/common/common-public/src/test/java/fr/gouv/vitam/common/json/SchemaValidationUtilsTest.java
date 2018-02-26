@@ -108,7 +108,7 @@ public class SchemaValidationUtilsTest {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_JSON_FILE)));
-        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.EMPTY_REQUIRED_FIELD));
+        assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
     }
     
     @Test
@@ -118,6 +118,20 @@ public class SchemaValidationUtilsTest {
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_DATE_JSON_FILE)));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
         assertTrue(status.getValidationMessage().contains("EndDate is before StartDate"));
+    }
+
+    @Test
+    public void should_is_ok_when_au_has_title_() throws Exception {
+        // Given
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+
+        // When
+        SchemaValidationStatus status = schemaValidation
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("simple_unit.json")));
+
+        // Then
+        assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
+        assertThat(status.getValidationMessage()).contains("Title_");
     }
 
 }

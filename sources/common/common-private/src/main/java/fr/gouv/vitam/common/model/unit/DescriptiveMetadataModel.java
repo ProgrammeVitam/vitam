@@ -50,7 +50,7 @@ public class DescriptiveMetadataModel {
 
     private String title;
 
-    private TextByLang titles;
+    private TextByLang title_;
 
     private String filePlanPosition;
 
@@ -66,7 +66,7 @@ public class DescriptiveMetadataModel {
 
     private String description;
 
-    private TextByLang descriptions;
+    private TextByLang description_;
 
     private CustodialHistoryModel custodialHistory;
 
@@ -155,12 +155,12 @@ public class DescriptiveMetadataModel {
         this.title = title;
     }
 
-    public TextByLang getTitles() {
-        return titles;
+    public TextByLang getTitle_() {
+        return title_;
     }
 
-    public void setTitles(TextByLang titles) {
-        this.titles = titles;
+    public void setTitle_(TextByLang title_) {
+        this.title_ = title_;
     }
 
     public String getFilePlanPosition() {
@@ -219,12 +219,12 @@ public class DescriptiveMetadataModel {
         this.description = description;
     }
 
-    public TextByLang getDescriptions() {
-        return descriptions;
+    public TextByLang getDescription_() {
+        return description_;
     }
 
-    public void setDescriptions(TextByLang descriptions) {
-        this.descriptions = descriptions;
+    public void setDescription_(TextByLang description_) {
+        this.description_ = description_;
     }
 
     public CustodialHistoryModel getCustodialHistory() {

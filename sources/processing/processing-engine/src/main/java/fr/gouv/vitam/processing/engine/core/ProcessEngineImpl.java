@@ -340,14 +340,13 @@ public class ProcessEngineImpl implements ProcessEngine {
             }
         }
         
-        JsonNode node = null;
+        JsonNode node;
         if (stepResponse.getData(AGENCY_DETAIL) == null) {
-            node = (ObjectNode) JsonHandler.createObjectNode();
+            node = JsonHandler.createObjectNode();
         } else {
-            node = (JsonNode) JsonHandler.getFromString(
-                    (String) stepResponse.getData(AGENCY_DETAIL));
+            node = JsonHandler.getFromString((String) stepResponse.getData(AGENCY_DETAIL));
         }
-        ObjectNode agIdExt = null;
+        ObjectNode agIdExt;
         try {
             JsonHandler.validate(node.asText());
             agIdExt = (ObjectNode) JsonHandler.getFromString(node.asText());
@@ -445,50 +444,46 @@ public class ProcessEngineImpl implements ProcessEngine {
                     actionLogBookParameters.putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));
                 }
                 if (itemStatus.getEvDetailData() != null && !handlerId.equals("AUDIT_CHECK_OBJECT")) {
-                    final String eventDetailData =
-                            itemStatus.getEvDetailData().toString();
+                    final String eventDetailData = itemStatus.getEvDetailData();
                     actionLogBookParameters.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
                 }
                 // logbook for action
                 helper.updateDelegate(actionLogBookParameters);
                 
                 // logbook for composite tasks
-                if (itemStatus instanceof ItemStatus) {
-                    final ItemStatus actionStatus = itemStatus;
-                    for (final ItemStatus sub : actionStatus.getItemsStatus().values()) {
-                        final LogbookOperationParameters subLogBookParameters =
-                            LogbookParametersFactory.newLogbookOperationParameters(
-                                GUIDFactory.newEventGUID(tenantId),
-                                handlerId + "." + sub.getItemId(),
-                                GUIDReader.getGUID(workParams.getContainerName()),
-                                logbookTypeProcess,
-                                sub.getGlobalStatus(),
-                                null, " Detail= " + sub.computeStatusMeterMessage(),
-                                GUIDReader.getGUID(workParams.getContainerName()));
-                        subLogBookParameters.putParameterValue(LogbookParameterName.parentEventIdentifier, 
-                                actionEventIdentifier.getId());
-                                
-                        if (sub.getGlobalOutcomeDetailSubcode() != null) {
-                            subLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                                messageLogbookEngineHelper.getOutcomeDetail(
-                                    handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
-                                    sub.getGlobalStatus()));
-                            subLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                                messageLogbookEngineHelper.getLabelOp(
-                                    handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
-                                    sub.getGlobalStatus()) + " Detail= " + sub.computeStatusMeterMessage());
-                        }
-                        if (sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) != null) {
-                            subLogBookParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                                sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()).toString());
-                        }
-                        if (sub.getData(AGENCY_DETAIL) != null) {
-                            subLogBookParameters
-                                .putParameterValue(LogbookParameterName.agIdExt, sub.getData(AGENCY_DETAIL).toString());
-                        }
-                        // logbook for subtasks
-                        helper.updateDelegate(subLogBookParameters);
+                for (final ItemStatus sub : itemStatus.getItemsStatus().values()) {
+                    final LogbookOperationParameters subLogBookParameters =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                            GUIDFactory.newEventGUID(tenantId),
+                            handlerId + "." + sub.getItemId(),
+                            GUIDReader.getGUID(workParams.getContainerName()),
+                            logbookTypeProcess,
+                            sub.getGlobalStatus(),
+                            null, " Detail= " + sub.computeStatusMeterMessage(),
+                            GUIDReader.getGUID(workParams.getContainerName()));
+                    subLogBookParameters.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                            actionEventIdentifier.getId());
+
+                    if (sub.getGlobalOutcomeDetailSubcode() != null) {
+                        subLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                            messageLogbookEngineHelper.getOutcomeDetail(
+                                handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
+                                sub.getGlobalStatus()));
+                        subLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                            messageLogbookEngineHelper.getLabelOp(
+                                handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
+                                sub.getGlobalStatus()) + " Detail= " + sub.computeStatusMeterMessage());
                     }
+                    if (sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) != null) {
+                        subLogBookParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                            sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()).toString());
+                    }
+                    if (sub.getData(AGENCY_DETAIL) != null) {
+                        subLogBookParameters
+                            .putParameterValue(LogbookParameterName.agIdExt, sub.getData(AGENCY_DETAIL).toString());
+                    }
+                    // logbook for subtasks
+                    helper.updateDelegate(subLogBookParameters);
                 }
             }
         }

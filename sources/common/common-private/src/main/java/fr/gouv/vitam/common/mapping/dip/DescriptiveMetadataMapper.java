@@ -28,10 +28,9 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import java.util.Collections;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 
 /**
@@ -49,8 +48,7 @@ public class DescriptiveMetadataMapper {
      * @param metadataModel
      * @return
      */
-    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel)
-        throws DatatypeConfigurationException {
+    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel) {
 
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
@@ -68,9 +66,14 @@ public class DescriptiveMetadataMapper {
         CustodialHistory custodialHistory = custodialHistoryMapper.map(metadataModel.getCustodialHistory());
         dmc.setCustodialHistory(custodialHistory);
 
-        if (metadataModel.getDescriptions() != null) {
-            dmc.getDescription().addAll(metadataModel.getDescriptions().getTextTypes());
+        if (metadataModel.getDescription_() != null) {
+            dmc.getDescription().addAll(metadataModel.getDescription_().getTextTypes());
         }
+
+        TextType description = new TextType();
+        description.setValue(metadataModel.getDescription());
+        dmc.getDescription().add(description);
+
         dmc.setDescriptionLanguage(metadataModel.getDescriptionLanguage());
         dmc.setDescriptionLevel(metadataModel.getDescriptionLevel());
         dmc.setDocumentType(metadataModel.getDocumentType());
@@ -104,9 +107,13 @@ public class DescriptiveMetadataMapper {
         dmc.setSystemId(metadataModel.getSystemId());
         dmc.getTag().addAll(metadataModel.getTag());
 
-        if (metadataModel.getTitles() != null) {
-            dmc.getTitle().addAll(metadataModel.getTitles().getTextTypes());
+        if (metadataModel.getTitle_() != null) {
+            dmc.getTitle().addAll(metadataModel.getTitle_().getTextTypes());
         }
+        TextType title = new TextType();
+        title.setValue(metadataModel.getTitle());
+        dmc.getTitle().add(title);
+
         dmc.setTransactedDate(metadataModel.getTransactedDate());
         dmc.setTransferringAgencyArchiveUnitIdentifier(
             metadataModel.getTransferringAgencyArchiveUnitIdentifier());
