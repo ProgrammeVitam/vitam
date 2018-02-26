@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.util.Files;
@@ -69,7 +68,7 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -90,12 +89,12 @@ import retrofit2.http.POST;
 /**
  * Integration tests for the reconstruction of metadatas. <br/>
  */
-public class ReconstructionMetadatasIT {
+public class ReconstructionMetadataIT {
 
     /**
      * Vitam logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionMetadatasIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionMetadataIT.class);
 
     private static final String OP_GUID = "aeaqaaaaaagbcaacaang6ak4ts6zzzzzzzzz";
     private static final String UNIT_0_JSON = "integration-reconstruction/data/unit_0.json";
@@ -152,7 +151,7 @@ public class ReconstructionMetadatasIT {
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
             MetadataCollections.UNIT.getName(), MetadataCollections.OBJECTGROUP.getName(),
-            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
+            OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION);
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =

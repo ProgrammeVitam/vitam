@@ -31,12 +31,13 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -50,6 +51,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -75,7 +77,6 @@ public class VitamMongoRepositoryTest {
             VITAM_TEST,
             TEST_COLLECTION);
 
-
     @Before
     public void setUpBeforeClass() throws Exception {
         repository = new VitamMongoRepository(mongoRule.getMongoCollection(TEST_COLLECTION));
@@ -98,6 +99,41 @@ public class VitamMongoRepositoryTest {
         Optional<Document> response = repository.getByID(id, tenant);
         assertThat(response).isPresent();
         assertThat(response.get()).extracting(TITLE).contains(TEST_SAVE);
+    }
+
+    @Test
+    public void testSaveOrUpdateOneDocumentAndGetByIDOK() throws IOException, DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field(TITLE, TEST_SAVE)
+            .endObject();
+
+        Document document = Document.parse(builder.string());
+        VitamRepositoryStatus result = repository.saveOrUpdate(document);
+
+        assertThat(VitamRepositoryStatus.CREATED.equals(result));
+        Optional<Document> response = repository.getByID(id, tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting(TITLE).contains(TEST_SAVE);
+
+        builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field(TITLE, "Test othersave")
+            .endObject();
+
+        document = Document.parse(builder.string());
+        result = repository.saveOrUpdate(document);
+
+        assertThat(VitamRepositoryStatus.UPDATED.equals(result));
+        response = repository.getByID(id, tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting(TITLE).contains("Test othersave");
     }
 
     @Test
@@ -261,7 +297,6 @@ public class VitamMongoRepositoryTest {
     @Test
     public void testFindByIdentifierFoundOK() throws IOException, DatabaseException {
         String id = GUIDFactory.newGUID().toString();
-        Integer tenant = 0;
         XContentBuilder builder = jsonBuilder()
             .startObject()
             .field(VitamDocument.ID, id)
@@ -286,7 +321,6 @@ public class VitamMongoRepositoryTest {
 
     @Test
     public void testFindByIdentifierFoundEmpty() throws DatabaseException {
-        Integer tenant = 0;
         Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
         assertThat(response).isEmpty();
     }
@@ -345,6 +379,72 @@ public class VitamMongoRepositoryTest {
         assertThat(docs.size()).isEqualTo(2);
         while (!docs.isEmpty()) {
             docs = getDocuments(cursor, 2);
+        }
+        assertThat(docs.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void testFindByFieldsDocuments() throws Exception {
+        // Given
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
+                .field(VitamDocument.TENANT_ID, 0)
+                .field(TITLE, TEST_SAVE + i + " " + RandomUtils.nextDouble())
+                .field("TestField", String.valueOf(i))
+                .field("OtherTestField", String.valueOf("Toto"))
+                .endObject();
+            documents.add(Document.parse(builder.string()));
+        }
+        // When
+        repository.save(documents);
+        Map<String, String> filter = new HashMap<>();
+        filter.put("OtherTestField", "Toto");
+        filter.put("TestField", "5");
+        FindIterable<Document> iterable = repository.findByFieldsDocuments(filter, 5, 0);
+        MongoCursor<Document> cursor;
+        cursor = iterable.iterator();
+        List<Document> docs = getDocuments(cursor, 5);
+        assertThat(docs.get(0).get("TestField")).isEqualTo("5");
+        assertThat(docs.get(0).get("OtherTestField")).isEqualTo("Toto");
+        // Then
+        assertThat(docs.size()).isEqualTo(1);
+        while (!docs.isEmpty()) {
+            docs = getDocuments(cursor, 1);
+        }
+        assertThat(docs.size()).isEqualTo(0);
+    }
+
+    @Test
+    public void testFindByEmptyFieldsDocuments() throws Exception {
+        // Given
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
+                .field(VitamDocument.TENANT_ID, 0)
+                .field(TITLE, TEST_SAVE + i + " " + RandomUtils.nextDouble())
+                .field("TestField", String.valueOf(i))
+                .field("OtherTestField", String.valueOf("Toto"))
+                .endObject();
+            documents.add(Document.parse(builder.string()));
+        }
+        // When
+        repository.save(documents);
+        Map<String, String> filter = new HashMap<>();
+        FindIterable<Document> iterable = repository.findByFieldsDocuments(filter, 5, 0);
+        MongoCursor<Document> cursor;
+        cursor = iterable.iterator();
+        List<Document> docs = getDocuments(cursor, 5);
+        assertThat(docs.get(0).get("TestField")).isEqualTo("0");
+        assertThat(docs.get(0).get("OtherTestField")).isEqualTo("Toto");
+        // Then
+        assertThat(docs.size()).isEqualTo(5);
+        while (!docs.isEmpty()) {
+            docs = getDocuments(cursor, 1);
         }
         assertThat(docs.size()).isEqualTo(0);
     }

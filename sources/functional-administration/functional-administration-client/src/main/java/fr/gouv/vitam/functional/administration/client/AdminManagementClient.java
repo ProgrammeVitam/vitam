@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -225,6 +226,28 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(String documentId, JsonNode query)
         throws InvalidParseOperationException, ReferentialException;
 
+    /**
+     * Create the accession register details as raw Data
+     * 
+     * @param accessionRegisterDetail accession Register Detail
+     * @throws ReferentialException
+     * @throws AdminManagementClientServerException
+     * @throws VitamClientException
+     */
+    void createorUpdateAccessionRegisterRaw(JsonNode accessionRegisterDetail)
+        throws ReferentialException, AdminManagementClientServerException, VitamClientException;
+
+
+    /**
+     * Get the accession register details as raw Data
+     * 
+     * @param operationId operation Id linked to accession register detail
+     * @param originatingAgency originatingAgency linked to accessing register detail
+     * @return The AccessionregisterDetails as a response jsonNode
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> getAccessionRegisterDetailRaw(String operationId, String originatingAgency)
+        throws VitamClientException;
 
     /**
      * Import a set of ingest contracts after passing the validation steps If all the contracts are valid, they are
@@ -551,24 +574,24 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<SecurityProfileModel> findSecurityProfileByIdentifier(String identifier)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
-    
-    
+
+
     /**
      * launch a reindexation process with options
      *
-     * @param options specifying what to reindex 
+     * @param options specifying what to reindex
      * @return the server response including information about the newsly created index
      * @throws AdminManagementClientServerException
      */
     RequestResponse<IndexationResult> launchReindexation(JsonNode options)
         throws AdminManagementClientServerException;
-    
+
     /**
-     * launch an index switch. By specifying the name of the index and the collection, 
-     * the index will be mapped to the correct alias
+     * launch an index switch. By specifying the name of the index and the collection, the index will be mapped to the
+     * correct alias
      *
      * @param options
-     * @return the server response 
+     * @return the server response
      * @throws AdminManagementClientServerException
      */
     RequestResponse<IndexationResult> switchIndexes(JsonNode options)

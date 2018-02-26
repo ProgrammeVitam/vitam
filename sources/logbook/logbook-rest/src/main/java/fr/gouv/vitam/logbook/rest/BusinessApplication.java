@@ -53,8 +53,7 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final LogbookConfiguration
-                configuration = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
+            final LogbookConfiguration configuration = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
             // hack to init collections and clients
             LogbookMongoDbAccessFactory.create(configuration);
@@ -62,7 +61,9 @@ public class BusinessApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new LogbookResource(configuration));
-            singletons.add(new AdminLogbookResource(VitamRepositoryFactory.getInstance(), configuration));
+            singletons.add(new LogbookRawResource(VitamRepositoryFactory.getInstance()));
+            singletons.add(new LogbookAdminResource(VitamRepositoryFactory.getInstance(), configuration));
+            singletons.add(new LogbookReconstructionResource(VitamRepositoryFactory.getInstance()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -47,6 +47,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -121,10 +122,48 @@ public class VitamElasticsearchRepositoryTest {
 
         assertThat(document.get(VitamDocument.ID)).isNotNull();
         assertThat(document.get(VitamDocument.ID)).isEqualTo(id);
-        
+
         Optional<Document> response = repository.getByID(id, tenant);
         assertThat(response).isPresent();
         assertThat(response.get()).extracting("Title").contains("Test save");
+    }
+
+    @Test
+    public void testSaveOrUpdateOneDocumentAndGetByIDOK() throws IOException, DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field("Title", "Test save")
+            .endObject();
+
+        Document document = Document.parse(builder.string());
+        VitamRepositoryStatus result = repository.saveOrUpdate(document);
+
+        assertThat(VitamRepositoryStatus.CREATED.equals(result));
+        assertThat(document.get(VitamDocument.ID)).isNotNull();
+        assertThat(document.get(VitamDocument.ID)).isEqualTo(id);
+
+        Optional<Document> response = repository.getByID(id, tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+
+        builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field("Title", "Test othersave")
+            .endObject();
+
+        document = Document.parse(builder.string());
+        result = repository.saveOrUpdate(document);
+
+        assertThat(VitamRepositoryStatus.UPDATED.equals(result));
+        response = repository.getByID(id, tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test othersave");
     }
 
     @Test
@@ -327,7 +366,6 @@ public class VitamElasticsearchRepositoryTest {
 
     @Test
     public void testFindByIdentifierFoundEmpty() throws DatabaseException {
-        Integer tenant = 0;
         Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
         assertThat(response).isEmpty();
     }

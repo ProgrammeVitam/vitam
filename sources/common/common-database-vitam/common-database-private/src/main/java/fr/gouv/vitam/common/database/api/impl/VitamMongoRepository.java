@@ -31,6 +31,7 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -45,9 +46,11 @@ import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepository;
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -78,6 +81,26 @@ public class VitamMongoRepository implements VitamRepository {
             collection.insertOne(document);
         } catch (Exception e) {
             LOGGER.error("Insert Document Exception: ", e);
+            throw new DatabaseException(e);
+        }
+    }
+
+    @Override
+    public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
+        ParametersChecker.checkParameter("All params are required", collection, document);
+        try {
+            ReplaceOneModel<Document> replaceOneModel =
+                new ReplaceOneModel<Document>(eq("_id", document.get("_id")), document,
+                    new UpdateOptions().upsert(true));
+            UpdateResult result = collection.replaceOne(replaceOneModel.getFilter(), replaceOneModel.getReplacement(),
+                replaceOneModel.getOptions());
+            if (result.getModifiedCount() > 0) {
+                return VitamRepositoryStatus.UPDATED;
+            } else {
+                return VitamRepositoryStatus.CREATED;
+            }
+        } catch (Exception e) {
+            LOGGER.error("Insert or Update Document Exception: ", e);
             throw new DatabaseException(e);
         }
     }
@@ -237,6 +260,19 @@ public class VitamMongoRepository implements VitamRepository {
                     identifier),
                 e);
         }
+    }
+
+    @Override
+    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
+        Integer tenant) {
+        ParametersChecker.checkParameter("All params are required", tenant);
+        if (fields == null || fields.isEmpty()) {
+            return findDocuments(mongoBatchSize, tenant);
+        }
+        BasicDBObject filter = new BasicDBObject();
+        fields.forEach((key, value) -> filter.append(key, value));
+        filter.put(VitamDocument.TENANT_ID, tenant);
+        return collection.find(filter).batchSize(mongoBatchSize);
     }
 
     @Override

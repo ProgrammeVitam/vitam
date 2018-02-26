@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -248,7 +249,7 @@ public class AdminManagementClientMockTest {
             fail("should be ok");
         }
     }
-
+    
     @Test
     public void getAccessionRegisterDetailTest()
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
@@ -271,6 +272,29 @@ public class AdminManagementClientMockTest {
             assertEquals(1, results.size());
             final AccessionRegisterDetailModel item = results.get(0);
             assertEquals("FRAN_NP_005061", item.getSubmissionAgency());
+        }
+    }
+
+    @Test
+    public void getAccessionRegisterDetailRawTest()
+        throws VitamClientException {
+        AdminManagementClientFactory.changeMode(null);
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final RequestResponse<JsonNode> detailResponse =
+            client.getAccessionRegisterDetailRaw("aedqaaaaacaam7mxabsakakygeje2uyaaaaq", "FRAN_NP_005061");
+
+        if (detailResponse.isOk()) {
+            RequestResponseOK<JsonNode> responseOK =
+                (RequestResponseOK<JsonNode>) detailResponse;
+
+            assertNotNull(responseOK);
+
+            List<JsonNode> results = responseOK.getResults();
+
+            assertNotNull(results);
+            assertEquals(1, results.size());
+            final JsonNode item = results.get(0);
+            assertEquals("FRAN_NP_005061", item.get("OriginatingAgency").asText());
         }
     }
 

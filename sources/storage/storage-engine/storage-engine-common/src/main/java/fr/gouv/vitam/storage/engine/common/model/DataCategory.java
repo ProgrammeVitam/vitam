@@ -84,7 +84,7 @@ public enum DataCategory {
      */
     DIP("dip", "dip", false, true),
     /**
-     * Rules files
+     * Agencies files
      */
     AGENCIES("agencies", "agencies", false, false),
 
@@ -95,7 +95,7 @@ public enum DataCategory {
     /**
      * backup operation files
      */
-    BACKUP_OPERATION("backupoperation", "backup_operation", true, false),
+    BACKUP_OPERATION("backupoperations", "backup_operation", true, false),
 
     /**
      * checklogbook_reports files

@@ -44,7 +44,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -61,7 +67,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -131,8 +136,9 @@ public class AccessionRegisterActionHandlerTest {
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
             .thenReturn(originatingAgencies);
 
-        when(adminManagementClient.getAccessionRegisterDetail(anyObject(), anyObject()))
-            .thenThrow(new ReferentialNotFoundException("AccessionRegister Detail Not found "));
+        when(adminManagementClient.getAccessionRegisterDetailRaw(anyObject(), anyObject()))
+            .thenReturn(
+                VitamCodeHelper.toVitamError(VitamCode.REFERENTIAL_NOT_FOUND, "where no fund has gone before..."));
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -158,7 +164,15 @@ public class AccessionRegisterActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertNotNull(response.getEvDetailData());
         assertNotNull(JsonHandler.getFromString(response.getEvDetailData()).get("Volumetry"));
-
+        assertEquals(1, JsonHandler.getFromString(response.getEvDetailData()).get("Volumetry").size());
+        JsonNode register = ((ArrayNode) JsonHandler.getFromString(response.getEvDetailData()).get("Volumetry")).get(0);
+        assertEquals("sp1", register.get("OriginatingAgency").asText());
+        assertEquals("FRAN_NP_005061", register.get("SubmissionAgency").asText());
+        assertEquals("STORED_AND_COMPLETED", register.get("Status").asText());
+        assertEquals(true, register.get("Symbolic").asBoolean());
+        assertEquals(0, register.get("TotalUnits").get("ingested").asInt());
+        assertEquals(3, register.get("TotalUnits").get("attached").asInt());
+        assertEquals(3, register.get("TotalUnits").get("symbolicRemained").asInt());
     }
 
     @Test
@@ -179,8 +193,9 @@ public class AccessionRegisterActionHandlerTest {
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
             .thenReturn(originatingAgencies);
 
-        when(adminManagementClient.getAccessionRegisterDetail(anyObject(), anyObject()))
-            .thenThrow(new ReferentialNotFoundException("AccessionRegister Detail Not found "));
+        when(adminManagementClient.getAccessionRegisterDetailRaw(anyObject(), anyObject()))
+            .thenReturn(
+                VitamCodeHelper.toVitamError(VitamCode.REFERENTIAL_REPOSITORY_DATABASE_ERROR, "database down..."));
 
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
             .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
@@ -209,7 +224,7 @@ public class AccessionRegisterActionHandlerTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
 
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testResponseKOConflictRegister() throws Exception {
@@ -228,8 +243,8 @@ public class AccessionRegisterActionHandlerTest {
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
             .thenReturn(originatingAgencies);
 
-        when(adminManagementClient.getAccessionRegisterDetail(anyObject(), anyObject()))
-            .thenThrow(new ReferentialNotFoundException("AccessionRegister Detail Not found "));
+        when(adminManagementClient.getAccessionRegisterDetailRaw(anyObject(), anyObject()))
+            .thenThrow(new VitamClientException("It happens..."));
 
         when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
             .thenThrow(new DatabaseConflictException("DatabaseConflictException"));
@@ -258,7 +273,7 @@ public class AccessionRegisterActionHandlerTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
 
     }
-        
+
 
     @Test
     @RunWithCustomExecutor

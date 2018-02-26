@@ -143,6 +143,13 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Security profile request validation error"),
 
+    REFERENTIAL_REPOSITORY_DATABASE_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.DATABASE, "15",
+        Status.INTERNAL_SERVER_ERROR,
+        "DatabaseException while accessing database through repository service"),
+
+    REFERENTIAL_NOT_FOUND(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.DATABASE, "03", Status.NOT_FOUND,
+        "Referential not found"),
+
     ACCESS_EXTERNAL_SELECT_UNITS_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "00",
         Status.BAD_REQUEST,
         "Access external client error in selectUnits method."),

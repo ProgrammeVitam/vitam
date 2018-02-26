@@ -19,11 +19,21 @@
             <artifactId>logbook-common-client</artifactId>
             <version>${project.version}</version>
         </dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>common-database-private</artifactId>
             <version>${project.version}</version>
         </dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

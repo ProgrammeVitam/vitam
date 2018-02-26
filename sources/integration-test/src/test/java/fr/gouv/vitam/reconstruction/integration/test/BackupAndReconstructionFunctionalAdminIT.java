@@ -32,8 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,14 +57,10 @@ import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -83,20 +77,13 @@ import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceI
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
@@ -109,12 +96,13 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 /**
  * Integration tests for the reconstruction services. <br/>
  */
-public class BackupAndReconstructionIT {
+public class BackupAndReconstructionFunctionalAdminIT {
 
     /**
      * Vitam logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupAndReconstructionIT.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(BackupAndReconstructionFunctionalAdminIT.class);
 
     private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
     private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
@@ -187,7 +175,6 @@ public class BackupAndReconstructionIT {
         File vitamTempFolder = tempFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
 
-        // launch functional Admin server
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
 
@@ -227,7 +214,7 @@ public class BackupAndReconstructionIT {
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
 
-
+        // prepare functional admin
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
@@ -236,10 +223,8 @@ public class BackupAndReconstructionIT {
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(elasticsearchRule.getClusterName());
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
-
         PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
 
-        // prepare functional admin
         adminManagementMain = new AdminManagementMain(adminConfig.getAbsolutePath());
         adminManagementMain.start();
 
@@ -286,10 +271,10 @@ public class BackupAndReconstructionIT {
     @AfterClass
     public static void afterClass() throws Exception {
 
-        if(workspaceClient != null ) {
+        if (workspaceClient != null) {
             workspaceClient.close();
         }
-        if(workspaceMain != null) {
+        if (workspaceMain != null) {
             workspaceMain.stop();
         }
         File offerFolder = new File(OFFER_FOLDER);
@@ -302,16 +287,16 @@ public class BackupAndReconstructionIT {
                 LOGGER.error("ERROR: Exception has been thrown when cleanning offer:", e);
             }
         }
-        if(storageClient != null) {
+        if (storageClient != null) {
             storageClient.close();
         }
-        if(defaultOfferApplication != null) {
+        if (defaultOfferApplication != null) {
             defaultOfferApplication.stop();
         }
-        if(storageMain != null) {
+        if (storageMain != null) {
             storageMain.stop();
         }
-        if(adminManagementMain !=null) {
+        if (adminManagementMain != null) {
             adminManagementMain.stop();
         }
         if (logbookApplication != null) {
@@ -336,22 +321,11 @@ public class BackupAndReconstructionIT {
     }
 
     /**
-     * Test reconstruction of agencies
-     * For tenant 0
-     * 1. Import one agency using import service
-     * 2. Check that imported
-     * 3. purge mongo and es
-     * 4. Check that purged
-     * 5. reconstruct
-     * 6. Check that document reconstructed
-     * 7. check that initial document is equal to the reconstructed one
-     * 8. import agencies containing the first one + an other agency
-     * 9. Check that imported two documents
-     * 10. purge mongo and es
-     * 11. Check that purged
-     * 12. reconstruct
-     * 13. Check that two documents are reconstructed
-     * 14. check that initial documents are equal to the reconstructed documents
+     * Test reconstruction of agencies For tenant 0 1. Import one agency using import service 2. Check that imported 3.
+     * purge mongo and es 4. Check that purged 5. reconstruct 6. Check that document reconstructed 7. check that initial
+     * document is equal to the reconstructed one 8. import agencies containing the first one + an other agency 9. Check
+     * that imported two documents 10. purge mongo and es 11. Check that purged 12. reconstruct 13. Check that two
+     * documents are reconstructed 14. check that initial documents are equal to the reconstructed documents
      *
      * @throws Exception
      */
@@ -512,8 +486,7 @@ public class BackupAndReconstructionIT {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
-                    });
+                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {});
             client.importSecurityProfiles(securityProfileModelList);
         }
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
@@ -573,8 +546,7 @@ public class BackupAndReconstructionIT {
                 PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
             List<SecurityProfileModel> securityProfileModelList =
                 JsonHandler
-                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
-                    });
+                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {});
             client.importSecurityProfiles(securityProfileModelList);
         }
 
@@ -647,59 +619,6 @@ public class BackupAndReconstructionIT {
         assertThat(inEs12).isEqualTo(inEs12Reconstructed);
         assertThat(inMogo22).isEqualTo(inMogo22Reconstructed);
         assertThat(inEs22).isEqualTo(inEs22Reconstructed);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void testBackupOperationOk() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-        final GUID eip = GUIDFactory.newEventGUID(TENANT_0);
-        final GUID eiEvent = GUIDFactory.newEventGUID(TENANT_0);
-        final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, "eventType", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
-        final LogbookOperationParameters logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
-            eiEvent,"eventType", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
-
-        Path backup0Folder = Paths.get(OFFER_FOLDER, TENANT_0 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
-        Path backup1Folder = Paths.get(OFFER_FOLDER, TENANT_1 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
-
-        assertThat(java.nio.file.Files.exists(backup0Folder)).isFalse();
-        assertThat(java.nio.file.Files.exists(backup1Folder)).isFalse();
-
-        assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), eip.getId()))).isFalse();
-
-        LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
-
-        client.create(logbookParametersStart);
-        assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), eip.getId()))).isTrue();
-
-        client.update(logbookParametersAppend);
-        assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), eip.getId()))).isTrue();
-        
-        RequestResponse<OfferLog> offerLogResponse1 = storageClient.getOfferLogs("default", DataCategory.BACKUP_OPERATION, 0L, 10, Order.ASC);
-        assertThat(offerLogResponse1).isNotNull();
-        assertThat(offerLogResponse1.isOk()).isTrue();
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().size()).isEqualTo(2);
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getSequence()).isEqualTo(1L);
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getContainer()).isEqualTo(TENANT_0 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(0).getFileName()).isEqualTo(eip.getId());
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getSequence()).isEqualTo(2L);
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getContainer()).isEqualTo(TENANT_0 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().get(1).getFileName()).isEqualTo(eip.getId());
-        
-        RequestResponse<OfferLog> offerLogResponse2 = storageClient.getOfferLogs("default", DataCategory.BACKUP_OPERATION, 1L, 10, Order.DESC);
-        assertThat(offerLogResponse2).isNotNull();
-        assertThat(offerLogResponse2.isOk()).isTrue();
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse2).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse2).getResults().get(0).getSequence()).isEqualTo(1L);
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse2).getResults().get(0).getFileName()).isEqualTo(eip.getId());
-        
-        RequestResponse<OfferLog> offerLogResponse3 = storageClient.getOfferLogs("default", DataCategory.BACKUP_OPERATION, null, 10, Order.DESC);
-        assertThat(offerLogResponse3).isNotNull();
-        assertThat(offerLogResponse3.isOk()).isTrue();
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse3).getResults().size()).isEqualTo(2);
     }
 
     /**

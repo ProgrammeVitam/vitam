@@ -53,13 +53,14 @@ public class LogbookRepositoryService {
 
     /**
      * Save datas as bulk
+     * 
      * @param collection logbook collection
-     * @param logbookItems logbooks 
+     * @param logbookItems logbooks
      * @throws DatabaseException
      */
     public void saveBulk(LogbookCollections collection, List<JsonNode> logbookItems) throws DatabaseException {
         List<Document> documents = logbookItems.stream()
-            .map(item -> new Document(Document.parse(JsonHandler.unprettyPrint(item)))).collect(Collectors.toList());
+            .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
         vitamRepositoryProvider.getVitamMongoRepository(collection).saveOrUpdate(documents);
         if (LogbookCollections.OPERATION.equals(collection)) {
             vitamRepositoryProvider.getVitamESRepository(collection).save(documents);

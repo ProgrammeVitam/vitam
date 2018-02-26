@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
@@ -44,6 +45,7 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -195,6 +197,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
 
     }
 
+
     @Override
     public RequestResponse getAccessionRegister(JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
@@ -269,6 +272,42 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             .setTotalUnits(totalUnits)
             .setObjectSize(objectSize);
         return ClientMockResultHelper.createReponse(detailBuider);
+    }
+
+
+
+    @Override
+    public RequestResponse<JsonNode> getAccessionRegisterDetailRaw(String operationId, String originatingAgency)
+        throws VitamClientException {
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1);
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1);
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel(4, 0, 4);
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(345042, 0, 345042);
+        ParametersChecker.checkParameter("operationId is a mandatory parameter", operationId);
+        LOGGER.debug("get document Accession Register request:");
+
+        try {
+            AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
+            detailBuider.setId(operationId)
+                .setTenant(0)
+                .setOriginatingAgency(originatingAgency)
+                .setSubmissionAgency("FRAN_NP_005061")
+                .setArchivalAgreement("Something")
+                .setEndDate("2016-11-04T21:40:47.912+01:00")
+                .setStartDate("2016-11-04T21:40:47.912+01:00")
+                .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
+                .setTotalObjects(totalObjects)
+                .setTotalObjectsGroups(totalObjectsGroups)
+                .setTotalUnits(totalUnits)
+                .setObjectSize(objectSize)
+                .setOperationsIds(Arrays.asList(operationId));
+            ObjectNode jsonNode = (ObjectNode) JsonHandler.toJsonNode(detailBuider);
+            jsonNode.put("_id", operationId);
+            jsonNode.remove("#id");
+            return ClientMockResultHelper.createReponse(jsonNode);
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(e);
+        }
     }
 
     @Override
@@ -457,12 +496,21 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse<IndexationResult> launchReindexation(JsonNode options) throws AdminManagementClientServerException {
+    public RequestResponse<IndexationResult> launchReindexation(JsonNode options)
+        throws AdminManagementClientServerException {
         return new RequestResponseOK();
     }
 
     @Override
-    public RequestResponse<IndexationResult> switchIndexes(JsonNode options) throws AdminManagementClientServerException {
+    public RequestResponse<IndexationResult> switchIndexes(JsonNode options)
+        throws AdminManagementClientServerException {
         return new RequestResponseOK();
+    }
+
+    @Override
+    public void createorUpdateAccessionRegisterRaw(JsonNode accessionRegisterDetail)
+        throws ReferentialException, AdminManagementClientServerException, VitamClientException {
+        LOGGER.debug("createorUpdateAccessionRegisterRaw ");
+        ParametersChecker.checkParameter("accessionRegisterDetail is a mandatory parameter", accessionRegisterDetail);
     }
 }
