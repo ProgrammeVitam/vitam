@@ -169,7 +169,7 @@ public class UnitGraph {
             ManagementModel management = new ManagementModel();
             Map<String, Integer> ruleMap = populateModel.getRuleTemplatePercent();
             for (String rule : ruleMap.keySet()) {
-                int numberUnitWithRUle = ruleMap.get(rule) * populateModel.getBulkSize() / 100;
+                int numberUnitWithRUle = Math.round(ruleMap.get(rule) * populateModel.getNumberOfUnit() / 100);
                 if (unitNumber < numberUnitWithRUle) {
                     RuleModel ruleModel = new RuleModel(rule, "2017-01-01");
                     // Set default rule duration 50 years
