@@ -19,6 +19,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   @Input() keyToLabel: (x) => string;
   @Input() collapse = true;
   @Input() noTitle = false;
+  @Input() yearRange = '1970:2500'; //Default value for Calendar yearRange property
 
   @Input() updateMode = false;
   @Input() canUpdate = true;
