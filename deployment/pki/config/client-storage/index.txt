@@ -37,3 +37,13 @@ V	200807093437Z		E6	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
 V	270807160406Z		E7	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_client-storage
 V	270807160407Z		E8	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_client-storage
 V	200808160457Z		E9	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	280219163457Z		EA	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_root_client-storage
+V	280219163458Z		EB	unknown	/C=fr/ST=idf/L=paris/O=vitam/OU=authorities/CN=ca_intermediate_client-storage
+V	210220171539Z		EC	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	210221091843Z		ED	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	210221092208Z		EE	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	210221093304Z		EF	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	210221093741Z		F0	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	210221143002Z		F1	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	210221163522Z		F2	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
+V	210221163712Z		F3	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=storage
