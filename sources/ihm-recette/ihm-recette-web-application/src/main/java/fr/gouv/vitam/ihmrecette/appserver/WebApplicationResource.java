@@ -217,7 +217,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        return Response.status(Status.OK).entity(tokenCSRF).build();
+        return Response.status(Status.OK).entity(new LoginModel(tokenCSRF)).build();
     }
 
     /**

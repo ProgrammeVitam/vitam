@@ -16,7 +16,7 @@ export class AppComponent {
     router.events
       .filter(event => event instanceof NavigationEnd)
       .subscribe((event : NavigationStart) => {
-        if (localStorage.getItem("loggedIn") !== 'true') {
+        if (localStorage.getItem("REC-loggedIn") !== 'true') {
           this.router.navigate(["login"]);
         }
       });

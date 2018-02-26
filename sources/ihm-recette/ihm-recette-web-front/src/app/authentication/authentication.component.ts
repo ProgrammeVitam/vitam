@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {AuthenticationService} from './authentication.service';
+import {AuthenticationService, UserInformation} from './authentication.service';
 import {Router} from '@angular/router';
 
 @Component({
@@ -41,13 +41,14 @@ export class AuthenticationComponent implements OnInit {
   }
 
   logIn() {
-    this.authenticationService.logIn(this.username, this.password).subscribe(tokenCSRF => {
-      this.authenticationService.loggedIn(tokenCSRF);
-      this.router.navigate(["admin/collection"]);
-    }, () => {
-      this.showLoginErrorMessage = true;
-
-    });
+    this.authenticationService.logIn(this.username, this.password).subscribe(
+      (user: UserInformation) => {
+        this.authenticationService.loggedIn(user);
+        this.router.navigate(["admin/collection"]);
+      }, () => {
+        this.showLoginErrorMessage = true;
+      }
+    );
   }
 
 }
