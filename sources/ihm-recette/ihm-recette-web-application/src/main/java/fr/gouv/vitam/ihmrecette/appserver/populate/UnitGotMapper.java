@@ -51,10 +51,13 @@ import fr.gouv.vitam.common.model.unit.TextByLang;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- *
+ * Unit Got Mapper
  */
 public interface UnitGotMapper {
 
+    /**
+     * @return an object mapper
+     */
     static ObjectMapper buildObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);

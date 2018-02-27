@@ -27,9 +27,10 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 
+/**
+ * Unit Got Model class
+ */
 public class UnitGotModel {
 
     private UnitModel unit;
@@ -38,57 +39,105 @@ public class UnitGotModel {
     private LogbookLifecycle logbookLifeCycleObjectGroup;
     private int objectSize;
 
+    /**
+     * Constructor
+     * 
+     * @param unit the unit
+     */
     public UnitGotModel(UnitModel unit) {
         this.unit = unit;
     }
 
+    /**
+     * Constructor
+     * 
+     * @param unit the unit
+     * @param got the object group
+     */
     public UnitGotModel(UnitModel unit, ObjectGroupModel got) {
         this(unit, got, 0);
     }
 
+    /**
+     * Constructor
+     * 
+     * @param unit the unit
+     * @param got the object group
+     * @param objectSize the object size
+     */
     public UnitGotModel(UnitModel unit, ObjectGroupModel got, Integer objectSize) {
         this.unit = unit;
         this.got = got;
         this.objectSize = (objectSize == null) ? 0 : objectSize;
     }
 
+    /**
+     * @return the unit
+     */
     public UnitModel getUnit() {
         return unit;
     }
 
+    /**
+     * @param unit
+     */
     public void setUnit(UnitModel unit) {
         this.unit = unit;
     }
 
+    /**
+     * @return the object group
+     */
     public ObjectGroupModel getGot() {
         return got;
     }
 
+    /**
+     * @param got
+     */
     public void setGot(ObjectGroupModel got) {
         this.got = got;
     }
 
+    /**
+     * @return object size
+     */
     public int getObjectSize() {
         return objectSize;
     }
 
+    /**
+     * @param objectSize
+     */
     public void setObjectSize(int objectSize) {
         this.objectSize = objectSize;
     }
 
 
+    /**
+     * @return logbookLifecycleUnit
+     */
     public LogbookLifecycle getLogbookLifecycleUnit() {
         return logbookLifecycleUnit;
     }
 
+    /**
+     * @param logbookLifecycleUnit
+     */
     public void setLogbookLifecycleUnit(LogbookLifecycle logbookLifecycleUnit) {
         this.logbookLifecycleUnit = logbookLifecycleUnit;
     }
 
+    /**
+     * @return logbookLifeCycleObjectGroup
+     */
     public LogbookLifecycle getLogbookLifeCycleObjectGroup() {
         return logbookLifeCycleObjectGroup;
     }
 
+    /**
+     * @param logbookLifeCycleObjectGroup
+     */
     public void setLogbookLifeCycleObjectGroup(LogbookLifecycle logbookLifeCycleObjectGroup) {
         this.logbookLifeCycleObjectGroup = logbookLifeCycleObjectGroup;
     }

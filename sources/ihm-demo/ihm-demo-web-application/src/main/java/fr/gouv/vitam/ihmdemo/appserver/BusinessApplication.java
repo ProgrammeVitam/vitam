@@ -26,21 +26,26 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
+
+/**
+ * Business application for ihm demo declaring resources and filters
+ */
 public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
@@ -48,7 +53,7 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     /**
-     * BusinessApplication Constructor 
+     * BusinessApplication Constructor
      * 
      * @param servletConfig
      */

@@ -45,7 +45,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 /**
  * Ingest Internal client interface
  */
-
 public interface IngestInternalClient extends OperationManagementClient {
 
     /**

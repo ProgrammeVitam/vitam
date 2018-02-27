@@ -41,7 +41,7 @@ public class TextTypeDeSerializer extends JsonDeserializer<TextType> {
      *
      * @param jp   (json, xml, string) representation
      * @param ctxt
-     * @return
+     * @return the TextType
      * @throws java.io.IOException
      */
     @Override

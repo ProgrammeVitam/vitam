@@ -95,6 +95,11 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String OPERATION_URI = "/operations";
     private static final String WORKFLOWS_URI = "/workflows";
 
+    /**
+     * Constructor
+     * 
+     * @param factory
+     */
     IngestInternalClientRest(IngestInternalClientFactory factory) {
         super(factory);
     }

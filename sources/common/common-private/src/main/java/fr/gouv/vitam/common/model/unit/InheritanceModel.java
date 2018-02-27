@@ -31,28 +31,54 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/**
+ * Inheritance Model POJO
+ */
 public class InheritanceModel {
 
     private Boolean preventInheritance;
 
     private Set<String> preventRulesId;
 
+    /**
+     * Default constructor
+     */
     public InheritanceModel() {
         preventRulesId = new HashSet<>();
     }
 
+    /**
+     * isPreventInheritance
+     * 
+     * @return preventInheritance
+     */
     public Boolean isPreventInheritance() {
         return preventInheritance;
     }
 
+    /**
+     * set Prevent inheritance
+     * 
+     * @param preventInheritance
+     */
     public void setPreventInheritance(Boolean preventInheritance) {
         this.preventInheritance = preventInheritance;
     }
 
+    /**
+     * Get preventRulesId
+     * 
+     * @return preventRulesId
+     */
     public Set<String> getPreventRulesId() {
         return preventRulesId;
     }
 
+    /**
+     * Merge inheritance
+     * 
+     * @param inheritance
+     */
     @JsonIgnore
     public void merge(InheritanceModel inheritance) {
         if (inheritance.isPreventInheritance() != null) {

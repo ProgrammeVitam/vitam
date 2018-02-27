@@ -34,9 +34,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 
 /**
- * Map the object DescriptiveMetadataModel generated from Unit data base model
- * To a jaxb object DescriptiveMetadataContentType
- * This help convert DescriptiveMetadataModel to xml using jaxb
+ * Map the object DescriptiveMetadataModel generated from Unit data base model To a jaxb object
+ * DescriptiveMetadataContentType This help convert DescriptiveMetadataModel to xml using jaxb
  */
 public class DescriptiveMetadataMapper {
 
@@ -46,7 +45,7 @@ public class DescriptiveMetadataMapper {
      * Map local DescriptiveMetadataModel to jaxb DescriptiveMetadataContentType
      *
      * @param metadataModel
-     * @return
+     * @return a descriptive Metadata Content Type
      */
     public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel) {
 

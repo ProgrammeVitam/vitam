@@ -26,12 +26,18 @@
  */
 package fr.gouv.vitam.security.internal.common.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.math.BigInteger;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Personal Certificate POJO
+ */
 public class PersonalCertificateModel {
 
+    /**
+     * Hash tag
+     */
     public static final String TAG_HASH = "Hash";
 
     @JsonProperty("_id")
@@ -48,50 +54,86 @@ public class PersonalCertificateModel {
     @JsonProperty(TAG_HASH)
     private String certificateHash;
 
+    /**
+     * @return id
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @param id
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    /**
+     * @return subjectDN
+     */
     public String getSubjectDN() {
         return subjectDN;
     }
 
+    /**
+     * @param subjectDN
+     */
     public void setSubjectDN(String subjectDN) {
         this.subjectDN = subjectDN;
     }
 
+    /**
+     * @return serialNumber
+     */
     public BigInteger getSerialNumber() {
         return serialNumber;
     }
 
+    /**
+     * @param serialNumber
+     */
     public void setSerialNumber(BigInteger serialNumber) {
         this.serialNumber = serialNumber;
     }
 
+    /**
+     * @return issuerDN
+     */
     public String getIssuerDN() {
         return issuerDN;
     }
 
+    /**
+     * @param issuerDN
+     */
     public void setIssuerDN(String issuerDN) {
         this.issuerDN = issuerDN;
     }
 
+    /**
+     * @return certificate
+     */
     public byte[] getCertificate() {
         return certificate;
     }
 
+    /**
+     * @param certificate
+     */
     public void setCertificate(byte[] certificate) {
         this.certificate = certificate;
     }
 
+    /**
+     * @return certificateHash
+     */
     public String getCertificateHash() {
         return certificateHash;
     }
 
+    /**
+     * @param certificateHash
+     */
     public void setCertificateHash(String certificateHash) {
         this.certificateHash = certificateHash;
     }

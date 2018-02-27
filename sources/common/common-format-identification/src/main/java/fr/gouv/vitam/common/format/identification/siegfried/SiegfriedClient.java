@@ -48,7 +48,8 @@ public interface SiegfriedClient extends MockOrRestClient {
      * @throws FormatIdentifierTechnicalException if some error occurs
      * @throws FormatIdentifierNotFoundException
      */
-    RequestResponse<JsonNode> analysePath(Path filePath) throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
+    RequestResponse<JsonNode> analysePath(Path filePath)
+        throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
 
     /**
      * Call Siegfried instance to get disponibility and version
@@ -58,6 +59,7 @@ public interface SiegfriedClient extends MockOrRestClient {
      * @throws FormatIdentifierTechnicalException
      * @throws FormatIdentifierNotFoundException
      */
-    RequestResponse<JsonNode> status(Path filePath) throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
+    RequestResponse<JsonNode> status(Path filePath)
+        throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
 
 }

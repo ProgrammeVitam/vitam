@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.ServerIdentityInterface;
  * Inspired from Netty </br>
  * A skeletal implementation of {@link VitamLogger}
  */
-
 public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
     private static final char PACKAGE_SEPARATOR_CHAR = '.';
@@ -266,7 +265,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     }
 
     /**
-     * @param clazz instance of a class 
+     * @param clazz instance of a class
      * @return the simple Class Name
      */
     public static final String simpleClassName(final Class<?> clazz) {

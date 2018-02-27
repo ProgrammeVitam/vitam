@@ -33,7 +33,7 @@ public class RuleMapper {
      * @param ruleCategory
      * @param commonRuleSupplier
      * @param <T>
-     * @return
+     * @return rule category
      * @throws DatatypeConfigurationException
      */
     public <T extends CommonRule> T fillCommonRule(RuleCategoryModel ruleCategory, Supplier<T> commonRuleSupplier)

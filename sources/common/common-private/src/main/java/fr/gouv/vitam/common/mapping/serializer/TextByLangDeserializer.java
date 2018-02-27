@@ -37,16 +37,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Deserialize a (json, xml, string) representation to TextByLang
- * To be registered in jackson objectMapper
+ * Deserialize a (json, xml, string) representation to TextByLang To be registered in jackson objectMapper
  */
 public class TextByLangDeserializer extends JsonDeserializer<TextByLang> {
 
     /**
      * Convert json, xml, string to TextByLang
+     * 
      * @param jp (json, xml, string) representation
      * @param ctxt
-     * @return
+     * @return the text by lang
      * @throws IOException
      */
     @Override

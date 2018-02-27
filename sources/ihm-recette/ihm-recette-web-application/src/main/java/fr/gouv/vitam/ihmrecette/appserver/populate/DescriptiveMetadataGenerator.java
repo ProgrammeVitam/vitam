@@ -26,16 +26,26 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 
-import static com.google.common.collect.Lists.newArrayList;
 
+/**
+ * Descriptive Metadata Generator allowing creation of DescriptiveMetadataModel object
+ */
 public class DescriptiveMetadataGenerator {
 
+    /**
+     * Generate a DescriptiveMetadataModel
+     * 
+     * @param index index of the object
+     * @return a DescriptiveMetadataModel
+     */
     public static DescriptiveMetadataModel generateDescriptiveMetadataModel(Integer index) {
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setDescriptionLevel(LevelType.ITEM);
@@ -52,13 +62,19 @@ public class DescriptiveMetadataGenerator {
         content.setDescription("un exemple de description" + index);
         return content;
     }
-    
-    public static FileInfoModel generateFileInfoModel(Integer index){
+
+    /**
+     * Generate a File info Model
+     * 
+     * @param index of the File Info
+     * @return a new File Info Model
+     */
+    public static FileInfoModel generateFileInfoModel(Integer index) {
         FileInfoModel fileInfoModel = new FileInfoModel();
-        
+
         String fileName = "Filename: " + index;
         fileInfoModel.setFilename(fileName);
-        
+
         return fileInfoModel;
     }
 

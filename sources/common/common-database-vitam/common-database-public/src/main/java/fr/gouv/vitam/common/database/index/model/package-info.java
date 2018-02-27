@@ -25,6 +25,6 @@
  * accept its terms.
  */
 /**
- * 
+ * Index Model Package containing POJO for indexing results
  */
 package fr.gouv.vitam.common.database.index.model;

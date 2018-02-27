@@ -4,10 +4,10 @@
  * contact.vitam@culture.gouv.fr
  * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- * high volumetry securely and efficiently.
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ * high volumetry securely and efficiently. This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
  * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
@@ -25,17 +25,27 @@
  */
 package fr.gouv.vitam.worker.core.mapping;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
+/**
+ * Custodial History Mapper
+ */
 public class CustodialHistoryMapper {
 
+    /**
+     * Map an object {@link CustodialHistory} to a {@link CustodialHistoryModel}
+     * 
+     * @param custodialHistory
+     * @return the custodial history as a {@link CustodialHistoryMapper} object
+     */
     public CustodialHistoryModel map(DescriptiveMetadataContentType.CustodialHistory custodialHistory) {
         if (custodialHistory == null) {
             return null;
@@ -48,13 +58,13 @@ public class CustodialHistoryMapper {
         custodialHistoryModel.getCustodialHistoryItem().addAll(collect);
 
         DataObjectRefType dataObjectRefType = custodialHistory.getCustodialHistoryFile();
-        if(dataObjectRefType != null) {
+        if (dataObjectRefType != null) {
             DataObjectReference custodialHistoryFile = new DataObjectReference();
             custodialHistoryFile.setDataObjectGroupReferenceId(dataObjectRefType.getDataObjectGroupReferenceId());
-            
+
             custodialHistoryModel.setCustodialHistoryFile(custodialHistoryFile);
         }
-        
+
         return custodialHistoryModel;
     }
 }

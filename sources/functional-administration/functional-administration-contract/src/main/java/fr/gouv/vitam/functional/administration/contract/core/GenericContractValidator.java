@@ -86,14 +86,15 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validate contract (%s), %s : %s";
         private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
             "Error while validate contract (%s), RootUnits (%s) not found in database";
-        private static final String ERR_INVALID_FIELD = "The field %s has an invalid format";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
-        private static final String ERR_WRONG_LINK_PARENT_ID = "the id of the AU %s is not in filing nor holding schema";
+        private static final String ERR_WRONG_LINK_PARENT_ID =
+            "the id of the AU %s is not in filing nor holding schema";
 
         private String reason;
 
         /**
-         * Constructor 
+         * Constructor
+         * 
          * @param error the error
          */
         public GenericRejectionCause(String error) {
@@ -187,6 +188,11 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
             return new GenericRejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
         }
 
+        /**
+         * Get Reason
+         * 
+         * @return the reason
+         */
         public String getReason() {
             return reason;
         }

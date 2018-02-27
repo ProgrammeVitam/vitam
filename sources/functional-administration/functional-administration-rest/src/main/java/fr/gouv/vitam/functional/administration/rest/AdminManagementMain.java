@@ -39,6 +39,9 @@ import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
+/**
+ * Admininstration management web application
+ */
 public class AdminManagementMain {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementMain.class);
@@ -46,6 +49,11 @@ public class AdminManagementMain {
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
 
+    /**
+     * Constructor
+     * 
+     * @param configurationFile the configuration of the web application
+     */
     public AdminManagementMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
@@ -53,6 +61,11 @@ public class AdminManagementMain {
             BusinessApplication.class, AdminFunctionalApplication.class);
     }
 
+    /**
+     * Main method to run the application (doing start and join)
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
@@ -75,14 +88,29 @@ public class AdminManagementMain {
         }
     }
 
+    /**
+     * Start application
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void start() throws VitamApplicationServerException {
         vitamStarter.start();
     }
 
+    /**
+     * Start and join application
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void startAndJoin() throws VitamApplicationServerException {
         vitamStarter.run();
     }
 
+    /**
+     * Stop application
+     * 
+     * @throws VitamApplicationServerException
+     */
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }

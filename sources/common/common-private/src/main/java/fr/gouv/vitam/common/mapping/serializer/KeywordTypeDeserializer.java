@@ -44,7 +44,7 @@ public class KeywordTypeDeserializer extends JsonDeserializer<KeywordsType.Keywo
      *
      * @param jp (json, xml, string) representation
      * @param ctxt
-     * @return
+     * @return a keyword type
      * @throws IOException
      */
     @Override

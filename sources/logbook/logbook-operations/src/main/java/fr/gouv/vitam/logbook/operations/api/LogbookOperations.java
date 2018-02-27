@@ -79,6 +79,7 @@ public interface LogbookOperations {
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     List<LogbookOperation> select(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
@@ -92,6 +93,7 @@ public interface LogbookOperations {
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     List<LogbookOperation> select(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;

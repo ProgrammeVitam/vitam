@@ -26,15 +26,48 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
+/**
+ * FileRules Import ErrorCode enumeration
+ */
 public enum FileRulesErrorCode {
+    /**
+     * Rule id duplication
+     */
     STP_IMPORT_RULES_RULEID_DUPLICATION,
+    /**
+     * File not in csv format
+     */
     STP_IMPORT_RULES_NOT_CSV_FORMAT,
+    /**
+     * Unknown Ruletype
+     */
     STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW,
+    /**
+     * Wrong rule measurement
+     */
     STP_IMPORT_RULES_WRONG_RULEMEASUREMENT,
+    /**
+     * Wrong rule duration
+     */
     STP_IMPORT_RULES_WRONG_RULEDURATION,
+    /**
+     * Incorrect total duration
+     */
     STP_IMPORT_RULES_WRONG_TOTALDURATION,
+    /**
+     * Used rule could not be deleted
+     */
     STP_IMPORT_RULES_DELETE_USED_RULES,
+    /**
+     * Updated rules
+     */
     STP_IMPORT_RULES_UPDATED_RULES,
+    /**
+     * Missing information
+     */
     STP_IMPORT_RULES_MISSING_INFORMATION,
+    /**
+     * RUle duration exceed limit
+     */
     STP_IMPORT_RULES_RULEDURATION_EXCEED
 }

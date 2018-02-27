@@ -26,10 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.FileUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
@@ -120,25 +142,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.FileUtils;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 
@@ -148,6 +151,9 @@ import java.util.Set;
 public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
+    /**
+     * Access contract 
+     */
     public static final String ACCESS_CONTRACT = "AccessContract";
 
     private final LogbookLifeCyclesClient logbookLifeCycleClientMock;
@@ -180,11 +186,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String DIFF = "#diff";
     private static final String ID = "#id";
     private static final String DEFAULT_STRATEGY = "default";
-
-    private static final String FILE_NAME = "FileName";
-    private static final String OFFERS = "Offers";
-    private static final String ALGORITHM = "Algorithm";
-    private static final String DIGEST = "MessageDigest";
 
     private static final String UNIT_KEY = "unit";
     private static final String LFC_KEY = "lfc";
@@ -228,7 +229,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient           a StorageClient instance
+     * @param storageClient a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -244,7 +245,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException   Throw if json format is not correct
+     * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -286,8 +287,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit    as String
-     * @throws IllegalArgumentException         Throw if json format is not correct
+     * @param idUnit as String
+     * @throws IllegalArgumentException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -713,7 +714,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @param idUnit the unit id
      * @return a new JsonNode with unit and lfc inside
      * @throws InvalidParseOperationException
-     * @throws AccessInternalException        if unable to find the unit or it's lfc
+     * @throws AccessInternalException if unable to find the unit or it's lfc
      */
     private JsonNode getUnitRawWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
         try {
@@ -743,7 +744,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
-     * @param idDocument   document uuid
+     * @param idDocument document uuid
      * @param dataCategory accepts UNIT or OBJECTGROUP
      * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
@@ -776,7 +777,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error        message to throw if response is null or no result could be found
+     * @param error message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -808,7 +809,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException                 when error in execution
+     * @throws ProcessingException when error in execution
      */
     private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
@@ -1129,7 +1130,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
      * for the request because they will be computed for endDate and reinserted later
      *
-     * @param request              The initial request
+     * @param request The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */

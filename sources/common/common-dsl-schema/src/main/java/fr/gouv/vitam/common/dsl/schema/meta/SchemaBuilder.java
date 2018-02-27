@@ -27,14 +27,17 @@
 
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+/**
+ * SchemaBuilder
+ */
 public class SchemaBuilder {
 
     private ObjectMapper mapper;
@@ -45,8 +48,15 @@ public class SchemaBuilder {
 
     private Map<String, Format> types = new HashMap<>();
 
+    /**
+     * Load input stream into a SchemaBuimder
+     * 
+     * @param schemaStream the input stream
+     * @return a schema builder
+     * @throws IOException
+     */
     public SchemaBuilder loadTypes(InputStream schemaStream) throws IOException {
-        Map<String,Format> loaded = mapper.readValue(schemaStream, new TypeReference<Map<String,Format>>(){});
+        Map<String, Format> loaded = mapper.readValue(schemaStream, new TypeReference<Map<String, Format>>() {});
 
         for (Map.Entry<String, Format> entry : loaded.entrySet()) {
             Format format = entry.getValue();
@@ -55,13 +65,18 @@ public class SchemaBuilder {
             format.setName(name);
             Format oldType = types.put(name, format);
             if (oldType != null) {
-                throw new IllegalArgumentException("Schema type "+ name +" already loaded into schema");
+                throw new IllegalArgumentException("Schema type " + name + " already loaded into schema");
             }
         }
 
         return this;
     }
 
+    /**
+     * Build a schema
+     * 
+     * @return the schema built
+     */
     public Schema build() {
         return new Schema(types);
     }

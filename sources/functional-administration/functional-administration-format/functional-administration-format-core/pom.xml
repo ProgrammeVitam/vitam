@@ -13,11 +13,6 @@
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>functional-administration-format-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>

@@ -52,7 +52,7 @@ public class TransformJsonTreeToListOfXmlElement {
      * Transform Json Tree to list of xml elements
      *
      * @param any
-     * @return
+     * @return the list of elements transformed into xml
      */
     public static List<Element> mapJsonToElement(List<Object> any) {
         try {

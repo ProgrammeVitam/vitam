@@ -43,7 +43,7 @@ public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType>
      *
      * @param jp representation (json, xml, string)
      * @param ctxt
-     * @return
+     * @return the identifier type
      * @throws IOException
      */
     @Override

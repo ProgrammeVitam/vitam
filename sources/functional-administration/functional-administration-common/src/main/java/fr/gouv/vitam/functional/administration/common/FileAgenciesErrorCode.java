@@ -26,11 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
+/**
+ * FileAgencies Import ErrorCode enumeration
+ */
 public enum FileAgenciesErrorCode {
+    /**
+     * Id duplication Error
+     */
     STP_IMPORT_AGENCIES_ID_DUPLICATION,
+    /**
+     * File not in csv format
+     */
     STP_IMPORT_AGENCIES_NOT_CSV_FORMAT,
+    /**
+     * File including a deletion of a used agency
+     */
     STP_IMPORT_AGENCIES_DELETE_USED_AGENCIES,
+    /**
+     * Missing information
+     */
     STP_IMPORT_AGENCIES_MISSING_INFORMATIONS,
-
+    /**
+     * Updated agencies
+     */
     STP_IMPORT_AGENCIES_UPDATED_AGENCIES
 }

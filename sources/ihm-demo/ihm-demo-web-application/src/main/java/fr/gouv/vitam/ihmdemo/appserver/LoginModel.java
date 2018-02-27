@@ -31,6 +31,12 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * 
+ */
+/**
+ * Login Model class
+ */
 public class LoginModel {
 
     private String userName;
@@ -38,9 +44,17 @@ public class LoginModel {
     private List<String> permissions;
 
     private long sessionTimeout;
-    
+
     private String tokenCSRF;
 
+    /**
+     * Constructor
+     * 
+     * @param userName the user name
+     * @param permissions list of permissions
+     * @param sessionTimeout the session timeout as a long
+     * @param tokenCSRF the csrf token
+     */
     @JsonCreator
     public LoginModel(@JsonProperty("userName") String userName,
         @JsonProperty("permissions") List<String> permissions,
@@ -52,18 +66,30 @@ public class LoginModel {
         this.tokenCSRF = tokenCSRF;
     }
 
+    /**
+     * @return userName
+     */
     public String getUserName() {
         return userName;
     }
 
+    /**
+     * @return permissions
+     */
     public List<String> getPermissions() {
         return permissions;
     }
 
+    /**
+     * @return sessionTimeout
+     */
     public long getSessionTimeout() {
         return sessionTimeout;
     }
-    
+
+    /**
+     * @return tokenCSRF
+     */
     public String getTokenCSRF() {
         return tokenCSRF;
     }

@@ -25,15 +25,25 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
-
+/**
+ * Data Object Reference POJO
+ */
 public class DataObjectReference {
 
     private String dataObjectGroupReferenceId;
 
+    /**
+     * Get DataObjectGroupReferenceId
+     * @return dataObjectGroupReferenceId
+     */
     public String getDataObjectGroupReferenceId() {
         return dataObjectGroupReferenceId;
     }
 
+    /**
+     * Set DataObjectGroupReferenceId
+     * @param dataObjectGroupReferenceId
+     */
     public void setDataObjectGroupReferenceId(String dataObjectGroupReferenceId) {
         this.dataObjectGroupReferenceId = dataObjectGroupReferenceId;
     }

@@ -52,6 +52,7 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     /**
+     * Constructor
      *
      * @param servletConfig
      */

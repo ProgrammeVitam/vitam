@@ -43,7 +43,7 @@ public class HeaderIdContainerFilter implements ContainerRequestFilter, Containe
      *
      * @see ContainerRequestFilter#filter(ContainerRequestContext)
      * @param requestContext {@link ContainerRequestFilter#filter(ContainerRequestContext)}
-     * @throws IOException {@see ContainerRequestFilter#filter(ContainerRequestContext)}
+     * @throws IOException {@link ContainerRequestFilter#filter(ContainerRequestContext)}
      */
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {

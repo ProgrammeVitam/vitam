@@ -50,10 +50,17 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
+/**
+ * Admin functional Application declaring resources for the functional administration of Vitam
+ */
 public class AdminFunctionalApplication extends Application {
 
     private Set<Object> singletons;
 
+    /**
+     * Construcror 
+     * @param servletConfig the configuration for the application
+     */
     public AdminFunctionalApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
         AdminApplication adminApplication = new AdminApplication();

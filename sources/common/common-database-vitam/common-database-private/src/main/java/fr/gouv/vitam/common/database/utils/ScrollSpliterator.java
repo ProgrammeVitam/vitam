@@ -36,6 +36,10 @@ import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 
+/**
+ * ScrollSpliterator
+ * @param <T>
+ */
 public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
 
     private SelectMultiQuery query;
@@ -48,6 +52,14 @@ public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
     private Iterator<T> results;
     private String scrollId;
 
+    /**
+     * Constructor 
+     * 
+     * @param query the select query
+     * @param repository the repository
+     * @param scrollTimeout scroll timeout
+     * @param limit the limit
+     */
     public ScrollSpliterator(SelectMultiQuery query, Function<SelectMultiQuery, RequestResponse<T>> repository,
         int scrollTimeout, int limit) {
         super(Long.MAX_VALUE, DISTINCT | SIZED | NONNULL);

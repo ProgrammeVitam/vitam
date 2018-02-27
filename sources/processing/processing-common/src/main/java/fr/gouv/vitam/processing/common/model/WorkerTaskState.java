@@ -28,11 +28,27 @@
 package fr.gouv.vitam.processing.common.model;
 
 /**
+ * Worker Task State enum
  */
 public enum WorkerTaskState {
+    /**
+     * Pending state
+     */
     PENDING,
+    /**
+     * Pause state
+     */
     PAUSE,
+    /**
+     * Cancel state
+     */
     CANCEL,
+    /**
+     * Running state
+     */
     RUNNING,
+    /**
+     * Completed state
+     */
     COMPLETED
 }

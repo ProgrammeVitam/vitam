@@ -10,6 +10,14 @@
 - Référentiel des Services Agents
 - Opérations
 
+## Tenant d'administration
+
+Certaines APIs dites "cross-tenants" nécessitent une vérification spécifique.
+Ces opérations doivent être exécutées à partir d'un tenant dit tenant d'administration (configuré comme tel à l'intérieur de VITAM).
+Il s'agit de s'assurer que pour les collections Formats, Contextes et Profils de sécurité, le tenant utilisé pour l'import soit conforme à celui configuré dans VITAM.
+En cas de différence, une erreur 401 sera retournée.
+
+
 # Référentiel des Formats
 
 Ce référentiel est basé sur PRONOM (TNA) mais il peut être étendu. Il est trans-tenant.

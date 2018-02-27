@@ -26,14 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
+/**
+ * ArchiveUnitRoot class
+ */
 public class ArchiveUnitRoot {
 
     private ArchiveUnitModel archiveUnit;
 
+    /**
+     * Constructor
+     */
     public ArchiveUnitRoot() {
         archiveUnit = new ArchiveUnitModel();
     }
 
+    /**
+     * Get Archive Unit
+     * @return the archive unit as a {@link ArchiveUnitModel}
+     */
     public ArchiveUnitModel getArchiveUnit() {
         return archiveUnit;
     }

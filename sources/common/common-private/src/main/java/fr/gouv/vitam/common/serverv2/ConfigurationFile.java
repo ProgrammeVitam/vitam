@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -27,7 +27,15 @@
 
 package fr.gouv.vitam.common.serverv2;
 
+/**
+ * Configuration File Interface
+ */
 public interface ConfigurationFile {
 
+    /**
+     * get the configuration file
+     * 
+     * @return the configuration file
+     */
     String configurationFile();
 }

@@ -26,23 +26,49 @@
  */
 package fr.gouv.vitam.security.internal.client;
 
+import java.util.Optional;
+
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 
-import javax.ws.rs.core.Response;
-import java.util.Optional;
-
+/**
+ * InternalSecurityClient Interface
+ */
 public interface InternalSecurityClient extends BasicClient {
 
+    /**
+     * Find Identity
+     * 
+     * @param certificate
+     * @return an Optional describing the IdentityModel, otherwise return an empty Optional.
+     * @throws VitamClientInternalException in case of client exception
+     * @throws InternalSecurityException in case of internal security exception
+     */
     Optional<IdentityModel> findIdentity(byte[] certificate)
         throws VitamClientInternalException, InternalSecurityException;
 
+    /**
+     * Check if a personal certificate is required for this permission
+     * 
+     * @param permission the permission to be checkd
+     * @return IsPersonalCertificateRequiredModel
+     * @throws VitamClientInternalException
+     * @throws InternalSecurityException
+     */
     IsPersonalCertificateRequiredModel isPersonalCertificateRequiredByPermission(String permission)
         throws VitamClientInternalException, InternalSecurityException;
 
+    /**
+     * Check certificate with a permission
+     * 
+     * @param certificate the certificate to be checked
+     * @param permission the permission to be checked
+     * @throws VitamClientInternalException
+     * @throws InternalSecurityException
+     */
     void checkPersonalCertificate(byte[] certificate, String permission)
         throws VitamClientInternalException, InternalSecurityException;
 }

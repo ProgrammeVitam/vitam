@@ -35,15 +35,14 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import java.io.IOException;
 
 /**
- * Deserialize a (json, xml, string) representation to LevelType
- * To be registered in jackson objectMapper
+ * Deserialize a (json, xml, string) representation to LevelType To be registered in jackson objectMapper
  */
 public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
     /**
      *
      * @param jp (json, xml, string) representation
      * @param ctxt
-     * @return
+     * @return the level type
      * @throws IOException
      */
     @Override

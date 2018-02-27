@@ -17,7 +17,7 @@ public class SedaVersionTest {
         sedaVersion.setPhysicalDataObjectVersions(new String[] {"TEST3","TEST4"});
         assertNotNull(sedaVersion.getVersionForType("BinaryDataObject"));
         assertNotNull(sedaVersion.getVersionForType("PhysicalDataObject"));
-        assertNull(sedaVersion.getVersionForType("Bleah"));
+        assertEquals(0, sedaVersion.getVersionForType("Bleah").size());
         assertEquals("TEST1", sedaVersion.getVersionForType("BinaryDataObject").get(0));
         assertEquals("TEST4", sedaVersion.getVersionForType("PhysicalDataObject").get(1));
     }

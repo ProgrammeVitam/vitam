@@ -65,7 +65,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
@@ -211,7 +210,8 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit, Order order)
+    public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit,
+        Order order)
         throws StorageServerClientException {
         RequestResponseOK<OfferLog> requestResponseOK = new RequestResponseOK<>();
         OfferLog offerLog = new OfferLog();

@@ -9,7 +9,6 @@
     </parent>
 
     <artifactId>ihm-demo-front</artifactId>
-    <version>0.31.1-SNAPSHOT</version>
     <name>ihm-demo-front</name>
     <packaging>jar</packaging>
 

@@ -23,8 +23,6 @@
 		</dependency>
 	</dependencies>
 	<modules>
-		<module>functional-administration-format-api</module>
 		<module>functional-administration-format-core</module>
-		<module>functional-administration-format-import</module>
 	</modules>
 </project>

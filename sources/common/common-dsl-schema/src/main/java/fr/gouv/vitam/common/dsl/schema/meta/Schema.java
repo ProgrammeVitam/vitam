@@ -30,6 +30,9 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * DSL Schema Class
+ */
 public class Schema {
     private Map<String, Format> definitions;
 
@@ -41,10 +44,22 @@ public class Schema {
         }
     }
 
+    /**
+     * Get Schema Type
+     * 
+     * @param typeName
+     * @return the Format
+     */
     public Format getType(String typeName) {
         return definitions.get(typeName);
     }
 
+    /**
+     * Get Schema Builder
+     * 
+     * @param mapper
+     * @return the Schema Builder
+     */
     public static SchemaBuilder withMapper(ObjectMapper mapper) {
         return new SchemaBuilder(mapper);
     }

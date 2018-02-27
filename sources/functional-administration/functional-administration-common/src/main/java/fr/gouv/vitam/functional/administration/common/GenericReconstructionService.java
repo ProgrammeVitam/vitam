@@ -22,10 +22,20 @@ public class GenericReconstructionService {
         this.storageClientFactory = storageClientFactory;
     }
 
+    /**
+     * Reconstruct
+     * 
+     * @param collections
+     */
     public void reconstruct(FunctionalAdminCollections collections) {
 
     }
 
+    /**
+     * Reconstruct collection
+     * @param collections
+     * @param tenant
+     */
     public void reconstruct(FunctionalAdminCollections collections, int tenant) {
 
     }

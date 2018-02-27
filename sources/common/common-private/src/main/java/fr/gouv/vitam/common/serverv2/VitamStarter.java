@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -82,7 +81,6 @@ public class VitamStarter {
 
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String SHIRO_FILE = "shiro.ini";
-    private static final String IHM_RECETTE = "/ihm-recette";
 
     private final String role = ServerIdentity.getInstance().getRole();
 
@@ -93,6 +91,14 @@ public class VitamStarter {
     private Class<? extends VitamApplicationConfiguration> configurationType;
     private List<ServletContextListener> customListeners;
 
+    /**
+     * Constructor
+     * 
+     * @param configurationType configuration type
+     * @param configurationFile configuration file
+     * @param businessApplication business application
+     * @param adminApplication admin application
+     */
     public VitamStarter(Class<? extends VitamApplicationConfiguration> configurationType,
         String configurationFile,
         Class<? extends Application> businessApplication,
@@ -101,6 +107,15 @@ public class VitamStarter {
 
     }
 
+    /**
+     * Constructor
+     * 
+     * @param configurationType configuration type
+     * @param configurationFile configuration file
+     * @param businessApplication business application
+     * @param adminApplication admin application
+     * @param customListeners list of custom listeners
+     */
     public VitamStarter(Class<? extends VitamApplicationConfiguration> configurationType,
         String configurationFile,
         Class<? extends Application> businessApplication,
@@ -190,6 +205,11 @@ public class VitamStarter {
         }
     }
 
+    /**
+     * Get configuration Type
+     * 
+     * @return configuration type
+     */
     public final Class<? extends VitamApplicationConfiguration> getConfigurationType() {
         return configurationType;
     }
@@ -199,11 +219,12 @@ public class VitamStarter {
      * </br>
      * If extra register are needed, override the method getResources.</br>
      * If extra filter or action on context are needed, override setFilter.
-     *
+     * 
+     * @param configurationFile configuration file
+     * @param configuration configuration
      * @return the generated Handler
      * @throws VitamApplicationServerException
-     * @param configurationFile
-     * @param configuration
+     * 
      */
     protected Handler buildApplicationHandler(String configurationFile, VitamApplicationConfiguration configuration)
         throws VitamApplicationServerException {
@@ -245,7 +266,7 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@admin"});
 
-        //no shiro, only internal network
+        // no shiro, only internal network
         if (customListeners != null && !customListeners.isEmpty()) {
             customListeners.forEach((listener) -> {
                 context.addEventListener(listener);
@@ -295,6 +316,11 @@ public class VitamStarter {
         return ServletContextHandler.NO_SESSIONS;
     }
 
+    /**
+     * Run method, start and join the server
+     * 
+     * @throws VitamApplicationServerException
+     */
     public final void run() throws VitamApplicationServerException {
         if (vitamServer != null && !vitamServer.isStarted()) {
             vitamServer.startAndJoin();
@@ -306,7 +332,7 @@ public class VitamStarter {
     /**
      * For Junit tests, starts only, not join
      *
-     * @throws VitamApplicationServerException
+     * @throws VitamApplicationServerException in case the server could not be started
      */
     public void start() throws VitamApplicationServerException {
         try {
@@ -329,16 +355,26 @@ public class VitamStarter {
         }
     }
 
+    /**
+     * Check if server is started
+     * 
+     * @return true if started
+     */
     public boolean isStarted() {
         return vitamServer.isStarted();
     }
 
+    /**
+     * Get the vitam server
+     * 
+     * @return the vitam server
+     */
     public VitamServer getVitamServer() {
         return vitamServer;
     }
 
     /**
-     *  Method to create VitamStarter only for IHM
+     * Method to create VitamStarter only for IHM
      *
      * @param configurationType
      * @param configurationFile
@@ -398,7 +434,8 @@ public class VitamStarter {
         handlerList.addHandler(staticContext);
 
         try {
-            handlerList.addHandler(buildApplicationHandler(configurationFile, configuration, contextPath, "@business", true));
+            handlerList
+                .addHandler(buildApplicationHandler(configurationFile, configuration, contextPath, "@business", true));
             handlerList.addHandler(new DefaultHandler());
             applicationHandlers.addHandler(handlerList);
             applicationHandlers.addHandler(buildAdminHandler(configurationFile, configuration));
@@ -453,7 +490,7 @@ public class VitamStarter {
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
-        
+
         context.addFilter(XSRFFilter.class, "/*", EnumSet.of(
             DispatcherType.INCLUDE, DispatcherType.REQUEST,
             DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
