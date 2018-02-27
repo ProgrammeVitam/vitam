@@ -131,6 +131,7 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
               .subscribe((data) => {
                 this.archiveUnit = data.$results[0];
                 this.initFields();
+                this.updatedFields = {};
                 this.update = !this.update;
                 this.saveRunning = false;
                 this.displayOK = true;

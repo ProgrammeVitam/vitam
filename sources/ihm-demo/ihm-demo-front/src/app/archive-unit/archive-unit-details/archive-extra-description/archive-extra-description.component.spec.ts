@@ -65,4 +65,12 @@ describe('ArchiveExtraDescriptionComponent', () => {
     component.saveUpdate();
     expect(component.archiveUnit[component.fields[0].value]).toBe('newValue');
   });
+
+  it('should reset updated fields after update success', () => {
+    expect(component.saveRunning).toBeFalsy();
+    component.updatedFields = {test: 'newValue'};
+    component.saveUpdate();
+    expect(component.archiveUnit[component.fields[0].value]).toBe('newValue');
+    expect(Object.keys(component.updatedFields).length).toBe(0);
+  });
 });

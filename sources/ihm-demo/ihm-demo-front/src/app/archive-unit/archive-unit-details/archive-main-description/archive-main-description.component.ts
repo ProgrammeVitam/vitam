@@ -66,6 +66,7 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
           .subscribe((data) => {
             this.archiveUnit = data.$results[0];
             this.initFields();
+            this.updatedFields = {};
             this.update = false;
             this.saveRunning = false;
             this.displayOK = true;

@@ -71,6 +71,14 @@ describe('ArchiveMainDescriptionComponent', () => {
     expect(component.dataToDisplay.test).toBe('newValue');
   });
 
+  it('should reset updated fields after update success', () => {
+    expect(component.saveRunning).toBeFalsy();
+    component.updatedFields = {test: 'newValue'};
+    component.saveUpdate();
+    expect(component.dataToDisplay.test).toBe('newValue');
+    expect(Object.keys(component.updatedFields).length).toBe(0);
+  });
+
   it('should emit the title if it was successfully updated', (done) => {
     component.titleUpdate.subscribe(
       (newTitle) => {
