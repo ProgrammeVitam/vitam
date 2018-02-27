@@ -695,4 +695,26 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     Response checkAgencies(VitamContext vitamContext, InputStream agencies)
         throws VitamClientException;
 
+    /**
+     * launch a traceability audit for the unit
+     *
+     * @param vitamContext the vitam context
+     * @param unitId the unit id
+     * @return Vitam response
+     * @throws VitamClientException
+     */
+    RequestResponse unitEvidenceAudit(VitamContext vitamContext, String unitId)
+        throws VitamClientException;
+
+    /**
+     * launch a traceability audit for the object group
+     *
+     * @param vitamContext the vitam context
+     * @param objectGroupId the object group id
+     * @return Vitam response
+     * @throws VitamClientException
+     */
+    RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId)
+        throws VitamClientException;
+
 }

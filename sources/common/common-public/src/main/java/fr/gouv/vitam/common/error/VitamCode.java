@@ -279,6 +279,12 @@ public enum VitamCode {
     ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "32",
         Status.NOT_FOUND, "Access external client error, security profile not found"),
 
+    ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "33",
+        Status.BAD_REQUEST, "Access external client error. Unit traceability audit service "),
+
+    ACCESS_EXTERNAL_OBJECT_GROUP_TRACREABILITY_AUDIT(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "34",
+        Status.BAD_REQUEST, "Access external client error. Object group traceability audit service "),
+
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),

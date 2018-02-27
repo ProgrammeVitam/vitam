@@ -281,6 +281,22 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         public Response downloadObject(@PathParam("objectId") String objectId) {
             return expectedResponse.get();
         }
+
+        @Path("evidenceaudit/unit/{id}")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response unitEvidenceAudit(@PathParam("id") String id) {
+            return expectedResponse.post();
+        }
+
+        @Path("evidenceaudit/objects/{id}")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response objectGroupEvidenceAudit(@PathParam("id") String id) {
+            return expectedResponse.post();
+        }
     }
 
     @Test
@@ -1043,4 +1059,21 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         }
     }
 
+    @Test
+    public void unitEvidenceAuditTest()
+        throws VitamClientException {
+        when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
+            .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
+        RequestResponse<ItemStatus> result = client.unitEvidenceAudit(new VitamContext(TENANT_ID), ID);
+        assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void objectGroupEvidenceAuditTest()
+        throws VitamClientException {
+        when(mock.post()).thenReturn(Response.status(Status.OK.getStatusCode())
+            .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
+        RequestResponse<ItemStatus> result = client.objectGroupEvidenceAudit(new VitamContext(TENANT_ID), ID);
+        assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
+    }
 }

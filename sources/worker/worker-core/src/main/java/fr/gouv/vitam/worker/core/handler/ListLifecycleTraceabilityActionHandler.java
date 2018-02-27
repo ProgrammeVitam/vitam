@@ -138,8 +138,7 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
             LocalDateTime lastStartDate = LocalDateUtil.fromDate(date);
             startDate = lastStartDate.minusSeconds(lifecycleTraceabilityOverlapDelayInSeconds);
         }
-        ObjectNode traceabilityInformation = JsonHandler.createObjectNode();
-        traceabilityInformation.put("startDate", getString(startDate));
+        LocalDateTime endDate = LocalDateUtil.now();
 
         long numberUnitLifecycles = 0;
         long numberObjectLifecycles = 0;
@@ -169,19 +168,11 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
                         oGLifecycleTmpFile, true, asyncIO);
                 numberObjectLifecycles++;
             }
-            JsonNode lastUnit = unitLifecycles.size() > 0 ? unitLifecycles.get(unitLifecycles.size() - 1) : null;
-            JsonNode lastObject =
-                objectGroupLifecycles.size() > 0 ? objectGroupLifecycles.get(objectGroupLifecycles.size() - 1) : null;
-
-            JsonNode firstUnit = unitLifecycles.size() > 0 ? unitLifecycles.get(0) : null;
-            JsonNode firstObject = objectGroupLifecycles.size() > 0 ? objectGroupLifecycles.get(0) : null;
-            traceabilityInformation.put("endDate",
-                extractEndDateFromOlderLifecycles(LocalDateUtil.getFormattedDateForMongo(startDate),
-                    lastUnit, lastObject));
-            traceabilityInformation.put("startDate",
-                extractStartDateFromFirstLifecycles(LocalDateUtil.getFormattedDateForMongo(startDate),
-                    firstUnit, firstObject));
         }
+
+        ObjectNode traceabilityInformation = JsonHandler.createObjectNode();
+        traceabilityInformation.put("startDate", getString(startDate));
+        traceabilityInformation.put("endDate", getString(endDate));
         traceabilityInformation.put("numberUnitLifecycles", numberUnitLifecycles);
         traceabilityInformation.put("numberObjectLifecycles", numberObjectLifecycles);
         // export in workspace
@@ -273,50 +264,6 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
             handlerIO.addOuputResult(LAST_OPERATION_LIFECYCLES_RANK, tempFile, true, false);
         }
 
-    }
-
-    private String extractEndDateFromOlderLifecycles(String startDate, JsonNode unitLifecycle,
-        JsonNode objectLifecycle) {
-        String lastPersistedUnit = null;
-        String lastPersistedObject = null;
-        if (unitLifecycle != null) {
-            lastPersistedUnit = unitLifecycle.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
-        }
-        if (objectLifecycle != null) {
-            lastPersistedObject  = objectLifecycle.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
-        }
-
-        if (lastPersistedUnit != null && lastPersistedObject != null) {
-            return lastPersistedUnit.compareTo(lastPersistedObject) > 0 ? lastPersistedUnit : lastPersistedObject;
-        } else if (lastPersistedUnit != null) {
-            return lastPersistedUnit;
-        } else if (lastPersistedObject != null) {
-            return lastPersistedObject;
-        } else {
-            return startDate;
-        }
-    }
-
-    private String extractStartDateFromFirstLifecycles(String startDate, JsonNode unitLifecycle,
-        JsonNode objectLifecycle) {
-        String firstPersistedUnit = null;
-        String firstPersistedObject = null;
-        if (unitLifecycle != null) {
-            firstPersistedUnit = unitLifecycle.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
-        }
-        if (objectLifecycle != null) {
-            firstPersistedObject = objectLifecycle.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
-        }
-
-        if (firstPersistedUnit != null && firstPersistedObject != null) {
-            return firstPersistedUnit.compareTo(firstPersistedObject) > 0 ? firstPersistedObject : firstPersistedUnit;
-        } else if (firstPersistedUnit != null) {
-            return firstPersistedUnit;
-        } else if (firstPersistedObject != null) {
-            return firstPersistedObject;
-        } else {
-            return startDate;
-        }
     }
 
     /**

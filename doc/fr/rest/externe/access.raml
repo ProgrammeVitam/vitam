@@ -168,6 +168,63 @@ documentation:
           body:
             application/json:
 
+/evidenceaudit/:
+  displayName: LFC traceability audit
+  description: |
+    API qui définit les requêtes pour générer un audit de la traçabilité des journaux de cycles de vie.
+
+  /unit/{id}:
+    uriParameters:
+        id:
+          required: true
+          description: Identifiant de l'unité archivistique
+    displayName: Opération d'audit de la traçabilité des journaux de cycles de vie d'une unité archivistique.
+    description: |
+      Opération d'audit de la traçabilité des journaux de cycles de vie d'une unité archivistique.
+    post:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/json" ]
+      description: |
+        Lancer une opération d'audit de la traçabilité des journaux de cycles de vie d'une unité archivistique.
+      responses:
+        200:
+          description: Success
+          body:
+            application/json:
+              description: Success response
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+
+  /objects/{id}:
+    uriParameters:
+        id:
+          required: true
+          description: Identifiant du groupe d'objets
+    displayName: Opération d'audit de la traçabilité des journaux de cycles de vie d'un groupe d'objets.
+    description: |
+      Opération d'audit de la traçabilité des journaux de cycles de vie d'un groupe d'objets.
+    post:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/json" ]
+      description: |
+        Lancer une opération d'audit de la traçabilité des journaux de cycles de vie d'un groupe d'objets.
+      responses:
+        200:
+          description: Success
+          body:
+            application/json:
+              description: Success response
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+
 /:
   displayName: Endpoints
   description: |

@@ -780,4 +780,12 @@ public class ClientMockResultHelper {
 		return new RequestResponseOK<JsonNode>(selectQuery).addResult(getUnitSimpleItem())
 	            .setHttpCode(Status.OK.getStatusCode());
 	}
+
+    public static RequestResponse<ProfileModel> getUnitEvidenceAudit(int statusCode) {
+        return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
+    }
+
+    public static RequestResponse<ProfileModel> getObjectGroupEvidenceAudit(int statusCode) {
+        return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
+    }
 }

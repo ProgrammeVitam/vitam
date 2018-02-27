@@ -101,8 +101,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    protected static final String HOSTNAME = "localhost";
-    protected static final String PATH = "/adminmanagement/v1";
     protected AdminManagementClientRest client;
     static final String QUERY =
         "{\"$query\":{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"OriginatingAgency\"}}]},\"$filter\":{},\"$projection\":{}}";
@@ -446,6 +444,21 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @POST
+        @Path("/evidenceaudit/unit/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/evidenceaudit/objects/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
+            return expectedResponse.post();
+        }
     }
 
 
@@ -1138,6 +1151,30 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK)
             .build());
         RequestResponse<IndexationResult> resp = client.switchIndexes(JsonHandler.createObjectNode());
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void unitEvidenceAuditTest()
+        throws ReferentialException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK)
+            .build());
+        RequestResponse<JsonNode> resp = client.unitEvidenceAudit("ID");
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void objectGroupEvidenceAuditTest()
+        throws ReferentialException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK)
+            .build());
+        RequestResponse<JsonNode> resp = client.objectGroupEvidenceAudit("ID");
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
     }
 

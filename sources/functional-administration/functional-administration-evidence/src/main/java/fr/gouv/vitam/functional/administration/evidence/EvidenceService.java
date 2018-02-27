@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -109,6 +110,7 @@ public class EvidenceService {
     private static final String TMP = "tmp";
     private static final String FILE_NAME = "FileName";
 
+    private static final String ADMIN_MODULE = "ADMIN_MODULE";
     private static final String LAST_PERSISTED_DATE = "_lastPersistedDate";
     private static final String ZIP = ".zip";
     private static final String DATA_TXT = "data.txt";
@@ -152,17 +154,18 @@ public class EvidenceService {
 
     /**
      * launchEvidence
+     *
      * @param id the id
      * @param metadataType the metadataType
      */
-    public void launchEvidence(String id, LifeCycleTraceabilitySecureFileObject.MetadataType metadataType) {
+    public RequestResponse<JsonNode> launchEvidence(String id, LifeCycleTraceabilitySecureFileObject.MetadataType metadataType) {
 
         EvidenceAuditParameters auditParameters = new EvidenceAuditParameters();
 
         GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
         try {
-            createEvidenceAuditOperation(eip, id);
+            createEvidenceAuditOperation(eip, id, metadataType);
 
             auditParameters.setId(id);
             auditParameters.setMetadataType(metadataType);
@@ -197,13 +200,21 @@ public class EvidenceService {
 
             auditTraceabilityInformation(auditParameters, eip);
 
+            createLogbookAuditEvents(eip, StatusCode.OK, JsonHandler.createObjectNode(), EVIDENCE_AUDIT);
+
+            return new RequestResponseOK<JsonNode>()
+                .setHttpCode(Response.Status.OK.getStatusCode());
+
         } catch (EvidenceAuditException e) {
             LOGGER.error(e);
-            buildAuditReportReportFailure(eip, e.getMessage(), e.getStatus());
+            StatusCode statusCode = getStatus(e.getStatus());
+            buildAuditReportReportFailure(eip, e.getMessage(), statusCode);
+            return getErrorEntity(statusCode.getEquivalentHttpStatus(), e.getMessage());
         }
     }
 
-    private void createEvidenceAuditOperation(GUID eip, String id) throws EvidenceAuditException {
+    private void createEvidenceAuditOperation(GUID eip, String id,
+        LifeCycleTraceabilitySecureFileObject.MetadataType metadataType) throws EvidenceAuditException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
@@ -215,6 +226,7 @@ public class EvidenceService {
                     VitamLogbookMessages.getCodeOp(EVIDENCE_AUDIT, StatusCode.STARTED), eip);
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put("Id", id);
+            evDetData.put("MetadataType", metadataType.getName());
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 unprettyPrint(evDetData));
             client.create(logbookParameters);
@@ -454,9 +466,8 @@ public class EvidenceService {
 
         boolean auditSuccess = databaseAuditSuccess && storageAuditSuccess;
 
-        StatusCode globalStatusCode = auditSuccess ? StatusCode.OK : StatusCode.KO;
-
-        createLogbookAuditEvents(eip, globalStatusCode, JsonHandler.createObjectNode(), EVIDENCE_AUDIT);
+        if(!auditSuccess)
+            throw new EvidenceAuditException(EvidenceStatus.KO, "Traceability check failed");
     }
 
     private boolean computeAuditForStorage(EvidenceAuditParameters auditParameters,
@@ -483,12 +494,7 @@ public class EvidenceService {
                 "An error occurred during last traceability operation retrieval", e);
         }
 
-        JsonNode docWithLfc = DataCategory
-            .getDocumentWithLFC(auditParameters.getMetadata(), auditParameters.getLifecycle(), dataCategory);
-
-        final Digest digest = new Digest(auditParameters.getDigestType());
-        digest.update(unprettyPrint(docWithLfc).getBytes(StandardCharsets.UTF_8));
-        String docWithLfcDigest = digest.digestHex();
+        String docWithLfcDigest = auditParameters.getTraceabilityLine().getHashGlobalFromStorage();
 
         ArrayNode errorMessages = JsonHandler.createArrayNode();
 
@@ -529,7 +535,8 @@ public class EvidenceService {
         }
 
         ObjectNode evDetData = JsonHandler.createObjectNode();
-        evDetData.put("DatabaseMetadataAndLifecycleDigest", docWithLfcDigest);
+        evDetData.put("TraceabilityFile", auditParameters.getFileName());
+        evDetData.put("TraceabilityMetadataAndLifecycleDigest", docWithLfcDigest);
         evDetData.set("OfferMetadataAndLifeCycleDigests", objectOffersHash);
 
         boolean hasErrors = errorMessages.size() > 0;
@@ -564,6 +571,7 @@ public class EvidenceService {
         GUID eip) throws EvidenceAuditException {
 
         ObjectNode evDetData = JsonHandler.createObjectNode();
+        evDetData.put("TraceabilityFile", auditParameters.getFileName());
 
         ArrayNode errorMessages = JsonHandler.createArrayNode();
 
@@ -699,14 +707,13 @@ public class EvidenceService {
         }
     }
 
-    private void buildAuditReportReportFailure(GUID eip, String message, EvidenceStatus status) {
+    private void buildAuditReportReportFailure(GUID eip, String message, StatusCode statusCode) {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             GUID eipEvent = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
             final LogbookOperationParameters logbookParameters;
 
-            StatusCode statusCode = getStatus(status);
             logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eipEvent, EVIDENCE_AUDIT, eip,
                     LogbookTypeProcess.AUDIT,
@@ -718,7 +725,7 @@ public class EvidenceService {
                 unprettyPrint(evDetData));
             client.update(logbookParameters);
         } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e) {
-            LOGGER.error("Could not update logbook operation " + eip + " with status " + status, e);
+            LOGGER.error("Could not update logbook operation " + eip + " with status " + statusCode, e);
         }
     }
 
@@ -813,5 +820,19 @@ public class EvidenceService {
                 response.close();
             }
         }
+    }
+
+    /**
+     * Construct the error following input
+     *
+     * @param status  Http error status
+     * @param message The functional error message, if absent the http reason phrase will be used instead
+     * @return
+     */
+    private VitamError getErrorEntity(Response.Status status, String message) {
+        return new VitamError(String.valueOf(status.getStatusCode()))
+            .setHttpCode(status.getStatusCode())
+            .setContext(ADMIN_MODULE)
+            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(message);
     }
 }
