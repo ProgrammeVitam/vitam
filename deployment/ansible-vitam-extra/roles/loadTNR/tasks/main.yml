@@ -22,22 +22,18 @@
     validate_certs: no
   ignore_errors: true
   run_once: true
+  return_content: yes
   register: login
   #no_log: true
-
-# http://{{ ip_service }}:{{vitam.ihm_demo.port}}{{ vitam.ihm_demo.baseuri }}
-
-# - name: ihm-recette auth with curl
-#   shell: "curl -s -v -H 'Content-Type: application/json' --data '{\"token\":{\"principal\":\"aadmin\",\"credentials\":\"aadmin1234\"} }' http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login 2>&1 |grep Set-Cookie |awk -F \"Set-Cookie: \" '{print $2}' | tr '\\r\\n' '; '"
-#   register: login
 
 - name: Purge database collections before launching TNR
   uri:
     method: DELETE
     validate_certs: no
     headers:
+      X-CSRF-Token: "{{ login.json.tokenCSRF }}"
       X-Tenant-Id: "{{ item }}"
-      Cookie: "{{login.set_cookie}}"
+      Cookie: "{{ login.set_cookie }}"
     url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}{{ vitam.ihm_recette.baseurl }}/v1/api/delete/deleteTnr"
     validate_certs: no
   # TNR are used on tenant 0 & 1 only
