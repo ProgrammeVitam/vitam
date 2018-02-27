@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
@@ -55,11 +56,8 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -133,20 +131,10 @@ public class EvidenceServiceTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
     }
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-
-
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-
-    }
 
     @RunWithCustomExecutor()
     @Test
-    public void auditEvudenceForUnit()
+    public void auditEvidenceNominalCaseForUnit()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -168,7 +156,7 @@ public class EvidenceServiceTest {
             .selectUnitLifeCycleById(eq("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"), any(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
             .thenReturn(liceCycle);
 
-        JsonNode select = getSelect1();
+        JsonNode select = getSelectlogbookLCsecure();
 
         JsonNode select2 = getSelect2();
 
@@ -207,21 +195,85 @@ public class EvidenceServiceTest {
         List<LogbookOperationParameters> events = captorUpdate.getAllValues();
 
         assertThat(events.get(0).getParameterValue(LogbookParameterName.outcome)).isEqualTo("OK");
-        assertThat(logbookOperationParameters.getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("EVIDENCEAUDIT");
+        assertThat(events.get(0).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("EVIDENCEAUDIT_DATABASE.OK");
+        assertThat(events.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo("EVIDENCEAUDIT_DATABASE");
 
         assertThat(events.get(1).getParameterValue(LogbookParameterName.outcome)).isEqualTo("OK");
-        assertThat(logbookOperationParameters.getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("EVIDENCEAUDIT");
+        assertThat(events.get(1).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("EVIDENCEAUDIT_STORAGE.OK");
+        assertThat(events.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo("EVIDENCEAUDIT_STORAGE");
+
 
         assertThat(events.get(2).getParameterValue(LogbookParameterName.outcome)).isEqualTo("OK");
-        assertThat(logbookOperationParameters.getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("EVIDENCEAUDIT");
+        assertThat(events.get(2).getParameterValue(LogbookParameterName.eventType)).isEqualTo("EVIDENCEAUDIT");
+        assertThat(events.get(2).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("EVIDENCEAUDIT.OK");
 
+        assertThat(events.get(2).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("EVIDENCEAUDIT.OK");
+
+        String detData =
+            "{\"DatabaseMetadataAndLifecycleDigest\":\"66ebea803269b6c768fda751718b3a984c8e4d339c38aeedd8de812ab4362f0ab1225606aada1635652bece913e59779d662aa7e843713fa85291b91a5608246\",\"OfferMetadataAndLifeCycleDigests\":{\"offer-fs-1.service.consul\":\"66ebea803269b6c768fda751718b3a984c8e4d339c38aeedd8de812ab4362f0ab1225606aada1635652bece913e59779d662aa7e843713fa85291b91a5608246\"}}";
+
+        assertThat(detData).isEqualTo(events.get(1).getParameterValue(LogbookParameterName.eventDetailData));
 
     }
 
-    private JsonNode getSelect1() throws Exception {
+    @RunWithCustomExecutor()
+    @Test
+    public void auditEvidenceWhenUnitNotSecure()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        //GIVEN
+        EvidenceService evidenceService =
+            new EvidenceService(metaDataClientFactory, logbookOperationsClientFactory, logbookLifeCyclesClientFactory,
+                storageClientFactory);
+
+        JsonNode unitMd = getUnitMd();
+        JsonNode liceCycle = getLifcycle();
+        JsonNode logbook = getLogbook();
+
+
+        //WHEN
+        RequestResponseOK<JsonNode> response1 = new RequestResponseOK<JsonNode>().addResult(unitMd);
+
+        when(metaDataClient.getUnitByIdRaw("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq")).thenReturn(response1);
+        when(logbookLifeCyclesClient
+            .selectUnitLifeCycleById(eq("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"), any(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
+            .thenReturn(liceCycle);
+
+        JsonNode select = getSelectlogbookLCsecure();
+
+
+        when(logbookOperationsClient.selectOperationById(anyString(), any())).thenReturn(logbook);
+
+        when(logbookOperationsClient.selectOperation(select))
+            .thenThrow(new LogbookClientNotFoundException("not found"));
+
+        evidenceService.launchEvidence("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", LifeCycleTraceabilitySecureFileObject.MetadataType.UNIT);
+
+        ArgumentCaptor<LogbookOperationParameters> captorCreate =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> captorUpdate =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+
+
+        //THEN
+        verify(logbookOperationsClient).create(captorCreate.capture());
+
+        LogbookOperationParameters logbookOperationParameters = captorCreate.getValue();
+        assertThat(logbookOperationParameters.getParameterValue(LogbookParameterName.outcome)).isEqualTo("STARTED");
+        assertThat(logbookOperationParameters.getParameterValue(LogbookParameterName.eventType))
+            .isEqualTo("EVIDENCEAUDIT");
+
+        verify(logbookOperationsClient,times(1)).update(captorUpdate.capture());
+        List<LogbookOperationParameters> events = captorUpdate.getAllValues();
+
+        assertThat(events.get(0).getParameterValue(LogbookParameterName.outcome)).isEqualTo("WARNING");
+        assertThat(events.get(0).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("EVIDENCEAUDIT.WARNING");
+        assertThat(events.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo("EVIDENCEAUDIT");
+    }
+
+
+    private JsonNode getSelectlogbookLCsecure() throws Exception {
 
         Select select = new Select();
         BooleanQuery query = and().add(

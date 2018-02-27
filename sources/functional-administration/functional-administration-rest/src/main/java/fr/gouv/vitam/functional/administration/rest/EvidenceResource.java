@@ -44,6 +44,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+/**
+ * EvidenceResource class
+ */
 @Path("/v1/admin")
 public class EvidenceResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
@@ -57,7 +60,10 @@ public class EvidenceResource {
     private EvidenceService evidenceService = new EvidenceService();
 
     /**
-     * String unitId
+     *
+     * @param unitId unit Id
+     * @param xTenantId tenant Id
+     * @return  OK if everything OK
      */
     @POST
     @Path("/evidenceAudit/unit/{id}")
@@ -79,7 +85,10 @@ public class EvidenceResource {
     }
 
     /**
-     * String objectGroupId
+     *
+     * @param objectGroupId objectGroupId
+     * @param xTenantId xTenantId
+     * @return  OK if everything OK
      */
     @POST
     @Path("/evidenceAudit/objectgroup/{id}")
