@@ -6,7 +6,12 @@ import {BehaviorSubject} from "rxjs/BehaviorSubject"
 import {TenantService} from "../common/tenant.service";
 
 
-const LOGGED_IN = 'loggedIn';
+const LOGGED_IN = 'REC-loggedIn';
+const XSRF_TOKEN = 'REC-XSRF-TOKEN';
+
+export class UserInformation {
+  tokenCSRF : string;
+}
 
 @Injectable()
 export class AuthenticationService {
@@ -29,10 +34,10 @@ export class AuthenticationService {
   }
 
 
-  loggedIn(tokenCSRF?: string) {
+  loggedIn(user?: UserInformation) {
     localStorage.setItem(LOGGED_IN, 'true');
-    if (tokenCSRF !== null) {
-        localStorage.setItem('XSRF-TOKEN', tokenCSRF);
+    if (user !== null && user.tokenCSRF !== null) {
+        localStorage.setItem(XSRF_TOKEN, user.tokenCSRF);
     }
     this.loginState.next(true);
   }
@@ -42,14 +47,14 @@ export class AuthenticationService {
     this.tenantService.changeState(this.resourcesService.getTenant());
     return this.resourceService.post('login', null, {
       "token": {"principal": id, "credentials": password}
-    }, 'text');
+    });
   }
 
   loggedOut() {
     this.resourceService.setTenant("");
     this.tenantService.changeState(this.resourcesService.getTenant());
     localStorage.setItem(LOGGED_IN, 'false');
-    localStorage.removeItem('XSRF-TOKEN');
+    localStorage.removeItem(XSRF_TOKEN);
     this.loginState.next(false);
   }
 

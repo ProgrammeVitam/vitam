@@ -4,9 +4,10 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Router} from '@angular/router';
 import {Observable} from "rxjs/Observable";
 
-const TENANT_COOKIE = 'tenant';
+const TENANT_COOKIE = 'REC-tenant';
 const BASE_URL = '/ihm-recette/v1/api/';
 const TENANTS = 'tenants';
+const XSRF_TOKEN = 'REC-XSRF-TOKEN';
 
 @Injectable()
 export class ResourcesService {
@@ -62,8 +63,8 @@ export class ResourcesService {
     if (this.getTenant()) {
       header = header.set('X-Tenant-Id', this.getTenant());
     }
-    if (localStorage.getItem('XSRF-TOKEN')) {
-      header = header.set('X-CSRF-TOKEN', localStorage.getItem('XSRF-TOKEN'));
+    if (localStorage.getItem(XSRF_TOKEN)) {
+      header = header.set('X-CSRF-TOKEN', localStorage.getItem(XSRF_TOKEN));
     }
     return header;
   }
