@@ -37,45 +37,49 @@
     <div class="ui-g-12">
       <p-panel [header]="'Liste par opération'" [styleClass]="'overflow-wrap-content'">
         <div class="ui-g">
-          <p-dataTable #dt [value]="registerDetails" [emptyMessage]="'Aucun résultat'">
-            <p-column field="Symbolic" header="Fonds propre">
-              <ng-template let-detail="rowData" pTemplate="body">
-                <i [ngClass]="getDetailIcon(detail)" aria-hidden="true"></i>
-              </ng-template>
-            </p-column>
-            <p-column field="#id" header="Identifiant"></p-column>
-            <p-column field="SubmissionAgency" header="Service versant"></p-column>
-            <p-column field="LastUpdate" header="Date d'entrée">
-              <ng-template let-detail="rowData" pTemplate="body">
-                {{getDate(detail)}}
-              </ng-template>
-            </p-column>
-            <p-column field="TotalUnits" header="Nb d'unités archivistiques">
-              <ng-template let-detail="rowData" pTemplate="body">
-                {{getDetailsMessage('TotalUnits', detail)}}
-              </ng-template>
-            </p-column>
-            <p-column field="TotalObjectGroups" header="Nb de groupes d'objets techniques">
-              <ng-template let-detail="rowData" pTemplate="body">
-                {{getDetailsMessage('TotalObjectGroups', detail)}}
-              </ng-template>
-            </p-column>
-            <p-column field="TotalObjects" header="Nb d'objets">
-              <ng-template let-detail="rowData" pTemplate="body">
-                {{getDetailsMessage('TotalObjects', detail)}}
-              </ng-template>
-            </p-column>
-            <p-column field="" header="Type">
-              <ng-template let-detail="rowData" pTemplate="body">
-                {{getDetailsType(detail)}}
-              </ng-template>
-            </p-column>
-            <p-column field="Status" header="Statut">
-              <ng-template let-detail="rowData" pTemplate="body">
-                {{getDetailsStatus(detail)}}
-              </ng-template>
-            </p-column>
-          </p-dataTable>
+          <div class="ui-g-12">
+            <p-paginator *ngIf="hits" [rows]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)"
+                         [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
+            <p-dataTable #dt [value]="displayedItems" [emptyMessage]="'Aucun résultat'">
+              <p-column field="Symbolic" header="Fonds propre">
+                <ng-template let-detail="rowData" pTemplate="body">
+                  <i [ngClass]="getDetailIcon(detail)" aria-hidden="true"></i>
+                </ng-template>
+              </p-column>
+              <p-column field="#id" header="Identifiant"></p-column>
+              <p-column field="SubmissionAgency" header="Service versant"></p-column>
+              <p-column field="LastUpdate" header="Date d'entrée">
+                <ng-template let-detail="rowData" pTemplate="body">
+                  {{getDate(detail)}}
+                </ng-template>
+              </p-column>
+              <p-column field="TotalUnits" header="Nb d'unités archivistiques">
+                <ng-template let-detail="rowData" pTemplate="body">
+                  {{getDetailsMessage('TotalUnits', detail)}}
+                </ng-template>
+              </p-column>
+              <p-column field="TotalObjectGroups" header="Nb de groupes d'objets techniques">
+                <ng-template let-detail="rowData" pTemplate="body">
+                  {{getDetailsMessage('TotalObjectGroups', detail)}}
+                </ng-template>
+              </p-column>
+              <p-column field="TotalObjects" header="Nb d'objets">
+                <ng-template let-detail="rowData" pTemplate="body">
+                  {{getDetailsMessage('TotalObjects', detail)}}
+                </ng-template>
+              </p-column>
+              <p-column field="" header="Type">
+                <ng-template let-detail="rowData" pTemplate="body">
+                  {{getDetailsType(detail)}}
+                </ng-template>
+              </p-column>
+              <p-column field="Status" header="Statut">
+                <ng-template let-detail="rowData" pTemplate="body">
+                  {{getDetailsStatus(detail)}}
+                </ng-template>
+              </p-column>
+            </p-dataTable>
+          </div>
         </div>
       </p-panel>
     </div>

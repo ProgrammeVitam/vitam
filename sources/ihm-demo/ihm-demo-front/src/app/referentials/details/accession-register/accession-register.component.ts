@@ -11,7 +11,8 @@ import { ArchiveUnitService } from '../../../archive-unit/archive-unit.service';
 import { LogbookService } from "../../../ingest/logbook.service";
 import { PageComponent } from "../../../common/page/page-component";
 import { AccessionRegister, AccessionRegisterDetail, RegisterData } from "./accession-register";
-import {ErrorService} from "../../../common/error.service";
+import { ErrorService } from "../../../common/error.service";
+import { Hits } from "../../../common/utils/response";
 
 
 const PROCESS_TRADUCTION = {
@@ -26,6 +27,11 @@ const PROCESS_TRADUCTION = {
   styleUrls: ['./accession-register.component.css']
 })
 export class AccessionRegisterComponent  extends PageComponent {
+
+  nbRows = 25;
+  hits: Hits;
+  firstItem = 0;
+  displayedItems: any[] = [];
 
   newBreadcrumb: BreadcrumbElement[];
   register : AccessionRegister;
@@ -121,6 +127,8 @@ export class AccessionRegisterComponent  extends PageComponent {
 
       this.searchReferentialsService.getFundRegisterDetailById(this.id).subscribe((value) => {
         this.registerDetails = plainToClass(AccessionRegisterDetail, value.$results);
+        this.hits = value.$hits;
+        this.displayedItems = this.registerDetails.slice(this.firstItem, this.firstItem + this.nbRows);
       });
       this.logbookService.getResults({
         'events.agIdExt.originatingAgency' : this.id
@@ -190,5 +198,10 @@ export class AccessionRegisterComponent  extends PageComponent {
     if (detail.Status === 'UNSTORED') {
       return 'Non stockée';
     }
+  }
+
+  paginate(event) {
+      this.firstItem = event.first;
+      this.displayedItems = this.registerDetails.slice(this.firstItem, this.firstItem + event.rows);
   }
 }
