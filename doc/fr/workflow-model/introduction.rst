@@ -32,7 +32,12 @@ Chaque étape, chaque action peuvent avoir les statuts suivants :
 - OK : le traitement associé s'est passé correctement. Le workflow continue.
 - Warning : le traitement associé a généré un avertissement (par exemple le format de l'objet est mal déclaré dans le bordereau de transfert). Le workflow continue.
 - KO : le traitement associé a généré une erreur métier. Le workflow s'arrête si le modèle d'exécution est bloquant (cf. ci-dessous).
-- FATAL : le traitement associé a généré une erreur technique. Le workflow s'arrête.
+- FATAL : le traitement associé a généré une erreur technique. Le workflow se met en pause.
+
+Un workflow peut être terminé, en cours d'exécution ou être en pause. Un workflow en pause représente le processus arrêté à une étape donnée. Chaque étape peut être mise en pause : ce choix dépend du mode de versement (le mode pas à pas marque une pause à chaque étape), ou du statut (le statut FATAL met l'étape en pause). Les workflows en pause sont visibles dans l'IHM dans l'écran "Gestion des opérations".
+
+Lorsque le statut FATAL survient à l'intérieur d'une étape (par exemple dans une des tâches ou un des traitements de l'étape), c'est toute l'étape qui est mise en pause. Si cette étape est rejouée, les objets déjà traités avant le fatal ne sont pas traités à nouveau : le workflow reprend exactement là où il s'était arrêté et commence par rejouer l'action sur l'objet qui a provoqué l'erreur.
+
 
 Chaque action peut avoir les modèles d'exécutions suivants (toutes les étapes sont par défaut bloquantes) :
 
