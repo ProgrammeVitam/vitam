@@ -75,6 +75,12 @@ public enum DataCategory {
      * StorageLog (any)
      */
     STORAGELOG("storagelog", "storagelog", false, false),
+
+    /**
+     * StorageTraceability (zip)
+     */
+    STORAGETRACEABILITY("storagetraceability", "storagetraceability", false, false),
+
     /**
      * Rules files
      */

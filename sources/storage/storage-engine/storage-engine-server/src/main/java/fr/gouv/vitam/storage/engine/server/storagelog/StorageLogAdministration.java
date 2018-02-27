@@ -27,6 +27,16 @@
 
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -57,16 +67,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
 /**
  * Business class for Storage Log Administration (backup)
  */
@@ -78,7 +78,7 @@ public class StorageLogAdministration {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogAdministration.class);
 
-    private static final String STP_OP_SECURISATION = "STP_STORAGE_SECURISATION";
+    private static final String STP_OP_SECURISATION = "STORAGE_BACKUP";
 
     private static final String STRATEGY_ID = "default";
     final StorageLogService storageLogService;
@@ -161,8 +161,7 @@ public class StorageLogAdministration {
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException e) {
                     LOGGER.error("unable to store log file", e);
-                    createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION,
-                        StatusCode.FATAL);
+                    createLogbookOperationEvent(helper, eip, STP_OP_SECURISATION, StatusCode.FATAL);
                     throw new StorageLogException(e);
                 }
 
@@ -191,7 +190,7 @@ public class StorageLogAdministration {
     private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip)
         throws LogbookClientAlreadyExistsException {
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.TRACEABILITY,
+            .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.STORAGE_BACKUP,
                 StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(STP_OP_SECURISATION, StatusCode.STARTED), eip);
         logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, STP_OP_SECURISATION +
@@ -205,7 +204,7 @@ public class StorageLogAdministration {
         StatusCode statusCode) throws LogbookClientNotFoundException {
 
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(GUIDFactory.newEventGUID(parentEventId), eventType, parentEventId, LogbookTypeProcess.TRACEABILITY,
+            .newLogbookOperationParameters(GUIDFactory.newEventGUID(parentEventId), eventType, parentEventId, LogbookTypeProcess.STORAGE_BACKUP,
                 statusCode,
                 VitamLogbookMessages.getCodeOp(eventType, statusCode), parentEventId);
         logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType +

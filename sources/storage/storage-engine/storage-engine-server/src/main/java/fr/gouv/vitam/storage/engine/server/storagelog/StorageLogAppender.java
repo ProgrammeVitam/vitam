@@ -26,10 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -40,8 +38,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 /**
  * Storage log appender.
@@ -78,7 +78,7 @@ public class StorageLogAppender implements VitamAutoCloseable {
     public void append(StorageLogbookParameters parameters) throws IOException {
         writer.append(parameters.getMapParameters().toString()).append(lineSeparator);
     }
-
+    
     @Override
     public void close() {
         try {

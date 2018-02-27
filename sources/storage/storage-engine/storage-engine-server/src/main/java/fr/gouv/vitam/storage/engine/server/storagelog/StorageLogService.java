@@ -26,11 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
-
 import java.io.IOException;
 import java.util.List;
+
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 /**
  * Storage log service interface. It describes methods to be implemented.
@@ -51,5 +51,4 @@ public interface StorageLogService extends VitamAutoCloseable {
      * @param tenantId
      */
     List<LogInformation> rotateLogFile(Integer tenantId) throws IOException;
-
 }

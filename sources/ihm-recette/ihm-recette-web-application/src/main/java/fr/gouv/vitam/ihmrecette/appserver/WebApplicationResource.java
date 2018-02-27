@@ -327,6 +327,32 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * launch the traceabiity for storage
+     *
+     * @param xTenantId the tenant id
+     * @return the response of the request
+     * @throws LogbookClientServerException if logbook internal resources exception occurred
+     */
+    @POST
+    @Path("/storages/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceabilityStorage(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+
+        try (final StorageClient storageClient =
+            StorageClientFactory.getInstance().getClient()) {
+            RequestResponseOK result;
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+                result = storageClient.storageLogTraceability();
+            } catch (final InvalidParseOperationException | StorageServerClientException e) {
+                LOGGER.error("The reporting json can't be created", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        }
+    }
 
     /**
      * Post used because Angular not support Get with body

@@ -152,7 +152,7 @@ function generateTimestampCertAndStorePassphrase {
                                     ${CERT_KEY} \
                                     caintermediatekeypassword
     # Store the key to the vault
-    setComponentCertPassphrase  "timestamping_${COMPONENT}_key" \
+    setComponentCertPassphrase  "timestamping_${USAGE}_key" \
                                 "${CERT_KEY}"
 }
 
@@ -224,6 +224,7 @@ generateHostCertAndStorePassphrase          ihm-demo                 hosts-ihm-d
 pki_logger "Génération des certificats timestamping"
 # Method                                    # Usage
 generateTimestampCertAndStorePassphrase     secure-logbook
+generateTimestampCertAndStorePassphrase     secure-storage
 
 # Generate clients certificates
 pki_logger "Génération des certificats clients"

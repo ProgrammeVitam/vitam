@@ -27,9 +27,14 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -79,9 +84,13 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.timestamp.TimeStampSignature;
+import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
+import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -96,6 +105,8 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
+import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
+import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
@@ -111,9 +122,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
 
     private final StorageDistribution distribution;
+    private final TraceabilityStorageService traceabilityLogbookService;
+    private final TimestampGenerator timestampGenerator;
 
     private StorageLogService storageLogService;
     private StorageLogAdministration storageLogAdministration;
+    private StorageTraceabilityAdministration traceabilityLogbookAdministration;
 
     /**
      * Constructor 
@@ -129,6 +143,25 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             storageLogAdministration =
                 new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
+
+            traceabilityLogbookService = new TraceabilityStorageService(distribution);
+
+            TimeStampSignature timeStampSignature;
+            try {
+                final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
+                timeStampSignature =
+                    new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
+            } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
+                NoSuchAlgorithmException e) {
+                LOGGER.error("unable to instantiate TimeStampGenerator", e);
+                throw new RuntimeException(e);
+            }
+
+            timestampGenerator = new TimestampGenerator(timeStampSignature);
+            // TODO Must have conf for logOpeClient ?
+            traceabilityLogbookAdministration =
+                new StorageTraceabilityAdministration(traceabilityLogbookService,
+                    configuration.getZippingDirecorty(), timestampGenerator, configuration.getStorageTraceabilityOverlapDelay());
             LOGGER.info("init Storage Resource server");
         } catch (IOException e) {
             LOGGER.error("Cannot initialize storage resource server, error when reading configuration file");
@@ -149,6 +182,24 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
         storageLogAdministration =
             new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
+        traceabilityLogbookService = new TraceabilityStorageService(distribution);
+
+        TimeStampSignature timeStampSignature;
+        try {
+            final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
+            timeStampSignature =
+                new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
+        } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
+            NoSuchAlgorithmException e) {
+            LOGGER.error("unable to instantiate TimeStampGenerator", e);
+            throw new RuntimeException(e);
+        }
+
+        timestampGenerator = new TimestampGenerator(timeStampSignature);
+
+        traceabilityLogbookAdministration =
+            new StorageTraceabilityAdministration(traceabilityLogbookService,
+                configuration.getZippingDirecorty(), timestampGenerator, configuration.getStorageTraceabilityOverlapDelay());
         LOGGER.info("init Storage Resource server");
     }
 
@@ -157,8 +208,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param storageDistribution the storage Distribution to be applied
      */
-    StorageResource(StorageDistribution storageDistribution) {
+    StorageResource(StorageDistribution storageDistribution, TimestampGenerator timestampGenerator) {
         distribution = storageDistribution;
+        traceabilityLogbookService = new TraceabilityStorageService(distribution);
+        this.timestampGenerator = timestampGenerator;
     }
 
     /**
@@ -310,7 +363,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param type the object type to list
      * @return a response with listing elements
      */
-    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP|AGENCIES|BACKUP" +
+    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|STORAGETRACEABILITY|RULES|DIP|AGENCIES|BACKUP" +
         "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -346,7 +399,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param offerLogRequest offer log request params
      * @return list of offer log
      */
-    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP|AGENCIES|BACKUP" +
+    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|STORAGETRACEABILITY|RULES|DIP|AGENCIES|BACKUP" +
         "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS}/logs")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -1289,13 +1342,44 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         } catch (LogbookClientServerException | IOException |
             StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
-            LOGGER.error("unable to generate secure  log", e);
+            LOGGER.error("unable to generate backup log", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(new RequestResponseOK())
                 .build();
         }
     }
 
+    /**
+     * Run storage logbook secure operation
+     *
+     * @param xTenantId the tenant id
+     * @return the response with a specific HTTP status
+     */
+    @POST
+    @Path("/storage/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceabilityStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+        try {
+            Integer tenantId = Integer.parseInt(xTenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            final GUID guid = traceabilityLogbookAdministration.generateTraceabilityStorageLogbook();
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<GUID>()
+                    .addResult(guid))
+                .build();
+
+        } catch (TraceabilityException e) {
+            LOGGER.error("unable to generate secure  log", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(new RequestResponseOK())
+                .build();
+        }
+    }
+    
     /**
      * Post a new object
      *
@@ -1316,6 +1400,32 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         // If the POST is a creation request
         if (createObjectDescription != null) {
             return createObjectByType(headers, storageLogname, createObjectDescription, DataCategory.STORAGELOG,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, storageLogname);
+        }
+    }
+    
+    /**
+     * Post a new object
+     *
+     * @param httpServletRequest http servlet request to get requester
+     * @param headers http header
+     * @param storagetraceabilityname the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    // header (X-Requester)
+    @Path("/storagetraceability/{storagetraceabilityname}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createStorageTraceability(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("storagetraceabilityname") String storageLogname, ObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, storageLogname, createObjectDescription, DataCategory.STORAGETRACEABILITY,
                 httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, storageLogname);

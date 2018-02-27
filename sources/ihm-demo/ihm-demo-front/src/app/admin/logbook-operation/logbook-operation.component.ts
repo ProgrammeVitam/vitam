@@ -23,16 +23,17 @@ export class LogbookOperationComponent extends PageComponent {
   public response: VitamResponse;
   public searchForm: any = {};
   public options = [
-    {label : "--", value : ""},
-    {label : "Audit", value : "audit"},
-    {label : "Données de base", value : "masterdata"},
-    {label : "Elimination", value : "elimination"},
-    {label : "Entrée", value : "ingest"},
-    {label : "Export DIP", value : "export_dip"},
-    {label : "Mise à jour", value : "update"},
-    {label : "Préservation", value : "preservation"},
-    {label : "Sécurisation", value : "traceability"},
-    {label : "Vérification", value : "check"}
+    {label : '--', value : ''},
+    {label : 'Audit', value : 'audit'},
+    {label : 'Données de base', value : 'masterdata'},
+    {label : 'Elimination', value : 'elimination'},
+    {label : 'Entrée', value : 'ingest'},
+    {label : 'Export DIP', value : 'export_dip'},
+    {label : 'Mise à jour', value : 'update'},
+    {label : 'Préservation', value : 'preservation'},
+    {label : 'Sécurisation', value : 'traceability'},
+    {label : 'Vérification', value : 'check'},
+    {label : 'Sauvegarde écritures', value : 'storage_backup'}
   ];
   public logbookData = [
     FieldDefinition.createIdField('evId', 'Identifiant', 6, 8),

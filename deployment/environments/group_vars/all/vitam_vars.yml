@@ -165,6 +165,7 @@ vitam:
         baseuri: "storage-engine"
         https_enabled: false
         secret_platform: "true"
+        storageTraceabilityOverlapDelay: 300
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
