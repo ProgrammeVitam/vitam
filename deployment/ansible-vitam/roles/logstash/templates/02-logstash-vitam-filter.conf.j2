@@ -71,7 +71,7 @@ filter
         }
         mutate { add_field => [ "logger", "elasticsearch" ] }
         date {
-            match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss,SSS" ]
+            match => [ "timestamp" , "ISO8601" ]
             target => [ "@timestamp" ]
         }
     }
