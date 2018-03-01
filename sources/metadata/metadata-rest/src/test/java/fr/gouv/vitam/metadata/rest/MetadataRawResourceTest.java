@@ -201,7 +201,7 @@ public class MetadataRawResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/objectgroups/" + objectGroupId + "/raw")
+            .get("/raw/objectgroups/" + objectGroupId)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
@@ -217,7 +217,7 @@ public class MetadataRawResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/objectgroups/" + objectGroupId + "/raw").then()
+            .get("/raw/objectgroups/" + objectGroupId).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -240,7 +240,7 @@ public class MetadataRawResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/units/" + unitId + "/raw")
+            .get("/raw/units/" + unitId)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
@@ -257,7 +257,7 @@ public class MetadataRawResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/units/" + unitId + "/raw").then()
+            .get("/raw/units/" + unitId).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 }

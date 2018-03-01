@@ -72,7 +72,7 @@ public class LogbookRawResource {
      * @return Response of CREATED
      */
     @POST
-    @Path("/unitlifecycles/bulk/raw")
+    @Path("raw/unitlifecycles/bulk")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createLifeCycleUnitBulkRaw(List<JsonNode> logbookLifecycles) {
         return createLifecycleBulk(LogbookCollections.LIFECYCLE_UNIT, logbookLifecycles);
@@ -85,7 +85,7 @@ public class LogbookRawResource {
      * @return Response of CREATED
      */
     @POST
-    @Path("/objectgrouplifecycles/bulk/raw")
+    @Path("raw/objectgrouplifecycles/bulk")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createLifeCycleObjectGroupBulkRaw(List<JsonNode> logbookLifecycles) {
         return createLifecycleBulk(LogbookCollections.LIFECYCLE_OBJECTGROUP, logbookLifecycles);

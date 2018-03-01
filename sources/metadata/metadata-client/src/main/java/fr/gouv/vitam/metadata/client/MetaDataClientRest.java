@@ -519,7 +519,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("The unit id is mandatory", unitId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/raw", null, null,
+            response = performRequest(HttpMethod.GET, "/raw/units/" + unitId, null, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -539,7 +539,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         ParametersChecker.checkParameter("The unit id is mandatory", objectGroupId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/objectgroups/" + objectGroupId + "/raw", null, null,
+            response = performRequest(HttpMethod.GET, "/raw/objectgroups/" + objectGroupId, null, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 

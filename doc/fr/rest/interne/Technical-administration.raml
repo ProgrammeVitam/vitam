@@ -1,0 +1,60 @@
+#%RAML 1.0
+
+title: API-Vitam Version Alpha - Administration Technique
+version: v1
+baseUri: http://internal.vitam.gouv.fr/
+protocols: [ HTTP ]
+
+uses:
+  StandardTypes: libraries/StandardTypes.raml
+  StandardTraits: libraries/StandardTraits.raml
+  TechnicalAdministrationTraits: libraries/TechnicalAdministrationTraits.raml
+
+securitySchemes:
+  basic:
+    description: |
+      This API supports Basic Authentication.
+    type: Basic Authentication
+
+mediaType: application/json
+
+types:
+  _reserved:
+    type: string
+
+documentation:
+  - title: Avertissements
+    content: !include docs-fr/avertissement.md
+
+  - title: Licence
+    content: !include docs-fr/license.md
+
+/logbook/{version}:
+  displayName: Logbook
+  description: |
+   API des services d'administration technique fournis par le module logbook.
+
+  /reconstruction/operations:
+    displayName: Logbook Operation Reconstruction
+    description:  |
+     Reconstruction des bases LogbookOperation, AccessionRegisterDetail et AccessionRegisterSummary à partir des sauvegardes des opérations dans les offres de stockage.
+    
+    post:
+      description : |
+        Exécute la reconstruction des bases LogbookOperation, AccessionRegisterDetail et AccessionRegisterSummary définies par la requête à partir des sauvegardes des opérations dans les offres de stockage.
+      is: [TechnicalAdministrationTraits.LogbookReconstruction]
+
+/metadata/{version}:
+  displayName: Metadata
+  description: |
+   API des services d'administration technique fournis par le module metadata.
+
+  /reconstruction:
+    displayName: Metadata Reconstruction
+    description:  |
+     Reconstruction des bases Unit, ObjectGroup LogbookLifecycleUnit, LogbookLifecycleObjectGroup à partir des sauvegardes des Units et des ObjectGroups dans les offres de stockage.
+    
+    post:
+      description : |
+        Exécute la reconstruction bases Unit, ObjectGroup LogbookLifecycleUnit, LogbookLifecycleObjectGroup définies par la requête à partir des sauvegardes des Units et des ObjectGroups dans les offres de stockage.
+      is: [TechnicalAdministrationTraits.MetadataReconstruction]

@@ -258,14 +258,14 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         }
         
         @POST
-        @Path("/unitlifecycles/bulk/raw")
+        @Path("/raw/unitlifecycles/bulk")
         @Consumes(MediaType.APPLICATION_JSON)
         public Response rawbulkUnitLifeCycle(List<JsonNode> unitLifecycles) {
             return expectedResponse.post();
         }
 
         @POST
-        @Path("/objectgrouplifecycles/bulk/raw")
+        @Path("/raw/objectgrouplifecycles/bulk")
         @Consumes(MediaType.APPLICATION_JSON)
         public Response rawbulkObjectgroupLifeCycle(List<JsonNode> objectgroupLifecycles) {
             return expectedResponse.post();

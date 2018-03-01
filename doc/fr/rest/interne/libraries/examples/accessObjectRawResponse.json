@@ -1,0 +1,73 @@
+{
+	"$hits": {
+		"total": 1,
+		"size": 1,
+		"offset": 0,
+		"limit": 1000
+	},
+	"$context": {},
+	"$results": [
+		{
+			"_id": "aebaaaaaaafukrl4aa4i4alb2jxjwmqaaaaq",
+			"_tenant": 0,
+			"_profil": "",
+			"FileInfo": {
+				"Filename": "KEpK4t9AS8oYpbWkr4rWo10vcfIBXM",
+				"LastModified": "2016-06-08T10:16:16.000+02:00"
+			},
+			"_qualifiers": [
+				{
+					"qualifier": "BinaryMaster",
+					"_nbc": 1,
+					"versions": [
+						{
+							"_id": "aeaaaaaaaafukrl4aa4i4alb2jxjwmiaaaaq",
+							"DataObjectGroupId": "aebaaaaaaafukrl4aa4i4alb2jxjwmqaaaaq",
+							"DataObjectVersion": "BinaryMaster_1",
+							"FormatIdentification": {
+								"FormatLitteral": "OpenDocument Text",
+								"MimeType": "application/vnd.oasis.opendocument.text",
+								"FormatId": "fmt/291"
+							},
+							"FileInfo": {
+								"Filename": "KEpK4t9AS8oYpbWkr4rWo10vcfIBXM",
+								"LastModified": "2016-06-08T10:16:16.000+02:00"
+							},
+							"Size": 68438,
+							"Uri": "Content/KEpK4t9AS8oYpbWkr4rWo10vcfIBXM.odt",
+							"MessageDigest": "58e37fa092797145f2a0d063ebf8699b9725ab9955ebc2aa503539c3d7c39ab4f867ffb02595782195f2f94ac23017f9a78c1b10c2fc37287227a7673e2b8c28",
+							"Algorithm": "SHA-512",
+							"_storage": {
+								"_nbc": 1,
+								"offerIds": [
+									"offer-fs-1.service.consul"
+								],
+								"strategyId": "default"
+							}
+						}
+					]
+				}
+			],
+			"_up": [
+				"aeaqaaaaaafukrl4aa4i4alb2jxjxzqaaaaq"
+			],
+			"_nbc": 1,
+			"_ops": [
+				"aeeaaaaaacfs6qdyaarhqalb2jxi56qaaaaq"
+			],
+			"_opi": "aeeaaaaaacfs6qdyaarhqalb2jxi56qaaaaq",
+			"_sp": "FRAN_NP_050770",
+			"_sps": [
+				"FRAN_NP_050770"
+			],
+			"_storage": {
+				"_nbc": 1,
+				"offerIds": [
+					"offer1"
+				],
+				"strategyId": "default"
+			},
+			"_v": 0
+		}
+	]
+}

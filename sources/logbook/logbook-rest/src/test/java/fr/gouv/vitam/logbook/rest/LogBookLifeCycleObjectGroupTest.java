@@ -37,8 +37,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -461,7 +459,7 @@ public class LogBookLifeCycleObjectGroupTest {
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(lfcGotList)
             .when()
-            .post("/objectgrouplifecycles/bulk/raw")
+            .post("/raw/objectgrouplifecycles/bulk")
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -470,7 +468,7 @@ public class LogBookLifeCycleObjectGroupTest {
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(lfcGotList)
             .when()
-            .post("/objectgrouplifecycles/bulk/raw")
+            .post("/raw/objectgrouplifecycles/bulk")
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -481,7 +479,7 @@ public class LogBookLifeCycleObjectGroupTest {
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(lfcGotList)
             .when()
-            .post("/objectgrouplifecycles/bulk/raw")
+            .post("/raw/objectgrouplifecycles/bulk")
             .then()
             .statusCode(Status.CREATED.getStatusCode());
     }

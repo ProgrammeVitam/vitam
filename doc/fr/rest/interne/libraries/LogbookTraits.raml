@@ -226,3 +226,16 @@ traits:
           body:
             application/octet-stream:
               description: Binary object
+  
+  LogbookBulkRawInsert:
+    description: Response model for bulk Logbook insert
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader201, StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: list of logbook objects
+        example: !include examples/sampleListLogbooks.json
+    responses:
+      201:
+        description: Creation done
+

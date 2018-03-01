@@ -1,0 +1,60 @@
+{
+	"$hits": {
+		"total": 1,
+		"size": 1,
+		"offset": 0,
+		"limit": 1000
+	},
+	"$context": {},
+	"$results": [
+		{
+			"_id": "aeaqaaaaaafukrl4aa4i4alb2jxjxzqaaaaq",
+			"_og": "aebaaaaaaafukrl4aa4i4alb2jxjwmqaaaaq",
+			"_mgt": {
+				"OriginatingAgency": "FRAN_NP_050770"
+			},
+			"DescriptionLevel": "Item",
+			"Title": "Archive unit ID0910",
+			"Titles": {
+				"fr": "Archive unit ID0910"
+			},
+			"Description": "Curabitur et velit ornare, consectetur mi sed, volutpat augue. Duis semper, mauris eget luctus facilisis, tortor purus euismod mi, id vulputate augue nulla sit amet sapien. Sed posuere porta tortor vel tempus. Donec in vestibulum tellus.",
+			"Descriptions": {
+				"fr": "Curabitur et velit ornare, consectetur mi sed, volutpat augue. Duis semper, mauris eget luctus facilisis, tortor purus euismod mi, id vulputate augue nulla sit amet sapien. Sed posuere porta tortor vel tempus. Donec in vestibulum tellus."
+			},
+			"TransactedDate": "2016-06-08T10:16:16",
+			"_storage": {
+				"_nbc": 1,
+				"offerIds": [
+					"offer1"
+				],
+				"strategyId": "default"
+			},
+			"_sps": [
+				"FRAN_NP_050770"
+			],
+			"_sp": "FRAN_NP_050770",
+			"_ops": [
+				"aeeaaaaaacfs6qdyaarhqalb2jxi56qaaaaq"
+			],
+			"_opi": "aeeaaaaaacfs6qdyaarhqalb2jxi56qaaaaq",
+			"_unitType": "INGEST",
+			"_max": 9,
+			"_min": 1,
+			"_up": [
+				"aeaqaaaaaafukrl4aa4i4alb2jxjxxaaaaba"
+			],
+			"_nbc": 0,
+			"_us": [
+				"aeaqaaaaaafukrl4aa4i4alb2jxjxvqaaaba",
+				"aeaqaaaaaafukrl4aa4i4alb2jxjxxaaaaba"
+			],
+			"_uds": {
+				"aeaqaaaaaafukrl4aa4i4alb2jxjxvqaaaba": 2,
+				"aeaqaaaaaafukrl4aa4i4alb2jxjxxaaaaba": 1
+			},
+			"_v": 0,
+			"_tenant": 0
+		}
+	]
+}

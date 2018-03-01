@@ -1,0 +1,46 @@
+{
+	"ObjectSize": {
+		"ingested": 58806,
+		"deleted": 0,
+		"remained": 58806,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"#id": "aehaaaaaaeexmt3iabyeqalb2grhupyaaaaq",
+	"OriginatingAgency": "DGFIP",
+	"SubmissionAgency": "DGFIP",
+	"ArchivalAgreement": "ArchivalAgreementWithProfil",
+	"EndDate": "2018-02-26T10:22:21.759",
+	"StartDate": "2018-02-26T10:22:21.759",
+	"LastUpdate": "2018-02-26T10:22:21.759",
+	"Status": "STORED_AND_COMPLETED",
+	"TotalObjectGroups": {
+		"ingested": 2,
+		"deleted": 0,
+		"remained": 2,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"TotalUnits": {
+		"ingested": 5,
+		"deleted": 0,
+		"remained": 5,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"TotalObjects": {
+		"ingested": 2,
+		"deleted": 0,
+		"remained": 2,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"OperationIds": [
+		"aeeaaaaaagghkzkeaacimalb2grgctiaaaaq"
+	],
+	"Symbolic": false
+}

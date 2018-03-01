@@ -601,7 +601,7 @@ public class LogBookLifeCycleUnitTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(lfcGotList)
             .when()
-            .post("/unitlifecycles/bulk/raw")
+            .post("/raw/unitlifecycles/bulk")
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -610,7 +610,7 @@ public class LogBookLifeCycleUnitTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(lfcGotList)
             .when()
-            .post("/unitlifecycles/bulk/raw")
+            .post("/raw/unitlifecycles/bulk")
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -621,7 +621,7 @@ public class LogBookLifeCycleUnitTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(lfcGotList)
             .when()
-            .post("/unitlifecycles/bulk/raw")
+            .post("/raw/unitlifecycles/bulk")
             .then()
             .statusCode(Status.CREATED.getStatusCode());
     }

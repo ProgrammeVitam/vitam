@@ -33,3 +33,4 @@ raml2html -i Processing.raml -t template\template.nunjucks -o web\Processing.htm
 raml2html -i Storage.raml -t template\template.nunjucks -o web\Storage.html
 raml2html -i Worker.raml -t template\template.nunjucks -o web\Worker.html
 raml2html -i Workspace.raml -t template\template.nunjucks -o web\Workspace.html
+raml2html -i Technical-administration.raml -t template\template.nunjucks -o web\Technical-administration.html

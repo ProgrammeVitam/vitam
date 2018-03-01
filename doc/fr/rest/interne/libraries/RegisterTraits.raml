@@ -69,3 +69,34 @@ traits:
     responses:
       200:
         description: Returns if upload or check of <<resourcePathName | !uppercamelcase>> is OK
+
+  AccessionRegisterDetailRawGet:
+    description: Response model for one Accession Register Detail Raw
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body contains a json defining the fields to search on
+        example: !include examples/accessionRegisterDetailRawGet.json
+    responses:
+      200:
+        description: Returns one Accession Register Detail Raw
+        body:
+          application/json:
+            description: one Accession Register Detail Raw
+            example: !include examples/accessionRegisterDetailRawGetResponse.json
+
+
+  AccessionRegisterDetailRawCreate:
+    description: Request for accession register detail insert
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader201, StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: list of logbook objects
+        example: !include examples/accessionRegisterDetailRawCreate.json
+    responses:
+      201:
+        description: Creation done
+

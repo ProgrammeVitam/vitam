@@ -26,7 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -38,7 +47,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -53,21 +61,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * LogbookLifeCyclesClient REST implementation
- */
-
-
-/**
- *
  */
 class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCyclesClient {
 
@@ -79,8 +74,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String UNIT_LIFECYCLES_RAW_URL = "/unitlifecyclesraw";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
-    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL = "/objectgrouplifecycles/bulk/raw";
-    private static final String UNIT_LIFECYCLES_RAW_BULK_URL = "/unitlifecycles/bulk/raw";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL = "/raw/objectgrouplifecycles/bulk";
+    private static final String UNIT_LIFECYCLES_RAW_BULK_URL = "/raw/unitlifecycles/bulk";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
 

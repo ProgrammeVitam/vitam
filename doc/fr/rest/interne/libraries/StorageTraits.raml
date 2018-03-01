@@ -31,3 +31,16 @@ traits:
         type: string
         required: false
         description: Algorithme du digest - Requis pour la validation digest
+  StorageLog:
+    description: Model for storage log
+    body:
+      application/json:
+        description: query for storage log
+        type: StorageTypes.StorageLogQuery
+        example: !include examples/sampleStorageLogRequest.json
+    responses:
+      200:
+        description: Storage logs
+        body:
+          application/json:
+            example: !include examples/sampleStorageLogResponse.json

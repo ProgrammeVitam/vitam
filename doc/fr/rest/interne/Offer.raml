@@ -52,6 +52,15 @@ documentation:
               type: StorageTypes.ContainerInfo
               example: !include libraries/samples/containerInfo.sample
 
+    /logs:
+      displayName: Logs on the offer defined by container
+      description: |
+        Logs de l'offre définis par le conteneur
+      get:
+        description: |
+          Recherche de logs de l'offre définis par le conteneur.
+        is: [StorageTraits.StorageLog, CollectionTraits.collection-get, StorageTraits.StrategyStorage]
+
     /count:
       displayName: Count the number of objects on the offer objects defined container
       description: |
