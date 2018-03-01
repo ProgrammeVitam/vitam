@@ -6,7 +6,7 @@ Utilisation de la collection Agencies
 
 La collection Agencies permet de référencer et décrire unitairement les services agents.
 
-Cette collection est alimentée par l'import d'un fichier CSV contenant l'ensemble des services agent. Celui doit être structuré comme ceci :
+Cette collection est alimentée par l'import d'un fichier CSV contenant l'ensemble des services agents. Celui doit être structuré comme ceci :
 
 .. csv-table::
   :header: "Identifier","Name","Description"
@@ -33,7 +33,7 @@ Détail des champs
 **"_id":** identifiant unique du service agent.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"Name":** nom du service agent.
@@ -52,14 +52,15 @@ Détail des champs
   * Il s'agit d'une chaîne de caractères. 
   * Cardinalité : 1-1
 
-**"_tenant":** information sur le tenant. Il s'agit de l'identifiant du tenant utilisant l'enregistrement
+**"_tenant":** information sur le tenant. 
 
+  * Il s'agit de l'identifiant du tenant utilisant l'enregistrement
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_v":** version de l'enregistrement décrit
+**"_v":** version de l'enregistrement décrit.
 
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1

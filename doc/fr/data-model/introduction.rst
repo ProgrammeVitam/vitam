@@ -12,7 +12,7 @@ Objectif du document
 Ce document a pour objectif de présenter la structure générale des collections utilisées dans la solution logicielle Vitam.
 Il est destiné principalement aux développeurs, afin de leur présenter l'organisation des données dans la solution logicielle Vitam, ainsi qu'à tous les autres acteurs du programme pour leur permettre de connaître ce qui existe en l'état actuel.
 
-Il explicite chaque champ, précise la relation avec les sources (par exemple bordereau de transfert conforme au standard SEDA v.2.0, référentiels Pronom, etc...) et la structuration JSON stockée dans la base de données MongoDB. Ce document est structuré de façon à suivre l'ordre des bases et collections dans Mongo.
+Il explicite chaque champ, précise la relation avec les sources (par exemple bordereau de transfert conforme au standard SEDA v.2.0, référentiel Pronom, etc...) et la structuration JSON stockée dans la base de données MongoDB. Ce document est structuré de façon à suivre l'ordre des bases et collections dans Mongo.
 
 Pour chacun des champs, cette documentation apporte :
 
@@ -21,7 +21,7 @@ Pour chacun des champs, cette documentation apporte :
 - La codification en JSON
 
 Il décrit aussi parfois une utilisation particulière faite à une itération donnée.
-Cette indication diffèrant de la cible finale, auquel cas le numéro de l'itération de cet usage est mentionné.
+Cette indication diffèrant de la cible finale, le numéro de l'itération de cet usage est mentionné.
 
 Création des index
 ==================
@@ -35,9 +35,9 @@ Généralités
 Cardinalité
 ------------
 
-La cardinalité présentée pour chacun des champs correspond aux exigences de la base de données de la base de donnée.
+La cardinalité présentée pour chacun des champs correspond aux exigences de la base de données.
 
-Certains champs ayant une cardinalité 1-1 seront directement renseignés par la solution logiciel Vitam et seront donc obligatoirement présents dans la base de données, mais ne le sont pas forcement dans les données envoyées.
+Certains champs ayant une cardinalité 1-1 sont directement renseignés par la solution logicielle Vitam et sont donc obligatoirement présents dans la base de données, mais ne le sont pas forcement dans les données envoyées.
 
 Nommage des champs
 ------------------
@@ -45,7 +45,7 @@ Nommage des champs
 Les champs des fichiers JSON présents dans les collections peuvent être nommés de deux manières :
 
 * "champ" : un champ sans underscore est modifiable via les API.
-* "_champ" : un champ ayant avec un underscore n'est pas modifiable via les API. Une fois renseigné dans Vitam par le bordereau de transfert ou la solution logicielle Vitam, il ne pourra plus être modifié depuis l’extérieur.
+* "_champ" : un champ ayant avec un underscore n'est pas modifiable via les API. Une fois renseigné dans la solution logicielle Vitam par le bordereau de transfert ou la solution logicielle Vitam, il ne pourra plus être modifié depuis l’extérieur.
   
 Collections et bases
 --------------------
@@ -57,10 +57,10 @@ Les bases contiennent différentes collections. Les collections peuvent être ra
 Identifiants
 ------------
 
-Il existe plusieurs types d'identifiants :
+Il existe plusieurs types d'identifiant :
 
 	* GUID : identifiant unique de 36 caractères généré par la solution logicielle Vitam
-	* PUID : identifiant des formats dans le référentiel pronom
+	* PUID : identifiant des formats dans le référentiel Pronom
 	* PID : identifiant de processus Unix
 
 Dates 
@@ -74,7 +74,7 @@ Limite de caractères acceptés dans les champs
 
 Mongo est un type de base de données dite "schemaless", soit sans-schéma. Ainsi, les champs contenus dans les collections décrites dans ce document sont, sauf mention contraire, sans limite de caractères.
 
-Type d'indexation dans elasticsearch
+Type d'indexation dans elasticSearch
 ------------------------------------
 
 Les champs peuvent être indexés de deux façons différentes dans ElasticSearch :

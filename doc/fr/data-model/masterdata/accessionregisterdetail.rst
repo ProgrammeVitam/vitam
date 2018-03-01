@@ -9,7 +9,7 @@ Cette collection a pour vocation de référencer l'ensemble des informations sur
 Exemple de la description dans le XML d'entrée
 ==============================================
 
-Les seuls élements issus du message ArchiveTransfer utilisés ici sont ceux correspondants à la déclaration des identifiants du service producteur et du service versant. Ils sont placés dans le bloc <ManagementMetadata>
+Les seuls élements issus du message ArchiveTransfer utilisés ici sont ceux correspondant à la déclaration des identifiants du service producteur et du service versant. Ils sont placés dans le bloc <ManagementMetadata>
 
 ::
 
@@ -25,7 +25,6 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 
   {
       "_id": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
-      "_tenant": 2,
       "OriginatingAgency": "FRAN_NP_009734",
       "SubmissionAgency": "FRAN_NP_009734",
       "ArchivalAgreement": "ArchivalAgreement0",
@@ -69,7 +68,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
       "OperationIds": [
           "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq"
       ],
-    "_v": 5
+    "_v": 5,
+    "_tenant": 2
   }
 
 Détail des champs
@@ -78,17 +78,13 @@ Détail des champs
 **"_id":** identifiant unique.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"_tenant": Champ obligatoire peuplé par Vitam** identifiant du tenant.
-
-  * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
-  * Cardinalité : 1-1
-
-**"OriginatingAgency":** contient l'identifiant du service producteur.
-  Il est issu du le bloc <OriginatinAgencyIdentifier> correspondant au champ Name de la collection Agencies.
+**"OriginatingAgency":** identifiant du service producteur.
+  
+  * Il est issu du le bloc <OriginatinAgencyIdentifier> 
+  * Correspond au champ Identifier de la collection Agencies.
 
 Par exemple :
 
@@ -96,15 +92,17 @@ Par exemple :
 
   <OriginatingAgencyIdentifier>FRAN_NP_051314</OriginatingAgencyIdentifier>
 
-on récupère la valeur FRAN_NP_051314
+On récupère la valeur FRAN_NP_051314
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 0-1
 
 **"SubmissionAgency":** contient l'identifiant du service versant.
-    Il est contenu entre les balises <SubmissionAgencyIdentifier> correspondant au champ Name de la collection Agencies.
+    
+    * Il est contenu entre les balises <SubmissionAgencyIdentifier>
+    * Correspond au champ Identifier de la collection Agencies.
 
-Par exemple pour
+Par exemple
 
 ::
 
@@ -117,8 +115,11 @@ On récupère la valeur FRAN_NP_005761.
 
 Ce champ est facultatif dans le bordereau. S'il' est absente ou vide, alors la valeur contenue dans le champ <OriginatingAgencyIdentifier> est reportée dans ce champ.
 
-**"ArchivalAgreement":** Contient le contrat utilisé pour réaliser l'entrée.
-  Il est contenu entre les balises <ArchivalAgreement> et correspond à la valeur contenue dans le champ Identifier de la collection IngestContract.
+**"ArchivalAgreement":** 
+
+  * Contient le contrat utilisé pour réaliser l'entrée.
+  * Il est contenu entre les balises <ArchivalAgreement>
+  * Correspond à la valeur contenue dans le champ Identifier de la collection IngestContract.
 
 Par exemple pour
 
@@ -137,7 +138,7 @@ On récupère la valeur IC-000001.
 
   ``"EndDate": "2017-04-10T11:30:33.798"``
 
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"StartDate":** date de la première opération d'entrée pour l'enregistrement concerné. 
@@ -146,7 +147,7 @@ On récupère la valeur IC-000001.
 
   ``"StartDate": "2017-04-10T11:30:33.798"``
 
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
  
 **Symbolic**: Indique si le fonds concerné est propre au service producteur ou s'il lui est rattaché symboliquement. Si le champ correspond à la valeur true, il s'agit de liens symboliques.
@@ -154,22 +155,22 @@ On récupère la valeur IC-000001.
   * Il s'agit d'un booléen
   * Cardinalité : 1-1
 
-**"Status":**. Indication sur l'état des archives concernées par l'enregistrement.
+**"Status":** Indication sur l'état des archives concernées par l'enregistrement.
 
   * Il s'agit d'une chaîne de caractères
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
-**"LastUpdate":**. Date de la dernière mise à jour pour l'enregistrement concerné. 
+**"LastUpdate":** Date de la dernière mise à jour pour l'enregistrement concerné. 
 
   * La date est au format ISO 8601
-  * Champ peuplé par Vitam
 
-  ``"StartDate": "2017-04-10T11:30:33.798"``
+  ``"LastUpdate": "2017-04-10T11:30:33.798"``
 
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
  
-**"TotalObjectGroups":**. Il contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (ingested, deleted,remained, attached, detached et symbolicRemained) :
+**"TotalObjectGroups":** Contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (ingested, deleted,remained, attached, detached et symbolicRemained) :
     - "ingested": nombre de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": nombre de groupes d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": nombre de groupes d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
@@ -178,10 +179,10 @@ On récupère la valeur IC-000001.
     - "symbolicRemained": nombre actualisé de groupes d'objets attachés symboliquement de ce service producteur pour l'enregistrement concerné et conservés dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
       
   * Il s'agit d'un JSON
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"TotalUnits":**. Il contient la répartition du nombre d'unités archivistiques du fonds par état pour l'opération journalisée (ingested, deleted,remained, attached, detached et symbolicRemained) :
+**"TotalUnits":** Il contient la répartition du nombre d'unités archivistiques du fonds par état pour l'opération journalisée :
     - "ingested": nombre d'unités archivistiques prises en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": nombre d'unités archivistiques supprimées ou sorties du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": nombre d'unités archivistiques conservées dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
@@ -190,19 +191,19 @@ On récupère la valeur IC-000001.
     - "symbolicRemained": nombre actualisé d'unités archivistiques attachées symboliquement de ce service producteur pour l'enregistrement concerné et conservées dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
       
   * Il s'agit d'un JSON
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"TotalObjects":** Contient la répartition du nombre d'objets du fonds par état pour l'opération journalisée  (ingested, deleted,remained, attached, detached et symbolicRemained) :
-    - "ingested": nombre  d'objets prises en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+**"TotalObjects":** Contient la répartition du nombre d'objets du fonds par état pour l'opération journalisée :
+    - "ingested": nombre  d'objets priss en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": nombre d'objets supprimés ou sorties du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
-    - "remained": nombre d'objets conservées dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
-    - "attached": nombre d'objets rattachées symboliquement de ce service producteur pour l'enregistrement concerné. La valeur contenue dans le champ est un entier.
-    - "detached": nombre d'objets détachées symboliquement de ce service producteur. La valeur contenue dans ce champ est un entier.
-    - "symbolicRemained": Nombre actualisé d'objets attachées symboliquement de ce service producteur pour l'enregistrement concerné et conservés dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
+    - "remained": nombre d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "attached": nombre d'objets rattachés symboliquement de ce service producteur pour l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "detached": nombre d'objets détachés symboliquement de ce service producteur. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Nombre actualisé d'objets attachés symboliquement de ce service producteur pour l'enregistrement concerné et conservés dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
       
   * Il s'agit d'un JSON
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"ObjectSize":** Contient la répartition du volume total des fichiers du fonds par état pour l'opération journalisée (ingested, deleted,remained, attached, detached et symbolicRemained) :
@@ -214,18 +215,24 @@ On récupère la valeur IC-000001.
     - "symbolicRemained": Volume actualisé en octets des fichiers attachés symboliquement de ce service producteur pour l'enregistrement concerné et conservés dans la solution logicielle Vitam. La valeur contenue dans ce champ est un entier.
     
   * Il s'agit d'un JSON
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"OperationIds":** opération d'entrée concernée
+**"OperationIds":** opérations d'entrée concernées
 
   * Il s'agit d'un tableau.
   * Ne peut être vide
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_v":** version de l'enregistrement décrit
 
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
+**"_tenant":** identifiant du tenant.
+
+  * Il s'agit d'un entier.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1

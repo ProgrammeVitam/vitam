@@ -17,7 +17,7 @@ Ces opérations sont :
 - Sécurisation (implémentée dans la release en cours)
 - Vérification (implémentée dans la release en cours)
   
-Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 7.3.
+Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 6.3.
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection LogbookOperation
 =====================================================================================================
@@ -98,6 +98,7 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
         }
     ],
     "_tenant": 0,
+    "_v": 1,
     "_lastPersistedDate": "2017-09-12T12:08:33.219"
   }
 
@@ -116,18 +117,19 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
   * Cardinalité : 1-1
   * Ce champ existe uniquement pour la structure incluante.
 
-**"evId" (event Identifier): Champs obligatoire peuplé par Vitam** identifiant de l'événement 
+**"evId" (event Identifier):** identifiant de l'événement 
 
   * Il s'agit d'une chaîne de 36 caractères.
+  * Champs obligatoire peuplé par la solution logicielle Vitam.
   * Il identifie l'opération de manière unique dans la collection.
   * Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par paire (début/fin).
   * Cardinalité : 1-1
-  * Ce champ existe pour les structures incluantes et incluses*
+  * Ce champ existe pour les structures incluantes et incluses
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
 
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
-    * Il identifie l'événement parent.
+    * Il identifie l'événement parent. Par exemple pour CHECK_SEDA, il s'agit de STP_INGEST_CONTROL_SIP.
     * Ce champ est toujours à null pour la structure incluante et les tâches principales
     * Cardinalité : 1-1 
     * Ce champ existe pour les structures incluantes et incluses.
@@ -149,15 +151,15 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 **"evDetData" (event Detail Data):** détails des données l'événement.
 
-  * Donne plus de détail sur l'événement ou son résultat.
+  * Donne plus de détails sur l'événement ou son résultat.
   * Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ArchiveTransferReply, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
     
-  * Sur la structure incluante du journal d'opérations d'entrée, il contient un JSON composé des champs suivants :
+  * Sur la structure incluante d'une opération d'entrée, il contient un JSON composé des champs suivants :
 
     * evDetDataType : structure impactée. Chaîne de caractères. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
     * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer. 
     * EvDateTimeReq : date de la demande de transfert inscrit dans le champ evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
-    * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer
+    * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer.
     
   * Cardinalité pour les structures incluantes : 1-1 
   * Cardinalité pour les structures incluses : 0-1 
@@ -173,7 +175,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 **"evTypeProc" (event Type Process):** type de processus.
 
   * Il s'agit d'une chaîne de caractères.
-  * Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe 7.3.
+  * Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe 6.3.
   * Cardinalité : 1-1 
   * Ce champ existe pour les structures incluantes et incluses.
 
@@ -197,10 +199,10 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
   * Cardinalité : 1-1 
   * Ce champ existe pour les structures incluantes et incluses.
 
-**"outMessg" (outcomeDetailMessage):** détail du résultat de l'événement.
+**"outMessg" (outcome Detail Message):** détail du résultat de l'événement.
 
   * Il s'agit d'une chaîne de caractères.
-  * C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement. Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties.
+  * C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement. Traduction du code présent dans outDetail, issue du fichier vitam-logbook-message-fr.properties.
   * Cardinalité : 1-1 
   * Ce champ existe pour les structures incluantes et incluses.
 
@@ -210,13 +212,13 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     * Cardinalité : 1-1 
     * Ce champ existe pour les structures incluantes et incluses.
 
-**"agIdApp" (agent Identifier Application):** identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer d'une opération. Cet identifiant est celui du contexte applicatif utilisé par l'application.
+**"agIdApp" (agent Identifier Application):** identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer une opération. Cet identifiant est celui du contexte applicatif utilisé par l'application.
 
     * Il s'agit d'une chaîne de caractères. 
     * Cardinalité : 1-1 
     * Ce champ existe uniquement pour la structure incluante.
 
-**"evIdAppSession" (event Identifier Application Session):** identifiant de la transaction qui a entraîné le lancement d'une opération dans Vitam.
+**"evIdAppSession" (event Identifier Application Session):** identifiant de la transaction qui a entraîné le lancement d'une opération dans la solution logicielle Vitam.
 
     * L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
     * Il s'agit d'une chaîne de caractères.
@@ -236,8 +238,8 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     * Il s'agit pour un ingest d'un JSON comprenant les champs suivants :
 
-        * originatingAgency : identifiant du service producteur. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
-        * transferringAgency : identifiant du service de transfert. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ TransferringAgencyIdentifier du message ArchiveTransfer.
+        * OriginatingAgency : identifiant du service producteur. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
+        * TransferringAgency : identifiant du service de transfert. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ TransferringAgencyIdentifier du message ArchiveTransfer.
         * ArchivalAgency : identifiant du service d'archivage. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ ArchivalAgencyIdentifier du message ArchiveTransfer.	    
         * submissionAgency : identifiant du service versant. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer. Ne contient aucune valeur actuellement
 
@@ -246,40 +248,43 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 **"rightsStatementIdentifier":** identifiant des données référentielles en vertu desquelles l'opération peut s'éxécuter
 
-    * Il s'agit pour un ingest d'un json comprennant les champs suivants :
+    * Pour une opération d'INGEST, il comprend les champs suivant en JSON :
 
-	   * ArchivalAgreement: identifiant du contrat d'entrée utilisé pour réaliser l'ingest.
+	   * ArchivalAgreement: identifiant du contrat d'entrée utilisé pour réaliser l'entrée.
 
 	    Il s'agit d'une chaîne de caractères.
 	    Reprend le contenu du champ ArchivalAgreement du message ArchiveTransfer.
 
-	   * Profil: identifiant du profil utilisé pour réaliser l'ingest.
+	   * Profil: identifiant du profil utilisé pour réaliser l'entrée.
 
 	    Il s'agit d'une chaîne de caractères.
 	    Reprend le contenu du champ ArchiveProfile du message ArchiveTransfer.	 
 
-    * Il s'agit pour un update d'un json comprennant les champs suivants :	   
+    * Pour une opération d'UPDATE, il comprend les champs suivant en JSON :	   
 
-    	* AccessContract : identifiant du contrat d'accès utilisé pour réaliser l'update.
+    	* AccessContract : identifiant du contrat d'accès utilisé pour réaliser une mise à jour.
     
     * Cardinalité : 1-1
 
 **"obId" (object Identifier):** identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
 
+    * Identifiant peuplé par la solution logicielle Vitam.
     * Il s'agit d'une chaîne de 36 caractères.
     * Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). 
     * Dans le cas d’une opération d'audit, il s’agit par exemple du nom d’un lot d’archives prédéfini.
     * Dans le cas d’une opération de mise à jour, il s’agit du GUID de l'unité archivistique mise à jour.
-    * Dans le cas d'une opération de Masterdata, il s'agit de l'id de l'opération
+    * Dans le cas d'une opération de Masterdata, il s'agit de l'identifiant de l'opération.
     * Cardinalité structure incluante : 1-1 
     * Cardinalité structure incluse : 0-1 
-    * Ce champ existe pour les structures incluantes et incluses
+    * Ce champ existe pour les structures incluantes et incluses.
 
-**"obIdReq" (object Identifier Request):** identifiant Vitam de la requête caractérisant un lot d’objets auquel s’applique l’opération.
-    
+**"obIdReq" (object Identifier Request):** identifiant de la requête caractérisant un lot d’objets auquel s’applique l’opération.
+
+    * Identifiant peuplé par la solution logiciele Vitam. 
     * Ne concerne que les lots d’objets dynamiques, c’est-à-dire obtenus par la présente requête. Ne concerne pas les lots ayant un identifiant défini.
     * Cardinalité : 1-1
-    * Actuellement, la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses
+    * Actuellement, la valeur est toujours 'null'. 
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"obIdIn" (Object Identifier Income):** identifiant externe du lot d’objets auquel s’applique l’opération.
 
@@ -300,7 +305,14 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
-      *Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
+
+**"_v":** version de l'enregistrement décrit 
+
+    * Il s'agit d'un entier.
+    * Cardinalité : 1-1 
+    * Ce champ existe uniquement pour la structure incluante.
+    * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
 
 **"_lastPersistedDate":** date technique de sauvegarde en base.
 

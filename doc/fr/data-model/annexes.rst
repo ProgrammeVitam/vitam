@@ -4,12 +4,12 @@ Annexes
 Valeurs possibles pour le champ evType du LogBook Operation
 -----------------------------------------------------------
 
-L'ensemble des étapes, tâches et traitements sont détaillés dans la documentation modèle de workflow
+L'ensemble des étapes, tâches et traitements sont détaillés dans la documentation Modèle de workflow.
 
 Valeurs possibles pour le champ evType du LogBook LifeCycle
 -----------------------------------------------------------
   
-L'ensemble des étapes, tâches et traitements sont détaillées dans la documentation modèle de workflow
+L'ensemble des étapes, tâches et traitements sont détaillées dans la documentation Modèle de workflow.
 
 Valeurs possibles pour le champ evTypeProc (type de processus)
 --------------------------------------------------------------
@@ -55,10 +55,13 @@ Valeurs possibles pour le champ Name de la collection VitamSecquence
 .. csv-table::
   :header: "Prefixe", "Type de collection correspondante", "Decription"
 
-  "AC", "AccessContract", "Contrat d'accès"
-  "IC", "IngestContract", "Contrat d'entrée"
+  "AC", "AccessContract", "Contrats d'accès"
+  "IC", "IngestContract", "Contrats d'entrée"
   "PR", "Profile", "Profils d'archivage"
   "CT", "Context", "Contextes applicatifs"
+  "AG", "Agencies", "Services agents"
+  "RULE", "FileRules", "Règles de gestion"
+  "SEC_PROFILE", "SecurityProfiles", "Profils de sécurité"
   
 Diagramme du modèle de données Vitam
 ------------------------------------

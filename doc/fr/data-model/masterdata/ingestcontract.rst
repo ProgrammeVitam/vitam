@@ -44,7 +44,6 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
 
     {
       "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
-      "_tenant": 0,
       "Name": "SIA archives nationales",
       "Identifier": "IC-000012",
       "Description": "Contrat d'accès - SIA archives nationales",
@@ -58,8 +57,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
       ],
       "LinkParentId":
         "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq",
-      "_v": 0
-    }
+      "_tenant": 0,
+      "_v": 0    }
 
 Détail des champs de la collection IngestContract
 =================================================
@@ -67,7 +66,7 @@ Détail des champs de la collection IngestContract
 **"_id":** identifiant unique du contrat.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"Name":** Nom du contrat d'entrée.
@@ -130,21 +129,21 @@ Détail des champs de la collection IngestContract
   * Peut être vide
   * Cardinalité : 0-1
 
-**"LinkParentId":** point de rattachement automatique des SIP en application de ce contrat correspondant à l'identifiant d’une unité archivistique dans le plan de classement ou d'arbre de positionnement.
+**"LinkParentId":** point de rattachement automatique des SIP en application de ce contrat correspondant à l'identifiant d’une unité archivistique d'un plan de classement ou d'un arbre de positionnement.
   
-  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID et issue du champ _id d'un enregistrement de la collection Unit.
   * Cardinalité : 0-1
 
 **L'unité archivistique concernée doit être de type FILING_UNIT ou HOLDING afin que l'opération aboutisse**
 
-**"_v":** version de l'enregistrement décrit
-
-  * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
-  * Cardinalité : 1-1
-
 **"_tenant":** identifiant du tenant.
 
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1 
+
+**"_v":** version de l'enregistrement décrit.
+
+  * Il s'agit d'un entier.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1

@@ -9,7 +9,7 @@ La collection AccessContract permet de référencer et de décrire unitairement 
 Exemple d'un fichier d'import de contrat d'accès
 ================================================
 
-Les contrats d'accès sont importés dans la solution logicielle Vitam sous la forme d'un fichier json.
+Les contrats d'accès sont importés dans la solution logicielle Vitam sous la forme d'un fichier JSON.
 
 ::
 
@@ -18,7 +18,7 @@ Les contrats d'accès sont importés dans la solution logicielle Vitam sous la f
       {
           "Name": "ContratTNR",
           "Identifier": "AC-000034",
-          "Description": "Contrat permettant de faire des opérations pour tous les services producteurs et sur tousles usages",
+          "Description": "Contrat permettant de faire des opérations pour tous les services producteurs et sur tous les usages",
           "Status": "ACTIVE",
           "CreationDate": "2016-12-10T00:00:00.000",
           "LastUpdate": "2017-11-07T07:57:10.581",
@@ -31,14 +31,9 @@ Les contrats d'accès sont importés dans la solution logicielle Vitam sous la f
               "Thumbnail",
               "TextContent"
           ],
-          "OriginatingAgencies": [
-              "Vitam",
-              "DINSIC",
-          ],
           "WritingPermission": true,
           "EveryOriginatingAgency": true,
           "EveryDataObjectVersion": false,
-          "_v": 0
       }
     ]
 
@@ -49,14 +44,13 @@ Les champs à renseigner obligatoirement à la création d'un contrat sont :
 
 Un fichier d'import peut décrire plusieurs contrats.
 
-Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection contrats d'accès
-=====================================================================================================
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection AccesContract
+===================================================================================================
 
 ::
 
     {
     "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
-    "_tenant": 0,
     "Name": "SIA archives nationales",
     "Identifier": "AC-000009",
     "Description": "Contrat d'accès - SIA archives nationales",
@@ -65,11 +59,17 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
     "LastUpdate": "2017-04-10T11:30:33.798",
     "ActivationDate": "2017-04-10T11:30:33.798",
     "DeactivationDate": null,
-    "OriginatingAgencies":["FRA-56","FRA-47"],
     "DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+    "OriginatingAgencies":["FRA-56","FRA-47"],
+    "RootUnits": [
+        "aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
+        "aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
+    ],
     "WritingPermission": true,
     "EveryOriginatingAgency": false,
     "EveryDataObjectVersion": true,
+,
+    "_tenant": 0,
     "_v": 0,
     "RootUnits": [
         "aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
@@ -83,23 +83,23 @@ Détail des champs
 **"_id":** identifiant unique par tenant par contrat.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"_tenant":** identifiant du tenant.
 
   * Il s'agit de l'identifiant du tenant.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"Name":** Nom du contrat d'entrée.
+**"Name":** Nom du contrat d'accès.
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
 **"Identifier" :** identifiant signifiant donné au contrat.
 
-  * Il est consituté du préfixe "AC-" suivi d'une suite de 6 chiffres s'il est peuplé par Vitam. Par exemple : AC-001223. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du contrat.
+  * Il est constitué du préfixe "AC-" suivi d'une suite de 6 chiffres s'il est peuplé par la solution logicielle Vitam. Par exemple : AC-001223. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du contrat.
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 1-1
 
@@ -115,179 +115,47 @@ Détail des champs
 
 **"CreationDate":** date de création du contrat.
 
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
+  * La date est au format ISO 8601 et prend la forme suivante :
 
   ``"CreationDate": "2017-04-10T11:30:33.798"``
 
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"LastUpdate":** date de dernière mise à jour du contrat dans la collection AccesContrat.
 
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
+  * La date est au format ISO 8601 et prend la forme suivante :
 
   ``"LastUpdate": "2017-04-10T11:30:33.798"``
 
-  * Cardinalité : 1-1
-
-**"ActivationDate":** date d'activation du contrat.Collection AccessContract
-
-Utilisation de la collection AccessContract
-===========================================
-
-La collection AccessContract permet de référencer et de décrire unitairement les contrats d'accès.
-
-Exemple d'un fichier d'import de contrat d'accès
-================================================
-
-Les contrats d'accès sont importés dans la solution logicielle Vitam sous la forme d'un fichier json.
-
-::
-
-    [
-
-      {
-          "Name": "ContratTNR",
-          "Identifier": "AC-000034",
-          "Description": "Contrat permettant de faire des opérations pour tous les services producteurs et sur tousles usages",
-          "Status": "ACTIVE",
-          "CreationDate": "2016-12-10T00:00:00.000",
-          "LastUpdate": "2017-11-07T07:57:10.581",
-          "ActivationDate": "2016-12-10T00:00:00.000",
-          "DeactivationDate": "2016-12-10T00:00:00.000",
-          "DataObjectVersion": [
-              "PhysicalMaster",
-              "BinaryMaster",
-              "Dissemination",
-              "Thumbnail",
-              "TextContent"
-          ],
-          "OriginatingAgencies": [
-              "Vitam",
-              "DINSIC",
-          ],
-          "WritingPermission": true,
-          "EveryOriginatingAgency": true,
-          "EveryDataObjectVersion": false,
-          "_v": 0
-      }
-    ]
-
-Les champs à renseigner obligatoirement à la création d'un contrat sont :
-
-* Name
-* Description
-
-Un fichier d'import peut décrire plusieurs contrats.
-
-Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection contrats d'accès
-=====================================================================================================
-
-::
-
-    {
-    "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
-    "_tenant": 0,
-    "Name": "SIA archives nationales",
-    "Identifier": "AC-000009",
-    "Description": "Contrat d'accès - SIA archives nationales",
-    "Status": "ACTIVE",
-    "CreationDate": "2017-04-10T11:30:33.798",
-    "LastUpdate": "2017-04-10T11:30:33.798",
-    "ActivationDate": "2017-04-10T11:30:33.798",
-    "DeactivationDate": null,
-    "OriginatingAgencies":["FRA-56","FRA-47"],
-    "DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
-    "WritingPermission": true,
-    "EveryOriginatingAgency": false,
-    "EveryDataObjectVersion": true,
-    "_v": 0,
-    "RootUnits": [
-        "aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
-        "aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
-    ]
-    }
-
-Détail des champs
-=================
-
-**"_id":** identifiant unique par tenant par contrat.
-
-  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
-  * Cardinalité : 1-1
-
-**"_tenant":** identifiant du tenant.
-
-  * Il s'agit de l'identifiant du tenant.
-  * Champ peuplé par Vitam.
-  * Cardinalité : 1-1
-
-**"Name":** Nom du contrat d'entrée.
-
-  * Il s'agit d'une chaîne de caractères.
-  * Cardinalité : 1-1
-
-**"Identifier" :** identifiant signifiant donné au contrat.
-
-  * Il est consituté du préfixe "AC-" suivi d'une suite de 6 chiffres s'il est peuplé par Vitam. Par exemple : AC-001223. Si le référentiel est en position esclave, cet identifiant peut être géré par l'application à l'origine du contrat.
-  * Il s'agit d'une chaîne de caractères.
-  * Cardinalité : 1-1
-
-**"Description":** Description du contrat d'accès.
-
-  * Il s'agit d'une chaîne de caractères.
-  * Cardinalité : 1-1
-
-**"Status":** statut du contrat.
-
-  * Peut être ACTIVE ou INACTIVE
-  * Cardinalité : 1-1
-
-**"CreationDate":** date de création du contrat.
-
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
-
-  ``"CreationDate": "2017-04-10T11:30:33.798"``
-
-  * Cardinalité : 1-1
-
-**"LastUpdate":** date de dernière mise à jour du contrat dans la collection AccesContrat.
-
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
-
-  ``"LastUpdate": "2017-04-10T11:30:33.798"``
-
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"ActivationDate":** date d'activation du contrat.
 
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
+  * La date est au format ISO 8601 et prend la forme suivante :
 
   ``"ActivationDate": "2017-04-10T11:30:33.798"``
 
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"DeactivationDate":** date de désactivation du contrat.
 
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
+  * La date est au format ISO 8601 et prend la forme suivante :
 
   ``"DeactivationDate": "2017-04-10T11:30:33.798"``
 
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
-**"OriginatingAgencies":** services producteurs dont le détenteur du contrat peut consulter les archives.
+**"DataObjectVersion":** usages d'un groupe d'objets auxquels le détenteur du contrat a accès.
 
   * Il s'agit d'un tableau de chaînes de caractères.
   * Peut être vide
-  * Cardinalité : 0-n
+  * Cardinalité : 0-1
 
-**"DataObjectVersion":** usages d'un groupe d'objet auxquels le détenteur du contrat a access.
+**"OriginatingAgencies":** services producteurs dont le détenteur du contrat peut consulter les archives.
 
   * Il s'agit d'un tableau de chaînes de caractères.
   * Peut être vide
@@ -295,7 +163,7 @@ Détail des champs
 
 **"WritingPermission":** droit d'écriture. 
 
-  * Peut être true ou false. S'il est true, le détenteur du contrat peut effectuer des mises à jour.
+  * PIl s'agit d'un booléen. Si la valeur est à true, le détenteur du contrat peut effectuer des mises à jour.
   * Cardinalité : 1-1
 
 **"EveryOriginatingAgency":** droit de consultation sur tous les services producteurs.
@@ -310,67 +178,15 @@ Détail des champs
   * Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
   * Cardinalité : 1-1
 
-**"_v":**  version de l'enregistrement décrit
+**"_tenant":** identifiant du tenant.
 
-  * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
-  * Cardinalité : 1-1
-
-**"RootUnits":** Liste des noeuds de consultation auxquels le détenteur du contrat a accès. Si aucun noeud n'est spécifié, alors l'utilisateur a accès à tous les noeuds.
-
-  * Il s'agit d'un tableau de chaînes de caractères.
-  * Peut être vide
-  * Cardinalité : 0-1
-
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
-
-  ``"ActivationDate": "2017-04-10T11:30:33.798"``
-
-  * Cardinalité : 1-1
-
-**"DeactivationDate":** date de désactivation du contrat.
-
-  * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
-
-  ``"DeactivationDate": "2017-04-10T11:30:33.798"``
-
-  * Cardinalité : 1-1
-
-**"OriginatingAgencies":** services producteurs dont le détenteur du contrat peut consulter les archives.
-
-  * Il s'agit d'un tableau de chaînes de caractères.
-  * Peut être vide
-  * Cardinalité : 0-n
-
-**"DataObjectVersion":** usages d'un groupe d'objet auxquels le détenteur du contrat a access.
-
-  * Il s'agit d'un tableau de chaînes de caractères.
-  * Peut être vide
-  * Cardinalité : 0-1
-
-**"WritingPermission":** droit d'écriture. 
-
-  * Peut être true ou false. S'il est true, le détenteur du contrat peut effectuer des mises à jour.
-  * Cardinalité : 1-1
-
-**"EveryOriginatingAgency":** droit de consultation sur tous les services producteurs.
-
-  * Il s'agit d'un booléen.
-  * Si la valeur est à true, alors le détenteur du contrat peut accéder aux archives de tous les services producteurs.
-  * Cardinalité : 1-1
-
-**"EveryDataObjectVersion":** droit de consultation sur tous les usages.
-
-  * Il s'agit d'un booléen.
-  * Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
-  * Cardinalité : 1-1
+    * Il s'agit d'un entier.
+    * Cardinalité : 1-1 
 
 **"_v":**  version de l'enregistrement décrit
 
   * Il s'agit d'un entier.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"RootUnits":** Liste des noeuds de consultation auxquels le détenteur du contrat a accès. Si aucun noeud n'est spécifié, alors l'utilisateur a accès à tous les noeuds.

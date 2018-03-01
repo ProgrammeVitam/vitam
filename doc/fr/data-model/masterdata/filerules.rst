@@ -13,7 +13,7 @@ Cette collection est alimentée par l'import d'un fichier CSV contenant l'ensemb
 
   "Id de la règle","Type de règle","Intitulé de la règle","Description de la règle","Durée de la règle","Unité de mesure de la durée de la règle"
 
-La liste des types de règles disponibles est en annexe.
+La liste des types de règle disponibles est en annexe.
 
 Les valeurs renseignées dans la colonne unité de mesure doivent correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
 
@@ -28,7 +28,6 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
 
  {
    "_id": "aeaaaaaaaahbl62nabduoak3jc4avsyaaaha",
-   "_tenant": 0,
    "RuleId": "ACC-00011",
    "RuleType": "AccessRule",
    "RuleValue": "Communicabilité des informations portant atteinte au secret de la défense nationale",
@@ -37,7 +36,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
    "RuleMeasurement": "YEAR",
    "CreationDate": "2017-11-02T13:50:28.922",
    "UpdateDate": "2017-11-06T09:11:54.062",
-   "_v": 0
+   "_v": 0,
+   "_tenant": 0
   }
 
 Détail des champs
@@ -46,7 +46,7 @@ Détail des champs
 **"_id":** identifiant unique.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
-  * Champ peuplé par Vitam.
+  * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
 
 **"RuleId":** identifiant unique par tenant de la règle dans le référentiel utilisé.
@@ -61,7 +61,7 @@ Par exemple :
 
  ACC-00027
 
-Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs pouvant être utilisées comme préfixes ainsi que les types de règles auxquelles elles font référence sont disponibles en annexe 7.4.
+Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs pouvant être utilisées comme préfixes ainsi que les types de règles auxquelles elles font référence sont disponibles en annexe.
 
 **"RuleType":** Type de règle.
 

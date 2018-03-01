@@ -4,7 +4,7 @@ Collection PersonalCertificate
 Utilisation de la collection PersonalCertificate
 ================================================
 
-La collection Certificate permet de référencer et décrire unitairement les certificats pour l'authentification personae.
+La collection PersonnalCertificate permet de référencer et décrire unitairement les certificats personnels utilisés pour l'authentification de personae.
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 ===================================================================
@@ -23,13 +23,13 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 Détail des champs du JSON stocké dans la collection
 ===================================================
 
-**"_id":** identifiant unique du certificat
+**"_id":** identifiant unique du certificat personnel
 
-  * Champ peuplé par Vitam
+  * Champ peuplé par la solution logicielle Vitam
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Cardinalité : 1-1
 
-**"SubjectDN":** Identifiant unique (Distinguished Name) du certificat
+**"SubjectDN":** Identifiant unique (Distinguished Name) du certificat personnel
 
   * Il s'agit d'une chaîne de caractères
   * Cadinalité : 1-1
