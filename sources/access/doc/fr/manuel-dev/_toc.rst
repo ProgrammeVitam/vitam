@@ -9,3 +9,4 @@ Access
    access-contract-id-filter.rst
    access-rest.rst
    access-securite.rst
+   vitam-pooling-client.rst

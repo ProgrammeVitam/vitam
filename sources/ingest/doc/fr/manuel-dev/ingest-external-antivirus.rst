@@ -1,13 +1,13 @@
 ingest-external-antivirus
-##########################
+#########################
 
 Dans cette section, nous expliquons comment utiliser et configurer le script d'antivirus 
 pour le service ingest-external.
 
 1. Configuration pour ingest-external : ingest-external.conf
 
-	Dans ce fichier de configuration, nous précisons le nom de la script antivirus utilisé et
-	le temps limité pour le scan. pour le moment, nous utilisons le script de scan scan-clamav.sh 
+	Dans ce fichier de configuration, nous précisons le nom du script antivirus utilisé, et
+	le timeout pour le scan. Le script utilisé actuellement est scan-clamav.sh 
 	utilisant l’antivirus ClamAV.
 
 .. code-block:: yaml
@@ -20,6 +20,7 @@ pour le service ingest-external.
 	Le script permettant de lancer d'un scan d’un fichier envoyé avec l’antivirus ClamAV et 
 	retourner le résulat :
 
+   -1: Analyse non effectuée
 	0: Analyse OK - no virus                                                
 	1: Virus trouvé et corrigé
 	2: Virus trouvé mais non corrigé
@@ -40,31 +41,31 @@ la section suivant montre comment on appelle le script depuis ingest-external en
     antiVirusResult = JavaExecuteScript.executeCommand(antiVirusScriptName, filePath, timeoutScanDelay);
     .......
     switch (antiVirusResult) {
-        case 0:
-            LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
-            endParameters.setStatus(LogbookOutcome.OK);
-            endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                IngestExternalOutcomeMessage.OK_VIRUS.value());
-            break;
-        case 1:
-            LOGGER.debug(IngestExternalOutcomeMessage.OK_VIRUS.toString());
-            endParameters.setStatus(LogbookOutcome.OK);
-            endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                IngestExternalOutcomeMessage.KO_VIRUS.value());
-            break;
-        case 2:
-            LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-            endParameters.setStatus(LogbookOutcome.KO);
-            endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                IngestExternalOutcomeMessage.KO_VIRUS.value());
-            isFileInfected = true;
-            break;
-        default:
-            LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-            endParameters.setStatus(LogbookOutcome.FATAL);
-            endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                IngestExternalOutcomeMessage.KO_VIRUS.value());
-            isFileInfected = true;
+          case STATUS_ANTIVIRUS_OK:
+              LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
+              // nothing to do, default already set to ok
+              break;
+          case STATUS_ANTIVIRUS_WARNING:
+          case STATUS_ANTIVIRUS_KO:
+              LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
+              antivirusParameters.setStatus(StatusCode.KO);
+              antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                  messageLogbookEngineHelper.getOutcomeDetail(SANITY_CHECK_SIP, StatusCode.KO));
+              antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                  messageLogbookEngineHelper.getLabelOp(SANITY_CHECK_SIP, StatusCode.KO));
+              isFileInfected = true;
+              break;
+          case STATUS_ANTIVIRUS_NOT_PERFORMED:
+          case STATUS_ANTIVIRUS_NOT_PERFORMED_2:                    
+              LOGGER.error(IngestExternalOutcomeMessage.FATAL_VIRUS.toString());
+              antivirusParameters.setStatus(StatusCode.FATAL);
+              antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                  messageLogbookEngineHelper.getOutcomeDetail(SANITY_CHECK_SIP, StatusCode.FATAL));
+              antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                  messageLogbookEngineHelper.getLabelOp(SANITY_CHECK_SIP, StatusCode.FATAL));
+              isFileInfected = true;
+              break;
+      }
     }
 	.....................................................................................................        
 

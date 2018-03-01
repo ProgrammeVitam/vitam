@@ -1,14 +1,15 @@
 Access-rest
-############
+###########
 
 Présentation
 ************
 
-API REST EXT appelées par le client access external. Il y a un controle des paramètres (SanityChecker.checkJsonAll) transmis
-avec ESAPI.
+API REST EXT appelées par le client access external. 
+Il y a un controle des paramètres (SanityChecker.checkJsonAll) et des headers transmis avec ESAPI.
+
 
 fr.gouv.vitam.access.external.rest
-***********************************
+**********************************
 
 -- AccessExternalRessourceImpl
 

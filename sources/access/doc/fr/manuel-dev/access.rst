@@ -1,8 +1,8 @@
 Composant Access
-#################
+################
 
 Utilisation
-###########
+===========
 
 Configuration
 *************
@@ -14,19 +14,16 @@ Ces informations sont contenues dans le fichier pom.xml présent dans le répert
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>parent</artifactId>
-        <version>0.5.0-SNAPSHOT</version>
+        <version>${vitam.version}</version>
     </parent>
 
     <artifactId>access</artifactId>
     <packaging>pom</packaging>
     
     <modules>
-        <module>access-common</module>
-        <module>access-api</module>
-        <module>access-core</module>
-        <module>access-rest</module>
-        <module>access-client</module>
-  </modules>
+         <module>access-internal</module>
+         <module>access-external</module>
+    </modules>
 
 
 La factory
@@ -52,7 +49,7 @@ Par défaut, le client est en mode Mock. Il est possible de récupérer directem
       AccessClientFactory.setConfiguration(AccessClientType.MOCK);
      
       // Récupération explicite du client mock
-        final AccessClient client = AccessClientFactory.getInstance().getAccessOperationClient();
+      final AccessClient client = AccessClientFactory.getInstance().getAccessOperationClient();
        
  - Pour instancier son client en mode Production :
 
@@ -73,14 +70,18 @@ Le premier argument contient le nom du fichier de configuration access.conf (il 
 Le client
 *********
 
-    Le client propose actuellement plusieurs méthodes : selectUnits(String dslQuery); selectUnitbyId(String sqlQuery, String id);
-    updateUnitbyId(String updateQuery, String unitId);selectObjectbyId(String selectObjectQuery, String objectId);
-    getObjectAsInputStream(String selectObjectQuery, String objectGroupId, String usage, int version);
-    
-    Paramètre de la fonction : String dsl, selectUnitbyId(String sqlQuery, String id)
-    //TODO (Itérations futures : ajouter méthode modification des métadonnées ?)
+    Le client propose actuellement plusieurs méthodes permettant de gérer la lecture et la modification des collections Units, LogbookOperation, ObjectGroup, Lifecycle (Unit et OG) et de gérer l'export DIP.
 
     Le client récupère une réponse au format Json ou au format InputStream.
+    
+Le client AdminExternalClient implémente aussi l'interface OperationStatusClient ayant la méthode suivante:
+
+.. code-block:: java
+
+    RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext, String id) throws VitamClientException;
+
+Cette interface est passée comme paramètre au client VitamPoolingClient.
+    
 
 Exemple d'usage générique
 =========================
