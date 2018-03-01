@@ -26,15 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.multiple;
 
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
-
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
@@ -54,26 +48,22 @@ import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapterExternal;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
+
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
+
 /**
- * Partial Request Parser (common base): [ {root}, {query}, {filter} ] or { $roots: root, $query : query, $filter :
- * filter }
- *
+ * Partial Request Parser (common base): { $roots: root, $query : query, $filter : filter }
  */
 public abstract class RequestParserMultiple extends AbstractParser<RequestMultiple> {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(RequestParserMultiple.class);
-    /**
-     * Component's position [ {root}, {query}, {filter} ] [ 0 , 1 , 2 ]
-     */
-    protected static final int ROOT_POS = 0;
-    protected static final int QUERY_POS = 1;
-    protected static final int FILTER_POS = 2;
 
     private static final int DEFAULT_RELATIVE_DEPTH = 1000;
     /**
@@ -92,9 +82,8 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
 
     /**
      * Constructor for Metadata
-     * 
-     * @param adapter VarNameAdapter
      *
+     * @param adapter VarNameAdapter
      */
     public RequestParserMultiple(VarNameAdapter adapter) {
         request = getNewRequest();
@@ -114,25 +103,13 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             throw new InvalidParseOperationException(
                 "The current Node is missing(empty): RequestRoot");
         }
-        if (rootNode.isArray()) {
-            // should be 3, but each could be empty ( '{}' )
-            if (rootNode.size() > ROOT_POS) {
-                rootParse(rootNode.get(ROOT_POS));
-                if (rootNode.size() > QUERY_POS) {
-                    queryParse(rootNode.get(QUERY_POS));
-                    if (rootNode.size() > FILTER_POS) {
-                        filterParse(rootNode.get(FILTER_POS));
-                    }
-                }
-            }
-        } else {
-            /*
-             * not as array but composite as { $roots: root, $query : query, $filter : filter }
-             */
-            rootParse(rootNode.get(GLOBAL.ROOTS.exactToken()));
-            queryParse(rootNode.get(GLOBAL.QUERY.exactToken()));
-            filterParse(rootNode.get(GLOBAL.FILTER.exactToken()));
-        }
+
+        /*
+         * not as array but composite as { $roots: root, $query : query, $filter : filter }
+         */
+        rootParse(rootNode.get(GLOBAL.ROOTS.exactToken()));
+        queryParse(rootNode.get(GLOBAL.QUERY.exactToken()));
+        filterParse(rootNode.get(GLOBAL.FILTER.exactToken()));
     }
 
     @Override
@@ -142,7 +119,6 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
     }
 
     /**
-     *
      * @param query containing only the JSON query part (no filter neither roots)
      * @throws InvalidParseOperationException if query could not parse to JSON
      */
@@ -267,7 +243,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * exclusive)
      *
      * @param command JsonNode
-     * @throws InvalidParseOperationException if query could not parse to JSON
+     * @throws InvalidParseOperationException  if query could not parse to JSON
      * @throws InvalidCreateOperationException if could not create query in JSON
      */
     protected void analyzeRootQuery(final JsonNode command)
@@ -384,7 +360,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      *
      * @param condition the condition to add
      * @throws InvalidCreateOperationException when invalid create query exception occurred
-     * @throws InvalidParseOperationException when invalid parse data to create query
+     * @throws InvalidParseOperationException  when invalid parse data to create query
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         final Query srcquery = request.getNthQuery(0);

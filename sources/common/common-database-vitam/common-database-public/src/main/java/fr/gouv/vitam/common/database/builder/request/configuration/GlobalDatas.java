@@ -73,11 +73,6 @@ public class GlobalDatas {
      */
     public static final int NB_PROJECTIONS = 1000;
     /**
-     * True means commands are to be written using '$' as prefix
-     */
-    public static final boolean COMMAND_DOLLAR = true;
-
-    /**
      * Default max depth: should be 30 but let a great margin
      */
     public static final int MAXDEPTH = 100;

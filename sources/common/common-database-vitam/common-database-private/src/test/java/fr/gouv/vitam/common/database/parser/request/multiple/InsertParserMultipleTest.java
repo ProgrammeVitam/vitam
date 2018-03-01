@@ -305,7 +305,7 @@ public class InsertParserMultipleTest {
     @Test
     public void testInternalParseInsert() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "[ [ 'id0' ], { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+        final String s = "{ $roots: [ 'id0' ], $query: { $path : [ 'id1', 'id2'] }, $filter: {$mult : false }, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertNotNull(request);
     }
@@ -313,7 +313,7 @@ public class InsertParserMultipleTest {
     @Test
     public void testInternalParseRequest() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "[ [ 'id0' ], { $path : [ 'id1', 'id2'] }, {$mult : false }, {} ]";
+        final String s = "{ $roots: [ 'id0' ], $query: { $path : [ 'id1', 'id2'] }, $filter: {$mult : false }, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertNotNull(request);
     }
@@ -392,7 +392,7 @@ public class InsertParserMultipleTest {
     @Test
     public void testModel() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'cache'}, {} ]";
+        final String s = "{ $roots: [ 'id0' ], $query: [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'cache'}, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertEquals(FILTERARGS.UNITS, request.model());
     }
@@ -400,14 +400,14 @@ public class InsertParserMultipleTest {
     @Test(expected = InvalidParseOperationException.class)
     public void shouldRaiseException_whenPathNotFirstInQuery() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "[ [ 'id0' ], [{$exists : 'mavar1'}, { $path : [ 'id1', 'id2'] }], {$mult : false }, {} ]";
+        final String s = "{ $roots: [ 'id0' ], $query: [{$exists : 'mavar1'}, { $path : [ 'id1', 'id2'] }], $filter: {$mult : false }, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
     }
 
     @Test
     public void testHint() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final String s = "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'cache'}, {} ]";
+        final String s = "{ $roots: [ 'id0' ], $query: [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'cache'}, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertEquals(true, request.hintCache());
     }
@@ -416,7 +416,7 @@ public class InsertParserMultipleTest {
     public void testHintWithNoTimeOut() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
         final String s =
-            "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'notimeout'}, {} ]";
+            "{ $roots: [ 'id0' ], $query: [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'notimeout'}, $data: {} }";
         request.parse(JsonHandler.getFromString(s));
         assertEquals(true, request.hintNoTimeout());
     }
@@ -425,7 +425,7 @@ public class InsertParserMultipleTest {
     public void testGlobalDatasParser_GetJsonNodedepth() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
         final String s =
-            "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'notimeout'}, {} ]";
+            "{ $roots: [ 'id0' ], $query : [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'notimeout'}, $data : {} }";
         request.parse(JsonHandler.getFromString(s));
         GlobalDatasParser.getJsonNodedepth(request.getRootNode());
     }
@@ -446,7 +446,7 @@ public class InsertParserMultipleTest {
     public void shouldRaiseException_GlobalDatasParserNull() throws InvalidParseOperationException {
         final InsertParserMultiple request = new InsertParserMultiple();
         final String s =
-            "[ [ 'id0' ], [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], {$hint : 'notimeout'}, {} ]";
+            "{ $roots: [ 'id0' ], $query : [{ $path : [ 'id1', 'id2'] }, {$exists : 'mavar1'}], $filter: {$hint : 'notimeout'}, $data : {} }";
         request.parse(JsonHandler.getFromString(s));
         GlobalDatasParser.getValue(request.getRootNode());
     }

@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.database.parser.request.multiple;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -39,12 +38,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Select Parser: { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query,
- * filter, projection ]
- *
+ * Select Parser: { $roots: roots, $query : query, $filter : filter, $projection : projection }
  */
 public class SelectParserMultiple extends RequestParserMultiple {
-    protected static final int PROJECTION_POS = 3;
 
     /**
      * Empty constructor
@@ -55,7 +51,6 @@ public class SelectParserMultiple extends RequestParserMultiple {
 
     /**
      * @param adapter VarNameAdapter
-     *
      */
     public SelectParserMultiple(VarNameAdapter adapter) {
         super(adapter);
@@ -67,9 +62,8 @@ public class SelectParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as [ {root}, {query}, {filter}, {projection} ] or { $roots: root, $query
-     *        : query, $filter : filter, $projection : projection }
+     * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter,
+     *                $projection : projection }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -82,20 +76,11 @@ public class SelectParserMultiple extends RequestParserMultiple {
      * @throws InvalidParseOperationException
      */
     private void internalParseSelect() throws InvalidParseOperationException {
-        if (rootNode.isArray()) {
-            // should be 4, but each could be empty ( '{}' )
-            if (rootNode.size() > PROJECTION_POS) {
-                projectionParse(rootNode.get(PROJECTION_POS));
-            }
-        } else {
-            // not as array but composite as { $roots: root, $query : query,
-            // $filter : filter, $projection : projection }
-            projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
-        }
+        // { $roots: root, $query : query, $filter : filter, $projection : projection }
+        projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
     }
 
     /**
-     *
      * @param query containing only the JSON request part (no filter neither projection nor roots)
      * @throws InvalidParseOperationException if request could not parse to JSON
      */

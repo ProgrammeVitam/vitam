@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.database.parser.request.single;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
@@ -37,22 +36,12 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameInsertAdapter
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Insert Parser: [ {query}, {filter}, {data} ] or { $query : query, $filter : filter, $data : data}
+ * Insert Parser: { $query : query, $filter : filter, $data : data}
  *
  */
 public class InsertParserSingle extends RequestParserSingle {
 
-    protected static final int DATA_POS = 2;
-
     VarNameInsertAdapter insertAdapter;
-
-    /**
-     * Use in Internal API
-     */
-    public InsertParserSingle() {
-        super();
-        insertAdapter = new VarNameInsertAdapter(adapter);
-    }
 
     /**
      * Use in Masterdata
@@ -72,8 +61,7 @@ public class InsertParserSingle extends RequestParserSingle {
 
     /**
      *
-     * @param request containing a parsed JSON as [ {root}, {query}, {filter}, {data} ] or { $roots: root, $query :
-     *        query, $filter : filter, $data : data}
+     * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter, $data : data}
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -86,16 +74,8 @@ public class InsertParserSingle extends RequestParserSingle {
      * @throws InvalidParseOperationException
      */
     private void internalParseInsert() throws InvalidParseOperationException {
-        if (rootNode.isArray()) {
-            // should be 3, but each could be empty ( '{}' )
-            if (rootNode.size() > DATA_POS) {
-                dataParse(rootNode.get(DATA_POS));
-            }
-        } else {
-            // not as array but composite as { $roots: root, $query : query,
-            // $filter : filter, $data : data }
-            dataParse(rootNode.get(GLOBAL.DATA.exactToken()));
-        }
+        // { $roots: root, $query : query, $filter : filter, $data : data }
+        dataParse(rootNode.get(GLOBAL.DATA.exactToken()));
     }
 
     /**

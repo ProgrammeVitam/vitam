@@ -26,23 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.single;
 
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.add;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.inc;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.max;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.min;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pop;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pull;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.push;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.rename;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.set;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.unset;
-
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
@@ -55,12 +40,24 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
+
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.add;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.inc;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.max;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.min;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pop;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pull;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.push;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.rename;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.set;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.unset;
+
 /**
- * Select Parser: { $query : query, $filter : filter, $actions : actions } or [ query, filter, actions ]
- *
+ * Select Parser: { $query : query, $filter : filter, $actions : actions }
  */
 public class UpdateParserSingle extends RequestParserSingle {
-    protected static final int ACTIONS_POS = 2;
 
     VarNameUpdateAdapter updateAdapter;
 
@@ -74,7 +71,6 @@ public class UpdateParserSingle extends RequestParserSingle {
 
     /**
      * @param adapter VarNameAdapter
-     *
      */
     public UpdateParserSingle(VarNameAdapter adapter) {
         super(adapter);
@@ -87,9 +83,7 @@ public class UpdateParserSingle extends RequestParserSingle {
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as [ {query}, {filter}, {actions} ] 
-     * or { $query : query, $filter : filter, $action : action }
+     * @param request containing a parsed JSON as { $query : query, $filter : filter, $action : action }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -126,7 +120,6 @@ public class UpdateParserSingle extends RequestParserSingle {
                     final Action updateAction = analyseOneAction(entry.getKey(), entry.getValue());
                     ((Update) request).addActions(updateAction);
                 }
-                iterator = null;
             }
         } catch (final Exception e) {
             throw new InvalidParseOperationException(

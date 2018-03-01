@@ -27,15 +27,13 @@
 package fr.gouv.vitam.common.database.parser.request.multiple;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Delete Parser: { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]
- *
+ * Delete Parser: { $roots: roots, $query : query, $filter : multi }
  */
 public class DeleteParserMultiple extends RequestParserMultiple {
 
@@ -48,7 +46,6 @@ public class DeleteParserMultiple extends RequestParserMultiple {
 
     /**
      * @param adapter VarNameAdapter
-     *
      */
     public DeleteParserMultiple(VarNameAdapter adapter) {
         super(adapter);
@@ -60,9 +57,7 @@ public class DeleteParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as { $roots: roots, $query : query, $filter : multi } or [ roots, query,
-     *        multi ]
+     * @param request containing a parsed JSON as { $roots: roots, $query : query, $filter : multi }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override

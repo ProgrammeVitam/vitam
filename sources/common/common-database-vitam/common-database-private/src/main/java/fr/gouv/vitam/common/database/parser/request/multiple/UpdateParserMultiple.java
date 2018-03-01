@@ -26,23 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.multiple;
 
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.add;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.inc;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.max;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.min;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pop;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pull;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.push;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.rename;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.set;
-import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.unset;
-
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
@@ -55,13 +40,24 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
+
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.add;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.inc;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.max;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.min;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pop;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.pull;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.push;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.rename;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.set;
+import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.unset;
+
 /**
- * Update Parser: [ {root}, {query}, {filter}, {actions} ] or { $roots: root, $query : query, $filter : filter, $action
- * : action }
- *
+ * Update Parser: { $roots: root, $query : query, $filter : filter, $action : action }
  */
 public class UpdateParserMultiple extends RequestParserMultiple {
-    protected static final int ACTIONS_POS = 3;
 
     VarNameUpdateAdapter updateAdapter;
 
@@ -75,7 +71,6 @@ public class UpdateParserMultiple extends RequestParserMultiple {
 
     /**
      * @param adapter VarNameAdapter
-     *
      */
     public UpdateParserMultiple(VarNameAdapter adapter) {
         super(adapter);
@@ -88,9 +83,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as [ {root}, {query}, {filter}, {actions} ] or { $roots: root, $query :
-     *        query, $filter : filter, $action : action }
+     * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter, $action : action }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -103,16 +96,8 @@ public class UpdateParserMultiple extends RequestParserMultiple {
      * @throws InvalidParseOperationException if could not parse to JSON
      */
     private void internalParseUpdate() throws InvalidParseOperationException {
-        if (rootNode.isArray()) {
-            // should be 4, but each could be empty ( '{}' )
-            if (rootNode.size() > ACTIONS_POS) {
-                actionParse(rootNode.get(ACTIONS_POS));
-            }
-        } else {
-            // not as array but composite as { $roots: root, $query : query,
-            // $filter : filter, $action : action }
-            actionParse(rootNode.get(GLOBAL.ACTION.exactToken()));
-        }
+        // { $roots: root, $query : query, $filter : filter, $action : action }
+        actionParse(rootNode.get(GLOBAL.ACTION.exactToken()));
     }
 
     /**
