@@ -80,6 +80,9 @@ public final class DslQueryHelper {
     private static final String PROFILE_ID = "ProfileID";
     private static final String PROFILE_IDENTIFIER = "ProfileIdentifier";
     private static final String PROFILE_NAME = "ProfileName";
+    private static final String ARCHIVE_UNIT_PROFILE_ID = "ArchiveUnitProfileID";
+    private static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER = "ArchiveUnitProfileIdentifier";
+    private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
     private static final String DESCRIPTION = "Description";
     private static final String TITLE = "Title";
     private static final String EVENT_DATE_TIME = "evDateTime";
@@ -165,15 +168,16 @@ public final class DslQueryHelper {
                 switch (sortField) {
                     case AGENCY_NAME:
                     case CONTRACT_NAME:
+                    case PROFILE_NAME:
+                    case ARCHIVE_UNIT_PROFILE_NAME:
                         realSortField = "Name";
                         break;
 
                     case PROFILE_IDENTIFIER:
+                    case ARCHIVE_UNIT_PROFILE_IDENTIFIER:
                         realSortField = "Identifier";
                         break;
-                    case PROFILE_NAME:
-                        realSortField = "Name";
-                        break;
+
                     default:
                 }
 
@@ -308,6 +312,7 @@ public final class DslQueryHelper {
                     case CONTEXT_NAME:
                     case CONTRACT_NAME:
                     case PROFILE_NAME:
+                    case ARCHIVE_UNIT_PROFILE_NAME:
                         if ("all".equals(searchValue)) {
                             query.add(exists("Name"));
                         } else if (!searchValue.isEmpty()) {
@@ -319,20 +324,20 @@ public final class DslQueryHelper {
                     case CONTRACT_ID:
                     case CONTEXT_ID:
                     case PROFILE_ID:
+                    case ARCHIVE_UNIT_PROFILE_ID:
                         if (!"all".equals(searchValue)) {
                             query.add(eq("Identifier", searchValue));
                         }
                         break;
 
-
                     case PROFILE_IDENTIFIER:
+                    case ARCHIVE_UNIT_PROFILE_IDENTIFIER:
                         if ("all".equals(searchValue)) {
                             query.add(exists("Identifier"));
                         } else if (!searchValue.isEmpty()) {
                             query.add(match("Identifier", searchValue));
                         }
                         break;
-
                     default:
                         if (!searchValue.isEmpty()) {
                             query.add(eq(searchKeys, searchValue));

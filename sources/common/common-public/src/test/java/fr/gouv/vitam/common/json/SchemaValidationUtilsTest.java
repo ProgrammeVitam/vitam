@@ -50,6 +50,7 @@ public class SchemaValidationUtilsTest {
     public static final String ACCESSION_REGISTER_DETAIL_OK_JSON_FILE = "accession_register_detail_OK.json";
     public static final String ACCESSION_REGISTER_SUMMARY_OK_JSON_FILE = "accession_register_summary_OK.json";
     public static final String AGENCIES_OK_JSON_FILE = "agencies_OK.json";
+    public static final String ARCHIVE_UNIT_PROFILE_OK_JSON_FILE = "archive_unit_profile_OK.json";
     public static final String CONTEXT_OK_JSON_FILE = "context_OK.json";
     public static final String FILE_FORMAT_OK_JSON_FILE = "file_format_OK.json";
     public static final String FILE_RULES_OK_JSON_FILE = "file_rules_OK.json";
@@ -191,6 +192,15 @@ public class SchemaValidationUtilsTest {
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
 
+    @Test
+    public void valid_ArchiveUnitProfiles() throws Exception {
+        // Given
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        // When
+        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE)), "ArchiveUnitProfile" );
+        // Then
+        assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
+    }
 
     @Test
     public void valid_Context() throws Exception {

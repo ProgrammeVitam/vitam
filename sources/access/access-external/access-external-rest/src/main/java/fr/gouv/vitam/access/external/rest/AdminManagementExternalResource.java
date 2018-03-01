@@ -56,6 +56,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -94,6 +95,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -608,6 +610,82 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
+    
+
+    /**
+     * Import archive unit profiles
+     *
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
+     */
+    @Path("/archiveunitprofiles")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "archiveunitprofiles:create:binary", description = "Importer un ou plusieurs document types dans le référentiel")
+    public Response createArchiveUnitProfiles(InputStream document) {
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+                JsonNode json = JsonHandler.getFromInputStream(document);
+                SanityChecker.checkJsonAll(json);
+                RequestResponse requestResponse =
+                    client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                return Response.status(requestResponse.getStatus())
+                    .entity(requestResponse).build();
+
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (InvalidParseOperationException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+    /**
+     * Import a set of archive unit profiles
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/archiveunitprofiles")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "archiveunitprofiles:create:json", description = "Ecrire un ou plusieurs document type dans le référentiel")
+    public Response createArchiveUnitProfiles(JsonNode select) {
+
+        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(select);
+            RequestResponse requestResponse =
+                client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+            return Response.status(requestResponse.getStatus())
+                .entity(requestResponse).build();
+
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
 
     /**
      * Import a Profile file document (xsd or rng, ...)
@@ -896,6 +974,41 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * find archive unit Profiles using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/archiveunitprofiles")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "archiveunitprofiles:read", description = "Lister le contenu du référentiel des document types")
+    public Response findArchiveUnitProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                SanityChecker.checkJsonAll(select);
+                RequestResponse result = client.findArchiveUnitProfiles(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+    
     /**
      * findContexts using get method
      *
@@ -1293,6 +1406,45 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
+     * find archive unit profiles by id
+     *
+     * @param documentId the archive unit profile ID to find
+     * @return Response the matching archive unit profile or an error
+     */
+    @Path("/archiveunitprofiles/{id_document:.+}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "archiveunitprofiles:id:read:json", description = "Lire un document type donné")
+    public Response findArchiveUnitProfilesByID(@PathParam("id_document") String documentId) {
+
+        try {
+            ParametersChecker.checkParameter("Archive unit profile ID is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<ArchiveUnitProfileModel> requestResponse = client.findArchiveUnitProfilesByID(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
      * findContextById
      *
      * @param documentId the document id to find
@@ -1397,6 +1549,47 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateProfile(identifier, update.getFinalUpdate());
+            return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_PROFILE_NOT_FOUND, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
+                .toResponse();
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
+        }
+    }
+
+    /**
+     * Update archive unit profile
+     *
+     * @param identifier
+     * @param queryDsl
+     * @return Response
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path("/archiveunitprofiles/{identifier:.+}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "archiveunitprofiles:id:update:json", description = "Effectuer une mise à jour sur un document type")
+    public Response updateArchiveUnitProfile(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
+        throws AdminManagementClientServerException {
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
+            RequestResponse response = client.updateArchiveUnitProfile(identifier, update.getFinalUpdate());
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -1771,6 +1964,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
+     * @deprecated Use CODE_VITAM
      * @param status  Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
      * @param code    The functional error code, if absent the http code will be used instead
@@ -1786,6 +1980,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
+    /**
+    * @deprecated Use CODE_VITAM
+    */
     @Deprecated
     private InputStream getErrorStream(Status status, String message, String code) {
         String aMessage =

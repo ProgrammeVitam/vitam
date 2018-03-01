@@ -57,6 +57,11 @@ public enum SequenceType {
      * Profile collection
      */
     PROFILE_SEQUENCE(FunctionalAdminCollections.PROFILE, "PR"),
+    
+    /**
+     * Archive Unit Profile collection
+     */
+    ARCHIVE_UNIT_PROFILE_SEQUENCE(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE, "AUP"),
 
     /**
      * Context collection

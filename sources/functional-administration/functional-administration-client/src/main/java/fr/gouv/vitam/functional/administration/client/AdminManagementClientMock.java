@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -399,7 +400,42 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         }
         return var;
     }
+    
+    @Override
+    public RequestResponse createArchiveUnitProfiles(List<ArchiveUnitProfileModel> archiveUnitProfileModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+    }
+    
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(JsonNode query)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("find archive unit profiles");
+        return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
+    }
+    
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfilesByID(String requestedId)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        LOGGER.debug("find archive unit profile by id: " + requestedId);
+        RequestResponse responses = ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
+        RequestResponseOK<ObjectNode> responcesIterator = (RequestResponseOK<ObjectNode>) responses;
 
+        ObjectNode firstObject = responcesIterator.getResults().iterator().next();
+        JsonNode idFirst = firstObject.get("_id");
+        if (null == idFirst || !idFirst.asText().equals(requestedId)) {
+            throw new ReferentialNotFoundException("No archive unit profile found with id " + requestedId);
+        }
+        return responses;
+    }
+
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> updateArchiveUnitProfile(String id, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ArchiveUnitProfileModel model =
+            JsonHandler.getFromString(ClientMockResultHelper.ARCHIVE_UNIT_PROFILES, ArchiveUnitProfileModel.class);
+        return ClientMockResultHelper.createReponse(model).setHttpCode(200);
+    }
 
     @Override
     public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)

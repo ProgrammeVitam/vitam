@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -118,6 +119,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String SECURITY_PROFILES_URI = "/securityprofiles";
     private static final String UNIT_EVIDENCE_AUDIT_URI = "/evidenceaudit/unit";
     private static final String OG_EVIDENCE_AUDIT_URI = "/evidenceaudit/objects";
+    private static final String ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles";
+    private static final String UPDATE_ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles/";
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
@@ -1054,6 +1057,120 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return new RequestResponseOK<ProfileModel>().setHttpCode(Status.OK.getStatusCode());
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Profile not found with id: " + id);
+            }
+
+            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+    
+    @Override
+    public RequestResponse createArchiveUnitProfiles(List<ArchiveUnitProfileModel> profileModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input archive unit profile json is mandatory", profileModelList);
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, ARCHIVE_UNIT_PROFILE_URI, null,
+                profileModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    ArchiveUnitProfileModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response, ProfileModel.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfilesByID(String documentId)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
+        Response response = null;
+        try {
+
+            final SelectParserSingle parser = new SelectParserSingle();
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq(Profile.IDENTIFIER, documentId));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+
+            response = performRequest(HttpMethod.GET, ARCHIVE_UNIT_PROFILE_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<ArchiveUnitProfileModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        ProfileModel.class);
+
+
+                if (resp.getResults() == null || resp.getResults().size() == 0)
+                    throw new ReferentialNotFoundException("Profile not found with id: " + documentId);
+
+                return resp;
+            }
+
+            return RequestResponse.parseFromResponse(response, ProfileModel.class);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> updateArchiveUnitProfile(String id, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_ARCHIVE_UNIT_PROFILE_URI + id, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return new RequestResponseOK<ArchiveUnitProfileModel>().setHttpCode(Status.OK.getStatusCode());
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Profile not found with id: " + id);
             }

@@ -124,6 +124,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -2737,6 +2738,151 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<AgenciesModel> response =
                 adminClient.findAgencyByID(UserInterfaceTransactionManager.getVitamContext(request),
+                    id);
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(response.getHttpCode()).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Create archive unit profiles metadata
+     *
+     * @param request HTTP request
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/archiveunitprofiles")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveunitprofiles:create")
+    public Response createArchiveUnitProfileMetadata(@Context HttpServletRequest request, InputStream input)
+        throws IOException {
+        // want a creation
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.createArchiveUnitProfile(
+                    UserInterfaceTransactionManager.getVitamContext(request), input);
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Update the detail of the archive unit profile
+     *
+     * @param request HTTP request
+     * @param archiveUnitprofileId
+     * @param updateOptions
+     * @return Response
+     */
+    @PUT
+    @Path("/archiveunitprofiles/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveunitprofiles:update")
+    public Response updateArchiveUnitProfile(@Context HttpServletRequest request, @PathParam("id") String archiveUnitprofileId,
+        JsonNode updateOptions) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Update updateRequest = new Update();
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
+            }
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
+            RequestResponse response =
+                adminClient.updateArchiveUnitProfile(
+                    UserInterfaceTransactionManager.getVitamContext(request),
+                    archiveUnitprofileId, updateRequest.getFinalUpdateById());
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Query to get archive unit profiles
+     *
+     * @param request HTTP request
+     * @param select the query to find archive unit profiles
+     * @return Response
+     */
+    @POST
+    @Path("/archiveunitprofiles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveunitprofiles:read")
+    public Response findArchiveUnitProfiles(@Context HttpServletRequest request, String select) {
+        try {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+                RequestResponse<ArchiveUnitProfileModel> response =
+                    adminClient.findArchiveUnitProfiles(
+                        UserInterfaceTransactionManager.getVitamContext(request),
+                        query);
+                if (response != null && response instanceof RequestResponseOK) {
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    /**
+     * Query to Access archive unit profile by id
+     *
+     * @param request HTTP request
+     * @param id of the requested archive unit profile
+     * @return Response
+     */
+    @GET
+    @Path("/archiveunitprofiles/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveunitprofiles:read")
+    public Response findArchiveUnitProfileByID(@Context HttpServletRequest request, @PathParam("id") String id) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse<ArchiveUnitProfileModel> response =
+                adminClient.findArchiveUnitProfileById(
+                    UserInterfaceTransactionManager.getVitamContext(request),
                     id);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();

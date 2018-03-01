@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
@@ -75,6 +76,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
     public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
     public static final String MAPPING_SECURITY_PROFILE_FILE = "/securityprofile-es-mapping.json";
+    public static final String MAPPING_ARCHIVE_UNIT_PROFILE_FILE = "/archiveunitprofile-es-mapping.json";
 
     public static final String MAPPING_ACCESSION_REGISTER_SUMMARY_FILE = "/accessionregistersummary-es-mapping.json";
     public static final String MAPPING_ACCESSION_REGISTER_DETAIL_FILE = "/accessionregisterdetail-es-mapping.json";
@@ -218,6 +220,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         } else if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.equals(collection)) {
             return ElasticsearchUtil.transferJsonToMapping(
                 AccessionRegisterDetail.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
+        } else if(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.equals(collection)) {
+            return ElasticsearchUtil.transferJsonToMapping(
+                ArchiveUnitProfile.class.getResourceAsStream(MAPPING_ARCHIVE_UNIT_PROFILE_FILE));
         }
         return "";
     }

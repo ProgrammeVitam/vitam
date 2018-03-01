@@ -63,6 +63,7 @@ public class SchemaValidationUtils {
     public static final String ACCESSION_REGISTER_DETAIL_SCHEMA_FILENAME = "json-schema/accession-register-detail.schema.json";
     public static final String ACCESSION_REGISTER_SUMMARY_SCHEMA_FILENAME = "json-schema/accession-register-summary.schema.json";
     public static final String AGENCIES_SCHEMA_FILENAME = "json-schema/agencies.schema.json";
+    public static final String ARCHIVE_UNIT_PROFILE_SCHEMA_FILENAME = "json-schema/archive-unit-profile.schema.json";
     public static final String CONTEXT_SCHEMA_FILENAME = "json-schema/context.schema.json";
     public static final String FILE_FORMAT_SCHEMA_FILENAME = "json-schema/file-format.schema.json";
     public static final String FILE_RULES_SCHEMA_FILENAME = "json-schema/file-rules.schema.json";
@@ -138,6 +139,9 @@ public class SchemaValidationUtils {
         }
         else if ("Agencies".equals(collectionName)){
             setSchema(AGENCIES_SCHEMA_FILENAME);
+        }
+        else if ("ArchiveUnitProfile".equals(collectionName)) {
+            setSchema(ARCHIVE_UNIT_PROFILE_SCHEMA_FILENAME);
         }
         else if ("Context".equals(collectionName)){
             setSchema(CONTEXT_SCHEMA_FILENAME);

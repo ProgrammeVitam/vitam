@@ -352,6 +352,40 @@ documentation:
           Upload un profil au format XSD ou RNG
        is: [AdminTraits.AdminProfileUpload]
 
+/archiveunitprofiles:
+  displayName: Archive Unit Profiles
+  description: |
+    API qui définit les requêtes pour accéder aux document types
+    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de document types selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Requête qui retourne des résultats contenant des Document types.
+      La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste de Document types selon le DSL Vitam en cas de succès.
+    is: [AdminTraits.AdminListingResponse]
+  post:
+    description: |
+      La requête importe un ensemble de Document types qui sont sauvegardés et indexés en cas de succès
+    is: [AdminTraits.AdminUpload]
+
+  /{idp}:
+    uriParameters:
+        idp:
+          required: true
+          description: |
+            Identifiant du document type
+    displayName: Archive Unit Profile
+    description: |
+      API qui permet de mettre à jour un document type via une requête de mise à jour ou d'accéder à un document type
+    get:
+      description: |
+         API qui définit les requêtes pour accéder à un document type via son ID
+      is: [AdminTraits.AdminListingResponse, AdminTraits.AdminItemResponse]
+    put:
+       description: |
+        Requête qui modifie un Document type.
+        La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
+       is: [AdminTraits.AdminUpload]
+
 /securityprofiles:
   displayName: Security Profiles
   description: |

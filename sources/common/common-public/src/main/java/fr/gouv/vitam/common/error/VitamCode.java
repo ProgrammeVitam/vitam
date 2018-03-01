@@ -143,6 +143,14 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Security profile request validation error"),
 
+    ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "15",
+        Status.BAD_REQUEST,
+        "Request archive unit profile validation error"),
+
+    ARCHIVE_UNIT_PROFILE_FILE_IMPORT_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "16",
+        Status.BAD_REQUEST,
+        "Request archive unit profile file import error"),
+
     REFERENTIAL_REPOSITORY_DATABASE_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.DATABASE, "15",
         Status.INTERNAL_SERVER_ERROR,
         "DatabaseException while accessing database through repository service"),

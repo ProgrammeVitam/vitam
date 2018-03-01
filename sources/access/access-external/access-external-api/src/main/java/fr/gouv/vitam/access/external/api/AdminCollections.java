@@ -72,6 +72,11 @@ public enum AdminCollections {
     ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS, null),
     
     /**
+     * Archive unit profile collection
+     */
+    ARCHIVE_UNIT_PROFILE(AccessExtAPI.ARCHIVE_UNIT_PROFILE, null),
+    
+    /**
      * Traceability collection
      */
     TRACEABILITY(AccessExtAPI.TRACEABILITY, AccessExtAPI.TRACEABILITYCHECKS),
