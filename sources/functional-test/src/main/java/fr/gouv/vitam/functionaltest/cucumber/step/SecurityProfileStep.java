@@ -26,11 +26,21 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -42,16 +52,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Security Profile Step
@@ -110,8 +110,8 @@ public class SecurityProfileStep {
         this.securityProfileName = securityOperationName;
     }
 
-    @When("^je modifie le profile de sécurité avec le fichier de requête suivant (.*)$")
-    public void update_security_profile_by_query(String queryFilename)
+    @When("^je modifie le profile de sécurité avec le fichier de requête suivant (.*) le statut de la requête est (.*)$")
+    public void update_security_profile_by_query(String queryFilename, Integer statusCode)
         throws VitamClientException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
         String securityProfileIdentifier = getSecurityProfileByName().getIdentifier();
@@ -123,7 +123,7 @@ public class SecurityProfileStep {
             world.getAdminClient().updateSecurityProfile(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 securityProfileIdentifier, queryDsl);
-        assertThat(Response.Status.OK.getStatusCode()).isEqualTo(requestResponse.getStatus());
+        assertThat(statusCode).isEqualTo(requestResponse.getStatus());
     }
 
     @Then("^le profile de sécurité contient la permission (.*)$")

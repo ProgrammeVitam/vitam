@@ -38,18 +38,15 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -143,8 +140,8 @@ public class ContextStep {
         assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
     }
 
-    @When("^je modifie le contexte nommé (.*)$")
-    public void update_context_by_query(String name)
+    @When("^je modifie le contexte nommé (.*) le statut de la requête est (.*)$")
+    public void update_context_by_query(String name, Integer status)
         throws InvalidParseOperationException, VitamClientException, IOException, AccessExternalClientException,
         InvalidCreateOperationException {
         this.contextName = name;
@@ -163,8 +160,8 @@ public class ContextStep {
 
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient().updateContext(context, contextIdentifier, queryDsl);
+        assertThat(requestResponse.getHttpCode()).isEqualTo(status);
 
-        assertThat(requestResponse.isOk()).isTrue();
     }
 
 

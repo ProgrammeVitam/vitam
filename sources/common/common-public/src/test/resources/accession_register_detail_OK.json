@@ -1,0 +1,48 @@
+{
+	"_id": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
+	"_tenant": 2,
+	"OriginatingAgency": "FRAN_NP_009734",
+	"SubmissionAgency": "FRAN_NP_009734",
+	"ArchivalAgreement": "ArchivalAgreement0",
+	"EndDate": "2017-05-19T12:36:52.572+02:00",
+	"StartDate": "2017-05-19T12:36:52.572+02:00",
+	"Symbolic": true,
+	"Status": "STORED_AND_COMPLETED",
+	"LastUpdate": "2017-05-19T12:36:52.572+02:00",
+	"TotalObjectGroups": {
+		"ingested": 0,
+		"deleted": 0,
+		"remained": 0,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"TotalUnits": {
+		"ingested": 11,
+		"deleted": 0,
+		"remained": 11,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"TotalObjects": {
+		"ingested": 0,
+		"deleted": 0,
+		"remained": 0,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"ObjectSize": {
+		"ingested": 0,
+		"deleted": 0,
+		"remained": 0,
+		"attached": 0,
+		"detached": 0,
+		"symbolicRemained": 0
+	},
+	"OperationIds": [
+		"aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq"
+	],
+	"_v": 5
+}

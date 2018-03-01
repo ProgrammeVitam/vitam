@@ -18,6 +18,7 @@
 package fr.gouv.vitam.functional.administration.contract.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -86,6 +88,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import javax.ws.rs.core.Response;
 
 
 public class IngestContractImplTest {
@@ -514,8 +518,6 @@ public class IngestContractImplTest {
     public void givenIngestContractTestUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final String documentName = "aName";
-        final String inactiveStatus = "INACTIVE";
-        final String activeStatus = "ACTIVE";
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
@@ -536,13 +538,13 @@ public class IngestContractImplTest {
         responseCast = ingestContractService.findContracts(queryDsl);
         assertThat(responseCast.getResults()).isNotEmpty();
         for (final IngestContractModel ingestContractModel : responseCast.getResults()) {
-            assertThat(activeStatus.equals(ingestContractModel.getStatus())).isTrue();
+            assertThat(ContractStatus.ACTIVE.equals(ingestContractModel.getStatus())).isTrue();
         }
         final String identifier = responseCast.getResults().get(0).getIdentifier();
         // Test update for ingest contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ContractStatus.INACTIVE.toString());
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
 
@@ -563,15 +565,14 @@ public class IngestContractImplTest {
             ingestContractService.findContracts(queryDsl2);
         assertThat(ingestContractModelListForassert.getResults()).isNotEmpty();
         for (final IngestContractModel ingestContractModel : ingestContractModelListForassert.getResults()) {
-            assertThat(inactiveStatus.equals(ingestContractModel.getStatus())).isTrue();
-            assertThat(activeStatus.equals(ingestContractModel.getStatus())).isFalse();
+            assertThat(ContractStatus.INACTIVE.equals(ingestContractModel.getStatus())).isTrue();
             assertThat(ingestContractModel.getDeactivationdate()).isNotEmpty();
             assertThat(ingestContractModel.getLastupdate()).isNotEmpty();
         }
 
         // Test update for ingest contract Status => Active
         final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusActive = UpdateActionHelper.set("Status", activeStatus);
+        final SetAction setActionStatusActive = UpdateActionHelper.set("Status", ContractStatus.ACTIVE.toString());
         final SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
         final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
         final SetAction setLinkParentId = UpdateActionHelper.set(IngestContractModel.LINK_PARENT_ID, "");
@@ -587,8 +588,7 @@ public class IngestContractImplTest {
             ingestContractService.findContracts(queryDsl2);
         assertThat(ingestContractModelListForassert2.getResults()).isNotEmpty();
         for (final IngestContractModel ingestContractModel : ingestContractModelListForassert2.getResults()) {
-            assertThat(inactiveStatus.equals(ingestContractModel.getStatus())).isFalse();
-            assertThat(activeStatus.equals(ingestContractModel.getStatus())).isTrue();
+            assertThat(ContractStatus.ACTIVE.equals(ingestContractModel.getStatus())).isTrue();
             assertThat(ingestContractModel.getActivationdate()).isNotEmpty();
             assertThat(ingestContractModel.getLastupdate()).isNotEmpty();
             assertThat(ingestContractModel.getLinkParentId()).isEqualTo("");
@@ -679,6 +679,56 @@ public class IngestContractImplTest {
         final RequestResponseOK<IngestContractModel> IngestContractModelListSearch =
             ingestContractService.findContracts(JsonHandler.createObjectNode());
         assertThat(IngestContractModelListSearch.getResults()).hasSize(2);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractTestValidationWhenUpdate() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final String documentName = "aName";
+        // Create document
+        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+
+        final List<IngestContractModel> ingestModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
+        final RequestResponse response = ingestContractService.createContracts(ingestModelList);
+
+        RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
+        assertThat(responseCast.getResults()).hasSize(2);
+
+
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("Name", documentName));
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        responseCast = ingestContractService.findContracts(queryDsl);
+        assertThat(responseCast.getResults()).isNotEmpty();
+        for (final IngestContractModel ingestContractModel : responseCast.getResults()) {
+            assertThat(ContractStatus.ACTIVE.equals(ingestContractModel.getStatus())).isTrue();
+        }
+        final String identifier = responseCast.getResults().get(0).getIdentifier();
+        // Test update for ingest contract Status => inactive
+        final String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", "INVALID_STATUS");
+        final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+        final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Identifier", identifier));
+        update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
+        updateParser.parse(update.getFinalUpdate());
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+
+        RequestResponse<IngestContractModel> updateContractStatus =
+                ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
+        assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(updateContractStatus).isInstanceOf(VitamError.class);
+        List<VitamError> errors = ((VitamError) updateContractStatus).getErrors();
+        assertThat(errors.get(0).getMessage().equals(
+                "The Ingest contract status must be ACTIVE or INACTIVE but not INVALID_STATUS")).isTrue();
     }
 
 }

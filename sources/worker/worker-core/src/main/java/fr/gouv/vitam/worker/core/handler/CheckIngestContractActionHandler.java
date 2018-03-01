@@ -29,14 +29,9 @@ package fr.gouv.vitam.worker.core.handler;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -49,7 +44,6 @@ import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -150,8 +144,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                 List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
-                        String status = result.getStatus();
-                        if (status.equals(ContractStatus.ACTIVE.toString())
+                        ContractStatus status = result.getStatus();
+                        if (ContractStatus.ACTIVE.equals(status)
                                 && result.getIdentifier().equals(contractIdentifier)) {
                             return CheckIngestContractStatus.OK;
                         } else {

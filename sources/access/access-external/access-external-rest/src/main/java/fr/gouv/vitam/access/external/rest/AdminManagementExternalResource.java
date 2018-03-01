@@ -26,6 +26,34 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
@@ -42,9 +70,6 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.index.model.IndexationResult;
-import fr.gouv.vitam.common.database.parameter.IndexParameters;
-import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
@@ -98,34 +123,6 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFou
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
-import javax.validation.Valid;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
 /**
  * Admin Management External Resource
  */
@@ -147,7 +144,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param secureEndpointRegistry endpoint list registry
      */
     public AdminManagementExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
@@ -208,7 +205,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * check agencies
-     * 
+     *
      * @param document
      * @return
      */
@@ -224,7 +221,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * Check Format async call
-     * 
+     *
      * @param document inputStream to check
      */
     private Response asyncCheckFormat(InputStream document) {
@@ -243,7 +240,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * Return the Error Report or close the asyncResonse
-     * 
+     *
      * @param document the referential to check
      */
     private Response asyncDownloadErrorReportRules(InputStream document) {
@@ -277,8 +274,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * Resume in case of Exception
-     * 
-     * @param ex exception to handle
+     *
+     * @param ex       exception to handle
      * @param document the given document to import
      */
     private Response asyncResponseResume(Exception ex, InputStream document) {
@@ -292,8 +289,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a format
      *
-     * @param headers http headers
-     * @param uriInfo used to construct the created resource and send it back as location in the response
+     * @param headers  http headers
+     * @param uriInfo  used to construct the created resource and send it back as location in the response
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -337,7 +334,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a rules document
      *
-     * @param headers http headers
+     * @param headers  http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -436,7 +433,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<IngestContractModel>>() {}));
+                new TypeReference<List<IngestContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -475,7 +473,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<AccessContractModel>>() {}));
+                new TypeReference<List<AccessContractModel>>() {
+                }));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -514,7 +513,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<ContextModel>>() {}));
+                new TypeReference<List<ContextModel>>() {
+                }));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
@@ -552,7 +552,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ProfileModel>>() {}));
+                        new TypeReference<List<ProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -592,7 +593,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ProfileModel>>() {}));
+                    new TypeReference<List<ProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -610,9 +612,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a Profile file document (xsd or rng, ...)
      *
-     * @param uriInfo used to construct the created resource and send it back as location in the response
+     * @param uriInfo           used to construct the created resource and send it back as location in the response
      * @param profileMetadataId id of the profile metadata
-     * @param profileFile inputStream representing the data to import
+     * @param profileFile       inputStream representing the data to import
      * @return The jaxRs Response
      */
     @Path("/profiles/{id:.+}")
@@ -932,7 +934,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a agencies document
      *
-     * @param headers http headers
+     * @param headers  http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      * @throws InvalidParseOperationException
@@ -1360,7 +1362,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CONTEXT_NOT_FOUND, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR, e.getMessage())
                 .toResponse();
@@ -1401,7 +1403,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_PROFILE_NOT_FOUND, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
                 .toResponse();
@@ -1442,7 +1444,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR, e.getMessage())
                 .toResponse();
@@ -1485,7 +1487,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
                 .toResponse();
@@ -1510,7 +1512,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * findAccessionRegisterDetail
      *
      * @param documentId the document id of accession register to get
-     * @param select the query to get document
+     * @param select     the query to get document
      * @return Response
      */
     @GET
@@ -1633,7 +1635,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(JsonHandler.getFromStringAsTypeRefence(document.toString(),
-                new TypeReference<List<SecurityProfileModel>>() {}));
+                new TypeReference<List<SecurityProfileModel>>() {
+                }));
 
             // Send the http response with no entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status);
@@ -1726,7 +1729,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update a security profile
      *
      * @param identifier the identifier of the security profile to update
-     * @param queryDsl query to execute
+     * @param queryDsl   query to execute
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
@@ -1753,7 +1756,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND, e.getMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR, e.getMessage())
                 .toResponse();
@@ -1768,9 +1771,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
-     * @param status Http error status
+     * @param status  Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
+     * @param code    The functional error code, if absent the http code will be used instead
      * @return
      */
     @Deprecated
@@ -1813,7 +1816,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header of request
-     * @param query the filter query
+     * @param query   the filter query
      * @return the list of Operations details
      */
     @GET
@@ -1939,7 +1942,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param id      operation identifier
      * @return http response
      */
     @Path("operations/{id}")

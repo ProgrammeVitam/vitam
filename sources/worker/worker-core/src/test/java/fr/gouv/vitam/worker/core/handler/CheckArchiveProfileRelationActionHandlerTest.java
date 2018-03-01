@@ -91,7 +91,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
+            .thenReturn(createIngestContract(ContractStatus.ACTIVE));
         when(adminClient.findProfiles(anyObject()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
 
@@ -121,7 +121,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
+            .thenReturn(createIngestContract(ContractStatus.ACTIVE));
         when(adminClient.findProfiles(anyObject()))
             .thenReturn(createProfile(ProfileStatus.INACTIVE));
         final WorkerParameters params =
@@ -238,7 +238,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString(), null));
+            .thenReturn(createIngestContract(ContractStatus.ACTIVE, null));
         when(adminClient.findProfiles(anyObject()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
         final WorkerParameters params =
@@ -255,7 +255,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
 
 
 
-    private static RequestResponse createIngestContract(String status) throws InvalidParseOperationException {
+    private static RequestResponse createIngestContract(ContractStatus status) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setName("ArchivalAgreement0");
         contract.setStatus(status);
@@ -265,7 +265,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         return ClientMockResultHelper.createReponse(contract);
     }
 
-    private static RequestResponse createIngestContract(String status, String profileIdentifier) throws InvalidParseOperationException {
+    private static RequestResponse createIngestContract(ContractStatus status, String profileIdentifier) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setName("ArchivalAgreement0");
         contract.setStatus(status);

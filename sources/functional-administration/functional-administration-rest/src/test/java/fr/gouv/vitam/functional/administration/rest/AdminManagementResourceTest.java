@@ -342,7 +342,7 @@ public class AdminManagementResourceTest {
         contractModel.setOriginatingAgencies(Sets.newHashSet(originatingAgency));
         contractModel.setIdentifier(contractId);
         contractModel.setName(contractId);
-        contractModel.setStatus(ContractStatus.ACTIVE.name());
+        contractModel.setStatus(ContractStatus.ACTIVE);
 
         contractModel.initializeDefaultValue();
 

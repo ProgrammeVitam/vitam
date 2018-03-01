@@ -26,6 +26,15 @@
  */
 package fr.gouv.vitam.functional.administration.security.profile.core;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,6 +50,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -57,13 +67,13 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
+import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -71,14 +81,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-
-import javax.ws.rs.core.Response;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class SecurityProfileService implements VitamAutoCloseable {
 
@@ -138,7 +140,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
         manager.logImportStarted();
 
         final VitamError error =
-            new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem())
+            getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(), "Global create security profile error",
+                StatusCode.KO)
                 .setHttpCode(Response.Status.BAD_REQUEST
                     .getStatusCode());
 
@@ -151,7 +154,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
                 // stop
                 String errorsDetails =
                     error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logImportValidationError(errorsDetails);
+                manager.logValidationError(errorsDetails, SECURITY_PROFILE_IMPORT_EVENT);
                 return error;
             }
 
@@ -210,8 +213,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
             // Security profile id should be null
             if (null != securityProfile.getId()) {
-                error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                    String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, securityProfile.getName())));
+                error.addToErrors(getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
+                    String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, securityProfile.getName()), StatusCode.KO));
                 continue;
             }
 
@@ -220,14 +223,15 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
                 // if a security profile have an identifier
                 if (StringUtils.isEmpty(securityProfile.getIdentifier())) {
-                    error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                        String.format(ERR_MISSING_SECURITY_PROFILE_IDENTIFIER, securityProfile.getName())));
+                    error.addToErrors(getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
+                        String.format(ERR_MISSING_SECURITY_PROFILE_IDENTIFIER, securityProfile.getName()),
+                        StatusCode.KO));
                     continue;
                 }
 
                 if (securityProfileIdentifiers.contains(securityProfile.getIdentifier())) {
-                    error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                        String.format(ERR_DUPLICATE_IDENTIFIER_IN_CREATE, securityProfile.getIdentifier())));
+                    error.addToErrors(getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
+                        String.format(ERR_DUPLICATE_IDENTIFIER_IN_CREATE, securityProfile.getIdentifier()), StatusCode.KO));
                     continue;
                 }
 
@@ -237,8 +241,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
             // Missing security profile name
             if (StringUtils.isEmpty(securityProfile.getName())) {
-                error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                    String.format(ERR_MISSING_SECURITY_PROFILE_NAME, securityProfile.getName())));
+                error.addToErrors(getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
+                    String.format(ERR_MISSING_SECURITY_PROFILE_NAME, securityProfile.getName()), StatusCode.KO));
                 continue;
             }
 
@@ -246,8 +250,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
                 // Permission set incompatible with full access mode
                 if (!CollectionUtils.isEmpty(securityProfile.getPermissions())) {
-                    error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                        String.format(ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS, securityProfile.getName())));
+                    error.addToErrors(getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
+                        String.format(ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS, securityProfile.getName()), StatusCode.KO));
                     continue;
                 }
             }
@@ -287,7 +291,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
     public RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
         throws VitamException {
         VitamError error =
-            new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem())
+            getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(), "Update security profile error", StatusCode.KO)
                 .setHttpCode(Response.Status.BAD_REQUEST
                     .getStatusCode());
 
@@ -298,8 +302,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
         final Optional<SecurityProfileModel> securityProfileModelOps = findOneByIdentifier(identifier);
         if (!securityProfileModelOps.isPresent()) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
-            return error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                SECURITY_PROFILE_NOT_FOUND + identifier));
+            return error.addToErrors(getVitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem(),
+                SECURITY_PROFILE_NOT_FOUND + identifier, StatusCode.KO));
         }
         SecurityProfileModel securityProfileModel = securityProfileModelOps.get();
 
@@ -325,6 +329,15 @@ public class SecurityProfileService implements VitamAutoCloseable {
             manager.logUpdateSuccess(securityProfileModel.getId(), updateDiffs.get(securityProfileModel.getId()));
             return new RequestResponseOK<>();
 
+        } catch (SchemaValidationException e) {
+            LOGGER.error(e);
+            final String err = new StringBuilder("Security profile update failed > ").append(e.getMessage()).toString();
+            manager.logValidationError(err, SECURITY_PROFILE_UPDATE_EVENT);
+            error.setCode(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem())
+                .setDescription(err)
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+            return error;
         } catch (VitamException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             final String err = new StringBuilder("Security profile update failed > ").append(e.getMessage()).toString();
@@ -382,14 +395,15 @@ public class SecurityProfileService implements VitamAutoCloseable {
          * Log validation error (business error)
          *
          * @param errorsDetails
+         * @param eventType
          */
-        private void logImportValidationError(final String errorsDetails) throws VitamException {
+        private void logValidationError(final String errorsDetails, String eventType) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eipId, SECURITY_PROFILE_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(SECURITY_PROFILE_IMPORT_EVENT, StatusCode.KO), eip);
+                    VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
 
             logbookClient.update(logbookParameters);
@@ -502,5 +516,9 @@ public class SecurityProfileService implements VitamAutoCloseable {
         return vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.SECURITY_PROFILE_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
+    }
+
+    private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, "SecurityProfile", statusCode);
     }
 }

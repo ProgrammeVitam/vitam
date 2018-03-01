@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -78,13 +79,14 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
+import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.GenericContractValidator.GenericRejectionCause;
-import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -171,8 +173,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         ArrayNode contractsToPersist = null;
 
         final VitamError error =
-            new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setHttpCode(Response.Status.BAD_REQUEST
-                .getStatusCode());
+            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Ingest contract import error", StatusCode.KO)
+                .setHttpCode(Response.Status.BAD_REQUEST
+                    .getStatusCode());
 
         try {
 
@@ -181,9 +184,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 // if a contract have and id
                 if (null != acm.getId()) {
-                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                         GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName())
-                            .getReason()));
+                            .getReason(), StatusCode.KO));
                     continue;
                 }
 
@@ -191,10 +194,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (linkParentId != null) {
                     if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
                         error
-                            .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                            .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                                 GenericRejectionCause
                                     .rejectWrongLinkParentId(linkParentId)
-                                    .getReason()));
+                                    .getReason(), StatusCode.KO));
                         continue;
                     }
                 }
@@ -212,8 +215,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     final Optional<GenericRejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
                     result.ifPresent(t -> error
-                        .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(result
-                            .get().getReason())));
+                        .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result
+                            .get().getReason(), StatusCode.KO)));
                 }
 
             }
@@ -353,8 +356,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (result.isPresent()) {
                     // there is a validation error on this contract
                     /* contract is valid, add it to the list to persist */
-                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(result
-                        .get().getReason()));
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result
+                        .get().getReason(), StatusCode.KO));
                     // once a validation error is detected on a contract, jump to next contract
                     return false;
                 }
@@ -523,17 +526,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             return (contract, inputList) -> {
                 GenericRejectionCause rejection = null;
                 final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
-                if (contract.getStatus() == null || contract.getStatus().isEmpty()) {
-                    contract.setStatus(ContractStatus.INACTIVE.name());
+                if (contract.getStatus() == null) {
+                    contract.setStatus(ContractStatus.INACTIVE);
                 }
-                if (!contract.getStatus().equals(ContractStatus.ACTIVE.name()) &&
-                    !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
-                    LOGGER.error("Error ingest contract status not valide (must be ACTIVE or INACTIVE");
-                    rejection =
-                        GenericRejectionCause
-                            .rejectMandatoryMissing("Status " + contract.getStatus() +
-                                " not valide must be ACTIVE or INACTIVE");
-                }
+
                 try {
                     if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
@@ -651,7 +647,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         /**
          * Check if the linkParentId is a valid existing FILING or HOLDING Unit identifier
-         * 
+         *
          * @param linkParentId GUID as String
          * @return boolean true if valid identifier passed
          * @throws InvalidCreateOperationException
@@ -667,10 +663,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             String[] schemaArray = new String[] {UnitType.FILING_UNIT.name(), UnitType.HOLDING_UNIT.name()};
             select.setQuery(QueryHelper.in(UNITTYPE.exactToken(), schemaArray).setDepthLimit(0));
             final JsonNode queryDsl = select.getFinalSelect();
-            
+
             JsonNode jsonNode = metaDataClient.selectUnitbyId(queryDsl, linkParentId);
-            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null 
-                        && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
+            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
+                && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
         }
 
     }
@@ -679,13 +675,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     public void close() {
         logbookClient.close();
     }
-    
+
     @Override
     public RequestResponse<IngestContractModel> updateContract(String identifier, JsonNode queryDsl)
         throws VitamException {
         VitamError error =
-            new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setHttpCode(Response.Status.BAD_REQUEST
-                .getStatusCode());
+            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Ingest contract update error", StatusCode.KO)
+                .setHttpCode(Response.Status.BAD_REQUEST
+                    .getStatusCode());
 
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
@@ -694,8 +691,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         final IngestContractModel ingestContractModel = findByIdentifier(identifier);
         if (ingestContractModel == null) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
-            return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                INGEST_CONTRACT_NOT_FOUND + identifier));
+            return error.addToErrors(
+                getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Ingest contract update error",
+                    StatusCode.KO).setMessage(
+                    INGEST_CONTRACT_NOT_FOUND + identifier));
         }
 
         GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
@@ -715,7 +714,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (AbstractContractModel.TAG_STATUS.equals(field)) {
                         if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
                             .name().equals(value.asText()))) {
-                            error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
+                            error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                "Ingest contract update error", StatusCode.KO)
                                 .setMessage(THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT +
                                     value.asText()));
                         }
@@ -732,7 +732,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (!linkParentId.equals("")) {
                     if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
                         error
-                            .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                            .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                "Ingest contract update error", StatusCode.KO).setMessage(
                                 GenericRejectionCause
                                     .rejectWrongLinkParentId(linkParentId)
                                     .getReason()));
@@ -752,8 +753,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (result.isPresent()) {
                     // there is a validation error on this contract
                     /* contract is valid, add it to the list to persist */
-                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(result
-                        .get().getReason()));
+                    error.addToErrors(
+                        getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Ingest contract update error",
+                            StatusCode.KO).setMessage(result
+                            .get().getReason()));
                 }
             }
 
@@ -775,6 +778,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 ingestContractModel.getId()
             );
 
+        } catch (SchemaValidationException e) {
+            LOGGER.error(e);
+            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), e.getMessage(),
+                StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (Exception e) {
             LOGGER.error(e);
             final String err = new StringBuilder("Update ingest contracts error > ").append(e.getMessage()).toString();
@@ -788,5 +795,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         manager.logUpdateSuccess(ingestContractModel.getId(), identifier, updateDiffs.get(ingestContractModel.getId()));
         return new RequestResponseOK<>();
+    }
+
+    private static VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, "IngestContract", statusCode);
     }
 }

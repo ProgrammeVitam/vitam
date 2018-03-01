@@ -26,6 +26,20 @@
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,6 +55,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -63,6 +78,7 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -84,19 +100,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
-
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 
 public class ContextServiceImpl implements ContextService {
     private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT =
@@ -292,8 +295,9 @@ public class ContextServiceImpl implements ContextService {
         throws VitamException {
         ParametersChecker.checkParameter(UPDATE_CONTEXT_MANDATORY_PARAMETER, queryDsl);
         SanityChecker.checkJsonAll(queryDsl);
-        final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError error =
+            getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), "Context update error", StatusCode.KO)
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final ContextModel contextModel = findOneContextById(id);
 
@@ -332,7 +336,7 @@ public class ContextServiceImpl implements ContextService {
                 error.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
             manager.logValidationError(errorsDetails, CONTEXTS_UPDATE_EVENT);
 
-            return error;
+            return error.setState(StatusCode.KO.name());
         }
 
         String diff = null;
@@ -366,6 +370,15 @@ public class ContextServiceImpl implements ContextService {
                 contextModel.getId()
             );
 
+        } catch (SchemaValidationException e) {
+            LOGGER.error(e);
+            final String err = "Update context error > " + e.getMessage();
+
+            // logbook error event 
+            manager.logValidationError(err, CONTEXTS_UPDATE_EVENT);
+
+            return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage(),
+                StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (final Exception e) {
             LOGGER.error(e);
             final String err = "Update context error > " + e.getMessage();
@@ -382,6 +395,10 @@ public class ContextServiceImpl implements ContextService {
         manager.logUpdateSuccess(contextModel.getId(), diff);
 
         return new RequestResponseOK<>();
+    }
+
+    private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, "Context", statusCode);
     }
 
     /**

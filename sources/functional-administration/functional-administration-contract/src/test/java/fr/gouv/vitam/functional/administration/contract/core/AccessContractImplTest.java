@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.contract.core;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
 import static fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl.CONTRACT_BACKUP_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -45,6 +46,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,6 +67,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -72,6 +76,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -80,6 +85,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -89,12 +95,12 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AgenciesParser;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import org.bson.Document;
@@ -197,7 +203,7 @@ public class AccessContractImplTest {
 
 
     private static void insertDocuments(List<AgenciesModel> agenciesToInsert, int tenant)
-        throws InvalidParseOperationException, ReferentialException {
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException {
 
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 
@@ -340,8 +346,6 @@ public class AccessContractImplTest {
     public void givenAccessContractTestUpdateAccessContractStatus() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final String documentName = "aName";
-        final String inactiveStatus = "INACTIVE";
-        final String activeStatus = "ACTIVE";
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
@@ -363,13 +367,13 @@ public class AccessContractImplTest {
             accessContractService.findContracts(queryDsl);
         assertThat(accessContractModelList2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelList2.getResults()) {
-            assertThat(activeStatus.equals(accessContractModel.getStatus()));
+            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus()));
         }
 
         // Test update for access contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ContractStatus.INACTIVE.toString());
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
 
@@ -388,8 +392,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(queryDsl);
         assertThat(accessContractModelListForassert.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert.getResults()) {
-            assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
-            assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
+            assertThat(ContractStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
@@ -405,7 +408,7 @@ public class AccessContractImplTest {
 
         // Test update for access contract Status => Active
         final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusActive = UpdateActionHelper.set("Status", activeStatus);
+        final SetAction setActionStatusActive = UpdateActionHelper.set("Status", ContractStatus.ACTIVE.toString());
         final SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
         final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
         final Update updateStatusActive = new Update();
@@ -423,8 +426,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(queryDsl);
         assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert2.getResults()) {
-            assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isFalse();
-            assertThat(activeStatus.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getActivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
@@ -435,8 +437,6 @@ public class AccessContractImplTest {
     public void givenAccessContractTestUpdateAccessContractOriginatingAgency() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final String documentName = "aName";
-        final String inactiveStatus = "INACTIVE";
-        final String activeStatus = "ACTIVE";
 
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
@@ -458,13 +458,13 @@ public class AccessContractImplTest {
         responseCast = accessContractService.findContracts(queryDsl);
         assertThat(responseCast.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : responseCast.getResults()) {
-            assertThat(activeStatus.equals(accessContractModel.getStatus()));
+            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus()));
         }
 
         // Test update for access contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ContractStatus.INACTIVE.toString());
         final SetAction setActionName = UpdateActionHelper.set(NAME, NEW_NAME);
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
@@ -484,8 +484,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(newSelect.getFinalSelect());
         assertThat(accessContractModelListForassert.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert.getResults()) {
-            assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
-            assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
+            assertThat(ContractStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getEveryOriginatingAgency()).isFalse();
             assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
@@ -506,8 +505,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(newSelect.getFinalSelect());
         assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert2.getResults()) {
-            assertThat(inactiveStatus.equals(accessContractModel.getStatus())).isTrue();
-            assertThat(activeStatus.equals(accessContractModel.getStatus())).isFalse();
+            assertThat(ContractStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getEveryOriginatingAgency()).isTrue();
             assertThat(accessContractModel.getActivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
@@ -816,7 +814,6 @@ public class AccessContractImplTest {
     public void givenAccessContractTestUpdateAccessContractOriginatingAgencyNotExistsThenKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final String documentName = "aName";
-        final String inactiveStatus = "INACTIVE";
         final String activeStatus = "ACTIVE";
 
         // Create document
@@ -872,6 +869,89 @@ public class AccessContractImplTest {
                 updateParser.getRequest().getFinalUpdate());
         assertThat(updateContractStatus.isOk()).isFalse();
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractTestValidateSchemaBeforeUpdateAccessContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final String documentName = "aName";
+        // Create document
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+
+        final List<AccessContractModel> accessContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
+                });
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        assertThat(responseCast.getResults()).hasSize(2);
+
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq(NAME, documentName));
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        final RequestResponseOK<AccessContractModel> accessContractModelList2 =
+                accessContractService.findContracts(queryDsl);
+        assertThat(accessContractModelList2.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : accessContractModelList2.getResults()) {
+            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus()));
+        }
+        
+        // Test invalid status
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", "INVALID_STATUS");
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq(NAME, documentName));
+        update.addActions(setActionStatusInactive);
+        updateParser.parse(update.getFinalUpdate());
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        
+        RequestResponse<AccessContractModel> updateContractStatus =
+                accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
+        assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(updateContractStatus).isInstanceOf(VitamError.class);
+        List<VitamError> errors = ((VitamError) updateContractStatus).getErrors();
+        assertThat(errors.get(0).getDescription().equals(
+                "The Access contract status must be ACTIVE or INACTIVE but not INVALID_STATUS")).isTrue();
+
+
+        // Test unset lastUpdate
+        final UnsetAction unsetActionLastUpdate = UpdateActionHelper.unset("LastUpdate");
+        final UpdateParserSingle updateParser2 = new UpdateParserSingle(new SingleVarNameAdapter());
+        final Update update2 = new Update();
+        update2.setQuery(QueryHelper.eq(NAME, documentName));
+        update2.addActions(unsetActionLastUpdate);
+        updateParser2.parse(update2.getFinalUpdate());
+        final JsonNode queryDslForUpdate2 = updateParser2.getRequest().getFinalUpdate();
+
+        updateContractStatus =
+                accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate2);
+        assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(updateContractStatus).isInstanceOf(VitamError.class);
+        String errorDescription = ((VitamError) updateContractStatus).getDescription();
+        assertThat(errorDescription.contains(
+                "object has missing required properties ([\\\"LastUpdate\\\"])")).isTrue();
+        
+        // Test invalid property
+        final SetAction setActionInvalidProperty = UpdateActionHelper.set("InvalidProp", "prop value");
+        final UpdateParserSingle updateParser3 = new UpdateParserSingle(new SingleVarNameAdapter());
+        final Update update3 = new Update();
+        update3.setQuery(QueryHelper.eq(NAME, documentName));
+        update3.addActions(setActionInvalidProperty);
+        updateParser3.parse(update3.getFinalUpdate());
+        final JsonNode queryDslForUpdate3 = updateParser3.getRequest().getFinalUpdate();
+
+        updateContractStatus =
+                accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate3);
+        assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertThat(updateContractStatus).isInstanceOf(VitamError.class);
+        errorDescription = ((VitamError) updateContractStatus).getDescription();
+        assertThat(errorDescription.contains(
+                "object instance has properties which are not allowed by the schema: [\\\"InvalidProp\\\"]")).isTrue();
+
+        
     }
 
 }

@@ -42,17 +42,18 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -124,7 +125,7 @@ public class ContractsStep {
 
     /**
      * Tentative d'import d'un contrat si jamais il n'existe pas
-     * 
+     *
      * @param type
      * @throws IOException
      */
@@ -246,6 +247,36 @@ public class ContractsStep {
             String index = raw.get(0);
             String value = raw.get(1);
             assertThat(value).contains(this.getModel().get(index).asText());
+        }
+    }
+
+
+    @When("^je modifie un contrat de type (.*) avec le fichier de requête suivant (.*) le statut de la requête est (.*)$")
+    public void update_contract_by_query(String type, String queryFilename, Integer statusCode)
+        throws IOException, InvalidParseOperationException,
+        AccessExternalClientException, VitamClientException {
+        AdminCollections collection = AdminCollections.valueOf(type);
+        String contractIdentifier = getModel().get("Identifier").asText();
+
+        Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
+        String query = FileUtil.readFile(queryFile.toFile());
+        JsonNode queryDsl = JsonHandler.getFromString(query);
+        RequestResponse requestResponse = null;
+        switch (collection) {
+            case ACCESS_CONTRACTS:
+                requestResponse = world.getAdminClient().updateAccessContract(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    contractIdentifier, queryDsl);
+                assertThat(statusCode).isEqualTo(requestResponse.getStatus());
+                break;
+            case INGEST_CONTRACTS:
+                requestResponse = world.getAdminClient().updateIngestContract(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    contractIdentifier, queryDsl);
+                assertThat(statusCode).isEqualTo(requestResponse.getStatus());
+                break;
+            default:
+                throw new VitamClientException("Contract type not valid");
         }
     }
 }

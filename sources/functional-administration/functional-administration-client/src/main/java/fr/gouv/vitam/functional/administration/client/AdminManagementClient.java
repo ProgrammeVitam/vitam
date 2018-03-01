@@ -543,7 +543,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws AdminManagementClientServerException
      * @throws ReferentialNotFoundException
      */
-    RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
+    RequestResponse updateSecurityProfile(String identifier, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**

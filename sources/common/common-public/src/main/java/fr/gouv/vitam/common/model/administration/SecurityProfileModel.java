@@ -173,7 +173,7 @@ public class SecurityProfileModel {
      * When set to true, all permissions are granted and "Permissions" set is ignored and should not be set.
      */
     public Boolean getFullAccess() {
-        return fullAccess;
+        return fullAccess == null ? Boolean.FALSE :  fullAccess;
     }
 
     /**

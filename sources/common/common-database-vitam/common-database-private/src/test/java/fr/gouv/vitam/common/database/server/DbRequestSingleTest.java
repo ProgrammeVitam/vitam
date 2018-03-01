@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import org.bson.Document;
 import org.junit.AfterClass;
@@ -118,7 +119,7 @@ public class DbRequestSingleTest {
     @RunWithCustomExecutor
     public void testVitamCollectionRequests()
         throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-        VitamDBException {
+        VitamDBException, SchemaValidationException {
 
         final DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);

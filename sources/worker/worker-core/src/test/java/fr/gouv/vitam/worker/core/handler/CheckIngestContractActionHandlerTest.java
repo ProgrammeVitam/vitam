@@ -93,7 +93,7 @@ public class CheckIngestContractActionHandlerTest {
             ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ReferentialNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(adminClient.findIngestContractsByID(anyObject())).thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
+        when(adminClient.findIngestContractsByID(anyObject())).thenReturn(createIngestContract(ContractStatus.ACTIVE));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
         handler = new CheckIngestContractActionHandler();
@@ -104,7 +104,7 @@ public class CheckIngestContractActionHandlerTest {
 
         reset(adminClient);
         when(adminClient.findIngestContractsByID(anyObject()))
-                .thenReturn(createIngestContract(ContractStatus.INACTIVE.toString()));
+                .thenReturn(createIngestContract(ContractStatus.INACTIVE));
         response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "INACTIVE");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -134,7 +134,7 @@ public class CheckIngestContractActionHandlerTest {
      * @return the created instance.
      * @throws InvalidParseOperationException
      */
-    private static RequestResponse<IngestContractModel> createIngestContract(String status) throws InvalidParseOperationException {
+    private static RequestResponse<IngestContractModel> createIngestContract(ContractStatus status) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setIdentifier(CONTRACT_IDENTIFIER);
         contract.setStatus(status);

@@ -1,0 +1,27 @@
+{
+  "$schema": "http:\/\/vitam-json-schema.org\/draft-04\/schema#",
+  "id": "http:\/\/example.com\/root.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "Identifier": {
+      "type": "string"
+    },
+    "Name": {
+      "type": "string"
+    },
+    "Description": {
+      "type": "string"
+    },
+    "_id": {
+      "type": "string"
+    },
+    "_tenant": {
+      "type": "integer"
+    },
+    "_v": {
+      "type": "integer"
+    }
+  },
+  "required": ["_id", "_tenant", "_v", "Identifier"]
+}

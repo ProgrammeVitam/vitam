@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.test;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -429,7 +430,7 @@ public class FunctionalAdminIT {
         // check update
         IngestContractModel updatedContractModel = ingestContract.findByIdentifier(contractToUpdate);
         assertThat(updatedContractModel).isNotNull();
-        assertThat(updatedContractModel.getStatus().equals("INACTIVE")).isTrue();
+        assertThat(updatedContractModel.getStatus().equals(ContractStatus.INACTIVE)).isTrue();
 
         // check update log
         select.setQuery(new CompareQuery(QUERY.EQ, "evType", "STP_UPDATE_INGEST_CONTRACT"));

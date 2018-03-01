@@ -29,14 +29,10 @@ package fr.gouv.vitam.functional.administration.common.server;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import fr.gouv.vitam.common.exception.VitamDBException;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.MongoClient;
-
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
@@ -49,11 +45,14 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import org.bson.Document;
 
 /**
  * MongoDbAccess Implement for Admin
@@ -65,8 +64,8 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     /**
      * @param mongoClient client of mongo
-     * @param dbname name of database
-     * @param recreate true if recreate type
+     * @param dbname      name of database
+     * @param recreate    true if recreate type
      */
     protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate) {
         super(mongoClient, dbname, recreate);
@@ -77,57 +76,58 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @Override
     public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
-        throws ReferentialException {
+        throws ReferentialException, SchemaValidationException {
         return insertDocuments(arrayNode, collection, 0);
     }
 
     @Override
     public DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException {
+        throws ReferentialException, SchemaValidationException {
         try {
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
             final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
-           return dbrequest.execute(insertquery, version);
+            return dbrequest.execute(insertquery, version);
         } catch (InvalidParseOperationException | BadRequestException | DatabaseException | InvalidCreateOperationException | VitamDBException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);
         }
     }
+
     // Not check, test feature !
     @Override
     public DbRequestResult deleteCollection(FunctionalAdminCollections collection, Delete delete)
         throws DatabaseException, ReferentialException {
-            long count = 0;
-            if (collection.isMultitenant()) {
-                final Document filter =
-                    new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
-                count = collection.getCollection().count(filter);
-            } else {
-                count = collection.getCollection().count();
-            }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(collection.getName() + " count before: " + count);
-            }
-            if (count > 0) {
+        long count = 0;
+        if (collection.isMultitenant()) {
+            final Document filter =
+                new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
+            count = collection.getCollection().count(filter);
+        } else {
+            count = collection.getCollection().count();
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(collection.getName() + " count before: " + count);
+        }
+        if (count > 0) {
 
-                final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-                try (DbRequestResult result = dbrequest.execute(delete)) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
-                    }
-
-                    return result;
-                } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException | VitamDBException e) {
-                    throw new DatabaseException("Delete document exception");
+            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            try (DbRequestResult result = dbrequest.execute(delete)) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
                 }
+
+                return result;
+            } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException | VitamDBException | SchemaValidationException e) {
+                throw new DatabaseException("Delete document exception");
             }
-            return new DbRequestResult();
+        }
+        return new DbRequestResult();
     }
 
     @Override
     public DbRequestResult deleteCollection(FunctionalAdminCollections collection)
-        throws DatabaseException, ReferentialException {
+        throws DatabaseException, ReferentialException, SchemaValidationException {
 
         long count = 0;
         if (collection.isMultitenant()) {
@@ -186,7 +186,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             parser.parse(select);
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
             return dbrequest.execute(parser.getRequest());
-        } catch (final DatabaseException | BadRequestException | InvalidParseOperationException | InvalidCreateOperationException | VitamDBException e) {
+        } catch (final DatabaseException | BadRequestException | InvalidParseOperationException | InvalidCreateOperationException | VitamDBException | SchemaValidationException e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }
@@ -194,7 +194,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @Override
     public DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException {
+        throws ReferentialException, SchemaValidationException {
         try {
             final UpdateParserSingle parser = new UpdateParserSingle(collection.getVarNameAdapater());
             parser.parse(update);
@@ -212,13 +212,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
 
     @Override
     public DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
-        throws ReferentialException {
+        throws ReferentialException, SchemaValidationException {
         return updateData(update, collection, 0);
     }
 
     @Override
     public DbRequestResult insertDocument(JsonNode json, FunctionalAdminCollections collection)
-        throws ReferentialException {
+        throws ReferentialException, SchemaValidationException {
         return insertDocuments(JsonHandler.createArrayNode().add(json), collection);
     }
 
