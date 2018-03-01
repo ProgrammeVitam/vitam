@@ -7,11 +7,13 @@ Principes généraux
 Tests de non régression
 -----------------------
 
-Les Tests de Non Régression (TNR) ont pour objectif de tester la continuité des fonctionnalités de Vitam. L'ajout de nouvelles fonctionnalités pouvant entraîner des bugs ou anomalies (régressions) sur des fonctionnalités déjà existantes, l'outil de test de non régression va permettre de tester automatiquement le périmètre fonctionnel pré-existant afin de s'assurer de son bon fonctionnement dans le temps. Les TNR peuvent aussi être utilisés comme indicateur de bonne santé d'une plateforme.
+Les Tests de Non Régression (TNR) ont pour objectif de tester la continuité des fonctionnalités de Vitam. L'ajout de nouvelles fonctionnalités pouvant entraîner des bugs ou anomalies (régressions) sur des fonctionnalités existantes. L'outil de test de non régression va permettre de tester automatiquement le périmètre fonctionnel pré-existant afin de s'assurer de son bon fonctionnement dans le temps. Les TNR peuvent aussi être utilisés comme indicateur de bonne santé d'une plateforme.
 
 L'ajout d'une nouvelle fonctionnalité dans la solution logicielle Vitam et parfois la correction d'un bug s'accompagne d'un ou plusieurs TNR.
 
 Idéalement, les développeurs doivent lancer les TNR avant d'effectuer une Merge Request visant à intégrer une nouvelle fonctionnalité, afin de valider que le nouveau code introduit ne provoque pas de régressions dans le reste de la solution logicielle Vitam.
+
+Suite à une nouvelle installation du produit, le lancement des TNR permet également de vérifier le bon déploiement de la solution logicielle.
 
 Tests fonctionnels
 -------------------
@@ -48,7 +50,7 @@ Pré-Requis
 Dépot vitam-itest
 -----------------
 
-La liste des TNR existants ainsi que tous leurs jeux de données associés sont dans le dépôt git vitam-itest.
+La liste des TNR existants ainsi que tous leurs jeux de données associés sont déposés dans le dépôt git vitam-itest et également dans les ressources publiées à chaque release.
 
 Il est donc nécessaire de le cloner avant toute chose.
 
@@ -69,9 +71,9 @@ Méthodologie de test
 Séquencement
 ------------
 
-Les tests sont regroupés par lot intellectuellement cohérent dans des fichiers .feature. Chaque fichier .feature contient au moins un scénario de test. Lorsqu'un fichier feature est lancé, alors tous les scénarios spécifiés dedans sont exécutés séquentiellement. Lorsqu'un scénario est en échec alors que son exécution n'est pas terminée, celle-ci s'interrompt et le scénario suivant est lancé.
+Les tests sont regroupés par lot intellectuellement cohérent dans des fichiers .feature. Chaque fichier .feature contient au moins un scénario de test. Lorsqu'un fichier feature est lancé, alors tous les scénarios qu'il spécifie sont exécutés séquentiellement. Lorsqu'un scénario est en échec alors que son exécution n'est pas terminée, celle-ci s'interrompt et le scénario suivant est lancé.
 
-Les fichiers feature sont lancés dans l'ordre alphabétique et sont indépendants les uns des autres. Il est donc possible d'exécuter une sélection de test, sans devoir se soucier de dépendances inter-fichiers.
+Les fichiers feature sont lancés dans l'ordre alphabétique et sont indépendants les uns des autres. Il est donc possible d'exécuter une sélection de tests, sans devoir se soucier de dépendances inter-fichiers.
 
 Il y a une exception à ce principe : le fichier nommé "_init.feature" est un scénario qui met en place l'environnement de test en important les ressources nécessaires (référentiel des règles de gestions, des contrats, des services agents...) à la bonne exécution des tests suivants.
 

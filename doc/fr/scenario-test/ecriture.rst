@@ -4,7 +4,7 @@ Ecriture des TNR
 Structure des répertoires
 =========================
 
-Le répertoire du dépot vitam-test est strucutré de la façon suivante :
+Le répertoire du dépot vitam-itest est strucutré de la façon suivante :
 
 ::
 
@@ -73,7 +73,7 @@ Les fichiers de configuration doivent contenir les informations suivantes qui s'
 
 
 Ecriture d'un scénario
-===========================
+======================
 
 Structure d'un scénario
 -----------------------
@@ -84,7 +84,7 @@ Un scénario correspond à un test. Son nom doit être défini de la façon suiv
 
 	Scénario: Description du scénario
 
-Il doit être sur la même indentation que le contexte, soit 1 par rapport à la fonctionnalité, annotation et langage.
+Il doit être sur la même indentation que le contexte, soit 1 par rapport à la fonctionnalité, à l'annotation et au langage.
 
 Un scénario est constitué d'une succession d'actions, chacune décrite sur une ligne.
 
@@ -115,9 +115,9 @@ Exemple d'un scénario constitué de trois actions :
 Insérer une requète DSL
 -----------------------
 
-Certaines fonctions nécessitent l'entrée de requêtes DSL en paramètre. Celles-ci doivent etre insérées entre guillemets (" "), après un retour à la ligne à la suite de la fonction.
+Certaines fonctions nécessitent l'entrée de requêtes DSL en paramètre. Celles-ci doivent être insérées entre guillemets (" "), après un retour à la ligne à la suite de la fonction.
 
-Voici un exemple d'une action suivie d'une requète DSL :
+Voici un exemple d'une action suivie d'une requête DSL :
 
 ::
 
@@ -199,16 +199,16 @@ Liste des fonctions disponibles
 	"j'utilise la requête suivante","une requête"
 	"j'utilise le fichier de requête suivant (.*)","un fichier"
 	"j'utilise dans la requête le GUID de l'unité archivistique pour le titre (.*)","un titre d'unité archivistique"
-	"j'utilise dans la requête le paramètre (.*) avec la valeur (.*)","un nom de paramétre et une valeur de remplacement"
+	"j'utilise dans la requête le paramètre (.*) avec la valeur (.*)","un nom de paramêtre et une valeur de remplacement"
 	"je recherche les unités archivistiques","une autre action"
 	"je recherche les groupes d'objets des unités archivistiques","une autre action"
 	"je recherche les groupes d'objets de l'unité archivistique dont le titre est (.*)","un titre d'unité archivistique"
-	"le nombre de résultat est","un nombre"
-	"les metadonnées sont","un tableau"
+	"le nombre de résultat est (.*)","un nombre"
+	"les metadonnées sont (.*)","un tableau"
 	"les metadonnées pour le résultat (.*)", "un nombre et un tableau"
-	"je recherche les registres de fond","une autre action"
-	"le nombre de registres de fond est (.*)","un nombre"
+	"je recherche les registres de fonds (.*)","une autre action"
+	"le nombre de registres de fonds est (.*)","un nombre"
 	"les metadonnées pour le registre de fond sont","un tableau"
-	"je recherche les détails des registres de fond pour le service producteur (.*)","un identifiant de service producteur"
-	"le nombre de détails du registre de fond est (.*)","un nombre"
-	"les metadonnées pour le détail du registre de fond sont","un tableau"
+	"je recherche les détails du registre des fonds pour le service producteur (.*)","un identifiant de service producteur"
+	"le nombre de détails du registre des fonds est (.*)","un nombre"
+	"les metadonnées pour le détail du registre des fonds sont","un tableau"

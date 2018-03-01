@@ -11,9 +11,9 @@ Les exemples suivants présentent l'exhaustivité des phrases définies par fonc
 Fonctionnalité : ingest
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-**Scénario** : Envoi d'une archive et vérification du journal de l'opération, de l'ATR, des journaux de cycle de vie d'un Units et d'un GOT
+**Scénario** : Envoi d'une archive et vérification du journal de l'opération, de l'ATR, des journaux de cycle de vie d'un Unit et d'un GOT
 
-**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les règles de gestions et les formats sont chargés.
+**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les référentiels des règles de gestions et des formats sont chargés.
 
 .. code-block:: cucumber
 
@@ -53,7 +53,7 @@ Fonctionnalité : recherche simple des métadonnées d'AUs et de GOTs
 
 **Scénario** Recherche de toutes les unités archivistiques et de groupes d'objets liés à un ingest
 
-**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les règles de gestions et les formats sont chargés.
+**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les référentiels des règles de gestions et des formats sont chargés.
 
 .. code-block:: cucumber
 
@@ -94,7 +94,7 @@ Fonctionnalité : recherche complexe d'une AU
 
 **Scénario** Recherche d'une unités archivistique particulière et de son groupe d'objet
 
-**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les règles de gestions et les formats sont chargés.
+**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les référentiels des règles de gestions et des formats sont chargés.
 
 .. code-block:: cucumber
 
@@ -143,12 +143,12 @@ Le fichier *data/queries/query.json* contient :
   }
 
 
-Fonctionnalité : recherche d'un registre de fonds
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Fonctionnalité : recherche d'un registre des fonds
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Scénario** Recherche d'un registre de fonds et de son détail pour une opération d'ingest
+**Scénario** Recherche d'un registre des fonds et de son détail pour une opération d'ingest
 
-**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les règles de gestions et les formats sont chargés.
+**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les référentiels des règles de gestions et des formats sont chargés.
 
 .. code-block:: cucumber
   
@@ -202,7 +202,7 @@ Collection Unit
 
 **Fonctionnalité** Recherche avancée
 
-**Scénario** Recherche avancée d’archives – cas OK d’une recherche multicritères croisant métadonnées techniques et métadonnées descriptives et métadonnées de gestion (API)
+**Scénario** Recherche avancée d’archives – cas OK d’une recherche multicritère croisant métadonnées techniques, métadonnées descriptives et métadonnées de gestion (API)
 
 .. code-block:: cucumber
 
@@ -291,9 +291,9 @@ Collection FileRules
 Collection AccessAccessionRegister
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Fonctionnalité** Recherche dans les registres de fond
+**Fonctionnalité** Recherche dans les registres des fonds
 
-**Contexte** Avant de lancer cette suite de test, je présuppose que les règles de gestions et de formats sont chargés.
+**Contexte** Avant de lancer ce scénario, je présuppose que les contrats d'entrée, les contrats d'accès, les référentiels des règles de gestions et des formats sont chargés.
 
 **Scénario** Upload d'un SIP et vérification du contenu dans le registre de fonds
 
