@@ -2106,67 +2106,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private static final String REINDEX_URI = "/reindex";
-    private static final String ALIASES_URI = "/alias";
-
-    /**
-     * Reindex a collection
-     *
-     * @param indexParameters parameters specifying what to reindex
-     * @return Response response
-     */
-    @Path(REINDEX_URI)
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "reindex:create", description = "Reindexer une collection")
-    public Response reindex(@Valid List<IndexParameters> indexParameters) {
-        ParametersChecker.checkParameter("mandatory parameter", indexParameters);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<IndexationResult> result =
-                client.launchReindexation(JsonHandler.toJsonNode(indexParameters));
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result).build();
-        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
-        }
-
-    }
-
-    /**
-     * Switch indexes for a collection
-     *
-     * @param indexParameters parameters specifying what to switch
-     * @return Response response
-     */
-    @Path(ALIASES_URI)
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "switchindex:create", description = "Switch indexes")
-    public Response switchIndexes(@Valid List<SwitchIndexParameters> indexParameters) {
-        ParametersChecker.checkParameter("mandatory parameter", indexParameters);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<IndexationResult> result = client.switchIndexes(JsonHandler.toJsonNode(indexParameters));
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result).build();
-        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(status.getReasonPhrase())
-                .setDescription(e.getMessage())).build();
-        }
-
-    }
 
     /**
      * launch a traceability audit for the unit
