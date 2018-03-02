@@ -59,6 +59,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
@@ -67,10 +68,13 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -123,6 +127,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
 
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
+    public static final String SEPARATOR_LINK_BY_KEY_VALUE = ":";
 
     private ArchiveUnitMapper archiveUnitMapper;
 
@@ -231,7 +236,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             if (archiveUnitType.getManagement() != null &&
                 archiveUnitType.getManagement().getUpdateOperation() != null &&
-                archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null) {
+                (archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null ||
+                    archiveUnitType.getManagement().getUpdateOperation().getArchiveUnitIdentifierKey() != null)) {
                 elementGUID = attachArchiveUnitToExisting(archiveUnitType, archiveUnitId);
 
             }
@@ -315,34 +321,67 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
     /**
      * link the current archive unit to an existing archive unit
+     * We can link by systemId(guid) or by key value (metadataName and metadataValue)
      *
      * @param archiveUnitType
      * @param archiveUnitId
      * @return
      */
     private String attachArchiveUnitToExisting(ArchiveUnitType archiveUnitType, String archiveUnitId) {
-        String elementGUID;// check if systemId exist
-        elementGUID = archiveUnitType.getManagement().getUpdateOperation().getSystemId();
-        existingUnitGuids.add(elementGUID);
-        ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
-        archiveUnitRoot.getArchiveUnit().setId(elementGUID);
 
+
+        JsonNode existingData;
+
+        String existingArchiveUnitGuid =
+            archiveUnitType.getManagement().getUpdateOperation().getSystemId(); // check if systemId exist
         try {
-            JsonNode existingData = loadExistingArchiveUnit(elementGUID, archiveUnitId);
-            if (existingData == null || existingData.get("$results") == null ||
-                existingData.get("$results").size() == 0) {
-                LOGGER.error("Existing Unit was not found {}", elementGUID);
-                throw new ProcessingUnitNotFoundException(
-                    "Existing Unit " + archiveUnitId + "[" + elementGUID + "] was not found", archiveUnitId,
-                    elementGUID, true);
+
+            boolean isGuid = false;
+            if (null != existingArchiveUnitGuid) {
+                isGuid = true;
+                existingData = loadExistingArchiveUnitBySystemId(existingArchiveUnitGuid, archiveUnitId);
+            } else {
+                ArchiveUnitIdentifierKeyType archiveUnitIdentifier =
+                    archiveUnitType.getManagement().getUpdateOperation().getArchiveUnitIdentifierKey();
+                final String metadataName = archiveUnitIdentifier.getMetadataName();
+                final String metadataValue = archiveUnitIdentifier.getMetadataValue();
+
+                existingArchiveUnitGuid = "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]";
+                existingData = loadExistingArchiveUnitByKeyValue(metadataName, metadataValue, archiveUnitId);
             }
 
-            JsonNode unitInDB = existingData.get("$results").get(0);
+            JsonNode result = (existingData == null) ? null : existingData.get("$results");
+
+            if (result == null || result.size() == 0) {
+                LOGGER.error("Unit was not found {}", existingArchiveUnitGuid);
+                throw new ProcessingUnitNotFoundException(
+                    "Existing Unit " + archiveUnitId + ":" + existingArchiveUnitGuid + ", was not found",
+                    archiveUnitId,
+                    existingArchiveUnitGuid, isGuid);
+            }
+
+            if (result.size() > 1) {
+                LOGGER.error("Multiple Unit was found {}", existingArchiveUnitGuid);
+                throw new ProcessingUnitNotFoundException(
+                    "Unit " + archiveUnitId + ":" + existingArchiveUnitGuid + ", Multiple unit was found",
+                    archiveUnitId,
+                    existingArchiveUnitGuid, isGuid);
+            }
+
+            JsonNode unitInDB = result.get(0);
             String type = unitInDB.get("#unitType").asText();
             UnitType dataUnitType = UnitType.valueOf(type);
 
+            // In case where systemId is key:value format, then erase value with the correct unit id
+            existingArchiveUnitGuid = unitInDB.get("#id").asText();
+            existingUnitGuids.add(existingArchiveUnitGuid);
+            ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
+            archiveUnitRoot.getArchiveUnit().setId(existingArchiveUnitGuid);
+
+
+
             if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
-                LOGGER.error("Linking not allowed  {}", elementGUID);
+                LOGGER.error("Linking not allowed  {}", existingArchiveUnitGuid);
                 throw new ProcessingUnitLinkingException("Linking Unauthorized ");
 
             }
@@ -361,7 +400,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         } catch (ProcessingException e) {
             throw new RuntimeException(e);
         }
-        return elementGUID;
+        return existingArchiveUnitGuid;
     }
 
     private void fillListRulesToMap(String archiveUnitId, RuleCategoryModel ruleCategory) {
@@ -655,53 +694,114 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         return logbookLifeCycleParameters;
     }
 
+
+    /**
+     * Load AU by GUID defined in the system Id tag
+     *
+     * @param existingUnitGuid
+     * @param archiveUnitId
+     * @return
+     * @throws ProcessingException
+     */
+    private JsonNode loadExistingArchiveUnitBySystemId(String existingUnitGuid, String archiveUnitId)
+        throws ProcessingException {
+
+        try {
+            GUIDReader.getGUID(existingUnitGuid);
+        } catch (final InvalidGuidOperationException e) {
+            LOGGER.error("ID is not a GUID: " + existingUnitGuid, e);
+            throw new ProcessingUnitNotFoundException(
+                "Unit " + archiveUnitId + ": [" + existingUnitGuid +
+                    "] is not a valid systemId [guid]", archiveUnitId,
+                existingUnitGuid, false);
+        }
+
+        final SelectMultiQuery select = new SelectMultiQuery();
+
+        return loadExistingArchiveUnit(true, existingUnitGuid, select, archiveUnitId);
+    }
+
+
+    /**
+     * @param metadataName  field in the archive unit
+     * @param metadataValue the value
+     * @param archiveUnitId
+     * @return
+     * @throws ProcessingException
+     */
+    private JsonNode loadExistingArchiveUnitByKeyValue(String metadataName, String metadataValue, String archiveUnitId)
+        throws ProcessingException {
+        if (metadataName.isEmpty() || metadataValue.isEmpty()) {
+            throw new ProcessingUnitNotFoundException(
+                "Unit " + archiveUnitId + ": [MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
+                    "] are required values", archiveUnitId,
+                "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]", false);
+        }
+
+        if (metadataName.equals(ID.exactToken())) {
+            return loadExistingArchiveUnitBySystemId(metadataValue, archiveUnitId);
+        }
+
+        final SelectMultiQuery select = new SelectMultiQuery();
+        try {
+            select.setQuery(QueryHelper.eq(metadataName, metadataValue));
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("Existing Unit was not found", e);
+            throw new ProcessingUnitNotFoundException(
+                "Unit " + archiveUnitId + ":  [MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
+                    "] Parse operation exception : " + e.getMessage(), archiveUnitId,
+                "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
+                    "]", false);
+        }
+        return loadExistingArchiveUnit(false, "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
+            "]", select, archiveUnitId);
+    }
+
     /**
      * Load data of an existing archive unit by its vitam id.
      *
-     * @param archiveUnitGuid guid of archive unit
-     * @param archiveUnitId   xml id of archive unit
+     * @param existingUnitGuidOrKeyValue guid of existing archive unit or key value that identify uniquely the AU
+     * @param archiveUnitId              xml id of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
      * @throws ProcessingException             thrown if a metadata exception occured
      */
-    private JsonNode loadExistingArchiveUnit(String archiveUnitGuid, String archiveUnitId) throws ProcessingException {
+    private JsonNode loadExistingArchiveUnit(boolean searchByGuid, String existingUnitGuidOrKeyValue,
+        SelectMultiQuery selectMultiQuery,
+        String archiveUnitId) throws ProcessingException {
 
-        // Check that the given systemId is a valid guid
-        try {
-            GUIDReader.getGUID(archiveUnitGuid);
-        } catch (final InvalidGuidOperationException e) {
-            LOGGER.error("ID is not a GUID: " + archiveUnitGuid, e);
-            throw new ProcessingUnitNotFoundException(
-                "Existing Unit " + archiveUnitId + "[" + archiveUnitGuid + "] not valid guid", archiveUnitId,
-                archiveUnitGuid, false);
-        }
+
+        ObjectNode projection = JsonHandler.createObjectNode();
+        ObjectNode fields = JsonHandler.createObjectNode();
+
+        fields.put(UNITTYPE.exactToken(), 1);
+        fields.put(ID.exactToken(), 1);
+        fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
+        fields.put(ORIGINATING_AGENCY.exactToken(), 1);
+        projection.set(FIELDS.exactToken(), fields);
 
 
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
-            final SelectParserMultiple selectRequest = new SelectParserMultiple();
-            final SelectMultiQuery request = selectRequest.getRequest().reset();
 
-            ObjectNode projection = JsonHandler.createObjectNode();
-            ObjectNode fields = JsonHandler.createObjectNode();
 
-            fields.put(UNITTYPE.exactToken(), 1);
-            fields.put(ID.exactToken(), 1);
-            fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
-            fields.put(ORIGINATING_AGENCY.exactToken(), 1);
-            projection.set(FIELDS.exactToken(), fields);
-            request.setProjection(projection);
+            selectMultiQuery.setProjection(projection);
 
-            return metadataClient.selectUnitbyId(request.getFinalSelect(), archiveUnitGuid);
+            if (searchByGuid) {
+                return metadataClient.selectUnitbyId(selectMultiQuery.getFinalSelect(), existingUnitGuidOrKeyValue);
+            } else {
+                return metadataClient.selectUnits(selectMultiQuery.getFinalSelect());
+            }
 
-        } catch (final MetaDataException e) {
+        } catch (final MetaDataException | VitamDBException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Existing Unit was not found", e);
             throw new ProcessingUnitNotFoundException(
-                "Existing Unit " + archiveUnitId + "[" + archiveUnitGuid + "] was not found",
-                archiveUnitId, archiveUnitGuid, true);
+                "Unit " + archiveUnitId + ": " + existingUnitGuidOrKeyValue + " Parse operation exception : " +
+                    e.getMessage(),
+                archiveUnitId, existingUnitGuidOrKeyValue, searchByGuid);
         }
     }
 

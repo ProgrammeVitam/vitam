@@ -19,6 +19,7 @@ import javax.xml.bind.JAXBElement;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -167,6 +168,7 @@ public class ArchiveUnitListenerTest {
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
         ObjectNode unit = JsonHandler.createObjectNode();
+        unit.put("#id", "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
         unit.put("#unitType", UnitType.INGEST.name());
         resp.addResult(unit);
 
@@ -214,6 +216,7 @@ public class ArchiveUnitListenerTest {
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
         ObjectNode unit = JsonHandler.createObjectNode();
+        unit.put("#id", "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
         unit.put("#unitType", UnitType.INGEST.name());
         resp.addResult(unit);
 
@@ -259,6 +262,7 @@ public class ArchiveUnitListenerTest {
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
         ObjectNode unit = JsonHandler.createObjectNode();
+        unit.put("#id", "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
         unit.put("#unitType", UnitType.HOLDING_UNIT.name());
         ArrayNode agencies = JsonHandler.createArrayNode();
         agencies.add("AGENCY1").add("AGENCY1");
@@ -310,6 +314,7 @@ public class ArchiveUnitListenerTest {
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
         ObjectNode unit = JsonHandler.createObjectNode();
+        unit.put("#id", "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
         unit.put("#unitType", UnitType.INGEST.name());
         ArrayNode agencies = JsonHandler.createArrayNode();
         agencies.add("AGENCY1").add("AGENCY1");
@@ -330,4 +335,61 @@ public class ArchiveUnitListenerTest {
 
         assertThat(agenciesList).hasSize(2);
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAfterUnmarshalKeyValueSystemIDOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        ArchiveUnitType target = mock(ArchiveUnitType.class);
+        JAXBElement parent = mock(JAXBElement.class);
+
+        List<String> agenciesList = new ArrayList<>();
+        Map<String, String> unitIdToGuid = new HashMap<>();
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
+        ArchiveUnitListener archiveUnitListener =
+            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, null, null, null,
+                null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
+                metaDataClientFactory, null, null, null, UnitType.INGEST,
+                agenciesList, null);
+
+        when(target.getArchiveUnitRefId()).thenReturn(null);
+        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        when(target.getManagement()).thenReturn(management);
+        UpdateOperationType updateOperation = mock(UpdateOperationType.class);
+        when(management.getUpdateOperation()).thenReturn(updateOperation);
+
+        ArchiveUnitIdentifierKeyType archiveUnitIdentifierKeyType = new ArchiveUnitIdentifierKeyType();
+        archiveUnitIdentifierKeyType.setMetadataName("Title");
+        archiveUnitIdentifierKeyType.setMetadataValue("Value");
+        when(updateOperation.getArchiveUnitIdentifierKey()).thenReturn(archiveUnitIdentifierKeyType);
+
+        when(parent.isGlobalScope()).thenReturn(true);
+
+        RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
+        ObjectNode unit = JsonHandler.createObjectNode();
+        unit.put("#id", "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
+        unit.put("#unitType", UnitType.INGEST.name());
+        ArrayNode agencies = JsonHandler.createArrayNode();
+        agencies.add("AGENCY1").add("AGENCY1");
+        unit.set("#originating_agencies", agencies);
+
+        resp.addResult(unit);
+
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
+
+        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+
+        try {
+            archiveUnitListener.afterUnmarshal(target, parent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Should not throws an exception");
+        }
+
+        assertThat(agenciesList).hasSize(2);
+    }
+
 }

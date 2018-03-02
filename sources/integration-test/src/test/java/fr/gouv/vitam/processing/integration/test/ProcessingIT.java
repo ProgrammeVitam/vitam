@@ -202,7 +202,6 @@ public class ProcessingIT {
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private final static String CLUSTER_NAME = "vitam-cluster";
-    static JunitHelper junitHelper;
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
 
@@ -253,6 +252,9 @@ public class ProcessingIT {
     private static String UPD8_AU_WORKFLOW = "UPDATE_RULES_ARCHIVE_UNITS";
     private static String LFC_TRACEABILITY_WORKFLOW = "LOGBOOK_LC_SECURISATION";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
+    private static String OK_RATTACHEMENT = "integration-processing/OK_Rattachement.zip";
+    private static final String OK_RATTACHEMENT_MULTIPLE_AU = "integration-processing/OK_Rattachement_Multiple_AU.zip";
+
     private static String SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_INGEST_CONTRACT_UNKNOW = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
@@ -263,6 +265,7 @@ public class ProcessingIT {
 
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET = "integration-processing";
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK";
+    private static String SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK_BY_QUERY";
 
     private static String LINK_AU_TO_EXISTING_GOT_OK_NAME = "integration-processing/OK_LINK_AU_TO_EXISTING_GOT";
     private static String LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET = "integration-processing";
@@ -800,11 +803,7 @@ public class ProcessingIT {
     public void testWorkflowIngestContractUnknow() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -849,11 +848,7 @@ public class ProcessingIT {
     public void testWorkflowProfil() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -911,11 +906,7 @@ public class ProcessingIT {
     public void testWorkflowWithSIPContainsSystemId() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -951,11 +942,8 @@ public class ProcessingIT {
     public void testWorkflowWithTarSIP() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
+
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -994,11 +982,7 @@ public class ProcessingIT {
     public void testWorkflow_with_herited_ruleCA1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -1061,11 +1045,7 @@ public class ProcessingIT {
     public void testWorkflow_with_herited_ruleCA4() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1112,11 +1092,7 @@ public class ProcessingIT {
     public void testWorkflow_with_accession_register() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1154,11 +1130,7 @@ public class ProcessingIT {
     public void testWorkflowWithSipNoManifest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1194,11 +1166,7 @@ public class ProcessingIT {
     public void testWorkflowSipNoFormat() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1236,11 +1204,7 @@ public class ProcessingIT {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1277,11 +1241,7 @@ public class ProcessingIT {
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1320,11 +1280,7 @@ public class ProcessingIT {
     public void testWorkflowWithSipWithoutObject() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1368,11 +1324,7 @@ public class ProcessingIT {
     public void testWorkflowKOwithATRKOFilled() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1411,11 +1363,7 @@ public class ProcessingIT {
     public void testWorkflowSipCausesFatalThenProcessingInternalServerException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1453,12 +1401,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
 
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        String containerName = objectGuid.getId();
-        VitamThreadUtils.getVitamSession().setRequestId(objectGuid);
-
-        createLogbookOperation(operationGuid, objectGuid);
+        String containerName = createOperationContainer();
 
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
@@ -1486,10 +1429,7 @@ public class ProcessingIT {
 
         ObjectNode finalSelect = select.getFinalSelect();
 
-        operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid, "EXPORT_DIP", LogbookTypeProcess.EXPORT_DIP);
+        containerName = createOperationContainer("EXPORT_DIP", LogbookTypeProcess.EXPORT_DIP);
 
         workspaceClient.createContainer(containerName);
 
@@ -1516,24 +1456,20 @@ public class ProcessingIT {
     }
 
 
-    // Status Warn
+    // Attach AU to an existing AU by systemId = guid
     @RunWithCustomExecutor
     @Test
     public void testWorkflowAddAndLinkSIP() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         // 1. First we create an AU by sip
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
         final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(OK_RATTACHEMENT);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
@@ -1574,11 +1510,7 @@ public class ProcessingIT {
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
 
-        final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid2);
-        final GUID objectGuid2 = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName2 = objectGuid2.getId();
-        createLogbookOperation(operationGuid2, objectGuid2);
+        final String containerName2 = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1612,14 +1544,7 @@ public class ProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
         assertNotNull(processWorkflow2.getSteps());
 
-        // check results
-        MongoIterable<Document> modifiedParentUnit = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
-        assertNotNull(modifiedParentUnit);
-        assertNotNull(modifiedParentUnit.first());
-        Document parentUnit = modifiedParentUnit.first();
-
-        // aeaqaaaaaad44i2vabiwgak4y2bxdkiaaaaq
-
+        // Check that we have an AU where in his up we have idUnit
         MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
         assertNotNull(newChildUnit);
         assertNotNull(newChildUnit.first());
@@ -1630,9 +1555,238 @@ public class ProcessingIT {
         }
     }
 
+
+    private String createOperationContainer()
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        createLogbookOperation(operationGuid, objectGuid);
+
+        return objectGuid.getId();
+    }
+
+    private String createOperationContainer(String action, LogbookTypeProcess logbookTypeProcess)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid, action, logbookTypeProcess);
+
+        return containerName;
+    }
+
+    /**
+     * This is a duplicate test for attaching AU to an existing GOT
+     * But we want this to test Attach AU by query to an existing one
+     * As the query by #object return the wanted number of AU in results
+     * We first attach AU to an existing GOT
+     * Then in the test of attach to existing AU by query (the query by #object return more than one= > KO)
+     *
+     * Why after simulateAttachUnitToExistingGOT the returned GOT have two AU
+     *
+     * @return The id GOT that should have two AU
+     * @throws Exception
+     */
+    public void simulateAttachUnitToExistingGOT(String idGot, String zipName) throws Exception {
+
+        replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            idGot);
+
+        String zipPath =
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
+
+        final String containerName2 = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName2);
+        workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP, zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret2 =
+            processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret2);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+
+        wait(containerName2);
+        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
+        assertNotNull(processWorkflow2);
+        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
+        assertNotNull(processWorkflow2.getSteps());
+    }
+
+    // Attach given AU to an existing one by Query
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowAddAndLinkSIPWithNotGUIDSystemIDKo() throws Exception {
+    public void testAttachUnitToExistingUnitByQueryOKAndMultipleQueryKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        // 1. First we create an AU by sip
+        final String containerName = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_PROD_SERV_A);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+        String zipPath = null;
+        // 2. then we link another SIP to it
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+        // prepare zip
+        final MongoDatabase db = mongoClient.getDatabase("Vitam");
+        MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
+        Document unit = resultUnits.first();
+        String idUnit = (String) unit.get("_id");
+        String idGOT = (String) unit.get("_og");
+        assertThat(idGOT).isNotNull();
+
+        // Search unit by #object: {$eq : idGOT}
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataName>).*?(?=</MetadataName>)","#object");
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
+
+
+        final String containerName2 = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName2);
+        workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret2 =
+            processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret2);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+
+        wait(containerName2);
+        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
+        assertNotNull(processWorkflow2);
+        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
+        assertNotNull(processWorkflow2.getSteps());
+
+        // Check that we have an AU where in his up we have idUnit
+        MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
+        assertNotNull(newChildUnit);
+        assertNotNull(newChildUnit.first());
+
+
+
+        // Get the GOT that have two AU by executing the method simulateAttachUnitToExistingGOT
+        simulateAttachUnitToExistingGOT(idGOT, zipName);
+
+        // Search unit by #object: {$eq : idGOT}
+        // As we have already attached AU to this GOT then the query will return more than one. KO
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataName>).*?(?=</MetadataName>)","#object");
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
+
+        final String containerName3 = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName3);
+        workspaceClient.uncompressObject(containerName3, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName3, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret3 =
+            processingClient.executeOperationProcess(containerName3, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret3);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret3.getStatus());
+
+        wait(containerName3);
+        ProcessWorkflow processWorkflow3 = processMonitoring.findOneProcessWorkflow(containerName3, tenantId);
+        assertNotNull(processWorkflow3);
+        assertEquals(ProcessState.COMPLETED, processWorkflow3.getState());
+        assertEquals(StatusCode.KO, processWorkflow3.getStatus());
+        assertNotNull(processWorkflow3.getSteps());
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowAddAndLinkSIPWithNotValidKeyValueKo() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
@@ -1640,17 +1794,15 @@ public class ProcessingIT {
         String zipPath = null;
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            ":GUID_ARCHIVE_UNIT_PARENT:");
         // prepare zip
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
 
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1692,6 +1844,65 @@ public class ProcessingIT {
     }
 
 
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowAddAndLinkSIPWithNotValidGUIDSystemIDKo() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        // We link to a non existing unit
+        String zipPath = null;
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            "GUID_ARCHIVE_UNIT_PARENT");
+        // prepare zip
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
+
+
+        final String containerName = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        // /////
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Test attach existing ObjectGroup to unit 1. Upload SIP 2. Get created GOT 3. Update manifest and set existing GOT
      * 4. Upload the new SIP
@@ -1704,11 +1915,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         // 1. First we create an AU by sip
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1754,12 +1961,7 @@ public class ProcessingIT {
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
 
-
-        final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid2);
-        final GUID objectGuid2 = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName2 = objectGuid2.getId();
-        createLogbookOperation(operationGuid2, objectGuid2);
+        final String containerName2 = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1856,11 +2058,7 @@ public class ProcessingIT {
                 "/" + zipName);
 
 
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1966,16 +2164,9 @@ public class ProcessingIT {
         tryImportFile();
         // re-launch worker
         workerApplication.stop();
-        // FIXME Sleep to be removed when asynchronous mode is implemented
-        // Thread.sleep(8500);
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         workerApplication = new WorkerMain(CONFIG_BIG_WORKER_PATH);
-        workerApplication.start();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -2016,11 +2207,7 @@ public class ProcessingIT {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2090,11 +2277,7 @@ public class ProcessingIT {
     public void testWorkflowBug2182() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2131,11 +2314,7 @@ public class ProcessingIT {
     public void testWorkflowWithSIP_KO_AU_ref_BDO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2172,11 +2351,7 @@ public class ProcessingIT {
     public void testPauseWorkflow() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
@@ -2252,11 +2427,7 @@ public class ProcessingIT {
     public void testWorkflowJsonValidationKOCA1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2292,11 +2463,7 @@ public class ProcessingIT {
     public void testWorkflowJsonValidationKOCA2() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2333,11 +2500,7 @@ public class ProcessingIT {
     public void testWorkflowWithContractKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2376,11 +2539,7 @@ public class ProcessingIT {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2431,11 +2590,7 @@ public class ProcessingIT {
     public void testWorkflowIngestBigTreeBugFix3062() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2471,11 +2626,7 @@ public class ProcessingIT {
     public void testWorkflowOkSIPSignature() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2517,11 +2668,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
 
-        final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid2);
-        final GUID objectGuid2 = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName2 = objectGuid2.getId();
-        createLogbookOperation(operationGuid2, objectGuid2);
+        final String containerName2 = createOperationContainer();
 
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -2549,11 +2696,7 @@ public class ProcessingIT {
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
         assertEquals(StatusCode.OK, processWorkflow2.getStatus());
 
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // put rules into workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2612,11 +2755,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         // 1. First we create an AU by sip
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2666,11 +2805,7 @@ public class ProcessingIT {
         zipFolder(PropertiesUtils.getResourcePath(SIP_PROD_SERV_B_ATTACHED), zipPath);
 
 
-        final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid2);
-        final GUID objectGuid2 = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName2 = objectGuid2.getId();
-        createLogbookOperation(operationGuid2, objectGuid2);
+        final String containerName2 = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2707,9 +2842,9 @@ public class ProcessingIT {
         MongoIterable<Document> resultUnitsAfter = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
         Document unitAfter = resultUnitsAfter.first();
         String opiAfter = (String) unitAfter.get("_opi");
-        
+
         assertEquals(opiBefore, opiAfter);
-        
+
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName2,
             new fr.gouv.vitam.common.database.builder.request.single.Select().getFinalSelect());
@@ -2780,14 +2915,10 @@ public class ProcessingIT {
     @Test
     public void testBlankWorkflow() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
             tryImportFile();
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            createLogbookOperation(operationGuid, objectGuid);
+            final String containerName = createOperationContainer();
 
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -2845,11 +2976,7 @@ public class ProcessingIT {
     public void testValidateArchiveUnitSchemaBirthPlaceOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -2886,11 +3013,7 @@ public class ProcessingIT {
     public void testIgestWithWrongDateShouldEndWithKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -2928,11 +3051,7 @@ public class ProcessingIT {
     public void testIngestWithAURefObjShouldEndWithKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -2970,11 +3089,7 @@ public class ProcessingIT {
     public void testIngestWithWrongUriShouldEndWithKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
@@ -3012,11 +3127,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         // 1. First we create an AU by sip
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
+        final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
