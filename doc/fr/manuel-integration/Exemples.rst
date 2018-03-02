@@ -1,8 +1,8 @@
 Exemples
 ########
 
-Recherche par ArchivalAgencyArchiveUnitIdentifier
-=================================================
+Recherche d'unités archivistiques par ArchivalAgencyArchiveUnitIdentifier
+=========================================================================
 
 EndPoint: /access-external/v1/units
 
@@ -71,8 +71,8 @@ Indiquer pour la requête POST :
   } 
 
 
-Recherche par producteur (FRAN_NP_005568)
-=========================================
+Recherche de registre de fonds par producteur (FRAN_NP_005568)
+==============================================================
 
 **Client Java**
 
@@ -135,8 +135,8 @@ Indiquer pour la requête POST :
   }
 
 
-Recherche par titre AND description AND dates
-=============================================
+Recherche d'unités archivistiques par titre AND description AND dates
+=====================================================================
 
 **Client Java**
 
@@ -201,8 +201,8 @@ Indiquer pour la requête POST :
     "$projection": {}
   } 
 
-Recherche libre titre OR description
-====================================
+Recherche d'unités archivistiques par libre titre OR description
+================================================================
 
 **Client Java**
 

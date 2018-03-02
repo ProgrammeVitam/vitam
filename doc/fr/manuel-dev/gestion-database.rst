@@ -1,7 +1,7 @@
 Gestion des bases de données
 ############################
 
-Ce document présente les points d'attention et une check list quand vous avez
+Ce document présente les points d'attention et une check list lorsque vous avez
 une modification à faire sur un schéma de données d'une base de données ou la
 création d'une requête particulière MongoDB.
 
@@ -15,12 +15,12 @@ Si ce champ est "protégé" (préfixé par un "**\_**"), quelques règles d'usag
 à respecter :
 
 - Il est préfixé en base par "**\_**" afin de ne pas être en conflit avec des métadonnées externes (notamment pour le "*content*" du Unit)
-- Le nom dans la base doit être court (exemple: **\_us**) afin de limiter l'empreinte mémoire et disque de ce champs tant pour les index que pour les données, et tant pour MongoDB que pour ElasticSearch
+- Le nom dans la base doit être court (exemple: **\_us**) afin de limiter l'empreinte mémoire et disque de ce champs tant pour les index que pour les données, tant pour MongoDB que pour ElasticSearch
 - Le nom du point de vue usage (externe et interne) doit être explicite (exemple: **allunitups**)
 - Il est préfixé d'un '**#**' pour permettre son interprétation par Vitam comme un champ protégé
 - Il cache l'implémentation réelle du champ
 
-Pour les collections "Single", les champs protégés sont explicitement indiqués dans le fichier ParserTokens et ne produireont des erreurs que dans le Back-office.
+Pour les collections "Single", les champs protégés sont explicitement indiqués dans le fichier ParserTokens et ne produiront des erreurs que dans le Back-office.
 
 Certains de ces champs sont interdits en update/insert (depuis l'extérieur),
 mais autorisés en interne.
@@ -38,7 +38,7 @@ La définition d'un tel champ "protégé" s'effectue ainsi :
 
   - commmon-database-private
 
-    - ParserTokens.java : il contient la copie exacte de BulderToken mais y ajoute les méthodes
+    - ParserTokens.java : il contient la copie exacte de BuilderToken mais y ajoute les méthodes
     
       - **notAllowedOnSet()** qui interdit ou pas l'update/insert depuis l'extérieur. Ce check est réalisé par les API-internal via les VarNameAdapter.
       - **getPROJECTIONARGS()*** qui traduit du champ interne en champ externe. Cette fonction est utilisé par les deux ci-dessous.
@@ -58,14 +58,14 @@ La définition d'un tel champ "protégé" s'effectue ainsi :
 metadata-core : Unit et ObjectGroup
 -----------------------------------
 
-- MongoDbVarNameAdapter.java : autorise les update/insert sur les **#protégés** et trafuit dans les champs définitifs définis dans MetadataDocument.java, Unit.java et ObjectGroup.java (exemple: **#allunitups** en **\_us**)
+- MongoDbVarNameAdapter.java : autorise les update/insert sur les **#protégés** et traduit dans les champs définitifs définis dans MetadataDocument.java, Unit.java et ObjectGroup.java (exemple: **#allunitups** en **\_us**)
 - MongoDbMetadataResponseFilter.java : récupère la réponse et retraduit en sens inverse un champs "**\_xxx**" en son correspondant "**#xxxxxxxxx**" (exemple: **\_us** en **#allunitups**)
 - MetadataDocument.java et Unit.java et ObjectGroup.java pour la définition des champs traduits en interne (formats courts comme "**\_us**" et non "**\_unitsparents**")
 
 Pour les autres collections
 ---------------------------
 
-Elle s'appuie sur SingleVarNameAdapater et devraient avoir leurs propres extensions
+Elles s'appuient sur SingleVarNameAdapater et devraient avoir leurs propres extensions
 (comme MongoDbVarNameAdapter) ainsi que pour les retours (comme MongoDbMetadataResponseFilter)
 
 Modification d'une collection : check list

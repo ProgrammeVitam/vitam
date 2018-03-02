@@ -156,7 +156,7 @@ Partie $query
 
 ::
 
-   { "$in" : { ""#unitups" : ["id1", "id2"] } }
+   { "$in" : { "#unitups" : ["id1", "id2"] } }
 
    static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
    static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
@@ -221,7 +221,7 @@ Partie $action dans la fonction Update
 
 ::
 
-   { "$set" : { "Title" : "Mon nouveau titre", "Description" : "Ma nouvelle description" }" }
+   { "$set" : { "Title" : "Mon nouveau titre", "Description" : "Ma nouvelle description" } }
 
    static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
    Action action = set("Title", "Mon nouveau titre").add("Description", "Ma nouvelle description");
@@ -231,7 +231,7 @@ Partie $action dans la fonction Update
 
 ::
 
-   { "$unset" : [ "StartDate", "EndDate" ]" }
+   { "$unset" : [ "StartDate", "EndDate" ] }
 
    static include fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.*;
    Action action = unset("StartDate", "EndDate");

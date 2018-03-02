@@ -14,17 +14,28 @@ Pour ce but, nous effectuons les étapes suivantes :
 - Parallélisation des tests unitaires 
 - Configuration de build avec les options de tests     
 
-###############################################
 Séparation des tests TDD et tests d'intégration
-###############################################
-- Il y a trois tests d'intégration et nous les remettons dans le module test-intégration parent
-	ProcessingIT : test d'intégration pour différents services : workspace, functional-administration, 
+===============================================
+
+- Il y a plusieurs tests d'intégration présents dans le module *integration-test* :
+	*.ProcessingIT : test d'intégration pour différents services : workspace, functional-administration, 
 	worker, metadata, logbook, processing
 	
 	StorageClientIT : test d'intégration pour le client du service de storage. Cela concerne deux modules:
 	storage (client & rest) et le client de workspace 
 	  
 	WorkerIT : test d'intégration pour les services : workspace, worker, metadata, logbook, processing
+   
+   FunctionalAdminIT : test d'intégration pour le service FunctionalAdministration.
+   
+   IngestInternalIt : test d'intégration pour le service IngestInternal.
+   
+   LogbookCheckConsistencyIT : test d'intégration pour le service de vérification de cohérence des journaux.
+   
+   \*.Reconstruction\*.IT : test d'intégration pour les services de reconstruction et de backup.
+   
+   SecurityInternalIT : test d'intégration pour le service de sécurité interne.
+   
 	
 	Ces tests d'intégration sont en mode séquentiel. Pour cela, nous indiquons dans le pom.xml de ce module de test-integration 
    
@@ -53,10 +64,10 @@ Séparation des tests TDD et tests d'intégration
 		</pluginManagement>
 	</build>	
 
-##################################
 Parallélisation de tests unitaires
-##################################
-Les tests unitaires de chaque module sont configurés pour être lancé en mode parallèle.
+==================================
+
+Les tests unitaires de chaque module sont configurés pour être lancés en mode parallèle.
 Pour cela, nous indiquons dans le pom.xml parent pour la phrase de build  
 
 .. code-block:: xml
@@ -81,9 +92,8 @@ Pour cela, nous indiquons dans le pom.xml parent pour la phrase de build
 		</build>
  
 
-################################################
 Configuration de build avec les options de tests
-################################################
+================================================
 
 - mvn install : lancer le build normal avec tous les tests
  	
