@@ -37,6 +37,7 @@ hosts-elasticsearch-log
 
 # Group definition ; DO NOT MODIFY
 [vitam:children]
+hosts-ihm-recette
 zone-external
 zone-access
 zone-applicative
@@ -47,17 +48,15 @@ zone-admin
 
 ##### Zone externe
 
+[hosts-ihm-recette]
+# TODO: Put here servers where this service will be deployed : ihm-recette (extra feature)
 
 [zone-external:children]
 hosts-ihm-demo
 hosts-cerebro
-hosts-ihm-recette
 
 [hosts-ihm-demo]
 # TODO: Put here servers where this service will be deployed : ihm-demo
-
-[hosts-ihm-recette]
-# TODO: Put here servers where this service will be deployed : ihm-recette (extra feature)
 
 [hosts-cerebro]
 # TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
@@ -148,14 +147,39 @@ hosts-storage-offer-default
 # for filesystem
 # hostname-offre-2.vitam offer_conf=offer-fs-1
 
+[hosts-mongodb-offer:children]
+hosts-mongos-data
+hosts-mongoc-data
+hosts-mongod-data
+
+[hosts-mongos-offer]
+# TODO: put here servers where this service will be deployed : mongos cluster for storage offers
+# Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
+# Optional param : mongo_rs_bootstrap=true on first (or chosen) server
+# Example (for a more complete one, see the one in the group hosts-mongos-data) :
+# vitam-soffer-01   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+
+[hosts-mongoc-offer]
+# TODO: put here servers where this service will be deployed : mongoc cluster for storage offers
+# Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
+# Optional param : mongo_rs_bootstrap=true on first (or chosen) server
+# Example (for a more complete one, see the one in the group hosts-mongos-data) :
+# vitam-soffer-01   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+
+[hosts-mongod-offer]
+# TODO: put here servers where this service will be deployed : mongod cluster for storage offers
+# Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
+# Mandatory param : id of the current shard, increment by 1 from 0 to n
+# Optional param : mongo_rs_bootstrap=true on first (or chosen) server
+# Example (for a more complete one, see the one in the group hosts-mongos-data) :
+# vitam-soffer-01   mongo_cluster_name=offer-fs-1   mongo_shard_id=0    mongo_rs_bootstrap=true
 
 ##### Zone data
 
 # Group definition ; DO NOT MODIFY
 [zone-data:children]
 hosts-elasticsearch-data
-mongo_common
-
+hosts-mongodb-data
 
 [hosts-elasticsearch-data]
 # TODO: Put here servers where this service will be deployed : elasticsearch-data cluster
@@ -169,33 +193,44 @@ mongo_common
 # server2 is_master=false is_data=true
 # More explanation here : https://www.elastic.co/guide/en/elasticsearch/reference/5.6/modules-node.html
 
-
 # Group definition ; DO NOT MODIFY
-[mongo_common:children]
-mongos
-mongoc
-mongod
+[hosts-mongodb-data:children]
+hosts-mongos-data
+hosts-mongoc-data
+hosts-mongod-data
 
-[mongos]
+[hosts-mongos-data]
 # TODO: Put here servers where this service will be deployed : mongos cluster
+# Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
+# Optional param : mongo_rs_bootstrap=true on first (or chosen) server
+# Example :
+# vitam-mdbs-01   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
+# vitam-mdbs-01   mongo_cluster_name=mongo-data
+# vitam-mdbs-01   mongo_cluster_name=mongo-data
 
-[mongoc]
+[hosts-mongoc-data]
 # TODO: Put here servers where this service will be deployed : mongoc cluster
+# Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
+# Optional param : mongo_rs_bootstrap=true on first (or chosen) server
+# Example :
+# vitam-mdbc-01   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
+# vitam-mdbc-01   mongo_cluster_name=mongo-data
+# vitam-mdbc-01   mongo_cluster_name=mongo-data
 
-[mongod] # mongod declaration ; add host name after
+[hosts-mongod-data]
 # TODO: Put here servers where this service will be deployed : mongod cluster
 # Each replica_set should have an odd number of members (2n + 1)
 # Reminder: For Vitam, one mongodb shard is using one replica_set
-# Each host need 2 vars:
-#     - mongo_shard_id: id of the current shard, increment by 1 from 0 to n
-#     - mongo_rs_bootstrap: mandatory for 1 node of the shard, some init commands will be executed on it
+# Mandatory param : mongo_cluster_name=mongo-data ("mongo-data" is mandatory)
+# Mandatory param : id of the current shard, increment by 1 from 0 to n
+# Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
 # Example:
-# vitam-iaas-db-01.int  mongo_shard_id=0  mongo_rs_bootstrap=true
-# vitam-iaas-db-02.int  mongo_shard_id=0
-# vitam-iaas-db-03.int  mongo_shard_id=0
-# vitam-iaas-db-04.int  mongo_shard_id=1  mongo_rs_bootstrap=true
-# vitam-iaas-db-05.int  mongo_shard_id=1
-# vitam-iaas-db-06.int  mongo_shard_id=1
+# vitam-mdbd-01  mongo_cluster_name=mongo-data   mongo_shard_id=0  mongo_rs_bootstrap=true
+# vitam-mdbd-02  mongo_cluster_name=mongo-data   mongo_shard_id=0
+# vitam-mdbd-03  mongo_cluster_name=mongo-data   mongo_shard_id=0
+# vitam-mdbd-04  mongo_cluster_name=mongo-data   mongo_shard_id=1  mongo_rs_bootstrap=true
+# vitam-mdbd-05  mongo_cluster_name=mongo-data   mongo_shard_id=1
+# vitam-mdbd-06  mongo_cluster_name=mongo-data   mongo_shard_id=1
 
 ###### Zone admin
 
@@ -216,11 +251,13 @@ hosts-elasticsearch-log
 hosts-kibana-log
 hosts-logstash
 
-[hosts-logstash]
-# TODO: Put here servers where this service will be deployed : logstash
 
 [hosts-kibana-log]
 # TODO: Put here servers where this service will be deployed : kibana (for log cluster)
+
+[hosts-logstash]
+# TODO: Put here servers where this service will be deployed : logstash
+
 
 [hosts-elasticsearch-log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
@@ -262,8 +299,13 @@ days_to_close_logstash_indexes=
 # EXTRA
 # ===============================
 
+### vitam-itest repository ###
+vitam_tests_branch=master
+vitam_tests_gitrepo_protocol=
+vitam_tests_gitrepo_baseurl=
+vitam_tests_gitrepo_url=
 
-# Configuration for Curator
+# Curator configuration
 #	Days before deletion for packetbeat index only on log management cluster
 days_to_delete_packetbeat_indexes=5
 #	Days before deletion for metricbeat index only on log management cluster; 30 for production environment
@@ -272,12 +314,10 @@ days_to_delete_metricbeat_indexes=30
 days_to_close_metrics_indexes=7
 # Days before deleting metrics elasticsearch indexes
 days_to_delete_metrics_indexes=30
+days_to_delete_packetbeat_indexes=20
+days_to_delete_metricbeat_indexes=20
 
-### vitam-itest repository ###
-vitam_tests_branch=master
-vitam_tests_gitrepo_protocol=
-vitam_tests_gitrepo_baseurl=
-vitam_tests_gitrepo_url=
+
 
 # Used when VITAM is behind a reverse proxy (provides configuration for reverse proxy && displayed in header page)
 vitam_reverse_external_dns=
