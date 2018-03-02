@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import fr.gouv.vitam.common.exception.VitamDBException;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -74,11 +73,13 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DatabaseCursor;
+import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
@@ -311,12 +312,13 @@ public class MetaDataImpl implements MetaData {
             throw e;
         }
         List res = toArrayList(arrayNodeResponse);
+        List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
         Long total = (result != null) ? result.getTotal() : res.size();
         String scrollId = (result != null) ? result.getScrollId() : null;
         DatabaseCursor hits = (scrollId != null) ? new DatabaseCursor(total, offset, limit, res.size(), scrollId)
             : new DatabaseCursor(total, offset, limit, res.size());
         return new RequestResponseOK<JsonNode>(queryCopy)
-            .addAllResults(res).setHits(hits);
+            .addAllResults(res).addAllFacetResults(facetResults).setHits(hits);
     }
 
     // TODO : handle version

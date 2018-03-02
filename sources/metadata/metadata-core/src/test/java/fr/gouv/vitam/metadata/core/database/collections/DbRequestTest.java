@@ -199,6 +199,9 @@ public class DbRequestTest {
         "{$query: { $or : [ { $match : { 'Title' : 'Vitam' , '$max_expansions' : 1  } }, " +
             "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
             "] } }";
+    private static final String REQUEST_SELECT_TEST_ES_5 =
+        "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
+            "$facets : [ { $name : 'desc_level_facet' , $terms : { $field : 'DescriptionLevel' } } ] }";
     private static final String REQUEST_INSERT_TEST_ES_1_TENANT_1 =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaabaq\", " +
             "\"#tenant\": 1, " +
@@ -208,13 +211,14 @@ public class DbRequestTest {
     private static final String REQUEST_INSERT_TEST_ES =
         "{ \"#id\": \"" + UUID2 + "\", " + "\"Title\": \"title vitam\", " +
             "\"Description\": \"description est OK\"," +
+            "\"DescriptionLevel\": \"Item\"," +
             "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title sociales test_abcd_underscore othervalue france.pdf\", \"Description\": \"description est OK\", \"DescriptionLevel\": \"Item\"  }";
     private static final String UUID1 = "aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq";
     private static final String REQUEST_UPDATE_INDEX_TEST =
         "{$roots:['" + UUID1 +
@@ -1671,6 +1675,14 @@ public class DbRequestTest {
         final Result resultSelect4 = dbRequest.execRequest(selectParser4, null);
         assertEquals(1, resultSelect4.nbResult);
 
+        final JsonNode selectRequest5 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_5);
+        final SelectParserMultiple selectParser5 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser5.parse(selectRequest5);
+        LOGGER.debug("SelectParser: {}", selectRequest5);
+        final Result resultSelect5 = dbRequest.execRequest(selectParser5, null);
+        assertEquals(1, resultSelect5.nbResult);
+        assertEquals(1, resultSelect5.facetResult.size());
+
         InsertMultiQuery insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots(UUID2);
         insertParser.parse(insert.getFinalInsert());
@@ -1899,6 +1911,15 @@ public class DbRequestTest {
             .toString());
     }
 
+    private static final JsonNode buildQueryJsonWithOptions(String query, String facet, String data)
+        throws Exception {
+        return JsonHandler.getFromString(new StringBuilder()
+            .append("{ $roots : [ '' ], ")
+            .append("$query : [ " + query + " ], ")
+            .append("$facet : [ " + facet + " ], ")
+            .append("$data : " + data + " }")
+            .toString());
+    }
 
     @Test
     @RunWithCustomExecutor

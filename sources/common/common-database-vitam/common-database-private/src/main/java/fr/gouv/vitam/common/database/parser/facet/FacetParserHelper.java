@@ -24,45 +24,55 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.translators.elasticsearch;
+package fr.gouv.vitam.common.database.parser.facet;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.parser.request.AbstractParser;
+import fr.gouv.vitam.common.database.builder.facet.Facet;
+import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Select To Elasticsearch
+ * Facet from Parser Helper
+ *
  */
-public class SelectToElasticsearch extends RequestToElasticsearch {
+public class FacetParserHelper extends FacetHelper {
 
     /**
-     * @param selectParser AbstractParser of unknown type
+     * Construction
      */
-    public SelectToElasticsearch(AbstractParser<?> selectParser) {
-        super(selectParser);
-    }
+    protected FacetParserHelper() {}
 
     /**
-     * FindIterable.sort(orderby) for Elasticsearch
-     *
-     * @param score True to use if necessary score from ES
-     * @return the orderBy Elasticsearch command
-     * @throws InvalidParseOperationException
+     * Transform facet jsonNode in terms Facet object
+     * 
+     * @param facet facet node
+     * @param adapter adapter
+     * @return terms Facet object
+     * @throws InvalidCreateOperationException error while creating terms Facet
+     * @throws InvalidParseOperationException error in adapater
      */
-    public List<SortBuilder> getFinalOrderBy(boolean score) throws InvalidParseOperationException {
-        List<SortBuilder> list = QueryToElasticsearch.getSorts(requestParser,
-            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score);
-        VitamCollection.setMatch(false);
-        return list;
-    }
+    public static final Facet terms(final JsonNode facet, VarNameAdapter adapter)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        final String name = facet.get(FACETARGS.NAME.exactToken()).asText();
+        JsonNode terms = facet.get(FACET.TERMS.exactToken());
 
-    public List<AggregationBuilder> getFacets() {
-        return QueryToElasticsearch.getFacets(requestParser);
+        String field = terms.get(FACETARGS.FIELD.exactToken()).asText();
+        String translatedField = adapter.getVariableName(field);
+        if (translatedField == null) {
+            translatedField = field;
+        }
+
+        if (terms.has(FACETARGS.SIZE.exactToken())) {
+            Integer size = terms.get(FACETARGS.SIZE.exactToken()).asInt();
+            return FacetHelper.terms(name, translatedField, size);
+        } else {
+            return FacetHelper.terms(name, translatedField);
+        }
+
     }
 }
-

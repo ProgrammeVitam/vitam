@@ -1,0 +1,49 @@
+{
+	"$roots": [
+		"aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+	],
+	"$query": [
+		{
+			"$match": {
+				"Title": "assemblée"
+			},
+			"$depth": 0
+		},
+		{
+			"$match": {
+				"Title": "discours"
+			},
+			"$depth": 20
+		},
+		{
+			"$in": {
+				"Title": [
+					"discours"
+				]
+			},
+			"$depth": 0
+		}
+	],
+	"$filter": {
+		"$offset": 0,
+		"$limit": 100,
+		"$orderby": {
+			"Identifier": -1
+		}
+	},
+	"$projection": {
+		"$fields": {
+			"#id": 1,
+			"Title": 1
+		}
+	},
+	"$facets": [
+		{
+			"$name": "mgt_facet",
+			"$terms": {
+				"$field": "#management.StorageRule.Rules.Rule",
+				"$size": 5
+			}
+		}
+	]
+}

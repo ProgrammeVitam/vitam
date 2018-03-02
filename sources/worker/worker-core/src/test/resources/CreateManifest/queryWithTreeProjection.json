@@ -20,5 +20,6 @@
       "#originating_agency": 1,
       "#object": 1
     }
-  }
+  },
+  "$facets": []
 }

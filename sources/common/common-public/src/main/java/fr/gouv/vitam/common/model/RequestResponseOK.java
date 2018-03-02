@@ -61,6 +61,11 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     public static final String TAG_RESULTS = "$results";
 
     /**
+     * facet results in response
+     */
+    public static final String TAG_FACET_RESULTS = "$facetResults";
+
+    /**
      * context in response
      */
     public static final String TAG_CONTEXT = "$context";
@@ -69,6 +74,8 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     private DatabaseCursor hits;
     @JsonProperty(TAG_RESULTS)
     private final List<T> results;
+    @JsonProperty(TAG_FACET_RESULTS)
+    private final List<FacetResult> facetResults;
     @JsonProperty(TAG_CONTEXT)
     private JsonNode query;
 
@@ -103,6 +110,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         }
         hits = new DatabaseCursor(0, offset, limit);
         results = new ArrayList<>();
+        facetResults = new ArrayList<>();
     }
 
     /**
@@ -130,6 +138,30 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         results.addAll(resultList);
         hits.setSize(hits.getSize() + resultList.size());
         hits.setTotal(hits.getSize());
+        return this;
+    }
+
+    /**
+     * Add one facetResult
+     *
+     * @param facetResult to add to request response
+     * @return this
+     */
+    public RequestResponseOK<T> addFacetResult(FacetResult facetResult) {
+        ParametersChecker.checkParameter("facetResult is a mandatory parameter", facetResult);
+        facetResults.add(facetResult);
+        return this;
+    }
+
+    /**
+     * Add list of facetResult
+     *
+     * @param facetResultList the list of facetResults
+     * @return RequestResponseOK with mutable results list of String
+     */
+    public RequestResponseOK<T> addAllFacetResults(List<FacetResult> facetResultList) {
+        ParametersChecker.checkParameter("facetResult list is a mandatory parameter", facetResults);
+        facetResults.addAll(facetResultList);
         return this;
     }
 
@@ -217,6 +249,13 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
+     * @return the facetResults
+     */
+    public List<FacetResult> getFacetResults() {
+        return facetResults;
+    }
+
+    /**
      * @return the result of RequestResponse as a list of <T>
      */
     public List<T> getResults() {
@@ -276,7 +315,8 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException if parse json object exception occurred
      */
-    public static <T> RequestResponseOK<T> getFromJsonNode(JsonNode node, Class<T> clazz) throws InvalidParseOperationException {
+    public static <T> RequestResponseOK<T> getFromJsonNode(JsonNode node, Class<T> clazz)
+        throws InvalidParseOperationException {
         return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, clazz);
     }
 

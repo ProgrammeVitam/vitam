@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.multiple;
 
+import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.terms;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
@@ -49,6 +50,8 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.regex;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -64,10 +67,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -79,7 +84,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-@SuppressWarnings("javadoc")
 public class SelectParserMultipleTest {
     private static JsonNode exampleBothEsMd;
 
@@ -104,7 +108,8 @@ public class SelectParserMultipleTest {
                 "{\"$or\":[{\"$eq\":{\"mavar19\":\"abcd\"}},{\"$match\":{\"mavar18\":\"quelques mots\"}}]}]}," +
                 "{\"$regex\":{\"mavar14\":\"^start?aa.*\"}}],\"$filter\":{\"$offset\":100,\"$limit\":1000," +
                 "\"$hint\":[\"cache\"],\"$orderby\":{\"maclef1\":1,\"maclef2\":-1,\"maclef3\":1}}," +
-                "\"$projection\":{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}}");
+                "\"$projection\":{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}," +
+                "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$size\":5}}]}");
 
         exampleMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
             "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
@@ -118,7 +123,8 @@ public class SelectParserMultipleTest {
             "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-            "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }");
+            "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }," +
+            "$facets : [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1}}] }");
     }
 
     private static String createLongString(int size) {
@@ -157,7 +163,10 @@ public class SelectParserMultipleTest {
             request1.parse(exampleMd.deepCopy());
             assertFalse("Should accept the request since ES is not allowed",
                 request1.hasFullTextQuery());
-        } catch (final Exception e) {}
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());
@@ -195,11 +204,11 @@ public class SelectParserMultipleTest {
                     or().add(eq("mavar19", "abcd"),
                         match("mavar18", "quelques mots"))));
             select.addQueries(regex("mavar14", "^start?aa.*"));
-
             select.setLimitFilter(100, 1000).addHintFilter(FILTERARGS.CACHE.exactToken());
             select.addOrderByAscFilter("maclef1")
                 .addOrderByDescFilter("maclef2").addOrderByAscFilter("maclef3");
             select.addUsedProjection("#dua", "#all").setUsageProjection("abcdef1234");
+            select.addFacets(terms("mafacet", "mavar1", 5));
             final SelectParserMultiple request2 = new SelectParserMultiple();
             request2.parse(select.getFinalSelect());
             assertNotNull(request2);
@@ -315,58 +324,142 @@ public class SelectParserMultipleTest {
         final SelectParserMultiple request = new SelectParserMultiple();
         final SelectMultiQuery select = new SelectMultiQuery();
         try {
-            // empty rootNode
-            request.projectionParse(select.getProjection());
-            assertEquals("Projection should be empty", 0,
-                request.getRequest().getProjection().size());
-            // contractId set
-            select.setUsageProjection("abcd");
-            request.projectionParse(select.getProjection());
-            assertNotNull("Projection Usage should not be empty", request.getRequest()
-                .getProjection().get(PROJECTION.USAGE.exactToken()));
-            // projection set but empty
-            select.addUsedProjection((String) null);
-            // empty set
-            request.projectionParse(select.getProjection());
-            assertNotNull("Projection Usage should not be be empty", request.getRequest()
-                .getProjection().get(PROJECTION.USAGE.exactToken()));
-            assertEquals("Projection should not be empty", 1,
-                request.getRequest().getProjection().size());
-            // projection set
-            select.addUsedProjection("var");
-            // empty set
-            request.projectionParse(select.getProjection());
-            assertNotNull("Projection Usage should not be be empty", request.getRequest()
-                .getProjection().get(PROJECTION.USAGE.exactToken()));
-            assertEquals("Projection should not be empty", 2,
-                request.getRequest().getProjection().size());
-            // reset
-            select.resetUsageProjection().resetUsedProjection();
-            request.projectionParse(select.getProjection());
-            assertNull("Projection Usage should be empty", request.getRequest()
-                .getProjection().get(PROJECTION.USAGE.exactToken()));
-            assertEquals("Projection should be empty", 0,
-                request.getRequest().getProjection().size());
-            // not empty set
-            select.addUsedProjection("var1").addUnusedProjection("var2");
-            request.projectionParse(select.getProjection());
-            assertEquals("Projection should not be empty", 1,
-                request.getRequest().getProjection().size());
-            assertEquals(2, request.getRequest().getProjection()
-                .get(PROJECTION.FIELDS.exactToken()).size());
+            // empty
+            request.filterParse(select.getFilter());
+            assertNull("Hint should be null",
+                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            assertNotNull("Limit should not be null", request.getRequest().getFilter()
+                .get(SELECTFILTER.LIMIT.exactToken()));
+            assertNull("Offset should be null", request.getRequest().getFilter()
+                .get(SELECTFILTER.OFFSET.exactToken()));
+            assertNull("OrderBy should be null", request.getRequest().getFilter()
+                .get(SELECTFILTER.ORDERBY.exactToken()));
+            // hint set
+            select.addHintFilter(FILTERARGS.CACHE.exactToken());
+            request.filterParse(select.getFilter());
+            assertEquals("Hint should be True", FILTERARGS.CACHE.exactToken(),
+                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken())
+                    .get(0).asText());
+            // hint reset
+            select.resetHintFilter();
+            request.filterParse(select.getFilter());
+            assertNull("Hint should be null",
+                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            // limit set
+            select.setLimitFilter(0, 1000);
+            request.filterParse(select.getFilter());
+            assertEquals(1000,
+                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
+                    .asLong());
+            assertNull("Offset should be null", request.getRequest().getFilter()
+                .get(SELECTFILTER.OFFSET.exactToken()));
+            // offset set
+            select.setLimitFilter(100, 0);
+            request.filterParse(select.getFilter());
+            assertEquals(100,
+                request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken())
+                    .asLong());
+            assertEquals(GlobalDatas.LIMIT_LOAD,
+                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
+                    .asLong());
+            // orderBy set through array
+            select.addOrderByAscFilter("var1", "var2").addOrderByDescFilter("var3");
+            request.filterParse(select.getFilter());
+            assertNotNull("OrderBy should not be null", request.getRequest().getFilter()
+                .get(SELECTFILTER.ORDERBY.exactToken()));
+            // check both
+            assertEquals(3, request.getRequest().getFilter()
+                .get(SELECTFILTER.ORDERBY.exactToken()).size());
             for (final Iterator<Entry<String, JsonNode>> iterator =
-                request.getRequest().getProjection()
-                    .get(PROJECTION.FIELDS.exactToken()).fields(); iterator
+                request.getRequest().getFilter()
+                    .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
                         .hasNext();) {
                 final Entry<String, JsonNode> entry = iterator.next();
                 if (entry.getKey().equals("var1")) {
                     assertEquals(1, entry.getValue().asInt());
                 }
                 if (entry.getKey().equals("var2")) {
-                    assertEquals(0, entry.getValue().asInt());
+                    assertEquals(1, entry.getValue().asInt());
+                }
+                if (entry.getKey().equals("var3")) {
+                    assertEquals(-1, entry.getValue().asInt());
                 }
             }
+            // orderBy set through composite
+            select.resetOrderByFilter();
+            request.filterParse(select.getFilter());
+            assertNull("OrderBy should be null", request.getRequest().getFilter()
+                .get(SELECTFILTER.ORDERBY.exactToken()));
         } catch (final InvalidParseOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testFacetsParse() {
+        ArrayNode facetsArray = JsonHandler.createArrayNode();
+        final SelectParserMultiple request = new SelectParserMultiple();
+        try {
+
+            // empty rootNode
+            request.facetsParse(facetsArray);
+            assertEquals("Facets should be empty", 0, request.getRequest().getFacets().size());
+
+            // one facet
+            facetsArray.add(terms("mafacet", "mavar1").getCurrentFacet());
+            request.facetsParse(facetsArray);
+            assertEquals("Facets should have 1 facet", 1, request.getRequest().getFacets().size());
+
+            // multiple facets
+            facetsArray.add(terms("mafacet2", "mavar1", 5).getCurrentFacet());
+            request.facetsParse(facetsArray);
+            assertEquals("Facets should have 2 facet", 2, request.getRequest().getFacets().size());
+
+            // null facets
+            assertThatCode(() -> {
+                final ArrayNode arrayNode = null;
+                request.facetsParse(arrayNode);
+            }).doesNotThrowAnyException();
+
+            // fake facet, empty node
+            assertThatThrownBy(() -> {
+                ObjectNode fakeFacet = JsonHandler.createObjectNode();
+                facetsArray.removeAll();
+                facetsArray.add(fakeFacet);
+                request.facetsParse(facetsArray);
+            }).isInstanceOf(InvalidParseOperationException.class);
+
+            // fake facet, name instead of $neame
+            assertThatThrownBy(() -> {
+                ObjectNode fakeFacet = JsonHandler.createObjectNode();
+                fakeFacet.put("name", "mafacet");
+                facetsArray.removeAll();
+                facetsArray.add(fakeFacet);
+                request.facetsParse(facetsArray);
+            }).isInstanceOf(InvalidParseOperationException.class);
+
+            // fake facet, only $name, invalid facet command
+            assertThatThrownBy(() -> {
+                ObjectNode fakeFacet = JsonHandler.createObjectNode();
+                fakeFacet.put("$name", "mafacet");
+                fakeFacet.put("$wrong", "wrong");
+                facetsArray.removeAll();
+                facetsArray.add(fakeFacet);
+                request.facetsParse(facetsArray);
+            }).isInstanceOf(InvalidParseOperationException.class);
+
+            // fake facet, only $name, invalid $terms value
+            assertThatThrownBy(() -> {
+                ObjectNode fakeFacet = JsonHandler.createObjectNode();
+                fakeFacet.put("$name", "mafacet");
+                fakeFacet.put("$terms", "not valid");
+                facetsArray.removeAll();
+                facetsArray.add(fakeFacet);
+                request.facetsParse(facetsArray);
+            }).isInstanceOf(InvalidParseOperationException.class);
+
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
@@ -401,6 +494,8 @@ public class SelectParserMultipleTest {
             .addUnusedProjection("var4");
         select.addRoots("id1", "id2");
         select.addHintFilter(FILTERARGS.UNITS.exactToken(), FILTERARGS.NOCACHE.exactToken());
+        select.addFacets(FacetHelper.terms("myFacet", "#id"));
+        select.addFacets(FacetHelper.terms("myFacet2", "Name"));
         request.parse(select.getFinalSelect());
         assertNotNull(request.getRequest());
         request.addCondition(eq("var5", "value"));
@@ -412,7 +507,9 @@ public class SelectParserMultipleTest {
                 "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}," +
                 "{\"$and\":[{\"$term\":{\"var13\":\"value2\"}},{\"$gte\":{\"var14\":4}}]}]," +
                 "\"$filter\":{\"$hint\":[\"units\",\"nocache\"],\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
-                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}",
+                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
+                "\"$facets\":[{\"$name\":\"myFacet\",\"$terms\":{\"$field\":\"#id\"}}," +
+                "{\"$name\":\"myFacet2\",\"$terms\":{\"$field\":\"Name\"}}]}",
             request.getRootNode().toString());
     }
 
@@ -457,6 +554,18 @@ public class SelectParserMultipleTest {
             "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
             "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"_id\":1,\"var2\":-1}}," +
             "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}";
+        try {
+            request.parse(JsonHandler.getFromString(s));
+            fail("Should fail");
+        } catch (final InvalidParseOperationException e) {
+            // OK
+        }
+
+        s = "{\"$roots\":[]," +
+            "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
+            "\"$filter\":{\"$limit\":10000}," +
+            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
+            "\"$facets\":[{\"$name\":\"myFacet\"]}";
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");

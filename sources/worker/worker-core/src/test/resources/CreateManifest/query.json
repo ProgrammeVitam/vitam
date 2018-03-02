@@ -13,5 +13,6 @@
     "$scrollTimeout": 60000,
     "$limit": 10000
   },
-  "$projection": {}
+  "$projection": {},
+  "$facets": []
 }

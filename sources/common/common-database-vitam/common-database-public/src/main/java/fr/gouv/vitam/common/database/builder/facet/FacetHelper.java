@@ -24,40 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.builder.request.configuration;
+package fr.gouv.vitam.common.database.builder.facet;
 
-import static org.junit.Assert.assertEquals;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
-import org.junit.Test;
+/**
+ * Facet helper
+ */
+public class FacetHelper {
+    /**
+     * Constructor
+     */
+    protected FacetHelper() {
+        // empty
+    }
 
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
-
-public class BuilderTokenTest {
-
-    @Test
-    public void testExactToken() {
-        assertEquals(PROJECTIONARGS.ID.exactToken(), "#id");
-        assertEquals(RANGEARGS.GT.exactToken(), "$gt");
-        assertEquals(PROJECTION.FIELDS.exactToken(), "$fields");
-        assertEquals(FILTERARGS.CACHE.exactToken(), "cache");
-        assertEquals(UPDATEACTION.SET.exactToken(), "$set");
-        assertEquals(UPDATEACTIONARGS.EACH.exactToken(), "$each");
-        assertEquals(MULTIFILTER.MULT.exactToken(), "$mult");
-        assertEquals(QUERY.AND.exactToken(), "$and");
-        assertEquals(SELECTFILTER.LIMIT.exactToken(), "$limit");
-        assertEquals(GLOBAL.QUERY.exactToken(), "$query");
-        assertEquals(GLOBAL.FACETS.exactToken(), "$facets");
-        assertEquals(PROJECTIONARGS.QUALIFIERS.exactToken(), "#qualifiers");
+    /**
+     * Create a facet
+     * 
+     * @param name name of the facet
+     * @param field field of facet data
+     * @return a Facet
+     * @throws InvalidCreateOperationException when creating facet errors
+     */
+    public static final Facet terms(String name, String field)
+        throws InvalidCreateOperationException {
+        return new TermsFacet(name, field);
     }
 
 
+    /**
+     * Create a facet
+     * 
+     * @param name name of the facet
+     * @param field field of facet data
+     * @param size size of the facet
+     * @return a Facet
+     * @throws InvalidCreateOperationException when creating facet errors
+     */
+    public static final Facet terms(String name, String field, Integer size)
+        throws InvalidCreateOperationException {
+        return new TermsFacet(name, field, size);
+    }
 }

@@ -24,45 +24,66 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.translators.elasticsearch;
+package fr.gouv.vitam.common.model;
 
-import java.util.List;
-
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Select To Elasticsearch
+ * Facet bucket
  */
-public class SelectToElasticsearch extends RequestToElasticsearch {
+public class FacetBucket {
+    @JsonProperty("value")
+    private String value;
+    @JsonProperty("count")
+    private long count;
 
     /**
-     * @param selectParser AbstractParser of unknown type
+     * Constructor
      */
-    public SelectToElasticsearch(AbstractParser<?> selectParser) {
-        super(selectParser);
+    public FacetBucket() {}
+
+    /**
+     * Constructor
+     * 
+     * @param value value
+     * @param count number of documents
+     */
+    public FacetBucket(String value, long count) {
+        super();
+        this.value = value;
+        this.count = count;
     }
 
     /**
-     * FindIterable.sort(orderby) for Elasticsearch
+     * @return the value
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * @param value the value to set
      *
-     * @param score True to use if necessary score from ES
-     * @return the orderBy Elasticsearch command
-     * @throws InvalidParseOperationException
+     * @return this
      */
-    public List<SortBuilder> getFinalOrderBy(boolean score) throws InvalidParseOperationException {
-        List<SortBuilder> list = QueryToElasticsearch.getSorts(requestParser,
-            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score);
-        VitamCollection.setMatch(false);
-        return list;
+    public void setValue(String value) {
+        this.value = value;
     }
 
-    public List<AggregationBuilder> getFacets() {
-        return QueryToElasticsearch.getFacets(requestParser);
+    /**
+     * @return the count
+     */
+    public long getCount() {
+        return count;
     }
+
+    /**
+     * @param count the count to set
+     *
+     * @return this
+     */
+    public void setCount(long count) {
+        this.count = count;
+    }
+
 }
-

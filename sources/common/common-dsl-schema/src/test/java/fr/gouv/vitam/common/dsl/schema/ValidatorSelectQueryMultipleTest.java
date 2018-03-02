@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.dsl.schema;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -40,15 +41,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.dsl.schema.meta.Format;
+import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Tests of multi select query schema for Metadata DSL query
  */
 public class ValidatorSelectQueryMultipleTest {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ValidatorSelectQueryMultipleTest.class);
     private static final String SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON = "select-query-multiple-dsl-schema.json";
 
     private Schema loadSchema(ObjectMapper objectMapper, File dslSource)
@@ -56,11 +60,15 @@ public class ValidatorSelectQueryMultipleTest {
         try (InputStream inputStream = new FileInputStream(dslSource)) {
             final Schema schema = Schema.withMapper(objectMapper).loadTypes(inputStream).build();
             Format dslType = schema.getType("DSL");
-            System.out.println(dslType.toString());
+            LOGGER.debug(dslType.toString());
             Format queryType = schema.getType("QUERY");
-            System.out.println(queryType.toString());
+            LOGGER.debug(queryType.toString());
             Format filterType = schema.getType("FILTER");
-            System.out.println(filterType.toString());
+            LOGGER.debug(filterType.toString());
+            Format projectionType = schema.getType("PROJECTION");
+            LOGGER.debug(projectionType.toString());
+            Format facetType = schema.getType("FACET");
+            LOGGER.debug(facetType.toString());
             return schema;
         }
     }
@@ -185,5 +193,70 @@ public class ValidatorSelectQueryMultipleTest {
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("INVALID_JSON_FIELD: unknown ~ found json: \\\"no_validation\\\" ~ path: []\\n\"");
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_no_name()
+        throws IOException, InvalidParseOperationException {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        try {
+            Validator.validate(schema, "DSL", test1Json);
+        } catch (ValidationException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_no_name_dsl() throws Exception {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_name.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("$facets")
+            .hasMessageContaining("ELEMENT_TOO_SHORT")
+            .hasMessageContaining("$name: string ~ MANDATORY");
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_no_facet_spec_dsl() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_facet_spec.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("$facets")
+            .hasMessageContaining("ELEMENT_TOO_SHORT");
+    }
+
+    @Test
+    public void should_not_retrieve_errors_when_select_multiple_complete_facet_empty() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_not_an_array() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_not_an_array.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("$facets")
+            .hasMessageContaining("WRONG_JSON_TYPE: OBJECT");
     }
 }

@@ -26,20 +26,42 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.request.multiple;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Select: { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query, filter,
- * projection ]
+ * Select: { $roots: roots, $query : query, $filter : filter, $projection : projection, $facets : facet }
  */
 public class SelectMultiQuery extends RequestMultiple {
+    /**
+     * Facets
+     */
+    protected List<Facet> facets = new ArrayList<>();
+
+    /**
+     *
+     * @return this Request
+     */
+    public final SelectMultiQuery resetFacets() {
+        if (facets != null) {
+            facets.clear();
+        }
+        return this;
+    }
+
     /**
      * @return this Query
      */
@@ -80,6 +102,7 @@ public class SelectMultiQuery extends RequestMultiple {
     @Override
     public final SelectMultiQuery reset() {
         super.reset();
+        resetFacets();
         resetUsageProjection();
         selectReset();
         return this;
@@ -87,7 +110,7 @@ public class SelectMultiQuery extends RequestMultiple {
 
     /**
      * @param offset ignored if 0
-     * @param limit  ignored if 0
+     * @param limit ignored if 0
      * @return this Query
      */
     public final SelectMultiQuery setLimitFilter(final long offset, final long limit) {
@@ -284,11 +307,14 @@ public class SelectMultiQuery extends RequestMultiple {
         return this;
     }
 
+
     /**
-     * @return the Final Select containing all 4 parts: roots array, queries array, filter and projection
+     * @return the Final Select containing all 5 parts: roots array, queries array, facets array, filter and projection
      */
     public final ObjectNode getFinalSelect() {
-        return selectGetFinalSelect();
+        final ObjectNode node = selectGetFinalSelect();
+        addFacetsToNode(node);
+        return node;
     }
 
     /**
@@ -296,10 +322,29 @@ public class SelectMultiQuery extends RequestMultiple {
      */
     public final ObjectNode getFinalSelectById() {
         final ObjectNode objectNode = selectGetFinalSelect();
+        objectNode.remove(BuilderToken.GLOBAL.ROOTS.exactToken());
         objectNode.remove(BuilderToken.GLOBAL.QUERY.exactToken());
         objectNode.remove(BuilderToken.GLOBAL.FILTER.exactToken());
-        objectNode.remove(BuilderToken.GLOBAL.ROOTS.exactToken());
+        objectNode.remove(BuilderToken.GLOBAL.FACETS.exactToken());
         return objectNode;
+    }
+
+
+    /**
+     * Add facets to given node
+     * 
+     * @param node with facets
+     */
+    protected void addFacetsToNode(ObjectNode node) {
+        if (facets != null && !facets.isEmpty()) {
+            final ArrayNode array = JsonHandler.createArrayNode();
+            for (final Facet facet : facets) {
+                array.add(facet.getCurrentFacet());
+            }
+            node.set(GLOBAL.FACETS.exactToken(), array);
+        } else {
+            node.putArray(GLOBAL.FACETS.exactToken());
+        }
     }
 
     /**
@@ -318,12 +363,38 @@ public class SelectMultiQuery extends RequestMultiple {
         return selectGetProjection();
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("QUERY: ").append(super.toString())
-            .append("\n\tProjection: ").append(projection);
-        return builder.toString();
+    /**
+     * 
+     * @return the facets
+     */
+    public final List<Facet> getFacets() {
+        return facets;
+    }
+
+    /**
+     *
+     * @param facets list of facet
+     * @return this Request
+     * @throws IllegalArgumentException when facet is invalid
+     */
+    public final SelectMultiQuery addFacets(final Facet... facets) {
+        for (final Facet facet : facets) {
+            ParametersChecker.checkParameter("Facet is a mandatory parameter", facet);
+            this.facets.add(facet);
+        }
+        return this;
+    }
+
+    /**
+     * @param facet facet
+     * @return this Request
+     * @throws IllegalArgumentException when facet is invalid
+     */
+    public SelectMultiQuery setFacet(Facet facet) {
+        ParametersChecker.checkParameter("Facet is a mandatory parameter", facet);
+        facets = new ArrayList<>();
+        facets.add(facet);
+        return this;
     }
 
 
@@ -338,4 +409,15 @@ public class SelectMultiQuery extends RequestMultiple {
         return this;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("QUERY: ").append(super.toString());
+        builder.append("\n\tProjection: ").append(projection);
+        builder.append("\n\tFacets: ");
+        for (final Facet subrequest : getFacets()) {
+            builder.append("\n").append(subrequest);
+        }
+        return builder.toString();
+    }
 }

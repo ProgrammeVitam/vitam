@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,46 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.database.translators.elasticsearch;
-
-import java.util.List;
-
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-
-/**
- * Select To Elasticsearch
  */
-public class SelectToElasticsearch extends RequestToElasticsearch {
-
-    /**
-     * @param selectParser AbstractParser of unknown type
-     */
-    public SelectToElasticsearch(AbstractParser<?> selectParser) {
-        super(selectParser);
-    }
-
-    /**
-     * FindIterable.sort(orderby) for Elasticsearch
-     *
-     * @param score True to use if necessary score from ES
-     * @return the orderBy Elasticsearch command
-     * @throws InvalidParseOperationException
-     */
-    public List<SortBuilder> getFinalOrderBy(boolean score) throws InvalidParseOperationException {
-        List<SortBuilder> list = QueryToElasticsearch.getSorts(requestParser,
-            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score);
-        VitamCollection.setMatch(false);
-        return list;
-    }
-
-    public List<AggregationBuilder> getFacets() {
-        return QueryToElasticsearch.getFacets(requestParser);
-    }
-}
-
+/**
+ * Facet Model Package containing POJO for facet results
+ */
+package fr.gouv.vitam.common.database.facet.model;

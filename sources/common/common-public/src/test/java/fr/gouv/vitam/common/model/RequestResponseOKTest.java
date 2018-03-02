@@ -35,6 +35,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,10 +71,14 @@ public class RequestResponseOKTest {
         "{\"httpCode\":400,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
             "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
             "[{\"httpCode\":0,\"code\":\"1\"}]}";
-
+    
     private static final String OK_JSON =
         "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
-            "\"$results\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
+            "\"$results\":[],\"$facetResults\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
+    
+    private static final String OK_JSON_FACET =
+        "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
+            "\"$results\":[],\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
 
     @Test
     public final void testRequestResponseOKConstructor() {
@@ -92,17 +97,19 @@ public class RequestResponseOKTest {
         objectTest.addResult("Two");
         objectTest.addResult("Three");
 
+        FacetBucket bucket = new FacetBucket("str0", 1);
 
         final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json);
         final RequestResponseOK requestResponseOK = new RequestResponseOK(query);
         requestResponseOK.addAllResults(new ArrayList());
+        requestResponseOK.addAllFacetResults(Arrays.asList(new FacetResult("mgt_facet", Arrays.asList(bucket))));
         requestResponseOK.setHttpCode(Status.OK.getStatusCode());
         assertThat(requestResponseOK.getQuery()).isNotEmpty();
         assertThat(requestResponseOK.getResults()).isNotNull().isEmpty();
 
         assertEquals(
-            OK_JSON,
+            OK_JSON_FACET,
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
             final RequestResponseOK copy =
@@ -117,12 +124,14 @@ public class RequestResponseOKTest {
         assertEquals(
             "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":2}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
+                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],"+
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         requestResponseOK.setHits(2, 0, 4, 2);
         assertEquals(
             "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":4,\"size\":2}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
+                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],"+
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         try {
