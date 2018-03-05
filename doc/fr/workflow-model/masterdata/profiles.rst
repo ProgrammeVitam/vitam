@@ -11,7 +11,7 @@ Processus d'import  et mise à jour d'un profil (vision métier)
 
 Le processus d'import d'un profil d'archivage permet à la fois de vérifier qu'il contient les informations minimales obligatoires, de vérifier la cohérence de l'ensemble des informations, et de lui affecter des élements peuplés automatiquement.
 
-Tous les eléments réalisés au cours de ce processus sont exécutés dans une seule étape.
+Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
 Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
 -------------------------------------------------------------------------
@@ -37,7 +37,7 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
 
     - OK : les règles ci-dessus sont respectées (STP_IMPORT_PROFILE_JSON.OK=Succès du processus d'import du profil d'archivage)
 
-    - KO : une des règles ci-dessus n'a pas été respecté (STP_IMPORT_PROFILE_JSON.KO=Échec du processus d'import du profil d'archivage)
+    - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_PROFILE_JSON.KO=Échec du processus d'import du profil d'archivage)
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors du processus d'import du profil d'archivage)
 

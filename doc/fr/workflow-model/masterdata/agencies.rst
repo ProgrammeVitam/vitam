@@ -17,7 +17,7 @@ Import d'un référentiel de services agents (STP_IMPORT_AGENCIES)
 
   + **Type** :  bloquant
 
-  + **Règle** :  le fichier rempli les conditions suivantes :
+  + **Règle** :  le fichier remplit les conditions suivantes :
 
     * il est au format CSV
     * les informations suivantes sont toutes décrites dans l'ordre exact pour chacun des services agents :
@@ -112,25 +112,20 @@ Sauvegarde d'une copie de la base de donnée (STP_BACKUP_AGENCIES)
 Structure du rapport d'administration du référentiel des services agents
 ========================================================================
 
-Lorsqu'un nouveau référentiel est importé, la solution logicielle Vitam génère un rapport de l'opération. Ce rapport est en 3 parties :
+Lorsqu'un nouveau référentiel est importé, la solution logicielle Vitam génère un rapport de l'opération. Ce rapport est en plusieurs parties :
 
-  - "Journal des opérations" contient :
+  - "Operation" contient :
 
     * evType : le type d'opération. Dans le cadre de ce rapport, il s'agit toujours de "STP_IMPORT_AGENCIES"
     * evDateTime : la date et l'heure de l'opération d'import
     * evId : l'identifiant de l'opération
 
-  - "Error" : détail les erreurs en indiquant :
-
-    * line : le numéro de la ligne du rapport CSV générant l'erreur
-    * Code : le code d'erreur
-    * Message : le message associée à l'erreur
-    * Information additionnelle : une précision sur l'erreur, comme par exemple le contenu du champs qui l'a provoquée
-
-  - "InsertAgencies" : contient l'identifiant des services agents ajoutés
-  - "UpdatedAgencies" : liste l'identifiant des services agents modifiés
-  - "UsedAgencies By Contrat" : liste l'identifiant des services agents modifiés qui sont utilisés par des contrats d'accès
-  - "UsedAgencies By AU" : liste l'identifiant des services agents modifiés qui sont utilisés dans des unités archivistique
+  - "AgenciesToImport" : contient la liste des identifiants contenue dans le fichier
+  - "InsertAgencies" : contient les identifiants des services agents ajoutés
+  - "UpdatedAgencies" : liste les identifiants des services agents modifiés
+  - "UsedAgencies By Contrat" : liste les identifiants des services agents modifiés qui sont utilisés par des contrats d'accès
+  - "UsedAgencies By AU" : liste les identifiants des services agents modifiés qui sont utilisés dans des unités archivistique
+  - "UsedAgencies to Delete" : liste les identifiants des services agents supprimés qui sont utilisés dans des unités archivistique
 
 **Exemple 1 : modification et ajout d'un service agent**
 
@@ -139,36 +134,30 @@ Le rapport généré est :
 ::
 
   {
-  	"Journal des op\u00E9rations": {
+  	"Operation": {
   		"evType": "STP_IMPORT_AGENCIES",
   		"evDateTime": "2017-11-02T15:28:34.523",
   		"evId": "aecaaaaaacevq6lcaamxsak7pvmsdbqaaaaq"
   	},
-  	"InsertAgencies": ["fr.gouv.vitam.common.model.administration.AgenciesModel@5c13a55d"],
+  	"InsertAgencies": ["Identifier1"],
   	"UpdatedAgencies": ["Identifier0"],
   	"UsedAgencies By Contrat": ["Identifier0"],
   	"UsedAgencies By AU": []
   }
 
 
-**Exemple 2 : tentative d'ajout d'un service agent**
+**Exemple 2 : ajout d'un service agent, en erreur **
 
 Le rapport généré est :
 
 ::
 
   {
-  	"JDO": {
+  	"Operation": {
+      "evId":"aecaaaaaacflvhgbabrs6alb6vdoehyaaaaq",
   		"evType": "STP_IMPORT_AGENCIES",
   		"evDateTime": "2017-11-02T15:36:03.976"
   	},
-  	"error": {
-  		"line 4": [{
-  			"Code": "STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO",
-  			"Message": "!STP_IMPORT_AGENCIES_MISSING_INFORMATIONS!",
-  			"Information additionnelle": "Name"
-  		}]
-  	},
-  	"usedAgenciesByContracts": [],
-  	"usedAgenciesByAU": []
+  	"AgenciesToImport": ["AG-TNR0002"],
+  	"UsedAgencies to Delete":["AG-TNR0002"]
   }

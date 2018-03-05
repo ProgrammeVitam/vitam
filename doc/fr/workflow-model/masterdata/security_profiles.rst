@@ -11,7 +11,7 @@ Processus d'import  et mise à jour d'un profil de sécurité
 
 Le processus d'import d'un profil de sécurité permet à la fois de vérifier qu'il contient les informations minimales obligatoires, de vérifier la cohérence de l'ensemble des informations, et de lui affecter des élements peuplés automatiquement.
 
-Tous les élements réalisés au cours de ce processus sont exécutés dans une seule étape.
+Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
 Import d'un profil de sécurité (STP_IMPORT_SECURITY_PROFILE)
 -----------------------------------------------------------------

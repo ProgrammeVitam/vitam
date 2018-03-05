@@ -9,6 +9,7 @@ uses:
   StandardTypes: libraries/StandardTypes.raml
   StandardTraits: libraries/StandardTraits.raml
   RegisterTraits: libraries/RegisterTraits.raml
+  TechnicalAdministrationTraits: libraries/TechnicalAdministrationTraits.raml
 
 securitySchemes:
   VitamPlatform: !include securitySchemes/SecuritySchemeVitamInternal.raml
@@ -214,6 +215,25 @@ documentation:
       description : |
         Insert or replace Accession Register Detail
       is: [RegisterTraits.AccessionRegisterDetailRawCreate]
+      
+/reindex:
+  displayName: Reindexation
+  description: |
+   API qui permet de lancer une réindexation de collection(s)
+  post:
+    description: |
+      Lance la réindexation de collection(s) sur une liste de tenants donnée
+    is: [TechnicalAdministrationTraits.AdminReindex]
+
+/alias:
+  displayName: Switch Indexes
+  description: |
+   API qui permet de faire pointer un alias sur un nouvel index
+  post:
+    description: |
+      Lance le switch d'index pour un alias donné
+    is: [TechnicalAdministrationTraits.AdminAlias]
+      
 
 /status:
   get:

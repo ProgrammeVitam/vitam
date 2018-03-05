@@ -111,12 +111,12 @@ Liste des opérations auditées ("source")
 
 La liste des opérations auditées est une liste d'identifiant d'opérations d'ingest. Il s'agit des opérations à l'origine de la création des groupes d'objets qui ont été audités. Chaque groupe n'a par nature qu'une et une seule opération à l'origine de sa création. En partant de ces opérations, il est donc possible de retrouver l'ensemble des groupes d'objets qui ont été audités.
 
-Au travers ces identifiants d'opérations, cette liste recense exhaustivement les groupes d'objets audités et ne présume en rien le succès ou l'échec de l'audit par rapport à ceux-ci.
+Au travers de ces identifiants d'opérations, cette liste recense exhaustivement les groupes d'objets audités et ne présume en rien le succès ou l'échec de l'audit par rapport à ceux-ci.
 
 Cette partie est construite autour des champs suivants :
 
-- "_tenant": identifiant du tenant sur lequel l'opération s'est déroulée
-- "agIdOrig": identifiant du service producteur relatif à cette opération
+- "#tenant": identifiant du tenant sur lequel l'opération s'est déroulée
+- "OriginatingAgency": identifiant du service producteur relatif à cette opération
 - "evIdProc": identifiant de l'opération étant à l'origine de la création du groupe d'objet audité
 
 Liste des anomalies détectées générant un KO ("auditKO")

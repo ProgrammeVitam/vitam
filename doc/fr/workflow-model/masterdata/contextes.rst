@@ -11,7 +11,7 @@ Processus d'import  et mise à jour d'un référentiel des contextes
 
 Le processus d'import d'un référentiel des contextes permet à la fois de vérifier qu'il contient les informations minimales obligatoire, de vérifier la cohérence de l'ensemble des information, et de lui affecter des élements peuplés automatiquement.
 
-Tous les élements réalisés au cours de ce processus sont exécutés dans une seule étape.
+Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
 Import d'un référentiel des contextes (STP_IMPORT_CONTEXT)
 ----------------------------------------------------------------

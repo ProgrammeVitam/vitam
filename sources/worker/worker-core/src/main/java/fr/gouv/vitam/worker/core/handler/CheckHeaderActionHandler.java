@@ -26,14 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -93,9 +91,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
         ObjectNode infoNode = JsonHandler.createObjectNode();
         final boolean shouldCheckContract = Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK));
         final boolean shouldCheckOriginatingAgency =
-                Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
+            Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
         final boolean shouldCheckProfile =
-                Boolean.valueOf((String) handlerIO.getInput(CHECK_PROFILE_RANK));
+            Boolean.valueOf((String) handlerIO.getInput(CHECK_PROFILE_RANK));
 
         try {
             mandatoryValueMap = sedaUtils.getMandatoryValues(params);
@@ -108,9 +106,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
         if (mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
             itemStatus.setData(SedaConstants.TAG_MESSAGE_IDENTIFIER,
-                    mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+                mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
             itemStatus.setMasterData(LogbookParameterName.objectIdentifierIncome.name(),
-                    mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+                mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
         updateSedaInfo(mandatoryValueMap, infoNode);
@@ -132,7 +130,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
         if (mandatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
             itemStatus.setMasterData(LogbookParameterName.objectIdentifierIncome.name(),
-                    mandatoryValueMap.get(SedaConstants.TAG_COMMENT));
+                mandatoryValueMap.get(SedaConstants.TAG_COMMENT));
         }
 
         if (shouldCheckContract) {
@@ -166,7 +164,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
                     RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
                     if (referenceContracts.isOk()) {
                         List<IngestContractModel> results =
-                                ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
+                            ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
                         if (null != results && results.size() > 0) {
                             IngestContractModel contract = results.iterator().next();
                             if (contract.getArchiveProfiles().isEmpty()) {
@@ -178,16 +176,17 @@ public class CheckHeaderActionHandler extends ActionHandler {
                     }
                 } catch (Exception e) {
                     LOGGER.error(e);
-                    //Do nothing as at this point checkRelationBetweenProfileAndContract and contract will be re-checked in the handler CheckArchiveProfileRelationActionHandler
+                    // Do nothing as at this point checkRelationBetweenProfileAndContract and contract will be
+                    // re-checked in the handler CheckArchiveProfileRelationActionHandler
                 }
             }
 
             if (checkRelationBetweenProfileAndContract) {
                 CheckArchiveProfileRelationActionHandler checkProfileRelation =
-                        new CheckArchiveProfileRelationActionHandler();
+                    new CheckArchiveProfileRelationActionHandler();
                 final ItemStatus checkProfilRelationItemStatus = checkProfileRelation.execute(params, handlerIO);
                 itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(),
-                        checkProfilRelationItemStatus);
+                    checkProfilRelationItemStatus);
                 checkProfileRelation.close();
                 if (checkProfilRelationItemStatus.shallStop(true)) {
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

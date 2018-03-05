@@ -12,9 +12,9 @@ Objectif du document
 Ce document a pour objectif de présenter les différents processus employés par la solution logicielle Vitam.
 Il est destiné aux administrateurs aussi bien techniques que fonctionnels, aux archivistes souhaitant une connaissance plus avancée du logiciel ainsi qu'aux développeurs.
 
-Il explicite chaque processus (appellés également "workflow"), et pour chacun leurs tâches, traitements et actions.
+Il explicite chaque processus (appelés également "workflow"), et pour chacun leurs tâches, traitements et actions.
 
-Ce document comprend également du matériel additionnel pour faciliter la compréhension des processus comme des fiches récaputilatives et des schémas. Il explique également la manière dont est formée la structure des fichiers de workflow.
+Ce document comprend également du matériel additionnel pour faciliter la compréhension des processus comme des fiches récapitulatives et des schémas. Il explique également la manière dont est formée la structure des fichiers de workflow.
 
 Description d'un processus
 ===========================
@@ -30,7 +30,7 @@ Pour chacun de ces éléments, le document décrit :
 Chaque étape, chaque action peuvent avoir les statuts suivants :
 
 - OK : le traitement associé s'est passé correctement. Le workflow continue.
-- Warning : le traitement associé a généré un avertissement (par exemple le format de l'objet est mal déclaré dans le bordereau de transfert). Le workflow continue.
+- WARNING : le traitement associé a généré un avertissement (par exemple le format de l'objet est mal déclaré dans le bordereau de transfert). Le workflow continue.
 - KO : le traitement associé a généré une erreur métier. Le workflow s'arrête si le modèle d'exécution est bloquant (cf. ci-dessous).
 - FATAL : le traitement associé a généré une erreur technique. Le workflow se met en pause.
 
@@ -93,9 +93,13 @@ Un Workflow est défini en JSON avec la structure suivante :
 
     + ``Distribution`` : modèle de distribution, décrit comme suit :
 
-      - ``Kind`` : un type pouvant être REF (un élément unique) ou LIST (une liste d'éléments)
+      - ``Kind`` : un type pouvant être REF (un élément unique) ou LIST (une liste d'éléments hiérarchisés) ou encore LIST_IN_FILE (liste d'éléments)
 
       - ``Element`` : l'élément de distribution indiquant l'élément unique sous forme d'URI (REF) ou la liste d'éléments en pointant vers un dossier (LIST).
+
+      - ``Type`` : le type des objets traités (ObjectGroup uniquement pour le moment).
+
+      - ``statusOnEmptyDistribution`` : permet dans le cas d'un traitement d'une liste vide, de surcharger le statut WARNING par un statut prédéfini.
 
 
     + une liste d'Actions :

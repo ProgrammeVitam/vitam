@@ -28,15 +28,16 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -45,9 +46,9 @@ import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
 /**
@@ -58,7 +59,8 @@ public class AdminFunctionalApplication extends Application {
     private Set<Object> singletons;
 
     /**
-     * Construcror 
+     * Construcror
+     * 
      * @param servletConfig the configuration for the application
      */
     public AdminFunctionalApplication(@Context ServletConfig servletConfig) {
@@ -66,8 +68,8 @@ public class AdminFunctionalApplication extends Application {
         AdminApplication adminApplication = new AdminApplication();
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final AdminManagementConfiguration
-                configuration = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
+            final AdminManagementConfiguration configuration =
+                PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
@@ -79,6 +81,7 @@ public class AdminFunctionalApplication extends Application {
             final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
             singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
             singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));
+            singletons.add(new ReindexationResource());
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =
@@ -93,11 +96,11 @@ public class AdminFunctionalApplication extends Application {
             singletons.add(adminContextResource);
 
             SecurityProfileResource securityProfileResource =
-                    new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService);
+                new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService);
             AdminSecurityProfileResource adminSecurityProfileResource =
-                    new AdminSecurityProfileResource(securityProfileResource);
+                new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);
-            
+
             singletons.add(new BasicAuthenticationFilter(configuration));
 
         } catch (VitamException | IOException e) {

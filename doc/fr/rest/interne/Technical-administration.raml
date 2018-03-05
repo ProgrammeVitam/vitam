@@ -44,6 +44,16 @@ documentation:
         Exécute la reconstruction des bases LogbookOperation, AccessionRegisterDetail et AccessionRegisterSummary définies par la requête à partir des sauvegardes des opérations dans les offres de stockage.
       is: [TechnicalAdministrationTraits.LogbookReconstruction]
 
+  /checklogbook:
+    displayName: Logbook Check Constistency
+    description:  |
+     Contrôle de cohérence des journaux sur un tenant donné.
+    
+    post:
+      description : |
+        Vérifie la cohérence des  journaux (opérations et LFC) sur un tenant donné.
+      is: [TechnicalAdministrationTraits.LogbookConsistency]
+
 /metadata/{version}:
   displayName: Metadata
   description: |

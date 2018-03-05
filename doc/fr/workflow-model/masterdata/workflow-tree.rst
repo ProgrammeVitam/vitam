@@ -32,6 +32,6 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
     - KO : des objets numériques sont présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.KO=Échec de la vérification de l'absence d'objet : objet(s) trouvé(s))
 
     - FATAL : une erreur technique est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d'objet)
-    
+
 .. image:: images/Workflow_HoldingScheme.jpg
     :align: center
