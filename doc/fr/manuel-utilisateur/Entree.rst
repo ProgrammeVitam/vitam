@@ -3,14 +3,16 @@ Entrée d'un SIP et plan de classement
 
 Cette partie décrit l'entrée manuelle d'archives dans la solution logicielle Vitam, c'est-à-dire, le processus de transfert du SIP ou plan de classement via l'IHM standard vers la solution logicielle Vitam, ainsi que le suivi de l'ensemble des transferts via le journal des opérations d'entrées.
 
-Dans l’univers numérique, peuvent être transférées à un service d’archives des archives nativement numériques, des versions numérisées d’archives papier, mais aussi des références à des archives physiques, chacune d’elles accompagnée de ses métadonnées.
+Dans l’univers numérique, peuvent être transférées à un service d’archives des archives nativement numériques, des versions numérisées d’archives papier,chacune d’elles accompagnée de ses métadonnées. mais aussi des références à des archives physiques.
 
-Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (pour la formalisation des SIP, se référer au document "Structuration des submissions information Package (SIP)").
+Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver.
+
+Avertissement : Lebordereau doit être conforme au SEDA et respecter les consignes de formalisation des SIP décrites dans le document "Structuration des submissions information Package (SIP)".
 
 Transfert d'un SIP 
 ===================
 
-Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement".
+Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran de "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis en sélectionnant le sous-menu "Transfert de SIP et plan de classement".
 
 |
 
@@ -18,13 +20,25 @@ Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écr
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
-Une fois le SIP sélectionné, il apparaît sur l'écran "Transfert du SIP et plan de classement" et le nom du fichier s'affiche sous le lien "sélectionner un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+Une fois le SIP sélectionné, il apparaît sur l'écran "Transfert du SIP et plan de classement" et le nom du fichier s'affiche sous le lien "sélectionner un fichier" ainsi que le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+
+Les informations visibles à l'écran sont :
+
+- Un tableau comportant les champs suivants :
+
+  - Nom du fichier,
+  - Taille : affiche la taille du SIP en Ko, Mo ou Go en fonction de la taille arrondie au dixième près.
+  - Statut : succès, erreur ou avertissement sous forme de pictogramme, respectivement "coche", "triangle", "croix"
+
+- Une barre de progression affichant l’avancement du téléchargement du SIP dans la solution logicielle Vitam (une barre de progression complète signifie que le téléchargement est achevé).
+
+- Une roue animée symbolisant l'avancement du traitement du SIP par la solution logicielle Vitam.
 
 Plusieurs options sont présentes sur l'écran :
 
 - Mode d'exécution :
-	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
+	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 
 - Destination :
 	- "en production", option d'entrée classique, l'entrée est réellement effectuée, les objets et métadonnées sont enregistrés dans la solution logicielle Vitam, l'évènement est journalisé.
@@ -38,17 +52,6 @@ Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importe
 
 .. image:: images/entree_sip.png
 
-Les informations visibles à l'écran sont :
-
-- Un tableau comportant les champs suivants :
-
-  - Nom du fichier,
-  - Taille : affiche la taille du SIP en Ko, Mo ou Go en fonction de la taille arrondie au dixième près.
-  - Statut : succès, erreur ou avertissement sous forme de pictogramme, respectivement "coche", "triangle", "croix"
-
-- Une barre de progression affichant l’avancement du téléchargement du SIP dans la solution logicielle Vitam (une barre de progression complète signifie que le téléchargement est achevé).
-
-- Une roue animée symbolisant l'avancement du traitement du SIP par la solution logicielle Vitam.
 
 Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
 
@@ -96,20 +99,7 @@ Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectu
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le plan, qui prend la forme d'un SIP sans objets, à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le plan sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
-Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche sous le bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut.
-
-Plusieurs options sont présentes sur l'écran :
-
-- Mode d'exécution :
-
-	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
-	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
-
-- Destination : actuellement, seule l'option "production" est disponible pour transférer directement le plan.
-
-Le mode d'exécution et la destination sont obligatoires.
-
-Pour lancer le transfert du plan, l’utilisateur clique sur le bouton « Importer ».
+Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche sous le bouton "choisissez un fichier" ainsi que le nom du fichier, sa taille ainsi qu'un champ statut.
 
 Les informations visibles à l'écran sont :
 
@@ -120,6 +110,19 @@ Les informations visibles à l'écran sont :
   - Statut (succès, erreur ou avertissement)
 
 - Une barre de progression affiche l’avancement du téléchargement du plan dans la solution logicielle Vitam (une barre de progression complète signifie que le téléchargement est achevé).
+
+Plusieurs options sont présentes sur l'écran :
+
+- Mode d'exécution :
+	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
+	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
+
+- Destination : actuellement, seule l'option "production" est disponible pour transférer directement le plan.
+
+Le mode d'exécution et la destination sont obligatoires.
+
+Pour lancer le transfert du plan, l’utilisateur clique sur le bouton « Importer ».
+
 
 NB : Suite au téléchargement du plan, un temps d'attente est nécessaire, correspondant au traitement du plan par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
@@ -132,11 +135,11 @@ Si l'utilisateur tente d'importer un plan dans un format non conforme, alors le 
 
 Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
-Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
+Cette notification ou ArchiveTransferReply (ATR) est un document au format XML conforme au schéma SEDA 2.0.
 Lors d'une entrée en succès dans la solution logicielle VITAM, l'ATR comprend les informations suivantes :
 
 - Date : date d'émission de l'ATR
-- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuées à la demande de transfert par la solution logicielle Vitam
+- MessageIdentifier : identifiant de l'ATR. Correspondant à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
 - ArchivalAgreement : contrat d'entrée
 - CodeListVersion : la liste des référentiels utilisés
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
@@ -165,9 +168,7 @@ Il propose deux visions, une vision générale des transferts effectués dans la
 Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-dire, si les données et objets contenus dans le SIP ou le plan de classement sont enregistrés dans la solution logicielle Vitam. Dans le cas contraire, il lui permet d'identifier la ou les erreurs ayant provoquées l'échec du transfert.
 
 Pour consulter le journal des opérations d'entrée, l'utilisateur survole le menu "Entrée" puis sélectionne le sous-menu "Suivi des opérations d'entrée".
-
 |
-
 .. image:: images/menu_jdoe.png
 
 Formulaire de recherche d'une entrée
@@ -194,17 +195,15 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - Identifiant de la demande d'entrée : correspond à l'identifiant du SIP porté par la balise <MessageIdentifier> du bordereau de transfert SEDA
 - Intitulé
 - Statut : Succès, Erreur, En cours, Avertissement (WARNING)
-- Service Versant
+- Service transmetteur
+- Service producteur
 - Contrat
 - Date de début d'opération d'entrée
 - Date de fin d'opération d'entrée
 - Bordereau : permet le téléchargement du manifest.xml
 - AR : permet le téléchargement de l'accusé de réception (ATR)
-
 |
-
 .. image:: images/res_jdoe.png
-
 
 Il est possible d'afficher d'autres informations en cliquant sur le bouton "Informations supplémentaires".
 
@@ -215,7 +214,8 @@ Les informations supplémentaires disponibles sont :
 - Date
 - Niveau de service
 - Signature
-
+- Service producteur
+- Service versant
 
 Consultation du détail
 ----------------------

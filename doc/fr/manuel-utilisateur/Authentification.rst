@@ -11,12 +11,11 @@ Le système comporte actuellement deux niveaux d'authentification :
 Connexion
 =========
 
-L'utilisateur de la solution logicielle Vitam peut s'authentifier de une ou deux façons différentes, selon le paramétrage qui a été effectué. Il est possible de se connecter en utilisant un login et un mot de passe, ou de se connecter en utilisant un certificat.
+L'utilisateur de la solution logicielle Vitam peut s'authentifier de deux façons différentes, selon le paramétrage qui a été effectué. Il est possible de se connecter en utilisant un login et un mot de passe, ou de se connecter en utilisant un certificat.
 
-Dans les deux cas, l'utilisateur doit choisir le tenant sur lequel il souhaite se connecter, en utilisant le sélecteur "Tenant de la session". Le tenant correspond à un espace réservé à une entité utilisatrice. Par exemple, un lot d'archives versé dans le tenant numéro deux ne sera pas consultable depuis les autres tenants.
+Dans les deux cas, l'utilisateur doit choisir le tenant sur lequel il souhaite se connecter, pour cela, il utilise le sélecteur "Tenant de la session". 
 
 |
-
 
 .. image:: images/form_login.png
 
@@ -46,14 +45,13 @@ Authentification par certificat
 -------------------------------------
 
 Pour utiliser ce mode d'authentification, l'utilisateur doit détenir un certificat délivré par son service informatique. En cliquant simplement sur le bouton de connexion, il sera alors authentifié. Si l'utilisateur utilise un mauvais certificat ou n'utilise pas de certificat, un message d'erreur est affiché pour notifier de cette erreur.
-
 |
-
 Si l'utilisateur souhaite accéder à la plate-forme en saisissant une URL menant à une page de la solution logicielle Vitam, une fois l'authentification effectuée, il sera redirigé vers la page demandée.
 Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est de 30 minutes, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
 
 Le tenant est indiqué à droite du menu.
 
+|
 
 .. image:: images/tenant.png
 
@@ -65,15 +63,10 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 	- Admin
 	- User
 
-**Admin** : rôle accordant des droits étendus. Permet d'accéder à l'ensemble des fonctionnalités, aux fonctionnalités d'administration fonctionnelle et à l'IHM de recette.
+**Admin** : rôle accordant des droits étendus, permet d'accéder à l'ensemble des fonctionnalités, y compris d'administration fonctionnelle.
 
-|
-
-.. image:: images/menu_admin.png
-
-**User** : permet d'accéder aux fonctionnalités suivantes :
-
-- Transfert d'archives (en prodcution seulement)
+Ce rôle permet d'accéder aux fonctionnalités suivantes : 
+- Transfert d'archives (en production seulement)
 - Transfert de plan de classement
 - Suivi des opérations d'entrée
 - Recherche et consultation d'archives
@@ -82,12 +75,30 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 - Consultation des référentiels
 - Consultation des journaux d'opération
 
-Mais n'a pas la possibilité de transférer un SIP en mode "Pas à pas".
+Fonctionnalités spécifiques au mode Administrateur : 
+- Import des référentiels des contextes
+- Transfert d'un SIP en mode "Pas à pas".
+
+
+Les fonctionnalités disponibles sont présentes dans le menu:  
 
 |
 
-.. image:: images/menu_user.png
+.. image:: images/menu_admin.png
 
+**User** : permet d'accéder aux fonctionnalités suivantes :
+
+- Transfert d'archives (en production seulement)
+- Transfert de plan de classement
+- Suivi des opérations d'entrée
+- Recherche et consultation d'archives
+- Détail des unités archivistiques
+- Consultation des services producteurs
+- Consultation des référentiels
+- Consultation des journaux d'opération
+
+
+Mais n'a pas l'accès aux fonctionnalités du rôle Administrateur et du mode "Pas à Pas", qui n'apparaissent pas dans le menu. 
 
 Déconnexion
 ===========
