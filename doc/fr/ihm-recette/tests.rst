@@ -7,7 +7,7 @@ Tests de performance
 Principe
 --------
 
-Les tests de performance consistent à réaliser plusieurs fois l'entrée d'un SIP et à mesurer son temps d'execution. Ces entrées peuvent être réalisées par une ou plusieurs tâches parallèles.
+Les tests de performance consistent à réaliser plusieurs fois l'entrée d'un SIP et à mesurer son temps d'exécution. Ces entrées peuvent être réalisées par une ou plusieurs tâches parallèles.
 
 L'interface est accessible par le menu : Tests > Test de performance
 
@@ -152,9 +152,9 @@ Ci-après l'exemple d'une ligne correspondant à un test en succès. Par défaut
 
 Le tableau est constitué de quatre colonnes :
 
-    * Fonctionnalité : correspond à la fonctionnalité testée. Par défaut, un fichier de configuration correspond à une fonctionnalité. on a par exemple un fichier de configurtion pour réaliser tous les tests sur l'INGEST. Dans ce cas, le nom de la fonctionnalité sera indiqué dans tous les cas de test correspondant dans le tableau de restitution.
-    * Identifiant : identifiant de l'opération correspondant au test. On peut ainsi s'en servir pour trouver plus de détails sur le test dans le journal des opérations.
-    * Description : il s'agit d'une description du cas de test effectué. Elle est indiquée dans le fichier de configuration pour chacun des test.
+    * Fonctionnalité : correspond à la fonctionnalité testée. Par défaut, un fichier de configuration correspond à une fonctionnalité. On a par exemple un fichier de configuration pour réaliser tous les tests sur l'INGEST. Dans ce cas, le nom de la fonctionnalité sera indiqué dans tous les cas de test correspondant dans le tableau de restitution.
+    * Identifiant : identifiant de l'opération correspondant au test. Il peut être utilisé pour trouver plus de détails sur le test dans le journal des opérations.
+    * Description : il s'agit d'une description du cas de test effectué. Elle est indiquée dans le fichier de configuration pour chacun des tests.
     * Erreurs : erreur technique liée à l'échec du test. Cette colonne est vide pour les tests en succès.
 
 Testeur de requêtes DSL
@@ -171,7 +171,7 @@ Champs disponibles
 
 **Tenant** : champ obligatoire. Indique le tenant sur lequel la requête va être exécutée. Ce champ est renseigné automatiquement avec le numéro du tenant sélectionné par l’administrateur.
 
-**Contrat** : champ optionnel selon la collection utilisée. Liste permettant de sélectionner un contrat d'accès qui sera associé à la requête.
+**Contrat** : champ obligatoire. Liste permettant de sélectionner un contrat d'accès qui sera associé à la requête.
 
 **Collection** : champ obligatoire. Liste permettant de sélectionner la collection sur laquelle la requête va être exécutée.
 
@@ -213,3 +213,34 @@ Si la requête envoyée par l'administrateur ne respecte pas le formatage de la 
 .. image:: images/DSl_requete_Json_KO.png
 
 L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en cliquant sur le bouton "Effacer". Le contenu de l'espace dédié à la question n'est en revanche pas effacé.
+
+
+Visualisation du graphe
+-----------------------
+
+Cette partie permet d'avoir une répresentation visuelle d'un graphe contenu dans un SIP. 
+La première étape consiste donc à récupérer les information suivantes :
+
+- L'identifiant de l'opération
+- L'intitulé du contrat utilisé 
+
+Dans l'interface de l 'IHM Recette, l'administrateur peut aller dans la Partie " Tests " puis dans la partie " Visualisation du Graphe ". 
+
+Il faut ensuite rajouter les informations dans les champs prévus à cet effet : " Contrat " et " Identifiant d'opération" 
+
+Puis il suffit de cliquer sur le bouton " Envoyer la requête" pour visualiser plusieurs choses : 
+
+* Sur la partie gauche, la représentation visuelle du graphe contenu dans le SIP
+* sur la partie droite, lorsqu'on clique sur la représentation de chaque unité archivistique, le détail des données reliées à l'unité archivistique 
+
+
+.. image:: images/visualisation_graphe.png
+
+
+
+
+
+
+- 
+
+

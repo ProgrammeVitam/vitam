@@ -90,4 +90,4 @@ Une fois le tenant sélectionné, les boutons précédement grisés sont activé
 Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant sur lequel il veut effectuer ses opérations.
 L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
 
-**NB :** le référentiel des formats est lié à la plateforme et non à un tenant. C'est pour cette raison que l'option de suppression du référentiel des formats est toujours disponible, même si aucun tenant n'est sélectionné.
+**NB :** le référentiel des formats et des contextes sont liés à la plateforme et non à un tenant. L'option de suppression des référentiel des formats et des contextes applicatifs est toujours disponible, même si aucun tenant n'est sélectionné.
