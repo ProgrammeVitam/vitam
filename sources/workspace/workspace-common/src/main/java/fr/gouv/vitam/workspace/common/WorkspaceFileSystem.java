@@ -48,7 +48,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -82,8 +81,9 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 
 /**
@@ -560,11 +560,10 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
      * @param folderNames   list of file or directory to archive
      * @param zipName       name of the archive file
      * @throws IOException
-     * @throws CompressorException
      * @throws ArchiveException
      */
     public void compress(String containerName, List<String> folderNames, String zipName)
-        throws IOException, CompressorException, ArchiveException {
+        throws IOException, ArchiveException {
 
         Path zip = Paths.get(root.toString(), containerName, zipName);
 
@@ -580,15 +579,19 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                         if (!attrs.isDirectory()) {
 
+                            ZipArchiveOutputStream zipArchiveOutputStream = (ZipArchiveOutputStream) archive;
+                            zipArchiveOutputStream.setUseZip64(Zip64Mode.Always);
+
                             Path relativize = Paths.get(target.getParent().toString()).relativize(file);
-                            ArchiveEntry entry = new ZipArchiveEntry(relativize.toString());
-                            archive.putArchiveEntry(entry);
+                            ZipArchiveEntry entry = new ZipArchiveEntry(relativize.toString());
+
+                            zipArchiveOutputStream.putArchiveEntry(entry);
 
                             BufferedInputStream input = new BufferedInputStream(new FileInputStream(file.toFile()));
 
-                            IOUtils.copy(input, archive);
+                            IOUtils.copy(input, zipArchiveOutputStream);
                             input.close();
-                            archive.closeArchiveEntry();
+                            zipArchiveOutputStream.closeArchiveEntry();
                         }
                         return FileVisitResult.CONTINUE;
                     }
