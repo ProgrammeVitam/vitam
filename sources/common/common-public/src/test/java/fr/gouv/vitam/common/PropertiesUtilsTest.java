@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -39,11 +42,24 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Map;
 
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.junit.rules.TemporaryFolder;
 
 public class PropertiesUtilsTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Before
+    public void setUp() throws Exception {
+        File tempFolder = temporaryFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", tempFolder.getAbsolutePath());
+    }
 
     @Test
     public void testBuildPath() {
@@ -69,6 +85,17 @@ public class PropertiesUtilsTest {
         } catch (final IOException e) {
             fail("Should not raized an exception");
         }
+    }
+
+    @Test
+    public void should_validate_file() throws Exception {
+        // When / Then
+        assertThatThrownBy(() -> PropertiesUtils.fileFromTmpFolder("../test"))
+                .isInstanceOf(VitamRuntimeException.class)
+                .hasMessageContaining("invalid path");
+        assertThatCode(() -> PropertiesUtils.fileFromTmpFolder("./test")).doesNotThrowAnyException();
+        assertThatCode(() -> PropertiesUtils.fileFromTmpFolder("/test")).doesNotThrowAnyException();
+        assertThatCode(() -> PropertiesUtils.fileFromTmpFolder("test")).doesNotThrowAnyException();
     }
 
     @Test(expected = FileNotFoundException.class)
