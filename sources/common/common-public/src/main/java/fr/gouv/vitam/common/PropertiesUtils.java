@@ -42,6 +42,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
@@ -224,7 +225,20 @@ public final class PropertiesUtils {
      * @return the full file path (no check on existing is done)
      */
     public static final File fileFromTmpFolder(String subpath) {
-        return new File(VitamConfiguration.getVitamTmpFolder(), subpath);
+        try {
+            String canonicalPath = new File(VitamConfiguration.getVitamTmpFolder()).getCanonicalPath();
+            File file = new File(VitamConfiguration.getVitamTmpFolder(), subpath);
+            String fileCanonicalPath = file.getCanonicalPath();
+
+            if (!fileCanonicalPath.startsWith(canonicalPath)) {
+                throw new VitamRuntimeException(String.format("invalid path with subpath: %s", subpath));
+            }
+
+            return file;
+        } catch (IOException e) {
+            throw new VitamRuntimeException(e);
+        }
+
     }
 
     /**
