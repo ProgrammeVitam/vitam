@@ -204,6 +204,35 @@ export class SearchReferentialsComponent extends PageComponent {
           this.referentialPath = 'admin/profil';
           this.referentialIdentifier = 'Identifier';
           break;
+        case "archiveUnitProfile":
+          this.searchReferentialsService.setSearchAPI('archiveunitprofiles');
+          this.breadcrumbName = "Documents type";
+          this.referentialData = [
+            new FieldDefinition('ArchiveUnitProfileName', "Intitulé", 6, 8),
+            FieldDefinition.createIdField('ArchiveUnitProfileID', "Identifiant", 6, 8)
+          ];
+          this.searchForm = {"ArchiveUnitProfileID": "all", "ArchiveUnitProfileName": "all",
+            "orderby": {"field": "Name", "sortType": "ASC"}};
+          this.initialSortKey = "Name";
+          this.columns = [
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
+              () => ({'width': '325px'})),
+            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
+              () => ({'width': '60px'})),
+            ColumnDefinition.makeStaticColumn('CreationDate', 'Date de création', DateService.handleDate,
+              () => ({'width': '100px'})),
+            ColumnDefinition.makeStaticColumn('LastUpdate', 'Dernière modification', DateService.handleDate,
+              () => ({'width': '100px'})),
+            ColumnDefinition.makeIconColumn('Document', ['fa-download'],
+              SearchReferentialsComponent.downloadArchiveUnitProfile, SearchReferentialsComponent.checkArchiveUnitProfile,
+              () => ({'width': '50px'}), this.searchReferentialsService)
+          ];
+          this.extraColumns = [];
+          this.referentialPath = 'admin/archiveUnitProfile';
+          this.referentialIdentifier = 'Identifier';
+          break;
         case "context":
           this.searchReferentialsService.setSearchAPI('contexts');
           this.breadcrumbName = "Contextes applicatifs";
@@ -355,6 +384,15 @@ export class SearchReferentialsComponent extends PageComponent {
 
   static checkProfil(item): boolean {
     return item.Path;
+  }
+
+  static downloadArchiveUnitProfile(item, searchReferentialsService) {
+    searchReferentialsService.downloadArchiveUnitProfile(item.Identifier);
+  }
+
+  static checkArchiveUnitProfile(item): boolean {
+    //TODO: When feature to retrieve DT has been set up check whether file exists or not.
+    return false;
   }
 
   public preSearchFunction(request): Preresult {

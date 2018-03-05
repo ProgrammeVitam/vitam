@@ -56,6 +56,13 @@ export class ImportComponent  extends PageComponent {
           this.importErrorMsg = "Echec de l'import du fichier.";
           this.breadcrumbName = "Import des contrats d'entrée";
           break;
+        case "archiveUnitProfile":
+          this.extensions = ["json"];
+          this.uploadAPI = 'archiveunitprofiles';
+          this.importSucessMsg = 'Les documents type ont bien été importés';
+          this.importErrorMsg = "Echec de l'import du fichier.";
+          this.breadcrumbName = "Import des documents type";
+          break;
         case "format":
           this.extensions = ["xml"];
           this.uploadAPI = 'format/upload';

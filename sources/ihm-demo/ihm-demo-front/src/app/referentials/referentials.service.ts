@@ -38,6 +38,16 @@ export class ReferentialsService {
       body.orderby = {"field":"Name","sortType":"ASC"};
     }
 
+    if (this.searchAPI === 'archiveunitprofiles') {
+      if (!body.ArchiveUnitProfileID) {
+          body.ArchiveUnitProfileID = 'all';
+      }
+      if (!body.ArchiveUnitProfileName) {
+          body.ArchiveUnitProfileName = 'all';
+      }
+      body.orderby = {"field":"Name","sortType":"ASC"};
+    }
+
     if (this.searchAPI === 'contexts') {
       if (!body.ContextID) {
         body.ContextID = 'all';
@@ -126,6 +136,28 @@ export class ReferentialsService {
     return this.resourceService.put('profiles/' + id, header, file, 'text');
   }
 
+  downloadArchiveUnitProfile(id) {
+    let header = new HttpHeaders().set('Accept', 'application/octet-stream');
+    this.resourceService.get('archiveunitprofiles/' + id, header, 'blob').subscribe(
+      (response) => {
+        const a = document.createElement('a');
+        document.body.appendChild(a);
+
+        a.href = URL.createObjectURL(response.body);
+
+        if (response.headers.get('content-disposition') !== undefined && response.headers.get('content-disposition') !== null) {
+          a.download = response.headers.get('content-disposition').split('filename=')[1];
+          a.click();
+        }
+      }
+    );
+  }
+
+  uploadArchiveUnitProfile(id : string, file : File) {
+    let header = new HttpHeaders().set('Content-Type', 'application/octet-stream');
+    return this.resourceService.put('archiveunitprofiles/' + id, header, file, 'text');
+  }
+
   getFormatById(id : string) : Observable<VitamResponse> {
     return this.resourceService.post('admin/formats/' + decodeURIComponent(id), null, {});
   }
@@ -141,6 +173,9 @@ export class ReferentialsService {
   }
   getProfileById(id : string) : Observable<VitamResponse> {
     return this.resourceService.get('profiles/' + id);
+  }
+  getArchiveUnitProfileById(id : string) : Observable<VitamResponse> {
+    return this.resourceService.get('archiveunitprofiles/' + id);
   }
 
   getFundRegisterById(id : string) : Observable<VitamResponse> {
@@ -163,6 +198,9 @@ export class ReferentialsService {
 
   updateProfilById(id : string, body : any) {
     return this.resourceService.put('profiles/' + id, null, body, 'text');
+  }
+  updateArchiveUnitProfileById(id : string, body : any) {
+    return this.resourceService.put('archiveunitprofiles/' + id, null, body, 'text');
   }
 
   getTenants() {
