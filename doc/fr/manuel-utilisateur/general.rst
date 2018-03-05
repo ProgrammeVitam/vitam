@@ -10,9 +10,7 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 - Recherche
 - Administration
 - Gestion des archives
-
 |
-
 .. image:: images/menu_general.png
 
 Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages.
@@ -22,14 +20,12 @@ Fil d'Ariane
 
 Le fil d'Ariane est un élément qui permet de visualiser le chemin d'accès à la page affichée. Il est situé sur toutes les pages, en dessous du menu.
 
+.. image:: images/ariane.png
+
 La racine est toujours inactive (sans lien), elle correspond au nom du menu où est située la page.
 
 Suite à la racine, les pages parentes sont listées et sont séparées par un chevron et, contrairement à la racine, elles sont toutes cliquables.
 Un clic sur un lien redirige sur la page idoine.
-
-|
-
-.. image:: images/ariane.png
 
 
 Titre des pages
@@ -40,9 +36,7 @@ Le titre de la page est visible sur les onglets des navigateurs Internet. Il cor
 - Transfert de SIP et plan de classement
 - Recherche d'archives
 - Journal des opérations
-
 |
-
 .. image:: images/titre_IHM_demo.png
 
 
@@ -68,29 +62,22 @@ Formulaire de recherche avancée
 
 Les formulaires de recherche avancée sont composés d'au moins deux champs de recherche .
 
-
 .. image:: images/au_rechcha.png
 
 Affichage des résultats
 ========================
 
 Le nombre de résultats correspondant au résultat d'une recherche est indiqué sous la forme "Résultats (X)".
-
 |
-
 .. image:: images/gen_nombre_resultats.png
 
 Si aucun résultat n'est trouvé par la solution logicielle Vitam, alors un message indique à l'utilisateur qu'aucun résultat n'est disponible pour sa recherche.
-
 |
-
 .. image:: images/au_res_ko.png
 
 Par défaut, les 25 premiers résultats sont affichés. Une pagination permet de naviguer s'il y a un nombre supérieur de résultats.
 Il est également possible d'afficher 5 ou 125 résultats par page en utilisant le sélecteur situé à côté de la pagination. 
-
 |
-
 .. image:: images/pagination.png
 
 
@@ -101,9 +88,7 @@ Il est possible d'afficher des colonnes supplémentaires dans certains tableaux.
 
 
 .. image:: images/general_info_bt.png
-
 |
-
 .. image:: images/general_info_options.png
    :scale: 50
    
@@ -113,6 +98,7 @@ A partir de là, il est possible de choisir les options (colonnes) que l'on souh
 
 .. image:: images/general_info_options_all.png
    :scale: 50
+
 
 Un clic sur cette même case, désélectionne toutes les options préalablement sélectionnées et masque les colonnes associées.
 
@@ -179,7 +165,7 @@ Dans le cas où aucune heure n'est renseignée dans l'enregistrement, il est par
 Import de fichier ou dossier
 ============================
 
-La solution logicielle Vitam permet d'importer des fichiers ou des dossiers compressés de différents formats.
+La solution logicielle Vitam permet d'importer des fichiers ou des dossiers compressés de différents formats. Les formats acceptés sont: .zip, .tar,  .tar.gz, .tar.bz2 et tar.gz2. 
 
 Il existe deux façons d'importer un fichier ou dossier :
 
@@ -227,10 +213,27 @@ A l'issue de ce contrôle, deux cas sont possibles :
    :scale: 50
 
 Gestion des erreurs techniques
-------------------------------
+==============================
 
 En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers d'un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
 
 |
 
 .. image:: images/error_popup.png
+
+Tenants
+=======
+
+Le tenant correspond à un espace réservé à une entité utilisatrice. Par exemple, un lot d'archives versé dans le tenant numéro deux ne sera pas consultable depuis les autres tenants.
+
+Il est obligatoire de sélectioner un tenant. Certaines références et certaines opérations d'administration peuvent être trans-tenants ( les Formats et les contextes par exemple ) 
+
+Le tenant d'administration permet de réaliser les opérations qui concernent plusieurs tenants. 
+
+
+
+
+
+
+
+

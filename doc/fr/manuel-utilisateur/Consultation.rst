@@ -6,7 +6,7 @@ Cette partie décrit les fonctionnalités de recherche et de consultation d'une 
 Recherche d'une unité archivistique
 ===================================
 
-Pour consulter la recherche d'une unité archivistique, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche d'archives".
+Pour effectuer une recherche d'une unité archivistique, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche d'archives".
 
 |
 
@@ -24,6 +24,11 @@ Recherche globale
 -------------------
 
 Pour effectuer une recherche globale, l'utilisateur saisit un ou plusieurs mots dans le champ "Intitulé ou description" puis presse la touche "Entrée" de son clavier ou clique sur le bouton "Rechercher".
+
+|
+
+.. image:: images/au_rechchs.png
+
 Le ou les mots saisis vont être recherchés dans les métadonnées "Titre" et "Description" des unités archivistiques. La recherche simple s'effectue sur chacun des mots entrés de manière indépendante (réalisé avec un opérateur "OU") et permet de trouver les mots appartenant à l'un, à l'autre, ou aux deux ensembles de métadonnées visés. Il n’est pas possible de la paramétrer.
 Par exemple, une recherche "département gironde" retournera des résultats comprenant le mot "département" ou le mot  "gironde".
 
@@ -34,10 +39,6 @@ Les caractéristiques du mode de recherche sont les suivantes :
 - La recherche n'est pas sensible à la casse
 - Les résultats ne tiennent pas compte des accents ou graphèmes divers (ç, ß, etc.)
 - Les résultats ignorent les caractères spéciaux
-
-|
-
-.. image:: images/au_rechchs.png
 
 Recherche avancée
 -----------------
@@ -71,7 +72,7 @@ Dans le cas contraire, un message d'erreur est affiché.
 
 .. image:: images/au_date_ko.png
 
-*Recherche par identifiant* 
+*Recherche par identifiant d'une UA* 
 
 La recherche par identifiant est spécifique. L'identifiant étant unique, il n'est pas possible d'effectuer une recherche croisée par identifiant et tout autre champ. L'identifiant est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification de la demande de transfert (ATR).
 
@@ -96,6 +97,7 @@ Suite à la recherche, les résultats sont affichés sous forme de tableau, comp
 
 En cas de recherche infructueuse, le message "Aucun résultat" s'affiche sous le formulaire.
 
+| 
 
 .. image:: images/au_res_ko.png
 
@@ -118,12 +120,12 @@ La page est divisée en plusieurs sections :
 
 Affichée par défaut, cette section permet de visualiser et naviguer dans l'arborescence montante et descendante de l'unité archivistique.
 
-L'unité archivistique sur le détail de laquelle on se trouve est signalée par e un pictogramme de maison situé à gauche. Les niveaux supérieurs ou parents sont indiqués par des chevrons, les niveaux inférieurs ou enfants, par des plus. Un clic sur un chevron ou un "+" déploie l'arborescence, un clic sur l'intitulé redirige sur la page de l'unité archivistique sélectionnée.
+L'unité archivistique que l'on consulte est signalée en gras et par un pictogramme de maison situé à gauche. Les niveaux supérieurs ou parents sont indiqués par des chevrons, les niveaux inférieurs ou enfants, par des plus. Un clic sur un chevron ou un "+" déploie l'arborescence, un clic sur l'intitulé redirige sur la page de l'unité archivistique sélectionnée. La racine est indiquée par une cible. 
 
 
 .. image:: images/au_arbo.png
 
-Par défaut, l'unité archivistique affiche cinq niceaux parents et enfants directs. Dans le cas où il existe plus de cinq enfants, un lien plus d'enfants" est affiché.
+Par défaut, l'unité archivistique affiche cinq niveaux parents et enfants directs. Dans le cas où il existe plus de cinq enfants, un lien plus d'enfants" est affiché.
 
 Un  clic sur ce lien ouvre une fenêtre modale composée d'un formulaire de recherche et sa liste de résultats.
 
@@ -152,6 +154,7 @@ Un fois les choix effectués, un clic sur le bouton "valider" enregistre les sé
 
 Un pictogramme de croix, placé en haut à droite de la fenêtre permet également de la refermer.
 
+| 
 
 .. image:: images/au_arbre_close.png
 
@@ -161,15 +164,17 @@ Affichée par défaut, cette section contient les principales métadonnées desc
 
 Concernant les services producteurs, il faut différencier :
 
- - Identifiant service producteur, le service producteur de l'unité archivistique, repris du bloc <Content> du bordereau de transfert
- - Service producteur de l'entrée, correspondant à la valeur de l'OriginatingAgencyIdentifier déclarée dans le du bordereau de transfert
+ - Service producteur correspondant au service producteur de l'unité archivistique, repris du bloc <Content> du bordereau de transfert
+ - Service producteur de l'entrée, correspondant à la valeur de l'OriginatingAgencyIdentifier déclaré dans le bordereau de transfert
  - Services ayant des droits sur l'entrée, correspondant aux services producteurs de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
 
 |
- .. image:: images/au_desc.png
+
+.. image:: images/au_desc.png
  
  La plupart des métadonnées descriptives peuvent être modifiées en cliquant sur le bouton "Modifier".
 
+| 
 
 .. image:: images/au_modif.png
 
@@ -183,6 +188,7 @@ Cette action est enregistrée dans le Journal du cycle de vie. Les anciennes val
 
 Cette partie permet d'afficher l'ensemble des champs issus du bloc <Content>
 
+| 
 
 .. image:: images/au_desc_c.png
 
@@ -207,11 +213,12 @@ Ces règles ont les attributs suivants :
 - Héritage
 - Détail : indique l'origine de la règle, suite à un clic sur le chevron situé à droite de la règle
 
-Le fait qu'une ou plusieurs règles soient bloquées est affiché au travers deux mentions possibles :
- 
-- "Règle désactivée" liste l'identifiant des règles, provenant d'unités archivistisques parentes et qui ne sont plus appliquées à partir de cette unité archivistique.
+Une même unité archivistique peut avoir plusieurs règles définies dans la même catégorie de règles (Exemple : plusieurs délais de communicabilité).
 
-- "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
+Ces règles de gestion peuvent être bloquées de 2 façons différentes: 
+
+- Soit par catégorie : l'information "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
+- Soit par identifiant correspondant à une seule règle : l'information "Règle désactivée" précise l'identifiant des règles, provenant d'unités archivistisques parentes et qui ne sont plus appliquées à partir de cette unité archivistique.
 
 Chaque règle possède un détail qu'il est possible de consulter en cliquant sur la ligne de la règle en question. Ce détail reprend l'ensemble affiche le champ "Hérit." qui permet de visualiser le nom de l'unité archivistique d'origine de la règle.
 La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cette unité archivistique d'origine est cliquable et mène sur le détail de l'unité mentionnée.
@@ -226,20 +233,23 @@ Les règles de gestion non héritées peuvent être modifiées ou supprimées en
 
 .. image:: images/au_rg_modif.png
 
-Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles.
+Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles puis de cliquer sur le bouton sauvegarder.
 
+|
 
 .. image:: images/au_rg_ajout.png
    :scale: 50
 
 Dans cet exemple, une règle est héritée et donc non modifiable, tandis que la seconde est modifiable.
 
+|
 
 .. image:: images/au_rg_nv.png
    :scale: 50
 
 Un clic sur le bouton "Ajouter une règle" crée une nouvelle ligne permettant la création d'une règle de gestion.
 
+|
 
 .. image:: images/au_rg_supp.png
    :scale: 50
@@ -251,6 +261,8 @@ Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre un
 |
 
 .. image:: images/au_rg_pop.png
+
+|
 
 .. image:: images/au_rg_ok.png
    :scale: 50
@@ -273,6 +285,7 @@ Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les in
 
 Un clic sur le pictogramme situé à droite de l'objet permet de consulter l'ensemble ses métadonnées.
 
+|
 
 .. image:: images/au_got_detail.png
 
@@ -283,7 +296,7 @@ En ce qui concerne les objets physiques, les colonnes n'affichent que l'informat
 Les unités disponibles sont celles répertoriées par l'UNECE.
 
 
-**Export DIP**
+**Export du Dissemination Information Package (DIP)**
 
 Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix d'exports sont disponibles :
 
@@ -297,22 +310,23 @@ Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix
 
 Suite au clic sur le bouton "Exporter" une fenêtre modale s'ouvre et indique que le DIP est en cours de création et qu'il sera téléchargeable dans le journal des opérations. Un bouton "OK" ferme la fenêtre.
 
-Journaux du cycle de vie
+Pour le télécharger, retourner au Journal des Opérations, rechercher dans la catégorie d'opérations " Export DIP ", et sélectionner dans les options de colonnes disponibles la case "Rapport". Le ligne correspondant au dernier export sera affichée, et il suffit de cliquer sur l'icone correspondant au rapport pour afficher le répertoire du DIP généré. 
+
+
+Consultation des journaux du cycle de vie
 ========================
 
-Une fois le processus d'entrée d'un SIP terminé avec succès, pour chaque nouvelle unité archivistique et groupe d'objets créés, un journal du cycle de vie est généré.
+Le journal du cycle de vie est généré, une fois le processus d'entrée d'un SIP terminé avec succès et les nouvelle unité archivistique et groupe d'objets créés.
 Il trace tous les événements qui impactent l'unité archivistique et les objets, dès leur prise en charge dans la solution logicielle Vitam.
 
 Journal du cycle de vie d'une unité archivistique
 -------------------------------------------------
 
-Le journal du cycle de vie de l'unité archivistique est disponible depuis son détail en cliquant sur l'icône "Journal du cycle de vie" ou depuis la liste du résultat de la recherche d'archives.
+Le journal du cycle de vie de chaque unité archivistique est disponible depuis la page de détail en cliquant sur l'icône "Journal du cycle de vie" ou depuis la liste du résultat de la recherche d'archives.
 
 |
 
 .. image:: images/au_bt_lfca.png
-
-Un clic sur ce bouton affiche le détail du journal du cycle de vie.
 
 Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affiche les informations suivantes :
 
@@ -325,9 +339,7 @@ Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affic
 
 .. image:: images/lfc_au.png
 
-S'il le souhaite, l'utilisateur peut sélectionner des informations disponibles du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Informations supplémentaires" et en choisissant les options souhaitées dans la liste déroulante.
-
-La liste déroulante contient les champs suivants :
+L'utilisateur peut sélectionner des informations complémentaires en cliquant sur le bouton "Informations supplémentaires" et sélectionnant les options souhaitées dans la liste déroulante.
 
 - Identifiant de l'évènement
 - Identifiant de l'opération
@@ -361,9 +373,7 @@ Par défaut, l'écran du journal du cycle de vie du groupe d'objets affiche les 
 
 .. image:: images/lfc_got.png
 
-S'il le souhaite, l'utilisateur peut sélectionner des informations disponibles du journal du cycle de vie du groupe d'objet en cliquant sur le bouton "Informations supplémentaires" et en choisissant les options souhaitées dans la liste déroulante.
-
-La liste déroulante contient les champs suivants :
+L'utilisateur peut sélectionner des informations complémentaires en cliquant sur le bouton "Informations supplémentaires" et en sélectionnant les options souhaitées dans la liste déroulante:
 
 - Identifiant de l'évènement
 - Identifiant de l'opération
@@ -374,8 +384,8 @@ La liste déroulante contient les champs suivants :
 - Identifiant interne de l'objet
 - Identifiant du tenant (technique)
 
-Recherche par service producteur
-================================
+Recherche par service producteur et consultation du registre des fonds.
+=======================================================================
 
 Le registre des fonds a pour but de :
 
@@ -391,10 +401,10 @@ Pour y accéder, l'utilisateur survole le menu "Recherche", puis sélectionne "R
 
 .. image:: images/menu_sp.png
 
-Par défaut, les services producteurs sont affichés sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
+Par défaut, les services producteurs sont affichés sous le formulaire de recherche.
 
-Pour effectuer une recherche précise, on utilise le champ "Identifiant" en utilisant l'identifiant exact recherché. Il est également possible de rechercher par Intitulé et Description.
-
+Pour effectuer une recherche précise, on utilise le champ "Identifiant" en utilisant l'identifiant exact recherché. 
+Il est également possible de rechercher par Intitulé et Description.
 NB : La recherche n'a alors pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots au singulier comme au pluriel, voir même avec une légère tolérance de faute.
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher".
@@ -404,10 +414,11 @@ La liste du référentiel est alors actualisée avec les résultats correspondan
 
 .. image:: images/rechch_agents.png
 
+
 Affichage de la liste des résultats
 -----------------------------------
 
-Suite à une recherche, les résultats se présentent sous forme de tableau affichant les informations suivantes :
+Suite à une recherche, les résultats se présentent sous la forme d'un tableau affichant les informations suivantes :
 
 - Intitulé
 - Identifiant
@@ -417,26 +428,27 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 
 .. image:: images/res_agents.png
 
-Consultation du détail
-----------------------
 
-Depuis la liste des résultats, l'utilisateur peut consulter le détail d'un fonds pour un service producteur en cliquant sur la ligne voulue. Puis il clique sur le bouton "Registre des fonds" afin d'afficher le détail complet du fonds. Il accède alors à la matrice descriptive du service agent.
+Consultation du détail d'un producteur
+--------------------------------------
+
+Depuis la liste des résultats, l'utilisateur peut consulter le détail d'un service producteur en cliquant sur la ligne voulue. Il accède alors à la matrice descriptive du service agent.
 
 |
 
 .. image:: images/detail_sp.png
 
+
 Consultation du registre des fonds
 ----------------------------------
 
-Depuis le détail du service agent, l'utilisateur peut consulter le registre des fonds de ce service.
+Depuis le détail du service agent, l'utilisateur peut consulter le registre des fonds de ce service en cliquant sur le bouton " Registre des Fonds" afin d'afficher le détail complet du fond. 
 
 Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
 
-- Une vue regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés
-- Une vue listant toutes les opérations d'entrée effectuées pour ce service producteur
+- Le 1er: regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés, c'est-à-dire les archives déclarées par ce service producteur par voie de rattachement.
 
-Le premier bloc distingue fonds propres, c'est-à-dire les archives provenant directement du service producteur et fonds symboliques c'est-à-dire les archives déclarées par ce service producteur par voie de rattachement.
+- Le 2nd: listant toutes les opérations d'entrée effectuées pour ce service producteur
 
 |
 
@@ -470,12 +482,14 @@ Cette vue affiche, sous forme de tableau, les informations consolidées suivante
 
 Sous cette partie, la liste des entrées effectuées pour ce service producteur est affichée sous forme de tableau.
 
+|
 
 .. image:: images/fonds_operation.png
 
+
 Pour chaque entrée, les informations suivantes sont affichées :
 
-- Fond propre : une coche indique de l'entrée provient du fond propre, une croix indique qu'elle provient d'un fond rattaché
+- Fond propre : une coche indique que l'entrée provient d' un fond propre, une croix indique qu'elle provient d'un fond rattaché
 - Identifiant de l'opération attribué par la solution logicielle Vitam (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
 - Date d'entrée
@@ -485,22 +499,23 @@ Pour chaque entrée, les informations suivantes sont affichées :
   - Supprimé : Nombre d'unités archivistiques supprimées de la solution logicielle Vitam
   - Restant : Nombre d'unités archivistiques restantes dans la solution logicielle Vitam
 
-- nombre de groupes d'objets
+- Nombre de groupes d'objets
 
   - Total : Nombre de groupes d'objets entrés dans la solution logicielle Vitam
   - Supprimé : Nombre de groupes d'objets supprimés de la solution logicielle Vitam
-  - Restant : Nombre de groupe d'objets restant dans la solution logicielle Vitam
+  - Restant : Nombre de groupe d'objets restants dans la solution logicielle Vitam
 
-- nombre d'objets
+- Nombre d'objets
 
   - Total : Nombre d'objets entrés dans la solution logicielle Vitam
   - Supprimé : Nombre d'objets supprimés de la solution logicielle Vitam
-  - Restant : Nombre d'objets restant dans la solution logicielle Vitam
+  - Restant : Nombre d'objets restants dans la solution logicielle Vitam
 
 - Type (standard, plan de classement, arbre de positionnement)
-- statut (En stock et complète, En stock et mise à jour, Sortie du stock)
+- Statut de l'entrée (En stock et complète, En stock et mise à jour, Sortie du stock)
 
 Un bouton "Unités archivistiques associées" permet d'accéder directement à la liste des unités archivistiques liées à ce service producteur.
 
+|
 
 .. image:: images/fonds_bouton.png
