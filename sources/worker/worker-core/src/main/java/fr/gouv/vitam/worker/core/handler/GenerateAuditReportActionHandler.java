@@ -66,6 +66,9 @@ import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 
+/**
+ * Generate final audit report as a Json
+ */
 public class GenerateAuditReportActionHandler extends ActionHandler {
 
     private static final String ID_GOT = "IdGOT";
@@ -197,18 +200,18 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         report.put("DateTime", res.get("evDateTime").textValue());
 
         ArrayNode events = (ArrayNode) res.get(EVENT);
-        for (int l = events.size(), i = l-1; i > 0; i--) {
+        for (int l = events.size(), i = l - 1; i > 0; i--) {
             JsonNode event = events.get(i);
             String eventType = event.get(LogbookMongoDbName.eventType.getDbname()).textValue();
             String outcome = event.get(LogbookMongoDbName.outcome.getDbname()).textValue();
-            
+
             // we get CHECK_OBJECT status if KO or LIST_OBJECTGROUP if WARNING else CHECK_OBJECT status (OK)
-            if(eventType.startsWith("AUDIT_CHECK_OBJECT") || 
-                    (eventType.startsWith("LIST_OBJECTGROUP_ID") && outcome.equals("WARNING"))) {
+            if (eventType.startsWith("AUDIT_CHECK_OBJECT") ||
+                (eventType.startsWith("LIST_OBJECTGROUP_ID") && outcome.equals("WARNING"))) {
                 report.put(STATUS, outcome);
                 report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
-                
-                if(outcome.equals("KO")){
+
+                if (outcome.equals("KO")) {
                     break;
                 }
             }
@@ -272,19 +275,19 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
                 String idOp = res.get(EV_ID_PROC).asText();
                 JsonNode events = res.get(EVENT);
-                for (int l = events.size(), i = l-1; i > 0; i--) {
+                for (int l = events.size(), i = l - 1; i > 0; i--) {
                     JsonNode event = events.get(i);
-                    if(event.get(EV_TYPE).asText().startsWith("LFC.AUDIT_") 
-                            && event.get(EV_ID_PROC).asText().equals(auditOperationId)){
+                    if (event.get(EV_TYPE).asText().startsWith("LFC.AUDIT_") &&
+                        event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
                         final String originatingAgency = evDetData.get(ORIGINATING_AGENCY).asText();
                         for (JsonNode error : evDetData.get("errors")) {
                             reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
-                                    .put(ID_GOT, event.get("obId").asText())
-                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
-                                    .put(USAGE, error.get(USAGE).asText())
-                                    .put(ORIGINATING_AGENCY, originatingAgency)
-                                    .put(OUT_DETAIL, event.get("outDetail").asText()));
+                                .put(ID_GOT, event.get("obId").asText())
+                                .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                .put(USAGE, error.get(USAGE).asText())
+                                .put(ORIGINATING_AGENCY, originatingAgency)
+                                .put(OUT_DETAIL, event.get("outDetail").asText()));
                         }
 
                         int nb = evDetData.get("nbKO").asInt();
@@ -295,7 +298,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                             serviceProducteurKO.put(originatingAgency, nb);
                         }
                         break;
-                    } 
+                    }
                 }
             }
         } catch (LogbookClientNotFoundException e) {

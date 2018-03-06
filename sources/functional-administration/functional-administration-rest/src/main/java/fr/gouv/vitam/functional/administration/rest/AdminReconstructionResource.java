@@ -81,6 +81,11 @@ public class AdminReconstructionResource {
      */
     private ReconstructionService reconstructionService;
 
+    /**
+     * Constructor
+     * 
+     * @param reconstructionFactory
+     */
     public AdminReconstructionResource(VitamRepositoryProvider reconstructionFactory) {
         this.reconstructionService = new ReconstructionServiceImpl(reconstructionFactory);
     }

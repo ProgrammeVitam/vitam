@@ -9,9 +9,9 @@ Cette section décrit le processus (workflow) permettant d'importer un contrat d
 Processus d'import  et mise à jour d'un contrat d'accès (vision métier)
 ========================================================================
 
-Le processus d'import d'un contrat d'accès permet à la fois de vérifier qu'il contient les informations minimales obligatoires, de vérifier la cohérence de l'ensemble des informations et de lui affecter des élements peuplés automatiquement.
+Le processus d'import d'un contrat d'accès permet à la fois de vérifier qu'il contient les informations minimales obligatoires, de vérifier la cohérence de l'ensemble des informations et de lui affecter des éléments peuplés automatiquement.
 
-Tous les élements réalisés au cours de ce processus sont exécutés dans une seule étape.
+Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
 Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
 ----------------------------------------------------------
@@ -25,9 +25,9 @@ Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
   + Les données suivantes sont obligatoirement remplies :
 
     * Le champ "Name" est peuplé d'une chaîne de caractères
-    * Le champ "Identifier" est peuplé d'une chaîne de caractères si le référentiel des contrats d'accès est configuré en mode esclave sur le tenant séléctionné
+    * Le champ "Identifier" est peuplé d'une chaîne de caractères si le référentiel des contrats d'accès est configuré en mode esclave sur le tenant sélectionné
 
-  + Les données suivantes optionnelles, si elles sont remplies, le sont en respectant les règles énnoncées pour chacune :
+  + Les données suivantes optionnelles, si elles sont remplies, le sont en respectant les règles énoncées pour chacune :
 
     * Le champ "Description" est peuplé avec une chaîne de caractères
     * Le champ "Status" est peuplé soit de la valeur ACTIVE ou INACTIVE

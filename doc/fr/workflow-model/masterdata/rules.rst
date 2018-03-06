@@ -82,8 +82,8 @@ Persistance des données en base (COMMIT_RULES)
 + **Statuts** :
 
     - OK : les données sont persistées en base
-      
-    - WARNING : 
+
+    - WARNING :
 
     - KO : pas de cas KO
 
@@ -125,10 +125,12 @@ Structure du rapport d'administration du référentiel des règles de gestion
 
 Lorsqu'un nouveau référentiel est importé, la solution logicielle Vitam génère un rapport de l'opération. Ce rapport est en 3 parties :
 
-  - "JDO" contient :
+  - "Operation" contient :
 
-    * evType : le type d'opération. Dans le cadre de ce rapport, il s'agit toujours de "STP_IMPORT_RULES"
-    * evDateTime : la date et l'heure de l'opération d'import
+    * evType : le type d'opération. Dans le cadre de ce rapport, il s'agit toujours de "STP_IMPORT_RULES".
+    * evDateTime : la date et l'heure de l'opération d'import.
+    * evId : l'identifiant de l'opération.
+    * outMessg : message final de l'opération.
 
   - "Error" : détail les erreurs en indiquant :
 
@@ -149,7 +151,7 @@ Le rapport généré est :
 
 ::
 
-  {"JDO":{"evType":"STP_IMPORT_RULES","evDateTime":"2017-11-02T13:50:22.389"},"error":{},"usedDeletedRules":[],"usedUpdatedRules":[]}
+  {"Operation":{"evType":"STP_IMPORT_RULES","evDateTime":"2017-11-02T13:50:22.389"},"error":{},"usedDeletedRules":[],"usedUpdatedRules":[]}
 
 
 **Exemple 2 : mise à jour d'un référentiel existant**
@@ -164,7 +166,7 @@ Le rapport généré est :
 ::
 
   {
-  	"JDO": {
+  	"Operation": {
   		"evType": "STP_IMPORT_RULES",
   		"evDateTime": "2017-11-02T14:03:53.326"
   	},

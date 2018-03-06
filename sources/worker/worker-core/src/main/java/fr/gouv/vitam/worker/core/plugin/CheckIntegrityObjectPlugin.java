@@ -23,6 +23,9 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+/**
+ * Check Integrity of object
+ */
 public class CheckIntegrityObjectPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckIntegrityObjectPlugin.class);

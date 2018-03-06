@@ -38,4 +38,50 @@ traits:
             description: Metadata Reconstruction Response
             example: !include examples/metadataReconstructionResponse.json
 
+  LogbookConsistency:
+    displayName: Logbook Consistency
+    description: Logbook Consistency
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: |
+          Retourne OK en cas de succès de la cohérence
+      500:
+        description: |
+          Retourne Internal Server Error en cas d'échec de la cohérence
+
+  AdminReindex:
+    description: Response model for reindexation order
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader400 ]
+    body:
+      application/json:
+        description: Contient la requête de réindexation au format JSON.
+        example: !include examples/reindexation.json
+    responses:
+      200:
+        description: |
+          Retourne OK en cas de succès de réindexation
+        body:
+          application/json:
+            description: Reindexation accepted
+            example: !include examples/reindexationResponse.json
+
+  AdminAlias:
+    description: Response model for switch order
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader400 ]
+    body:
+      application/json:
+        description: Contient la requête de switch au format JSON.
+        example: !include examples/switch.json
+    responses:
+      200:
+        description: |
+          Retourne OK en cas de succès de switch
+        body:
+          application/json:
+            description: Reindexation accepted
+            example: !include examples/switchResponse.json
   

@@ -4,16 +4,16 @@ Workflow d'export d'un DIP
 Introduction
 ============
 
-Cette section décrit le processus (workflow) d'export, utilisé lors de l'export d'un Dissemination Information Package (DIP) dans la solution logicielle Vitam.
+Cette section décrit le processus (workflow) d'export, utilisé lors de l'export d'un ``Dissemination Information Package`` (DIP) dans la solution logicielle Vitam.
 
-Toutes les étapes et actions sont journalisées dans le journal des opérations.
+Toutes les étapes et actions sont tracées dans le journal des opérations.
 Les étapes et actions associées ci-dessous décrivent le processus d'export de DIP (clé et description de la clé associée dans le journal des opérations) tel qu'implémenté dans la version actuelle de la solution logicielle Vitam.
 
 Création du Bordereau (STP_CREATE_MANIFEST)
 ============================================
 
-Création du Bordereau (CREATE_MANIFEST)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Création du Bordereau (CREATE_MANIFEST - CreateManifest.java)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : création d'un bordereau contenant les unités archivistiques soumises au service d'export de DIP, ainsi que le groupes d'objets techniques et objets-données qui leurs sont associés
 
@@ -30,10 +30,10 @@ Création du Bordereau (CREATE_MANIFEST)
 Déplacement des objets binaires vers le workspace (STP_PUT_BINARY_ON_WORKSPACE)
 ========================================================================================
 
-Déplacement des objets binaires vers le workspace (PUT_BINARY_ON_WORKSPACE)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Déplacement des objets binaires vers le workspace (PUT_BINARY_ON_WORKSPACE - PutBinaryOnWorkspace.java)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : déplacement des objets-données mentionnées dans le bordereau vers le workspace
++ **Règle** : déplacement des objets-données mentionnés dans le bordereau vers le workspace
 
 + **Type** : bloquant
 
@@ -48,8 +48,8 @@ Déplacement des objets binaires vers le workspace (PUT_BINARY_ON_WORKSPACE)
 Stockage du bordereau compressé (STP_STORE_MANIFEST)
 =====================================================
 
-Stockage du bordereau compressé (STORE_MANIFEST)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Stockage du bordereau compressé (STORE_MANIFEST - StoreDIP.java)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : Création et enregistrement du DIP sur les offres de stockage
 
@@ -69,3 +69,7 @@ Structure du Workflow d'export de DIP
 Le workflow d'export de DIP actuel mis en place dans la solution logicielle Vitam est défini dans l’unique fichier “ExportUnitWorkflow.json”. Ce fichier est disponible dans /sources/processing/processing-management/src/main/resources/workflows.
 
 D’une façon synthétique, le workflow est décrit de cette façon :
+
+.. image:: images/workflow_dip.png
+        :align: center
+        :alt: Diagramme d'état / transitions du workflow d'export de DIP

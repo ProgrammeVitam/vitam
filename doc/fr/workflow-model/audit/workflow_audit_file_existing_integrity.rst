@@ -9,14 +9,14 @@ Cette section décrit le processus (workflow) d'audit de l'existence des fichier
 Celui-ci est défini dans le fichier "DefaultAuditWorkflow.json” (situé ici : sources/processing/processing-management/src/main/resources/workflows).
 
 Processus d'audit d'existence des fichiers (vision métier)
-=======================================================================
+==========================================================
 
 Le processus d'audit prend comme point d'entrée l'identifiant d'un tenant ou l'identifiant d'un service producteur. Il est possible de lancer un audit de l'existence des fichiers uniquement, ou de lancer un audit vérifiant l'existence et l'intégrité des fichiers en même temps.
 
 Pour chaque objet du tenant choisi ou chaque objet appartenant au service producteur, l'audit va vérifier :
 
-	- Que la liste des offres de stockage définies dans le groupe d'objets est bien la même que celle définie dans la stratégie de stockage
-	- Que toutes les fichiers correspondant aux objets existent sur les offres déclarées, dans un nombre de copie spécifiée via la stratégie de stockage
+	- Que la liste des offres de stockage définie dans le groupe d'objets est bien la même que celle définie dans la stratégie de stockage
+	- Que tous les fichiers correspondant aux objets existent sur les offres déclarées, dans un nombre de copie spécifié via la stratégie de stockage
 
 De plus, si l'audit d'intégrité des objets est lancé, il va également vérifier que les empreintes des objets stockés en base de données sont bien les mêmes que les empreintes fournies par les espaces de stockage, alors recalculées à la demande de l'audit.
 
@@ -28,8 +28,8 @@ Enfin, il sécurise les journaux de cycle de vie qui ont été modifiés.
 Préparation de l'audit (STP_PREPARE_AUDIT)
 ==========================================
 
-Création de la liste des groupes d'objets (LIST_OBJECTGROUP_ID)
-------------------------------------------------------------------------------
+Création de la liste des groupes d'objets (LIST_OBJECTGROUP_ID - PrepareAuditActionHandler.java)
+------------------------------------------------------------------------------------------------
 
 * **Règle** : Création de la liste des groupes d'objets à auditer
 * **Type** : bloquant
@@ -38,21 +38,21 @@ Création de la liste des groupes d'objets (LIST_OBJECTGROUP_ID)
 	* FATAL : Une erreur technique est survenue lors de la création de la liste (LIST_OBJECTGROUP_ID.FATAL=Erreur fatale lors de la création de la liste des groupes d'objets à auditer)
 
 Audit (STP_AUDIT)
-===================================================
+=================
 
-AUDIT_CHECK_OBJECT
--------------------
+AUDIT_CHECK_OBJECT - AuditCheckObjectPlugin.java
+------------------------------------------------
 
-* **Règle** : Tâche technique pour organiser et lancer l'action d'audit. A la fin de l'audit de chaque groupe d'objets qui est en KO, la mise à jour en base de son journal de cycle de vie est faite. 
+* **Règle** : Tâche technique pour organiser et lancer l'action d'audit. A la fin de l'audit de chaque groupe d'objets en KO, la mise à jour en base de son journal de cycle de vie est faite.
 * **Type** : bloquant
 * **Statuts** :
 	* OK : l'action d'audit s'est terminée en OK (Succès de l'audit de la vérification des objets)
-	* KO : l'action d'audit s'est terminée en KO (Échec de l'audit de la vérification des objets)
+	* KO : l'action d'audit s'est terminée en KO (Échec de l'audit de la vérification des objets).
 	* FATAL : une erreur technique est survenue lors du lancement de l'action d'audit (Erreur fatale lors de l'audit de la vérification des objets)
 
 
-Audit de l'existence des objets (AUDIT_FILE_EXISTING)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Audit de l'existence des objets (AUDIT_FILE_EXISTING - CheckExistenceObjectPlugin.java)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **Règle** : Vérification que, pour chaque groupe d'objets audités :
 	* La stratégie de stockage du groupe d'objets est conforme à celle du moteur de stockage
@@ -64,8 +64,8 @@ Audit de l'existence des objets (AUDIT_FILE_EXISTING)
 	* Warning : il n'y a aucun objet à auditer (cas par exemple d'un producteur sans objets) (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.WARNING=Avertissement lors de l'audit de l'existence des objets : au moins un groupe d'objets n'a pas d'objet binaire à vérifier)
 	* FATAL : erreur technique lors de l'audit de l'existence des objets (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.FATAL=Erreur fatale lors de l'audit de l'existence des objets)
 
-Audit de l'intégrité des objets (AUDIT_FILE_INTEGRITY)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Audit de l'intégrité des objets (AUDIT_FILE_INTEGRITY - CheckIntegrityObjectPlugin.java)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **Règle** : Vérification que, pour chaque groupe d'objets audités :
 	* L'objet existe bien (voir "AUDIT_FILE_EXISTING")
@@ -81,10 +81,10 @@ Audit de l'intégrité des objets (AUDIT_FILE_INTEGRITY)
 	:align: center
 
 Finalisation de l'audit (STP_FINALISE_AUDIT)
-====================================================
+============================================
 
-Notification de la fin d'audit (REPORT_AUDIT)
--------------------------------------------------------
+Notification de la fin d'audit (REPORT_AUDIT - GenerateAuditReportActionHandler.java)
+-------------------------------------------------------------------------------------
 
 * **Règle** : génération du rapport d'audit
 * **Type** : bloquant

@@ -11,3 +11,4 @@ Metadata
    metadata-user-client.rst
    metadata-tenant.rst
    metadata-inherited-rule.rst
+   metadata-sync.rst

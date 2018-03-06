@@ -12,7 +12,7 @@ Un Workflow est défini en JSON avec la structure suivante :
 - une clé (identifier)
 - un nom (name)
 - une catégorie (typeProc)
-- une liste de Steps :
+- une liste de Steps : La structure d'une step donnée est la suivante
 
  - un identifiant de famille de Workers (workerGroupId)
  - un identifiant de Step (stepName)
@@ -23,8 +23,17 @@ Un Workflow est défini en JSON avec la structure suivante :
 
  - un modèle de distribution :
 
-    - un type (kind) pouvant être REF ou LIST
-    - l'élément de distribution (element) indiquant l'élément unique (REF) ou le chemin sur le Workspace (LIST)
+    - kind: un type pouvant être :
+
+        - REF : pas de distribution pour ce step et définit une référence vers un fichier à traiter. (Exemple: manifest.xml)
+        - LIST : 
+         - si la valeur de 'element' est 'Units' : la liste des éléments à traiter est incluse dans un fichier ingestLevelStack.json. Ce fichier contient les guid des archive units ordonnés par niveau de graphe.
+         - si la valeur de 'element' est autre : la liste des éléments à traiter est représentée par les fichiers présents dans le sous-répertoire représenté par 'element' (ex : 'ObjectGroup')          
+        - LIST_IN_FILE: Fichier contenant une liste de GUID à traiter dans la distribution
+
+    - l'élément de distribution (element) indiquant l'élément unique (REF) ou le chemin vers un dossier ou un fichier sur le Workspace (LIST, LIST_IN_FILE)
+    - type: est-ce une distribution sur des unités archivistiques ou sur des groupes d'objets.
+    - statusOnEmptyDistribution: Le statut qu'on attribue au step si jamais la distribution n'a pas eu lieu. Par defaut: WARNING
 
  - une liste d'Actions :
 
@@ -73,25 +82,47 @@ Etapes
 
 - **Step 1** - STP_INGEST_CONTROL_SIP : Check SIP  / distribution sur REF GUID/SIP/manifest.xml
 
+  - PREPARE_STORAGE_INFO :
+    - Vérifier que le storage est disponible
+    - Récupérer les informations de connection au storage et les offres de stockage.
+
   - CHECK_SEDA :
     - Test existence manifest.xml
     - Validation XSD SEDA manifest.xml
 
-  - CHECK_MANIFEST_DATAOBJECT_VERSION :
+  - CHECK_HEADER :
+    - CHECK_AGENT: Vérifier l'existence des services agents dans le manifest et dans le référentiel des services agents.
+    - CHECK_CONTRACT_INGEST : Vérifier l'existence des contrats d'entrée dans le manifest et dans le référentiel des contrats d'entrée
+    - CHECK_IC_AP_RELATION: Vérifier le profile d'archivage et sa relation avec le contrat d'entrée
+    - CHECK_ARCHIVEPROFILE: valider le manifest avec le fichier XSD/RNG défini dans le profile d'archivage
+
+  - CHECK_DATAOBJECTPACKAGE:
+    - Cas 1: arbres et plans d'accès
+        - CHECK_NO_OBJECT
+        - CHECK_MANIFEST_OBJECTNUMBER
+        - CHECK_MANIFEST
+
+    - Cas 2: SIP
+        - CHECK_MANIFEST_DATAOBJECT_VERSION
+        - CHECK_MANIFEST_OBJECTNUMBER
+        - CHECK_MANIFEST
+        - CHECK_CONSISTENCY
+
+  - CHECK_NO_OBJECT: Vérifier l'existence ou pas des objets binaires et des objets physiques
+    - Vérifier l'égalité du nomber de fichiers binaires dans le workspace par rapport au manifest.
+    - Extract seda: créer des fichiers json représentant les méta-données des unités archivistiques et groupes d'objets
+    - Si en plus, l'ingest n'est pas un arbre ou un plan de classement, vérifier la cohérence entre les unités archivistiques et les groupes d'objets.
 
   - CHECK_MANIFEST_OBJECTNUMBER :
     - Comptage BinaryDataObject dans manifest.xml en s'assurant d'aucun doublon :
     - List Workspace GUID/SIP/content/
     - CheckObjectsNumber Comparaison des 2 nombres et des URI
 
-
   - CHECK_MANIFEST :
     - Extraction BinaryDataObject de manifest.xml / MAP des Id BDO / Génération GUID
     - Extraction ArchiveUnit de manifest.xml / MAP des id AU / Génération GUID
     - Contrôle des références dans les AU des Id BDO
     - Stockage dans Workspace des BDO et AU
-
-  - CHECK_CONTRACT_INGEST : Vérification de la présence et contrôle du contrat d'entrée
 
   - CHECK_CONSISTENCY : vérification de la cohérence objet/unit
 
@@ -151,4 +182,4 @@ Un step est une étape de workflow. Il regroupe un ensemble d'actions (handler).
 
 
 DefaultRulesUpdateWorkflow
-===========================
+==========================
