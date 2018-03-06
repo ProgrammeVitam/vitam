@@ -35,12 +35,12 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 
     - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (not before, not after) et est bien présent dans le référentiel d’authentification des certificats valides (qui est un fichier keystore contenant la liste des certificats valides).
 
-.. note:: Dans cette version du système VITAM, la liste des certificats reconnus est stockée dans un keystore Java.
+.. caution:: La révocation des certificats se fait par leur suppression dans les différents magasins et référentiels. Les CRL ne sont pas supportées dans cette version de la solution logicielle VITAM.
 
 * Filtrage exhaustif des données et requêtes entrant dans le système basé sur :
 
-    - Un WAF applicatif permettant le filtrage d'entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ protégeant notamment contre les attaques de type XSS)
-    - Support de l'utilisation d'un ou plusieurs antivirus (configurables et extensibles) dans le composant d'entrée (``ingest``) permettant de valider l'inocuité des données entrantes.
+    - Un WAF applicatif permettant le filtrage d'entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ dans les composants ``*-external`` protégeant notamment contre les attaques de type XSS)
+    - Support de l'utilisation d'un ou plusieurs antivirus (configurables et extensibles) dans le composant d'entrée (``ingest-external``) permettant de valider l'inocuité des données entrantes.
 
 .. note:: Dans cette version du système, le paramétrage de l'antivirus est supporté lors de l'installation, mais pas le paramétrage d'ESAPI (notamment les filtres appliqués).
 
@@ -53,7 +53,7 @@ Le secret de plateforme permet de se protéger contre des erreurs de manipulatio
 Dans chaque requête, les deux headers suivants sont positionnés :
 
 * ``X-Request-Timestamp`` : il contient le timestamp de la requête sous forme epoch (secondes depuis 1970)
-* ``X-Platform-ID`` : il contient la valeur suivante : SHA256("<methode>;<URL>;<Valeur du header X-Request-Timestamp>;<Secret partagé de plateforme>")
+* ``X-Platform-ID`` : il contient la valeur suivante : ``SHA256("<methode>;<URL>;<Valeur du header X-Request-Timestamp>;<Secret partagé de plateforme>")``
 
 Du côté du composant cible de la requête, le contrôle est alors le suivant :
 

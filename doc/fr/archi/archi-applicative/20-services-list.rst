@@ -4,6 +4,80 @@ Services métiers
 Les services métiers sont présentés dans les sections suivantes ; pour chaque service, est indiqué son nom commun (en français), ainsi que le nom de service correspondant (en anglais, basé sur les usages :term:`OAIS`).
 
 
+API externes (ingest-external et access-external)
+=================================================
+
+Rôle :
+
+* Exposer les API publiques du système
+* Sécuriser l'accès aux API de VITAM
+
+Contraintes techniques :
+
+* Authentification forte requise de la part des clients
+* WAF
+
+Données gérées :
+
+* Pour ingest-external : SIP dans le sas d'entrée (conservés uniquement pendant leur analyse antivirus)
+
+
+Moteur d'entrée (ingest-internal)
+=================================
+
+Rôle :
+
+* Permettre l'entrée d'une archive SEDA dans le SAE
+
+Fonctions :
+
+* Upload HTTP de fichiers au format SEDA
+* Sas de validation antivirus des fichiers entrants
+* Persistance du SEDA dans workspace
+* Lancement des workflows de traitements liés à l'entrée dans processing
+
+Données gérées :
+
+* Aucune
+
+
+Moteur d'accès (access-internal)
+================================
+
+Rôle :
+
+* Permettre l'accès aux données du système VITAM
+
+Fonction :
+
+* Exposition des fonctions de recherche d'archives offertes par metadata ;
+* Exposition des fonctions de parcours de journaux offertes par logbook.
+* Exposition des fonctions d'admnistration métier du système offertes par functional-administration.
+
+Données gérées :
+
+* Aucune
+
+
+Gestion des droits & accès (security-internal)
+==============================================
+
+Rôle :
+
+* Gérer le référentiel d'authentification des applications
+
+Fonctions :
+
+* Gestion des certificats d'accès des applications (SIA)
+* Gestion des certificats personnels
+* Gestion des endpoints nécessitant le contrôle des certificats personnels.
+
+Données gérées :
+
+* Certificats des applications appelant Vitam (SIA).
+* Certificates personnels (pour les endpoints nécessitant une authentification personae)
+
+
 Moteur d’exécution (processing)
 ===============================
 
@@ -28,23 +102,6 @@ Contraintes techniques :
 Données gérées :
 
 * Etat des workflow en cours d'exécution
-
-
-Moteur de stockage (storage)
-============================
-
-Rôle :
-
-* Stockage des données (Méta Données, Objets Numériques et journaux SAE et de l’archive)
-
-Fonctions :
-
-* Utilisation de stratégie de stockage (abstraction par rapport aux offres de stockage sous-jacentes)
-* Gestion des différentes offres de stockage
-
-Données gérées :
-
-* Journaux d'écriture
 
 
 Espace de travail (workspace)
@@ -93,8 +150,7 @@ Rôle :
 
 Fonctions :
 
-* Fournit une API agrégeant une technologie de base de données et un moteur d’indexation
-* Fournit un cache des requêtes pour optimisation
+* Fournit une API agrégeant et abstrayant une technologie de base de données et un moteur d’indexation
 
 Données gérées :
 
@@ -110,7 +166,8 @@ Rôle :
 
 Fonctions :
 
-* Appel uniquement à partir de l’application
+* Gestion des journaux (ajout, lecture) ;
+* Sécurisation des journaux (cron)
 
 Contraintes techniques :
 
@@ -132,8 +189,7 @@ Rôle :
 
 Fonctions :
 
-* Gestion du référentiel des formats (PRONOM)
-* Gestion des règles de gestion des archives
+* Gestion des référentiels métier VITAM
 
 Données gérées :
 
@@ -148,24 +204,22 @@ Données gérées :
     - ...
 
 
-Gestion des droits & accès (security-internal)
-==============================================
+Moteur de stockage (storage)
+============================
 
 Rôle :
 
-* Gérer le référentiel d'authentification des applications
+* Stockage des données (Méta Données, Objets Numériques et journaux SAE et de l’archive)
 
 Fonctions :
 
-* Gestion des certificats d'accès des applications (SIA)
-* Gestion des certificats personnels
-* Gestion des endpoints nécessitant le contrôle des certificats personnels.
-* Gestion des contextes
+* Utilisation de stratégie de stockage (abstraction par rapport aux offres de stockage sous-jacentes)
+* Gestion des différentes offres de stockage
 
 Données gérées :
 
-* Contextes & certificats associés
-
+* Journaux d'écriture
+* Sécurisation des journaux d'écriture
 
 
 Offre de stockage par défaut (storage-offer-default)
@@ -178,77 +232,12 @@ Rôle :
 Fonctions :
 
 * Offre de stockage fournie par défaut
-* Stockage simple des objets numériques sur un système de fichiers local
+* Stockage simple des objets numériques sur un système de fichiers local ou sur un stockage objet Swift
+* Log des écritures dans l'offre en permettant le rejeu
 
 Données gérées :
 
 * Tout ce qui doit être conservé à long terme (mais uniquement pour la gestion technique de ces données)
-
-
-Moteur d'entrée (ingest-internal)
-=================================
-
-Rôle :
-
-* Permettre l'entrée d'une archive SEDA dans le SAE
-
-Fonctions :
-
-* Upload HTTP de fichiers au format SEDA
-* Sas de validation antivirus des fichiers entrants
-* Persistance du SEDA dans workspace
-* Lancement des workflows de traitements liés à l'entrée dans processing
-
-Données gérées :
-
-* Aucune
-
-
-Moteur d'accès (access-internal)
-================================
-
-Rôle :
-
-* Permettre l'accès aux données du système VITAM
-
-Fonction :
-
-* Exposition des fonctions de recherche d'archives offertes par metadata ;
-* Exposition des fonctions de parcours de journaux offertes par logbook.
-
-Données gérées :
-
-* Aucune
-
-
-Internal security
-=====================================
-
-* Rôle : Permettre l'authentification des  utilisateurs vitam
-
-  - permet de stocker les certificats des applications appelant Vitam (SIA).
-  - permet de stocker les certificates personnels (pour les endpoints nécessitant une authentification personae)
-
-
-.. A terme, il y aura les journaux d'accès
-
-
-API externes (ingest-external et access-external)
-=================================================
-
-Rôle :
-
-* Exposer les API publiques du système
-* Sécuriser l'accès aux API de VITAM
-
-Contraintes techniques :
-
-* Authentification forte requise de la part des clients
-* WAF
-
-Données gérées :
-
-* Pour ingest-external : SIP dans le sas d'entrée (conservés uniquement pendant leur analyse antivirus)
 
 
 Interface de démonstration (ihm-demo)
@@ -267,7 +256,7 @@ Fonctions :
 
 Contraintes techniques :
 
-* IHM intuitive (sans workflows métiers), accessible (au sens RGAA), « responsive design» (gestion des résolutions différentes tout en restant sur des écrans « PC » (15’’ et +))
+* IHM intuitive (sans workflows métiers), accessible (au sens RGAA), « responsive design»
 * Compatibilité avec les navigateurs actuels
 * Pas d’applets/clients lourds
 
