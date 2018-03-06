@@ -216,13 +216,15 @@ L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en
 
 
 Visualisation du graphe
------------------------
+=======================
 
 Cette partie permet d'avoir une répresentation visuelle d'un graphe contenu dans un SIP. 
 La première étape consiste donc à récupérer les information suivantes :
 
 - L'identifiant de l'opération
 - L'intitulé du contrat utilisé 
+
+Note : la page correspondant à l'écran utilisé est expérimentale. 
 
 Dans l'interface de l 'IHM Recette, l'administrateur peut aller dans la Partie " Tests " puis dans la partie " Visualisation du Graphe ". 
 
