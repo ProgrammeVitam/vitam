@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -46,8 +47,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -95,7 +94,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoragePopulateImpl.class);
     private static final StorageStrategyProvider STRATEGY_PROVIDER =
         StorageStrategyProviderFactory.getDefaultProvider();
-
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
 
@@ -108,7 +106,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
      * Used to wait for all task submission (executorService)
      */
     private static final long THREAD_SLEEP = 1;
-    private final String urlWorkspace;
     private final Integer millisecondsPerKB;
     private final DigestType digestType;
 
@@ -117,19 +114,30 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     /**
      * Constructs the service with a given configuration
      *
-     * @param configuration the configuration of the storage
+     * @param configuration configuration of storage server
      */
     public StoragePopulateImpl(StorageConfiguration configuration) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
-        urlWorkspace = configuration.getUrlWorkspace();
+        String urlWorkspace = configuration.getUrlWorkspace();
         WorkspaceClientFactory.changeMode(urlWorkspace);
         millisecondsPerKB = configuration.getTimeoutMsPerKB();
         digestType = VitamConfiguration.getDefaultDigestType();
     }
 
-    // createObjectDescription AND jsonData in the same params but
-    // they should not be both resent at the same time. Maybe encapsulate or
-    // create 2 methods
+    /**
+     * createObjectDescription AND jsonData in the same params but
+     * they should not be both resent at the same time. Maybe encapsulate or
+     * create 2 methods
+     *
+     * @param strategyId strategyId
+     * @param objectId   objectId
+     * @param file       file
+     * @param category   category
+     * @param tenantId   tenantId
+     * @return StoredInfoResult
+     * @throws StorageException      StorageException
+     * @throws FileNotFoundException FileNotFoundException
+     */
     public StoredInfoResult storeData(String strategyId, String objectId, File file,
         DataCategory category, int tenantId)
         throws StorageException, FileNotFoundException {
@@ -182,7 +190,8 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                         new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
                             streams.getInputStream(rank));
                     futureMap.put(offerReference.getId(),
-                        executor.submit(new TransferThread(driver, offerReference, request, globalDigest)));
+                        executor
+                            .submit(new TransferThread(driver, offerReference, request, globalDigest, file.length())));
                     rank++;
                 }
             } catch (NumberFormatException e) {

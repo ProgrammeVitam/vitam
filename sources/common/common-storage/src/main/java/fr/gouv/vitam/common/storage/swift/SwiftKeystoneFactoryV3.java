@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -23,43 +23,60 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-
+ *******************************************************************************/
 package fr.gouv.vitam.common.storage.swift;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.function.Supplier;
+
+import javax.net.ssl.SSLContext;
+
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import org.apache.http.ssl.SSLContexts;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.openstack.OSFactory;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-
 /**
- * Keystone V3 authentication implementation
+ * SwiftKeystoneFactory V3
  */
-public class SwiftKeystoneV3 extends Swift {
+public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SwiftKeystoneV3.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SwiftKeystoneFactoryV3.class);
 
+    private final StorageConfiguration configuration;
+    private Config configOS4J;
     private static Token token;
-
     private Identifier domainIdentifier;
     private Identifier projectIdentifier;
-    private Config configOS4J;
 
-    public SwiftKeystoneV3(StorageConfiguration configuration) {
-        super(configuration);
+    public SwiftKeystoneFactoryV3(StorageConfiguration configuration)
+        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
         domainIdentifier = Identifier.byName(configuration.getSwiftUid());
         projectIdentifier = Identifier.byName(configuration.getProjectName());
-        configOS4J = Config.newConfig().withEndpointURLResolver(new VitamEndpointUrlResolver(configuration));
+        configOS4J = Config.newConfig()
+            .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration));
+
+        if (configuration.getKeystoneEndPoint().startsWith("https")) {
+            File file = new File(configuration.getSwiftTrustTore());
+            SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustTorePassword().toCharArray()).build();
+
+            configOS4J.withSSLContext(sslContext);
+        }
+        this.configuration = configuration;
     }
 
-    @Override
-    public OSClient.OSClientV3 getAuthenticatedClient() {
+    public OSClient.OSClientV3 get() {
         OSClient.OSClientV3 osClientV3;
         if (token == null || token.getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now()))) {
             LOGGER.info("No token or token expired, let's get authenticate again");
@@ -67,8 +84,9 @@ public class SwiftKeystoneV3 extends Swift {
             osClientV3 = OSFactory.builderV3().endpoint(configuration.getKeystoneEndPoint())
                 .credentials(configuration.getSwiftSubUser(), configuration.getCredential(), domainIdentifier)
                 .scopeToProject(projectIdentifier, domainIdentifier)
-                    .withConfig(configOS4J)
-                    .authenticate();
+                .withConfig(configOS4J)
+                .authenticate();
+
             token = osClientV3.getToken();
         } else {
             osClientV3 = OSFactory.clientFromToken(token, configOS4J);

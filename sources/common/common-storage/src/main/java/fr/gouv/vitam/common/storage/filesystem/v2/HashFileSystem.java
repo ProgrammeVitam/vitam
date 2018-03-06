@@ -156,7 +156,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     // This was choosen to be coherent with existing Jclouds implementation of ContentAdressableStorage
     // This must be changed by verifying that where the call is done, it implements the contract
     @Override
-    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType)
+    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
+        Long size)
         throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);

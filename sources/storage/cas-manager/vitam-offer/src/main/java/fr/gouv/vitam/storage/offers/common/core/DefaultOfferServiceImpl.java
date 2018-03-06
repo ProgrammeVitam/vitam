@@ -29,6 +29,10 @@ package fr.gouv.vitam.storage.offers.common.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,7 +91,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
-    public DefaultOfferServiceImpl(OfferLogDatabaseService offerDatabaseService) {
+    public DefaultOfferServiceImpl(OfferLogDatabaseService offerDatabaseService)
+        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
         this.offerDatabaseService = offerDatabaseService;
         StorageConfiguration configuration;
         try {
@@ -136,28 +141,29 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return objectInit;
     }
 
+
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-        DataCategory type)
-        throws IOException, ContentAddressableStorageException {
+        DataCategory type, Long size) throws IOException, ContentAddressableStorageException {
         // TODO No chunk mode (should be added in the future)
         // TODO the objectPart should contain the full object.
         try {
-            return putObject(containerName, objectId, objectPart, type);
+            return putObject(containerName, objectId, objectPart, type, size);
         } catch (ContentAddressableStorageNotFoundException ex) {
             try {
                 defaultStorage.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
                 LOGGER.debug(CONTAINER_ALREADY_EXISTS, e);
             }
-            return putObject(containerName, objectId, objectPart, type);
+            return putObject(containerName, objectId, objectPart, type, size);
         } catch (final ContentAddressableStorageException exc) {
             LOGGER.error("Error with storage service", exc);
             throw exc;
         }
     }
 
-    private String putObject(String containerName, String objectId, InputStream objectPart, DataCategory type)
+    private String putObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
+        Long size)
         throws ContentAddressableStorageException {
         // TODO: review this check and the defaultstorage implementation
         if (isObjectExist(containerName, objectId) && !type.canUpdate()) {
@@ -166,7 +172,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
         DigestType digestType = getDigestAlgoFor(objectId);
 
-        defaultStorage.putObject(containerName, objectId, objectPart, digestType);
+        defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
         // Check digest AFTER writing in order to ensure correctness
         final String digest = defaultStorage.computeObjectDigest(containerName, objectId, digestType);
         // remove digest algo

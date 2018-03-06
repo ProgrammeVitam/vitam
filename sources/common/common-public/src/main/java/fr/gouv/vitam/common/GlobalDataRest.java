@@ -97,7 +97,7 @@ public class GlobalDataRest {
      * The X_TIMESTAMP header
      */
     public static final String X_TIMESTAMP = "X-Timestamp";
-    
+
     /**
      * The X_CSRF_TOKEN header
      */
@@ -133,6 +133,10 @@ public class GlobalDataRest {
      * Header use to have the body (object) size even if Content-Type is chunkec
      */
     public static final String X_CONTENT_LENGTH = "X-Content-Length";
+    /**
+     * Header use to  have size before swift upload
+     */
+    public static final String VITAM_CONTENT_LENGTH = "Vitam-Content-Length";
 
     /**
      * Header to passe certificate pem

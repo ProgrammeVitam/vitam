@@ -30,9 +30,12 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
@@ -40,7 +43,6 @@ import javax.ws.rs.core.Context;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.MongoDatabase;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -86,7 +88,7 @@ public class BusinessApplication extends Application {
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(defaultOfferResource);
 
-        } catch (IOException e) {
+        } catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
             throw new RuntimeException(e);
         }
     }

@@ -68,22 +68,20 @@ public class TransferThread implements Callable<ThreadResponseData> {
     private final OfferReference offerReference;
     private final StoragePutRequest request;
     private final Digest globalDigest;
+    private final Long size;
 
     private static boolean IS_JUNIT_MODE = false;
 
     /**
      * Default constructor
      *
-     * @param driver
-     *            thre diver
-     * @param offerReference
-     *            the offer reference to put object
-     * @param request
-     *            the request to put object
-     * @param globalDigest
-     *            the globalDigest associated with the stream
+     * @param driver         thre diver
+     * @param offerReference the offer reference to put object
+     * @param request        the request to put object
+     * @param globalDigest   the globalDigest associated with the stream
      */
-    public TransferThread(Driver driver, OfferReference offerReference, StoragePutRequest request, Digest globalDigest) {
+    public TransferThread(Driver driver, OfferReference offerReference, StoragePutRequest request, Digest globalDigest,
+        long size) {
         ParametersChecker.checkParameter("Driver cannot be null", driver);
         ParametersChecker.checkParameter("OfferReference cannot be null", offerReference);
         ParametersChecker.checkParameter("PutObjectRequest cannot be null", request);
@@ -92,13 +90,13 @@ public class TransferThread implements Callable<ThreadResponseData> {
         this.offerReference = offerReference;
         this.request = request;
         this.globalDigest = globalDigest;
+        this.size = size;
     }
 
     /**
      * Allow to check timeout in Junit
-     * 
-     * @param mode
-     *            if true allow to implement timeout using GUID to "timeoutTest"
+     *
+     * @param mode if true allow to implement timeout using GUID to "timeoutTest"
      */
     public static void setJunitMode(boolean mode) {
         IS_JUNIT_MODE = mode;
@@ -107,7 +105,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
     // TODO: Manage interruption (if possible)
     @Override
     public ThreadResponseData call()
-            throws StorageException, StorageDriverException, StorageAlreadyExistsException, InterruptedException {
+        throws StorageException, StorageDriverException, StorageAlreadyExistsException, InterruptedException {
         if (IS_JUNIT_MODE && request.getGuid().equals(TIMEOUT_TEST) && request.getTenantId() == 0) {
             LOGGER.info("Sleep for Junit test");
             Thread.sleep(2000);
@@ -126,26 +124,29 @@ public class TransferThread implements Callable<ThreadResponseData> {
                 // TODO: How to do the cleaner ?
                 // TODO: remove this, check is offer size (#1851) !
                 StoragePutRequest putObjectRequest = new StoragePutRequest(request.getTenantId(), request.getType(),
-                        request.getGuid(), request.getDigestAlgorithm(), request.getDataStream());
-
+                    request.getGuid(), request.getDigestAlgorithm(), request.getDataStream());
+                putObjectRequest.setSize(this.size);
                 StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
                 LOGGER.debug(putObjectRequest.toString());
                 if (Thread.currentThread().isInterrupted()) {
                     throw new InterruptedException();
                 }
                 // Check digest against offer
-                StorageCheckRequest storageCheckRequest = new StorageCheckRequest(request.getTenantId(), request.getType(),
+                StorageCheckRequest storageCheckRequest =
+                    new StorageCheckRequest(request.getTenantId(), request.getType(),
                         request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()), globalDigest.digestHex());
                 if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
                     LOGGER.error("Digest invalid for tenant: {} offer: {} id: {}",
-                            HeaderIdHelper.getTenantId(), offer.getId(), request.getGuid());
+                        HeaderIdHelper.getTenantId(), offer.getId(), request.getGuid());
                     throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content "
-                            + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
+                        + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
                 }
                 response = new ThreadResponseData(
-                        new StoragePutResult(putObjectResult.getTenantId(), putObjectResult.getType(), putObjectResult.getGuid(),
-                                putObjectResult.getDistantObjectId(), globalDigest.digestHex(), putObjectResult.getObjectSize()),
-                        Response.Status.CREATED, request.getGuid());
+                    new StoragePutResult(putObjectResult.getTenantId(), putObjectResult.getType(),
+                        putObjectResult.getGuid(),
+                        putObjectResult.getDistantObjectId(), globalDigest.digestHex(),
+                        putObjectResult.getObjectSize()),
+                    Response.Status.CREATED, request.getGuid());
             } else {
                 // TODO: if already exist then cancel and replace. Need rollback
                 // feature (which need remove feature)

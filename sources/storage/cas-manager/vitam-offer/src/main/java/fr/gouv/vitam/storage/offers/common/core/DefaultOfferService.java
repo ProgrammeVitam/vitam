@@ -55,8 +55,8 @@ public interface DefaultOfferService {
     /**
      * Get offer storage digest of object
      *
-     * @param containerName the container with the object
-     * @param objectId the object name / id
+     * @param containerName   the container with the object
+     * @param objectId        the object name / id
      * @param digestAlgorithm the digest algorithm
      * @return the offer computed digest
      * @throws ContentAddressableStorageException thrown on storage error
@@ -68,10 +68,10 @@ public interface DefaultOfferService {
      * Get object on offer as an inputStream
      *
      * @param containerName the container containing the object
-     * @param objectId the object id
+     * @param objectId      the object id
      * @return the object included in a response
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
-     * @throws ContentAddressableStorageException thrown when a server error occurs
+     * @throws ContentAddressableStorageException         thrown when a server error occurs
      */
     Response getObject(String containerName, String objectId)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
@@ -82,13 +82,13 @@ public interface DefaultOfferService {
      * Create container on offer if does not exist for one object Also update digest type and object GUID
      *
      * @param containerName the container name to create
-     * @param objectInit informations about object to create
-     * @param objectGUID the object GUID to create
+     * @param objectInit    informations about object to create
+     * @param objectGUID    the object GUID to create
      * @return objectInit with the offer object id (needed for the create object operation)
-     * @throws ContentAddressableStorageServerException thrown when a server error occurs
+     * @throws ContentAddressableStorageServerException       thrown when a server error occurs
      * @throws ContentAddressableStorageAlreadyExistException thrown if the container to create already exists
-     * @throws ContentAddressableStorageNotFoundException thrown if the container storage could not be created
-     * @throws ContentAddressableStorageDatabaseException thrown if the container sequence could not be incremented
+     * @throws ContentAddressableStorageNotFoundException     thrown if the container storage could not be created
+     * @throws ContentAddressableStorageDatabaseException     thrown if the container sequence could not be incremented
      */
     ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
         throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
@@ -99,26 +99,26 @@ public interface DefaultOfferService {
      * send in the great order.
      *
      * @param containerName the container name
-     * @param objectId the offer objectId to create
-     * @param objectPart the part of the object to create (chunk style)
-     * @param ending true if objectPart is the last part
-     * @param type the object type to create
+     * @param objectId      the offer objectId to create
+     * @param objectPart    the part of the object to create (chunk style)
+     * @param ending        true if objectPart is the last part
+     * @param type          the object type to create
+     * @param size          inputstream size
      * @return the digest of the complete file or the digest of the chunk
-     *
-     * @throws IOException if an IOException is encountered with files
+     * @throws IOException                        if an IOException is encountered with files
      * @throws ContentAddressableStorageException if the container does not exist
      */
     // TODO P1 : add chunk number to be able to retry and check error
     // TODO P1 : better chunk management
-    String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-        DataCategory type)
-        throws IOException, ContentAddressableStorageException;
+    String createObject(String containerName, String objectId, InputStream objectPart, boolean ending, DataCategory
+        type, Long size) throws IOException, ContentAddressableStorageException;
+
 
     /**
      * Check if object exists
      *
      * @param containerName the container suppose to contain the object
-     * @param objectId the objectId to check
+     * @param objectId      the objectId to check
      * @return true if object exists, false otherwise
      * @throws ContentAddressableStorageServerException
      */
@@ -137,10 +137,10 @@ public interface DefaultOfferService {
 
     /**
      * Check object
-     * 
-     * @param containerName the container name
-     * @param objectId the objectId to check
-     * @param digest the digest to be compared with
+     *
+     * @param containerName   the container name
+     * @param objectId        the objectId to check
+     * @param digest          the digest to be compared with
      * @param digestAlgorithm the digest Algorithm
      * @return true if the digest is correct
      * @throws ContentAddressableStorageException
@@ -150,7 +150,7 @@ public interface DefaultOfferService {
 
     /**
      * Count the number of objects in a container defined by the tenant and the type
-     * 
+     *
      * @param containerName the container name
      * @return Json with number of objects (objectNumber)
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
@@ -162,14 +162,14 @@ public interface DefaultOfferService {
     /**
      * Deletes a object representing the data at location containerName/objectName
      *
-     * @param containerName container where this exists.
-     * @param objectId the objectId to delete
-     * @param digest the digest to be compared with
+     * @param containerName   container where this exists.
+     * @param objectId        the objectId to delete
+     * @param digest          the digest to be compared with
      * @param digestAlgorithm the digest Algorithm
-     * @param type the object type to delete
+     * @param type            the object type to delete
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
-     *         be located in the container.
-     * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
+     *                                                    be located in the container.
+     * @throws ContentAddressableStorageException         Thrown when delete action failed due some other failure
      */
     void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm,
         DataCategory type)
@@ -177,29 +177,29 @@ public interface DefaultOfferService {
 
     /**
      * Check digest (UNIMPLEMENTED)
-     * 
+     *
      * @param containerName the container name
-     * @param idObject the objectId to check
-     * @param digest the digest to be compared with
-     * @throws UnsupportedOperationException (UNIMPLEMENTED)
+     * @param idObject      the objectId to check
+     * @param digest        the digest to be compared with
      * @return true if the digest is correct
+     * @throws UnsupportedOperationException (UNIMPLEMENTED)
      */
     boolean checkDigest(String containerName, String idObject, String digest);
 
     /**
      * Check digest algorithm (UNIMPLEMENTED)
-     * 
-     * @param containerName the container name
-     * @param idObject the objectId to check
+     *
+     * @param containerName   the container name
+     * @param idObject        the objectId to check
      * @param digestAlgorithm the digest Algorithm
-     * @throws UnsupportedOperationException (UNIMPLEMENTED)
      * @return true if the digest algorithm is correct
+     * @throws UnsupportedOperationException (UNIMPLEMENTED)
      */
     boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm);
 
     /**
      * Get Metadata
-     * 
+     *
      * @param containerName
      * @param objectId
      * @return StorageMetadatasResult
@@ -215,7 +215,7 @@ public interface DefaultOfferService {
      * @param containerName the container name
      * @return the cursor ID value
      * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
-     * @throws ContentAddressableStorageServerException thrown when delete action failed due some other failure
+     * @throws ContentAddressableStorageServerException   thrown when delete action failed due some other failure
      */
     String createCursor(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
@@ -224,7 +224,7 @@ public interface DefaultOfferService {
      * Check if iterator have a next value
      *
      * @param containerName the container name
-     * @param cursorId the cursor ID
+     * @param cursorId      the cursor ID
      * @return true if there is yet one or more value
      */
     boolean hasNext(String containerName, String cursorId);
@@ -233,7 +233,7 @@ public interface DefaultOfferService {
      * Get next values
      *
      * @param containerName the container name
-     * @param cursorId the cursor ID
+     * @param cursorId      the cursor ID
      * @return a list of next values
      * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
      * @throws ContentAddressableStorageServerException
@@ -245,20 +245,20 @@ public interface DefaultOfferService {
      * Close the cursor
      *
      * @param containerName the container name
-     * @param cursorId the cursor ID
+     * @param cursorId      the cursor ID
      */
     void finalizeCursor(String containerName, String cursorId);
 
     /**
      * Get the offer log of objects created in offer container
-     * 
+     *
      * @param containerName container the container name
-     * @param offset the offset of the object before the wanted list
-     * @param limit number of objects wanted
-     * @param order order of search
+     * @param offset        the offset of the object before the wanted list
+     * @param limit         number of objects wanted
+     * @param order         order of search
      * @return list of object informations
      * @throws ContentAddressableStorageDatabaseException Database error
-     * @throws ContentAddressableStorageServerException Parsing error
+     * @throws ContentAddressableStorageServerException   Parsing error
      */
     List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
         throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException;

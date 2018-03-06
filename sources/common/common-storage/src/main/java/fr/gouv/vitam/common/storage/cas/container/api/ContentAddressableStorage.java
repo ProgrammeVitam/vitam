@@ -95,12 +95,13 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param stream the data
      *
      * @param digestType parameter to compute an hash.
+     * @param size size off the input stream
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     void putObject(String containerName, String objectName, InputStream stream,
-        DigestType digestType)
+        DigestType digestType, Long size)
         throws ContentAddressableStorageException;
 
     /**

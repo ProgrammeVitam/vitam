@@ -124,6 +124,10 @@ public class VitamConfiguration {
      * Default Connection timeout
      */
     private static final Integer CONNECT_TIMEOUT = 2000;
+    /**
+     * swift file limit to upload
+     */
+    private static final long swiftFileLimit = 4_000_000_000L;
 
     /**
      * Max shutdown timeout 2 minute
@@ -1680,5 +1684,9 @@ public class VitamConfiguration {
      */
     public static void setBatchSize(int batchSize) {
         VitamConfiguration.batchSize = batchSize;
+    }
+
+    public static long getSwiftFileLimit() {
+        return swiftFileLimit;
     }
 }
