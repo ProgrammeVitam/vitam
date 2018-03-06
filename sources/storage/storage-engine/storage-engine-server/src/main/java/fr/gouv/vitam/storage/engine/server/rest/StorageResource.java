@@ -142,7 +142,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             distribution = new StorageDistributionImpl(configuration, storageLogService);
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             storageLogAdministration =
-                new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
+                new StorageLogAdministration(storageLogService);
 
             traceabilityLogbookService = new TraceabilityStorageService(distribution);
 
@@ -181,7 +181,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         distribution = new StorageDistributionImpl(configuration, storageLogService);
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
         storageLogAdministration =
-            new StorageLogAdministration(storageLogService, configuration.getZippingDirecorty());
+            new StorageLogAdministration(storageLogService);
         traceabilityLogbookService = new TraceabilityStorageService(distribution);
 
         TimeStampSignature timeStampSignature;
@@ -1430,6 +1430,38 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         } else {
             return getObjectInformationWithPost(headers, storageLogname);
         }
+    }
+
+    /**
+     * Get a storage traceability file
+     *
+     * @param headers http header
+     * @param filename the id of the object
+     * @return the stream
+     * @throws IOException throws an IO Exception
+     */
+    @Path("/storagetraceability/{storagetraceability_name}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    public Response downloadStorageTraceability(@Context HttpHeaders headers,
+        @PathParam("storagetraceability_name") String filename) {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(filename, DataCategory.STORAGETRACEABILITY, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
     }
 
     /**

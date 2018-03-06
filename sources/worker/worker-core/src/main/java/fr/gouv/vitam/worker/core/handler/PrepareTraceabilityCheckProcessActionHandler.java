@@ -26,21 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -54,7 +41,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -66,11 +52,18 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  *
@@ -150,9 +143,12 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             String fileName = traceabilityEvent.getFileName();
 
             // 1- get zip file
+
+            DataCategory dataCategory = getDataCategory(traceabilityEvent);
+
             response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK);
- 
+                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory);
+
             // Idempotency - we check if a folder exist
             if (workspaceClient.isExistingContainer(param.getContainerName())) {
                 try {
@@ -186,8 +182,26 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
+    private DataCategory getDataCategory(TraceabilityEvent traceabilityEvent) {
+
+        if (traceabilityEvent.getLogType() == null) {
+            throw new IllegalStateException("Missing traceability event type");
+        }
+
+        switch (traceabilityEvent.getLogType()) {
+            case OPERATION:
+            case LIFECYCLE:
+                return DataCategory.LOGBOOK;
+            case STORAGE:
+                return DataCategory.STORAGETRACEABILITY;
+            default:
+                throw new IllegalStateException("Invalid traceability event type " + traceabilityEvent.getLogType());
+        }
+    }
+
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    }
 
     private void extractTraceabilityOperationDetails(HandlerIO handlerIO, TraceabilityEvent eventDetailData)
         throws InvalidParseOperationException, ProcessingException {

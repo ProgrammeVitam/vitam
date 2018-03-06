@@ -17,7 +17,6 @@ const breadcrumb: BreadcrumbElement[] = [
   {label: 'Opérations de sécurisation', routerLink: ''}
 ];
 const searchAttribut = ['TraceabilityEndDate', 'TraceabilityId', 'TraceabilityStartDate', 'evType'];
-const storageSecuringEventKey = 'STP_STORAGE_SECURISATION';
 
 @Component({
   selector: 'vitam-operation',
@@ -58,16 +57,13 @@ export class OperationComponent extends PageComponent {
 
   public columns = [
     ColumnDefinition.makeSpecialValueColumn('Type de journal sécurisé',
-      (item) => item.evType === storageSecuringEventKey ? 'STORAGE' :
-          !!item.evDetData ? JSON.parse(item.evDetData).LogType : '',
+      (item) => !!item.evDetData ? JSON.parse(item.evDetData).LogType : '',
         undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de début',
-      (item) => item.evType === storageSecuringEventKey ? item.evDateTime :
-          !!item.evDetData ? JSON.parse(item.evDetData).StartDate : '',
+      (item) => !!item.evDetData ? JSON.parse(item.evDetData).StartDate : '',
         DateService.handleDateWithTime, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de fin',
-      (item) => item.evType === storageSecuringEventKey ? item.events[item.events.length - 1].evDateTime :
-          !!item.evDetData ? JSON.parse(item.evDetData).EndDate : '',
+      (item) => !!item.evDetData ? JSON.parse(item.evDetData).EndDate : '',
         DateService.handleDateWithTime, () => ({'width': '125px'}), false),
     ColumnDefinition.makeSpecialIconColumn('Télécharger',
       (item) => (item.events.length > 1 && item.events[1].outcome) === 'OK' ? ['fa-download'] : [],
@@ -115,13 +111,4 @@ export class OperationComponent extends PageComponent {
     this.response = event.response;
     this.searchForm = event.form;
   }
-
-  handleRowCss(row, rowIndex) {
-    if (row.evType === storageSecuringEventKey) {
-      return 'disabledRow';
-    } else {
-      return '';
-    }
-  }
-
 }

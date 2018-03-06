@@ -26,19 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.common.LocalDateUtil.getString;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
-
-import java.io.File;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -56,6 +45,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
@@ -68,6 +58,15 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+import static fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper.INITIAL_START_DATE;
 
 /**
  * ListLifecycleTraceabilityAction Plugin
@@ -82,14 +81,11 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
 
-    private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
-
     private static final int LAST_OPERATION_LIFECYCLES_RANK = 0;
     private static final int TRACEABILITY_INFORMATION_RANK = 1;
 
     /**
      * Empty constructor ListLifecycleTraceabilityActionPlugin
-     *
      */
     public ListLifecycleTraceabilityActionHandler() {
         // Empty
@@ -99,8 +95,10 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         handlerIO = handler;
 
-        String lifecycleTraceabilityOverlapDelayInSecondsStr = params.getMapParameters().get(WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds);
-        int lifecycleTraceabilityOverlapDelayInSeconds = Integer.parseInt(lifecycleTraceabilityOverlapDelayInSecondsStr);
+        String lifecycleTraceabilityOverlapDelayInSecondsStr =
+            params.getMapParameters().get(WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds);
+        int lifecycleTraceabilityOverlapDelayInSeconds =
+            Integer.parseInt(lifecycleTraceabilityOverlapDelayInSecondsStr);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try {
@@ -117,34 +115,29 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
             itemStatus);
     }
 
-
     private void selectAndExportLifecycles(int lifecycleTraceabilityOverlapDelayInSeconds)
         throws ProcessingException, InvalidParseOperationException, LogbookClientException,
         InvalidCreateOperationException {
 
-        // implement me
         final LogbookOperation lastTraceabilityOperation = findLastOperationTraceabilityLifecycle();
-        LocalDateTime startDate;
+        LocalDateTime traceabilityStartDate;
         exportLastOperationTraceabilityLifecycle(lastTraceabilityOperation);
         if (lastTraceabilityOperation == null) {
-            startDate = LocalDateTime.MIN;
+            traceabilityStartDate = INITIAL_START_DATE;
         } else {
-            Date date;
-            try {
-                date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
-            } catch (ParseException e) {
-                throw new InvalidParseOperationException("Invalid date");
-            }
-            LocalDateTime lastStartDate = LocalDateUtil.fromDate(date);
-            startDate = lastStartDate.minusSeconds(lifecycleTraceabilityOverlapDelayInSeconds);
+            final String evDetData = (String) lastTraceabilityOperation.get(eventDetailData.getDbname());
+            TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
+            LocalDateTime lastStartDate = LocalDateUtil.parseMongoFormattedDate(traceabilityEvent.getEndDate());
+            traceabilityStartDate = lastStartDate.minusSeconds(lifecycleTraceabilityOverlapDelayInSeconds);
         }
-        LocalDateTime endDate = LocalDateUtil.now();
+        LocalDateTime traceabilityEndDate = LocalDateUtil.now();
 
         long numberUnitLifecycles = 0;
         long numberObjectLifecycles = 0;
         try (LogbookLifeCyclesClient logbookLifeCyclesClient =
             LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            List<JsonNode> unitLifecycles = selectUnitLifeCycleAfterDate(startDate, logbookLifeCyclesClient);
+            List<JsonNode> unitLifecycles =
+                selectUnitLifeCycleAfterDate(traceabilityStartDate, logbookLifeCyclesClient);
             for (JsonNode unit : unitLifecycles) {
                 String unitGuid = unit.get("_id").asText();
                 final File unitLifecycleTmpFile = handlerIO.getNewLocalFile(unitGuid);
@@ -157,7 +150,7 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
             }
 
             List<JsonNode> objectGroupLifecycles =
-                selectObjectGroupLifeCycleAfterDate(startDate, logbookLifeCyclesClient);
+                selectObjectGroupLifeCycleAfterDate(traceabilityStartDate, logbookLifeCyclesClient);
             for (JsonNode objectGroup : objectGroupLifecycles) {
                 String objectGroupGuid = objectGroup.get("_id").asText();
                 final File oGLifecycleTmpFile = handlerIO.getNewLocalFile(objectGroupGuid);
@@ -171,8 +164,8 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
         }
 
         ObjectNode traceabilityInformation = JsonHandler.createObjectNode();
-        traceabilityInformation.put("startDate", getString(startDate));
-        traceabilityInformation.put("endDate", getString(endDate));
+        traceabilityInformation.put("startDate", getFormattedDateForMongo(traceabilityStartDate));
+        traceabilityInformation.put("endDate", getFormattedDateForMongo(traceabilityEndDate));
         traceabilityInformation.put("numberUnitLifecycles", numberUnitLifecycles);
         traceabilityInformation.put("numberObjectLifecycles", numberObjectLifecycles);
         // export in workspace
@@ -183,11 +176,13 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
         LogbookLifeCyclesClient logbookLifeCyclesClient)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         final Select select = new Select();
-        select.setQuery(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)));
+        select.setQuery(
+            QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)));
         select.addOrderByAscFilter("evDateTime");
         try {
             RequestResponseOK requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(select.getFinalSelect()));
+                RequestResponseOK
+                    .getFromJsonNode(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(select.getFinalSelect()));
             List<JsonNode> foundUnitLifecycles = requestResponseOK.getResults();
             return foundUnitLifecycles;
         } catch (LogbookClientNotFoundException e) {
@@ -200,7 +195,8 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
         LogbookLifeCyclesClient logbookLifeCyclesClient)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         final Select select = new Select();
-        select.setQuery(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)));
+        select.setQuery(
+            QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)));
         select.addOrderByAscFilter("evDateTime");
         try {
             RequestResponseOK requestResponseOK =

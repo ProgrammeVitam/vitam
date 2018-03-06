@@ -28,7 +28,6 @@ package fr.gouv.vitam.logbook.common.model;
 
 import fr.gouv.vitam.common.digest.DigestType;
 
-/* FIXME: Need specific traceabilityEvent depending on logbook type ? */
 /**
  * Class used to save traceability event to be store in logbook collection
  */

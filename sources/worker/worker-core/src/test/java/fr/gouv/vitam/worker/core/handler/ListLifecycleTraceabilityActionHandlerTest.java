@@ -45,6 +45,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import org.junit.Before;
 import org.junit.Rule;
@@ -88,7 +90,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({LogbookLifeCyclesClientFactory.class})
+@PrepareForTest({LogbookLifeCyclesClientFactory.class, LogbookOperationsClientFactory.class})
 public class ListLifecycleTraceabilityActionHandlerTest {
 
     ListLifecycleTraceabilityActionHandler handler = new ListLifecycleTraceabilityActionHandler();
@@ -102,11 +104,14 @@ public class ListLifecycleTraceabilityActionHandlerTest {
 
     private static final String LFC_OBJECTS_JSON = "ListLifecycleTraceabilityActionHandler/lfc_objects.json";
     private static final String LFC_UNITS_JSON = "ListLifecycleTraceabilityActionHandler/lfc_units.json";
+    private static final String LAST_TRACEABILITY_JSON = "ListLifecycleTraceabilityActionHandler/lastTraceability.json";
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private LogbookOperationsClient logbookOperationsClient;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -143,6 +148,15 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCyclesClientFactory);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCyclesClient);
+
+        LogbookOperationsClientFactory.changeMode(null);
+        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
+        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
+            .thenReturn(logbookOperationsClient);
+
         handlerIO = new HandlerIOImpl(workspaceClient, "ListLifecycleTraceabilityActionHandlerTest", "workerId");
         // mock later ?
         out = new ArrayList<>();
@@ -164,9 +178,13 @@ public class ListLifecycleTraceabilityActionHandlerTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON));
         final JsonNode objectsLFC =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSON));
+        final JsonNode lastTraceability =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
         when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
         when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(objectsLFC);
+        reset(logbookOperationsClient);
+        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
         saveWorkspacePutObject(
             UpdateWorkflowConstants.UNITS_FOLDER + "/aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0.json");
@@ -217,6 +235,11 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
 
+        reset(logbookOperationsClient);
+        final JsonNode lastTraceability =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+
         reset(logbookLifeCyclesClient);
         when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject()))
             .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
@@ -237,9 +260,13 @@ public class ListLifecycleTraceabilityActionHandlerTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON));
         final JsonNode objectsLFC =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSON));
+        final JsonNode lastTraceability =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
         when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
         when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(objectsLFC);
+        reset(logbookOperationsClient);
+        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
         doThrow(new ContentAddressableStorageServerException("ContentAddressableStorageServerException"))
             .when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
@@ -256,6 +283,10 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         reset(logbookLifeCyclesClient);        
         when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
+        final JsonNode lastTraceability =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        reset(logbookOperationsClient);
+        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());

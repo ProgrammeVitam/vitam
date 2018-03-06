@@ -50,27 +50,6 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], \"$projection\" : {} }";
-    final String MOCK_LOGBOOK_RESULT =
-        "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "    \"evType\": \"Process_SIP_unitary\"," +
-            "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"evTypeProc\": \"INGEST\"," +
-            "    \"outcome\": \"STARTED\"," +
-            "    \"outDetail\": null," +
-            "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-            "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-            "    \"agIdApp\": null," +
-            "    \"evIdAppSession\": null," +
-            "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"agIdExt\": null," +
-            "    \"obId\": null," +
-            "    \"obIdReq\": null," +
-            "    \"obIdIn\": null," +
-            "    \"events\": []}";
-    final String BODY_WITH_ID =
-        "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;

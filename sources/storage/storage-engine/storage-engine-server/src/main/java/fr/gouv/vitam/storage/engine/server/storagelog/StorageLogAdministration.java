@@ -82,13 +82,9 @@ public class StorageLogAdministration {
 
     private static final String STRATEGY_ID = "default";
     final StorageLogService storageLogService;
-    private final File tmpFolder;
 
-    public StorageLogAdministration(StorageLogService storageLogService,
-        String tmpFolder) {
+    public StorageLogAdministration(StorageLogService storageLogService) {
         this.storageLogService = storageLogService;
-        this.tmpFolder = new File(tmpFolder);
-        this.tmpFolder.mkdir();
     }
 
     /**
