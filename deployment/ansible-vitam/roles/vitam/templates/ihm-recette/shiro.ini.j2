@@ -34,7 +34,9 @@ securityManager.sessionManager = $sessionManager
 securityManager.sessionMode=native
 securityManager.sessionManager.globalSessionTimeout = {{ vitam_struct.session_timeout }}
 securityManager.sessionManager.sessionIdUrlRewritingEnabled = false 
-sessionManager.sessionIdCookie.secure = {{ vitam_struct.secure_cookie }}
+securityManager.sessionManager.sessionIdCookie.secure = {{ vitam_struct.secure_cookie }}
+securityManager.rememberMeManager.cookie.secure = {{ vitam_struct.secure_cookie }}
+securityManager.rememberMeManager.cookie.httpOnly = true
 # Notice how we didn't define the class for the FormAuthenticationFilter ('authc') - it is instantiated and available already:
 authc.loginUrl = /#!/login
 [users]
