@@ -4,6 +4,11 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 
 import { ImportComponent } from './import.component';
 import { BreadcrumbService } from "../../common/breadcrumb.service";
+import { AuthenticationService } from '../../authentication/authentication.service';
+
+const AuthenticationServiceStub = {
+  isTenantAdmin: () => {return true;}
+};
 
 describe('ImportComponent', () => {
   let component: ImportComponent;
@@ -16,7 +21,8 @@ describe('ImportComponent', () => {
           { path: 'ingest/sip', component: ImportComponent }
         ])
       ],
-      providers: [ BreadcrumbService ],
+      providers: [ BreadcrumbService,
+        { provide: AuthenticationService, useValue: AuthenticationServiceStub } ],
       declarations: [ ImportComponent ],
       schemas: [NO_ERRORS_SCHEMA]
     })

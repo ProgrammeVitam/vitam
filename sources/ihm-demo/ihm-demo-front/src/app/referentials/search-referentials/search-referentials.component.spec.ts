@@ -8,9 +8,14 @@ import { BreadcrumbService } from "../../common/breadcrumb.service";
 import { ReferentialsService } from "../referentials.service";
 import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
 import { forEach } from '@angular/router/src/utils/collection';
+import { AuthenticationService } from '../../authentication/authentication.service';
 
 const ReferentialsServiceStub = {
   getResults: (id) => Observable.of({'$results': [{}]})
+};
+
+const AuthenticationServiceStub = {
+  isTenantAdmin: () => {return true;}
 };
 
 describe('SearchReferentialsComponent', () => {
@@ -26,7 +31,8 @@ describe('SearchReferentialsComponent', () => {
       providers: [
         BreadcrumbService,
         ArchiveUnitHelper,
-        { provide: ReferentialsService, useValue: ReferentialsServiceStub }
+        { provide: ReferentialsService, useValue: ReferentialsServiceStub },
+        { provide: AuthenticationService, useValue: AuthenticationServiceStub }
       ],
       declarations: [ SearchReferentialsComponent ],
       schemas: [NO_ERRORS_SCHEMA]

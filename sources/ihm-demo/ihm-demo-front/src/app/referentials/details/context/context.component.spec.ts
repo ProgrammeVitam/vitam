@@ -9,6 +9,7 @@ import { ReferentialsService } from "../../referentials.service";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import {VitamResponse} from "../../../common/utils/response";
 import {ErrorService} from "../../../common/error.service";
+import { AuthenticationService } from '../../../authentication/authentication.service';
 
 const context1 = {
   "#id":"aegqaaaaaahuuzbeabzqqak7aco5r5aaaaaq",
@@ -51,6 +52,11 @@ const DialogServiceStub = {
   displayMessage: (message : string, header : string) => {}
 };
 
+
+const AuthenticationServiceStub = {
+  isTenantAdmin: () => {return true;}
+};
+
 describe('ContextComponent', () => {
   let component: ContextComponent;
   let fixture: ComponentFixture<ContextComponent>;
@@ -62,7 +68,8 @@ describe('ContextComponent', () => {
         BreadcrumbService,
         ErrorService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub },
-        { provide: DialogService, useValue: DialogServiceStub }
+        { provide: DialogService, useValue: DialogServiceStub },
+        { provide: AuthenticationService, useValue: AuthenticationServiceStub }
       ],
       declarations: [ ContextComponent ],
       schemas: [NO_ERRORS_SCHEMA]
