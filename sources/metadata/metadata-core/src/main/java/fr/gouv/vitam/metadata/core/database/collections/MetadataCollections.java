@@ -47,7 +47,7 @@ public enum MetadataCollections {
 
     private VitamCollection vitamCollection;
 
-    private MetadataCollections(final Class<?> clasz) {
+    MetadataCollections(final Class<?> clasz) {
         vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class));
     }
 
@@ -58,7 +58,7 @@ public enum MetadataCollections {
      * @param recreate true is as recreate type
      */
 
-    protected void initialize(final MongoDatabase db, final boolean recreate) {
+    protected void initialize(MongoDatabase db, boolean recreate) {
         vitamCollection.initialize(db, recreate);
     }
 
@@ -69,7 +69,7 @@ public enum MetadataCollections {
      * @param esClient ElasticsearchAccessMetadata
      */
 
-    protected void initialize(final ElasticsearchAccessMetadata esClient) {
+    protected void initialize(ElasticsearchAccessMetadata esClient) {
         vitamCollection.initialize(esClient, true);
     }
 
@@ -126,7 +126,7 @@ public enum MetadataCollections {
                 return coll;
             }
         }
-        return null;
+        throw new IllegalArgumentException(collection + " is not in enum MetadataCollections.");
     }
 
 }

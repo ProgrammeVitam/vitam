@@ -40,8 +40,11 @@ import javax.ws.rs.core.Context;
 import com.google.common.base.Throwables;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
@@ -67,9 +70,15 @@ public class AdminMetadataApplication extends Application {
                 PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
             adminApplication = new AdminApplication();
             // Hack to instance metadatas collections
-            new MetadataResource(metaDataConfiguration);
+            MongoDbAccessMetadataImpl mongoDbAccessMetadata =
+                MongoDbAccessMetadataFactory.create(metaDataConfiguration);
+
+            OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccessMetadata);
+
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance(mongoDbAccessMetadata);
+
             final MetadataReconstructionResource metadataReconstructionResource =
-                new MetadataReconstructionResource(VitamRepositoryFactory.getInstance());
+                new MetadataReconstructionResource(vitamRepositoryProvider, offsetRepository);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());

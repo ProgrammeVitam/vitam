@@ -39,7 +39,7 @@ import javax.ws.rs.core.Response;
 import com.google.common.annotations.VisibleForTesting;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
@@ -78,12 +78,13 @@ public class MetadataReconstructionResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param vitamRepositoryProvider vitamRepositoryProvider
+     * @param offsetRepository
      */
-    public MetadataReconstructionResource(
-        VitamRepositoryProvider vitamRepositoryProvider) {
-        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider);
+    public MetadataReconstructionResource(VitamRepositoryProvider vitamRepositoryProvider,
+        OffsetRepository offsetRepository) {
+        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository);
     }
 
     /**
@@ -99,7 +100,7 @@ public class MetadataReconstructionResource {
     /**
      * API to access and launch the Vitam reconstruction service for metadatas.<br/>
      *
-     * @param reconstructionItems list of reconstructionr request items
+     * @param reconstructionItems list of reconstruction request items
      * @return the response
      */
     @Path(RECONSTRUCTION_URI)
@@ -117,11 +118,11 @@ public class MetadataReconstructionResource {
 
             reconstructionItems.forEach(item -> {
                 LOGGER.debug(String.format(
-                    "Starting reconstruction for the collection {%s} on the tenant (%s) from the offset (%s) with (%s) elements",
-                    item.getCollection(), item.getTenant(), item.getOffset(), item.getLimit()));
+                    "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
+                    item.getCollection(), item.getTenant(), item.getLimit()));
                 try {
                     responses.add(reconstructionService.reconstruct(item));
-                } catch (DatabaseException | IllegalArgumentException e) {
+                } catch (IllegalArgumentException e) {
                     LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
                     responses.add(new ReconstructionResponseItem(item, StatusCode.KO));
                 }

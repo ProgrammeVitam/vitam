@@ -59,14 +59,14 @@ public class LogbookReconstructionResourceTest {
     public void setup() {
         reconstructionService = Mockito.mock(ReconstructionService.class);
         requestItem = new ReconstructionRequestItem();
-        requestItem.setTenant(10).setLimit(100).setOffset(99);
+        requestItem.setTenant(10).setLimit(100);
     }
 
     @Test
     public void should_return_ok_when_request_item_full() throws DatabaseException {
         // given
         ReconstructionResponseItem responseItem =
-            new ReconstructionResponseItem(requestItem, StatusCode.OK).setOffset(199);
+            new ReconstructionResponseItem(requestItem, StatusCode.OK);
 
         when(reconstructionService.reconstruct(requestItem)).thenReturn(responseItem);
         LogbookReconstructionResource reconstructionResource =
@@ -78,7 +78,6 @@ public class LogbookReconstructionResourceTest {
         List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.size()).isEqualTo(1);
-        assertThat(responseEntity.get(0).getOffset()).isEqualTo(199);
         assertThat(responseEntity.get(0).getTenant()).isEqualTo(10);
         assertThat(responseEntity.get(0).getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -110,7 +109,6 @@ public class LogbookReconstructionResourceTest {
         List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.size()).isEqualTo(1);
-        assertThat(responseEntity.get(0).getOffset()).isEqualTo(99);
         assertThat(responseEntity.get(0).getTenant()).isEqualTo(10);
     }
 

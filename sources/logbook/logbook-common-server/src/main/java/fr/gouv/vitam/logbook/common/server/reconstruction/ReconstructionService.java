@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -73,38 +74,45 @@ public class ReconstructionService {
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
 
     private static final String STRATEGY_ID = "default";
+    public static final String LOGBOOK = "logbook";
 
     private RestoreBackupService restoreBackupService;
     private VitamRepositoryProvider vitamRepositoryProvider;
     private AdminManagementClientFactory adminManagementClientFactory;
     private LogbookTransformData logbookTransformData;
 
+    private OffsetRepository offsetRepository;
+
     /**
      * Constructor
-     * 
+     *
      * @param vitamRepositoryProvider vitamRepositoryProvider
+     * @param offsetRepository
      */
-    public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider) {
+    public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
+        OffsetRepository offsetRepository) {
         this(vitamRepositoryProvider, new RestoreBackupService(), AdminManagementClientFactory.getInstance(),
-            new LogbookTransformData());
+            new LogbookTransformData(), offsetRepository);
     }
 
     /**
      * Constructor for tests
-     * 
-     * @param vitamRepositoryProvider vitamRepositoryProvider
+     *  @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
      * @param adminManagementClientFactory adminManagementClientFactory
      * @param logbookTransformData logbookTransformData
+     * @param offsetRepository
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService, AdminManagementClientFactory adminManagementClientFactory,
-        LogbookTransformData logbookTransformData) {
+        LogbookTransformData logbookTransformData,
+        OffsetRepository offsetRepository) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.logbookTransformData = logbookTransformData;
+        this.offsetRepository = offsetRepository;
     }
 
     /**
@@ -124,9 +132,9 @@ public class ReconstructionService {
         }
         LOGGER
             .info(String.format(
-                "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant from {%s} offset",
-                DataCategory.BACKUP_OPERATION.name(), reconstructionItem.getTenant(), reconstructionItem.getOffset()));
-        return reconstructCollection(reconstructionItem.getTenant(), reconstructionItem.getOffset(),
+                "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant",
+                DataCategory.BACKUP_OPERATION.name(), reconstructionItem.getTenant()));
+        return reconstructCollection(reconstructionItem.getTenant(),
             reconstructionItem.getLimit());
     }
 
@@ -134,28 +142,30 @@ public class ReconstructionService {
      * Reconstruct collection logbook operation.
      * 
      * @param tenant tenant
-     * @param offset offset (included in reconstruction)
      * @param limit number of data to reconstruct
      * @return response of reconstruction
      * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      * @throws VitamRuntimeException storage error
      */
-    private ReconstructionResponseItem reconstructCollection(int tenant, long offset, int limit)
+    private ReconstructionResponseItem reconstructCollection(int tenant, int limit)
         throws DatabaseException {
+
+        final long offset = offsetRepository.findOffsetBy(tenant, LOGBOOK);
 
         LOGGER.info(String
             .format(
                 "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
                 DataCategory.BACKUP_OPERATION.name(), tenant, limit, offset));
-        ReconstructionResponseItem response =
-            new ReconstructionResponseItem().setTenant(tenant).setOffset(offset);
+        ReconstructionResponseItem response = new ReconstructionResponseItem().setTenant(tenant);
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         final VitamMongoRepository mongoRepository =
             vitamRepositoryProvider.getVitamMongoRepository(LogbookCollections.OPERATION);
         final VitamElasticsearchRepository esRepository =
             vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION);
+
+        long newOffset = offset;
 
         try {
             // This is a hack, we must set manually the tenant is the VitamSession (used and transmitted in the
@@ -184,7 +194,8 @@ public class ReconstructionService {
                 if (!bulkData.isEmpty()) {
                     reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
                     reconstructCollectionAccessionRegister(bulkData);
-                    response.setOffset(Iterables.getLast(bulkData).getOffset());
+                    LogbookBackupModel last = Iterables.getLast(bulkData);
+                    newOffset = last.getOffset();
                 }
 
                 // log the recontruction of Vitam collection.
@@ -197,19 +208,20 @@ public class ReconstructionService {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
                 DataCategory.BACKUP_OPERATION.name(), tenant, offset), em);
-            response.setOffset(offset);
+            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } catch (ReferentialException | VitamClientException re) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} accession register on the tenant {%s} from {offset:%s}",
                 DataCategory.BACKUP_OPERATION.name(), tenant, offset), re);
-            response.setOffset(offset);
+            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } catch (StorageException se) {
             LOGGER.error(se.getMessage());
-            response.setOffset(offset);
+            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
+            offsetRepository.createOrUpdateOffset(tenant, LOGBOOK, newOffset);
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;
@@ -224,7 +236,7 @@ public class ReconstructionService {
      */
     private void reconstructCollectionAccessionRegister(List<LogbookBackupModel> bulk)
         throws ReferentialException, VitamClientException {
-        LOGGER.info(String.format("[Reconstruction]: Back up of accessionRegister bulk"));
+        LOGGER.info("[Reconstruction]: Back up of accessionRegister bulk");
         for (LogbookBackupModel item : bulk) {
             for (JsonNode register : item.getAccessionRegisters()) {
                 try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
@@ -245,7 +257,7 @@ public class ReconstructionService {
     private void reconstructCollectionLogbookOperation(final VitamMongoRepository mongoRepository,
         final VitamElasticsearchRepository esRepository, List<LogbookBackupModel> bulk)
         throws DatabaseException {
-        LOGGER.info(String.format("[Reconstruction]: Back up of logbookOperation bulk"));
+        LOGGER.info("[Reconstruction]: Back up of logbookOperation bulk");
         List<Document> logbooks =
             bulk.stream().map(LogbookBackupModel::getLogbookOperation).collect(Collectors.toList());
         mongoRepository.saveOrUpdate(logbooks);

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import org.bson.Document;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
@@ -82,28 +83,35 @@ public class ReconstructionService {
 
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
+    private OffsetRepository offsetRepository;
+
     /**
      * Constructor
-     * 
+     *
      * @param vitamRepositoryProvider vitamRepositoryProvider
+     * @param offsetRepository
      */
-    public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider) {
-        this(vitamRepositoryProvider, new RestoreBackupService(), LogbookLifeCyclesClientFactory.getInstance());
+    public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
+        OffsetRepository offsetRepository) {
+        this(vitamRepositoryProvider, new RestoreBackupService(), LogbookLifeCyclesClientFactory.getInstance(),
+            offsetRepository);
     }
 
     /**
      * Constructor for tests
-     * 
-     * @param vitamRepositoryProvider vitamRepositoryProvider
+     *  @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
      * @param logbookLifecycleClientFactory logbookLifecycleClientFactory
+     * @param offsetRepository
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
-        RestoreBackupService recoverBackupService, LogbookLifeCyclesClientFactory logbookLifecycleClientFactory) {
+        RestoreBackupService recoverBackupService, LogbookLifeCyclesClientFactory logbookLifecycleClientFactory,
+        OffsetRepository offsetRepository) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.logbookLifeCyclesClientFactory = logbookLifecycleClientFactory;
+        this.offsetRepository = offsetRepository;
     }
 
     /**
@@ -114,8 +122,7 @@ public class ReconstructionService {
      * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      */
-    public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem)
-        throws DatabaseException {
+    public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem) {
         ParametersChecker.checkParameter(RECONSTRUCTION_ITEM_MONDATORY_MSG, reconstructionItem);
         ParametersChecker.checkParameter(RECONSTRUCTION_COLLECTION_MONDATORY_MSG, reconstructionItem.getCollection());
         ParametersChecker.checkParameter(RECONSTRUCTION_TENANT_MONDATORY_MSG, reconstructionItem.getTenant());
@@ -124,10 +131,11 @@ public class ReconstructionService {
         }
         LOGGER
             .info(String.format(
-                "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant from {%s} offset",
-                reconstructionItem.getCollection(), reconstructionItem.getTenant(), reconstructionItem.getOffset()));
+                "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant",
+                reconstructionItem.getCollection(), reconstructionItem.getTenant()));
+
         return reconstructCollection(MetadataCollections.getFromValue(reconstructionItem.getCollection()),
-            reconstructionItem.getTenant(), reconstructionItem.getOffset(), reconstructionItem.getLimit());
+            reconstructionItem.getTenant(), reconstructionItem.getLimit());
     }
 
     /**
@@ -135,28 +143,28 @@ public class ReconstructionService {
      * 
      * @param collection collection
      * @param tenant tenant
-     * @param offset offset (included in reconstruction)
      * @param limit number of data to reconstruct
      * @return response of reconstruction
      * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      * @throws VitamRuntimeException storage error
      */
-    private ReconstructionResponseItem reconstructCollection(MetadataCollections collection, int tenant, long offset,
-        int limit)
-        throws DatabaseException {
+    private ReconstructionResponseItem reconstructCollection(MetadataCollections collection, int tenant, int limit) {
 
+        final long offset = offsetRepository.findOffsetBy(tenant, collection.getName());
         ParametersChecker.checkParameter("Parameter collection is required.", collection);
         LOGGER.info(String
             .format(
                 "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
                 collection.name(), tenant, limit, offset));
         ReconstructionResponseItem response =
-            new ReconstructionResponseItem().setCollection(collection.name()).setTenant(tenant).setOffset(offset);
+            new ReconstructionResponseItem().setCollection(collection.name()).setTenant(tenant);
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(collection);
         final VitamElasticsearchRepository esRepository = vitamRepositoryProvider.getVitamESRepository(collection);
+
+        long newOffset = offset;
 
         try {
             // This is a hack, we must set manually the tenant is the VitamSession (used and transmitted in the
@@ -186,7 +194,8 @@ public class ReconstructionService {
                 if (!bulkData.isEmpty()) {
                     reconstructCollectionMetadatas(mongoRepository, esRepository, bulkData);
                     reconstructCollectionLifecycles(collection, bulkData);
-                    response.setOffset(Iterables.getLast(bulkData).getOffset());
+                    MetadataBackupModel last = Iterables.getLast(bulkData);
+                    newOffset = last.getOffset();
                 }
 
                 // log the recontruction of Vitam collection.
@@ -199,19 +208,20 @@ public class ReconstructionService {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
                 collection, tenant, offset), de);
-            response.setOffset(offset);
+            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } catch (StorageException se) {
             LOGGER.error(se.getMessage());
-            response.setOffset(offset);
+            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } catch (LogbookClientException | InvalidParseOperationException exc) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} lifecycles on the tenant {%s} from {offset:%s}",
                 collection, tenant, offset), exc);
-            response.setOffset(offset);
+            newOffset = offset;
             response.setStatus(StatusCode.KO);
         } finally {
+            offsetRepository.createOrUpdateOffset(tenant, collection.getName(), newOffset);
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;
@@ -227,7 +237,9 @@ public class ReconstructionService {
      */
     private void reconstructCollectionLifecycles(MetadataCollections collection, List<MetadataBackupModel> bulk)
         throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.info(String.format("[Reconstruction]: Back up of lifecycles bulk"));
+
+        LOGGER.info("[Reconstruction]: Back up of lifecycles bulk");
+
         try (LogbookLifeCyclesClient logbookLifecycleClient = logbookLifeCyclesClientFactory.getClient()) {
             List<JsonNode> lifecycles =
                 bulk.stream()
@@ -272,7 +284,7 @@ public class ReconstructionService {
     private void reconstructCollectionMetadatas(final VitamMongoRepository mongoRepository,
         final VitamElasticsearchRepository esRepository, List<MetadataBackupModel> bulk)
         throws DatabaseException {
-        LOGGER.info(String.format("[Reconstruction]: Back up of metadatas bulk"));
+        LOGGER.info("[Reconstruction]: Back up of metadatas bulk");
         List<Document> metadatas =
             bulk.stream().map(MetadataBackupModel::getMetadatas).collect(Collectors.toList());
         mongoRepository.saveOrUpdate(metadatas);

@@ -39,12 +39,6 @@ public class ReconstructionRequestItem {
     private Integer tenant;
 
     /**
-     * Offset.
-     */
-    @JsonProperty("offset")
-    private long offset;
-
-    /**
      * Limit.
      */
     @JsonProperty("limit")
@@ -97,16 +91,6 @@ public class ReconstructionRequestItem {
         return this;
     }
 
-    /**
-     * Get offset
-     *
-     * @return offset
-     */
-    public long getOffset() {
-        return offset;
-    }
-
-
 
     /**
      * Get the limit
@@ -128,14 +112,4 @@ public class ReconstructionRequestItem {
         return this;
     }
 
-    /**
-     * Set or change offset
-     *
-     * @param offset
-     * @return this
-     */
-    public ReconstructionRequestItem setOffset(long offset) {
-        this.offset = offset;
-        return this;
-    }
 }

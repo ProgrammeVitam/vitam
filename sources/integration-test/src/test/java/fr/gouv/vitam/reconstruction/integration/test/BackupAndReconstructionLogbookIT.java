@@ -42,6 +42,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.util.Files;
 import org.bson.Document;
@@ -171,6 +175,7 @@ public class BackupAndReconstructionLogbookIT {
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String LOGBOOK_URL = "http://localhost:" + PORT_SERVICE_LOGBOOK;
+    public static final String LOGBOOK = "logbook";
 
     private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
@@ -183,6 +188,7 @@ public class BackupAndReconstructionLogbookIT {
     private static DefaultOfferMain defaultOfferApplication;
 
     private static AdminManagementMain adminManagementMain;
+    private static OffsetRepository offsetRepository;
 
     private LogbookReconstructionService reconstructionService;
 
@@ -296,6 +302,10 @@ public class BackupAndReconstructionLogbookIT {
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
+
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), "Vitam-Test");
+        offsetRepository = new OffsetRepository(mongoDbAccess);
+
     }
 
 
@@ -453,13 +463,13 @@ public class BackupAndReconstructionLogbookIT {
         reconstructionItems = new ArrayList<>();
         reconstructionItem1 = new ReconstructionRequestItem();
         reconstructionItem1.setLimit(2);
-        reconstructionItem1.setOffset(0L);
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(2L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, "logbook")).isEqualTo(2L);
+
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
@@ -487,10 +497,12 @@ public class BackupAndReconstructionLogbookIT {
         // 2. relaunch reconstruct operations
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
+        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 0);
+
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(2L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(2L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         accessionRegisterSummaryRsp =
@@ -508,24 +520,19 @@ public class BackupAndReconstructionLogbookIT {
             .get(0).getObjectSize().getRemained()).isEqualTo(29403);
 
 
-        // 3. reconstruct operation and another one after in same call
+        // 3. reconstruct next operation
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setLimit(2);
-        reconstructionItem1.setOffset(1L);
-        reconstructionItem1.setTenant(TENANT_0);
-        reconstructionItems.add(reconstructionItem1);
+        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 5L);
+
         reconstructionItem2 = new ReconstructionRequestItem();
         reconstructionItem2.setLimit(2);
-        reconstructionItem2.setOffset(5L);
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(2L);
+        assertThat(response.body().size()).isEqualTo(1);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(6L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.body().get(1).getOffset()).isEqualTo(6L);
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
         logbookResponse = client.selectOperationById(LOGBOOK_0_GUID, getQueryDslId(LOGBOOK_0_GUID));
         assertThat(logbookResponse.get("httpCode").asInt()).isEqualTo(200);
@@ -553,30 +560,31 @@ public class BackupAndReconstructionLogbookIT {
 
         // 4. reconstruct nothing for logbook operation
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setOffset(7L);
         reconstructionItems.add(reconstructionItem1);
+        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 7L);
+
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(9L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(9L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         // 5. reconstruct on unused tenants
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setOffset(0L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 0L);
         reconstructionItem1.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem1);
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(0L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(0L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         // 5. reconstruct all operations
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setOffset(0L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, LOGBOOK, 0L);
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItem1.setLimit(15);
         reconstructionItems.add(reconstructionItem1);
@@ -584,7 +592,7 @@ public class BackupAndReconstructionLogbookIT {
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(10L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, LOGBOOK)).isEqualTo(10L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         accessionRegisterDetailRsp =

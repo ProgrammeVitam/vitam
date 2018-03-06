@@ -26,14 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
+import static fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService.LOGBOOK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -82,21 +87,25 @@ public class ReconstructionServiceTest {
 
     private ReconstructionRequestItem requestItem;
 
+    private OffsetRepository offsetRepository;
+
     @Before
     public void setup() {
-        vitamRepositoryProvider = Mockito.mock(VitamRepositoryFactory.class);
-        mongoRepository = Mockito.mock(VitamMongoRepository.class);
-        esRepository = Mockito.mock(VitamElasticsearchRepository.class);
-        Mockito.when(vitamRepositoryProvider.getVitamMongoRepository(Mockito.any())).thenReturn(mongoRepository);
-        Mockito.when(vitamRepositoryProvider.getVitamESRepository(Mockito.any())).thenReturn(esRepository);
+        vitamRepositoryProvider = mock(VitamRepositoryFactory.class);
+        mongoRepository = mock(VitamMongoRepository.class);
+        esRepository = mock(VitamElasticsearchRepository.class);
+        when(vitamRepositoryProvider.getVitamMongoRepository(Mockito.any())).thenReturn(mongoRepository);
+        when(vitamRepositoryProvider.getVitamESRepository(Mockito.any())).thenReturn(esRepository);
 
-        restoreBackupService = Mockito.mock(RestoreBackupService.class);
-        adminManagementClientFactory = Mockito.mock(AdminManagementClientFactory.class);
-        adminManagementClient = Mockito.mock(AdminManagementClient.class);
-        Mockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        restoreBackupService = mock(RestoreBackupService.class);
+        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+        adminManagementClient = mock(AdminManagementClient.class);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
         requestItem = new ReconstructionRequestItem();
-        requestItem.setTenant(10).setLimit(100).setOffset(100);
+        requestItem.setTenant(10).setLimit(100);
+
+        offsetRepository = mock(OffsetRepository.class);
     }
 
     @RunWithCustomExecutor
@@ -105,24 +114,26 @@ public class ReconstructionServiceTest {
         throws DatabaseException, LogbookException, InvalidParseOperationException,
         AccessionRegisterException, AdminManagementClientServerException, DatabaseConflictException {
         // given
-        Mockito.when(restoreBackupService.getListing("default", requestItem.getOffset(),
+        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
+
+        when(restoreBackupService.getListing("default", 100L,
             requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        Mockito.when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
-        Mockito.when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
-        Mockito.when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
+        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
             .thenReturn(
                 new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getOffset()).isEqualTo(101);
+        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -130,22 +141,22 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_item_limit_zero()
-        throws DatabaseException, AccessionRegisterException, AdminManagementClientServerException,
-        DatabaseConflictException {
+    public void should_return_request_offset_when_item_limit_zero() throws DatabaseException {
         // given
+        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
+
         requestItem.setLimit(0);
-        Mockito.when(restoreBackupService.getListing("default", requestItem.getOffset(),
+        when(restoreBackupService.getListing("default", 100L,
             requestItem.getLimit())).thenReturn(Arrays.asList());
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getOffset()).isEqualTo(100L);
+        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -157,7 +168,7 @@ public class ReconstructionServiceTest {
         requestItem.setLimit(-5);
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -169,7 +180,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -181,7 +192,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -193,25 +204,27 @@ public class ReconstructionServiceTest {
         throws DatabaseException, LogbookException, InvalidParseOperationException,
         AccessionRegisterException, AdminManagementClientServerException, DatabaseConflictException {
         // given
-        Mockito.when(restoreBackupService.getListing("default", requestItem.getOffset(),
+        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
+
+        when(restoreBackupService.getListing("default", 100L,
             requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        Mockito.when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
-        Mockito.when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         Mockito.doThrow(new DatabaseException("mongo error")).when(mongoRepository).save(Mockito.any(List.class));
-        Mockito.when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any())).thenReturn(
+        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any())).thenReturn(
             new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
 
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getOffset()).isEqualTo(101L);
+        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
@@ -222,24 +235,25 @@ public class ReconstructionServiceTest {
         throws DatabaseException, LogbookException, InvalidParseOperationException,
         AccessionRegisterException, AdminManagementClientServerException, DatabaseConflictException {
         // given
-        Mockito.when(restoreBackupService.getListing("default", requestItem.getOffset(),
+        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
+        when(restoreBackupService.getListing("default", 100L,
             requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        Mockito.when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
-        Mockito.when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         Mockito.doThrow(new DatabaseException("mongo error")).when(esRepository).save(Mockito.any(List.class));
-        Mockito.when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
+        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
             .thenReturn(new RequestResponseOK<AccessionRegisterDetailModel>());
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getOffset()).isEqualTo(100L);
+        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
@@ -250,23 +264,24 @@ public class ReconstructionServiceTest {
     public void should_return_request_offset_when_logbook_null()
         throws DatabaseException, LogbookException, InvalidParseOperationException {
         // given
+        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
         LogbookBackupModel logbookBackupModel100 = getLogbokBackupModel("100", 100L);
         logbookBackupModel100.setLogbookOperation(null);
-        Mockito.when(restoreBackupService.getListing("default", requestItem.getOffset(),
+        when(restoreBackupService.getListing("default", 100L,
             requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        Mockito.when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(logbookBackupModel100);
-        Mockito.when(restoreBackupService.loadData("default", "101", 101L))
+        when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getOffset()).isEqualTo(100L);
+        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }
@@ -274,22 +289,24 @@ public class ReconstructionServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_return_request_offset_when_loading_data_return_null()
-        throws DatabaseException, LogbookException, InvalidParseOperationException {
+        throws DatabaseException, InvalidParseOperationException {
         // given
-        Mockito.when(restoreBackupService.getListing("default", requestItem.getOffset(),
+        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
+
+        when(restoreBackupService.getListing("default", 100L,
             requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        Mockito.when(restoreBackupService.loadData("default", "100", 100L))
+        when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
-        Mockito.when(restoreBackupService.loadData("default", "101", 101L)).thenReturn(null);
+        when(restoreBackupService.loadData("default", "101", 101L)).thenReturn(null);
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData());
+                new LogbookTransformData(), offsetRepository);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
         assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getOffset()).isEqualTo(100L);
+        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
     }

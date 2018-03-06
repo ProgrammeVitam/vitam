@@ -108,15 +108,6 @@ public class MetaDataImpl implements MetaData {
     private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
-     * MetaDataImpl constructor
-     *
-     * @param configuration of mongoDB access
-     */
-    private MetaDataImpl(MetaDataConfiguration configuration) {
-        mongoDbAccess = MongoDbAccessMetadataFactory.create(configuration);
-    }
-
-    /**
      * @param mongoDbAccess
      */
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess) {
@@ -133,11 +124,11 @@ public class MetaDataImpl implements MetaData {
     /**
      * Get a new MetaDataImpl instance
      *
-     * @param configuration of mongoDB access
+     * @param mongoDbAccessMetadata
      * @return a new instance of MetaDataImpl
      */
-    public static MetaData newMetadata(MetaDataConfiguration configuration) {
-        return new MetaDataImpl(configuration);
+    public static MetaData newMetadata(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
+        return new MetaDataImpl(mongoDbAccessMetadata);
     }
 
     @Override

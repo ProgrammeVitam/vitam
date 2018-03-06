@@ -38,9 +38,11 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 
 /**
@@ -64,14 +66,16 @@ public class BusinessApplication extends Application {
             final LogbookConfiguration configuration = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
             // hack to init collections and clients
-            LogbookMongoDbAccessFactory.create(configuration);
+            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(configuration);
+
+            OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new LogbookResource(configuration));
             singletons.add(new LogbookRawResource(VitamRepositoryFactory.getInstance()));
             singletons.add(new LogbookAdminResource(VitamRepositoryFactory.getInstance(), configuration));
-            singletons.add(new LogbookReconstructionResource(VitamRepositoryFactory.getInstance()));
+            singletons.add(new LogbookReconstructionResource(VitamRepositoryFactory.getInstance(), offsetRepository));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
