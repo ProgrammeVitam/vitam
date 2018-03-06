@@ -43,24 +43,16 @@ Chaque action peut avoir les modèles d'exécutions suivants (toutes les étapes
 
 - Bloquant
 
-    * Si une action est identifiée en erreur, l'action et l'étape en cours sont alors arrêtées dans un statut "KO" ou "fatal" et le workflow passe à l'étape suivante. Dans certains cas, il est directement terminé en erreur alors que dans d'autres, il passe à une étape de finalisation. Ces comportements spécifiques sont décrits dans chaque workflow.
+    * Si une action bloquante est identifiée en erreur, le workflow est alors arrêté en erreur. Seules actions nécessaire à l'arrête du workflow sont alors éxecutées.
 
 - Non bloquant
 
-    * Si une action est identifiée en erreur, elle passe en erreur puis le reste des actions de l'étape en cours est exécuté. Dans certains cas, le workflow est directement terminé en erreur alors que dans d'autres, il passe à une étape de finalisation. Dans les deux cas  Ces comportements spécifiques sont décrits dans chaque workflow.
+    * Si une action non bloquante est identifiée en erreur, elle seule sera en erreur et le workflow continuera normalement.
 
 Structure d'un fichier Properties du Worflow
 =============================================
 
 Les fichiers **Properties** (Par exemple *DefaultIngestWorkflow.json*) permettent de définir la structure du Workflow pour les étapes, tâches et actions réalisées dans le module d'Ingest Interne, en excluant les étapes et actions réalisées dans le module d'Ingest externe.
-
-La structure du fichier est la suivante :
-
-.. figure:: images/workflow.jpg
-  :align: center
-
-  Structure du fichier de définition du workflow
-
 
 Un Workflow est défini en JSON avec la structure suivante :
 

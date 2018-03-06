@@ -6,16 +6,16 @@ Introduction
 
 Cette section décrit le processus (workflow) d'export, utilisé lors de l'export d'un ``Dissemination Information Package`` (DIP) dans la solution logicielle Vitam.
 
-Toutes les étapes et actions sont tracées dans le journal des opérations.
+Toutes les étapes et actions sont journalisées dans le journal des opérations.
 Les étapes et actions associées ci-dessous décrivent le processus d'export de DIP (clé et description de la clé associée dans le journal des opérations) tel qu'implémenté dans la version actuelle de la solution logicielle Vitam.
 
 Création du Bordereau (STP_CREATE_MANIFEST)
 ============================================
 
 Création du Bordereau (CREATE_MANIFEST - CreateManifest.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : création d'un bordereau contenant les unités archivistiques soumises au service d'export de DIP, ainsi que le groupes d'objets techniques et objets-données qui leurs sont associés
++ **Règle** : Création d'un bordereau contenant les unités archivistiques soumises au service d'export de DIP, ainsi que le groupes d'objets techniques et objets-données qui leurs sont associés
 
 + **Type** : bloquant
 
@@ -33,7 +33,7 @@ Déplacement des objets binaires vers le workspace (STP_PUT_BINARY_ON_WORKSPACE)
 Déplacement des objets binaires vers le workspace (PUT_BINARY_ON_WORKSPACE - PutBinaryOnWorkspace.java)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : déplacement des objets-données mentionnés dans le bordereau vers le workspace
++ **Règle** : Déplacement des objets-données mentionnées dans le bordereau vers le workspace
 
 + **Type** : bloquant
 
@@ -57,7 +57,7 @@ Stockage du bordereau compressé (STORE_MANIFEST - StoreDIP.java)
 
 + **Statuts** :
 
-  - OK : le DIP a été créé et stocké sur les offres de stockages avec succès (STORE_MANIFEST.OK=Succès de la création du DIP et de son déplacement vers l'offre de stockage)
+  - OK : le DIP a été créé et stocké sur les offres de stockages avec succès (STORE_MANIFEST.OK=Succès du processus de la création du DIP et de son déplacement vers l'offre de stockage)
 
   - KO : pas de cas KO (STORE_MANIFEST.KO=Échec de la création du DIP et de son déplacement vers l'offre de stockage)
 
