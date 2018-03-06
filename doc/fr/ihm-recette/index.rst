@@ -4,6 +4,7 @@
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
 
    recette.rst
    collections.rst
