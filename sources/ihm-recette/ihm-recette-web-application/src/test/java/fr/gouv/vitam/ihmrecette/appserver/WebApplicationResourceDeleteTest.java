@@ -29,9 +29,6 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
-import com.jayway.restassured.response.Cookie;
-import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
-import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -44,22 +41,12 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Cookie;
 import com.mongodb.BasicDBObject;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -69,6 +56,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -76,6 +64,8 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -84,12 +74,15 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -111,6 +104,12 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class WebApplicationResourceDeleteTest {
 
@@ -436,7 +435,7 @@ public class WebApplicationResourceDeleteTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testDeleteTnrOk() {
+    public void testDeleteTnrOk() throws SchemaValidationException {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             // insert and check data
@@ -558,7 +557,8 @@ public class WebApplicationResourceDeleteTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testDeleteAllOk() throws InvalidCreateOperationException, InvalidGuidOperationException {
+    public void testDeleteAllOk()
+        throws InvalidCreateOperationException, InvalidGuidOperationException, SchemaValidationException {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             // insert and check data
@@ -607,7 +607,7 @@ public class WebApplicationResourceDeleteTest {
     }
 
     public GUID addData(FunctionalAdminCollections collection)
-        throws ReferentialException {
+        throws ReferentialException, SchemaValidationException {
         final GUID guid = GUIDFactory.newGUID();
         final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
         mongoDbAccessAdmin.insertDocument(data1, collection).close();
@@ -653,7 +653,7 @@ public class WebApplicationResourceDeleteTest {
 
     public GUID addAdminContextData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, SchemaValidationException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
@@ -672,7 +672,7 @@ public class WebApplicationResourceDeleteTest {
 
     public GUID addAdminSecurityData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, SchemaValidationException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);

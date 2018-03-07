@@ -68,7 +68,6 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
     "WritingPermission": true,
     "EveryOriginatingAgency": false,
     "EveryDataObjectVersion": true,
-,
     "_tenant": 0,
     "_v": 0,
     "RootUnits": [

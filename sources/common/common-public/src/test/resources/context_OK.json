@@ -1,0 +1,34 @@
+{
+	"_id": "aegqaaaaaaflvhgbabrs6alb4x6csgyaaaaq",
+	"Name": "My_Context_5",
+	"Identifier": "CT-000002",
+	"Status": true,
+	"SecurityProfile": "admin-security-profile",
+	"CreationDate": "2018-03-02T09:12:43.547",
+	"LastUpdate": "2018-03-02T09:12:43.548",
+	"Permissions": [
+		{
+			"_tenant": 1,
+			"AccessContracts": [
+				"AccessContracts_1",
+				"AccessContracts_2"
+			],
+			"IngestContracts": [
+				"IngestContracts_1",
+				"IngestContracts_2"
+			]
+		},
+		{
+			"_tenant": 0,
+			"AccessContracts": [
+				"AccessContracts_5",
+				"AccessContracts_6"
+			],
+			"IngestContracts": [
+				"IngestContracts_9",
+				"IngestContracts_10"
+			]
+		}
+	],
+	"_v": 1
+}

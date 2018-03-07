@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -63,7 +64,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     /**
      * Constructor
      *
-     * @param dbConfiguration the mongo access configuration
+     * @param dbConfiguration                         the mongo access configuration
      * @param referentialAccessionRegisterSummaryUtil the accession register summary
      */
     public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration,
@@ -85,7 +86,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try {
             mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | SchemaValidationException e) {
             LOGGER.info("Create register detail Error", e);
             throw new ReferentialException(e);
         }
@@ -105,7 +106,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             if (!DbRequestSingle.checkInsertOrUpdate(e)) {
                 throw e;
             }
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | SchemaValidationException e) {
             throw new ReferentialException(e);
         } catch (final MongoWriteException | MongoBulkWriteException e) {
             LOGGER.info("Document existed, updating ...");

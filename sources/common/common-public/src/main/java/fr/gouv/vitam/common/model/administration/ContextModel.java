@@ -26,12 +26,11 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
@@ -172,7 +171,7 @@ public class ContextModel {
      * @return enableControle true we must check contract given contract exists in the current context, false else
      */
     public Boolean isEnablecontrol() {
-        return enablecontrol;
+        return enablecontrol == null ? Boolean.FALSE : enablecontrol;
     }
 
     /**

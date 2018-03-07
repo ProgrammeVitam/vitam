@@ -1,0 +1,38 @@
+{
+  "$schema": "http:\/\/vitam-json-schema.org\/draft-04\/schema#",
+  "id": "http:\/\/example.com\/root.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "Identifier": {
+      "type": "string"
+    },
+    "Name": {
+      "type": "string"
+    },
+    "FullAccess": {
+      "type": "boolean"
+    },
+    "Permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "required": ["_id", "_v", "Identifier", "Permissions"]
+    },
+    {
+      "required": ["_id", "_v", "Identifier", "FullAccess"]
+    }
+  ]
+  
+}

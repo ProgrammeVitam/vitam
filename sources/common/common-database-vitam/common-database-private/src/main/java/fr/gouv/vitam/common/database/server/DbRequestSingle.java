@@ -31,6 +31,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getConcernedDiffLines;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getUnifiedDiff;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,30 +40,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import fr.gouv.vitam.common.exception.VitamDBException;
-import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
-import org.elasticsearch.action.bulk.BulkItemResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchPhaseExecutionException;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.sort.SortBuilder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.mongodb.DBObject;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoException;
@@ -72,7 +53,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
@@ -99,11 +79,34 @@ import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.SchemaValidationStatus;
+import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
+import org.bson.conversions.Bson;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchPhaseExecutionException;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
 
 /**
  * This class execute all request single in Vitam
@@ -149,7 +152,8 @@ public class DbRequestSingle {
      * @throws InstantiationException
      */
     public DbRequestResult execute(RequestSingle request)
-        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException, VitamDBException {
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
         return execute(request, 0);
     }
 
@@ -170,7 +174,8 @@ public class DbRequestSingle {
      * @throws InstantiationException
      */
     public DbRequestResult execute(RequestSingle request, Integer version)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException {
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
         if (request instanceof Insert) {
             ArrayNode data = ((Insert) request).getDatas();
             return insertDocuments(data, version);
@@ -525,7 +530,8 @@ public class DbRequestSingle {
      * @throws InvalidCreateOperationException
      */
     private DbRequestResult updateDocuments(JsonNode request)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException {
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
         final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
         parser.parse(request);
         if (vitamCollection.isMultiTenant()) {
@@ -560,9 +566,22 @@ public class DbRequestSingle {
             while (updatedDocument == null && nbTry < 3) {
                 nbTry++;
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
+
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 ObjectNode updatedJsonDocument =
                     (ObjectNode) mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
+
+                try {
+                    SchemaValidationUtils validator = new SchemaValidationUtils();
+                    SchemaValidationStatus status =validator.validateJson(updatedJsonDocument,vitamCollection.getName() ) ;
+                    if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                        throw new SchemaValidationException(status.getValidationMessage());
+                    }
+                } catch (FileNotFoundException | ProcessingException e) {
+                    LOGGER.debug("Unable to initialize Json Validator : " +e.getMessage());
+                    throw new InvalidCreateOperationException(e);
+                }
+
                 updatedDocument = document.newInstance(updatedJsonDocument);
                 if (!updatedDocument.equals(document)) {
                     modified = true;

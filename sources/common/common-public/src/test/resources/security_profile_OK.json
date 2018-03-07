@@ -1,0 +1,16 @@
+{
+	"_id": "aegqaaaaaaeucszwabglyak64gjmgbyaaaba",
+	"Identifier": "SEC_PROFILE-000002",
+	"Name": "demo-security-profile",
+	"FullAccess": false,
+	"Permissions": [
+		"securityprofiles:create",
+		"securityprofiles:read",
+		"securityprofiles:id:read",
+		"securityprofiles:id:update",
+		"accesscontracts:read",
+		"accesscontracts:id:read",
+		"contexts:id:update"
+	],
+	"_v": 1
+}

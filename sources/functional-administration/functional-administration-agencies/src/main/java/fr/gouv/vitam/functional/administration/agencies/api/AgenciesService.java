@@ -51,6 +51,9 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -612,7 +615,19 @@ public class AgenciesService implements VitamAutoCloseable {
 
             return generateVitamBadRequestError(errorMessage.toString(), AGENCIES_IMPORT_DELETION_ERROR);
 
-        } catch (final Exception e) {
+        } 
+        catch (SchemaValidationException e) {
+            LOGGER.error(MESSAGE_ERROR, e);
+            
+            InputStream errorStream = generateErrorReport();
+            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
+                    eip + ".json");
+            errorStream.close();
+            
+            return getVitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem(), e.getMessage(),
+                    StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        }
+        catch (final Exception e) {
             LOGGER.error(MESSAGE_ERROR, e);
             InputStream errorStream = generateErrorReport();
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
@@ -637,6 +652,10 @@ public class AgenciesService implements VitamAutoCloseable {
         }
     }
 
+    private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
+        return VitamErrorUtils.getVitamError(vitamCode, error, "Agencies", statusCode);
+    }
+
     private VitamError generateVitamBadRequestError(String err, String subEvenType) throws VitamException {
         manager.logError(err, subEvenType);
         return new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
@@ -656,7 +675,7 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     private void insertDocuments(List<AgenciesModel> agenciesToInsert, Integer sequence)
-        throws InvalidParseOperationException, ReferentialException {
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException {
 
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 
@@ -682,7 +701,8 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     private void commitAgencies()
-        throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
+        SchemaValidationException {
 
         Integer sequence = vitamCounterService
             .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE);
@@ -709,7 +729,7 @@ public class AgenciesService implements VitamAutoCloseable {
     private void updateAgency(AgenciesModel fileAgenciesModel, Integer sequence)
         throws InvalidCreateOperationException,
         ReferentialException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, SchemaValidationException {
 
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateFileAgencies = new Update();

@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -50,7 +51,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
-        throws ReferentialException;
+        throws ReferentialException, SchemaValidationException;
 
     /**
      * insert documents
@@ -62,7 +63,7 @@ public interface MongoDbAccessReferential {
      * 
      */
     DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException;
+        throws ReferentialException, SchemaValidationException;
 
     /**
      * insert documents
@@ -73,7 +74,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     DbRequestResult insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection)
-        throws ReferentialException;
+        throws ReferentialException, SchemaValidationException;
 
     // Not check, test feature !
     DbRequestResult deleteCollection(FunctionalAdminCollections collection, Delete delete)
@@ -88,7 +89,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      */
     DbRequestResult deleteCollection(FunctionalAdminCollections collection)
-        throws DatabaseException, ReferentialException;
+        throws DatabaseException, ReferentialException, SchemaValidationException;
 
     /**
      * @param id of vitam document
@@ -119,7 +120,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs;
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
-        throws ReferentialException;
+        throws ReferentialException, SchemaValidationException;
 
     /**
      * Update with queryDsl
@@ -131,7 +132,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs;
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException;
+        throws ReferentialException, SchemaValidationException;
 
     /**
      * @param select filter

@@ -1,0 +1,26 @@
+{
+	"_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
+	"Name": "SIA archives nationales",
+	"Identifier": "AC-000009",
+	"Description": "Contrat d'accès - SIA archives nationales",
+	"Status": "ACTIVE",
+	"CreationDate": "2017-04-10T11:30:33.798",
+	"LastUpdate": "2017-04-10T11:30:33.798",
+	"ActivationDate": "2017-04-10T11:30:33.798",
+	"DeactivationDate": null,
+	"DataObjectVersion": ["PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent"],
+	"OriginatingAgencies":["FRA-56","FRA-47"],
+	"RootUnits": [
+		"aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
+		"aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
+	],
+	"WritingPermission": true,
+	"EveryOriginatingAgency": false,
+	"EveryDataObjectVersion": true,
+	"_tenant": 0,
+	"_v": 0,
+	"RootUnits": [
+		"aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
+		"aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
+	]
+}

@@ -36,7 +36,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
       "TotalObjectGroups": {
           "ingested": 0,
           "deleted": 0,
-          "remained": 0
+          "remained": 0,
           "attached": 0,
           "detached": 0,
           "symbolicRemained": 0
@@ -44,7 +44,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
       "TotalUnits": {
           "ingested": 11,
           "deleted": 0,
-          "remained": 11
+          "remained": 11,
           "attached": 0,
           "detached": 0,
           "symbolicRemained": 0
@@ -52,7 +52,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
       "TotalObjects": {
           "ingested": 0,
           "deleted": 0,
-          "remained": 0
+          "remained": 0,
           "attached": 0,
           "detached": 0,
           "symbolicRemained": 0
@@ -60,7 +60,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
       "ObjectSize": {
           "ingested": 0,
           "deleted": 0,
-          "remained": 0
+          "remained": 0,
           "attached": 0,
           "detached": 0,
           "symbolicRemained": 0
@@ -228,11 +228,5 @@ On récupère la valeur IC-000001.
 **"_v":** version de l'enregistrement décrit
 
   * Il s'agit d'un entier.
-  * Champ peuplé par la solution logicielle Vitam.
-  * Cardinalité : 1-1
-
-**"_tenant":** identifiant du tenant.
-
-  * Il s'agit d'un entier.
-  * Champ peuplé par la solution logicielle Vitam.
+  * Champ peuplé par Vitam.
   * Cardinalité : 1-1

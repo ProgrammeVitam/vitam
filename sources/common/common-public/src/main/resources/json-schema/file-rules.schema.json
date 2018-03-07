@@ -1,0 +1,70 @@
+{
+  "$schema": "http:\/\/vitam-json-schema.org\/draft-04\/schema#",
+  "id": "http:\/\/example.com\/root.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_tenant": {
+      "type": "integer"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "RuleId": {
+      "type": "string"
+    },
+    "RuleType": {
+      "type": "string"
+    },
+    "RuleValue": {
+      "type": "string"
+    },
+    "RuleDescription": {
+      "type": "string"
+    },
+    "RuleDuration": {
+      "type": "string"
+    },
+    "RuleMeasurement": {
+      "type": "string"
+    },
+    "CreationDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "UpdateDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    }
+  },
+  "required": ["_id", "_tenant", "_v", "RuleId", "RuleType", "RuleValue", "RuleDuration", "RuleMeasurement", "CreationDate", "UpdateDate"]
+}

@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -278,7 +279,7 @@ public class ClientMockResultHelper {
         contract.setIdentifier("FAKE_IDENTIFIER");
         contract.setName("Un contrat");
         contract.setDescription("DESCRIPTION D'UN CONTRAT");
-        contract.setStatus("ACTIVE");
+        contract.setStatus(ContractStatus.ACTIVE);
         contract.setCreationdate("2016-11-02");
         contract.setLastupdate("2016-11-05");
         contract.setActivationdate("2016-11-04");
@@ -304,7 +305,7 @@ public class ClientMockResultHelper {
         contract.setIdentifier("FAKE_IDENTIFIER");
         contract.setName("Un contrat");
         contract.setDescription("DESCRIPTION D'UN CONTRAT");
-        contract.setStatus("ACTIVE");
+        contract.setStatus(ContractStatus.ACTIVE);
         contract.setCreationdate("2016-11-02");
         contract.setLastupdate("2016-11-05");
         contract.setActivationdate("2016-11-04");

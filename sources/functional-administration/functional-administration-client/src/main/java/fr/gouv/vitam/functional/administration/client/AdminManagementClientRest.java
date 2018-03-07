@@ -1357,7 +1357,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
+    public RequestResponse updateSecurityProfile(String identifier, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
@@ -1371,7 +1371,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Security Profile not found with id: " + identifier);
             }
-            return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

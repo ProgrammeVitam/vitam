@@ -1,0 +1,186 @@
+{
+  "$schema": "http:\/\/vitam-json-schema.org\/draft-04\/schema#",
+  "id": "http:\/\/example.com\/root.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "ObjectSize": {
+      "type": "object",
+      "properties": {
+        "ingested": {
+          "type": "number"
+        },
+        "deleted": {
+          "type": "number"
+        },
+        "remained": {
+          "type": "number"
+        },
+        "attached": {
+          "type": "number"
+        },
+        "detached": {
+          "type": "number"
+        },
+        "symbolicRemained": {
+          "type": "number"
+        }
+      }
+    },
+    "_id": {
+      "type": "string"
+    },
+    "_tenant": {
+      "type": "integer"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "OriginatingAgency": {
+      "type": "string"
+    },
+    "SubmissionAgency": {
+      "type": "string"
+    },
+    "ArchivalAgreement": {
+      "type": "string"
+    },
+    "EndDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "StartDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "LastUpdate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "STORED_AND_COMPLETED",
+        "STORED_AND_UPDATED",
+        "UNSTORED"
+      ]
+    },
+    "TotalObjectGroups": {
+      "type": "object",
+      "properties": {
+        "ingested": {
+          "type": "number"
+        },
+        "deleted": {
+          "type": "number"
+        },
+        "remained": {
+          "type": "number"
+        },
+        "attached": {
+          "type": "number"
+        },
+        "detached": {
+          "type": "number"
+        },
+        "symbolicRemained": {
+          "type": "number"
+        }
+      }
+    },
+    "TotalUnits": {
+      "type": "object",
+      "properties": {
+        "ingested": {
+          "type": "number"
+        },
+        "deleted": {
+          "type": "number"
+        },
+        "remained": {
+          "type": "number"
+        },
+        "attached": {
+          "type": "number"
+        },
+        "detached": {
+          "type": "number"
+        },
+        "symbolicRemained": {
+          "type": "number"
+        }
+      }
+    },
+    "TotalObjects": {
+      "type": "object",
+      "properties": {
+        "ingested": {
+          "type": "number"
+        },
+        "deleted": {
+          "type": "number"
+        },
+        "remained": {
+          "type": "number"
+        },
+        "attached": {
+          "type": "number"
+        },
+        "detached": {
+          "type": "number"
+        },
+        "symbolicRemained": {
+          "type": "number"
+        }
+      }
+    },
+    "OperationIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "Symbolic": {
+      "type": "boolean"
+    }
+  }
+}

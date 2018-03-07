@@ -30,7 +30,6 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
@@ -57,9 +56,19 @@ public class SchemaValidationUtils {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchemaValidationUtils.class);
 
-    private JsonSchema archiveUnitSchema;
+    private JsonSchema jsonSchema;
 
-    public static final String SCHEMA_FILENAME = "json-schema/archive-unit-schema.json";
+    public static final String ARCHIVE_UNIT_SCHEMA_FILENAME = "json-schema/archive-unit-schema.json";
+    public static final String ACCESS_CONTRACT_SCHEMA_FILENAME = "json-schema/access-contract-schema.json";
+    public static final String ACCESSION_REGISTER_DETAIL_SCHEMA_FILENAME = "json-schema/accession-register-detail.schema.json";
+    public static final String ACCESSION_REGISTER_SUMMARY_SCHEMA_FILENAME = "json-schema/accession-register-summary.schema.json";
+    public static final String AGENCIES_SCHEMA_FILENAME = "json-schema/agencies.schema.json";
+    public static final String CONTEXT_SCHEMA_FILENAME = "json-schema/context.schema.json";
+    public static final String FILE_FORMAT_SCHEMA_FILENAME = "json-schema/file-format.schema.json";
+    public static final String FILE_RULES_SCHEMA_FILENAME = "json-schema/file-rules.schema.json";
+    public static final String INGEST_CONTRACT_SCHEMA_FILENAME = "json-schema/ingest-contract.schema.json";
+    public static final String PROFILE_SCHEMA_FILENAME = "json-schema/profile.schema.json";
+    public static final String SECURITY_PROFILE_SCHEMA_FILENAME = "json-schema/security-profile.schema.json";
 
     /**
      * Constructor with a default schema filename
@@ -69,7 +78,7 @@ public class SchemaValidationUtils {
      * @throws InvalidParseOperationException
      */
     public SchemaValidationUtils() throws FileNotFoundException, ProcessingException, InvalidParseOperationException {
-        setSchema(SCHEMA_FILENAME);
+        setSchema(ARCHIVE_UNIT_SCHEMA_FILENAME);
     }
 
     /**
@@ -100,20 +109,102 @@ public class SchemaValidationUtils {
 
         // build archive schema validator
 
-        JsonNode archiveUnitSchemaJson =
+        JsonNode schemaJson =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(schemaFilename));
-        archiveUnitSchema = factory.getJsonSchema(archiveUnitSchemaJson);
+        jsonSchema = factory.getJsonSchema(schemaJson);
+    }
+
+    /**
+     * Validate the json against the schema of the specified collectionName
+     * @param jsonNode
+     * @param collectionName
+     * @return a status ({@link SchemaValidationStatus})
+     * @throws FileNotFoundException if no schema has been found fot the specified collectionname
+     * @throws InvalidParseOperationException
+     * @throws ProcessingException
+     */
+    public SchemaValidationStatus validateJson(JsonNode jsonNode, String collectionName) throws FileNotFoundException, InvalidParseOperationException, ProcessingException {
+
+        if ("AccessContract".equals(collectionName)){
+            setSchema(ACCESS_CONTRACT_SCHEMA_FILENAME);
+        }
+        else if ("AccessionRegisterDetail".equals(collectionName)){
+            // TODO : use ACCESSION_REGISTER_DETAIL_SCHEMA_FILENAME and fix validation 
+            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+        }
+        else if ("AccessionRegisterSummary".equals(collectionName)){
+            // TODO : should we validate by json schema (ACCESSION_REGISTER_SUMMARY_SCHEMA_FILENAME) 
+            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+        }
+        else if ("Agencies".equals(collectionName)){
+            setSchema(AGENCIES_SCHEMA_FILENAME);
+        }
+        else if ("Context".equals(collectionName)){
+            setSchema(CONTEXT_SCHEMA_FILENAME);
+        }
+        else if ("FileFormat".equals(collectionName)){
+            // TODO : should we validate by json schema (FILE_FORMAT_SCHEMA_FILENAME)
+            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+        }
+        else if ("FileRules".equals(collectionName)){
+            setSchema(FILE_RULES_SCHEMA_FILENAME);
+        }
+        else if ("IngestContract".equals(collectionName)){
+            setSchema(INGEST_CONTRACT_SCHEMA_FILENAME);
+        }
+        else if ("Profile".equals(collectionName)){
+            setSchema(PROFILE_SCHEMA_FILENAME);
+        }
+        else if ("SecurityProfile".equals(collectionName)){
+            setSchema(SECURITY_PROFILE_SCHEMA_FILENAME);
+        }
+        // used for test
+        else if("CollectionSample".equals(collectionName)) {
+            return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+        }
+        else {
+            throw  new FileNotFoundException("No json schema found for collection "+collectionName);
+        }
+
+        return validateJson(jsonNode);
     }
 
     /**
      * Validate a json with a schema
+     *
+     * @param jsonNode the json to be validated
+     * @return a status ({@link SchemaValidationStatus})
+     */
+    protected SchemaValidationStatus validateJson(JsonNode jsonNode) {
+        try {
+            ProcessingReport report = jsonSchema.validate(jsonNode);
+
+            if (!report.isSuccess()) {
+                JsonNode error = (( ListProcessingReport ) report).asJson();
+                ObjectNode errorNode = JsonHandler.createObjectNode();
+                errorNode.set( "validateJson",  error);
+                LOGGER.error("Json is not valid : \n" + errorNode.toString());
+                return new SchemaValidationStatus(errorNode.toString(),
+                    SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
+            }
+
+        } catch (ProcessingException  e) {
+            LOGGER.error("File is not a valid json file", e);
+            return new SchemaValidationStatus("File is not a valid json file",
+                SchemaValidationStatusEnum.NOT_JSON_FILE);
+        }
+        return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+    }
+
+    /**
+     * Validate a json with the schema archive-unit-schema
      * 
      * @param archiveUnit the json to be validated
      * @return a status ({@link SchemaValidationStatus})
      */
     public SchemaValidationStatus validateUnit(JsonNode archiveUnit) {
         try {
-            ProcessingReport report = archiveUnitSchema.validate(archiveUnit);
+            ProcessingReport report = jsonSchema.validate(archiveUnit);
             if (!report.isSuccess()) {
                 JsonNode error = (( ListProcessingReport ) report).asJson();
                 ObjectNode errorNode = JsonHandler.createObjectNode();
