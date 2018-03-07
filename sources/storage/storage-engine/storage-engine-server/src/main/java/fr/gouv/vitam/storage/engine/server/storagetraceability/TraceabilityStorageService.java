@@ -65,11 +65,12 @@ public class TraceabilityStorageService {
         Long offset = null;
 
         while (true) {
+
             List<OfferLog> files = getLast(strategyId, DataCategory.STORAGELOG, offset, GET_LAST_BASE);
+            allFiles.addAll(files);
 
             // Directly return if no more items in DB
             if (files.size() < GET_LAST_BASE) {
-                allFiles.addAll(files);
                 break;
             }
 
@@ -77,7 +78,6 @@ public class TraceabilityStorageService {
             LocalDateTime date =
                 StorageFileNameHelper.parseDateFromStorageLogFileName(oldestReturnedFile.getFileName());
             if (date.isBefore(fromDate)) {
-                allFiles.addAll(files);
                 break;
             }
 
