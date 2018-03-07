@@ -96,7 +96,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 public class AgenciesServiceTest {
 
-    public static final String STP_AGENCIES_REPORT = "AGENCIES_REPORT";
+    public static final String AGENCIES_REPORT = "AGENCIES_REPORT";
     private static VitamCounterService vitamCounterService;
 
     @Rule
@@ -225,7 +225,7 @@ public class AgenciesServiceTest {
             InputStream argumentAt = invocation.getArgumentAt(0, InputStream.class);
             Files.copy(argumentAt, reportPath);
             return null;
-        }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(STP_AGENCIES_REPORT),
+        }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT),
             eq(DataCategory.REPORT), endsWith(".json")
         );
 
