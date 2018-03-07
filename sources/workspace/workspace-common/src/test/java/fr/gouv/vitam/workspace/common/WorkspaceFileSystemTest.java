@@ -346,7 +346,6 @@ public class WorkspaceFileSystemTest {
 
         storage.putObject(CONTAINER_NAME + "/" + folder1, "1.txt", new ByteArrayInputStream("bobbie1".getBytes()));
         storage.putObject(CONTAINER_NAME + "/" + folder1, "2.txt", new ByteArrayInputStream("bobby404".getBytes()));
-
         storage.putObject(CONTAINER_NAME, "3.txt", new ByteArrayInputStream("bobby5".getBytes()));
 
         // When

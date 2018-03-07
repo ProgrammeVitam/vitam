@@ -429,7 +429,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (CompressorException | ArchiveException | IOException e) {
+        } catch (ArchiveException | IOException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
