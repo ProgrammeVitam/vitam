@@ -2,6 +2,7 @@
 .idea
 build
 target
+.vscode
 .classpath
 .project
 npm-debug.log*
