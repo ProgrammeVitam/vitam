@@ -336,7 +336,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a rules document
      *
-     * @param headers  http headers
+     * @param headers http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -610,7 +610,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
-    
+
 
     /**
      * Import archive unit profiles
@@ -690,9 +690,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a Profile file document (xsd or rng, ...)
      *
-     * @param uriInfo           used to construct the created resource and send it back as location in the response
+     * @param uriInfo used to construct the created resource and send it back as location in the response
      * @param profileMetadataId id of the profile metadata
-     * @param profileFile       inputStream representing the data to import
+     * @param profileFile inputStream representing the data to import
      * @return The jaxRs Response
      */
     @Path("/profiles/{id:.+}")
@@ -1008,7 +1008,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         }
     }
-    
+
     /**
      * findContexts using get method
      *
@@ -1047,7 +1047,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a agencies document
      *
-     * @param headers  http headers
+     * @param headers http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      * @throws InvalidParseOperationException
@@ -1705,7 +1705,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * findAccessionRegisterDetail
      *
      * @param documentId the document id of accession register to get
-     * @param select     the query to get document
+     * @param select the query to get document
      * @return Response
      */
     @GET
@@ -1922,7 +1922,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update a security profile
      *
      * @param identifier the identifier of the security profile to update
-     * @param queryDsl   query to execute
+     * @param queryDsl query to execute
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
@@ -1964,10 +1964,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
-     * @deprecated Use CODE_VITAM
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
     @Deprecated
@@ -2013,7 +2012,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header of request
-     * @param query   the filter query
+     * @param query the filter query
      * @return the list of Operations details
      */
     @GET
@@ -2139,7 +2138,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id      operation identifier
+     * @param id operation identifier
      * @return http response
      */
     @Path("operations/{id}")

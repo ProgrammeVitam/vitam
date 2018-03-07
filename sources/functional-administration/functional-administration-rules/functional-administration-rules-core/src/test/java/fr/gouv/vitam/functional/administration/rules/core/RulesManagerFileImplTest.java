@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -152,8 +153,7 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";    
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
-
-
+    private static final Integer TENANT_ID = 0;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -302,6 +302,7 @@ public class RulesManagerFileImplTest {
         } catch (FileRulesUpdateException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         Select selectTenant = new Select();
@@ -332,6 +333,7 @@ public class RulesManagerFileImplTest {
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         try {
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)), FILE_DURATION_EXCEED);
         } catch (final FileRulesException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
@@ -357,10 +359,12 @@ public class RulesManagerFileImplTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
 
         when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         when(client.selectOperation(Matchers.anyObject())).thenReturn(getEmptyJsonResponse());
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
     }
 
@@ -376,6 +380,7 @@ public class RulesManagerFileImplTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
         when(client.selectOperation(Matchers.anyObject())).thenReturn(
             getJsonResult("COMMIT_RULES", 60));
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
     }
 
@@ -478,6 +483,7 @@ public class RulesManagerFileImplTest {
             } catch (ReferentialException e) {
             }
             if (fileRules.size() == 0) {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                     FILE_TO_TEST_OK);
             }
@@ -524,6 +530,7 @@ public class RulesManagerFileImplTest {
             } catch (ReferentialException e) {
             }
             if (fileRules.size() == 0) {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                     FILE_TO_TEST_OK);
             }
@@ -536,6 +543,7 @@ public class RulesManagerFileImplTest {
                 }
             }
             // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
             rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_TYPE)),
                 FILE_UPDATE_RULE_TYPE);
             List<FileRules> fileRulesAfterInsert =
@@ -583,6 +591,7 @@ public class RulesManagerFileImplTest {
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
 
             if (fileRules.size() == 0) {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                     FILE_TO_TEST_OK);
             }
@@ -617,6 +626,7 @@ public class RulesManagerFileImplTest {
     public void should_retrieve_FileRulesCsvException_when_csv_with_bad_format_is_upload() throws Exception {
         int tenantId = 7;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
         // mock Storage
 
@@ -793,6 +803,7 @@ public class RulesManagerFileImplTest {
         final Path report = Paths.get(file.getAbsolutePath(), "report.json");
         getInputStreamAndInitialiseMockWhenImportFileRules(report);
         // when
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
             FILE_TO_TEST_OK);
         // then
@@ -868,6 +879,7 @@ public class RulesManagerFileImplTest {
         final Path report = Paths.get(file.getAbsolutePath(), "report.json");
         getInputStreamAndInitialiseMockWhenImportFileRules(report);
         // when
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
             FILE_TO_TEST_OK);
         // then

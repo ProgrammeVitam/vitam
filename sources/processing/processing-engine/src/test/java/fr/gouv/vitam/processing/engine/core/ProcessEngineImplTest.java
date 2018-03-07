@@ -93,6 +93,7 @@ public class ProcessEngineImplTest {
             .setUrlMetadata("http://localhost:8083")
             .setUrlWorkspace("http://localhost:8083")
             .setContainerName(GUIDFactory.newGUID().getId())
+            .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
             .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
 
         processDistributor = mock(ProcessDistributor.class);

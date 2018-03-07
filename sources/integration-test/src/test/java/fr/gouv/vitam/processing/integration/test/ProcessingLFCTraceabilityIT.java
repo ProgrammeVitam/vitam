@@ -365,15 +365,18 @@ public class ProcessingLFCTraceabilityIT {
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importFormat(
                     PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
                     "DROID_SignatureFile_V88.xml");
 
                 // Import Rules
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
                     "jeu_donnees_OK_regles_CSV_regles.csv");
 
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
@@ -381,20 +384,21 @@ public class ProcessingLFCTraceabilityIT {
                     JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
                     });
                 client.createProfiles(profileModelList);
-
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
                 client.importProfileFile(response.getResults().get(0).getIdentifier(),
                     PropertiesUtils.getResourceAsStream("integration-processing/profil_ok.rng"));
 
                 // import contract
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                     new TypeReference<List<IngestContractModel>>() {
                     });
 
-                Status importStatus = client.importIngestContracts(IngestContractModelList);
+                client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

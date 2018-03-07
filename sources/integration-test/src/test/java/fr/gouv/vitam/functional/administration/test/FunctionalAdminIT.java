@@ -29,6 +29,9 @@ package fr.gouv.vitam.functional.administration.test;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -327,6 +330,9 @@ public class FunctionalAdminIT {
         RestAssured.basePath = LOGBOOK_REST_URI;
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        VitamThreadUtils.getVitamSession().setRequestId(eipId);
+
         InputStream rulesFileStream =
             new FileInputStream(
                 PropertiesUtils.getResourceFile("functional-admin/jeu_donnees_OK_regles_CSV_regles.csv"));
