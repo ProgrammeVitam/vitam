@@ -28,23 +28,25 @@ package fr.gouv.vitam.metadata.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * MetadataReconstructionResource test
@@ -56,41 +58,40 @@ public class MetadataReconstructionResourceTest {
 
     @Before
     public void setup() {
-        reconstructionService = Mockito.mock(ReconstructionService.class);
+        reconstructionService = mock(ReconstructionService.class);
         requestItem = new ReconstructionRequestItem();
-        requestItem.setCollection("unit").setTenant(10).setLimit(100).setOffset(99);
+        requestItem.setCollection("unit").setTenant(10).setLimit(100);
     }
 
     @Test
-    public void should_return_ok_when_request_item_full() throws DatabaseException {
-        // given
-        ReconstructionResponseItem responseItem =
-            new ReconstructionResponseItem(requestItem, StatusCode.OK).setOffset(199);
+    public void should_return_ok_when_request_item_full() {
+        // Given
+        ReconstructionResponseItem responseItem = new ReconstructionResponseItem(requestItem, StatusCode.OK);
 
-        Mockito.when(reconstructionService.reconstruct(requestItem)).thenReturn(responseItem);
+        when(reconstructionService.reconstruct(requestItem)).thenReturn(responseItem);
         MetadataReconstructionResource reconstructionResource =
             new MetadataReconstructionResource(reconstructionService);
-        // when
-        Response response = reconstructionResource.reconstructCollection(Arrays.asList(requestItem));
-        // then
+        // When
+        Response response = reconstructionResource.reconstructCollection(Collections.singletonList(requestItem));
+
+        // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.size()).isEqualTo(1);
         assertThat(responseEntity.get(0).getCollection()).isEqualTo("unit");
-        assertThat(responseEntity.get(0).getOffset()).isEqualTo(199);
         assertThat(responseEntity.get(0).getTenant()).isEqualTo(10);
         assertThat(responseEntity.get(0).getStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
-    public void should_return_empty_response_when_that_request_empty() throws DatabaseException {
-        // given
+    public void should_return_empty_response_when_that_request_empty() {
+        // Given
         MetadataReconstructionResource reconstructionResource =
             new MetadataReconstructionResource(reconstructionService);
-        // when
+        // When
         Response response = reconstructionResource.reconstructCollection(new ArrayList<>());
-        // then
+        // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
         assertThat(responseEntity).isNotNull();
@@ -98,29 +99,30 @@ public class MetadataReconstructionResourceTest {
     }
 
     @Test
-    public void should_return_request_offset_when_reconstruction_throws_database_exception() throws DatabaseException {
-        // given
-        Mockito.when(reconstructionService.reconstruct(requestItem)).thenThrow(new DatabaseException("Database error"));
+    public void should_return_request_offset_when_reconstruction_throws_database_exception() throws Exception {
+        // Given
+        when(reconstructionService.reconstruct(requestItem)).thenThrow(new IllegalArgumentException("Database error"));
         MetadataReconstructionResource reconstructionResource =
             new MetadataReconstructionResource(reconstructionService);
-        // when
+
+        // When
         Response response = reconstructionResource.reconstructCollection(Arrays.asList(requestItem));
-        // then
+
+        // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.size()).isEqualTo(1);
         assertThat(responseEntity.get(0).getCollection()).isEqualTo("unit");
-        assertThat(responseEntity.get(0).getOffset()).isEqualTo(99);
         assertThat(responseEntity.get(0).getTenant()).isEqualTo(10);
     }
 
     @Test
     public void should_return_ok_when__request_item_no_offset() throws DatabaseException {
-        // given
+        // Given
         MetadataReconstructionResource reconstructionResource =
             new MetadataReconstructionResource(reconstructionService);
-        // when + then
+        // When / Then
         assertThatCode(() -> reconstructionResource.reconstructCollection(null))
             .isInstanceOf(IllegalArgumentException.class);
     }

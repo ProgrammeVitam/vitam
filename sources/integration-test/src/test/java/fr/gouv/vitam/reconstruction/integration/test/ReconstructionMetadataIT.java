@@ -2,6 +2,7 @@ package fr.gouv.vitam.reconstruction.integration.test;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static fr.gouv.vitam.common.database.offset.OffsetRepository.COLLECTION_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -11,26 +12,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.util.Files;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -77,6 +69,16 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import okhttp3.OkHttpClient;
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.util.Files;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -141,6 +143,7 @@ public class ReconstructionMetadataIT {
     private static DefaultOfferMain defaultOfferMain;
 
     private static MetadataMain metadataMain;
+    private static OffsetRepository offsetRepository;
 
     private MetadataReconstructionService reconstructionService;
 
@@ -151,7 +154,7 @@ public class ReconstructionMetadataIT {
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
             MetadataCollections.UNIT.getName(), MetadataCollections.OBJECTGROUP.getName(),
-            OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION);
+            OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION, COLLECTION_NAME);
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
@@ -260,6 +263,8 @@ public class ReconstructionMetadataIT {
         storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
 
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), "Vitam-Test");
+        offsetRepository = new OffsetRepository(mongoDbAccess);
     }
 
 
@@ -361,13 +366,15 @@ public class ReconstructionMetadataIT {
         reconstructionItem1 = new ReconstructionRequestItem();
         reconstructionItem1.setCollection(DataCategory.UNIT.name());
         reconstructionItem1.setLimit(2);
-        reconstructionItem1.setOffset(0L);
+
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0);
+
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(2L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
@@ -409,13 +416,16 @@ public class ReconstructionMetadataIT {
         reconstructionItem2 = new ReconstructionRequestItem();
         reconstructionItem2.setCollection(DataCategory.OBJECTGROUP.name());
         reconstructionItem2.setLimit(2);
-        reconstructionItem2.setOffset(0L);
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
+
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 0);
+
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(5L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName()))
+            .isEqualTo(5L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(GOT_0_GUID);
@@ -452,28 +462,33 @@ public class ReconstructionMetadataIT {
 
         // 3. relaunch reconstruct for unit and got
         reconstructionItems = new ArrayList<>();
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 0L);
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(2L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.body().get(1).getOffset()).isEqualTo(5L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(5L);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
         // 4. reconstruct next for unit and got
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setOffset(2L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 2L);
+
         reconstructionItems.add(reconstructionItem1);
-        reconstructionItem2.setOffset(5L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 5L);
+
         reconstructionItems.add(reconstructionItem2);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(3L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName()))
+            .isEqualTo(3L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.body().get(1).getOffset()).isEqualTo(6L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(6L);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getUnitByIdRaw(UNIT_2_GUID);
@@ -510,55 +525,58 @@ public class ReconstructionMetadataIT {
 
         // 5. reconstruct nothing for unit and got
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setOffset(3L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 3L);
+
         reconstructionItems.add(reconstructionItem1);
-        reconstructionItem2.setOffset(6L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 6L);
+
         reconstructionItems.add(reconstructionItem2);
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(3L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.body().get(1).getOffset()).isEqualTo(6L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName()));
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
         // 6. reconstruct on unused tenants
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setOffset(0L);
+        offsetRepository.createOrUpdateOffset(TENANT_1, MetadataCollections.UNIT.getName(), 0L);
+
         reconstructionItem1.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem1);
-        reconstructionItem2.setOffset(0L);
+        offsetRepository.createOrUpdateOffset(TENANT_1, MetadataCollections.OBJECTGROUP.getName(), 0L);
         reconstructionItem2.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem2);
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(0L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.UNIT.getName())).isEqualTo(0L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.body().get(1).getOffset()).isEqualTo(0L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(0L);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
         // 6. reconstruct on unit and another invalid collection
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1.setOffset(0L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0L);
+
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
         reconstructionItem2.setCollection(DataCategory.MANIFEST.name());
-        reconstructionItem2.setOffset(0L);
+        offsetRepository.createOrUpdateOffset(TENANT_1, MetadataCollections.UNIT.getName(), 0L);
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(response.body().get(0).getOffset()).isEqualTo(2L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(response.body().get(1).getOffset()).isEqualTo(0L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, DataCategory.MANIFEST.name())).isEqualTo(0L);
+
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
-
-
     }
 
     private Select getSelectQueryProjectionSimple(String guid) throws InvalidCreateOperationException {

@@ -39,12 +39,6 @@ public class ReconstructionResponseItem {
     private Integer tenant;
 
     /**
-     * Offset.
-     */
-    @JsonProperty("offset")
-    private long offset;
-
-    /**
      * Status.
      */
     @JsonProperty("status")
@@ -67,7 +61,6 @@ public class ReconstructionResponseItem {
         super();
         this.collection = reconstructionRequestItem.getCollection();
         this.tenant = reconstructionRequestItem.getTenant();
-        this.offset = reconstructionRequestItem.getOffset();
         this.status = status;
     }
 
@@ -108,26 +101,6 @@ public class ReconstructionResponseItem {
      */
     public ReconstructionResponseItem setTenant(Integer tenant) {
         this.tenant = tenant;
-        return this;
-    }
-
-    /**
-     * Get offset
-     *
-     * @return offset
-     */
-    public long getOffset() {
-        return offset;
-    }
-
-    /**
-     * Set or change offset
-     *
-     * @param offset
-     * @return this
-     */
-    public ReconstructionResponseItem setOffset(long offset) {
-        this.offset = offset;
         return this;
     }
 

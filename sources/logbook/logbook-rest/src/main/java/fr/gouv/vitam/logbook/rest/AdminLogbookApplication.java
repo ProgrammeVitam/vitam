@@ -40,9 +40,11 @@ import javax.ws.rs.core.Context;
 import com.google.common.base.Throwables;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
@@ -68,12 +70,14 @@ public class AdminLogbookApplication extends Application {
                 PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
             adminApplication = new AdminApplication();
             // hack to init collections and clients
-            LogbookMongoDbAccessFactory.create(logbookConfiguration);
+            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+
+            OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
             singletons.add(new LogbookAdminResource(VitamRepositoryFactory.getInstance(), logbookConfiguration));
-            singletons.add(new LogbookReconstructionResource(VitamRepositoryFactory.getInstance()));
+            singletons.add(new LogbookReconstructionResource(VitamRepositoryFactory.getInstance(), offsetRepository));
             singletons.add(new BasicAuthenticationFilter(logbookConfiguration));
         } catch (IOException e) {
             throw Throwables.propagate(e);

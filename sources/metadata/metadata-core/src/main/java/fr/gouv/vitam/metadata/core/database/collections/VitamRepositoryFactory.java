@@ -20,12 +20,10 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.bson.Document;
-
 import com.mongodb.client.MongoCollection;
-
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import org.bson.Document;
 
 /**
  * Reconstruction instance for instanciating mongoDB and elasticsearch repository.
@@ -37,17 +35,17 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
     private Map<MetadataCollections, VitamMongoRepository> mongoRepository;
     private Map<MetadataCollections, VitamElasticsearchRepository> esRepository;
 
-    private void initialize() {
+    private void initialize(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
         MongoCollection<Document> units = MetadataCollections.UNIT.getCollection();
         MongoCollection<Document> objectGroups = MetadataCollections.OBJECTGROUP.getCollection();
 
-        mongoRepository.put(MetadataCollections.UNIT, new VitamMongoRepository((MongoCollection<Document>) units));
-        mongoRepository.put(MetadataCollections.OBJECTGROUP,
-            new VitamMongoRepository((MongoCollection<Document>) objectGroups));
+        mongoRepository.put(MetadataCollections.UNIT, new VitamMongoRepository(units));
+        mongoRepository.put(MetadataCollections.OBJECTGROUP, new VitamMongoRepository(objectGroups));
 
         esRepository.put(MetadataCollections.UNIT,
             new VitamElasticsearchRepository(MetadataCollections.UNIT.getEsClient().getClient(),
                 MetadataCollections.UNIT.getName().toLowerCase(), true));
+
         esRepository.put(MetadataCollections.OBJECTGROUP,
             new VitamElasticsearchRepository(MetadataCollections.OBJECTGROUP.getEsClient().getClient(),
                 MetadataCollections.OBJECTGROUP.getName().toLowerCase(), true));
@@ -55,21 +53,24 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
     /**
      * private constructor for instance initialization. <br />
+     *
+     * @param mongoDbAccessMetadata
      */
-    private VitamRepositoryFactory() {
+    private VitamRepositoryFactory(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
         mongoRepository = new HashMap<>();
         esRepository = new HashMap<>();
-        initialize();
+        initialize(mongoDbAccessMetadata);
     }
 
     /**
      * get Thread-Safe instance instance. <br/>
      *
+     * @param mongoDbAccessMetadata
      * @return current instance of VitamRepositoryFactory, create if null
      */
-    public static synchronized VitamRepositoryFactory getInstance() {
+    public static synchronized VitamRepositoryFactory getInstance(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
         if (instance == null) {
-            instance = new VitamRepositoryFactory();
+            instance = new VitamRepositoryFactory(mongoDbAccessMetadata);
         }
         return instance;
     }
@@ -83,4 +84,5 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
     public VitamElasticsearchRepository getVitamESRepository(MetadataCollections collection) {
         return esRepository.get(collection);
     }
+
 }

@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import com.google.common.annotations.VisibleForTesting;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -53,12 +54,14 @@ public class LogbookReconstructionResource {
 
     /**
      * Constructor
-     * 
+     *
      * @param vitamRepositoryProvider vitamRepositoryProvider
+     * @param offsetRepository
      */
     public LogbookReconstructionResource(
-        VitamRepositoryProvider vitamRepositoryProvider) {
-        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider);
+        VitamRepositoryProvider vitamRepositoryProvider,
+        OffsetRepository offsetRepository) {
+        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository);
     }
 
     /**
@@ -92,8 +95,8 @@ public class LogbookReconstructionResource {
 
             reconstructionItems.forEach(item -> {
                 LOGGER.debug(String.format(
-                    "Starting reconstruction for the collection {%s} on the tenant (%s) from the offset (%s) with (%s) elements",
-                    LogbookCollections.OPERATION.name(), item.getTenant(), item.getOffset(), item.getLimit()));
+                    "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
+                    LogbookCollections.OPERATION.name(), item.getTenant(), item.getLimit()));
                 try {
                     responses.add(reconstructionService.reconstruct(item));
                 } catch (DatabaseException | IllegalArgumentException e) {

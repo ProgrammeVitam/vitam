@@ -32,18 +32,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
 import com.google.common.base.Throwables;
-
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
 
 /**
@@ -57,27 +58,35 @@ public class BusinessApplication extends Application {
 
     /**
      * Constructor
-     * 
+     *
      * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final MetaDataConfiguration metaDataConfiguration =
+            MetaDataConfiguration metaDataConfiguration =
                 PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
-            final MetadataResource metaDataResource = new MetadataResource(metaDataConfiguration);
-            final MetadataRawResource metadataRawResource =
-                new MetadataRawResource(VitamRepositoryFactory.getInstance());
-            final MetadataReconstructionResource metadataReconstructionResource =
-                new MetadataReconstructionResource(VitamRepositoryFactory.getInstance());
+
+            MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
+
+            MetadataResource metaDataResource = new MetadataResource(mongoAccessMetadata);
+
+            OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
+
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance(mongoAccessMetadata);
+
+            MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
+
+            MetadataReconstructionResource metadataReconstruction =
+                new MetadataReconstructionResource(vitamRepositoryProvider, offsetRepository);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(metaDataResource);
             singletons.add(metadataRawResource);
-            singletons.add(metadataReconstructionResource);
+            singletons.add(metadataReconstruction);
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
         } catch (IOException e) {

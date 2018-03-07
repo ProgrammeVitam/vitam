@@ -62,7 +62,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.metadata.api.MetaData;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -94,10 +93,10 @@ public class MetadataResource extends ApplicationStatusResource {
     /**
      * MetaDataResource constructor
      *
-     * @param configuration {@link MetaDataConfiguration}
+     * @param mongoDbAccessMetadata
      */
-    public MetadataResource(MetaDataConfiguration configuration) {
-        metaDataImpl = MetaDataImpl.newMetadata(configuration);
+    public MetadataResource(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
+        metaDataImpl = MetaDataImpl.newMetadata(mongoDbAccessMetadata);
         LOGGER.info("init MetaData Resource server");
     }
 
