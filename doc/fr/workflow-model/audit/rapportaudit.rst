@@ -3,8 +3,8 @@ Rapport d'audit
 
 Le rapport d'audit est un fichier JSON généré par la solution logicielle Vitam lorsqu'une opération d'audit se termine. Cette section décrit la manière dont ce rapport est structuré.
 
-Exemple de JSON
-=======================
+Exemple de JSON : rapport d'audit KO
+====================================
 
 .. code-block:: json
 
