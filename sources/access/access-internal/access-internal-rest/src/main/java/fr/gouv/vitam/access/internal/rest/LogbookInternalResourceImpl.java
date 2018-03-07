@@ -498,30 +498,16 @@ public class LogbookInternalResourceImpl {
         // A valid operation found : download the related file
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
-            String fileName = null;
-            if (operationToCheck.get(eventDetailData.getDbname()) != null) {
-                TraceabilityEvent traceabilityEvent =
-                    JsonHandler.getFromString((String) operationToCheck.get(eventDetailData.getDbname()),
-                        TraceabilityEvent.class);
-                fileName = traceabilityEvent.getFileName();
-            } else {
-
-                // Get last event to extract eventDetailData field
-                ArrayList events = (ArrayList) operationToCheck.get(LogbookDocument.EVENTS);
-                Document lastEvent = (Document) Iterables.getLast(events);
-
-                // Create TraceabilityEvent instance
-                String evDetData = lastEvent.getString(LogbookMongoDbName.eventDetailData.getDbname());
-                JsonNode eventDetail = JsonHandler.getFromString(evDetData);
-
-                TraceabilityEvent traceabilityEvent =
-                    JsonHandler.getFromJsonNode(eventDetail, TraceabilityEvent.class);
-                fileName = traceabilityEvent.getFileName();
-            }
+            TraceabilityEvent traceabilityEvent =
+                JsonHandler.getFromString((String) operationToCheck.get(eventDetailData.getDbname()),
+                    TraceabilityEvent.class);
+            String fileName = traceabilityEvent.getFileName();
 
             // Get zip file
+            DataCategory dataCategory = getDataCategory(traceabilityEvent);
+
             final Response response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK);
+                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
@@ -542,6 +528,23 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        }
+    }
+
+    private DataCategory getDataCategory(TraceabilityEvent traceabilityEvent) {
+
+        if(traceabilityEvent.getLogType() == null) {
+            throw new IllegalStateException("Missing traceability event type");
+        }
+
+        switch (traceabilityEvent.getLogType()) {
+            case OPERATION:
+            case LIFECYCLE:
+                return DataCategory.LOGBOOK;
+            case STORAGE:
+                return DataCategory.STORAGETRACEABILITY;
+            default:
+                throw new IllegalStateException("Invalid traceability event type " + traceabilityEvent.getLogType());
         }
     }
 

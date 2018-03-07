@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.security.merkletree;
 
 import static fr.gouv.vitam.common.security.merkletree.MerkleTree.EMPTY_LEAF;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class MerkleTreeAlgo {
      */
     public void addLeaf(String str) {
         Digest digest = new Digest(digestType);
-        MerkleTree tree = new MerkleTree(digest.update(str.getBytes()).digest(), null, null);
+        MerkleTree tree = new MerkleTree(digest.update(str.getBytes(StandardCharsets.UTF_8)).digest(), null, null);
         leaves.add(tree);
     }
 

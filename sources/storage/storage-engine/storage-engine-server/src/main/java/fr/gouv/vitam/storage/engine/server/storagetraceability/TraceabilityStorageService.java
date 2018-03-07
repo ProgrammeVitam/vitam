@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -40,6 +33,12 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
+
+import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Service that allow Storage Traceability to use StorageDistribution in order to get some file and information in Offers
@@ -55,50 +54,47 @@ public class TraceabilityStorageService {
 
     /**
      * Get the files of the last storage backup since the last traceability (fromDate) as a StorageTraceabilityIterator
-     * 
+     *
      * @param strategyId The storage strategy ID
-     * @param fromDate the limit date to get backup files
+     * @param fromDate   the limit date to get backup files
      * @return list of last saved files as iterator
      * @throws StorageException if some error technical problem while call StorageDistribution
      */
-    public StorageTraceabilityIterator getLastSaved(String strategyId, LocalDateTime fromDate) throws StorageException {
+    public StorageTraceabilityIterator getLastSavedStorageLogs(String strategyId, LocalDateTime fromDate) throws StorageException {
         List<OfferLog> allFiles = new ArrayList<>();
         Long offset = null;
-        
-        while(true) {
+
+        while (true) {
             List<OfferLog> files = getLast(strategyId, DataCategory.STORAGELOG, offset, GET_LAST_BASE);
-            
+
             // Directly return if no more items in DB
             if (files.size() < GET_LAST_BASE) {
                 allFiles.addAll(files);
                 break;
             }
 
-            OfferLog file = files.get(files.size() - 1);
-            LocalDateTime date = parseDateFromFileName(file.getFileName(), false);
-            if (date.isBefore(fromDate) ) {
+            OfferLog oldestReturnedFile = files.get(files.size() - 1);
+            LocalDateTime date =
+                StorageFileNameHelper.parseDateFromStorageLogFileName(oldestReturnedFile.getFileName());
+            if (date.isBefore(fromDate)) {
                 allFiles.addAll(files);
                 break;
             }
-            
-            offset = file.getSequence() - 1;
-        }
-        
-        Integer index = 0;
-        LocalDateTime date;
-        OfferLog file;
-        do {
-            index ++;
-            file = allFiles.get(index);
-            date = parseDateFromFileName(file.getFileName(), false);
-        } while(date.isAfter(fromDate) && index < allFiles.size());
 
-        return new StorageTraceabilityIterator(allFiles.subList(0, index));
+            offset = oldestReturnedFile.getSequence() - 1;
+        }
+
+        List<OfferLog> filesUpdatedAfterDate = allFiles.stream().filter(
+            (OfferLog file) -> !StorageFileNameHelper.parseDateFromStorageLogFileName(file.getFileName())
+                .isBefore(fromDate)
+        ).collect(Collectors.toList());
+
+        return new StorageTraceabilityIterator(filesUpdatedAfterDate);
     }
 
     /**
      * Get the last storage traceability zip fileName
-     * 
+     *
      * @param strategyId The storage strategy ID
      * @return the zip's fileName of the last storage traceability operation
      * @throws StorageException if some error technical problem while call StorageDistribution
@@ -113,10 +109,10 @@ public class TraceabilityStorageService {
 
     /**
      * Only direct call to @StorageDistribution.getContainerByCategory
-     * 
+     *
      * @param strategyId strategyID
-     * @param objectId file id or name
-     * @param category storage category of the file
+     * @param objectId   file id or name
+     * @param category   storage category of the file
      * @return the file as stream
      * @throws StorageException if some error technical problem while call StorageDistribution
      */
@@ -124,31 +120,11 @@ public class TraceabilityStorageService {
         return this.distribution.getContainerByCategory(strategyId, objectId, category);
     }
 
-    /**
-     * parse @DataCategory.STORAGETRACEABILITY or @DataCategory.STORAGELOG fileName in order to get the startDate of the operation
-     * 
-     * @param fileName the fileName to parse
-     * @param isTraceability the king of file (true for Traceability, false for backup)
-     * @return The startDate of the linked operation
-     */
-    public LocalDateTime parseDateFromFileName(String fileName, boolean isTraceability) {
-        String date;
-        String[] splittedFileName = fileName.split("\\.")[0].split("_");
-        if (isTraceability) {
-            // FileNamePattern: <Tenant>_<FileKind>_<yyyyMMdd-Date>_<HHmmss-Time>.zip
-            date = splittedFileName[2] + '-' + splittedFileName[3];
-        } else {
-            // FileNamePattern: <Tenant>_<file_kind>_<yyyyMMddHHmmssSSS-StartDate>_<yyyyMMddHHmmssSSS-EndDate>_<OperationID>.log
-            date = fileName.split("_")[3].substring(0, 8) + '-' + fileName.split("_")[3].substring(8, 14);
-        }
-        return LocalDateTime.parse(date,
-            DateTimeFormatter.ofPattern("uuuuMMdd-HHmmss"));
-    }
-
-    private List<OfferLog> getLast(String strategyId, DataCategory category, Long offset, Integer limit) throws StorageException {
+    private List<OfferLog> getLast(String strategyId, DataCategory category, Long offset, Integer limit)
+        throws StorageException {
         RequestResponse<OfferLog> response = distribution.getOfferLogs(strategyId, category, offset, limit, Order.DESC);
         if (response.isOk()) {
-            return ((RequestResponseOK<OfferLog>)response).getResults();
+            return ((RequestResponseOK<OfferLog>) response).getResults();
         }
         throw new StorageException("Response KO ?");
     }

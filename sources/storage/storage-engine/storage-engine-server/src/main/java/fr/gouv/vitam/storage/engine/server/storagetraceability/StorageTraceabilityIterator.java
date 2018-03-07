@@ -26,47 +26,40 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
-import java.util.Iterator;
-import java.util.List;
-
 import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Implementation of TraceabilityIterator for Storage.
- * 
+ *
  * Iterate over OfferLog for the traceability
  */
 public class StorageTraceabilityIterator implements TraceabilityIterator<OfferLog> {
 
     private final Iterator<OfferLog> iterator;
     private Long numberOfLines = 0L;
-    
+
     public StorageTraceabilityIterator(List<OfferLog> files) {
         this.iterator = files.iterator();
     }
 
     @Override
     public boolean hasNext() {
-        return iterator.hasNext(); // Should get the data somewhere ?
+        return iterator.hasNext();
     }
-    
+
     @Override
     public OfferLog next() {
         OfferLog next = iterator.next();
         numberOfLines++;
         return next;
     }
-    
+
     @Override
     public long getNumberOfLines() {
         return numberOfLines;
     }
-    
-    @Override
-    public String endDate() {
-        // How to get EndDate ?
-        return null;
-    }
-
 }

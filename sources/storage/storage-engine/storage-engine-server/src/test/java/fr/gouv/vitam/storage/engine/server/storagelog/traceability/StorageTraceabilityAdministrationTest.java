@@ -141,7 +141,7 @@ public class StorageTraceabilityAdministrationTest {
             eq(DigestType.SHA512), eq(null))).willReturn(hash);
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(
-            traceabilityLogbookService.getLastSaved("default", LogbookTraceabilityHelper.INITIAL_START_DATE))
+            traceabilityLogbookService.getLastSavedStorageLogs("default", LogbookTraceabilityHelper.INITIAL_START_DATE))
             .willReturn(iterator);
 
         StorageTraceabilityAdministration storageAdministration =
@@ -199,7 +199,7 @@ public class StorageTraceabilityAdministrationTest {
         List<OfferLog> logs = new ArrayList<>();
         logs.add(new OfferLog(DataCategory.STORAGELOG.getFolder(), BACKUP_FILE, "Action"));
         StorageTraceabilityIterator iterator = new StorageTraceabilityIterator(logs);
-        given(traceabilityLogbookService.getLastSaved(STRATEGY_ID, LogbookTraceabilityHelper.INITIAL_START_DATE))
+        given(traceabilityLogbookService.getLastSavedStorageLogs(STRATEGY_ID, LogbookTraceabilityHelper.INITIAL_START_DATE))
             .willReturn(iterator);
 
         final Response response = new AbstractMockClient.FakeInboundResponse(Status.OK,
@@ -207,7 +207,6 @@ public class StorageTraceabilityAdministrationTest {
         given(
             traceabilityLogbookService.getObject(STRATEGY_ID, BACKUP_FILE, DataCategory.STORAGELOG))
             .willReturn(response);
-        given(traceabilityLogbookService.parseDateFromFileName(anyString(), any(Boolean.class))).willCallRealMethod();
 
         given(
             storageClient.storeFileFromWorkspace(eq(STRATEGY_ID), eq(DataCategory.STORAGETRACEABILITY), anyString(), any(ObjectDescription.class)))
@@ -234,7 +233,7 @@ public class StorageTraceabilityAdministrationTest {
         List<OfferLog> traceabilities = new ArrayList<>();
         traceabilities.add(new OfferLog(DataCategory.STORAGELOG.getFolder(), BACKUP_FILE, "Action"));
         StorageTraceabilityIterator iterator2 = new StorageTraceabilityIterator(traceabilities);
-        given(traceabilityLogbookService.getLastSaved(eq(STRATEGY_ID), any(LocalDateTime.class)))
+        given(traceabilityLogbookService.getLastSavedStorageLogs(eq(STRATEGY_ID), any(LocalDateTime.class)))
             .willReturn(iterator2);
 
         // When

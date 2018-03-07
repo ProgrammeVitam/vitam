@@ -1,25 +1,5 @@
 package fr.gouv.vitam.logbook.administration.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-
-import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-
-import org.apache.commons.codec.binary.Base64;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
@@ -35,6 +15,26 @@ import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
+import org.apache.commons.codec.binary.Base64;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 
 public class LogbookOperationTraceabilityHelperTest {
 
@@ -42,7 +42,6 @@ public class LogbookOperationTraceabilityHelperTest {
     public static final Integer OPERATION_TRACEABILITY_OVERLAP_DELAY = 300;
     private static final String FILE_NAME = "0_operations_20171031_151118.zip";
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-10-31T15:11:15.405";
-    private static final String LOGBOOK_OPERATION_END_DATE = "2017-10-31T15:11:21.827";
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
 
     private static final String LAST_OPERATION_HASH =
@@ -94,11 +93,11 @@ public class LogbookOperationTraceabilityHelperTest {
         given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
 
         // When
-        LocalDateTime startDate = helper.getLastEvent();
+        helper.initialize();
 
         // Then
-        assertThat(startDate)
-            .isEqualTo(LOGBOOK_OPERATION_EVENT_DATE.minusSeconds(OPERATION_TRACEABILITY_OVERLAP_DELAY));
+        assertThat(helper.getTraceabilityStartDate()).isEqualTo(LocalDateUtil
+            .getFormattedDateForMongo(LOGBOOK_OPERATION_EVENT_DATE.minusSeconds(OPERATION_TRACEABILITY_OVERLAP_DELAY)));
     }
 
     @Test
@@ -114,11 +113,11 @@ public class LogbookOperationTraceabilityHelperTest {
         given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(null);
 
         // When
-        LocalDateTime startDate = helper.getLastEvent();
+        helper.initialize();
 
         // Then
-        assertThat(startDate)
-            .isEqualTo(LogbookTraceabilityHelper.INITIAL_START_DATE);
+        assertThat(helper.getTraceabilityStartDate())
+            .isEqualTo(LocalDateUtil.getFormattedDateForMongo(LogbookTraceabilityHelper.INITIAL_START_DATE));
     }
 
     @Test
@@ -131,14 +130,12 @@ public class LogbookOperationTraceabilityHelperTest {
         LogbookOperationTraceabilityHelper helper =
             new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
 
-        LocalDateTime initialStartDate = LogbookTraceabilityHelper.INITIAL_START_DATE;
-
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
         MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsPersistedAfterDate(initialStartDate)).willReturn(cursor);
+        given(logbookOperations.selectOperationsPersistedAfterDate(any())).willReturn(cursor);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -146,11 +143,10 @@ public class LogbookOperationTraceabilityHelperTest {
         TraceabilityFile file = new TraceabilityFile(zipFile);
 
         // When
-        LocalDateTime startDate = helper.saveDataInZip(algo, initialStartDate, file);
+        helper.saveDataInZip(algo, file);
         file.close();
 
         // Then
-        assertThat(startDate).isEqualTo(LOGBOOK_OPERATION_EVENT_DATE);
         assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5764);
     }
 
@@ -169,7 +165,7 @@ public class LogbookOperationTraceabilityHelperTest {
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
         MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsPersistedAfterDate(LOGBOOK_OPERATION_EVENT_DATE)).willReturn(cursor);
+        given(logbookOperations.selectOperationsPersistedAfterDate(any())).willReturn(cursor);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -177,11 +173,10 @@ public class LogbookOperationTraceabilityHelperTest {
         TraceabilityFile file = new TraceabilityFile(zipFile);
 
         // When
-        LocalDateTime startDate = helper.saveDataInZip(algo, LOGBOOK_OPERATION_EVENT_DATE, file);
+        helper.saveDataInZip(algo, file);
         file.close();
 
         // Then
-        assertThat(startDate).isEqualTo(LOGBOOK_OPERATION_EVENT_DATE);
         assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5764);
     }
 
@@ -219,7 +214,7 @@ public class LogbookOperationTraceabilityHelperTest {
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
 
         given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
-        helper.getLastEvent();
+        helper.initialize();
 
         // When
         String date = helper.getPreviousStartDate();
@@ -232,7 +227,7 @@ public class LogbookOperationTraceabilityHelperTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_extract_correctly_event_number_and_date() throws Exception {
+    public void should_extract_correctly_event_number() throws Exception {
         // Given
         LogbookOperations logbookOperations = mock(LogbookOperations.class);
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
@@ -245,21 +240,19 @@ public class LogbookOperationTraceabilityHelperTest {
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
         MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsPersistedAfterDate(LOGBOOK_OPERATION_EVENT_DATE)).willReturn(cursor);
+        given(logbookOperations.selectOperationsPersistedAfterDate(any())).willReturn(cursor);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
         File zipFile = new File(folder.newFolder(), String.format(FILE_NAME));
         TraceabilityFile file = new TraceabilityFile(zipFile);
-        helper.saveDataInZip(algo, LOGBOOK_OPERATION_EVENT_DATE, file);
+        helper.saveDataInZip(algo, file);
 
         // When
         Long size = helper.getDataSize();
-        String endDate = helper.getEndDate();
 
         // Then
         assertThat(size).isEqualTo(1);
-        assertThat(endDate).isEqualTo(LOGBOOK_OPERATION_END_DATE);
     }
 
     private MongoCursor<LogbookOperation> getMongoCursorFor(LogbookOperation logbookOperation) {

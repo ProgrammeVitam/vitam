@@ -1,25 +1,6 @@
 package fr.gouv.vitam.worker.model;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventTypeProcess;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
-
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -63,8 +44,23 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
 import org.bouncycastle.util.Strings;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventTypeProcess;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHelper {
     private static final VitamLogger LOGGER =
@@ -91,6 +87,8 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     private LogbookOperation lastTraceabilityOperation = null;
     private List<String> expectedLogbookId = null;
     private JsonNode traceabilityInformation = null;
+    private LocalDateTime traceabilitytStartDate;
+    private LocalDateTime traceabilitytEndDate;
 
     private Boolean isLastEventInit = false;
     private Boolean isLastMonthEventInit = false;
@@ -103,10 +101,10 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     private byte[] previousYearTimestampToken = null;
 
     /**
-     * @param handlerIO Workflow Input/Output of the traceability event
+     * @param handlerIO               Workflow Input/Output of the traceability event
      * @param logbookOperationsClient used to search the operation to secure
-     * @param itemStatus used by workflow, event must be updated here
-     * @param operationID of the current traceability process
+     * @param itemStatus              used by workflow, event must be updated here
+     * @param operationID             of the current traceability process
      */
     public LogbookLifeCycleTraceabilityHelper(HandlerIO handlerIO, LogbookOperationsClient logbookOperationsClient,
         ItemStatus itemStatus, String operationID) {
@@ -117,10 +115,9 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public LocalDateTime getLastEvent()
+    public void initialize()
         throws TraceabilityException {
 
-        LocalDateTime resultDate = INITIAL_START_DATE;
         try {
             File operationFile = (File) handlerIO.getInput(LAST_OPERATION_LIFECYCLES_RANK);
             JsonNode operationJson = null;
@@ -135,34 +132,24 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
             if (traceabilityInformationFile != null) {
                 traceabilityInformation = JsonHandler.getFromFile(traceabilityInformationFile);
             }
+
         } catch (InvalidParseOperationException e) {
-            LOGGER.warn("Cannot parse logbook operation", e);
+            throw new TraceabilityException("Cannot parse logbook operation", e);
         }
+
         expectedLogbookId = newArrayList(operationID);
         if (lastTraceabilityOperation != null) {
-            try {
-                LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
-            } catch (ParseException e) {
-                throw new TraceabilityException("Invalid date", e);
-            }
             expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
-
-            String startDate = traceabilityInformation.get("startDate").asText();
-            try {
-                Date date = LocalDateUtil.getDate(startDate);
-                resultDate = LocalDateUtil.fromDate(date);
-            } catch (ParseException e) {
-                throw new TraceabilityException("Invalid date", e);
-            }
         }
 
-        return resultDate;
+        this.traceabilitytStartDate =
+            LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("startDate").asText());
+        this.traceabilitytEndDate =
+            LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("endDate").asText());
     }
 
     @Override
-    public LocalDateTime saveDataInZip(MerkleTreeAlgo algo,
-        LocalDateTime startDate, TraceabilityFile file) throws IOException,
-        TraceabilityException {
+    public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file) throws IOException, TraceabilityException {
 
         file.initStoreLog();
         try {
@@ -179,8 +166,6 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
         } finally {
             file.closeStoreLog();
         }
-
-        return startDate;
     }
 
     @Override
@@ -207,9 +192,9 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
             evDetailData);
     }
-    
+
     @Override
-    public void saveEmpty(Integer tenantId) throws TraceabilityException {
+    public void saveEmpty(Integer tenantId) {
         // Nothing to do. Empty master event will be close by workflow
     }
 
@@ -281,11 +266,13 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public String getEndDate() throws TraceabilityException {
-        if (traceabilityInformation != null && traceabilityInformation.get("endDate") != null) {
-            return traceabilityInformation.get("endDate").asText();
-        }
-        return "";
+    public String getTraceabilityStartDate() {
+        return LocalDateUtil.getFormattedDateForMongo(this.traceabilitytStartDate);
+    }
+
+    @Override
+    public String getTraceabilityEndDate() {
+        return LocalDateUtil.getFormattedDateForMongo(this.traceabilitytEndDate);
     }
 
     @Override
@@ -310,19 +297,19 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public byte[] getPreviousMonthTimestampToken(LocalDateTime currentDate)
+    public byte[] getPreviousMonthTimestampToken()
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
-            extractPreviousEvent(currentDate.minusMonths(1), true);
+            extractPreviousEvent(this.traceabilitytEndDate.minusMonths(1), true);
         }
         return previousMonthTimestampToken;
     }
 
     @Override
-    public byte[] getPreviousYearTimestampToken(LocalDateTime currentDate)
+    public byte[] getPreviousYearTimestampToken()
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
-            extractPreviousEvent(currentDate.minusYears(1), false);
+            extractPreviousEvent(this.traceabilitytEndDate.minusYears(1), false);
         }
         return previousYearTimestampToken;
     }
@@ -336,19 +323,19 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public String getPreviousMonthStartDate(LocalDateTime currentDate)
+    public String getPreviousMonthStartDate()
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
-            extractPreviousEvent(currentDate.minusMonths(1), true);
+            extractPreviousEvent(this.traceabilitytEndDate.minusMonths(1), true);
         }
         return previousMonthStartDate;
     }
 
     @Override
-    public String getPreviousYearStartDate(LocalDateTime currentDate)
+    public String getPreviousYearStartDate()
         throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
-            extractPreviousEvent(currentDate.minusYears(1), false);
+            extractPreviousEvent(this.traceabilitytEndDate.minusYears(1), false);
         }
         return previousYearStartDate;
     }
