@@ -284,17 +284,14 @@ public class ProperlyStopStartProcessingIT {
         }
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(TENANT_ID);
-        final String containerName = objectGuid.getId();
+        final String containerName = operationGuid.toString();
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
@@ -306,7 +303,6 @@ public class ProperlyStopStartProcessingIT {
         final File existing_got = PropertiesUtils.getResourceFile(EXISING_GOT_FILE);
         workspaceClient
             .putObject(containerName, EXISTING_GOT, Files.newInputStream(existing_got.toPath()));
-
 
         ProcessWorkflow processWorkflow =
             ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);

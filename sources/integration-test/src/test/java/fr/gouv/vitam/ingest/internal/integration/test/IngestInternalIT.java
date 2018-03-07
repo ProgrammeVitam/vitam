@@ -170,7 +170,8 @@ public class IngestInternalIT {
     private static final int DATABASE_PORT = 12346;
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
-    public static final String MONGO_DB_NAME = "Vitam";
+    private static final String MONGO_DB_NAME = "Vitam";
+    private static final String JEU_DONNEES_OK_REGLES_CSV_CSV = "jeu_donnees_OK_regles_CSV.csv";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static LogbookElasticsearchAccess esClient;
@@ -483,17 +484,20 @@ public class IngestInternalIT {
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importFormat(
                     PropertiesUtils.getResourceAsStream("integration-ingest-internal/DROID_SignatureFile_V88.xml"),
                     "DROID_SignatureFile_V88.xml");
 
                 // Import Rules
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"),
                     "MGT_RULES_REF.csv");
 
                 // import service agent
                 try {
+                    VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                     client.importAgenciesFile(PropertiesUtils.getResourceAsStream(FILE_AGENCIES_OK), FILE_AGENCIES_OK);
 
                 } catch (Exception e) {
@@ -501,14 +505,17 @@ public class IngestInternalIT {
                 }
 
                 // import contract
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                     new TypeReference<List<IngestContractModel>>() {});
 
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importIngestContracts(IngestContractModelList);
 
                 // import contrat
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
                 List<AccessContractModel> accessContractModelList = JsonHandler
                     .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
@@ -569,11 +576,11 @@ public class IngestInternalIT {
     /**
      * To check unit tree (ancestors _up, _us and _uds)
      *
-     * @param unit the unit to check
+     * @param unit           the unit to check
      * @param metadataClient the metadataclient
-     * @param upIds the wanted up ids list
-     * @param usIds the wanted us ids list
-     * @param udsIds the wanted uds ids / depth map
+     * @param upIds          the wanted up ids list
+     * @param usIds          the wanted us ids list
+     * @param udsIds         the wanted uds ids / depth map
      * @throws Exception
      */
     private void checkUnitTree(JsonNode unit, MetaDataClient metadataClient, List<String> upIds, List<String> usIds,
@@ -647,7 +654,7 @@ public class IngestInternalIT {
     public void testIngestInternal() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);            
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
             tryImportFile();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -732,6 +739,7 @@ public class IngestInternalIT {
 
             // execute update -> rules to be 'unset'
             Map<String, JsonNode> action = new HashMap<>();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             action.put("#management.AccessRule.Rules", JsonHandler.createArrayNode());
             UpdateMultiQuery updateQuery = new UpdateMultiQuery().addActions(new SetAction(action));
             updateQuery.addRoots(unitId);
@@ -791,6 +799,7 @@ public class IngestInternalIT {
 
             // lets try to update a unit that does not exist, an AccessInternalClientNotFoundException will be thrown
             try {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(),
                     "aedqaaaaacfscicjabgwoak7xpw5pwyaaaaq");
                 fail("should raized an exception");
@@ -1139,7 +1148,7 @@ public class IngestInternalIT {
     public void testPhysicalArchiveWithPhysicalMasterInBinary() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);            
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             tryImportFile();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
@@ -1150,6 +1159,7 @@ public class IngestInternalIT {
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 operationGuid, "Process_SIP_unitary", operationGuid,
                 LogbookTypeProcess.INGEST, StatusCode.STARTED,
@@ -2006,9 +2016,11 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     public void shouldImportRulesFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_OK));
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-        final Status status = client.importRulesFile(stream, FILE_RULES_OK);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+        final Status status = client.importRulesFile(
+            PropertiesUtils.getResourceAsStream(FILE_RULES_OK),
+            JEU_DONNEES_OK_REGLES_CSV_CSV);
         ResponseBuilder ResponseBuilder = Response.status(status);
         Response response = ResponseBuilder.build();
         assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
@@ -2138,8 +2150,8 @@ public class IngestInternalIT {
 
     /**
      * Check error report
-     * 
-     * @param fileInputStreamToImport the given FileInputStream
+     *
+     * @param fileInputStreamToImport   the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,

@@ -858,8 +858,8 @@ public class DbRequest {
 
             // As soon as we detect a synchronization error MongoDB / ES, we return an error.
             if (!desynchronizedResults.isEmpty()) {
-//                throw new VitamDBException(
-//                    "[Consistency ERROR] : An internal data consistency error has been detected !");
+                throw new VitamDBException(
+                    "[Consistency ERROR] : An internal data consistency error has been detected !");
             }
 
             return last;

@@ -45,6 +45,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -134,6 +136,7 @@ public class AdminManagementResourceTest {
 
     private static final int TENANT_ID = 0;
     private static final String ERROR_REPORT_CONTENT = "error_report_content.json";
+    public static final int TENANT_ID1 = 1;
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -634,14 +637,20 @@ public class AdminManagementResourceTest {
     @RunWithCustomExecutor
     public void insertRulesFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -650,17 +659,23 @@ public class AdminManagementResourceTest {
     @RunWithCustomExecutor
     public void insertRulesForDifferentTenantsSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES).close();
 
-        VitamThreadUtils.getVitamSession().setTenantId(1);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID1);
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 1)
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
@@ -671,26 +686,32 @@ public class AdminManagementResourceTest {
     public void getRuleByID() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         final String document =
             given()
                 .contentType(ContentType.JSON)
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_REQUEST_ID, resquestId)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
             .when().get(GET_BYID_RULES_URI + RULES_ID_URI)
@@ -705,17 +726,21 @@ public class AdminManagementResourceTest {
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         final String document =
             given()
                 .contentType(ContentType.JSON)
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_REQUEST_ID, resquestId)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document);
@@ -723,6 +748,7 @@ public class AdminManagementResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(jsonDocument)
             .when().get(GET_BYID_RULES_URI + "/fake_identifier")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
@@ -733,19 +759,23 @@ public class AdminManagementResourceTest {
     @RunWithCustomExecutor
     public void getDocumentRulesFile() throws InvalidCreateOperationException, FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -756,19 +786,23 @@ public class AdminManagementResourceTest {
     public void testImportRulesForTenant0_ThenSearchForTenant1ReturnNotFound()
         throws InvalidCreateOperationException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID1).toString();
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -779,6 +813,7 @@ public class AdminManagementResourceTest {
     public void givenFindDocumentRulesFileWhenNotFoundThenReturnNotFound()
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
+        String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
@@ -787,13 +822,16 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
+        resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
