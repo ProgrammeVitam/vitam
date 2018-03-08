@@ -117,18 +117,18 @@ hosts-mongodb-offer
 localhost offer_conf=offer-fs-1
 
 [hosts-mongodb-offer:children]
-hosts-mongos-data
-hosts-mongoc-data
-hosts-mongod-data
+hosts-mongos-offer
+hosts-mongoc-offer
+hosts-mongod-offer
 
 [hosts-mongos-offer]
-localhost   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+localhost                       mongo_rs_bootstrap=true
 
 [hosts-mongoc-offer]
-localhost   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+localhost                       mongo_rs_bootstrap=true
 
 [hosts-mongod-offer]
-localhost   mongo_cluster_name=offer-fs-1   mongo_shard_id=0    mongo_rs_bootstrap=true
+localhost   mongo_shard_id=0    mongo_rs_bootstrap=true
 
 ##### Zone data
 
@@ -143,6 +143,9 @@ localhost elasticsearch_memory=256m
 hosts-mongos-data
 hosts-mongoc-data
 hosts-mongod-data
+
+[hosts-mongodb-data:vars]
+mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
 localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true

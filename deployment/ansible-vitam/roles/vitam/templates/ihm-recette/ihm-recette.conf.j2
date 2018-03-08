@@ -31,8 +31,8 @@ masterdataDbName: masterdata
 logbookDbName: logbook
 metadataDbName: metadata
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{ mongodb.data.admin.user }}
-dbPassword: {{ mongodb.data.admin.password }}
+dbUserName: {{ mongodb['mongo-data']['admin']['user'] }}
+dbPassword: {{ mongodb['mongo-data']['admin']['password'] }}
 
 # ElasticSearch
 clusterName: {{ vitam_struct.cluster_name }}
