@@ -10,7 +10,6 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 - Recherche
 - Administration
 - Gestion des archives
-|
 .. image:: images/menu_general.png
 
 Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages.
@@ -33,10 +32,9 @@ Titre des pages
 
 Le titre de la page est visible sur les onglets des navigateurs Internet. Il correspond au dernier noeud du fil d'Ariane, précédé du mot "VITAM". Par exemple :
 
-- Transfert de SIP et plan de classement
-- Recherche d'archives
+- Transfert de SIP et plan de classement Vitam.
+- Recherche d'archives Vitam.
 - Journal des opérations
-|
 .. image:: images/titre_IHM_demo.png
 
 
@@ -68,16 +66,16 @@ Affichage des résultats
 ========================
 
 Le nombre de résultats correspondant au résultat d'une recherche est indiqué sous la forme "Résultats (X)".
-|
+
 .. image:: images/gen_nombre_resultats.png
 
 Si aucun résultat n'est trouvé par la solution logicielle Vitam, alors un message indique à l'utilisateur qu'aucun résultat n'est disponible pour sa recherche.
-|
+
 .. image:: images/au_res_ko.png
 
 Par défaut, les 25 premiers résultats sont affichés. Une pagination permet de naviguer s'il y a un nombre supérieur de résultats.
 Il est également possible d'afficher 5 ou 125 résultats par page en utilisant le sélecteur situé à côté de la pagination. 
-|
+
 .. image:: images/pagination.png
 
 
@@ -111,11 +109,13 @@ Trois types d'écran de détail comportant des listes sont disponibles :
 - Détail du journal du cycle de vie d'une l'unité archivistique
 - Détail du journal du cycle de vie d'un groupe d'objets
 
-Les couleurs de fonds et des polices ont été adaptées en fonction des statuts KO, FATAL et WARNING.
+Les couleurs de fonds et des polices ont été adaptées en fonction des statuts OK, KO, FATAL et WARNING.
+
+Pour le cas OK, les lignes s'affichent avec des couleurs neutres, le texte est affiché en noir, et un pictogramme vert est présent. 
+
+.. image:: images/casOK.png
 
 Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte est affiché en noir et un pictogramme en forme croix est présent.
-
-|
 
 .. image:: images/entree_ko.png
 
@@ -130,13 +130,13 @@ Modification
 
 Il est possible de modifier certaines données dans les pages de détail. Un clic sur le bouton "Modifier" permet alors d'éditer les champs dont les valeurs peuvent être changées.
 
-|
 
 .. image:: images/au_modif.png
 
+
 **Etiquettes (tags)**
 
-Certains champs possèdent un système d'étiquettes ou tags permettant d'ajouter plusieurs éléments (généralement, un identifiant). Pour ajouter un nouveau tag, l'utilisateur saisit l'identifiant et valide en appuyant la touche "entrée", un tag sera alors créé (celui-ci sera encadré par un fond de couleur). Pour supprimer un tag, il faut cliquer directement sur la croix de suppression contenue dans le tag (à droite).
+Certains champs possèdent un système d'étiquettes ou tags permettant d'ajouter plusieurs éléments (généralement, un identifiant). Pour ajouter un nouveau tag, l'utilisateur saisit l'identifiant et valide en appuyant la touche "entrée", un tag sera alors créé (celui-ci sera encadré par un fond de couleur). Pour supprimer un tag, il faut cliquer directement sur la croix de suppression contenue dans le tag (à droite) ou cliquer sur la touche "retour arrière". 
 
 .. image:: images/update_tag.png
    :scale: 50
@@ -165,15 +165,20 @@ Dans le cas où aucune heure n'est renseignée dans l'enregistrement, il est par
 Import de fichier ou dossier
 ============================
 
-La solution logicielle Vitam permet d'importer des fichiers ou des dossiers compressés de différents formats. Les formats acceptés sont: .zip, .tar,  .tar.gz, .tar.bz2 et tar.gz2. 
+La solution logicielle Vitam permet d'importer des fichiers ou des dossiers compressés de différents formats. 
+Les formats acceptés sont: 
+
+*Pour les entrées : .zip, .tar,  .tar.gz, .tar.bz2 et tar.gz2. 
+*Pour les contextes, les contrats d'entrée, les contrats d'accès, les notices de profils d'archivage: Json 
+*Pour les référentiels des services agents, les réferentiels des règles de gestion : CSV
+*Pour les référentiels des formats: xml
+*Pour les profils d'archivage: rng ou xsd
 
 Il existe deux façons d'importer un fichier ou dossier :
 
 - De façon classique en sélectionnant son fichier ou dossier via l'interface de votre navigateur en cliquant sur le lien "sélectionner un fichier"
 - De façon plus intuitive en faisant glisser le fichier ou dossier de votre ordinateur à la page d'import. Pour cela le fichier ou dossier doit être déplacé dans la zone grisée de téléchargement.
-
 |
-
 .. image:: images/zone_dl.png
    :scale: 50
    
@@ -190,11 +195,15 @@ Référentiels
 
 Le processus d'import du référentiel se décrit comme ceci :
 
-- aller sur l'interface d'import du référentiel
+- aller sur l'interface d'import du référentiel à importer
 - cliquer sur le bouton "sélectionner un fichier" ou faire glisser le fichier sur l'espace de téléchargement
 - le fichier sélectionné doit être au bon format
 - cliquer sur le bouton "Importer"
 - le système vérifie l'intégrité et la cohérence du fichier
+
+A partir de cet écra, il est possible d'accèder à l'import d'autres référentiels. Un menu déroulant permet en effet de sélectionner un référentiel à importer. 
+
+.. image:: images/Menu_Referentiels.png
 
 A l'issue de ce contrôle, deux cas sont possibles :
 
@@ -228,7 +237,7 @@ Le tenant correspond à un espace réservé à une entité utilisatrice. Par exe
 
 Il est obligatoire de sélectioner un tenant. Certaines références et certaines opérations d'administration peuvent être trans-tenants ( les Formats et les contextes par exemple ) 
 
-Le tenant d'administration permet de réaliser les opérations qui concernent plusieurs tenants. 
+Le tenant d'administration permet de réaliser les opérations qui concernent plusieurs tenants, notamment l'import du réferentiel des formats, des contextes, leur purge, leur journalisation,...
 
 
 

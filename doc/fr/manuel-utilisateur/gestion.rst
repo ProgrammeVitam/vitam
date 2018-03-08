@@ -18,22 +18,22 @@ Pour lancer un audit, l'utilisateur survole le menu "Gestion des Archives", puis
 Lancement d'un audit de l'existence des objets
 -----------------------------------------------
 
-Un audit de l'existence des objets se lance sur un service producteur ou sur un tenant. Il permet de vérifier que, pour chaque objet du tenant ou du producteur choisis:
+Un audit de l'existence des objets se lance sur un service producteur ou sur un tenant. Il permet de vérifier que, pour chaque objet du tenant ou du producteur choisi:
 
 * Il n'y a pas d'incohérence sur la stratégie de stockage. L'audit vérifie que la liste des offres de stockage définies dans le groupe d'objets est bien la même que celle définie dans la stratégie de stockage
 
 * Tous les objets ont leurs copies. L'audit vérifie que tous les fichiers correspondant aux objets existent sur les offres déclarées, avec un nombre de copie spécifié par la stratégie de stockage
 
 Pour débuter l'audit, il suffit de sélectionner comme type "Tenant" ou "Service producteur". L'audit du tenant prend automatiquement comme valeur le tenant en cours.
-Celui du service producteur demande de sélectionner un service producteur dans la liste. Cette liste est construite à partir des services producteurs déjà existant dans la solution logicielle Vitam.
+Celui du service producteur demande de sélectionner un service producteur dans la liste. Cette liste est construite à partir des services producteurs ayant déjà effectué une entrée dans la solution logicielle Vitam.
 
 Il faut ensuite cocher le type d'audit désiré, ici "Audit de l'existence des objets", et de cliquer sur le bouton "Lancer l'audit". Un message de confirmation apparaît pour notifier le lancement du processus.
 
-|
 
 .. image:: images/detail_audit.png
 
 Comme pour toutes les opérations, l'avancement de l'audit peut être suivi via journal des opérations.
+
 
 Lancement d'un audit de l'intégrité des objets
 -----------------------------------------------
@@ -43,7 +43,8 @@ L'audit de l'intégrité des objets est un contrôle additionnel de l'audit de l
 L'opération consiste à vérifier que pour chaque objet audité, l'empreinte de cet objet enregistrée dans la base de données est toujours la même que l'empreinte calculée par l'offre de stockage.L'empreinte d'un objet est une représentation mathématique considérée comme unique par objet. Si l'objet est modifié d'une quelconque manière que ce soit, son empreinte change de manière radicale.
 
 L'audit de l'existence des objets se lance depuis le menu "Gestion des archives", sur le même mode que l'audit de l'existence des objets, en cochant la case "Audit de l'intégrité des objets". Etant donné qu'il s'agit d'un contrôle additionnel, il est impossible dans l'IHM de lancer l'audit de l'intégrité des objets sans lancer l'audit de l'existence des objets : la case de ce dernier se cochant automatiquement si cela n'était pas déjà fait.
-|
+
+
 .. image:: images/detail_audit_int.png
 
 Une fois l'audit lancé, une fenêtre modale s'ouvre pour en informer l'utilisateur, l'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.
