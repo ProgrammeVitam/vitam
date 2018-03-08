@@ -26,11 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.single;
 
-import java.util.Iterator;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -40,12 +37,12 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.util.Iterator;
+
 /**
- * Select Parser: { $query : query, $filter : filter, $projection : projection } or [ query, filter, projection ]
- *
+ * Select Parser: { $query : query, $filter : filter, $projection : projection }
  */
 public class SelectParserSingle extends RequestParserSingle {
-    protected static final int PROJECTION_POS = 2;
 
     /**
      * Empty constructor
@@ -56,7 +53,6 @@ public class SelectParserSingle extends RequestParserSingle {
 
     /**
      * @param adapter VarNameAdapter
-     *
      */
     public SelectParserSingle(VarNameAdapter adapter) {
         super(adapter);
@@ -68,9 +64,7 @@ public class SelectParserSingle extends RequestParserSingle {
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as [ {query}, {filter}, {projection} ] or { $query : query, $filter :
-     *        filter, $projection : projection }
+     * @param request containing a parsed JSON as { $query : query, $filter : filter, $projection : projection }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -83,20 +77,11 @@ public class SelectParserSingle extends RequestParserSingle {
      * @throws InvalidParseOperationException if rootNode could parse to projection
      */
     private void internalParseSelect() throws InvalidParseOperationException {
-        if (rootNode.isArray()) {
-            // should be 3, but each could be empty ( '{}' )
-            if (rootNode.size() > PROJECTION_POS) {
-                projectionParse(rootNode.get(PROJECTION_POS));
-            }
-        } else {
-            // not as array but composite as { $query : query,
-            // $filter : filter, $projection : projection }
-            projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
-        }
+        // { $query : query, $filter : filter, $projection : projection }
+        projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
     }
 
     /**
-     *
      * @param query containing only the JSON request part (no filter neither projection nor roots)
      * @throws InvalidParseOperationException if query could not parse to projection
      */
@@ -111,7 +96,7 @@ public class SelectParserSingle extends RequestParserSingle {
      *
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is
-     *         in error
+     *                                        in error
      */
     public void projectionParse(final JsonNode rootNode)
         throws InvalidParseOperationException {
@@ -137,7 +122,7 @@ public class SelectParserSingle extends RequestParserSingle {
      * Add the new Projection slice to the current Projection. If the existing projection is empty, the allFields is
      * added first.
      *
-     * @param slice the projection to add
+     * @param slice     the projection to add
      * @param allFields the default fields to add if none exists yet
      * @throws InvalidParseOperationException if slice or allFields is null or check sanity to them is in error
      */

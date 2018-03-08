@@ -27,28 +27,18 @@
 package fr.gouv.vitam.common.database.parser.request.single;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.RequestSingle;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Delete Parser: { $query : query, $filter : multi } or [ query, multi ]
- *
+ * Delete Parser: { $query : query, $filter : multi }
  */
 public class DeleteParserSingle extends RequestParserSingle {
 
     /**
-     *
-     */
-    public DeleteParserSingle() {
-        super();
-    }
-
-    /**
      * @param adapter VarNameAdapter
-     *
      */
     public DeleteParserSingle(VarNameAdapter adapter) {
         super(adapter);
@@ -60,8 +50,7 @@ public class DeleteParserSingle extends RequestParserSingle {
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as { $query : query, $filter : multi } or [ query, multi ]
+     * @param request containing a parsed JSON as { $query : query, $filter : multi }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override

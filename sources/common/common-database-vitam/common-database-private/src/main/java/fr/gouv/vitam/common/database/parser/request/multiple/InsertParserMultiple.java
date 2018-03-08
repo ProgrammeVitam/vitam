@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.database.parser.request.multiple;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
@@ -38,13 +37,9 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameInsertAdapter
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Insert Parser: [ {root}, {query}, {filter}, {data} ] or { $roots: root, $query : query, $filter : filter, $data :
- * data}
- *
+ * Insert Parser: { $roots: root, $query : query, $filter : filter, $data : data}
  */
 public class InsertParserMultiple extends RequestParserMultiple {
-
-    protected static final int DATA_POS = 3;
 
     VarNameInsertAdapter insertAdapter;
 
@@ -58,9 +53,8 @@ public class InsertParserMultiple extends RequestParserMultiple {
 
     /**
      * Should be used in Masterdata or Metadata
-     * 
-     * @param adapter VarNameAdapter
      *
+     * @param adapter VarNameAdapter
      */
     public InsertParserMultiple(VarNameAdapter adapter) {
         super(adapter);
@@ -73,9 +67,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as [ {root}, {query}, {filter}, {data} ] or { $roots: root, $query :
-     *        query, $filter : filter, $data : data}
+     * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter, $data : data}
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -88,16 +80,10 @@ public class InsertParserMultiple extends RequestParserMultiple {
      * @throws InvalidParseOperationException
      */
     private void internalParseInsert() throws InvalidParseOperationException {
-        if (rootNode.isArray()) {
-            // should be 4, but each could be empty ( '{}' )
-            if (rootNode.size() > DATA_POS) {
-                dataParse(rootNode.get(DATA_POS));
-            }
-        } else {
-            // not as array but composite as { $roots: root, $query : query,
-            // $filter : filter, $data : data }
-            dataParse(rootNode.get(GLOBAL.DATA.exactToken()));
-        }
+
+        // { $roots: root, $query : query, $filter : filter, $data : data }
+        dataParse(rootNode.get(GLOBAL.DATA.exactToken()));
+
         final JsonNode node = getRequest().getData();
         final int nodeDepth = GlobalDatasParser.getJsonNodedepth(node);
         if (nodeDepth >= GlobalDatas.MAXDEPTH) {

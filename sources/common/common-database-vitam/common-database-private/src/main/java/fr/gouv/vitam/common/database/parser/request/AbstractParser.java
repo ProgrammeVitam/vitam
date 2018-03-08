@@ -26,6 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.Map.Entry;
+
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
@@ -52,21 +66,6 @@ import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.searc
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.size;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.term;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.wildcard;
-
-import java.util.Map.Entry;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Abstract class implementing Parser for a Request
@@ -116,24 +115,19 @@ public abstract class AbstractParser<E extends AbstractRequest> {
     }
 
     /**
-     *
      * @return a new Request
      */
     protected abstract E getNewRequest();
 
     /**
-     *
-     * @param jsonRequest containing a parsed JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query,
-     *        $filter : filter }
+     * @param jsonRequest containing a parsed JSON as { $roots: root, $query : query, $filter : filter }
      * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     public abstract void parse(final JsonNode jsonRequest) throws InvalidParseOperationException;
 
 
     /**
-     *
-     * @param jsonRequest containing a parsed JSON as [ {root}, {query}, {filter} ] or { $roots: root, $query : query,
-     *        $filter : filter }
+     * @param jsonRequest containing a parsed JSON as { $roots: root, $query : query, $filter : filter }
      * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     protected void parseJson(final JsonNode jsonRequest) throws InvalidParseOperationException {
@@ -230,7 +224,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                 "Incorrect request $command: " + queryroot);
         }
         final String command = queryroot.substring(1).toUpperCase();
-        QUERY query = null;
+        QUERY query;
         try {
             query = QUERY.valueOf(command);
         } catch (final IllegalArgumentException e) {

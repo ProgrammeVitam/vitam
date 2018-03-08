@@ -61,14 +61,7 @@ public class VitamCollection {
      * Used by different parser places (isArray, score)
      */
     private static final ThreadLocal<FILTERARGS> CURRENT_COLLECTION =
-        new ThreadLocal<FILTERARGS>() {
-
-            @Override
-            protected FILTERARGS initialValue() {
-                return FILTERARGS.OTHERS;
-            }
-
-        };
+        ThreadLocal.withInitial(() -> FILTERARGS.OTHERS);
     /**
      * Used by different parser places (isArray, score)
      */

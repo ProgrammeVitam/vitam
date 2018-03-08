@@ -26,14 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.single;
 
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
-
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
@@ -50,21 +44,21 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapterExternal;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.util.Map.Entry;
+
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
+
 
 /**
- * Single Request Parser (common base): [ {query}, {filter} ] or { $query : query, $filter : filter }
- *
+ * Single Request Parser (common base) { $query : query, $filter : filter }
  */
 public abstract class RequestParserSingle extends AbstractParser<RequestSingle> {
-    protected static final int QUERY_POS = 0;
-    protected static final int FILTER_POS = 1;
-
 
     /**
      * Constructor for Internal API
@@ -76,9 +70,8 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
 
     /**
      * Constructor for Masterdata
-     * 
-     * @param adapter VarNameAdapter
      *
+     * @param adapter VarNameAdapter
      */
     public RequestParserSingle(VarNameAdapter adapter) {
         request = getNewRequest();
@@ -97,27 +90,17 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
             throw new InvalidParseOperationException(
                 "The current Node is missing(empty): RequestRoot");
         }
-        if (rootNode.isArray()) {
-            // should be 2, but each could be empty ( '{}' )
-            if (rootNode.size() > QUERY_POS) {
-                queryParse(rootNode.get(QUERY_POS));
-                if (rootNode.size() > FILTER_POS) {
-                    filterParse(rootNode.get(FILTER_POS));
-                }
-            }
-        } else {
-            /*
-             * not as array but composite as { $query : query, $filter : filter }
-             */
-            queryParse(rootNode.get(GLOBAL.QUERY.exactToken()));
-            filterParse(rootNode.get(GLOBAL.FILTER.exactToken()));
-        }
+
+        /*
+         * { $query : query, $filter : filter }
+         */
+        queryParse(rootNode.get(GLOBAL.QUERY.exactToken()));
+        filterParse(rootNode.get(GLOBAL.FILTER.exactToken()));
     }
 
 
     /**
-     *
-     * @param jsonRequest containing a parsed JSON as [ {query}, {filter} ] or { $query : query, $filter : filter }
+     * @param jsonRequest containing a parsed JSON as { $query : query, $filter : filter }
      * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     @Override
@@ -127,7 +110,6 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     }
 
     /**
-     *
      * @param query containing only the JSON query part (no filter)
      * @throws InvalidParseOperationException if query could not parse to JSON or sanity check to query is in error
      */
@@ -195,7 +177,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      * { expression }
      *
      * @param command JsonNode
-     * @throws InvalidParseOperationException if command is null or command could not parse to JSON
+     * @throws InvalidParseOperationException  if command is null or command could not parse to JSON
      * @throws InvalidCreateOperationException if could not set query to request or analyzeOneCommand is in error
      */
     protected void analyzeRootQuery(final JsonNode command)
@@ -247,7 +229,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      *
      * @param condition the condition to add
      * @throws InvalidCreateOperationException when invalid create query exception occurred
-     * @throws InvalidParseOperationException hen invalid parse data to create query
+     * @throws InvalidParseOperationException  hen invalid parse data to create query
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         final RequestParserSingle newOne = RequestParserHelperSingle.getParser(rootNode.deepCopy(), adapter);
