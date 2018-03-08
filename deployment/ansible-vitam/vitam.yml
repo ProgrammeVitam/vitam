@@ -19,7 +19,6 @@
     prompt: "Are you sure you want to run this playbook? Answer with 'YES'"
     default: "NO"
     private: no
-
   tasks:
     - name: Check Confirmation
       fail: msg="Playbook run confirmation failed"
@@ -27,28 +26,33 @@
 
 ### HOSTS NETWORK VARS CHECK ###
 - hosts: hosts
+  any_errors_fatal: true
   roles:
     - check_networks
   any_errors_fatal: true
 
 ### HOSTS NORMALIZATION ###
 - hosts: vitam
+  any_errors_fatal: true
   roles:
     - normalize-host
 
 ### CONSUL INSTALLATION ###
 - hosts: hosts-consul-server
+  any_errors_fatal: true
   serial: 1
   roles:
     - consul
 
 - hosts: vitam
+  any_errors_fatal: true
   roles:
     - { role: consul, when: "inventory_hostname not in groups['hosts-consul-server']" }
 
 
 ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts-elasticsearch-log
+  any_errors_fatal: true
   roles:
     - elasticsearch-cluster
     - curator
@@ -58,10 +62,12 @@
 
 ### LOG SERVER INSTALLATION ###
 - hosts: hosts-logstash
+  any_errors_fatal: true
   roles:
     - logstash
 
 - hosts: hosts-kibana-log
+  any_errors_fatal: true
   roles:
     - kibana
     - kibana_log_dashboards
@@ -77,23 +83,27 @@
 # Vitam solution deployment
 # TODO : à régler properment
 - hosts: vitam
+  any_errors_fatal: true
   roles:
     - rsyslog
 
 ### ELASTICSEARCH DATA INSTALLATION ###
 - hosts: hosts-elasticsearch-data
+  any_errors_fatal: true
   roles:
     - elasticsearch-cluster
   vars:
     composant: "{{ elasticsearch.data }}"
 
 - hosts: hosts-cerebro
+  any_errors_fatal: true
   roles:
     - role: cerebro
 
 ### KIBANA DATA INSTALLATION ###
 # OMA/ desactivated as long as ES 5 is not on data cluster
 - hosts: hosts-kibana-data
+  any_errors_fatal: true
   roles:
     - kibana
     - kibana_data_dashboards
@@ -115,6 +125,7 @@
 
 
 - hosts: hosts-storage-offer-default
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
@@ -128,6 +139,7 @@
 
 
 - hosts: hosts-storage-engine
+  any_errors_fatal: true
   roles:
     - vitam
     - storage
@@ -139,6 +151,8 @@
 
 
 - hosts: hosts-metadata
+  any_errors_fatal: true
+  serial: 1
   roles:
     - vitam
   vars:
@@ -146,6 +160,7 @@
 
 
 - hosts: hosts-logbook
+  any_errors_fatal: true
   serial: 1
   roles:
     - vitam
@@ -158,6 +173,7 @@
 
 
 - hosts: hosts-workspace
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
@@ -165,6 +181,8 @@
 
 
 - hosts: hosts-functional-administration
+  any_errors_fatal: true
+  serial: 1
   roles:
     - vitam
     - functional_administration
@@ -173,6 +191,7 @@
 
 
 - hosts: hosts-security-internal
+  any_errors_fatal: true
   roles:
     - vitam
     - init_contexts_and_security_profiles
@@ -182,6 +201,7 @@
 
 
 - hosts: hosts-processing
+  any_errors_fatal: true
   roles:
     - vitam
     - processing_create_workflows
@@ -191,6 +211,7 @@
 
 
 - hosts: hosts-worker
+  any_errors_fatal: true
   roles:
     - siegfried
     - vitam
@@ -201,6 +222,7 @@
 
 
 - hosts: hosts-access-internal
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
@@ -209,6 +231,7 @@
 
 
 - hosts: hosts-access-external
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
@@ -221,6 +244,7 @@
 
 # 2 differents steps, due to https://github.com/ansible/ansible/issues/15476
 - hosts: hosts-access-external
+  any_errors_fatal: true
   roles:
     - init_pronom
   vars:
@@ -233,6 +257,7 @@
 
 
 - hosts: hosts-ingest-internal
+  any_errors_fatal: true
   roles:
     - vitam
   vars:
@@ -241,6 +266,7 @@
 
 
 - hosts: hosts-ingest-external
+  any_errors_fatal: true
   roles:
     - siegfried
     - antivirus
@@ -258,6 +284,7 @@
 
 
 - hosts: hosts-ihm-demo
+  any_errors_fatal: true
   roles:
     - vitam
     - ihm-demo-front-v2

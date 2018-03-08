@@ -3,11 +3,11 @@ db = db.getSiblingDB('identity')
 
 // Create security-internal user
 
-if (! db.getUser("{{ mongodb.data.securityInternal.user }}")) {
+if (! db.getUser("{{ mongodb[mongo_cluster_name].securityInternal.user }}")) {
     db.createUser(
         {
-            user: "{{ mongodb.data.securityInternal.user }}",
-            pwd: "{{ mongodb.data.securityInternal.password }}",
+            user: "{{ mongodb[mongo_cluster_name].securityInternal.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].securityInternal.password }}",
             roles: [
                 { role: "readWrite", db: "identity" }
             ]
@@ -17,11 +17,11 @@ if (! db.getUser("{{ mongodb.data.securityInternal.user }}")) {
 
 // Create admin user
 
-if (! db.getUser("{{ mongodb.data.admin.user }}")) {
+if (! db.getUser("{{ mongodb[mongo_cluster_name].admin.user }}")) {
     db.createUser(
         {
-            user: "{{ mongodb.data.admin.user }}",
-            pwd: "{{ mongodb.data.admin.password }}",
+            user: "{{ mongodb[mongo_cluster_name].admin.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].admin.password }}",
             roles: [
                 { role: "readWrite", db: "identity" },
                 { role: "dbAdmin", db: "identity" }

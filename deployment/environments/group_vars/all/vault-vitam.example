@@ -3,8 +3,41 @@ plateforme_secret: vitamsecret
 cerebro_secret_key: tGz28hJkiW[p@a34G
 consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 
+# Test for further improvements of mongodb users
+# Not working for now
+# mongodb:
+#     mongo-data:
+#         passphrase: mongogo
+#         dbs:
+#             admin:
+#                 - vitamdb-admin:
+#                   user: vitamdb-admin
+#                   password: azerty
+#                   roles:
+#                       - root:
+#                           role: root
+#             identity:
+#                 - admin:
+#                   user: admin
+#                   password: azerty
+#                   roles:
+#                       - readWrite:
+#                           role: readWrite
+#                           db: identity
+#                       - dbAdmin:
+#                           role: dbAdmin
+#                           db: identity
+#                 - identity:
+#                   user: identity
+#                   password: azerty1
+#                   roles:
+#                       - readWrite:
+#                           role: readWrite
+#                           db: identity
+#
+
 mongodb:
-  data:
+  mongo-data:
     passphrase: mongogo
     admin:
       user: vitamdb-admin
@@ -24,7 +57,29 @@ mongodb:
     securityInternal:
       user: security-internal
       password: azerty4
-  offer:
+  offer-fs-1:
+    passphrase: mongogo
+    admin:
+      user: vitamdb-admin
+      password: azerty
+    localadmin:
+      user: vitamdb-localadmin
+      password: qwerty
+    offer:
+      user: offer
+      password: azerty5
+  offer-fs-2:
+    passphrase: mongogo
+    admin:
+      user: vitamdb-admin
+      password: azerty
+    localadmin:
+      user: vitamdb-localadmin
+      password: qwerty
+    offer:
+      user: offer
+      password: azerty5
+  offer-swift-1:
     passphrase: mongogo
     admin:
       user: vitamdb-admin

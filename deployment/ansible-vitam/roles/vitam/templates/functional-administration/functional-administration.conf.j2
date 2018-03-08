@@ -7,8 +7,8 @@ mongoDbNodes:
 {% endfor %}
 dbName: masterdata
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{ mongodb.data.functionalAdmin.user }}
-dbPassword: {{ mongodb.data.functionalAdmin.password }}
+dbUserName: {{ mongodb['mongo-data'].functionalAdmin.user }}
+dbPassword: {{ mongodb['mongo-data'].functionalAdmin.password }}
 
 #Basic Authentication
 adminBasicAuth:

@@ -54,8 +54,8 @@ metricbeat.modules:
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
   metricsets: ["dbstats", "status"]
-  username: {{ mongodb.data.localadmin.user }}
-  password: {{ mongodb.data.localadmin.password }}
+  username: {{ mongodb['mongo-data']['localadmin']['user'] }}
+  password: {{ mongodb['mongo-data']['localadmin']['password'] }}
   db: ["admin"]
   period: 10s
 {% endif %}
@@ -64,8 +64,8 @@ metricbeat.modules:
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
   metricsets: ["dbstats", "status"]
-  username: {{ mongodb.data.localadmin.user }}
-  password: {{ mongodb.data.localadmin.password }}
+  username: {{ mongodb['mongo-data']['localadmin']['user'] }}
+  password: {{ mongodb['mongo-data']['localadmin']['password'] }}
   db: ["admin"]
   period: 10s
 {% endif %}
@@ -74,8 +74,8 @@ metricbeat.modules:
 - module: mongodb
   hosts: ["{{ip_service}}:{{ mongodb.mongos_port }}"]
   metricsets: ["dbstats", "status"]
-  username: {{ mongodb.data.admin.user }}
-  password: {{ mongodb.data.admin.password }}
+  username: {{ mongodb['mongo-data']['admin']['user'] }}
+  password: {{ mongodb['mongo-data']['admin']['password'] }}
   db: ["admin"]
   period: 10s
   #collections: ["logbook","masterdata","metadata,"identity"]

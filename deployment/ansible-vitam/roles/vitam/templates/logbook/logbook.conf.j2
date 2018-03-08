@@ -7,8 +7,8 @@ mongoDbNodes:
 {% endfor %}
 dbName: logbook
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{ mongodb.data.logbook.user }}
-dbPassword: {{ mongodb.data.logbook.password }}
+dbUserName: {{ mongodb['mongo-data'].logbook.user }}
+dbPassword: {{ mongodb['mongo-data'].logbook.password }}
 jettyConfig: jetty-config.xml
 p12LogbookPassword: {{keystores.timestamping.secure_logbook}}
 p12LogbookFile: keystore_secure-logbook.p12
