@@ -26,13 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
-
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -50,6 +45,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 public class StorageLogServiceImpl implements StorageLogService {
 
@@ -174,14 +175,16 @@ public class StorageLogServiceImpl implements StorageLogService {
 
         List<LogInformation> previousLogFiles = new ArrayList<>();
 
-        for (Path filePath : Files.newDirectoryStream(this.storageLogPath, tenant + "_*.log")) {
+        try (DirectoryStream<Path> paths = Files.newDirectoryStream(this.storageLogPath, tenant + "_*.log")) {
+            for (Path filePath : paths) {
 
-            String filename = filePath.getFileName().toString();
-            Optional<LocalDateTime> localDateTime = tryParseCreationDateFromFileName(filename);
-            if (!localDateTime.isPresent()) {
-                LOGGER.warn("Invalid storage log filename '" + filename + "'");
-            } else {
-                previousLogFiles.add(new LogInformation(filePath, localDateTime.get(), now));
+                String filename = filePath.getFileName().toString();
+                Optional<LocalDateTime> localDateTime = tryParseCreationDateFromFileName(filename);
+                if (!localDateTime.isPresent()) {
+                    LOGGER.warn("Invalid storage log filename '" + filename + "'");
+                } else {
+                    previousLogFiles.add(new LogInformation(filePath, localDateTime.get(), now));
+                }
             }
         }
 
