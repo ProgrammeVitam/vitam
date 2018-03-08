@@ -9,7 +9,10 @@ Principe
 
 Les tests de performance consistent à réaliser plusieurs fois l'entrée d'un SIP et à mesurer son temps d'exécution. Ces entrées peuvent être réalisées par une ou plusieurs tâches parallèles.
 
-L'interface est accessible par le menu : Tests > Test de performance
+L'interface est accessible par le menu : Tests > Test de performance.
+
+Les tests ne sont pas segmentés par tenant. Ces derniers sont directement configurés dans les tests. Il n'est donc pas nécéssaire de sélectionner un tenant pour accéder au contenu de cette section. 
+
 
 Champs disponibles
 ------------------
@@ -180,10 +183,17 @@ Champs disponibles
 Pour les collections suivantes, il est également possible de choisir l'action "Mettre à jour" :
 
 * Unit
+* Profil
 * Contrat d'accès
 * Contrat d'entrée
 * Contexte
-* Opération
+
+**Opération**: Pour la collection Opération, il est également possible de choisir les actions suivantes: 
+
+* Action Suivante
+* Action Pause
+* Action Reprendre
+* Action Stop
 
 **Identifiant** : champs optionnel. Permet de renseigner le GUID de l'objet ciblé dans la collection.
 
@@ -233,16 +243,10 @@ Il faut ensuite rajouter les informations dans les champs prévus à cet effet :
 Puis il suffit de cliquer sur le bouton " Envoyer la requête" pour visualiser plusieurs choses : 
 
 * Sur la partie gauche, la représentation visuelle du graphe contenu dans le SIP
-* sur la partie droite, lorsqu'on clique sur la représentation de chaque unité archivistique, le détail des données reliées à l'unité archivistique 
+* sur la partie droite, lorsqu'on clique sur la représentation de chaque unité archivistique, le détail des données reliées à l'unité archivistique s'affiche
 
 
 .. image:: images/visualisation_graphe.png
 
-
-
-
-
-
-- 
 
 

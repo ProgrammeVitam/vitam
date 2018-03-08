@@ -16,7 +16,7 @@ Elle contient des interfaces utilisateurs permettant, par tenant, de :
   * Administrer les collections MongoDB (référentiels, journaux, objets...)
   * Lancer des tests automatisés via SOAP UI
   * Sécuriser manuellement les journaux des opérations
-  * Consulter les journaux de sécurisation
+
 
 Accès
 -----
@@ -55,15 +55,20 @@ Les pages accessibles sont réparties de la façon suivante :
 
 **Sécurisation**
 
-	* Sécurisation des journaux des opérations
-	* Sécurisation des journaux de cycle de vie
+	* Sécurisation des journaux 
+
+
+**Visualisation du graphe**
+
+	* Visualisation du graphe
+
 
 Fil d'Ariane
 ------------
 
 Le fil d’Ariane est un élément qui permet de visualiser le chemin d’accès à la page affichée. Il est situé sur toutes les pages, en dessous du menu.
 
-Il est est composé d'un symbole "home", du nom du menu dans lequel se trouve la page en cours puis de la page consultée.
+Il est composé du nom du menu dans lequel se trouve la page en cours puis de la page consultée.
 
 .. image:: images/RECETTE_Fil_Ariane.png
 
