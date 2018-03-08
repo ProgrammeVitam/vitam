@@ -22,6 +22,7 @@ export class ImportComponent  extends PageComponent {
     {label:"Formats", value:'format'},
     {label:"Profils d'archivage", value:'profil'},
     {label:"Règles de gestion", value:'rule'},
+    {label:"Documents type", value:'archiveUnitProfile'},
     {label:"Services agents", value:'agencies'}
   ];
   extensions : string[];

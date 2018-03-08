@@ -87,6 +87,7 @@ import { WorkflowComponent } from './admin/workflow/workflow.component';
 import {WorkflowService} from "./admin/workflow.service";
 import {ErrorService} from "./common/error.service";
 import { LoadingBlockComponent } from './common/loading-block/loading-block.component';
+import {ArchiveUnitProfileComponent} from "./referentials/details/archive-unit-profile/archive-unit-profile.component";
 
 
 const appRoutes: Routes = [
@@ -149,6 +150,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/profil/:id', component: ProfilComponent, data : {permission : 'profiles:read'}
+  },
+  {
+    path: 'admin/archiveUnitProfile/:id', component: ArchiveUnitProfileComponent, data : {permission : 'archiveunitprofiles:read'}
   },
   {
     path: 'admin/context/:id', component: ContextComponent, data : {permission : 'contexts:read'}
@@ -216,6 +220,7 @@ const appRoutes: Routes = [
     AccessContractComponent,
     IngestContractComponent,
     ProfilComponent,
+    ArchiveUnitProfileComponent,
     ContextComponent,
     MetadataFieldComponent,
     TreeParentComponent,

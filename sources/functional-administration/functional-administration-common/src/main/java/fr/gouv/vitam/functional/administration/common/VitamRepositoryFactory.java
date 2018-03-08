@@ -42,6 +42,7 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
         VitamCollection rules = FunctionalAdminCollections.RULES.getVitamCollection();
         VitamCollection agencies = FunctionalAdminCollections.AGENCIES.getVitamCollection();
         VitamCollection profile = FunctionalAdminCollections.PROFILE.getVitamCollection();
+        VitamCollection archiveUnitProfile = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getVitamCollection();
         VitamCollection securityProfile = FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection();
         VitamCollection ingestContract = FunctionalAdminCollections.INGEST_CONTRACT.getVitamCollection();
         VitamCollection accessContract = FunctionalAdminCollections.ACCESS_CONTRACT.getVitamCollection();
@@ -58,6 +59,8 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
             new VitamMongoRepository((MongoCollection<Document>) rules.getCollection()));
         mongoRepository.put(FunctionalAdminCollections.PROFILE,
             new VitamMongoRepository((MongoCollection<Document>) profile.getCollection()));
+        mongoRepository.put(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE,
+            new VitamMongoRepository((MongoCollection<Document>) archiveUnitProfile.getCollection()));
         mongoRepository.put(FunctionalAdminCollections.AGENCIES,
             new VitamMongoRepository((MongoCollection<Document>) agencies.getCollection()));
         mongoRepository.put(FunctionalAdminCollections.ACCESS_CONTRACT,
@@ -86,6 +89,9 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
         esRepository.put(FunctionalAdminCollections.PROFILE,
             new VitamElasticsearchRepository(profile.getEsClient().getClient(), profile.getName().toLowerCase(),
                 profile.isCreateIndexByTenant()));
+        esRepository.put(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE,
+            new VitamElasticsearchRepository(archiveUnitProfile.getEsClient().getClient(), archiveUnitProfile.getName().toLowerCase(),
+                archiveUnitProfile.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.AGENCIES,
             new VitamElasticsearchRepository(agencies.getEsClient().getClient(), agencies.getName().toLowerCase(),
                 agencies.isCreateIndexByTenant()));

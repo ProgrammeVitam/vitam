@@ -99,6 +99,7 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_MASTERDATA_INGEST_CONTRACT = "STP_DELETE_MASTERDATA_INGEST_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_ACCESS_CONTRACT = "STP_DELETE_MASTERDATA_ACCESS_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_PROFILE = "STP_DELETE_MASTERDATA_PROFILE";
+    private static final String STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE = "STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE";
     private static final String STP_DELETE_MASTERDATA_AGENCIES = "STP_DELETE_MASTERDATA_AGENCIES";
     private static final String STP_DELETE_MASTERDATA_CONTEXT = "STP_DELETE_MASTERDATA_CONTEXT";
 
@@ -628,6 +629,18 @@ public class WebApplicationResourceDelete {
     }
 
     /**
+     * Delete the masterdata for archive unit profile in database
+     *
+     * @return Response
+     */
+    @Path("masterdata/archiveUnitProfile")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdataArchiveUnitProfile() {
+        return deleteMasterDataCollection(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE);
+    }
+
+    /**
      * Delete the masterdata for agencies in database
      *
      * @return Response
@@ -679,6 +692,7 @@ public class WebApplicationResourceDelete {
         if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.INGEST_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.PROFILE) ||
+            collection.equals(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE) ||
             collection.equals(FunctionalAdminCollections.AGENCIES) ||
             collection.equals(FunctionalAdminCollections.CONTEXT))) {
             throw new IllegalArgumentException("unsupported collection");
@@ -768,6 +782,8 @@ public class WebApplicationResourceDelete {
 
         deleteMasterdataProfile().close();
 
+        deleteMasterdataArchiveUnitProfile().close();
+
         deleteMasterdataContext().close();
 
         deleteMasterdataSecurityProfil().close();
@@ -814,6 +830,8 @@ public class WebApplicationResourceDelete {
         deleteLogbookLifeCycles(collectionKO, parameters, helper);
 
         deleteProfils(collectionKO, parameters, helper);
+
+        deleteArchiveUnitProfils(collectionKO, parameters, helper);
 
         deleteAgencies(collectionKO, parameters, helper);
 
@@ -1071,6 +1089,33 @@ public class WebApplicationResourceDelete {
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_PROFILE, StatusCode.KO))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.KO));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.PROFILE.name());
+        }
+    }
+
+    private void deleteArchiveUnitProfils(List<String> collectionKO, LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper) {
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK))
+            .setStatus(StatusCode.OK)
+            .putParameterValue(LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK))
+            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK));
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.PROFILE)) {
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO)
+                .putParameterValue(LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.KO))
+                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.KO));
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
