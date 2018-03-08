@@ -269,7 +269,7 @@ La tâche CHECK_DATAOBJECTPACKAGE contient plusieurs traitements.
 
 
 Processus de contrôle et traitement des objets (STP_OG_CHECK_AND_TRANSFORME)
-==========================================================================
+============================================================================
 
 Vérification de l'intégrité des objets (CHECK_DIGEST - CheckConformityActionPlugin.java)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
