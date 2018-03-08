@@ -437,9 +437,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 final SizedInputStream sis = new SizedInputStream(input);
                 final String size = headers.getHeaderString(GlobalDataRest.VITAM_CONTENT_LENGTH);
 
-                LOGGER.error("header " + GlobalDataRest.VITAM_CONTENT_LENGTH + " contains value: " + size);
-                LOGGER.error("header " + GlobalDataRest.X_CONTENT_LENGTH + " contains value: " + headers.getHeaderString(GlobalDataRest.X_CONTENT_LENGTH));
-
                 Long inputStreamSize;
                 try {
                     inputStreamSize = Long.valueOf(size);
