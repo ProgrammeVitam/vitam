@@ -8,15 +8,25 @@ Lancer une opération de sécurisation
 
 L'interface de lancement est accessible par le menu : Sécurisation > Sécurisation des journaux.
 
-L'interface contient un bouton "Générer le journal des opérations" et un bouton "Générer le journal des cycles de vie". Au clic sur ce bouton, le système va lancer l'opération de sécurisation des journaux. Elle prendra en compte tous les journaux, du dernier créé au dernier non sécurisé. Un message s'affiche alors sur l'écran précisant le succès de l'opération.
+L'interface contient plusieurs boutons: 
+
+* "Générer le journal des opérations" 
+* "Générer le journal des cycles de vie"
+* "Générer le journal des offres de stockage" 
+
+Au clic sur ce bouton, le système va lancer l'opération de sécurisation des journaux. Elle prendra en compte tous les journaux, du dernier créé au dernier non sécurisé. Un message s'affiche alors sur l'écran précisant le succès de l'opération.
+
 
 .. image:: images/RECETTE_lancer_secu.png
+
 
 Si aucun journal n'a encore été sécurisé, alors l'opération de sécurisation prendra en compte tous les journaux d'opération existant dans la solution logicielle Vitam.
 
 A la fin de l'opération, un message avertit du succès ou de l'échec de l'opération.
 
+
 .. image:: images/RECETTE_ok_secu.png
+
 
 Un fichier .zip est créé et placé dans le l'offre de stockage de Vitam dans le répertoire suivant :
 

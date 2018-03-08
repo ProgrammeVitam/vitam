@@ -1,7 +1,7 @@
 Administration des collections
 ##############################
 
-L'administration des collections permet de supprimer certains ou tous les référentiels / journaux / objets dans le but de recetter la solution logicielle Vitam ou de faire des tests variés pour éprouver la stabilité du système.
+L'administration des collections permet de supprimer certains ou tous les référentiels / journaux / objets / contrats dans le but de recetter la solution logicielle Vitam ou de faire des tests variés pour éprouver la stabilité du système.
 
 L'utilisateur y accède par le menu, en cliquant sur "Administration des collections", ou par défaut lors de sa connexion. 
 
@@ -18,7 +18,7 @@ Il existe deux types de purges.
 Purge de toutes les collections de la solution logicielle Vitam
 ---------------------------------------------------------------
 
-La purge de toutes les collections correspond à la suppression de tous les référentiels, de tous les journaux ainsi que de tous les objets et unités archivistiques à l'exception du référentiel des formats.
+La purge de toutes les collections correspond à la suppression de tous les référentiels, des contrats, de tous les journaux ainsi que de tous les objets et unités archivistiques à l'exception du référentiel des formats et des contextes.
 Suite à cette opération, chaque IHM correspondante est vide de contenu et plus aucune archive n'est présente dans la solution logicielle Vitam.
 
 Purge des référentiels
@@ -81,7 +81,7 @@ Purge des Unités Archivistiques et Groupes d'Objets
 
 **Purge des Unités Archivistiques**
 
-Toutes les unités archivistiques sont supprimées de la solution logicielle Vitam. L'IHM "Recherche d'archives" ne comprend plus d'objet.
+Toutes les unités archivistiques sont supprimées de la solution logicielle Vitam. L'IHM "Recherche d'archives" ne comprend plus d'unité archivistique.
 
 **Purge des groupes d'objets**
 
