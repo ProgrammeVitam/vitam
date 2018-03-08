@@ -25,6 +25,7 @@ Valeurs possibles pour le champ evTypeProc (type de processus)
   "Rules Manager process","MASTERDATA", "Données de base"
   "Traceability type process","TRACEABILITY", "Sécurisation"
   "Update process","UPDATE", "Mise à jour"
+  "Evidence Audit type process", "EVIDENCEAUDIT", "Audit de traçabilité"
 
 Catégories de règles possibles
 ------------------------------
