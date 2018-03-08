@@ -1452,7 +1452,7 @@ public class ProcessingIT {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
     }
 
 

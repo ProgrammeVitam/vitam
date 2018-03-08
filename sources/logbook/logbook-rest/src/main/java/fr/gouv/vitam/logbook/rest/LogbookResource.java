@@ -144,8 +144,8 @@ import java.util.List;
  * Logbook Resource implementation
  */
 @Path("/logbook/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class LogbookResource extends ApplicationStatusResource {
+
     private static final String LOGBOOK = "logbook";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
     public static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =

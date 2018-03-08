@@ -42,11 +42,13 @@ public enum DistributionKind {
     /**
      * Distribution by List defined in a file
      */
-    LIST("LIST");
+    LIST_ORDERING_IN_FILE("LIST_ORDERING_IN_FILE"),
+
+    LIST_IN_DIRECTORY("LIST_IN_DIRECTORY");
 
     private String value;
 
-    private DistributionKind(String value) {
+    DistributionKind(String value) {
         this.value = value;
     }
 
@@ -57,6 +59,10 @@ public enum DistributionKind {
      */
     public String value() {
         return value;
+    }
+
+    public boolean isDistributed() {
+        return this != REF;
     }
 
 }

@@ -26,12 +26,14 @@
  ******************************************************************************/
 package fr.gouv.vitam.common.model.processing;
 
+import static fr.gouv.vitam.common.model.processing.LifecycleState.DISABLED;
+
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.model.ItemStatus;
 
@@ -43,21 +45,45 @@ public class Step {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("workerGroupId")
     private String workerGroupId = "DefaultWorker";
+
     @JsonProperty("stepName")
     private String stepName;
+
     @JsonProperty("behavior")
     private ProcessBehavior behavior;
+
     @JsonProperty("distribution")
     private Distribution distribution;
+
     @JsonProperty("actions")
     private List<Action> actions;
+
     @JsonIgnore
     private ItemStatus stepResponses;
 
     private volatile PauseOrCancelAction pauseOrCancelAction = PauseOrCancelAction.ACTION_RUN;
 
+    public Step() {
+    }
+
+    @JsonCreator
+    public Step(
+        @JsonProperty("id") String id,
+        @JsonProperty("workerGroupId") String workerGroupId,
+        @JsonProperty("stepName") String stepName,
+        @JsonProperty("behavior") ProcessBehavior behavior,
+        @JsonProperty("distribution") Distribution distribution,
+        @JsonProperty("actions") List<Action> actions) {
+        this.id = id;
+        this.workerGroupId = workerGroupId;
+        this.stepName = stepName;
+        this.behavior = behavior;
+        this.distribution = distribution;
+        this.actions = actions;
+    }
 
     public String getId() {
         return id;
@@ -208,4 +234,16 @@ public class Step {
         this.pauseOrCancelAction = pauseOrCancelAction;
         return this;
     }
+
+    public void defaultLifecycleLog(LifecycleState lifecycleLog) {
+        actions.forEach(action -> {
+            boolean distributed = distribution.getKind().isDistributed();
+            if (distributed) {
+                action.getActionDefinition().defaultLifecycleLog(lifecycleLog);
+            } else {
+                action.getActionDefinition().defaultLifecycleLog(DISABLED);
+            }
+        });
+    }
+
 }

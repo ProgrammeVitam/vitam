@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.DistributionKind;
+import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -167,7 +168,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", operationId);
         ParametersChecker.checkParameter("pauseRecover is a mandatory parameter", pauseRecover);
-        /**
+        /*
          * use index only if pauseRecover of the processWorkflow
          * is PauseRecover.RECOVER_FROM_API_PAUSE or PauseRecover.RECOVER_FROM_SERVER_PAUSE
          * and pauseCancelAction of the step is PauseOrCancelAction.ACTION_RECOVER
@@ -193,13 +194,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             workParams.putParameterValue(WorkerParameterName.workflowStatusKo,
                 processDataAccess.findOneProcessWorkflow(operationId, tenantId).getStatus().name());
             List<String> objectsList = new ArrayList<>();
-            if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
+            if (step.getDistribution().getKind().equals(DistributionKind.LIST_ORDERING_IN_FILE)) {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
                     // Test regarding Unit to be indexed                    
-                    if (ELEMENT_UNITS.equalsIgnoreCase(step.getDistribution().getElement())) {
+                    if (DistributionType.Units == step.getDistribution().getType()) {
                         // get the file to retrieve the GUID
                         final Response response = workspaceClient.getObject(workParams.getContainerName(),
-                            UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
+                            step.getDistribution().getElement());
+
                         final JsonNode levelFileJson;
                         try {
                             final InputStream levelFile = (InputStream) response.getEntity();
@@ -220,7 +222,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 boolean distributorIndexUsed =
                                     distributeOnList(workParams, step, level, objectsList, useDistributorIndex,
                                         tenantId);
-                                /**
+                                /*
                                  * If the distributorIndex is used in the previous level
                                  * Then do not use index in the next level
                                  */
@@ -235,21 +237,24 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                 }
                             }
                         }
-                    } else {
-                        // List from Storage
-                        final List<URI> objectsListUri =
-                            JsonHandler.getFromStringAsTypeRefence(
-                                workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
-                                    step.getDistribution().getElement())
-                                    .toJsonNode().get("$results").get(0).toString(),
-                                new TypeReference<List<URI>>() {
-                                });
-                        for (URI uri : objectsListUri) {
-                            objectsList.add(uri.getPath());
-                        }
-                        // Iterate over Objects List
-                        distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                     }
+                }
+            } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_DIRECTORY)) {
+                // List from Storage
+                try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                    final List<URI> objectsListUri =
+                        JsonHandler.getFromStringAsTypeRefence(
+                            workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
+                                step.getDistribution().getElement())
+                                .toJsonNode().get("$results").get(0).toString(),
+                            new TypeReference<List<URI>>() {
+                            });
+                    for (URI uri : objectsListUri) {
+                        objectsList.add(uri.getPath());
+                    }
+                    // Iterate over Objects List
+                    distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                 }
             } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -329,7 +334,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         boolean updateElementToProcess = true;
         DistributorIndex distributorIndex = null;
         final List<String> remainingElementsFromRecover = new ArrayList<>();
-        /**
+        /*
          * initFromDistributorIndex true if start after stop
          *
          * Get the distributor Index from the workspace
@@ -349,28 +354,28 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             "You run the wrong step " + step.getId() + ". The step from saved distributor index is : " +
                                 distributorIndex.getStepId());
                     }
-                    /**
+                    /*
                      * Handle the next level if the current level is not equals to the distributorIndex level
                      * This mean that the current level us already treated
                      */
                     if (!distributorIndex.getLevel().equals(level)) {
                         return false;
                     }
-                    /**
+                    /*
                      * If all elements of the step are treated then response with the ItemStatus of the distributorIndex
                      */
                     if (distributorIndex.isLevelFinished()) {
                         step.setStepResponses(distributorIndex.getItemStatus());
                         return true;
                     } else {
-                        /**
+                        /*
                          * Initialize from distributor index
                          */
                         offset = distributorIndex.getOffset();
                         distributorIndex.getItemStatus().getItemsStatus()
                             .remove(PauseOrCancelAction.ACTION_PAUSE.name());
                         step.setStepResponses(distributorIndex.getItemStatus());
-                        /**
+                        /*
                          * As elements to process are calculated before stop of the server,
                          * do not recalculate then after restart
                          */
@@ -389,7 +394,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 throw new ProcessingException("Can't get distibutor index from workspace", e);
             }
         }
-        /**
+        /*
          * Update only if level is finished in the distributorIndex
          * In the cas of multiple level, we add the size of each level
          * Prevent adding twice the size of the current executing level
@@ -407,7 +412,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             List<String> subList = objectsList.subList(offset, nextOffset);
             List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
             List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
-            /**
+            /*
              * When server stop and in the batch of elements we have remaining elements (not yet treated)
              * Then after restart we treat only those not yet treated elements of this batch
              * If all elements of the batch were treated,

@@ -36,14 +36,16 @@
       "stepName": "STP_OG_CREATE_SECURED_FILE",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "ObjectGroup"
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup"
       },
       "actions": [
         {
           "action": {
             "actionKey": "OG_CREATE_SECURED_FILE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]
@@ -53,7 +55,7 @@
       "stepName": "STP_UNITS_CREATE_SECURED_FILE",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
+        "kind": "LIST_ORDERING_IN_FILE",
         "element": "UnitsWithoutLevel"
       },
       "actions": [

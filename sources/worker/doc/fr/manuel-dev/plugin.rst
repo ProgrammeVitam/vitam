@@ -347,7 +347,7 @@ Si l'on souhaite gérer les différents messages qui seront enregistrés dans le
  
  
 **Cas particulier du traitement des lifecycles.**
-Lorsqu'un plugin s'exécute sur une liste d'objets (ex : "kind": "LIST", "element": "ObjectGroup" ou "element": "Units" dans la configuration du Workflow) on va pouvoir ajouter des enregistrements dans la journalisation des cycles de vie (ObjectGroup ou Unit).
+Lorsqu'un plugin s'exécute sur une liste d'objets (ex : "kind": "LIST_ORDERING_IN_FILE", "element": "ObjectGroup" ou "element": "Units" dans la configuration du Workflow) on va pouvoir ajouter des enregistrements dans la journalisation des cycles de vie (ObjectGroup ou Unit).
 
 Prenons l'exemple de l'action CHECK_DIGEST dans le DefaultWorkflow qui est exécuté au sein d'une étape sur une liste d'ObjectGroups. Cette action va exécuter un plugin particulier (identifié via un fichier de configuration). 
 Le journal de cycle de vie des objectgroups va donc être mis à jour en fonction de l'exécution du plugin sur chaque objet. 

@@ -211,7 +211,7 @@ public class WorkerImplTest {
         action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
-        step.setDistribution(new Distribution().setElement("Units").setKind(DistributionKind.LIST));
+        step.setDistribution(new Distribution().setElement("Units").setKind(DistributionKind.LIST_ORDERING_IN_FILE));
 
         final ActionHandler actionHandler = mock(ExtractSedaActionHandler.class);
         final ItemStatus itemStatus = new ItemStatus("HANDLER_ID");

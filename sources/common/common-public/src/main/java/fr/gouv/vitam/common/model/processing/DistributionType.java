@@ -10,6 +10,6 @@ public enum DistributionType {
     /**
      * ObjectGroup
      */
-    ObjectGroup;
+    ObjectGroup
 
 }

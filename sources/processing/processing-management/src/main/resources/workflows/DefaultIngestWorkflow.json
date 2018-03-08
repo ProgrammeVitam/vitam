@@ -121,8 +121,9 @@
       "stepName": "STP_OG_CHECK_AND_TRANSFORME",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "ObjectGroup"
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup"
       },
       "actions": [
         {
@@ -162,8 +163,9 @@
       "stepName": "STP_UNIT_CHECK_AND_PROCESS",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "Units"
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
       },
       "actions": [
         {
@@ -226,8 +228,9 @@
       "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "ObjectGroup"
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup"
       },
       "actions": [
         {
@@ -261,8 +264,10 @@
       "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "Units"
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
+
       },
       "actions": [
         {
@@ -288,8 +293,9 @@
       "stepName": "STP_OG_STORING",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "ObjectGroup"
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup"
       },
       "actions": [
         {
@@ -301,7 +307,8 @@
         {
           "action": {
             "actionKey": "OG_METADATA_STORAGE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]
@@ -311,8 +318,9 @@
       "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "Units"
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
       },
       "actions": [
         {
@@ -324,7 +332,8 @@
         {
           "action": {
             "actionKey": "UNIT_METADATA_STORAGE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]
@@ -355,7 +364,8 @@
         {
           "action": {
             "actionKey": "OG_METADATA_STORAGE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]

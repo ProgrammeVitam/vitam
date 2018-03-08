@@ -129,4 +129,5 @@ public class Distribution {
         this.statusOnEmptyDistribution = statusOnEmptyDistribution;
         return this;
     }
+
 }

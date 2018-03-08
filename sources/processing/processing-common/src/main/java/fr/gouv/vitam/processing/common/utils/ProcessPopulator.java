@@ -213,7 +213,7 @@ public class ProcessPopulator {
     public static WorkFlow populate(String workflowFile) throws WorkflowNotFoundException {
         ParametersChecker.checkParameter("workflowFile is a mandatory parameter", workflowFile);
         final ObjectMapper objectMapper = new ObjectMapper();
-        WorkFlow process = null;
+        WorkFlow process;
         try (final InputStream inputJSON = PropertiesUtils.getConfigAsStream(workflowFile)) {
             process = objectMapper.readValue(inputJSON, WorkFlow.class);
         } catch (final IOException e) {
