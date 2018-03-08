@@ -1,35 +1,40 @@
 ---
 
+# When deploying on dev docker, we don't need to reinstall mongodb
+# => We only install when inventory_hostname != localhost
+# mongo_configure needs to be played as we create the offer db
+
 # mongodb commons (yum install, etc...)
 - hosts: hosts-mongodb-offer
+  any_errors_fatal: true
   roles:
-    - mongo_common
+    - { role: mongo_common, when: "inventory_hostname != 'localhost'" }
 
 # Mongoc replicas configuration
 - hosts: hosts-mongoc-offer
+  any_errors_fatal: true
   roles:
-    - mongoc
+    - { role: mongoc, when: "inventory_hostname != 'localhost'" }
   vars:
     mongo_bin: mongod
-    passphrase: "{{ mongodb.offer.passphrase }}"
     group_name: "hosts-mongoc-offer"
 
 # Mongod replicas configuration
 - hosts: hosts-mongod-offer
+  any_errors_fatal: true
   roles:
-    - mongod
+    - { role: mongod, when: "inventory_hostname != 'localhost'" }
   vars:
     mongo_bin: mongod
-    passphrase: "{{ mongodb.offer.passphrase }}"
     group_name: "hosts-mongod-offer"
 
 # Mongos configuration
 - hosts: hosts-mongos-offer
+  any_errors_fatal: true
   roles:
-    - mongos
+    - { role: mongos, when: "inventory_hostname != 'localhost'" }
   vars:
     mongo_bin: mongos
-    passphrase: "{{ mongodb.offer.passphrase }}"
     group_name: "hosts-mongos-offer"
     mongoc: "hosts-mongoc-offer"
     mongod: "hosts-mongod-offer"
@@ -39,23 +44,23 @@
 # force mongo_cluster_name when deploying to localhost (dev docker)
 
 - hosts: hosts-mongos-offer
+  any_errors_fatal: true
   roles:
     - { role: mongo_configure, when: "inventory_hostname == 'localhost'" }
   vars:
     mongo_bin: mongos
-    passphrase: "{{ mongodb.offer.passphrase }}"
     group_name: "hosts-mongos-offer"
     mongoc: "hosts-mongoc-offer"
     mongod: "hosts-mongod-offer"
     mongos: "hosts-mongos-offer"
-    mongo_cluster_name: "mongo-offer"
+    mongo_cluster_name: "offer-fs-1"
 
 - hosts: hosts-mongos-offer
+  any_errors_fatal: true
   roles:
     - { role: mongo_configure, when: "inventory_hostname != 'localhost'" }
   vars:
     mongo_bin: mongos
-    passphrase: "{{ mongodb.offer.passphrase }}"
     group_name: "hosts-mongos-offer"
     mongoc: "hosts-mongoc-offer"
     mongod: "hosts-mongod-offer"

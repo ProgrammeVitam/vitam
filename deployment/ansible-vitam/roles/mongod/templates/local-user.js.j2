@@ -1,24 +1,12 @@
 
 admin = db.getSiblingDB("admin")
 
-{% if mongo_cluster_name == 'mongo-data' %}
-if (! admin.getUser("{{ mongodb.data.localadmin.user }}")) {
+if (! admin.getUser("{{ mongodb[mongo_cluster_name].localadmin.user }}")) {
     admin.createUser(
         {
-            user: "{{ mongodb.data.localadmin.user }}",
-            pwd: "{{ mongodb.data.localadmin.password }}",
+            user: "{{ mongodb[mongo_cluster_name].localadmin.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].localadmin.password }}",
             roles: [ { role: "clusterAdmin", db: "admin" } ]
         }
     )
 }
-{% else %}
-if (! admin.getUser("{{ mongodb.offer.localadmin.user }}")) {
-    admin.createUser(
-        {
-            user: "{{ mongodb.offer.localadmin.user }}",
-            pwd: "{{ mongodb.offer.localadmin.password }}",
-            roles: [ { role: "clusterAdmin", db: "admin" } ]
-        }
-    )
-}
-{% endif %}

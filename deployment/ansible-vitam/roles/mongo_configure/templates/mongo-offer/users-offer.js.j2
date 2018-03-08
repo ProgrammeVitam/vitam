@@ -4,11 +4,11 @@ db = db.getSiblingDB('offer')
 
 // Create offer user
 
-if (! db.getUser("{{ mongodb.offer.offer.user }}")) {
+if (! db.getUser("{{ mongodb[mongo_cluster_name].offer.user }}")) {
     db.createUser(
         {
-            user: "{{ mongodb.offer.offer.user }}",
-            pwd: "{{ mongodb.offer.offer.password }}",
+            user: "{{ mongodb[mongo_cluster_name].offer.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].offer.password }}",
             roles: [
                 { role: "readWrite", db: "offer" }
             ]
@@ -18,11 +18,11 @@ if (! db.getUser("{{ mongodb.offer.offer.user }}")) {
 
 // Create admin user
 
-if (! db.getUser("{{ mongodb.offer.admin.user }}")) {
+if (! db.getUser("{{ mongodb[mongo_cluster_name].admin.user }}")) {
     db.createUser(
         {
-            user: "{{ mongodb.offer.admin.user }}",
-            pwd: "{{ mongodb.offer.admin.password }}",
+            user: "{{ mongodb[mongo_cluster_name].admin.user }}",
+            pwd: "{{ mongodb[mongo_cluster_name].admin.password }}",
             roles: [
                 { role: "readWrite", db: "offer" },
                 { role: "dbAdmin", db: "offer" }

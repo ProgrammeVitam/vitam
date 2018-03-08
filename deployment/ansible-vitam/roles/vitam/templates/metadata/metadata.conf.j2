@@ -7,8 +7,8 @@ mongoDbNodes:
 {% endfor %}
 dbName: metadata
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{ mongodb.data.metadata.user }}
-dbPassword: {{ mongodb.data.metadata.password }}
+dbUserName: {{ mongodb['mongo-data'].metadata.user }}
+dbPassword: {{ mongodb['mongo-data'].metadata.password }}
 
 jettyConfig: jetty-config.xml
 

@@ -13,5 +13,5 @@ mongoDbNodes:
 {% endfor %}
 dbName: offer
 dbAuthentication: {{ mongodb.mongo_authentication }}
-dbUserName: {{ mongodb.offer.offer.user }}
-dbPassword: {{ mongodb.offer.offer.password }}
+dbUserName: {{ mongodb[offer_conf].offer.user }}
+dbPassword: {{ mongodb[offer_conf].offer.password }}

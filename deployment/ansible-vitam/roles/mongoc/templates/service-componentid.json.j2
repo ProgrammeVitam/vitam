@@ -1,12 +1,12 @@
 {
   "service": {
-    "name": "mongoc",
+    "name": "{{ mongo_cluster_name }}-mongoc",
     "port": {{ mongodb.mongoc_port }},
     "enableTagOverride": false,
     "checks": [
       {
-        "name": "mongoc : TCP check",
-        "notes": "Status mongoc",
+        "name": "{{ mongo_cluster_name }}-mongoc : TCP check",
+        "notes": "Status {{ mongo_cluster_name }}-mongoc",
         "tcp": "{{ ip_service }}:{{ mongodb.mongoc_port }}",
         "interval": "1s"
       }
