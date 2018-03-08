@@ -93,7 +93,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK);
         final String ingestContractIdentifier = (String) handlerIO.getInput(CONTRACT_IDENTIFIER_RANK);
         CheckProfileStatus status = null;
-
+        ObjectNode infoNode = JsonHandler.createObjectNode();
         String dataKey = null;
         String dataValue = null;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
@@ -122,7 +122,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                 }
 
             } else {
-                //Force to null even if profileIdentifier is empty not null string
+                // Force to null even if profileIdentifier is empty not null string
                 profileIdentifier = null;
             }
             // Validate profile according to contract
@@ -172,19 +172,20 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         switch (status) {
             case INACTIVE:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.INACTIVE.toString());
-                itemStatus.setData("The_profile_" + profileIdentifier, "In has not the status ACTIVE");
+                infoNode.put(SedaConstants.EV_DET_TECH_DATA,
+                    "The profile " + profileIdentifier + " has not the status ACTIVE");
                 itemStatus.increment(StatusCode.KO);
                 break;
             case UNKNOWN:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.UNKNOWN.toString());
                 itemStatus.increment(StatusCode.KO);
-                itemStatus.setData(dataKey, dataValue);
+                infoNode.put(SedaConstants.EV_DET_TECH_DATA, dataKey + " " + dataValue);
                 break;
             case DIFF:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.DIFF.toString());
                 itemStatus.increment(StatusCode.KO);
-                itemStatus.setData("The_profile_" + profileIdentifier,
-                    "Not found in the ingest contract " + ingestContractIdentifier);
+                infoNode.put(SedaConstants.EV_DET_TECH_DATA,
+                    "The profile " + profileIdentifier + " was not found in the ingest contract");
 
                 break;
             case KO:
@@ -195,7 +196,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                 break;
         }
 
-        ObjectNode infoNode = JsonHandler.createObjectNode();
+
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
         String evdev = JsonHandler.unprettyPrint(infoNode);
         itemStatus.setEvDetailData(evdev);

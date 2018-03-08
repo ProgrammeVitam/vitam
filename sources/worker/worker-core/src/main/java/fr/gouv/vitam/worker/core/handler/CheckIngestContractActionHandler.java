@@ -68,8 +68,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      */
-    public CheckIngestContractActionHandler() {
-    }
+    public CheckIngestContractActionHandler() {}
 
     /**
      * @return HANDLER_ID
@@ -87,10 +86,12 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         try {
             ObjectNode infoNode = JsonHandler.createObjectNode();
             checkMandatoryIOParameter(ioParam);
-            final Map<String, Object> mandatoryValueMap = (Map<String, Object>) handlerIO.getInput(SEDA_PARAMETERS_RANK);
+            final Map<String, Object> mandatoryValueMap =
+                (Map<String, Object>) handlerIO.getInput(SEDA_PARAMETERS_RANK);
             String contractIdentifier = null;
 
-            if (null != mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
+            if (null != mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) &&
+                !((String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT)).isEmpty()) {
                 contractIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
                 infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractIdentifier);
             }
@@ -107,9 +108,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case NOT_PRESENT_IN_MANIFEST:
-                    infoNode.put("MsgError", "Error Ingest constract not found in the Manifest");
-                    String evdev = JsonHandler.unprettyPrint(infoNode);
-                    itemStatus.setEvDetailData(evdev);
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Error Ingest constract not found in the Manifest");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case KO:
@@ -139,14 +139,14 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         }
 
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<IngestContractModel> referenceContracts = client.findIngestContractsByID(contractIdentifier);
+            RequestResponse<IngestContractModel> referenceContracts =
+                client.findIngestContractsByID(contractIdentifier);
             if (referenceContracts.isOk()) {
                 List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
                         ContractStatus status = result.getStatus();
-                        if (ContractStatus.ACTIVE.equals(status)
-                                && result.getIdentifier().equals(contractIdentifier)) {
+                        if (ContractStatus.ACTIVE.equals(status) && result.getIdentifier().equals(contractIdentifier)) {
                             return CheckIngestContractStatus.OK;
                         } else {
                             return CheckIngestContractStatus.INACTIVE;
