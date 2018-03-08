@@ -146,7 +146,7 @@ Le rapport généré est :
   }
 
 
-**Exemple 2 : ajout d'un service agent, en erreur **
+**Exemple 2 : ajout d'un service agent, en erreur**
 
 Le rapport généré est :
 
