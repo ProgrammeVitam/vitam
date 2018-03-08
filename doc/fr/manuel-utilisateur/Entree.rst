@@ -7,16 +7,15 @@ Dans l’univers numérique, peuvent être transférées à un service d’archi
 
 Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver.
 
-Avertissement : Lebordereau doit être conforme au SEDA et respecter les consignes de formalisation des SIP décrites dans le document "Structuration des submissions information Package (SIP)".
+Avertissement : Le bordereau doit être conforme au SEDA et respecter les consignes de formalisation des SIP décrites dans le document "Structuration des submissions information Package (SIP)".
 
 Transfert d'un SIP 
 ===================
 
 Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran de "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis en sélectionnant le sous-menu "Transfert de SIP et plan de classement".
 
-|
-
 .. image:: images/menu_transfert.png
+
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
@@ -38,7 +37,7 @@ Plusieurs options sont présentes sur l'écran :
 
 - Mode d'exécution :
 	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
-	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
+	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre, et cela en se rendant sur la page "Gestion des opérations". (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 
 - Destination :
 	- "en production", option d'entrée classique, l'entrée est réellement effectuée, les objets et métadonnées sont enregistrés dans la solution logicielle Vitam, l'évènement est journalisé.
@@ -69,14 +68,14 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 
 - Date : date d'émission de l'ATR
 - MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
-- ArchivalAgreement : contrat d'entrée
+- ArchivalAgreement : Identifiant ou nom du contrat d'entrée
 - CodeListVersion : la liste des référentiels utilisés
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId) 
 - La liste des groupes d'objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du SIP
-- ArchivalAgency : service d'archives
-- TransferringAgency : service producteur
+- ArchivalAgency : l'identifiant du service d'archives
+- TransferringAgency : l'identifiant service producteur
 
 Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR d'une entrée en succès et le statut final de l'entrée (ou ReplyCode) est "WARNING". L'ATR indique les unités archivistiques et étapes du processus ayant rencontré une difficulté, en revanche il n'est pas possible de connaître la cause de l'avertissement.
 
@@ -84,22 +83,24 @@ En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR e
 
 Les blocs <event> sont composés des balises suivantes :
 
-- EventType : l'intitulé de l'étape ou de la tâche
 - EventTypeCode : code de l'étape ou de la tâche en erreur
+- EventType : l'intitulé de l'étape ou de la tâche
+- EventDateTime : date de l'évènement. 
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
 
 La notification comprend ensuite la liste des erreurs rencontrées (échec ou avertissement), au niveau des unités archivistiques comme au niveau des groupes d'objets, sous la forme de blocs <event>.
 
+
 Transfert d'un SIP de plan de classement
 =========================================
 
-Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert de SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement". Il faut ensuite cliquer sur le bouton "Plan de classement".
+Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert de SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement". Il faut ensuite cliquer sur l'onglet "Plan de classement".
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le plan, qui prend la forme d'un SIP sans objets, à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le plan sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
-Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche sous le bouton "choisissez un fichier" ainsi que le nom du fichier, sa taille ainsi qu'un champ statut.
+Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche sous le bouton "choisissez un fichier" ainsi que le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
 Les informations visibles à l'écran sont :
 
@@ -115,7 +116,7 @@ Plusieurs options sont présentes sur l'écran :
 
 - Mode d'exécution :
 	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
-	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
+	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre via l'écran "Gestion des opérations". (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 
 - Destination : actuellement, seule l'option "production" est disponible pour transférer directement le plan.
 
@@ -140,18 +141,23 @@ Lors d'une entrée en succès dans la solution logicielle VITAM, l'ATR comprend 
 
 - Date : date d'émission de l'ATR
 - MessageIdentifier : identifiant de l'ATR. Correspondant à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
-- ArchivalAgreement : contrat d'entrée
+- ArchivalAgreement : l'identifiant du contrat d'entrée
 - CodeListVersion : la liste des référentiels utilisés
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du plan
 - ArchivalAgency : service d'archives
-- TransferringAgency : service de transfert d'archives
+- TransferringAgency : l'identifiant du service de transfert d'archives
 
-Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING".
+Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING" ainsi que les détails de l'avertissement. 
 
-En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès ainsi que la liste des problèmes rencontrés :
+En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès, mais le ReplyCode est KO. La notification comprend ensuite la liste des erreurs rencontrées sous la forme de blocs <event>, tout d'abord au niveau des blocs <Operation>, puis au niveau des unités archivistiques comme au niveau des groupes d'objets.
 
+Les blocs <event> sont composés des balises suivantes :
+
+- EventTypeCode : code de l'étape ou de la tâche en erreur
+- EventType : l'intitulé de l'étape ou de la tâche
+- EventDateTime : date de l'évènement. 
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
@@ -162,13 +168,13 @@ La notification comprend ensuite la liste des erreurs rencontrées (échecs ou a
 Journal des opérations d'entrée
 ===============================
 
-Le journal des opérations d'entrée est un extrait du journal des opérations global de la solution logicielle Vitam.
+Le journal des opérations d'entrée est un extrait du journal des opérations global de la solution logicielle Vitam filtré sur les entrées.
 
 Il propose deux visions, une vision générale des transferts effectués dans la solution logicielle Vitam, et une vision plus détaillée de chaque transfert, explicitant toutes les étapes d'un processus d'entrée.
 Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-dire, si les données et objets contenus dans le SIP ou le plan de classement sont enregistrés dans la solution logicielle Vitam. Dans le cas contraire, il lui permet d'identifier la ou les erreurs ayant provoquées l'échec du transfert.
 
 Pour consulter le journal des opérations d'entrée, l'utilisateur survole le menu "Entrée" puis sélectionne le sous-menu "Suivi des opérations d'entrée".
-|
+
 .. image:: images/menu_jdoe.png
 
 Formulaire de recherche d'une entrée
@@ -202,7 +208,8 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - Date de fin d'opération d'entrée
 - Bordereau : permet le téléchargement du manifest.xml
 - AR : permet le téléchargement de l'accusé de réception (ATR)
-|
+
+
 .. image:: images/res_jdoe.png
 
 Il est possible d'afficher d'autres informations en cliquant sur le bouton "Informations supplémentaires".
@@ -210,12 +217,13 @@ Il est possible d'afficher d'autres informations en cliquant sur le bouton "Info
 Les informations supplémentaires disponibles sont :
 
 - Identifiant de l'entrée
+- Service d'archives
+- Service versant
 - Profil d'archivage
 - Date
 - Niveau de service
-- Signature
-- Service producteur
-- Service versant
+- Signature 
+
 
 Consultation du détail
 ----------------------
@@ -237,9 +245,8 @@ Le détail de l'opération présenté sous forme de liste comportant, pour chaqu
 - le message expliquant le statut de cette étape
 - le statut présenté sous forme de pictogramme
 
-Un clic sur la flèche située à côté du message permet d'afficher plus de détail concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche le détail des données de l'évènement.
+Un clic sur la flèche située à côté du message permet d'afficher les tâches et les traitements concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche le détail des données de l'évènement.
 
-|
 
 .. image:: images/detail_jdoe.png
 
