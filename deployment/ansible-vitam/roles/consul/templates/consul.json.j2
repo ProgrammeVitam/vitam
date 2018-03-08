@@ -1,9 +1,9 @@
 {
   "data_dir": "{{ consul_folder_data }}",
-  "node_name": "{{ansible_hostname}}",
+  "node_name": "{{ ansible_hostname }}",
   "log_level": "INFO",
   "enable_syslog": true,
-  "advertise_addr": "{{ip_admin}}",
+  "advertise_addr": "{{ ip_admin }}",
   "enable_script_checks": true,
 
 
@@ -12,25 +12,25 @@
   "server": true,
   "ui": true,
   "addresses" : {
-      "http": "{{ip_service}}"
+      "http": "{{ ip_service }}"
   },
   {% endif %}
-  "bind_addr": "{{ip_admin}}",
+  "bind_addr": "{{ ip_admin }}",
   "recursors": [ "{{ dns_servers|join('", "') }}" ],
-  "domain": "{{consul_domain}}",
+  "domain": "{{ consul_domain }}",
   "datacenter": "{{ environnement | regex_replace('[^a-zA-Z0-9\-_]', '_') }}-dc1",
   "retry_join": [ {% for item in groups['hosts-consul-server'] %}"{{hostvars[item]['ip_admin']}}"{% if not loop.last %},{% endif %}{% endfor %} ],
   "retry_interval": "10s",
   "enable_syslog": true,
   "disable_remote_exec": true,
-  "encrypt": "{{consul_encrypt}}",
+  "encrypt": "{{ consul_encrypt }}",
   "ports": {
     "dns" : 53
   },
   "checks" : [
     {
         "name": "Check Consul DNS resolution for node",
-        "script": "/usr/bin/getent ahostsv4 {{ansible_hostname}}.node.{{consul_domain}}",
+        "args": ["/usr/bin/getent", "ahostsv4", "{{ ansible_hostname }}.node.{{ consul_domain }}"],
         "interval": "10s",
         "timeout": "1s"
       }
