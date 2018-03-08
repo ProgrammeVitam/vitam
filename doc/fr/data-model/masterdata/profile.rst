@@ -133,6 +133,7 @@ Détail des champs
   * Il s'agit d'un entier.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+  * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
 
 **"_tenant":** information sur le tenant.
 

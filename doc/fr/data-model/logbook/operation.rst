@@ -113,6 +113,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 **"_id" (identifier):** Identifiant unique donné par le système lors de l'initialisation de l'opération
     
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * La règle classique est que sa valeur est égale à cele du champ evIdReq. Dans le cas d'une requête déclenchant plusieurs opérations, comme une mise à jour de règles de gestion par exemple, alors ce champ aura pour la première opération la même valeur que le champ evIdReq, puis celle du champ evIdProc pour les suivantes.
   * Cet identifiant constitue la clé primaire de l'opération dans la collection.
   * Cardinalité : 1-1
   * Ce champ existe uniquement pour la structure incluante.

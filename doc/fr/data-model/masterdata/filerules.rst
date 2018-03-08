@@ -118,6 +118,7 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
   * Il s'agit d'un entier.
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
+  * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
 
 **"_tenant":** identifiant du tenant.
 
