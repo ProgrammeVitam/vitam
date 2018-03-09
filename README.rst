@@ -7,9 +7,8 @@ VITAM
 For a quick presentation in english, please follow `this link <README.en.rst>`_.
 
 
-
-.. image:: doc/fr/LogoVitamGrand2.png
-        :alt: Logo Vitam (Bêta)
+.. image:: doc/fr/logo_vitam.png
+        :alt: Logo Vitam
         :align: center
 
 Le programme interministériel Vitam
@@ -58,7 +57,8 @@ Le projet se compose des sous-dossiers suivants :
 * ``deb/vitam-external`` : constitution du cache de dépendances vers des packages deb éditeur ;
 * ``deployment`` : scripts de déploiement ansible pour la solution Vitam ;
 * ``doc`` : documentation technique du projet ;
-* ``dev-deployment`` : environnement Docker de développement.
+* ``dev-deployment`` : environnement Docker de développement ;
+* ``packaging`` : constitution d'un package standalone de la solution logicielle.
 
 
 Build
@@ -129,7 +129,6 @@ Pré-requis
 * dpkg-scanpackages (pour Debian)
 * golang (>= 1.6)
 * npm
-* meteor.js
 
 .. note:: Pour les packages rpm, la seule plate-forme de compilation possible est CentOS 7 (en raison de la dépendance vers les rpmdevtools).
 

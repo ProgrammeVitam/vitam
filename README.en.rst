@@ -8,8 +8,8 @@ VITAM
 Une présentation plus complète en français est disponible `ici <README.rst>`_.
 
 
-.. image:: doc/fr/LogoVitamGrand2.png
-        :alt: Logo Vitam (Bêta)
+.. image:: doc/fr/logo_vitam.png
+        :alt: Logo Vitam
         :align: center
 
 
@@ -44,5 +44,6 @@ Repository structure
 * ``deb/vitam-external``: contains links to retrieve official deb from editor (when exists) ;
 * ``deployment``: contains ansible deployment scripts ;
 * ``doc``: technical documentation ;
-* ``dev-deployment``: contains a Docker environment for development.
+* ``dev-deployment``: contains a Docker environment for development ;
+* ``packaging`` : create a standalone package of the solution (all included).
 
