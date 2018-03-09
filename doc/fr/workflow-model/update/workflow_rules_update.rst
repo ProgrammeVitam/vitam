@@ -20,7 +20,9 @@ Les étapes et actions associées ci-dessous décrivent le processus de mise à 
 
 Préparation des listes d'unités archivistiques à mettre à jour
 --------------------------------------------------------------
-- **Step 1** - STP_PREPARE_LISTS -  -  distribution sur REF -> GUID/PROCESSING/updatedRules.json
+- **Étape 1** - STP_PREPARE_LISTS
+
+Distribution sur REF -> GUID/PROCESSING/updatedRules.json
 
 * Liste des entrées en cours d'exécution - LIST_RUNNING_INGESTS - fichier de sortie : GUID/PROCESSING/runningIngests.json
 
@@ -45,7 +47,9 @@ Préparation des listes d'unités archivistiques à mettre à jour
     - FATAL : une erreur technique est survenue lors du listage des unités archivistiques (LIST_ARCHIVE_UNITS.FATAL=Erreur fatale lors de l'établissement de la liste des unités archivistiques à mettre à jour)
 
 
-- **Step 2** - STP_UNIT_UPDATE - distribution sur LIST GUID/UnitsWithoutLevel. Etape distribuée.
+- **Étape 2** - STP_UNIT_UPDATE
+
+Distribution sur LIST GUID/UnitsWithoutLevel. Etape distribuée.
 
 * Mise à jour des règles de gestion d'une unité archivistique - UPDATE_UNIT_RULES
 
@@ -59,7 +63,9 @@ Préparation des listes d'unités archivistiques à mettre à jour
 
     - FATAL : une erreur technique est survenue lors de la mise à jour de l'unité archivistique (UPDATE_UNIT_RULES.FATAL=Erreur fatale lors de la mise à jour des règles de gestion des unités archivistiques)
 
-- **Step 3** - STP_UPDATE_RUNNING_INGESTS - distribution sur REF GUID/PROCESSING/updatedRules.json.
+- **Étape 3** - STP_UPDATE_RUNNING_INGESTS
+
+Distribution sur REF GUID/PROCESSING/updatedRules.json.
 
 * Mise à jour des entrées en cours - UPDATE_RUNNING_INGESTS
 
