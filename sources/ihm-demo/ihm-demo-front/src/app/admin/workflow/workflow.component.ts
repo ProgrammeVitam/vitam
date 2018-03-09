@@ -346,7 +346,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
       case 'fa-play' :
         return 'Suivant';
       case 'fa-forward':
-        return 'Reprise';
+        return 'Terminer';
       case 'fa-refresh':
         return 'Rejouer';
       case 'fa-stop':

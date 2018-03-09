@@ -40,10 +40,10 @@ export class ArchiveUnitHelper {
       {label: 'Collection', value: 'Collection'},
       {label: 'Série', value: 'Series'},
       {label: 'Sous-série', value: 'Subseries'},
-      {label: 'Sous-groupe d\'articles', value: 'RecordGrp'},
-      {label: 'Groupe d\'articles', value: 'SubGrp'},
-      {label: 'Document', value: 'File'},
-      {label: 'Article', value: 'Item'}
+      {label: 'Groupe d\'articles', value: 'RecordGrp'},
+      {label: 'Sous-groupe d\'articles', value: 'SubGrp'},
+      {label: 'Dossier', value: 'File'},
+      {label: 'Pièce', value: 'Item'}
     ],
     '#unitType': [
       {label: 'Standard', value: 'INGEST'},

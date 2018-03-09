@@ -142,23 +142,23 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(CAN_NOT_SEARCH_PROFILE, e);
-            itemStatus.increment(StatusCode.KO);
-            itemStatus.setData(CAN_NOT_SEARCH_PROFILE, profileIdentifier);
+            itemStatus.increment(StatusCode.KO);            
+            infoNode.put(SedaConstants.EV_DET_TECH_DATA, CAN_NOT_SEARCH_PROFILE + " " + profileIdentifier);            
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         } catch (ProfileNotFoundException e) {
             LOGGER.error(PROFILE_NOT_FOUND, e);
             itemStatus.increment(StatusCode.KO);
-            itemStatus.setData(PROFILE_NOT_FOUND, profileIdentifier);
+            infoNode.put(SedaConstants.EV_DET_TECH_DATA, PROFILE_NOT_FOUND + " " + profileIdentifier);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error(CAN_NOT_GET_FILE_MANIFEST, e);
-            itemStatus.setData(CAN_NOT_GET_FILE_MANIFEST, "manifest.xml");
+            infoNode.put(SedaConstants.EV_DET_TECH_DATA, CAN_NOT_GET_FILE_MANIFEST + " manifest.xml");
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         } catch (IOException | XMLStreamException e) {
             LOGGER.error(FILE_NOT_FOUND, e);
             itemStatus.increment(StatusCode.KO);
-            itemStatus.setData(FILE_NOT_FOUND, profileIdentifier);
+            infoNode.put(SedaConstants.EV_DET_TECH_DATA, FILE_NOT_FOUND + " " + profileIdentifier);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         } catch (SAXException e) {
             LOGGER.error(VALIDATION_ERROR, e);

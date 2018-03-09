@@ -229,10 +229,10 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         final ItemStatus response = handler.execute(params, action);
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getData("The_profile_null")).isEqualTo("Not found in the ingest contract ArchivalAgreement0");
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);        
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
         String evDetData = (String) response.getEvDetailData();
+        assertThat(evDetData).contains("was not found in the ingest contract");
         assertThat(evDetData).contains("ArchivalAgreement0");
         assertThat(evDetData).contains("English Comment");
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("DIFF");

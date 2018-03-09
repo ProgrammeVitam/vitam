@@ -124,7 +124,7 @@ public class CheckIngestContractActionHandlerTest {
 
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        Assertions.assertThat(response.getEvDetailData()).contains("{\"MsgError\":\"Error Ingest constract not found in the Manifest\"}");
+        Assertions.assertThat(response.getEvDetailData()).contains("Error Ingest constract not found in the Manifest");
     }
 
     /**
