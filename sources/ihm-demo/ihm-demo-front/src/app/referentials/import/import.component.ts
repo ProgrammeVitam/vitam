@@ -22,6 +22,7 @@ export class ImportComponent  extends PageComponent {
     {label:"Formats", value:'format'},
     {label:"Profils d'archivage", value:'profil'},
     {label:"Règles de gestion", value:'rule'},
+    {label:"Documents type", value:'archiveUnitProfile'},
     {label:"Services agents", value:'agencies'}
   ];
   extensions : string[];
@@ -54,6 +55,13 @@ export class ImportComponent  extends PageComponent {
           this.importSucessMsg = "Les contrats d'entrée ont bien été importés";
           this.importErrorMsg = "Echec de l'import du fichier.";
           this.breadcrumbName = "Import des contrats d'entrée";
+          break;
+        case "archiveUnitProfile":
+          this.extensions = ["json"];
+          this.uploadAPI = 'archiveunitprofiles';
+          this.importSucessMsg = 'Les documents type ont bien été importés';
+          this.importErrorMsg = "Echec de l'import du fichier.";
+          this.breadcrumbName = "Import des documents type";
           break;
         case "format":
           this.extensions = ["xml"];
