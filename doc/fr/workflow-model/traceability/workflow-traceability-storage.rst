@@ -21,7 +21,11 @@ Au niveau du journal des opérations, cette action est entièrement réalisée d
 
 * **Status** :
 
-	* OK : le tampon d'horodatage est calculé (STP_STORAGE_SECURISATION.OK=Succès du processus de sécurisation du journal des écritures)
+	* OK : le tampon d'horodatage est calculé (STP_STORAGE_SECURISATION.OK = Succès du processus de sécurisation du journal des écritures)
+	* WARNING : il n'y a pas de nouveaux journaux à sécuriser (STP_STORAGE_SECURISATION.WARNING = avertissement lors du processus de sécurisation du journal des écritures )
 	* KO : pas de cas KO
-	* FATAL : une erreur technique est survenue lors de l'horodatage (STP_STORAGE_SECURISATION.FATAL=Erreur fatale lors du processus de sécurisation du journal des écritures)
+	* FATAL : une erreur technique est survenue lors de l'horodatage (STP_STORAGE_SECURISATION.FATAL = Erreur fatale lors du processus de sécurisation du journal des écritures)
 
+Cette étape déclenche également l'action :
+
+	* Vérification de la liste des éléments à traiter (OBJECTS_LIST_EMPTY), décrite dans le paragraphe concernant la création de journal des cycles de vie sécurisé

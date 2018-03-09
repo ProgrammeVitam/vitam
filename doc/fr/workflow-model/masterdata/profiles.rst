@@ -6,7 +6,7 @@ Introduction
 
 Cette section décrit le processus (workflow) permettant d'importer un profil d'archivage.
 
-Processus d'import  et mise à jour d'un profil (vision métier)
+Processus d'import et mise à jour d'un profil (vision métier)
 ==============================================================
 
 Le processus d'import d'un profil d'archivage permet à la fois de vérifier qu'il contient les informations minimales obligatoires, de vérifier la cohérence de l'ensemble des informations, et de lui affecter des élements peuplés automatiquement.
@@ -31,7 +31,7 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
     + Les données suivantes optionnelles si elles sont remplies le sont en respectant les règles énoncées pour chacune :
 
       * Le champ "Description" est peuplé avec une chaîne de caractères
-      * Le champ "Status" est peuplé soit de la valeur ACTIVE ou INACTIVE
+      * Le champ "Status" est peuplé avec la valeur ACTIVE ou la valeur INACTIVE
 
   + **Statuts** :
 
@@ -41,13 +41,10 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors du processus d'import du profil d'archivage)
 
-Mise à jour d'un profil d'archivage (STP_UPDATE_PROFILE_JSON)
-----------------------------------------------------------------------
-
-La modification d'un profil d'archivage doit suivre les mêmes règles que celles décrites pour la création.
 
 Import du profil d'archivage (STP_IMPORT_PROFILE_FILE)
 -------------------------------------------------------
+
 
 * Vérification de la concordance entre le fichier importé dans un profil et le format décrit dans la métadonnée "Format"
 
@@ -62,3 +59,26 @@ Import du profil d'archivage (STP_IMPORT_PROFILE_FILE)
     - KO : le fichier importé n'est pas au même format que celui décrit dans le champ "Format" (STP_IMPORT_PROFILE_FILE.KO=Échec du processus d'import du profil d'archivage (fichier xsd ou rng))
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_FILE.FATAL=Erreur fatale lors du processus d'import du profil d'archivage (fichier xsd ou rng))
+
+Mise à jour d'un profil d'archivage (STP_UPDATE_PROFILE_JSON)
+----------------------------------------------------------------------
+
+La modification d'un profil d'archivage doit suivre les mêmes règles que celles décrites pour la création. L'association d'un fichier de profil avec les métadonnées d'un profil provoque également une opération de mise à jour du profil d'archivage.
+La modification doit suivre les mêmes règles que celles décrites pour la création. La clé de l'événement est "STP_UPDATE_PROFILE_JSON", entraînant des statuts STP_UPDATE_PROFILE_JSON.OK, STP_UPDATE_PROFILE_JSON.KO et STP_UPDATE_PROFILE_JSON.FATAL sur les mêmes contrôles que l'import.
+
+Sauvegarde du JSON (BACKUP_PROFILE)
+-----------------------------------------------
+
+Cette tâche est appellée que ce soit en import initial ou lors de la modification des métadonnées de profils
+
+  + **Règle** : enregistrement d'une copie de la base de données des métadonnées de profils sur le stockage
+
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+      - OK : une copie de la base de donnée nouvellement importée est enregistrée (BACKUP_PROFILE.OK = Succès du processus de sauvegarde des profils)
+
+      - KO : pas de cas KO
+
+      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (BACKUP_PROFILE.FATAL = Erreur fatale lors du processus de sauvegarde des profils)

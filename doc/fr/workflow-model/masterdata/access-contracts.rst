@@ -50,4 +50,21 @@ Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
 Mise à jour d'un contrat d'accès (STP_UPDATE_ACCESS_CONTRACT)
 ---------------------------------------------------------------
 
-La modification d'un contrat d'entrée doit suivre les mêmes règles que celles décrites pour la création.
+La modification d'un contrat d'accès doit suivre les mêmes règles que celles décrites pour la création. La clé de l'événement est "STP_UPDATE_ACCESS_CONTRACT", entraînant des statuts STP_UPDATE_ACCESS_CONTRACT.OK, STP_UPDATE_ACCESS_CONTRACT.KO et STP_UPDATE_ACCESS_CONTRACT.FATAL sur les mêmes contrôles que l'import.
+
+Sauvegarde du JSON (STP_BACKUP_INGEST_CONTRACT)
+-----------------------------------------------
+
+Cette tâche est appellée que ce soit en import initial ou en modification.
+
+  + **Règle** : enregistrement d'une copie de la base de données des contrats d'accès sur le stockage
+
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+      - OK : une copie de la base de donnée nouvellement importée est enregistrée (STP_BACKUP_ACCESS_CONTRACT.OK = Succès du processus de sauvegarde des contrats d'accès)
+
+      - KO : pas de cas KO
+
+      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_ACCESS_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'accès)

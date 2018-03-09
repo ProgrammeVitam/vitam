@@ -1,4 +1,4 @@
-Workflow d'administration et de mise à jour d'un référentiel des contrats d'entrée
+Workflow d'administration d'un référentiel des contrats d'entrée
 ###################################################################################
 
 Introduction
@@ -28,7 +28,7 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
     + Les données suivantes optionnelles si elles sont remplies le sont en respectant les règles énnonées pour chacune :
 
     * Le champ "Description" est peuplé avec une chaîne de caractères
-    * Le champ "Status" est peuplé soit de la valeur ACTIVE ou INACTIVE
+    * Le champ "Status" est peuplé avec de la valeur ACTIVE ou la valeur INACTIVE
     * Le champ "ArchiveProfile" est peuplé avec un tableau d'une ou plusieurs chaînes de caractère. Chacune de ces chaînes de caractère doit correspondre au champ "Identifier" d'un profil d'archivage contenu dans le référentiel des profils
     * Le champ "LinkedParentId" est peuplé par une chaîne de caractères devant correspondre au GUID d'une AU de plan de classement ou d'arbre de positionnement pris en charge par la solution logicielle Vitam sur le même tenant
 
@@ -43,4 +43,21 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 Mise à jour d'un contrat d'entrée (STP_UPDATE_INGEST_CONTRACT)
 ---------------------------------------------------------------
 
-La modification d'un contrat d'entrée doit suivre les mêmes règles que celles décrites pour la création.
+La modification d'un contrat d'entrée doit suivre les mêmes règles que celles décrites pour la création. La clé de l'événement est "STP_UPDATE_INGEST_CONTRACT", entraînant des statuts STP_UPDATE_INGEST_CONTRACT.OK, STP_UPDATE_INGEST_CONTRACT.KO et STP_UPDATE_INGEST_CONTRACT.FATAL sur les mêmes contrôles que l'import.
+
+Sauvegarde du JSON (STP_BACKUP_INGEST_CONTRACT)
+-----------------------------------------------
+
+Cette tâche est appellée que ce soit en import initial ou en modification.
+
+  + **Règle** : enregistrement d'une copie de la base de données des contrats d'entrée sur le stockage
+
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+      - OK : une copie de la base de donnée nouvellement importée est enregistrée (STP_BACKUP_INGEST_CONTRACT.OK = Succès du processus de sauvegarde des contrats d'entrée)
+
+      - KO : pas de cas KO
+
+      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_INGEST_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'entrée)
