@@ -329,5 +329,25 @@ public class ArchiveUnitProfileManager {
         };
     }
 
+    /**
+     * Check if the archive unit profile name already exists in database
+     *
+     * @return
+     */
+    public ArchiveUnitProfileValidator createCheckDuplicateNamesInDatabaseValidator() {
+        return (profile) -> {
+            if (ParametersChecker.isNotEmpty(profile.getName())) {
+                int tenant = ParameterHelper.getTenantParameter();
+                Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(ArchiveUnitProfile.NAME, profile.getName()));
+                boolean exist = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().count(clause) > 0;
+                if (exist) {
+                    return Optional.of(RejectionCause.rejectDuplicatedInDatabase(profile.getName()));
+                }
+            }
+            return Optional.empty();
+
+        };
+    }
+
 }
 

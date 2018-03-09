@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -164,17 +165,23 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 if (ParametersChecker.isNotEmpty(aupm.getIdentifier())) {
                     if (profileIdentifiers.contains(aupm.getIdentifier())) {
                         error.addToErrors(
-                            getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), "Duplicate profiles", StatusCode.KO)
+                            getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), "Duplicate archive unit profiles (ID)", StatusCode.KO)
                             .setMessage(
                                 "Archive unit profile identifier " + aupm.getIdentifier() + " already exists in the json"));
                         continue;
                     } else {
                         profileIdentifiers.add(aupm.getIdentifier());
                     }
+                    if (profileNames.contains(aupm.getName())) {
+                        error.addToErrors(
+                            getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), "Duplicate archive unit profiles (Names)", StatusCode.KO)
+                            .setMessage(
+                                "Archive unit profile name " + aupm.getName() + " already exists in the json"));
+                        continue;
+                    } else {
+                        profileNames.add(aupm.getName());
+                    }
                 }
-
-                // mark the current profile as treated
-                profileNames.add(aupm.getName());
 
                 // validate profile
                 if (manager.validateArchiveUnitProfile(aupm, error)) {
@@ -184,6 +191,12 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     aupm.setTenant(ParameterHelper.getTenantParameter());
                 }
 
+                final Optional<ArchiveUnitProfileValidator.RejectionCause> resultName =
+                    manager.createCheckDuplicateNamesInDatabaseValidator().validate(aupm);
+                resultName.ifPresent(t -> error
+                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                    .setMessage(resultName.get().getReason())));
+                
                 if (slaveMode) {
                     final Optional<ArchiveUnitProfileValidator.RejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(aupm);
@@ -368,7 +381,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         }
     }
 
-    private ArchiveUnitProfileModel findByIdentifier(String id) 
+    @VisibleForTesting
+    public ArchiveUnitProfileModel findByIdentifier(String id)
         throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(id);
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
