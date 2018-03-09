@@ -1,40 +1,14 @@
 
+# Vitam platform secret key
 plateforme_secret: vitamsecret
-cerebro_secret_key: tGz28hJkiW[p@a34G
-consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 
-# Test for further improvements of mongodb users
-# Not working for now
-# mongodb:
-#     mongo-data:
-#         passphrase: mongogo
-#         dbs:
-#             admin:
-#                 - vitamdb-admin:
-#                   user: vitamdb-admin
-#                   password: azerty
-#                   roles:
-#                       - root:
-#                           role: root
-#             identity:
-#                 - admin:
-#                   user: admin
-#                   password: azerty
-#                   roles:
-#                       - readWrite:
-#                           role: readWrite
-#                           db: identity
-#                       - dbAdmin:
-#                           role: dbAdmin
-#                           db: identity
-#                 - identity:
-#                   user: identity
-#                   password: azerty1
-#                   roles:
-#                       - readWrite:
-#                           role: readWrite
-#                           db: identity
-#
+# Cerebro key
+cerebro_secret_key: tGz28hJkiW[p@a34G
+
+# The consul key must be 16-bytes, Base64 encoded: https://www.consul.io/docs/agent/encryption.html
+# You can generate it with the "consul keygen" command
+# Or you can use this script: deployment/pki/scripts/generate_consul_key.sh
+consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 
 mongodb:
   mongo-data:
