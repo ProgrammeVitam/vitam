@@ -35,7 +35,7 @@ Import d'un référentiel de services agents (STP_IMPORT_AGENCIES)
 
     - KO :
 
-        - Cas 1 : une information concernant les services agent est manquante (Identifier, Name, Description) (STP_IMPORT_AGENCIES.KO=Échec du processus d'import du référentiel des services agents)
+        - Cas 1 : une information concernant les services agents est manquante (Identifier, Name, Description) (STP_IMPORT_AGENCIES.KO=Échec du processus d'import du référentiel des services agents). De plus le rapport d'import du référentiel contiendra la clé "STP_IMPORT_AGENCIES_MISSING_INFORMATIONS".
         - Cas 2 : un service agent qui était présent dans la base a été supprimé (STP_IMPORT_AGENCIES.DELETION.KO=Échec du processus d'import du référentiel des services agents : Des services agents supprimés sont présents dans le référentiel des services agents)
 
     - FATAL : une erreur technique est survenue lors de l'import du référentiel des services agents (STP_IMPORT_AGENCIES.FATAL=Erreur fatale lors du processus d'import du référentiel des service agents)
@@ -43,13 +43,15 @@ Import d'un référentiel de services agents (STP_IMPORT_AGENCIES)
 Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_CONTRACT)
 ----------------------------------------------------------------------
 
+  + **Type** :  bloquant
+
   + **Règle** :  contrôle des contrats utilisant des services agents modifiés
 
   + **Status** :
 
-    - OK : aucun des services agent utilisés par des contrats d'accès n'a été modifié (STP_IMPORT_AGENCIES.USED_CONTRACT.OK=Succès du processus de vérification des services agents utilisés dans les contrats d'accès)
+    - OK : aucun des services agents utilisés par des contrats d'accès n'a été modifié (STP_IMPORT_AGENCIES.USED_CONTRACT.OK=Succès du processus de vérification des services agents utilisés dans les contrats d'accès)
 
-    - WARNING : un ou plusieurs services agent utilisé par des contrats d'accès ont été modifiés (STP_IMPORT_AGENCIES.USED_CONTRACT.WARNING=Avertissement lors du processus de vérification des services agents utilisés dans les contrats d'accès)
+    - WARNING : un ou plusieurs services agents utilisés par des contrats d'accès ont été modifiés (STP_IMPORT_AGENCIES.USED_CONTRACT.WARNING=Avertissement lors du processus de vérification des services agents utilisés dans les contrats d'accès)
 
     - KO : pas de cas KO
 
@@ -58,11 +60,13 @@ Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_CONTRACT)
 Vérification des unités archivistiques (STP_IMPORT_AGENCIES.USED_AU)
 ---------------------------------------------------------------------
 
-  + **Règle** :  contrôle des unité archivistiques référençant des serivces agents modifiés
+  + **Type** :  bloquant
+
+  + **Règle** :  contrôle des unités archivistiques référençant des serivces agents modifiés
 
   + **Status** :
 
-    - OK : aucun service agent référencé par les unités archivistiques n'ont été modifiés (STP_IMPORT_AGENCIES.USED_AU.OK=Succès du processus de vérification des services agents utilisés par les unités archivistiques)
+    - OK : aucun service agent référencé par les unités archivistiques n'a été modifié (STP_IMPORT_AGENCIES.USED_AU.OK=Succès du processus de vérification des services agents utilisés par les unités archivistiques)
 
     - WARNING : au moins un service agent référencé par une unité archivistique a été modifié (STP_IMPORT_AGENCIES.USED_AU.WARNING=Avertissement lors du processus de vérification des services agents utilisés par les unités archivistiques)
 
@@ -73,18 +77,22 @@ Vérification des unités archivistiques (STP_IMPORT_AGENCIES.USED_AU)
 Création du rapport au format JSON (STP_AGENCIES_REPORT)
 --------------------------------------------------------
 
+  + **Type** :  bloquant
+
   + **Règle** :  création du rapport d'import de référentiel des services agent
 
   + **Status** :
 
-    - OK : le rapport d'import du référentiel des services agent a bien été créé (STP_AGENCIES_REPORT.OK=Succès du processus de génération du rapport d'import du référentiel des services agents)
+    - OK : le rapport d'import du référentiel des services agents a bien été créé (STP_AGENCIES_REPORT.OK=Succès du processus de génération du rapport d'import du référentiel des services agents)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la création du rapport d'import de référentiel des services agents (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de génération du rapport d'import du référentiel des services agents)
+    - FATAL : une erreur technique est survenue lors de la création du rapport d'import du référentiel des services agents (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de génération du rapport d'import du référentiel des services agents)
 
 Sauvegarde du CSV d'import (STP_IMPORT_AGENCIES_BACKUP_CSV)
 ------------------------------------------------------------
+
+  + **Type** :  bloquant
 
   + **Règle** : sauvegarde de fichier d'import de référentiel des services agent
 
@@ -99,15 +107,15 @@ Sauvegarde du CSV d'import (STP_IMPORT_AGENCIES_BACKUP_CSV)
 Sauvegarde d'une copie de la base de donnée (STP_BACKUP_AGENCIES)
 ------------------------------------------------------------------
 
-  + **Règle** : création d'une copie de la base de données contenant le référentiel des services agent
+  + **Règle** : création d'une copie de la base de données contenant le référentiel des services agents
 
   + **Status** :
 
-    - OK : la copie de la base de donnée contenant le référentiel des services agent a été crée avec succès (STP_BACKUP_AGENCIES.OK=Succès du processus de sauvegarde du référentiel des services agents)
+    - OK : la copie de la base de donnée contenant le référentiel des services agents a été crée avec succès (STP_BACKUP_AGENCIES.OK = Succès du processus de sauvegarde du référentiel des services agents)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la création d'une copie de la base de données contenant le référentiel des services agent (STP_BACKUP_AGENCIES.FATAL=Erreur fatale lors du processus de sauvegarde du référentiel des services agents)
+    - FATAL : une erreur technique est survenue lors de la création d'une copie de la base de données contenant le référentiel des services agent (STP_BACKUP_AGENCIES.FATAL = Erreur fatale lors du processus de sauvegarde du référentiel des services agents)
 
 Structure du rapport d'administration du référentiel des services agents
 ========================================================================
@@ -146,7 +154,11 @@ Le rapport généré est :
   }
 
 
+<<<<<<< HEAD
 **Exemple 2 : ajout d'un service agent, en erreur**
+=======
+**Exemple 2 : ajout en erreur d'un service agent, causé par un champ obligatoire qui est manquant  **
+>>>>>>> 658e36f... Workflow documentation update for V1
 
 Le rapport généré est :
 
