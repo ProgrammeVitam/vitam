@@ -26,33 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bson.BSONObject;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-
 import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import org.bson.BSONObject;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ObjectGroup:<br>
  *
  * @formatter:off { MD technique globale (exemple GPS), _id : UUID, _tenant : tenant, _profil:
- *                audio|video|document|text|image|..., _up : [ UUIDUnit1, UUIDUnit2, ... ], _nbc : nb objects, _uses : [
- *                { strategy : conservationId, versions : [ { // Object _version : rank, _creadate : date, _id:
- *                UUIDObject, digest : { val : val, typ : type }, size: size, fmt: fmt, MD techniques, _copies : [ { sid
- *                : id, storageDigest: val }, { sid, ...}, ... ] }, { _version : N, ...}, ... ] }, { strategy :
- *                diffusion, ... }, ... ] }
+ * audio|video|document|text|image|..., _up : [ UUIDUnit1, UUIDUnit2, ... ], _nbc : nb objects, _uses : [
+ * { strategy : conservationId, versions : [ { // Object _version : rank, _creadate : date, _id:
+ * UUIDObject, digest : { val : val, typ : type }, size: size, fmt: fmt, MD techniques, _copies : [ { sid
+ * : id, storageDigest: val }, { sid, ...}, ... ] }, { _version : N, ...}, ... ] }, { strategy :
+ * diffusion, ... }, ... ] }
  * @formatter:on
  */
 public class ObjectGroup extends MetadataDocument<ObjectGroup> {
@@ -77,7 +74,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
             .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Versions
-     */    
+     */
     public static final String VERSIONS = "_qualifiers.versions";
     /**
      * DataObjectVersion
@@ -137,22 +134,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String OGDEPTHS = "_ops";
 
-
-
-    private static final BasicDBObject[] indexes = {
-        new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, 1),
-        new BasicDBObject(TENANT_ID, 1),
-        new BasicDBObject(OBJECTVERSION, 1),
-        new BasicDBObject(OPS, 1),
-        new BasicDBObject(OPI, 1),
-        new BasicDBObject(OBJECTID, 1),
-        new BasicDBObject(OBJECTSIZE, 1),
-        new BasicDBObject(OBJECTFORMAT, 1),
-        new BasicDBObject(OBJECTDIGEST_VALUE, 1).append(OBJECTDIGEST_TYPE, 1),
-        new BasicDBObject(OBJECTSTORAGE, 1),
-        new BasicDBObject(DATAOBJECTVERSION, 1).append(OBJECTVERSION, 1),
-        new BasicDBObject(VERSIONS_STORAGE, 1)};
-
     /**
      * Total number of copies
      */
@@ -195,14 +176,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         super(content);
     }
 
-    /**
-     *
-     * @return the associated GUIDObjectType
-     */
-    public static final int getGUIDObjectTypeId() {
-        return GUIDObjectType.OBJECTGROUP_TYPE;
-    }
-
     @Override
     protected MetadataCollections getMetadataCollections() {
         return MetadataCollections.OBJECTGROUP;
@@ -219,17 +192,8 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         return new ObjectGroup(content);
     }
 
-    /**
-     *
-     * @return a new sub Object GUID
-     */
-    public String newObjectGuid() {
-        return GUIDFactory.newObjectGUID(getDomainId()).toString();
-    }
-
     @Override
     public ObjectGroup save() throws MetaDataExecutionException {
-        putBeforeSave();
         if (updated()) {
             return this;
         }
@@ -271,86 +235,15 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         return false;
     }
 
-    @Override
-    public boolean load() {
-        final ObjectGroup vt =
-            (ObjectGroup) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
-        if (vt == null) {
-            return false;
-        }
-        putAll(vt);
-        getAfterLoad();
-        return true;
-    }
-
-    @Override
-    public ObjectGroup getAfterLoad() {
-        // What is nbCopy ? What use for ? seem not usefull here instead of Unit, bad copy / paste ?)
-        nbCopy = this.getInteger(NBCHILD, 0);
-        return this;
-    }
-
-    @Override
-    public ObjectGroup putBeforeSave() {
-        // Nothing here, what is nbCopy ??
-        return this;
-    }
-
     /**
-     * @param remove if remove the link unit/objectgroup
      * @return the list of parent Unit
      */
     @SuppressWarnings("unchecked")
-    public List<String> getFathersUnitIds(final boolean remove) {
-        List<String> list;
-        if (remove) {
-            list = (List<String>) remove(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
-        } else {
-            list = (List<String>) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
-        }
+    public List<String> getFathersUnitIds() {
+        List<String> list = (List<String>) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
         if (list == null) {
             return SingletonUtils.singletonList();
         }
         return list;
     }
-
-    /**
-     * Used in loop operation to clean the object
-     *
-     * @param all If true, all items are cleaned
-     */
-    public final void cleanStructure(final boolean all) {
-        remove(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
-        remove(ID);
-        if (all) {
-            remove(NBCHILD);
-        }
-    }
-
-    // TODO P1 add methods to add Object, incrementing NB_COPY
-
-    /**
-     * Check if the current ObjectGroup has Unit as immediate parent
-     *
-     * @param unit the unit could be immediate parent of objectgroup
-     * @return True if immediate parent, else False (however could be a grand parent)
-     */
-    public boolean isImmediateParent(final String unit) {
-        final List<String> parents = getFathersUnitIds(false);
-        return parents.contains(unit);
-    }
-
-    protected static void addIndexes() {
-        // if not set, Unit and Tree are worst
-        for (final BasicDBObject index : indexes) {
-            MetadataCollections.OBJECTGROUP.getCollection().createIndex(index);
-        }
-    }
-
-    protected static void dropIndexes() {
-        for (final BasicDBObject index : indexes) {
-            MetadataCollections.OBJECTGROUP.getCollection().dropIndex(index);
-        }
-    }
-
 }

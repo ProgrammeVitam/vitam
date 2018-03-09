@@ -26,27 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import fr.gouv.vitam.common.mongo.MongoRule;
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -55,12 +36,29 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 
 public class MongoDbAccessMetadataImplTest {
 
@@ -100,7 +98,8 @@ public class MongoDbAccessMetadataImplTest {
 
     @Rule
     public MongoRule
-        mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test",  "ObjectGroup", "Unit");
+        mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test", "ObjectGroup", "Unit");
     private MongoClient mongoClient = mongoRule.getMongoClient();
 
 
@@ -151,16 +150,8 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
-    public void givenMongoDbAccessWhenNoDocumentAndRemoveIndexThenThrowError() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
-        MongoDbAccessMetadataImpl.resetIndexAfterImport();
-        MongoDbAccessMetadataImpl.removeIndexBeforeImport();
-    }
-
-    @Test
     public void givenUnitWhenGetChildrenUnitIdsFromParent() {
         final Unit unit1 = new Unit(s1);
-        final Unit unit2 = new Unit(s2);
         unit1.getChildrenUnitIdsFromParent();
     }
 

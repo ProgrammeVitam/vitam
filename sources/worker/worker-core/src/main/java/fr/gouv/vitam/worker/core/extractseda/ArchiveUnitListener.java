@@ -338,7 +338,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      */
     private String attachArchiveUnitToExisting(ArchiveUnitType archiveUnitType, String archiveUnitId) {
 
-
         JsonNode existingData;
 
         String existingArchiveUnitGuid =
@@ -384,10 +383,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             // In case where systemId is key:value format, then erase value with the correct unit id
             existingArchiveUnitGuid = unitInDB.get("#id").asText();
             existingUnitGuids.add(existingArchiveUnitGuid);
-            ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
-            archiveUnitRoot.getArchiveUnit().setId(existingArchiveUnitGuid);
-
-
 
             if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
                 LOGGER.error("Linking not allowed  {}", existingArchiveUnitGuid);

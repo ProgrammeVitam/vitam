@@ -44,12 +44,7 @@ import java.util.Set;
 public class UnitNode {
     private UnitSimplified unit; 
     private Map<String, UnitNode> childs; 
-    private Map<String, UnitNode> allUnitNode; 
-    
-    /**
-     * Empty Constructor
-     */
-    public UnitNode() {}
+    private Map<String, UnitNode> allUnitNode;
 
     /**
      * constructor with UnitSimplified

@@ -79,24 +79,6 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * Load a Document into MetadataDocument<?>. Calls getAfterLoad
-     *
-     * @param coll the working collection
-     * @param obj the document
-     * @return the MetadataDocument<?> casted object
-     * @throws InstantiationException when collection class instantiation exception occurred
-     * @throws IllegalAccessException when illegal access exception occurred
-     */
-    @SuppressWarnings("rawtypes")
-    public static final MetadataDocument loadFromDocument(final MetadataCollections coll, final Document obj)
-        throws InstantiationException, IllegalAccessException {
-        final MetadataDocument<?> vt = (MetadataDocument<?>) coll.getClasz().newInstance();
-        vt.putAll(obj);
-        vt.getAfterLoad();
-        return vt;
-    }
-
-    /**
      * Calls getAfterLoad
      *
      * @param col metadata collection (not Results except if already hashed)
@@ -106,14 +88,7 @@ public class MongoDbMetadataHelper {
      */
     @SuppressWarnings("rawtypes")
     public static final MetadataDocument findOne(final MetadataCollections col, final String field, final String ref) {
-        final MetadataDocument<?> vitobj =
-            (MetadataDocument<?>) col.getCollection().find(eq(field, ref)).first();
-        if (vitobj == null) {
-            return null;
-        } else {
-            vitobj.getAfterLoad();
-        }
-        return vitobj;
+        return (MetadataDocument<?>) col.getCollection().find(eq(field, ref)).first();
     }
 
     /**

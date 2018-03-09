@@ -26,22 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class UnitTest {
     private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\"}";
@@ -79,15 +77,6 @@ public class UnitTest {
         // unit.addUnits(units);
     }
 
-
-    @Test
-    public void testloadDocument() {
-        final Unit unit = new Unit(s1);
-        unit.load("{\"_tenant\": 2}");
-        final String s = unit.toString();
-        assertEquals("Unit: Document{{_id=id1, title=title1, _tenant=2}}", s);
-    }
-
     @Test
     public void testSubDepth() {
         final Unit unit = new Unit(s1);
@@ -109,37 +98,14 @@ public class UnitTest {
     }
 
     @Test
-    public void testDomaineId() {
-        final Unit unit = new Unit(s1);
-        unit.put("_tenant", 8888);
-        assertEquals(8888, unit.getDomainId());
-        final MetadataDocument<Unit> document = unit.checkId();
-        assertEquals(8888, document.getDomainId());
-    }
-
-    @Test
-    public void givenUnitWhenGetFathersUnitIdThenReturnAList() {
-        final Unit unit = new Unit(s1);
-        assertNotNull(unit.getFathersUnitIds(true));
-        assertNotNull(unit.getFathersUnitIds(false));
-    }
-
-    @Test
     public void givenUnitWhenGetDepth() {
         final Unit unit = new Unit(s1);
         assertNotNull(unit.getDepths());
     }
 
     @Test
-    public void givenUnitWhenCleanStructureThenItemCleaned() {
-        final Unit unit = new Unit(s1);
-        unit.cleanStructure(true);
-    }
-
-    @Test
     public void givenUnitWhenGetObjectGroupId() {
         final Unit unit = new Unit(s1);
-        unit.getObjectGroupId(true);
-        unit.getObjectGroupId(false);
+        unit.getObjectGroupId();
     }
 }

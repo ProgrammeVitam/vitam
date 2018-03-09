@@ -26,28 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static com.mongodb.client.model.Filters.eq;
-
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.UpdateOptions;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * The default Vitam Type object to be stored in the database (MongoDb/ElasticSearch mode)
  *
  * @param <E> Class associated with this Document
- *
  */
 public abstract class MetadataDocument<E> extends VitamDocument<E> {
     private static final long serialVersionUID = 7912599149562030658L;
@@ -106,7 +102,8 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     /**
      * Empty constructor
      */
-    public MetadataDocument() {}
+    public MetadataDocument() {
+    }
 
     /**
      * Constructor from Json
@@ -136,14 +133,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     }
 
     /**
-     *
-     * @return the associated GUIDObjectType
-     */
-    public static int getGUIDObjectTypeId() {
-        throw new UnsupportedOperationException("Should override it on implementation class");
-    }
-
-    /**
      * Create a new ID
      *
      * @return this MetadataDocument
@@ -153,7 +142,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     }
 
     /**
-     *
      * @return the ID
      */
     public final String getId() {
@@ -161,48 +149,11 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     }
 
     /**
-     *
-     * @return the domainId
-     */
-    public final int getDomainId() {
-        return this.getInteger(TENANT_ID);
-    }
-
-    /**
-     * Load from a JSON String
-     *
-     * @param json in String format for building MetadataDocument
-     * @return this
-     */
-    public final MetadataDocument<E> load(final String json) {
-        putAll(Document.parse(json));
-        getAfterLoad();
-        checkId();
-        return this;
-    }
-
-    /**
-     * To be called after any automatic load or loadFromJson to update HashMap values.
-     *
-     * @return this
-     */
-    public abstract MetadataDocument<E> getAfterLoad();
-
-    /**
-     * To be called before any collection.insert() or update if HashMap values is changed.
-     *
-     * @return this
-     */
-    public abstract MetadataDocument<E> putBeforeSave();
-
-    /**
-     *
      * @return the associated collection
      */
     protected abstract MongoCollection<E> getCollection();
 
     /**
-     *
      * @return the associated VitamCollection
      */
     protected abstract MetadataCollections getMetadataCollections();
@@ -244,13 +195,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     protected abstract boolean updated() throws MetaDataExecutionException;
 
     /**
-     * load the object from the database, ignoring any previous data, except ID
-     *
-     * @return True if the object is loaded
-     */
-    public abstract boolean load();
-
-    /**
      * Insert the document (only for new): should not be called elsewhere
      *
      * @return this
@@ -285,7 +229,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     }
 
     /**
-     *
      * @return the bypass toString
      */
     public String toStringDirect() {
@@ -293,7 +236,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     }
 
     /**
-     *
      * @return the toString for Debug mode
      */
     public String toStringDebug() {

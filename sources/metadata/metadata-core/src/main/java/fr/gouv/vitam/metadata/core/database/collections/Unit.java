@@ -26,6 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoException;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.UpdateOptions;
+import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
+import fr.gouv.vitam.common.guid.GUIDObjectType;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import org.bson.BSONObject;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gt;
@@ -36,41 +61,13 @@ import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.min;
 import static com.mongodb.client.model.Updates.set;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.bson.BSONObject;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoException;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.UpdateOptions;
-
-import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
-import fr.gouv.vitam.common.guid.GUIDObjectType;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
-
 /**
  * Unit class:<br>
  *
  * @formatter:off { MD content, _id: UUID, _tenant: tenant, _profil: documentType,, _min: depthmin, _max: depthmax,
- *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
- *                be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
- *                limited to immediate parent _og: UUID, _nbc : immediateChildNb }
+ * _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
+ * be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
+ * limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
 public class Unit extends MetadataDocument<Unit> {
@@ -133,12 +130,6 @@ public class Unit extends MetadataDocument<Unit> {
             .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1)
             .append(ORIGINATING_AGENCIES, 1).append(MetadataDocument.OG, 1);
     /**
-     * Unit Id, Vitam and Management fields Only projection (no content)
-     */
-    public static final BasicDBObject UNIT_VITAM_MANAGEMENT_PROJECTION =
-        new BasicDBObject(UNIT_VITAM_PROJECTION)
-            .append(MANAGEMENT + ".$", 1);
-    /**
      * Storage Rule
      */
     public static final String STORAGERULE = MANAGEMENT + ".StorageRule";
@@ -198,29 +189,6 @@ public class Unit extends MetadataDocument<Unit> {
     @SuppressWarnings("javadoc")
     public static final String CLASSIFICATIONEND = CLASSIFICATIONRULE + END;
 
-    private static final BasicDBObject[] indexes = {
-        new BasicDBObject(VitamLinks.UNIT_TO_UNIT.field2to1, 1),
-        new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2, 1),
-        new BasicDBObject(TENANT_ID, 1),
-        new BasicDBObject(UNITUPS, 1),
-        new BasicDBObject(MINDEPTH, 1),
-        new BasicDBObject(MAXDEPTH, 1),
-        new BasicDBObject(OPS, 1),
-        new BasicDBObject(OPI, 1),
-        new BasicDBObject(STORAGERULES, 1),
-        new BasicDBObject(STORAGEEND, 1),
-        new BasicDBObject(APPRAISALRULES, 1),
-        new BasicDBObject(APPRAISALEND, 1),
-        new BasicDBObject(ACCESSRULES, 1),
-        new BasicDBObject(ACCESSEND, 1),
-        new BasicDBObject(DISSEMINATIONRULES, 1),
-        new BasicDBObject(DISSEMINATIONEND, 1),
-        new BasicDBObject(REUSERULES, 1),
-        new BasicDBObject(REUSERULE, 1),
-        new BasicDBObject(CLASSIFICATIONRULES, 1),
-        new BasicDBObject(CLASSIFICATIONEND, 1),
-        new BasicDBObject(TYPE, 1)};
-
     /**
      * Number of Immediate child (Unit)
      */
@@ -260,13 +228,6 @@ public class Unit extends MetadataDocument<Unit> {
         super(content);
     }
 
-    /**
-     * @return the associated GUIDObjectType
-     */
-    public static final int getGUIDObjectTypeId() {
-        return GUIDObjectType.UNIT_TYPE;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<Unit> getCollection() {
@@ -280,7 +241,6 @@ public class Unit extends MetadataDocument<Unit> {
 
     @Override
     public Unit save() throws MetaDataExecutionException {
-        putBeforeSave();
         getMaxDepth();
         getMinDepth();
         if (updated()) {
@@ -364,8 +324,7 @@ public class Unit extends MetadataDocument<Unit> {
                 listset.add(upd);
             }
             // Compute UNITUPS
-            @SuppressWarnings("unchecked")
-            final List<String> vtUps = (List<String>) vt.remove(UNITUPS);
+            @SuppressWarnings("unchecked") final List<String> vtUps = (List<String>) vt.remove(UNITUPS);
             @SuppressWarnings("unchecked")
             List<String> ups = (List<String>) get(UNITUPS);
             if (ups == null) {
@@ -417,27 +376,6 @@ public class Unit extends MetadataDocument<Unit> {
         return false;
     }
 
-    @Override
-    public boolean load() {
-        final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
-        if (vt == null) {
-            return false;
-        }
-        putAll(vt);
-        getAfterLoad();
-        return true;
-    }
-
-    @Override
-    public Unit getAfterLoad() {
-        return this;
-    }
-
-    @Override
-    public Unit putBeforeSave() {
-        return this;
-    }
-
     /**
      * Used in ingest (get the next uds including itself with depth +1 for all)
      *
@@ -466,7 +404,7 @@ public class Unit extends MetadataDocument<Unit> {
      * @param units the list of unit to add
      * @return a list of udpate query for new unitdepth for children
      */
-     public List<Bson> getSubDepthList(List<Unit> units) {
+    public List<Bson> getSubDepthList(List<Unit> units) {
         final List<Bson> list = new ArrayList<>();
         list.addAll(getSubDepthList());
 
@@ -487,8 +425,7 @@ public class Unit extends MetadataDocument<Unit> {
      * @return the new UNITUPS
      */
     public List<String> getSubUnitUps() {
-        @SuppressWarnings("unchecked")
-        final List<String> subids = (List<String>) get(UNITUPS);
+        @SuppressWarnings("unchecked") final List<String> subids = (List<String>) get(UNITUPS);
         List<String> subids2;
         if (subids != null) {
             subids2 = new ArrayList<>(subids.size() + 1);
@@ -579,23 +516,17 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Add the link (N)-N between this Unit and sub Unit (update only subUnit)
      *
-     * @param unit for adding the link
+     * @param childUnit for adding the link
      * @return Unit with link added
      * @throws MetaDataExecutionException when adding exception occurred
      */
-    public Unit addUnit(final Unit unit) throws MetaDataExecutionException {
-        Bson update = null;
-        final List<String> ids = new ArrayList<>();
+    public Unit addUnit(final Unit childUnit) throws MetaDataExecutionException {
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(this + "->" + unit);
+            LOGGER.debug(this + "->" + childUnit);
         }
-        final BasicDBObject update2 =
-            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
-        if (update2 != null) {
-            ids.add(unit.getId());
-            update = update2;
-        }
-        if (!ids.isEmpty()) {
+        Bson update =
+            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, childUnit);
+        if (update != null) {
             final List<Bson> updateSubDepth = getSubDepthList();
             final List<String> subids = getSubUnitUps();
             final Bson updateSubUnits = addEachToSet(UNITUPS, subids);
@@ -610,10 +541,10 @@ public class Unit extends MetadataDocument<Unit> {
                 max += val;
             }
             update = combine(update, combine(updateSubDepth), updateSubUnits);
-            if (min < unit.getInteger(MINDEPTH)) {
+            if (min < childUnit.getInteger(MINDEPTH)) {
                 update = combine(update, set(MINDEPTH, min));
             }
-            if (max > unit.getInteger(MAXDEPTH)) {
+            if (max > childUnit.getInteger(MAXDEPTH)) {
                 update = combine(update, set(MAXDEPTH, max));
             }
 
@@ -622,11 +553,11 @@ public class Unit extends MetadataDocument<Unit> {
                 update = combine(update, addEachToSet(ORIGINATING_AGENCIES, sps));
             }
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(this + "->" + unit + "\n" +
+                LOGGER.debug(this + "->" + childUnit + "\n" +
                     "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
             }
             try {
-                final long nbc = getCollection().updateOne(eq(ID, ids.get(0)),
+                final long nbc = getCollection().updateOne(eq(ID, childUnit.getId()),
                     update,
                     new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
@@ -638,7 +569,6 @@ public class Unit extends MetadataDocument<Unit> {
                 throw new MetaDataExecutionException(e);
             }
         }
-        ids.clear();
         return this;
     }
 
@@ -705,8 +635,7 @@ public class Unit extends MetadataDocument<Unit> {
     public List<String> getChildrenUnitIdsFromParent() {
         final BasicDBObject condition = new BasicDBObject(
             VitamLinks.UNIT_TO_UNIT.field2to1, getId());
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
             .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
         final List<String> ids = new ArrayList<>();
         try (final MongoCursor<Unit> iterator = iterable.iterator()) {
@@ -719,24 +648,6 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     * @param remove if remove the link between units
-     * @return the list of UUID of Unit parents (immediate)
-     */
-    @SuppressWarnings("unchecked")
-    public List<String> getFathersUnitIds(final boolean remove) {
-        List<String> list;
-        if (remove) {
-            list = (List<String>) remove(VitamLinks.UNIT_TO_UNIT.field2to1);
-        } else {
-            list = (List<String>) this.get(VitamLinks.UNIT_TO_UNIT.field2to1);
-        }
-        if (list == null) {
-            return SingletonUtils.singletonList();
-        }
-        return list;
-    }
-
-    /**
      * Add the link 1-N between Unit and ObjectGroup (update both Unit and ObjectGroup)
      *
      * @param data the objectgroup for adding link
@@ -745,7 +656,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public Unit addObjectGroup(final ObjectGroup data)
         throws MetaDataExecutionException {
-        final String old = getObjectGroupId(false);
+        final String old = getObjectGroupId();
         final String newGOT = data.getId();
         // TODO P1 when update is ready: change Junit to reflect this case
         if (old != null && !old.isEmpty() && !old.equals(newGOT)) {
@@ -761,59 +672,9 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     * @param remove if remove the link
      * @return the ObjectGroup UUID (may return null)
      */
-    public String getObjectGroupId(final boolean remove) {
-        if (remove) {
-            return (String) remove(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2);
-        } else {
-            return (String) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2);
-        }
+    public String getObjectGroupId() {
+        return (String) remove(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2);
     }
-
-    /**
-     * Check if the current Unit has other Unit as immediate parent
-     *
-     * @param other a unit that could be immediate parent of current unit
-     * @return True if immediate parent, else False (however could be a grand parent)
-     */
-    public boolean isImmediateParent(final String other) {
-        final Map<String, Integer> depth = getDepths();
-        return depth.get(other) == 1;
-    }
-
-    /**
-     * Used in loop operation to clean the object
-     *
-     * @param all If true, all items are cleaned
-     */
-    public final void cleanStructure(final boolean all) {
-        remove(VitamLinks.UNIT_TO_UNIT.field1to2);
-        remove(VitamLinks.UNIT_TO_UNIT.field2to1);
-        remove(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2);
-        remove(ID);
-        if (all) {
-            remove(UNITDEPTHS);
-            remove(UNITUPS);
-            remove(MINDEPTH);
-            remove(MAXDEPTH);
-            remove(TYPE);
-            remove(NBCHILD);
-        }
-    }
-
-    protected static void addIndexes() {
-        // if not set, Unit and Tree are worst
-        for (final BasicDBObject index : indexes) {
-            MetadataCollections.UNIT.getCollection().createIndex(index);
-        }
-    }
-
-    protected static void dropIndexes() {
-        for (final BasicDBObject index : indexes) {
-            MetadataCollections.UNIT.getCollection().dropIndex(index);
-        }
-    }
-
 }

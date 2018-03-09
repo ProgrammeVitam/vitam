@@ -198,14 +198,14 @@ public class UpdateUnitResourceTest {
         MetadataCollections.UNIT.getCollection().drop();
     }
 
-    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
-        return JsonHandler.getFromString("{ $roots : [ '' ], $query : [ " + query + " ], $data : " + data + " }");
+    private static final JsonNode buildDSLWithOptions(String data) throws InvalidParseOperationException {
+        return JsonHandler.getFromString("{ $roots : [], $query : [], $data : " + data + " }");
     }
 
-    private static final JsonNode buildDSLWithOptionsRoot(String query, String data, String root)
+    private static final JsonNode buildDSLWithOptionsRoot(String data, String root)
         throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString("{ $roots : [ '" + root + "' ], $query : [ " + query + " ], $data : " + data + " }");
+            .getFromString("{ $roots : [ '" + root + "' ], $query : [], $data : " + data + " }");
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -227,14 +227,14 @@ public class UpdateUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-            .body(buildDSLWithOptions("", DATA2)).when()
+            .body(buildDSLWithOptions(DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
-            .body(buildDSLWithOptionsRoot("", DATA, ID_UNIT)).when()
+            .body(buildDSLWithOptionsRoot(DATA, ID_UNIT)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -288,7 +288,7 @@ public class UpdateUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
+            .body(buildDSLWithOptions(createJsonStringWithDepth(101))).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -298,7 +298,7 @@ public class UpdateUnitResourceTest {
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
+            .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }

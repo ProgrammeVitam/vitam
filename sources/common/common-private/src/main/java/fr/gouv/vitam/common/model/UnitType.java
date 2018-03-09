@@ -31,6 +31,11 @@ package fr.gouv.vitam.common.model;
  * Unit Process Type
  */
 public enum UnitType {
+
+    /*
+     * /!\ WARNING : Entry order is important to attachment hierarchy.
+     */
+
     /**
      * normal Unit type
      */

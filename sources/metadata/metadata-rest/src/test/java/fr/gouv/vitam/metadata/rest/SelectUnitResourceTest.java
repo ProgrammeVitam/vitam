@@ -26,33 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -79,9 +56,29 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 /**
- * Test for select unit (and by id) functionnality
+ * Test for select unit (and by id) functionality
  */
 public class SelectUnitResourceTest {
 
@@ -261,9 +258,9 @@ public class SelectUnitResourceTest {
         MetadataCollections.UNIT.getCollection().drop();
     }
 
-    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+    private static final JsonNode buildDSLWithOptions(String data) throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString("{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
+            .getFromString("{ \"$roots\" : [], \"$query\" : [], \"$data\" : " + data + " }");
     }
 
     private static final JsonNode buildDSLWithRoots(String roots, String data) throws InvalidParseOperationException {
@@ -287,14 +284,14 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA_1)).when()
+            .body(buildDSLWithOptions(DATA_1)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA_0)).when()
+            .body(buildDSLWithOptions(DATA_0)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -348,7 +345,7 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
+            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
             .post("/units/").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -363,14 +360,14 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA_1)).when()
+            .body(buildDSLWithOptions(DATA_1)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA_0)).when()
+            .body(buildDSLWithOptions(DATA_0)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -389,14 +386,14 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA_1)).when()
+            .body(buildDSLWithOptions(DATA_1)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA_0)).when()
+            .body(buildDSLWithOptions(DATA_0)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -442,7 +439,7 @@ public class SelectUnitResourceTest {
         assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(0).getCount()).isEqualTo(1);
         assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(1).getValue()).isEqualTo("StorageRules");
         assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(1).getCount()).isEqualTo(1);
-        
+
         VitamError responseKO1 = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -467,7 +464,7 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA_0)).when()
+            .body(buildDSLWithOptions(DATA_0)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -517,7 +514,7 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
+            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
             .post("/units/" + GUID_0).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -529,7 +526,7 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
+            .body(buildDSLWithOptions(createJsonStringWithDepth(101))).when()
             .post("/units/" + GUID_0).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -541,7 +538,7 @@ public class SelectUnitResourceTest {
     public void shouldRaiseErrorOnBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
+            .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
             .get("/units/" + GUID_0).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }

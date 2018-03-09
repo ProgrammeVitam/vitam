@@ -26,21 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -57,6 +42,20 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 public class ElasticsearchAccessMetadataTest {
 
@@ -73,21 +72,14 @@ public class ElasticsearchAccessMetadataTest {
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchAccessMetadata esClient;
 
-    private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
-
     private static final int TENANT_ID = 0;
     private static final Integer TENANT_ID_0 = new Integer(0);
 
     private static final String S1 = "{ \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
     private static final String S1_OG =
         "{ \"Filename\":\"Vitam-Sensibilisation-API-V1.0.odp\", \"_max\": \"5\", \"_min\": \"2\"}";
-    private static final String S2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
     private static final String S3 =
-            "{\"$roots\":[\"id2\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"title\":\"Archive2\"}}]}";
-    private static final String S4 = "{\"$query\": { \"$or\" : [ { \"$match\" : { 'id' : 'id2' , '$max_expansions' : 1  } } ] }}";
-    private static final String S6 = "{\"$match\":{ \"id \": \"id2 \"}}";
-    private static final String S5 =
-            "{\"$bool\" : {\"$must\" : {\"$match\" : {\"title\" : {\"$query\" : \"Archive3\",\"$type\" : \"boolean\"}}},\"$filter\" : {\"$terms\" : {\"_up\" : [ \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\" ]}}} }";
+        "{\"$roots\":[\"id2\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"title\":\"Archive2\"}}]}";
     private final int IntTest = 12345;
     private final String groupGUID = GUIDFactory.newObjectGUID(IntTest).toString();
     private final String go = "{\"_id\":\"" + groupGUID +
@@ -140,19 +132,21 @@ public class ElasticsearchAccessMetadataTest {
                 GUIDFactory.newUnitGUID(TENANT_ID).toString());
             fail("Unit not found");
 
-        } catch (final MetaDataExecutionException e) {} catch (final MetaDataNotFoundException e) {}
+        } catch (final MetaDataExecutionException e) {
+        } catch (final MetaDataNotFoundException e) {
+        }
 
         // delete index
         assertEquals(true, esClient.deleteIndex(MetadataCollections.UNIT, TENANT_ID_0));
 
-        @SuppressWarnings("unchecked")
-        final Map<String, String> targetMap = (Map<String, String>) (Object) JsonHandler.getMapFromString(S1);
+        @SuppressWarnings("unchecked") final Map<String, String> targetMap =
+            (Map<String, String>) (Object) JsonHandler.getMapFromString(S1);
         // add entries
         esClient.addEntryIndexes(MetadataCollections.UNIT, TENANT_ID_0, targetMap);
         esClient.addEntryIndexesBlocking(MetadataCollections.UNIT, TENANT_ID_0, targetMap);
 
-        final Unit unit = new Unit();
-        esClient.addBulkEntryIndex(targetMap, TENANT_ID_0, unit.load(S1));
+        final Unit unit = new Unit(S1);
+        esClient.addBulkEntryIndex(targetMap, TENANT_ID_0, unit);
 
     }
 
