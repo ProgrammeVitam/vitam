@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -420,5 +421,28 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId) {
         return ClientMockResultHelper.getObjectGroupEvidenceAudit(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream docTypes) {
+        return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
+    }
+    
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfileById(VitamContext vitamContext, String id)
+        throws VitamClientException {
+        return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
+    }
+    
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(VitamContext vitamContext, JsonNode query)
+        throws VitamClientException {
+        return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse updateArchiveUnitProfile(VitamContext vitamContext, String archiveUnitprofileId,
+        JsonNode queryDSL) throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
     }
 }

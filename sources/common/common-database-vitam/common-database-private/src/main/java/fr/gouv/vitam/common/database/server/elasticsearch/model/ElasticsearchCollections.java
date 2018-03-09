@@ -95,7 +95,11 @@ public enum ElasticsearchCollections {
     /**
      * Operation Collection
      */
-    OPERATION("/logbook-es-mapping.json", "logbookoperation");
+    OPERATION("/logbook-es-mapping.json", "logbookoperation"),
+    /**
+     * Archive unit profile collection
+     */
+    ARCHIVE_UNIT_PROFILE("/archiveunitprofile-es-mapping.json", "archiveunitprofile");
 
     ElasticsearchCollections(String mapping, String indexName) {
         this.mapping = mapping;

@@ -31,6 +31,7 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -47,6 +48,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -175,6 +177,18 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
+    
+    /**
+     * Find archive unit profiles
+     * 
+     * @param vitamContext the vitam context
+     * @param query select query
+     * @return list of archive unit profiles
+     * @throws VitamClientException
+     */
+    RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(
+        VitamContext vitamContext, JsonNode query)
+            throws VitamClientException;
 
     /**
      * Get the accession register details matching the given query
@@ -268,6 +282,19 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
+
+    /**
+     * Update the given archive unit profile by query DSL
+     * 
+     * @param vitamContext the vitam context
+     * @param archiveUnitprofileId the id of the archive unit profile update target
+     * @param queryDSL the given DSL query
+     * @return Response status OK or a VitamError
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse updateArchiveUnitProfile(VitamContext vitamContext, String archiveUnitprofileId, JsonNode queryDSL)
+        throws InvalidParseOperationException, AccessExternalClientException;
 
     /**
      * Create a profile metadata after passing the validation steps. If profile are json and valid, they are stored in
@@ -500,6 +527,19 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
+     * Find an archive unit profile by its id.
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param id the archive unit profile Id
+     * @return an archive unit profile
+     * @throws VitamClientException
+     */
+    RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfileById(
+        VitamContext vitamContext, String id)
+        throws VitamClientException;
+
+    /**
      * Updates the given security profile by query dsl
      *
      * @param vitamContext the vitam context
@@ -716,5 +756,25 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      */
     RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId)
         throws VitamClientException;
+
+    /**
+     * Create a ArchiveUnitProfile after passing the validation steps. If profiles are json and valid, they are stored in
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json of file is unparsable or invalid</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>profiles already exist in the database</li>
+     * </ul>
+     *
+     * @param vitamContext the vitam context
+     * @param profiles archive unit profiles as Json InputStream
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream profiles)
+        throws InvalidParseOperationException, AccessExternalClientException;
 
 }

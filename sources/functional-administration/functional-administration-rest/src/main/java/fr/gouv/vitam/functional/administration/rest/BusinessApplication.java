@@ -85,6 +85,8 @@ public class BusinessApplication extends Application {
             final ProfileResource profileResource =
                 new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService);
             singletons.add(resource);
+            singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService,
+                functionalBackupService));
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));

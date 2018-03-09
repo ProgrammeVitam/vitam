@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -63,6 +64,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_CONTEXT = AccessExtAPI.CONTEXTS_API_UPDATE + "/";
     private static final String UPDATE_PROFILE = AccessExtAPI.PROFILES_API_UPDATE + "/";
+    private static final String UPDATE_AU_PROFILE = AccessExtAPI.ARCHIVE_UNIT_PROFILE + "/";
     private static final String UPDATE_SECURITY_PROFILE = AccessExtAPI.SECURITY_PROFILES + "/";
 
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
@@ -446,7 +448,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     default:
                         LOGGER
                             .error(
-                                "checks operation tracebility is " + status.name() + ":" + vitamError.getDescription());
+                            "checks operation tracebility is " + status.name() + ":" + vitamError.getDescription());
                         return vitamError.setHttpCode(status.getStatusCode());
                 }
             }
@@ -721,10 +723,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     INTERNAL_SERVER_ERROR);
             }
 
-            ItemStatus itemStatus = new ItemStatus()
-                .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
-                .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
-                .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
+            ItemStatus itemStatus =
+                new ItemStatus()
+                    .setGlobalState(
+                        ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
+                    .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
+                    .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(response.getStatus());
 
 
@@ -999,6 +1003,60 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream archiveUnitProfiles)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        ParametersChecker.checkParameter("The input profile json is mandatory", archiveUnitProfiles,
+            AdminCollections.ARCHIVE_UNIT_PROFILE);
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.POST, AdminCollections.ARCHIVE_UNIT_PROFILE.getName(), headers,
+                archiveUnitProfiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfileById(VitamContext vitamContext, String id)
+        throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.ARCHIVE_UNIT_PROFILE, id,
+            ArchiveUnitProfileModel.class);
+    }
+
+    @Override
+    public RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(VitamContext vitamContext, JsonNode query)
+        throws VitamClientException {
+        return internalFindDocuments(vitamContext, AdminCollections.ARCHIVE_UNIT_PROFILE, query,
+            ArchiveUnitProfileModel.class);
+    }
+
+    @Override
+    public RequestResponse updateArchiveUnitProfile(VitamContext vitamContext, String archiveUnitprofileId,
+        JsonNode queryDSL) throws InvalidParseOperationException, AccessExternalClientException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_AU_PROFILE + archiveUnitprofileId, headers,
+                queryDSL, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

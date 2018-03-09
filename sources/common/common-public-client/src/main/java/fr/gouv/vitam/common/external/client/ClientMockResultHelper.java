@@ -49,6 +49,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
@@ -362,6 +364,23 @@ public class ClientMockResultHelper {
         profile.setLastupdate("2016-11-05");
         profile.setActivationdate("2016-11-04");
         profile.setDeactivationdate("2016-11-03");
+        return profile;
+    }
+    
+    private static ArchiveUnitProfileModel getArchiveUnitItem() {
+        ArchiveUnitProfileModel profile = new ArchiveUnitProfileModel();
+        
+        profile.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        profile.setTenant(0);
+        profile.setIdentifier("FAKE_IDENTIFIER");
+        profile.setName("Archive Unit Name");
+        profile.setDeactivationdate("Description complète d'un Document Type");
+        profile.setStatus(ArchiveUnitProfileStatus.ACTIVE);
+        profile.setCreationdate("2016-11-02");
+        profile.setLastupdate("2016-11-05");
+        profile.setActivationdate("2016-11-04");
+        profile.setDeactivationdate("2016-11-03");
+        
         return profile;
     }
 
@@ -788,5 +807,14 @@ public class ClientMockResultHelper {
 
     public static RequestResponse<ProfileModel> getObjectGroupEvidenceAudit(int statusCode) {
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
+    }
+
+    /**
+     * Get archive unit profiles mock with the given status code
+     * @param statusCode
+     * @return a mock of archive unit profiles
+     */
+    public static RequestResponse<ArchiveUnitProfileModel> getArchiveUnitProfiles(int statusCode) {
+        return new RequestResponseOK<ArchiveUnitProfileModel>().addResult(getArchiveUnitItem()).setHttpCode(statusCode);
     }
 }

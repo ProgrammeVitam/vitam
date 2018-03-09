@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 
 /**
@@ -223,6 +224,19 @@ public class ClientMockResultHelper {
         "\"LastUpdate\":\"2016-11-02\", " +
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
+
+    public static final String ARCHIVE_UNIT_PROFILES = "{" +
+        "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+        "\"_tenant\":0, " +
+        "\"Identifier\":\"FAKE_IDENTIFIER\", " +
+        "\"Name\":\"Archive Unit Ptofile\", " +
+        "\"Description\":\"Description d'un document type\", " +
+        "\"Status\":\"ACTIVE\", " +
+        "\"CreationDate\":\"2016-11-02\", " +
+        "\"LastUpdate\":\"2016-11-02\", " +
+        "\"ActivationDate\":\"2016-11-02\", " +
+        "\"DeactivationDate\":\"2016-11-02\"" +
+        "}";
 
     public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
         "\"Status\": true," +
@@ -696,5 +710,16 @@ public class ClientMockResultHelper {
     
     public static RequestResponse getSwitchIndexesInfo() throws InvalidParseOperationException {
         return createReponse(REINDEXATION_INFO);
+    }
+
+    /**
+     * method to get mocked archive unit profiles with the givel status code
+     * 
+     * @param statusCode
+     * @return a mock of response for ArchiveUnitProfiles
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getArchiveUnitProfiles(int statusCode) throws InvalidParseOperationException {
+        return createReponse(ARCHIVE_UNIT_PROFILES);
     }
 }

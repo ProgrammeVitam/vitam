@@ -37,6 +37,7 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -88,6 +89,10 @@ public enum FunctionalAdminCollections {
      * Profile collection
      */
     PROFILE(Profile.class, true, false),
+    /**
+     * Archive Unit Profile collection
+     */
+    ARCHIVE_UNIT_PROFILE(ArchiveUnitProfile.class, true, false),
     /**
      * Agency collection
      */

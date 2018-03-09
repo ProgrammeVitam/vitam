@@ -194,4 +194,8 @@ public class AccessExtAPI {
      * Object group evidence audit uri
      */
     public static final String OBJECT_GROUP_EVIDENCE_AUDIT_API = "/evidenceaudit/objects";
+    /**
+     * Archive unit profile base uri
+     */
+    public static final String ARCHIVE_UNIT_PROFILE = "archiveunitprofiles";
 }
