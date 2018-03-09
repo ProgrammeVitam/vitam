@@ -23,14 +23,14 @@ Si vous possédez déjà une :term:`PKI`, il convient de positionner les certifi
 .. only:: html
 
     .. figure:: ../../annexes/images/arborescence_certs.svg
-        :align: center 
+        :align: center
 
         Vue détaillée de l'arborescence des certificats
 
 .. only:: latex
 
     .. figure:: ../../annexes/images/arborescence_certs.png
-        :align: center 
+        :align: center
 
         Vue détaillée de l'arborescence des certificats
 
@@ -46,5 +46,7 @@ Dans le cas d'ajout de certificats :term:`SIA` externes, éditer le fichier ``en
 dans  la directive ``admin_context_certs`` pour que ceux-ci soient ajoutés aux profils de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
 
 Pour modifier/créer un vault ansible, se référer à la documentation sur `cette url <http://docs.ansible.com/ansible/playbooks_vault.html>`_.
+
+.. include:: swift.rst
 
 .. include:: keystores.rst
