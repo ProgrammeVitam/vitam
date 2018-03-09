@@ -42,8 +42,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
-
 import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
@@ -58,10 +56,13 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.tools.SipTool;
+import org.apache.commons.lang3.StringUtils;
 
 public class IngestStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestStep.class);
+    public static final String ID = "ID";
+    public static final String _ID = "#id";
 
     private Path sip;
 
@@ -169,23 +170,34 @@ public class IngestStep {
         }
     }
 
-
     @When("je construit le sip de rattachement avec le template")
-    public void build_the_attachenment() throws IOException {
-        this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getUnitId());
+    public void build_the_attachenment_by_systemid() throws IOException {
+        this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getUnitId(), null, null);
+        attachMode = true;
+    }
+
+    @When("j'utilise le template et construit un sip de rattachement avec comme nom et valeur de métadonnée (.*) et (.*)$")
+    public void build_the_attachenment_by_key_value(String metadataName, String metadataValue) throws IOException {
+        if (_ID.equals(metadataName) && ID.equals(metadataValue)) {
+            metadataValue = world.getUnitId();
+        }
+        this.sip = SipTool
+            .copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_NAME, metadataName, SipTool.REPLACEMENT_VALUE,
+                metadataValue);
         attachMode = true;
     }
 
 
     @When("je construit le SIP de rattachement au groupe d'objet existant avec le template")
     public void build_the_attachenment_to_existing_object_group() throws IOException {
-        this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getObjectGroupId());
+        this.sip =
+            SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getObjectGroupId(), null, null);
         attachMode = true;
     }
 
     /**
      * Execute an ingest OK and saves the operationId in test set map.
-     * 
+     *
      * @param fileName name of a sip
      */
     @Given("^les données du jeu de test du SIP nommé (.*)")

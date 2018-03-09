@@ -44,10 +44,12 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 public class SipTool {
 
     public static final String REPLACEMENT_STRING = "_REPLACE_ME_";
+    public static final String REPLACEMENT_NAME = "_REPLACE_ME_NAME_";
+    public static final String REPLACEMENT_VALUE = "_REPLACE_ME_VALUE_";
 
 
 
-    public static Path copyAndModifyManifestInZip(Path zipPath, String text, String replacement) throws IOException {
+    public static Path copyAndModifyManifestInZip(Path zipPath, String text1, String replacement1, String text2, String replacement2) throws IOException {
         File tempFile = new File(GUIDFactory.newGUID().toString());
         Files.copy(new FileInputStream(zipPath.toFile()), tempFile.toPath());
         try (FileSystem fs = FileSystems.newFileSystem(tempFile.toPath(), null)) {
@@ -57,13 +59,13 @@ public class SipTool {
                 throw new IOException("error");
             }
             Files.move(source, temp);
-            streamCopy(temp, source, text, replacement);
+            streamCopy(temp, source, text1, replacement1, text2, replacement2);
             Files.delete(temp);
         }
         return tempFile.getAbsoluteFile().toPath();
     }
 
-    static void streamCopy(Path src, Path dst, String text, String replacement) throws IOException {
+    static void streamCopy(Path src, Path dst, String text1, String replacement1, String text2, String replacement2) throws IOException {
         try (BufferedReader br = new BufferedReader(
             new InputStreamReader(Files.newInputStream(src)));
             BufferedWriter bw = new BufferedWriter(
@@ -71,7 +73,10 @@ public class SipTool {
 
             String line;
             while ((line = br.readLine()) != null) {
-                line = line.replace(text, replacement);
+                line = line.replace(text1, replacement1);
+                if (null != text2) {
+                    line = line.replace(text2, replacement2);
+                }
                 bw.write(line);
                 bw.newLine();
             }
