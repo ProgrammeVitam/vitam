@@ -24,15 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.model;
+package fr.gouv.vitam.common.model.unit;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+
+import java.util.List;
 
 /**
- * The override of the generated pojo is needed to describe it as a root element for binary data objects to generate the
- * XML Stream
+ * Base for Common rule Interface in order to manage seda multi versions
  */
-@XmlRootElement(name = "BinaryDataObject")
-public class BinaryDataObjectTypeRoot extends DataObjectTypeRoot {
-    
+public interface CommonRuleBase {
+
+    /**
+     * Gets the value of the ruleAndStartDate property.
+     * 
+     * @return the ruleAndStartDate property
+     */
+    List<Object> getRuleAndStartDate();
+
+    /**
+     * Gets the value of the preventInheritance property.
+     * 
+     * @return the preventInheritance
+     */
+    Boolean isPreventInheritance();
+
+    /**
+     * Sets the value of the preventInheritance property.
+     * 
+     * @param value true or false
+     */
+    void setPreventInheritance(Boolean value);
+
 }
