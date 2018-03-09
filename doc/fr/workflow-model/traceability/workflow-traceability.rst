@@ -18,10 +18,22 @@ Ce fichier zip est ensuite enregistré sur les offres de stockage, en fonction d
 Sécurisation du journal des opérations (STP_OP_SECURISATION)
 ============================================================
 
+La fin du processus peut prendre plusieurs statuts :
+
+* **Statuts** :
+
+  + OK : le journal des opérations a été sécurisé (STP_OP_SECURISATION.OK = Succès du processus de sécurisation du journal des opérations)
+
+
+  + KO : pas de cas KO
+
+  + FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (STP_OP_SECURISATION.FATAL = Erreur fatale lors du processus de sécurisation du journal des opérations)
+
+
 OP_SECURISATION_TIMESTAMP (LogbookAdministration.java)
 ------------------------------------------------------
 
-* **Règle** : calcul du tampon d'horodatage à partir de la racine de l'arbre de merkle consitué de la liste des journaux qui sont en train d'être sécurisés.
+* **Règle** : calcul du tampon d'horodatage à partir de la racine de l'arbre de Merkle consitué de la liste des journaux qui sont en train d'être sécurisés.
 * **Type** : bloquant
 * **Status** :
 	* OK : le tampon d'horodatage est calculé (OP_SECURISATION_TIMESTAMP.OK=Succès de la création du tampon d'horodatage de l'ensemble des journaux)
