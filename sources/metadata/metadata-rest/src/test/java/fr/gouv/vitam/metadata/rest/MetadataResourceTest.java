@@ -250,7 +250,7 @@ public class MetadataResourceTest {
             .body(buildDSLWithOptions("{}", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

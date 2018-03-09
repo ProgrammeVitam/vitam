@@ -24,45 +24,56 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.translators.elasticsearch;
+package fr.gouv.vitam.common.database.server.elasticsearch;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.FacetBucket;
+import fr.gouv.vitam.common.model.FacetResult;
 
 /**
- * Select To Elasticsearch
+ * ElasticsearchFacetResultHelper for mapping ES object to Vitam FacetResult
  */
-public class SelectToElasticsearch extends RequestToElasticsearch {
+public class ElasticsearchFacetResultHelper {
 
     /**
-     * @param selectParser AbstractParser of unknown type
+     * Transform an es Aggregation result to a FacetResult object
+     * 
+     * @param aggregation es aggregation result
+     * @return FacetResult
      */
-    public SelectToElasticsearch(AbstractParser<?> selectParser) {
-        super(selectParser);
+    public static FacetResult transformFromEsAggregation(Aggregation aggregation) {
+        FacetResult facetResult = new FacetResult();
+        facetResult.setName(aggregation.getName());
+        String aggType = aggregation.getType();
+        switch (aggType) {
+            case StringTerms.NAME:
+                facetResult.setBuckets(extractBucketTermsAggregation(aggregation, aggType));
+                break;
+            default:
+                break;
+        }
+        return facetResult;
     }
 
     /**
-     * FindIterable.sort(orderby) for Elasticsearch
-     *
-     * @param score True to use if necessary score from ES
-     * @return the orderBy Elasticsearch command
-     * @throws InvalidParseOperationException
+     * Transform es aggregation buckets to FacetBucket
+     * 
+     * @param aggregation es aggregation
+     * @param aggType es aggregation type
+     * @return list of FacetBucket
      */
-    public List<SortBuilder> getFinalOrderBy(boolean score) throws InvalidParseOperationException {
-        List<SortBuilder> list = QueryToElasticsearch.getSorts(requestParser,
-            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score);
-        VitamCollection.setMatch(false);
-        return list;
-    }
-
-    public List<AggregationBuilder> getFacets() {
-        return QueryToElasticsearch.getFacets(requestParser);
+    private static List<FacetBucket> extractBucketTermsAggregation(Aggregation aggregation, String aggType) {
+        List<? extends Bucket> buckets = ((Terms) aggregation).getBuckets();
+        List<FacetBucket> facetBuckets = new ArrayList<>();
+        buckets.stream()
+            .forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
+        return facetBuckets;
     }
 }
-

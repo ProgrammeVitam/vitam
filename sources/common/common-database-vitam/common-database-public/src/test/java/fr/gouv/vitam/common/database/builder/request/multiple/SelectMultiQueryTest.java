@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.request.multiple;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -33,9 +35,10 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.facet.Facet;
+import fr.gouv.vitam.common.database.builder.facet.TermsFacet;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
@@ -46,7 +49,9 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
-@SuppressWarnings("javadoc")
+/**
+ * SelectMultiQueryTest
+ */
 public class SelectMultiQueryTest {
 
     @Test
@@ -161,7 +166,7 @@ public class SelectMultiQueryTest {
                 new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             select.addQueries(new PathQuery("path3"));
             assertEquals(4, select.getQueries().size());
-            
+
             select.setLimitFilter(10, 10);
             try {
                 select.addHintFilter(FILTERARGS.CACHE.exactToken());
@@ -169,12 +174,12 @@ public class SelectMultiQueryTest {
                 select.addUsedProjection("var3").addUnusedProjection("var4");
                 select.setUsageProjection("usageId");
                 ObjectNode node = select.getFinalSelect();
-                assertEquals(4, node.size());
+                assertEquals(5, node.size());
                 assertEquals(0, select.getRoots().size());
                 select.addRoots("root1", "root2");
                 assertEquals(2, select.getRoots().size());
                 node = select.getFinalSelect();
-                assertEquals(4, node.size());
+                assertEquals(5, node.size());
                 select.resetQueries();
                 assertEquals(0, select.getQueries().size());
             } catch (final InvalidParseOperationException e) {
@@ -188,13 +193,47 @@ public class SelectMultiQueryTest {
     }
 
     @Test
-    public void testAllReset() throws InvalidParseOperationException {
+    public void testAddFacets() {
+        final SelectMultiQuery select = new SelectMultiQuery();
+        assertTrue(select.facets.isEmpty());
+        try {
+            select.addFacets(new TermsFacet("myFacet1", "myField1"),
+                new TermsFacet("myFacet2", "myField2"));
+            select.addFacets(new TermsFacet("myFacet3", "myField3"));
+            assertEquals(3, select.getFacets().size());
+            select.setFacet(new TermsFacet("myFacet1", "myField1"));
+            assertEquals(1, select.getFacets().size());
+            select.resetFacets();
+            assertEquals(0, select.getFacets().size());
+        } catch (final InvalidCreateOperationException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+        // add null facet
+        assertThatThrownBy(() -> {
+            final SelectMultiQuery selectNull = new SelectMultiQuery();
+            selectNull.addFacets((Facet) null);
+        }).isInstanceOf(IllegalArgumentException.class);
+
+        // add empty facet array
+        assertThatCode(() -> {
+            final SelectMultiQuery selectNull = new SelectMultiQuery();
+            selectNull.addFacets(new Facet[0]);
+        }).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testAllReset() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection("var1");
         select.setUsageProjection("usageId1");
+        select.addFacets(new TermsFacet("myFacet1", "myField1"));
         assertEquals(2, select.getProjection().size());
+        assertEquals(1, select.getFacets().size());
         select.reset();
         assertEquals(0, select.getProjection().size());
+        assertEquals(0, select.getFacets().size());
     }
 
     @Test
@@ -212,7 +251,7 @@ public class SelectMultiQueryTest {
         assertEquals("{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}",
             select.getProjection().toString());
         final String s = "QUERY: Requests: \n\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}" +
-            "\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}";
+            "\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}\n\tFacets: ";
         assertEquals(s, select.toString());
         select.parseRoots("[ 'id0' ]");
         assertEquals(1, select.roots.size());

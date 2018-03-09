@@ -57,6 +57,10 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import com.mongodb.DBObject;
@@ -67,6 +71,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchFacetResultHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -74,6 +79,7 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
@@ -441,13 +447,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      *        values" : [list of id] } }"
      * @param filter the filter
      * @param sorts the list of sort
+     * @param facets the list of facet
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      * @throws BadRequestException
      */
     protected final Result search(final MetadataCollections collection, final Integer tenantId, final String type,
         final QueryBuilder query, final QueryBuilder filter, final List<SortBuilder> sorts, int offset, Integer limit,
-        final String scrollId, final Integer scrollTimeout)
+        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws MetaDataExecutionException, BadRequestException {
 
         final SearchResponse response;
@@ -485,6 +492,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
             if (sorts != null) {
                 sorts.stream().forEach(sort -> request.addSort(sort));
+            }
+            if (facets != null) {
+                facets.stream().forEach(facet -> request.addAggregation(facet));
             }
             if (filter != null) {
                 if (GlobalDatasDb.USE_FILTERED_REQUEST) {
@@ -552,6 +562,17 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.debug("FinalEsResult: {} : {}", resultRequest.getCurrentIds(), resultRequest.getNbResult());
         }
         resultRequest.setTotal(hits.getTotalHits());
+
+        // facets
+        Aggregations aggregations = response.getAggregations();
+        if (aggregations != null) {
+            final Iterator<Aggregation> aggIterator = aggregations.iterator();
+            while (aggIterator.hasNext()) {
+                resultRequest
+                    .addFacetResult(ElasticsearchFacetResultHelper.transformFromEsAggregation(aggIterator.next()));
+            }
+        }
+
         return resultRequest;
     }
 

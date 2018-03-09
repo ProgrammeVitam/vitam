@@ -24,45 +24,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.translators.elasticsearch;
+package fr.gouv.vitam.common.database.builder.facet;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Select To Elasticsearch
+ * Terms facet
  */
-public class SelectToElasticsearch extends RequestToElasticsearch {
+public class TermsFacet extends Facet {
 
     /**
-     * @param selectParser AbstractParser of unknown type
+     * Terms Facet constructor
+     * 
+     * @param name name of the facet
+     * @param field field of the facet data
+     * @throws InvalidCreateOperationExceptionwhen not valid
      */
-    public SelectToElasticsearch(AbstractParser<?> selectParser) {
-        super(selectParser);
+    public TermsFacet(String name, String field) throws InvalidCreateOperationException {
+        super(name);
+        setName(name);
+        currentTokenFACET = FACET.TERMS;
+        ObjectNode facetNode = JsonHandler.createObjectNode();
+        facetNode.put(FACETARGS.FIELD.exactToken(), field);
+        currentFacet = facetNode;
     }
 
     /**
-     * FindIterable.sort(orderby) for Elasticsearch
-     *
-     * @param score True to use if necessary score from ES
-     * @return the orderBy Elasticsearch command
-     * @throws InvalidParseOperationException
+     * Terms Facet constructor
+     * 
+     * @param name name of the facet
+     * @param field field of the facet data
+     * @param size of the facet
+     * @throws InvalidCreateOperationExceptionwhen not valid
      */
-    public List<SortBuilder> getFinalOrderBy(boolean score) throws InvalidParseOperationException {
-        List<SortBuilder> list = QueryToElasticsearch.getSorts(requestParser,
-            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score);
-        VitamCollection.setMatch(false);
-        return list;
+    public TermsFacet(String name, String field, Integer size) throws InvalidCreateOperationException {
+        this(name, field);
+        if (size == null || size <= 0) {
+            throw new InvalidCreateOperationException("Size must be > 0 in Terms Facet");
+        }
+        currentFacet.put(FACETARGS.SIZE.exactToken(), size);
     }
 
-    public List<AggregationBuilder> getFacets() {
-        return QueryToElasticsearch.getFacets(requestParser);
-    }
 }
-

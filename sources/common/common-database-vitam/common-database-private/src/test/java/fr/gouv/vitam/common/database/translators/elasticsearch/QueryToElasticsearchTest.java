@@ -32,8 +32,8 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import org.bson.Document;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -82,7 +82,8 @@ public class QueryToElasticsearchTest {
         "], " +
         "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
         "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-        "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }";
+        "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }, "+
+        "$facets: [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1} }] }";
 
     private static JsonNode example;
 
@@ -117,8 +118,10 @@ public class QueryToElasticsearchTest {
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
                 parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
+            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser);
             VitamCollection.setMatch(false);
             assertEquals(4, sortBuilders.size());
+            assertEquals(1, facetBuilders.size());
 
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
@@ -154,7 +157,8 @@ public class QueryToElasticsearchTest {
                     "], " +
                     "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
                     "$orderby : { #id : 1, maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-                    "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }"));
+                    "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }, "+
+                    "$facets: [{$name : 'mafacet', $terms : {$field : '#id', $size : 1} }] }"));
             } catch (final Exception e) {
                 e.printStackTrace();
                 fail(e.getMessage());
@@ -165,8 +169,10 @@ public class QueryToElasticsearchTest {
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch.getSorts(parser,
                 parser.hasFullTextQuery() || VitamCollection.containMatch(), true);
+            final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser);
             VitamCollection.setMatch(false);
             assertEquals(4, sortBuilders.size());
+            assertEquals(1, facetBuilders.size());
 
             final List<Query> list = select.getQueries();
             // exists #id

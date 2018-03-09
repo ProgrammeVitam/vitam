@@ -96,6 +96,4 @@ public class SelectMultipleSchemaValidatorTest {
             .hasMessageContaining("Dsl query is not valid");
     }
 
-
-
 }

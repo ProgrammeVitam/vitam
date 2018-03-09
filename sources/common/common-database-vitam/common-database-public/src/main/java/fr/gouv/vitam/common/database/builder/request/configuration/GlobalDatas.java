@@ -69,6 +69,10 @@ public class GlobalDatas {
      */
     public static final int NB_FILTERS = 10;
     /**
+     * Default limit for number of facets
+     */
+    public static final int NB_FACETS = 1000;
+    /**
      * Default limit for number of projections
      */
     public static final int NB_PROJECTIONS = 1000;

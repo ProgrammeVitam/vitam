@@ -89,6 +89,10 @@ public abstract class BuilderToken {
          */
         PROJECTION("projection"),
         /**
+         * Facets part (aggregations)
+         */
+        FACETS("facets"),
+        /**
          * Action part (in case of update)
          */
         ACTION("action"),
@@ -118,7 +122,6 @@ public abstract class BuilderToken {
         }
 
     }
-
 
     /**
      * Query model
@@ -337,7 +340,7 @@ public abstract class BuilderToken {
          */
         SCROLL_ID("scrollId"),
         /**
-         * scrollTimeout  expiry time for scrollId
+         * scrollTimeout expiry time for scrollId
          */
         SCROLL_TIMEOUT("scrollTimeout"),
         /**
@@ -406,6 +409,32 @@ public abstract class BuilderToken {
     }
 
     /**
+     * FACET model
+     *
+     */
+    public static enum FACET {
+
+        TERMS("terms");
+
+
+        private final String exactToken;
+
+        /**
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private FACET(String realName) {
+            exactToken = DEFAULT_PREFIX + realName;
+        }
+
+        /**
+         * @return the exact token
+         */
+        public final String exactToken() {
+            return exactToken;
+        }
+    }
+
+    /**
      * Query args model
      *
      */
@@ -447,6 +476,42 @@ public abstract class BuilderToken {
             return exactToken;
         }
     }
+
+    /**
+     * FACET args model
+     *
+     */
+    public static enum FACETARGS {
+        /**
+         * Used in all facets
+         */
+        NAME("name"),
+        /**
+         * Used in all facets
+         */
+        FIELD("field"),
+        /**
+         * Used in all facets
+         */
+        SIZE("size");
+
+        private final String exactToken;
+
+        /**
+         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
+         */
+        private FACETARGS(String realName) {
+            exactToken = DEFAULT_PREFIX + realName;
+        }
+
+        /**
+         * @return the exact token
+         */
+        public final String exactToken() {
+            return exactToken;
+        }
+    }
+
 
     /**
      *

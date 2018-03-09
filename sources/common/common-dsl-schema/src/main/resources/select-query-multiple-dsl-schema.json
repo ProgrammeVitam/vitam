@@ -25,6 +25,12 @@
         "type": "PROJECTION",
         "optional": false,
         "hint": "Projections to apply on results"
+      },
+      "$facets": {
+        "format": "array",
+        "itemtype": "FACET",
+        "optional": true,
+        "hint": "List of facets"
       }
     }
   },
@@ -221,6 +227,41 @@
         "hint": "Fields to retrieve in the result"
       }
     }
+  },
+  "FACET": {
+    "format": "object",
+    "min": 2,
+    "max": 2,
+    "elements": {
+      "$name": {
+        "format": "ref",
+        "type": "string",
+        "optional": false,
+        "hint": "Name of facet"
+      },
+      "$terms": {
+        "format": "ref",
+        "type": "BUCKET_FACET",
+    	"optional": true,
+        "hint": "Terms facet of type bucket"
+      }
+    }
+  },
+  "BUCKET_FACET": {
+    "format": "object",
+    "elements": {
+      "$field": {
+        "format": "ref",
+        "type": "string",
+        "optional": false,
+        "hint": "Field of facet"
+      },
+      "$size": {
+        "format": "ref",
+        "type": "posinteger",
+        "optional": true,
+        "hint": "Max number of buckets"
+      }
+    }
   }
 }
-

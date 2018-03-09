@@ -41,6 +41,9 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -50,12 +53,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
@@ -102,7 +108,7 @@ public class QueryToElasticsearch {
      * Merge a request and a root filter
      *
      * @param command QueryBuilder
-     * @param roots   QueryBuilder
+     * @param roots QueryBuilder
      * @return the complete request
      */
     public static QueryBuilder getFullCommand(final QueryBuilder command, final QueryBuilder roots) {
@@ -120,8 +126,8 @@ public class QueryToElasticsearch {
      * <br>
      * 
      * @param requestParser the original parser
-     * @param hasFullText   True to add scoreSort
-     * @param score         True will add score first
+     * @param hasFullText True to add scoreSort
+     * @param score True will add score first
      * @return list of order by as sort objects
      * @throws InvalidParseOperationException if the orderBy is not valid
      */
@@ -161,7 +167,7 @@ public class QueryToElasticsearch {
                 !ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey())) {
                 // First time we get an analyzed sort by
                 scoreNotAdded = false;
-                if ("_score".equals(entry.getKey())  || "#score".equals(entry.getKey())) {
+                if ("_score".equals(entry.getKey()) || "#score".equals(entry.getKey())) {
                     if (entry.getValue().asInt() < 0) {
                         sorts.add(SortBuilders.scoreSort().order(SortOrder.DESC));
                     } else {
@@ -277,7 +283,7 @@ public class QueryToElasticsearch {
     /**
      * $size : { name : length }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the size Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -299,7 +305,7 @@ public class QueryToElasticsearch {
     /**
      * $gt : { name : value } $gte : { name : value } $lt : { name : value } $lte : { name : value }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the compare Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -347,7 +353,7 @@ public class QueryToElasticsearch {
     /**
      * $mlt : { $fields : [ name1, name2 ], $like : like_text } $flt : { $fields : [ name1, name2 ], $like : like_text }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the xlt Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -388,9 +394,10 @@ public class QueryToElasticsearch {
                 }
             case MLT:
             default:
-            	// Note : array size increase is now needed (addLikeText(slike) is removed in ES5), and the array is small, so array copy should be relatively painless.
-            	final String[] newNames = Arrays.copyOf(names,names.length + 1);
-            	newNames[names.length] = slike;
+                // Note : array size increase is now needed (addLikeText(slike) is removed in ES5), and the array is
+                // small, so array copy should be relatively painless.
+                final String[] newNames = Arrays.copyOf(names, names.length + 1);
+                newNames[names.length] = slike;
                 return QueryBuilders.moreLikeThisQuery(newNames);
         }
     }
@@ -398,7 +405,7 @@ public class QueryToElasticsearch {
     /**
      * $search : { name : searchParameter }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the search Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -422,7 +429,7 @@ public class QueryToElasticsearch {
     /**
      * $match : { name : words }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -465,14 +472,15 @@ public class QueryToElasticsearch {
     /**
      * $match : { name : words, $max_expansions : n }. Unsupported $max_expansions mode to be removed later.
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
      * @deprecated Unsupported case. Should/will be removed without prior notice.
      */
     private static QueryBuilder matchCommandWithMaxExpansions(QUERY query, JsonNode content, JsonNode max,
-        Entry<String, JsonNode> element) throws InvalidParseOperationException {
+        Entry<String, JsonNode> element)
+        throws InvalidParseOperationException {
 
         logUnsupportedCommand(query, content, "Unsupported max_expansions operator");
 
@@ -485,7 +493,7 @@ public class QueryToElasticsearch {
                     .maxExpansions(max.asInt()).operator(Operator.AND);
             case MATCH_PHRASE:
                 return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().asText());
-                // Note : the method maxExpansions(max.asInt()) is removed in ES5, with no documented replacement.
+            // Note : the method maxExpansions(max.asInt()) is removed in ES5, with no documented replacement.
             case MATCH_PHRASE_PREFIX:
                 return QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().asText())
                     .maxExpansions(max.asInt());
@@ -497,7 +505,7 @@ public class QueryToElasticsearch {
     /**
      * $match : { name : words } for non analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -522,7 +530,7 @@ public class QueryToElasticsearch {
     /**
      * $in : { name : [ value1, value2, ... ] }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the in Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -567,7 +575,7 @@ public class QueryToElasticsearch {
     /**
      * $in : { name : [ value1, value2, ... ] } for analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the in Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -613,7 +621,7 @@ public class QueryToElasticsearch {
     /**
      * $range : { name : { $gte : value, $lte : value } }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the range Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -636,7 +644,7 @@ public class QueryToElasticsearch {
         }
 
         final RangeQueryBuilder range = QueryBuilders.rangeQuery(key);
-        for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext(); ) {
+        for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg;
             try {
@@ -673,7 +681,7 @@ public class QueryToElasticsearch {
     /**
      * $regex : { name : regex }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -702,7 +710,7 @@ public class QueryToElasticsearch {
     /**
      * Handles $regex : { name : regex } for _id field. Unsupported use case to be removed later.
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -726,7 +734,7 @@ public class QueryToElasticsearch {
     /**
      * Handles $regex : { name : regex } for analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -748,7 +756,7 @@ public class QueryToElasticsearch {
     /**
      * $term : { name : term, name : term }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the term Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -765,7 +773,7 @@ public class QueryToElasticsearch {
             multiple = true;
             query2 = QueryBuilders.boolQuery();
         }
-        for (final Iterator<Entry<String, JsonNode>> iterator = content.fields(); iterator.hasNext(); ) {
+        for (final Iterator<Entry<String, JsonNode>> iterator = content.fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             String key = requestItem.getKey();
             if (VitamDocument.ID.equals(key)) {
@@ -800,7 +808,7 @@ public class QueryToElasticsearch {
     /**
      * $wildcard : { name : expression }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the wildcard Command
      */
@@ -842,7 +850,7 @@ public class QueryToElasticsearch {
     /**
      * $eq : { name : value }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the eq Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -871,7 +879,7 @@ public class QueryToElasticsearch {
     /**
      * $eq : { name : value } for analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the eq Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -899,7 +907,7 @@ public class QueryToElasticsearch {
     /**
      * $exists : name
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the exist Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -934,7 +942,7 @@ public class QueryToElasticsearch {
     /**
      * $isNull : name
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the isNull Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -958,7 +966,7 @@ public class QueryToElasticsearch {
      * $and : [ expression1, expression2, ... ] $or : [ expression1, expression2, ... ] $not : [ expression1,
      * expression2, ... ]
      *
-     * @param req   QUERY
+     * @param req QUERY
      * @param query JsonNode
      * @return the and Or Not Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -987,6 +995,31 @@ public class QueryToElasticsearch {
         return boolQueryBuilder;
     }
 
+
+    public static List<AggregationBuilder> getFacets(final AbstractParser<?> requestParser) {
+        List<AggregationBuilder> builders = new ArrayList<>();
+        if (requestParser.getRequest() instanceof SelectMultiQuery) {
+            List<Facet> facets = ((SelectMultiQuery) requestParser.getRequest()).getFacets();
+            for (Facet facet : facets) {
+                switch (facet.getCurrentTokenFACET()) {
+                    case TERMS:
+                        TermsAggregationBuilder termsBuilder = AggregationBuilders.terms(facet.getName());
+                        JsonNode terms = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
+                        termsBuilder.field(terms.get(FACETARGS.FIELD.exactToken()).asText());
+                        if (terms.has(FACETARGS.SIZE.exactToken())) {
+                            termsBuilder.size(terms.get(FACETARGS.SIZE.exactToken()).asInt());
+                        }
+                        builders.add(termsBuilder);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+        }
+        return builders;
+
+    }
 
     /**
      * @param value
@@ -1029,7 +1062,7 @@ public class QueryToElasticsearch {
     /**
      * Logs a warning message for unsupported cases. Unsupported cases should/will be removed without prior notice.
      *
-     * @param query   the query
+     * @param query the query
      * @param content the json content
      * @param message the error message
      * @deprecated Used to dump unsupported usages for queries.

@@ -28,11 +28,17 @@ package fr.gouv.vitam.common.database.parser.request.multiple;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.database.builder.facet.Facet;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.facet.FacetParserHelper;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -62,8 +68,8 @@ public class SelectParserMultiple extends RequestParserMultiple {
     }
 
     /**
-     * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter,
-     *                $projection : projection }
+     * @param request containing a parsed JSON as { $roots: root, $query : query, $filter : filter, $projection :
+     *        projection }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -76,8 +82,10 @@ public class SelectParserMultiple extends RequestParserMultiple {
      * @throws InvalidParseOperationException
      */
     private void internalParseSelect() throws InvalidParseOperationException {
-        // { $roots: root, $query : query, $filter : filter, $projection : projection }
+        // not as array but composite as { $roots: root, $query : query,
+        // $filter : filter, $projection : projection }
         projectionParse(rootNode.get(GLOBAL.PROJECTION.exactToken()));
+        facetsParse(rootNode.get(GLOBAL.FACETS.exactToken()));
     }
 
     /**
@@ -89,6 +97,76 @@ public class SelectParserMultiple extends RequestParserMultiple {
         super.parseQueryOnly(query);
         projectionParse(JsonHandler.createObjectNode());
     }
+
+    /**
+     * Parse facets
+     *
+     * @param rootNode JsonNode
+     * @throws InvalidParseOperationException if rootNode could not parse to JSON
+     */
+    protected void facetsParse(final JsonNode rootNode)
+        throws InvalidParseOperationException {
+        if (rootNode == null) {
+            return;
+        }
+        if (!rootNode.isArray()) {
+            throw new InvalidParseOperationException("Parse in error for Field: should be an array");
+        }
+        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FACETS);
+        try {
+            ((SelectMultiQuery) request).resetFacets();
+            for (final JsonNode facet : rootNode) {
+                if (!facet.has(FACETARGS.NAME.exactToken())) {
+                    throw new InvalidParseOperationException("Invalid parse: name is mandatory");
+                }
+                FACET facetCommand = getFacetCommand(facet);
+                ((SelectMultiQuery) request).addFacets(analyzeOneFacet(facet, facetCommand));
+            }
+
+        } catch (final Exception e) {
+            throw new InvalidParseOperationException(
+                "Parse in error for Field: " + rootNode, e);
+        }
+    }
+
+    /**
+     * Get the facet command
+     * 
+     * @param facet facet
+     * @return FACET command
+     * @throws InvalidParseOperationException when valid command could not be found
+     */
+    public static final FACET getFacetCommand(final JsonNode facet)
+        throws InvalidParseOperationException {
+        for (FACET facetCommand : FACET.values()) {
+            if (facet.has(facetCommand.exactToken())) {
+                return facetCommand;
+            }
+        }
+        throw new InvalidParseOperationException("Invalid parse : facet command not found");
+    }
+
+    /**
+     * Generate a Facet from a Json + command
+     * @param facet facet as json
+     * @param facetCommand facet command
+     * @return Facet
+     * @throws InvalidCreateOperationException parsing error
+     * @throws InvalidParseOperationException invalid command type
+     */
+    protected Facet analyzeOneFacet(final JsonNode facet, FACET facetCommand)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+
+        switch (facetCommand) {
+            case TERMS:
+                return FacetParserHelper.terms(facet, adapter);
+            default:
+                throw new InvalidParseOperationException(
+                    "Invalid parse: command not a facet " + facetCommand.exactToken());
+        }
+
+    }
+
 
     /**
      * $fields : {name1 : 0/1, name2 : 0/1, ...}, $usage : contractId

@@ -36,6 +36,8 @@ import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
@@ -44,6 +46,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.FacetResult;
 
 /**
  * Abstract class for Result
@@ -89,6 +92,11 @@ public abstract class Result<T> {
      * The final Result part
      */
     protected List<T> finalResult;
+
+    /**
+     * The FacetResult list
+     */
+    protected List<FacetResult> facetResult;
 
     /**
      * The scrollId
@@ -143,7 +151,7 @@ public abstract class Result<T> {
      */
     public Result<T> putFrom(final Result from) {
         for (int i = 0; i < from.currentIds.size(); i++) {
-            if (! currentIds.contains(from.currentIds.get(i))) {
+            if (!currentIds.contains(from.currentIds.get(i))) {
                 currentIds.add((String) from.currentIds.get(i));
                 scores.add((Float) from.scores.get(i));
             }
@@ -267,6 +275,17 @@ public abstract class Result<T> {
     }
 
     /**
+     * @return the list of FacetResult
+     */
+    public List<FacetResult> getFacet() {
+        if (facetResult == null) {
+            facetResult = new ArrayList<>();
+        }
+        return facetResult;
+    }
+
+
+    /**
      *
      * @return the filtered list for Select operation
      * @throws InvalidParseOperationException if exception occurred when getting the filter list
@@ -320,7 +339,7 @@ public abstract class Result<T> {
         BsonValue value = document.get(VitamDocument.SCORE);
         return value == null || ((BsonInt32) value).getValue() > 0;
     }
-    
+
     /**
      * Build the array of result
      *
@@ -335,8 +354,8 @@ public abstract class Result<T> {
                     (Unit) MetadataCollections.UNIT.getCollection().find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
 
-                if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore()
-                    && isScoreIncluded(projection)) {
+                if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
+                    isScoreIncluded(projection)) {
                     Float score = Float.valueOf(1);
                     try {
                         score = scores.get(i);
@@ -357,8 +376,8 @@ public abstract class Result<T> {
                     (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection()
                         .find(new Document(MetadataDocument.ID, id))
                         .projection(projection).first();
-                if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore()
-                    && isScoreIncluded(projection)) {
+                if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
+                    isScoreIncluded(projection)) {
                     Float score = Float.valueOf(1);
                     try {
                         score = scores.get(i);
@@ -377,6 +396,14 @@ public abstract class Result<T> {
         nbResult = finalResult.size();
     }
 
+    /**
+     * Add a FacetResult
+     * 
+     * @param facetResult facetResult
+     */
+    public void addFacetResult(FacetResult facetResult) {
+        getFacet().add(facetResult);
+    }
 
 
     @Override

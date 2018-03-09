@@ -112,7 +112,9 @@ public class MetaDataImplTest {
     private static JsonNode sampleObjectGroupFiltered;
 
     private static final String QUERY =
-        "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
+        "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {},\"$facets\": []}";
+    private static final String UPDATE_QUERY =
+        "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {},\"$facets\": []}";
     private static final String REQUEST_TEST =
         "{ \"$roots\" : [ \"id0\" ], \"$query\" : [ " + "{ \"$path\" : [ \"id1\", \"id2\"] }," +
             "{ \"$and\" : [ " + "{\"$exists\" : \"mavar1\"}, " + "{\"$missing\" : \"mavar2\"}, " +
@@ -129,7 +131,8 @@ public class MetaDataImplTest {
             "{ \"$regex\" : { \"mavar14\" : \"^start?aa.*\" } } " + "], " +
             "\"$filter\" : {\"$offset\" : 100, \"$limit\" : 1000, \"$hint\" : [\"cache\"], " +
             "\"$orderby\" : { \"maclef1\" : 1 , \"maclef2\" : -1,  \"maclef3\" : 1 } }," +
-            "\"$projection\" : {\"$fields\" : {\"#dua\" : 1, \"#all\" : 1}, \"$usage\" : \"abcdef1234\" } }";
+            "\"$projection\" : {\"$fields\" : {\"#dua\" : 1, \"#all\" : 1}, \"$usage\" : \"abcdef1234\" }, " +
+            "\"$facets\" : [{\"$name\" : \"mafacet\", \"$terms\" : {\"$field\" : \"mavar1\", \"$size\" : 1} }] }";
 
 
 
@@ -445,7 +448,7 @@ public class MetaDataImplTest {
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(REQUEST_TEST), "");
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(UPDATE_QUERY), "");
     }
 
     @RunWithCustomExecutor
