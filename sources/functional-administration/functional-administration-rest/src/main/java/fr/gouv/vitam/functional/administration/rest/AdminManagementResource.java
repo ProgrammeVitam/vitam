@@ -453,13 +453,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try {
             RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
 
-
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
         } catch (final FileRulesImportInProgressException e) {
             LOGGER.warn(e);
             return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
-        } catch (final FileRulesException | FileRulesCsvException e) {
+        } catch (final FileRulesException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage())
                 .build();

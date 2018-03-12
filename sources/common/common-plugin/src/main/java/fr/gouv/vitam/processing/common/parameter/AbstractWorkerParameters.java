@@ -311,5 +311,19 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         }
     }
 
+    @JsonIgnore
+    @Override
+    public String getRequestId() {
+        return mapParameters.get(WorkerParameterName.requestId);
+
+    }
+
+    @JsonIgnore
+    @Override
+    public WorkerParameters setRequestId(String newRequestId) {
+        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "newRequestId"), newRequestId);
+        mapParameters.put(WorkerParameterName.requestId, newRequestId);
+        return this;
+    }
 
 }
