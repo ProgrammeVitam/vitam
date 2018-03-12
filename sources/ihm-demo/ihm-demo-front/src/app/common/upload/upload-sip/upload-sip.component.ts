@@ -37,7 +37,7 @@ export class UploadSipComponent implements OnInit {
   @Input() uploadAPI: string;
   @Input() extensions: string[];
 
-  constructor(private uploadService: UploadService, private router: Router, private authenticationService : AuthenticationService) {
+  constructor(private uploadService: UploadService, private router: Router, private authenticationService: AuthenticationService) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         delete this.fileName;
@@ -49,7 +49,7 @@ export class UploadSipComponent implements OnInit {
   ngOnInit() {
     this.contextId = this.uploadType;
     if (!this.extensions) {
-      this.extensions = ['tar', 'zip'];
+      this.extensions = ['.zip', '.tar', '.tar.gz', '.tar.bz2'];
     }
     this.isAdmin = this.authenticationService.isAdmin();
   }
@@ -59,24 +59,10 @@ export class UploadSipComponent implements OnInit {
 
   checkFileExtension(fileName: string): boolean {
     this.fileName = fileName;
-    const extension = fileName.split('.');
-    if (extension.length === 2) {
-      if (this.extensions.indexOf(extension.pop()) >= 0) {
+    if (fileName.endsWith(this.extensions[0]) || fileName.endsWith(this.extensions[1])
+      || fileName.endsWith(this.extensions[2]) || fileName.endsWith(this.extensions[3])) {
         return true;
-      } else {
-        this.displayDialog = true;
-        return false;
-      }
-    } else if (extension.length > 2) {
-      const extensionRev = fileName.split('.').reverse();
-      // extension passée de 0 a 1
-      if (this.extensions.indexOf(extensionRev[0]) < 0) {
-        this.displayDialog = true;
-        return false;
-      } else {
-        return true;
-      }
-    } else {
+    }else {
       this.displayDialog = true;
       return false;
     }
@@ -124,12 +110,12 @@ export class UploadSipComponent implements OnInit {
             this.uploadProgress = 100;
           }, 0);
           setTimeout(() => {
-              this.checkIngestStatus()}
+            this.checkIngestStatus()
+          }
             , 2000);
         }
       }
     );
-
   }
 
   finishUpload(response: any) {
@@ -151,7 +137,7 @@ export class UploadSipComponent implements OnInit {
       } else if (response.status === 200) {
         this.ingestIcon = 'fa-check';
         this.finishUpload(response);
-      }  else if (response.status === 206) {
+      } else if (response.status === 206) {
         this.ingestIcon = 'fa-exclamation-triangle';
         this.finishUpload(response);
       }
