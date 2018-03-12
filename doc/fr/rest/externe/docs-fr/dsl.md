@@ -16,6 +16,7 @@ Une requête DSL de **recherche** se décompose en plusieurs sections selon l'op
 - **$roots** : les racines à partir desquels la recherche est lancée, uniquement pour les collections units et objects, dont les données sont organisées en mode arborescent
 - **$filter** : le tri / la limite en nombre de résultats retournés
 - **$projections** : un sous ensemble de champs devant être retournés
+- **$facets** : un tableau de requêtes d'aggrégation, uniquement pour la collections units
 
 Pour comparaison avec le langage SQL :
 
@@ -25,6 +26,7 @@ FROM table1                   /* la Collection */
 WHERE field3 < value1         /* la partie Query */
 LIMIT n ORDER BY field1 ASC   /* les Filtres */
 ```
+
 
 #### Requêtes de recherche pour un élément spécifique (GET BY ID)
 La requête DSL **GET BY ID** est la plus simple. Elle permet de renvoyer le contenu (ou un partie) d'un élément spécifique pour lequel l'identifiant est spécifié dans l'URL. Seule la section **$projection** peut être renseignée.
@@ -58,16 +60,22 @@ Le DSL permet d'effectuer des requêtes arborescentes via la spécification de r
   - *$depth =n avec n >0* : cherche sur les unités enfants jusqu'à *n* niveau(x) de profondeur et ne cherche pas dans les unités de $roots elles-mêmes.
   **IMPORTANT :** Le paramètre **$depth** doit être spécifié lorsque des racines sont définies dans **$roots** (recherche arborescente). Le paramètre **$depth** ne doit pas être spécifié lorsque les racines ne sont pas spécifiées (recherche sur toutes les unités).
 
-Il est également possible spécifier des filtres de recherche via **$filter** et des projections **$projection**.
+Il est possible de spécifier sur la recherche des filtres de recherche via **$filter** et des projections **$projection**.
+
+Le DSL permet également d'ajouter des requêtes d'aggrégation sur le résultats total (hors application de **$filter** et **$projection**) de type **$facets**.
+
 
 ```JSON
 {
   "$roots": [ ],
   "$query": [ ],
   "$filter": { },
-  "$projection": { }
+  "$projection": { },
+  "$facets": [ ]
 }
 ```
+
+
 
 ##### **Recherche mono-requête**
 Il s'agit du mode de recherche nominal. Dans ce mode, **$query** ne contient qu'une seule requête de recherche.
@@ -179,6 +187,75 @@ La succession est exécutée avec la signification suivante :
 - La recherche multi-requêtes est actuellement supportée à titre **expérimental**.
 - Selon la complexité des sous-requêtes, les recherches multi-requêtes peuvent être très couteuses.
 - Les filtres de recherche, et en particulier **$limit** et **$offset**, s'appliquent uniquement sur la dernière requête. Les autres (premières) sous-requêtes ne doivent pas renvoyer un nombre de résultats trop important (10000+) au risque d'un comportement de recherche non déterminé.
+
+
+##### **Recherche avec facet**
+Il s'agit d'une recherche de Units contenant des requêtes d'aggrégation en plus. Dans ce mode, **$facets** contient au moins une requête d'aggrégation. La forme des facets est la suivante :
+- **$name** : le nom de la facet (repris dans la réponse), doit être unique dans la liste des facets
+- **$xxxx** : une commande de facet (cf la liste)
+Les facets peuvent être jouées sur une recherche mono-requête ou multi-requêtes.
+
+**Exemples :**
+
+1/ Rechercher les unités ayant "Alpha" uniquement sur les enfants des unités de $roots ayant une profondeur relative de 1 à 5 et le nombre d'unité archivistiques par DescriptionLevel pour les 5 valeurs de DescriptionLevel les plus utilisées.
+
+```json
+{
+  "$roots": [
+    "GUID1",
+    "GUID2"
+  ],
+  "$query": [
+    {
+      "$match": { "Title": "Alpha" },
+      "$depth": 5
+    }
+  ],
+  "$filter": {},
+  "$projection": {},
+  "$facets": [
+    {
+      "$name": "facet_desclevel",
+      "$terms": {
+        "$field": "DescriptionLevel",
+        "$size": 5
+      }
+    }
+  ]
+}
+```
+
+2/ Rechercher les unités ayant "Discours du président" dans leur description, et qui sont des descendants directs des unités racines ayant pour #id GUID1 ou GUID2 et contenant "Alpha" dans leur titre et le nombre d'unité archivistiques par DescriptionLevel pour les 5 valeurs de DescriptionLevel les plus utilisé.
+
+```json
+{
+  "$roots": [
+    "GUID1",
+    "GUID2"
+  ],
+  "$query": [
+    {
+      "$match": { "Title": "Alpha" },
+      "$depth": 0
+    },
+    {
+      "$match": { "Description": "Discours du président" },
+      "$depth": 1
+    }
+  ],
+  "$filter": {},
+  "$projection": {},
+  "$facets": [
+    {
+      "$name": "facet_desclevel",
+      "$terms": {
+        "$field": "DescriptionLevel",
+        "$size": 5
+      }
+    }
+  ]
+}
+```
 
 #### Requêtes de recherche sur les autres collections (SELECT SINGLE)
 
@@ -566,6 +643,29 @@ La valeur **1** indique que le champ est activé (renvoyé au client). Toute aut
 }
 ```
 
+## Facets
+
+Les commandes de la Facet peuvent être :
+
+| Opérateur            | Arguments                                  | Commentaire                                                                   |
+|----------------------|--------------------------------------------|-------------------------------------------------------------------------------|
+| $terms               | nom du champ et nombre de résulats        | Répartition selon des valeurs textuelles du champ                              |
+
+### Opérateur $terms : répartition selon des valeurs textuelles du champ
+
+**Format :**
+- `{ "$terms" : { "$field" : "field_name", "$size" : x } }` : où *field_name* (obligatoire) est le nom du champ et *x* (optionnel) le nombre de valeurs textuelles remontées.
+
+**Exemple :**
+Recherche la répartition de tous les résultats de recherche pour les 3 valeurs les plus utilisées du champ DescriptionLevel :
+```json
+{ "$name": "facet_desclevel", "$terms" : { "$field" : "DescriptionLevel", "$size" : 3 } }
+```
+
+**Notes :**
+- Les champs analysés ne peuvent pas être utilisés en argument *$field*.
+
+
 ## Actions
 Dans le cas d'un update, les opérateurs suivants sont utilisables
 
@@ -585,6 +685,7 @@ Une réponse est composée de plusieurs parties :
   - **size**: le nombre réel d'items retournés
 - **$context**: rapelle la requête exprimée
 - **$results**: contient le résultat de la requête sous forme d'une liste d'items
+- **$facetResults**: contient le résultat des requêtes d'aggrégation sous forme d'une liste d'items
 
 ## Exemples
 
@@ -605,11 +706,33 @@ Une réponse est composée de plusieurs parties :
     ],
     "$filter": { "$limit": 100 },
     "$projection": { "$fields": { "#id": 1, "Title": 1 } },
+    "$facets": [
+      { "$name": "facet_desclevel",  "$terms" : { "$field" : "DescriptionLevel", "$size" : 3 } }
+    ]
   },
   "$results": [
     { "#id": "GUID1", "Title": "titre 1" },
     { "#id": "GUID2", "Title": "titre 2" },
     { "#id": "GUID3", "Title": "titre 3" }
+  ],
+  "$facetResults": [
+    { 
+      "name" : "facet_desclevel",
+      "buckets": [
+        {
+          "value": "RecordGrp",
+          "count": 1481
+        },
+        {
+          "value": "Item",
+          "count": 240
+        },
+        {
+          "value": "File",
+          "count": 7
+        }
+      ]
+    }
   ]
 }
 ```
