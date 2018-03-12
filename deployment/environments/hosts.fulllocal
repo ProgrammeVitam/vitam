@@ -194,7 +194,7 @@ localhost
 # VITAM
 # ===============================
 
-environnement=fulllocal
+
 ansible_connection=local
 ansible_become=true
 
@@ -215,10 +215,13 @@ days_to_delete_logback_logfiles=30
 days_to_delete_logstash_indexes=365
 days_to_close_logstash_indexes=20
 
+vitam_site_name=fulllocal
+primary_site=true
+
 # ===============================
 # EXTRA
 # ===============================
-
+#environnement=fulllocal
 ### vitam-itest repository ###
 vitam_tests_branch=master
 vitam_tests_gitrepo_protocol=https

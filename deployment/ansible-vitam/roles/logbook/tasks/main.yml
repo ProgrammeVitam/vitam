@@ -1,8 +1,69 @@
 ---
 
-- name: Ensure vitam-traceability-audit timer is started
+# Logbook reconstruction
+
+- name: Copy the logbook reconstruction script
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/script/logbook/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.script_permission }}"
+  with_items:
+    - reconstruction.sh
+    - reconstruction_payload.json
+
+- name: Copy the logbook reconstruction conf
+  template:
+    src: "reconstruction.conf.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/logbook/reconstruction.conf"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+
+- name: Make sure logbook reconstruction timer is enabled
   systemd:
-    name: "vitam-traceability-audit.timer"
+    name: "vitam-logbook-reconstruction.timer"
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
+  when: ( primary_site | lower == "false" ) and
+        ( groups['hosts-logbook'] | last == inventory_hostname )
+
+- name: Make sure logbook reconstruction timer is disabled
+  systemd:
+    name: "vitam-logbook-reconstruction.timer"
+    daemon_reload: "yes"
+    enabled: "no"
+    state: "stopped"
+  when: ( primary_site | lower == "true" ) or
+        ( groups['hosts-logbook'] | last != inventory_hostname )
+
+
+# Logbook traceability
+
+- name: Make sure Secure logbook systemd timers are enabled
+  systemd:
+    name: "{{ item }}"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
+  with_items:
+    - vitam-traceability-lfc.timer
+    - vitam-traceability-operations.timer
+    - vitam-traceability-audit.timer
+  when: ( primary_site | lower == "true" ) and
+        ( groups['hosts-logbook'] | last == inventory_hostname )
+
+- name: Make sure Secure logbook systemd timers are disabled
+  systemd:
+    name: "{{ item }}"
+    daemon_reload: "yes"
+    enabled: "no"
+    state: "stopped"
+  with_items:
+    - vitam-traceability-lfc.timer
+    - vitam-traceability-operations.timer
+    - vitam-traceability-audit.timer
+  when: ( primary_site | lower == "false" ) or
+        ( groups['hosts-logbook'] | last != inventory_hostname )

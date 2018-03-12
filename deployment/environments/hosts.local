@@ -188,7 +188,6 @@ hosts-logstash
 # VITAM
 # ===============================
 
-environnement=local
 ansible_connection=local
 ansible_become=true
 
@@ -209,10 +208,14 @@ days_to_delete_logback_logfiles=30
 days_to_delete_logstash_indexes=365
 days_to_close_logstash_indexes=20
 
+vitam_site_name=local
+primary_site=true
+
 # ===============================
 # EXTRA
 # ===============================
 
+# environnement=local
 ### vitam-itest repository ###
 vitam_tests_branch=master
 vitam_tests_gitrepo_protocol=https

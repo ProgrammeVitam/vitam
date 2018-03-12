@@ -6,6 +6,9 @@
     "name": "{{ vitam_struct.vitam_component }}",
 {% endif %}
     "address": "{{ ip_service }}",
+{% if ip_wan is defined %}
+    "advertise_addr_wan": "{{ ip_wan }}",
+{% endif %}
 {% if vitam_struct.https_enabled==true %}
     "port": {{ vitam_struct.port_service }},
 {% else %}

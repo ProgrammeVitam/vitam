@@ -1,22 +1,22 @@
 <VirtualHost *:{{ reverse_proxy_port }}>
 
-    DocumentRoot "/var/www/html-{{environnement}}"
+    DocumentRoot "/var/www/html-{{ vitam_site_name }}"
     ProxyPreserveHost off
     ServerName {{vitam_reverse_external_dns}}
 
     # Enable SSL for the Reverse proxy
     SSLProxyEngine on
     # Client certificate path
-    # SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{environnement}}.pem
+    # SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{ vitam_site_name }}.pem
     # Client CA path
-    SSLProxyCACertificatePath /etc/{{apache_service}}/ca/{{environnement}}
+    SSLProxyCACertificatePath /etc/{{apache_service}}/ca/{{ vitam_site_name }}
     # Don't check the CN of the server's certificate
     SSLProxyCheckPeerCN off
     # Don't check the hostname of the server
     SSLProxyCheckPeerName off
     KeepAlive Off
 
-    <Directory "/var/www/html-{{environnement}}">
+    <Directory "/var/www/html-{{ vitam_site_name }}">
         #
         # Possible values for the Options directive are "None", "All",
         # or any combination of:
