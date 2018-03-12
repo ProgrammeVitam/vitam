@@ -1,0 +1,5 @@
+[
+    {% for tenant  in vitam_tenant_ids %}
+    { "tenant": {{ tenant }} }{% if not loop.last %},{% endif %}
+    {% endfor %}
+]

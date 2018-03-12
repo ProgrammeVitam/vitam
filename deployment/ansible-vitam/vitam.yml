@@ -155,6 +155,7 @@
   serial: 1
   roles:
     - vitam
+    - metadata
   vars:
     vitam_struct: "{{ vitam.metadata }}"
 
@@ -164,8 +165,6 @@
   serial: 1
   roles:
     - vitam
-    - logbook_secure_operations
-    - logbook_secure_lifecycles
     - logbook
   vars:
     vitam_struct: "{{ vitam.logbook }}"
@@ -194,7 +193,7 @@
   any_errors_fatal: true
   roles:
     - vitam
-    - init_contexts_and_security_profiles
+    - { role: init_contexts_and_security_profiles, when: primary_site | lower == "true" }
   vars:
     vitam_struct: "{{ vitam.security_internal }}"
 
@@ -246,7 +245,7 @@
 - hosts: hosts-access-external
   any_errors_fatal: true
   roles:
-    - init_pronom
+    - { role: init_pronom, when: primary_site | lower == "true" }
   vars:
     vitam_struct: "{{ vitam.accessexternal }}"
     password_keystore: "{{keystores.server.access_external}}"

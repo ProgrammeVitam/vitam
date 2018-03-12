@@ -1,7 +1,0 @@
-/vitam/log/logbook/secure_logbook.log {
-        daily
-        rotate 5
-        ifempty
-        su vitam vitam
-        missingok
-}
