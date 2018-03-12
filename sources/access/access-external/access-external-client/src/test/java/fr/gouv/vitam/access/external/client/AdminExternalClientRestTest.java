@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -1075,5 +1076,94 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
         RequestResponse<ItemStatus> result = client.objectGroupEvidenceAudit(new VitamContext(TENANT_ID), ID);
         assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void testCreateArchiveUnitProfilesWithCorrectJsonReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        when(mock.post()).thenReturn(
+            Response.status(Status.CREATED)
+                .entity(ClientMockResultHelper.getArchiveUnitProfiles(Status.CREATED.getStatusCode()))
+                .build());
+        InputStream fileArchiveUnitProfiles = PropertiesUtils.getResourceAsStream("archive_unit_profile_ok.json");
+        RequestResponse resp = client.createArchiveUnitProfile(new VitamContext(TENANT_ID), fileArchiveUnitProfiles);
+        Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
+        Assert.assertTrue((((RequestResponseOK) resp).isOk()));
+    }
+
+    @Test
+    public void testCreateArchiveUnitProfilesWithIncorrectJsonReturnBadRequest()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID")
+            .setMessage("invalid input").setDescription("Input file of archive unit profiles is malformed");
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
+        RequestResponse resp =
+            client.createArchiveUnitProfile(new VitamContext(TENANT_ID), new FakeInputStream(0));
+        Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
+        Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateArchiveUnitProfilesWithNullStreamThrowIllegalArgException()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        client.createArchiveUnitProfile(new VitamContext(TENANT_ID), null);
+    }
+
+    /**
+     * Test that findArchiveUnitProfiles is reachable and does not return elements
+     *
+     * @throws VitamClientException
+     */
+    @Test
+    public void testFindAllArchiveUnitProfilesThenReturnEmpty()
+        throws VitamClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse<ArchiveUnitProfileModel> resp =
+            client.findArchiveUnitProfiles(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode());
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<ArchiveUnitProfileModel>) resp).getResults()).hasSize(0);
+    }
+
+    /**
+     * Test that findArchiveUnitProfiles is reachable and return one elements as expected
+     *
+     * @throws VitamClientException
+     */
+    @Test
+    public void testFindAllArchiveUnitProfilesThenReturnOne()
+        throws VitamClientException {
+
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode())).build());
+        RequestResponse<ArchiveUnitProfileModel> resp =
+            client.findArchiveUnitProfiles(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode());
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<ArchiveUnitProfileModel>) resp).getResults()).hasSize(1);
+    }
+
+    /**
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws VitamClientException
+     */
+    @Test
+    public void testFindArchiveUnitProfilesByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException,
+        VitamClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse<ArchiveUnitProfileModel> resp =
+            client.findArchiveUnitProfileById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), "fakeId");
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
+    }
+    
+    @Test
+    public void testUpdateArchiveUnitProfile() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        assertThat(client.updateArchiveUnitProfile(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
+                .isTrue();
     }
 }

@@ -110,6 +110,7 @@ public class AdminManagementExternalResourceTest {
     private static final String UNEXISTING_TENANT_ID = "25";
     private static final String CONTEXT_URI = "/contexts";
     private static final String PROFILE_URI = "/profiles";
+    private static final String ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles";
     private static final String AGENCY_URI = "/agencies";
     private static final String CONTRACT_ID = "NAME";
 
@@ -130,7 +131,7 @@ public class AdminManagementExternalResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static AccessExternalMain application;
-    private static AdminManagementClient adminCLient;
+    private static AdminManagementClient adminClient;
     private static IngestInternalClient ingestInternalClient;
 
     @BeforeClass
@@ -236,11 +237,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testCheckDocumentError() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doThrow(new ReferentialException("Referential Exception")).when(adminCLient).checkFormat(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doThrow(new ReferentialException("Referential Exception")).when(adminClient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -357,12 +358,12 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void insertDocumentError() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject(), anyObject());
-        doReturn(Response.ok().build()).when(adminCLient).checkFormat(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doThrow(new ReferentialException("")).when(adminClient).importFormat(anyObject(), anyObject());
+        doReturn(Response.ok().build()).when(adminClient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -370,7 +371,7 @@ public class AdminManagementExternalResourceTest {
             .when().post(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new DatabaseConflictException("")).when(adminCLient).importFormat(anyObject(), anyObject());
+        doThrow(new DatabaseConflictException("")).when(adminClient).importFormat(anyObject(), anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -771,12 +772,12 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testGetDocumentsError() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doThrow(new ReferentialException("")).when(adminCLient).getFormats(anyObject());
-        doThrow(new ReferentialException("")).when(adminCLient).getFormatByID(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doThrow(new ReferentialException("")).when(adminClient).getFormats(anyObject());
+        doThrow(new ReferentialException("")).when(adminClient).getFormatByID(anyObject());
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
 
@@ -796,8 +797,8 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
-        doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormats(anyObject());
-        doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormatByID(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormats(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormatByID(anyObject());
 
         given()
             .accept(ContentType.JSON)
@@ -815,8 +816,8 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         RequestResponse rsp = new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode());
-        when(adminCLient.getAccessionRegister(anyObject())).thenReturn(rsp);
-        when(adminCLient.getAccessionRegisterDetail(anyObject(), anyObject())).thenReturn(rsp);
+        when(adminClient.getAccessionRegister(anyObject())).thenReturn(rsp);
+        when(adminClient.getAccessionRegisterDetail(anyObject(), anyObject())).thenReturn(rsp);
 
         given()
             .contentType(ContentType.JSON)
@@ -851,9 +852,9 @@ public class AdminManagementExternalResourceTest {
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new InvalidParseOperationException("")).when(adminCLient)
+        doThrow(new InvalidParseOperationException("")).when(adminClient)
             .getAccessionRegister(anyObject());
-        doThrow(new InvalidParseOperationException("")).when(adminCLient)
+        doThrow(new InvalidParseOperationException("")).when(adminClient)
             .getAccessionRegisterDetail(anyString(), anyObject());
 
         given()
@@ -874,9 +875,9 @@ public class AdminManagementExternalResourceTest {
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new IllegalArgumentException("")).when(adminCLient)
+        doThrow(new IllegalArgumentException("")).when(adminClient)
             .getAccessionRegister(anyObject());
-        doThrow(new IllegalArgumentException("")).when(adminCLient)
+        doThrow(new IllegalArgumentException("")).when(adminClient)
             .getAccessionRegisterDetail(anyString(), anyObject());
 
         given()
@@ -902,11 +903,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testImportIngestContractsWithInvalidFileBadRequest() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(Status.BAD_REQUEST).when(adminCLient).importIngestContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.BAD_REQUEST).when(adminClient).importIngestContracts(anyObject());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -956,11 +957,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testimportValidIngestContractsFileReturnCreated() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(Status.CREATED).when(adminCLient).importIngestContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.CREATED).when(adminClient).importIngestContracts(anyObject());
         File contractFile = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         JsonNode json = JsonHandler.getFromFile(contractFile);
         given().contentType(ContentType.JSON).body(json)
@@ -972,12 +973,12 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testfindIngestContractsFile() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
 
-        doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient)
+        doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminClient)
             .findIngestContracts(anyObject());
 
         Select select = new Select();
@@ -1022,11 +1023,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testImportAccessContractsWithInvalidFileBadRequest() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(Status.BAD_REQUEST).when(adminCLient).importAccessContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.BAD_REQUEST).when(adminClient).importAccessContracts(anyObject());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1038,11 +1039,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testimportValidAccessContractsFileReturnCreated() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(Status.CREATED).when(adminCLient).importAccessContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.CREATED).when(adminClient).importAccessContracts(anyObject());
         File contractFile = PropertiesUtils.getResourceFile("contracts_access_ok.json");
         JsonNode json = JsonHandler.getFromFile(contractFile);
 
@@ -1055,11 +1056,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testfindAccessContractsFile() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient)
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
             .findAccessContracts(anyObject());
 
         Select select = new Select();
@@ -1104,11 +1105,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testCreateProfileWithInvalidFileBadRequest() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminCLient)
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
             .createProfiles(anyObject());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
@@ -1125,11 +1126,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testcreateValidProfileReturnCreated() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminCLient)
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
             .createProfiles(anyObject());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profiles_ok.json");
@@ -1144,11 +1145,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testfindProfiles() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient)
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
             .findProfiles(anyObject());
 
         final Select select = new Select();
@@ -1213,11 +1214,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testFindAgencies() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<AgenciesModel>().addAllResults(getAgencies()).toJsonNode()).when(adminCLient)
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<AgenciesModel>().addAllResults(getAgencies()).toJsonNode()).when(adminClient)
             .getAgencies(anyObject());
 
         final Select select = new Select();
@@ -1275,11 +1276,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testFindAgenciesById() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<AgenciesModel>().addResult(getAgencies().get(0))).when(adminCLient)
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<AgenciesModel>().addResult(getAgencies().get(0))).when(adminClient)
             .getAgencyById(anyObject());
 
         given()
@@ -1299,21 +1300,21 @@ public class AdminManagementExternalResourceTest {
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new ReferentialNotFoundException("Agency not found")).when(adminCLient).getAgencyById(anyObject());
+        doThrow(new ReferentialNotFoundException("Agency not found")).when(adminClient).getAgencyById(anyObject());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
-        doThrow(new AdminManagementClientServerException("Exception")).when(adminCLient).getAgencyById(anyObject());
+        doThrow(new AdminManagementClientServerException("Exception")).when(adminClient).getAgencyById(anyObject());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-        doThrow(new InvalidParseOperationException("Exception")).when(adminCLient).getAgencyById(anyObject());
+        doThrow(new InvalidParseOperationException("Exception")).when(adminClient).getAgencyById(anyObject());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1925,11 +1926,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testimportValidContextFileReturnCreated() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(Status.CREATED).when(adminCLient).importContexts(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.CREATED).when(adminClient).importContexts(anyObject());
         File contextFile = PropertiesUtils.getResourceFile("context.json");
         JsonNode json = JsonHandler.getFromFile(contextFile);
         given().contentType(ContentType.JSON).body(json)
@@ -1941,12 +1942,12 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testfindContextFile() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
 
-        doReturn(new RequestResponseOK<>().addAllResults(getContexts())).when(adminCLient)
+        doReturn(new RequestResponseOK<>().addAllResults(getContexts())).when(adminClient)
             .findContexts(anyObject());
 
         final Select select = new Select();
@@ -2015,11 +2016,11 @@ public class AdminManagementExternalResourceTest {
     @Test
     public void testImportContextsWithInvalidFileBadRequest() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(Status.BAD_REQUEST).when(adminCLient).importContexts(anyObject());
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.BAD_REQUEST).when(adminClient).importContexts(anyObject());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -2027,7 +2028,7 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
         doThrow(new ReferentialException("ReferentialException"))
-            .when(adminCLient).importContexts(anyObject());
+            .when(adminClient).importContexts(anyObject());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -2044,6 +2045,161 @@ public class AdminManagementExternalResourceTest {
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().get(AccessExtAPI.RULES_REPORT_API + "/id")
             .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void testCreateArchiveUnitProfileWithInvalidFileBadRequest() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
+            .createArchiveUnitProfiles(anyObject());
+
+        File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("AUP_missing_identifier.json");
+        JsonNode json = JsonHandler.getFromFile(fileArchiveUnitProfiles);
+
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
+    }
+
+
+    @Test
+    public void testCreateValidArchiveUnitProfileReturnCreated() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
+            .createArchiveUnitProfiles(anyObject());
+
+        File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profiles_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileArchiveUnitProfiles);
+
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.CREATED.getStatusCode()).contentType("application/json");
+    }
+
+    @Test
+    public void testFindArchiveUnitProfiles() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
+            .findArchiveUnitProfiles(anyObject());
+
+        final Select select = new Select();
+        select.setQuery(eq("Status", "ACTIVE"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("Status", "ACTIVE"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when().post(ARCHIVE_UNIT_PROFILE_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+    }
+    
+    
+    
+    @Test
+    public void testUpdateArchiveUnitProfile()
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
+        String NewPermission = "new_permission:update:json";
+
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Name", "aName"));
+        final SetAction setActionAddPermission = UpdateActionHelper.set("Permissions", NewPermission);
+        update.addActions(setActionAddPermission);
+        AdminManagementClientFactory.changeMode(null);
+
+        // valid query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(ARCHIVE_UNIT_PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // wrong query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(ARCHIVE_UNIT_PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // no query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(ARCHIVE_UNIT_PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // no tenant
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .when().put(ARCHIVE_UNIT_PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test

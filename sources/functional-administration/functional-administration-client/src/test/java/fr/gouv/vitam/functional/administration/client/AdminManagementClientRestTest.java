@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
@@ -459,6 +460,42 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
             return expectedResponse.post();
         }
+        
+
+        @POST
+        @Path("/archiveunitprofiles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createArchiveUnitProfiles(List<ArchiveUnitProfileModel> aupModelList) {
+            return expectedResponse.post();
+        }
+
+        @PUT
+        @Path("/archiveunitprofiles/{id}")
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importArchiveUnitProfileFile(@PathParam("id") String aupMetadataId,
+            InputStream profileArchiveUnitFile) {
+            return expectedResponse.put();
+        }
+
+        @PUT
+        @Path("/archiveunitprofiles/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateArchiveUnitProfileFile(@PathParam("id") String profileArchiveUnitMetadataId,
+            JsonNode queryDsl) {
+            return expectedResponse.put();
+        }
+
+        @GET
+        @Path("/archiveunitprofiles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findArchiveUnitProfiles(JsonNode queryDsl) {
+            return expectedResponse.get();
+        }
+
     }
 
 
@@ -1176,6 +1213,92 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             .build());
         RequestResponse<JsonNode> resp = client.objectGroupEvidenceAudit("ID");
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createArchiveUnitProfilesWithCorrectJsonReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.CREATED)
+            .entity(new RequestResponseOK<ArchiveUnitProfileModel>().addAllResults(getArchiveUnitProfiles())).build());
+        RequestResponse resp = client.createArchiveUnitProfiles(new ArrayList<>());
+        assertEquals(Status.CREATED.getStatusCode(), resp.getHttpCode());
+    }
+
+    /**
+     * Test that archive unit profiles is reachable and does not return elements
+     * 
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllArchiveUnitProfilesThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ArchiveUnitProfileModel>()).build());
+        RequestResponse resp = client.findArchiveUnitProfiles(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void updateArchiveUnitProfile()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
+        ReferentialNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.put()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<ArchiveUnitProfileModel>()).build());
+        RequestResponse resp = client.updateArchiveUnitProfile("fakeId", JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+    }
+
+    /**
+     * Test that archive unit profiles is reachable and return two elements as expected
+     * 
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllArchiveUnitProfilesThenReturnTwo()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<ArchiveUnitProfileModel>().addAllResults(getArchiveUnitProfiles())).build());
+        RequestResponse resp = client.findArchiveUnitProfiles(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK) resp).getResults().iterator().next()).isInstanceOf(ArchiveUnitProfileModel.class);
+    }
+
+    /**
+     * Test that archive unit profiles by id is reachable
+     * 
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void findArchiveUnitProfilesByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
+        ReferentialNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ArchiveUnitProfileModel>()).build());
+        RequestResponse resp = client.findArchiveUnitProfilesByID("fakeId");
+    }
+
+    private List<ArchiveUnitProfileModel> getArchiveUnitProfiles() throws FileNotFoundException, InvalidParseOperationException {
+        File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profile_ok.json");
+        return JsonHandler.getFromFileAsTypeRefence(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {});
     }
 
 }
