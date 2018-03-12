@@ -26,10 +26,42 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
+import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
+import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.assertj.core.api.Fail;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
+
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -49,6 +81,8 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.FacetBucket;
+import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -60,34 +94,6 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
-import org.assertj.core.api.Fail;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
-import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
-import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * step defining access glue
@@ -118,6 +124,8 @@ public class AccessStep {
 
     private List<JsonNode> results;
 
+    private List<FacetResult> facetResults;
+
     private World world;
 
     private Status auditStatus;
@@ -129,6 +137,43 @@ public class AccessStep {
     }
 
     /**
+     * Check facet bucket value count
+     * 
+     * @param facetName facet name
+     * @param count bucket count
+     * @param value bucket value
+     * @throws Throwable when not valid
+     */
+    @Then("^le résultat pour la facet (.*) contient (\\d+) valeurs (.*)$")
+    public void facetmetadata_contains_values_count(String facetName, int count, String value) throws Throwable {
+        Optional<FacetResult> facetResult =
+            facetResults.stream().filter(item -> item.getName().equals(facetName)).findFirst();
+        assertThat(facetResult).as("facetResult with name " + facetName + " was not found").isPresent();
+        Optional<FacetBucket> facetBucket =
+            facetResult.get().getBuckets().stream().filter(item -> item.getValue().equals(value)).findFirst();
+        assertThat(facetBucket).as("facetResult with name " + facetName + " does not contains value " + value).isPresent();
+        assertThat(facetBucket.get().getCount()).isEqualTo(count);
+    }
+
+    /**
+     * Check facet does not contains bucket for value
+     * 
+     * @param facetName facet name
+     * @param count count
+     * @param value value
+     * @throws Throwable when not valid
+     */
+    @Then("^le résultat pour la facet (.*) ne contient pas la valeur (.*)$")
+    public void facetmetadata_does_not_contains_value(String facetName, String value) throws Throwable {
+        Optional<FacetResult> facetResult =
+            facetResults.stream().filter(item -> item.getName().equals(facetName)).findFirst();
+        assertThat(facetResult).as("facetResult with name " + facetName + " was not found").isPresent();
+        Optional<FacetBucket> facetBucket =
+            facetResult.get().getBuckets().stream().filter(item -> item.getValue().equals(value)).findFirst();
+        assertThat(facetBucket).as("facetResult with name " + facetName + " contains value " + value).isNotPresent();
+    }
+
+    /**
      * check if the metadata are valid.
      *
      * @param dataTable dataTable
@@ -137,12 +182,13 @@ public class AccessStep {
     @Then("^les metadonnées sont$")
     public void metadata_are(DataTable dataTable) throws Throwable {
         metadata_are_for_particular_result(0, dataTable);
+
     }
 
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable    dataTable
+     * @param dataTable dataTable
      * @param resultNumber resultNumber
      * @throws Throwable
      */
@@ -221,7 +267,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field     field name
+     * @param field field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -319,7 +365,7 @@ public class AccessStep {
      * replace in the loaded query the given parameter by the given value
      *
      * @param parameter parameter name in the query
-     * @param value     the valeur to replace the parameter
+     * @param value the valeur to replace the parameter
      * @throws Throwable
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
@@ -386,6 +432,7 @@ public class AccessStep {
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
+            facetResults = requestResponseOK.getFacetResults();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
@@ -408,6 +455,7 @@ public class AccessStep {
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
+            facetResults = requestResponseOK.getFacetResults();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
@@ -611,8 +659,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename   name of the file to import or check
+     * @param action the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -845,8 +893,7 @@ public class AccessStep {
         // Select operation
         Select select = new Select();
         BooleanQuery query = and().add(
-            eq(LogbookMongoDbName.eventType.getDbname(), EVIDENCE_AUDIT)
-        );
+            eq(LogbookMongoDbName.eventType.getDbname(), EVIDENCE_AUDIT));
         select.setQuery(query);
         select.setLimitFilter(0, 1);
         select.addOrderByDescFilter("events.evDateTime");
