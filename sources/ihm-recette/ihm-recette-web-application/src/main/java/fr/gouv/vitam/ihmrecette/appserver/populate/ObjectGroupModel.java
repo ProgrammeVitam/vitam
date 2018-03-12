@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +41,7 @@ public class ObjectGroupModel {
 
     @JsonProperty("FileInfo")
     private FileInfoModel fileInfoModel;
-    
+
     @JsonProperty("_qualifiers")
     private List<ObjectGroupQualifiersModel> qualifiers;
 
@@ -52,6 +53,13 @@ public class ObjectGroupModel {
 
     @JsonProperty("_sps")
     private Set<String> sps = new HashSet<>();
+
+    @JsonProperty("_ops")
+    private List<String> operationIds = new ArrayList<>();
+
+    @JsonProperty("_opi")
+    private String operationOriginId;
+
 
     @JsonProperty("_tenant")
     private int tenant;
@@ -114,4 +122,21 @@ public class ObjectGroupModel {
     public void setTenant(int tenant) {
         this.tenant = tenant;
     }
+
+    public List<String> getOperationIds() {
+        return operationIds;
+    }
+
+    public void setOperationIds(List<String> operationIds) {
+        this.operationIds = operationIds;
+    }
+
+    public String getOperationOriginId() {
+        return operationOriginId;
+    }
+
+    public void setOperationOriginId(String operationOriginId) {
+        this.operationOriginId = operationOriginId;
+    }
+
 }
