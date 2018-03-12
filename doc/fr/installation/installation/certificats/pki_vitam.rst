@@ -52,4 +52,6 @@ Les mots de passe des clés privées des certificats sont stockés dans le vault
 
 .. caution::  Les certificats générés à l'issue ont une durée de validité de (à vérifier).
 
+.. include:: swift.rst
+
 .. include:: keystores.rst
