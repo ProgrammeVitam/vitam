@@ -108,13 +108,13 @@ hosts-mongoc-offer
 hosts-mongod-offer
 
 [hosts-mongos-offer]
-localhost   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+localhost                       mongo_rs_bootstrap=true
 
 [hosts-mongoc-offer]
-localhost   mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
+localhost                       mongo_rs_bootstrap=true
 
 [hosts-mongod-offer]
-localhost   mongo_cluster_name=offer-fs-1   mongo_shard_id=0    mongo_rs_bootstrap=true
+localhost   mongo_shard_id=0    mongo_rs_bootstrap=true
 
 
 ##### Zone data
@@ -135,13 +135,13 @@ hosts-mongod-data
 mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
-localhost                     mongo_rs_bootstrap=true
+localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
 
 [hosts-mongoc-data]
-localhost                     mongo_rs_bootstrap=true
+localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
 
 [hosts-mongod-data]
-localhost   mongo_shard_id=0  mongo_rs_bootstrap=true
+localhost   mongo_cluster_name=mongo-data   mongo_shard_id=0  mongo_rs_bootstrap=true
 
 ###### Zone admin
 
