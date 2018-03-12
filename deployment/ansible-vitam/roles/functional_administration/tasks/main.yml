@@ -1,8 +1,57 @@
 ---
 
-- name: Ensure vitam-rule-management-audit timer is started
-  systemd:
-    name: "vitam-rule-management-audit.timer"
-    daemon_reload: "yes"
-    enabled: "yes"
-    state: "started"
+- name: Copy the functional_administration reconstruction script
+  template:
+    src: "reconstruction.sh.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/script/functional-administration/reconstruction.sh"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.script_permission }}"
+
+- name: Copy the functional_administration reconstruction conf
+  template:
+    src: "reconstruction.conf.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/functional-administration/reconstruction.conf"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+
+# Primary site block
+- block:
+
+    - name: Ensure vitam-rule-management-audit timer is started
+      systemd:
+        name: "vitam-rule-management-audit.timer"
+        daemon_reload: "yes"
+        enabled: "yes"
+        state: "started"
+      when: inventory_hostname == groups["hosts-functional-administration"] | last
+
+    - name: Ensure vitam-functional-administration-reconstruction timer is stopped
+      systemd:
+        name: "vitam-functional-administration-reconstruction.timer"
+        daemon_reload: "yes"
+        enabled: "no"
+        state: "stopped"
+
+  when: primary_site | lower == "true"
+
+# Secondary site block
+- block:
+
+    - name: Ensure vitam-rule-management-audit timer is stopped on non-primary site
+      systemd:
+        name: "vitam-rule-management-audit.timer"
+        daemon_reload: "yes"
+        enabled: "no"
+        state: "stopped"
+
+    - name: Ensure vitam-functional-administration-reconstruction timer is started
+      systemd:
+        name: "vitam-functional-administration-reconstruction.timer"
+        daemon_reload: "yes"
+        enabled: "yes"
+        state: "started"
+      when: inventory_hostname == groups["hosts-functional-administration"] | last
+
+  when: primary_site | lower == "false"

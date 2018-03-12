@@ -47,7 +47,7 @@
 
 - name: create DocumentRoot directory
   file:
-    path: "/var/www/html-{{ environnement }}"
+    path: "/var/www/html-{{ vitam_site_name }}"
     state: directory
     owner: root
     mode: 0755
@@ -64,7 +64,7 @@
 
 - name: create ca directory
   file:
-    path: "/etc/{{ apache_service }}/ca/{{ environnement }}"
+    path: "/etc/{{ apache_service }}/ca/{{ vitam_site_name }}"
     state: directory
     owner: "root"
     group: "{{ apache_group }}"
@@ -73,7 +73,7 @@
 - name: copy index resources
   copy:
     src: "{{ item }}"
-    dest: "/var/www/html-{{ environnement }}/"
+    dest: "/var/www/html-{{ vitam_site_name }}/"
     owner: "root"
     mode: 0644
   with_items:
@@ -87,7 +87,7 @@
 - name: copy index default page
   template:
     src: "index.html.j2"
-    dest: "/var/www/html-{{ environnement }}/index.html"
+    dest: "/var/www/html-{{ vitam_site_name }}/index.html"
     owner: "root"
     mode: 0644
   tags:
@@ -99,7 +99,7 @@
 - name: copy certificate
   copy:
     src: "{{ inventory_dir }}/keystores/client-external/keystore_reverse.p12"
-    dest: "/etc/{{ apache_service }}/certs/keystore_client_{{ environnement }}.p12"
+    dest: "/etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.p12"
     owner: "root"
     mode: 0400
   notify:
@@ -109,7 +109,7 @@
 - name: Copy the CA
   copy:
     src: "{{ item }}"
-    dest: "/etc/{{ apache_service }}/ca/{{ environnement }}/{{ item | basename }}"
+    dest: "/etc/{{ apache_service }}/ca/{{ vitam_site_name }}/{{ item | basename }}"
     owner: "root"
     mode: 0400
   with_fileglob:

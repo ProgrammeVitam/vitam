@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
 source /vitam/conf/${unix.name}/sysconfig/java_opts
 

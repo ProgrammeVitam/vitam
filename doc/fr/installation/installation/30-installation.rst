@@ -82,6 +82,8 @@ Vérification de la génération des hostvars
 
 A l'issue, vérifier le contenu des fichiers générés sous ``environments/host_vars/`` et les adapter au besoin.
 
+.. caution:: Cas d'une installation multi-sites. Sur site secondaire, s'assurer que, pour les machines hébergeant les offres, la directive ``ip_wan``  a bein été déclarée (l'ajouter manuelleent, le cas échéant), pour que site le site "primaire" sache les contacter via une IP particulière. Par cdéfaut, c'est l'IP de service.
+
 Déploiement
 -------------
 

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -e
+
+CURRENT_DIR="$( cd "$( readlink -f $(dirname ${BASH_SOURCE[0]}) )" ; pwd )"
+RECONSTRUCTION_URL="http://{{ ip_admin }}:{{ vitam.metadata.port_admin }}/metadata/v1/reconstruction"
+
+function log() {
+    LEVEL=${1}
+    MSG=${2}
+    TIMESTAMP=$( date +"%Y-%m-%d %H:%M:%S" )
+    echo ${TIMESTAMP} [[vitam-metadata-reconstruction]] [vitam-metadata-reconstruction] ${LEVEL} reconstruction.sh - vitam-metadata-reconstruction.service : [${HOSTNAME}:vitam-metadata-reconstruction.service:0] ${MSG}
+}
+
+function local_curl() {
+    COLLECTION=${1}
+    curl -s -X POST -H "X-Tenant-Id: 1" -H "Content-Type: application/json" --user "${VITAM_ADMIN_AUTH}" --data @${CURRENT_DIR}/reconstruction_payload.json ${RECONSTRUCTION_URL}
+    log "INFO" "${MSG}"
+}
+
+# Main
+local_curl

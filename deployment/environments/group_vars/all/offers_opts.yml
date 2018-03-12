@@ -3,7 +3,12 @@
 vitam_strategy:
   - name: offer-fs-1
     referent: true
+#    vitam_site_name: prod-dc2
 #  - name: offer_swift_1
+# Example :
+#  - name: distant
+#    referent: true
+#    vitam_site_name: distant-dc2
 
 # DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
 # ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage

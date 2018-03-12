@@ -1,0 +1,13 @@
+[
+    {% for tenant  in vitam_tenant_ids %}
+    {
+        "collection": "UNIT",
+        "tenant": {{ tenant }}
+    },
+    {
+        "collection": "OBJECTGROUP",
+        "tenant": {{ tenant }}
+    }
+    {% if not loop.last %},{% endif %}
+    {% endfor %}
+]

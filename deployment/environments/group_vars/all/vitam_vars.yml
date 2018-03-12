@@ -10,6 +10,7 @@ vitam_defaults:
         folder_permission: "0750"
         conf_permission: "0640"
         folder_upload_permission: "0770"
+        script_permission: "0750"
     users:
         vitam: "vitam"
         vitamdb: "vitamdb"
@@ -33,8 +34,10 @@ vitam_defaults:
 # TODO : consul_domain should be in inventory as choosable by customer
 consul_domain: consul
 consul_component: consul
-consul_folder_conf: "{{vitam_defaults.folder.root_path}}/conf/{{consul_component}}"
+consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_component }}"
 
+# Workspace should be useless but storage have a dependency to it...
+vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos" ]
 
 
 ### Composants Vitam ###
@@ -42,7 +45,7 @@ consul_folder_conf: "{{vitam_defaults.folder.root_path}}/conf/{{consul_component
 vitam:
     accessexternal:
         vitam_component: access-external
-        host: "access-external.service.{{consul_domain}}"
+        host: "access-external.service.{{ consul_domain }}"
         port_admin: 28102
         port_service: 8444
         baseuri: "access-external"
@@ -50,7 +53,7 @@ vitam:
         secret_platform: "false"
     accessinternal:
         vitam_component: access-internal
-        host: "access-internal.service.{{consul_domain}}"
+        host: "access-internal.service.{{ consul_domain }}"
         port_service: 8101
         port_admin: 28101
         baseuri: "access-internal"
@@ -58,7 +61,7 @@ vitam:
         secret_platform: "true"
     functional_administration:
         vitam_component: functional-administration
-        host: "functional-administration.service.{{consul_domain}}"
+        host: "functional-administration.service.{{ consul_domain }}"
         port_service: 8004
         port_admin: 18004
         baseuri: "functional-administration"
@@ -67,7 +70,7 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
     ingestexternal:
         vitam_component: ingest-external
-        host: "ingest-external.service.{{consul_domain}}"
+        host: "ingest-external.service.{{ consul_domain }}"
         port_admin: 28001
         port_service: 8443
         baseuri: "ingest-external"
@@ -84,7 +87,7 @@ vitam:
         upload_final_action: "MOVE"
     ingestinternal:
         vitam_component: ingest-internal
-        host: "ingest-internal.service.{{consul_domain}}"
+        host: "ingest-internal.service.{{ consul_domain }}"
         port_service: 8100
         port_admin: 28100
         baseuri: "ingest-internal"
@@ -92,7 +95,7 @@ vitam:
         secret_platform: "true"
     ihm_demo:
         vitam_component: "ihm-demo"
-        host: "ihm-demo.service.{{consul_domain}}"
+        host: "ihm-demo.service.{{ consul_domain }}"
         port_service: 8002
         port_admin: 28002
         baseurl: "/ihm-demo"
@@ -119,7 +122,7 @@ vitam:
             # - ldapRealm
     logbook:
         vitam_component: logbook
-        host: "logbook.service.{{consul_domain}}"
+        host: "logbook.service.{{ consul_domain }}"
         port_service: 9002
         port_admin: 29002
         baseuri: "logbook"
@@ -131,10 +134,9 @@ vitam:
         operationTraceabilityOverlapDelay: 300
         lifecycleTraceabilityOverlapDelay: 300
         disablePurgeForTempLFC: false
-
     metadata:
         vitam_component: metadata
-        host: "metadata.service.{{consul_domain}}"
+        host: "metadata.service.{{ consul_domain }}"
         port_service: 8200
         port_admin: 28200
         baseuri: "metadata"
@@ -143,7 +145,7 @@ vitam:
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
     processing:
         vitam_component: processing
-        host: "processing.service.{{consul_domain}}"
+        host: "processing.service.{{ consul_domain }}"
         port_service: 8203
         port_admin: 28203
         baseuri: "processing"
@@ -151,7 +153,7 @@ vitam:
         secret_platform: "true"
     security_internal:
         vitam_component: security-internal
-        host: "security-internal.service.{{consul_domain}}"
+        host: "security-internal.service.{{ consul_domain }}"
         port_service: 8005
         port_admin: 28005
         baseuri: "security-internal"
@@ -159,7 +161,7 @@ vitam:
         secret_platform: "true"
     storageengine:
         vitam_component: storage
-        host: "storage.service.{{consul_domain}}"
+        host: "storage.service.{{ consul_domain }}"
         port_service: 9102
         port_admin: 29102
         baseuri: "storage-engine"
@@ -182,7 +184,7 @@ vitam:
         secret_platform: "true"
     workspace:
         vitam_component: workspace
-        host: "workspace.service.{{consul_domain}}"
+        host: "workspace.service.{{ consul_domain }}"
         port_service: 8201
         port_admin: 28201
         baseuri: "workspace"

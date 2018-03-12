@@ -1,5 +1,5 @@
 ---
-# tasks file for storage-engine
+
 - name: copy file for driver in data
   template:
     src: "fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
@@ -31,6 +31,7 @@
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
+  when: primary_site | lower == "true"
 
 - name: Ensure storage traceability systemd timer is enabled
   systemd:
@@ -40,3 +41,12 @@
     state: "started"
   run_once: yes
   delegate_to: "{{ groups['hosts-storage-engine'] | last }}"
+  when: primary_site | lower == "true"
+
+- name: Ensure storage traceability systemd timer is stopped on non-primary site
+  systemd:
+    name: "vitam-storage-log-traceability.timer"
+    daemon_reload: "yes"
+    enabled: "no"
+    state: "stopped"
+  when: primary_site | lower == "false"
