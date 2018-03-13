@@ -152,7 +152,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
     /**
-     * Access contract 
+     * Access contract
      */
     public static final String ACCESS_CONTRACT = "AccessContract";
 
@@ -229,7 +229,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient a StorageClient instance
+     * @param storageClient           a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -245,7 +245,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws InvalidParseOperationException   Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -287,8 +287,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit as String
-     * @throws IllegalArgumentException Throw if json format is not correct
+     * @param idUnit    as String
+     * @throws IllegalArgumentException         Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -714,7 +714,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @param idUnit the unit id
      * @return a new JsonNode with unit and lfc inside
      * @throws InvalidParseOperationException
-     * @throws AccessInternalException if unable to find the unit or it's lfc
+     * @throws AccessInternalException        if unable to find the unit or it's lfc
      */
     private JsonNode getUnitRawWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
         try {
@@ -744,7 +744,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
-     * @param idDocument document uuid
+     * @param idDocument   document uuid
      * @param dataCategory accepts UNIT or OBJECTGROUP
      * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
@@ -777,7 +777,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error message to throw if response is null or no result could be found
+     * @param error        message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -809,7 +809,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException when error in execution
+     * @throws ProcessingException                 when error in execution
      */
     private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
@@ -874,33 +874,34 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                 logbookOperationClient.update(logbookOpParamEnd);
 
-                if (!stepStorageUpdate) {
-                    // STEP UNIT_METADATA_STORAGE KO
+                if (!stepLFCCommit) {
+                    // STEP COMMIT_LIFE_CYCLE_UNIT KO
                     logbookOpParamEnd =
                         getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
                             updateOpGuidStart,
-                            StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.KO),
+                            StatusCode.KO, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.KO),
                             idRequest,
-                            UNIT_METADATA_STORAGE, false);
+                            COMMIT_LIFE_CYCLE_UNIT, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                     logbookOperationClient.update(logbookOpParamEnd);
                 } else {
                     // STEP UNIT_METADATA_STORAGE OK
                     logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(
                         GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
-                        StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idRequest,
-                        UNIT_METADATA_STORAGE, false);
+                        StatusCode.OK, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.OK),
+                        idRequest,
+                        COMMIT_LIFE_CYCLE_UNIT, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                     logbookOperationClient.update(logbookOpParamEnd);
 
-                    if (!stepLFCCommit) {
-                        // STEP COMMIT_LIFE_CYCLE_UNIT KO
+                    if (!stepStorageUpdate) {
+                        // STEP UNIT_METADATA_STORAGE KO
                         logbookOpParamEnd =
                             getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
                                 updateOpGuidStart,
-                                StatusCode.KO, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.KO),
+                                StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.KO),
                                 idRequest,
-                                COMMIT_LIFE_CYCLE_UNIT, false);
+                                UNIT_METADATA_STORAGE, false);
                         logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                         logbookOperationClient.update(logbookOpParamEnd);
                     } else {
@@ -1130,7 +1131,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
      * for the request because they will be computed for endDate and reinserted later
      *
-     * @param request The initial request
+     * @param request              The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
