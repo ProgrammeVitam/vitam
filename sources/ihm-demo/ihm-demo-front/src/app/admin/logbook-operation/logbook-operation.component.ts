@@ -108,7 +108,7 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() == 'IMPORT_AGENCIES') {
+    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() == 'IMPORT_AGENCIES' || item.evType.toUpperCase() == 'HOLDINGSCHEME') {
       return ['fa-download']
     }else {
       return [];
@@ -188,9 +188,13 @@ export class LogbookOperationComponent extends PageComponent {
         break;
       case 'MASTERDATA':
         if(item.evType.toUpperCase() == 'STP_IMPORT_RULES' || item.evType.toUpperCase() == 'IMPORT_AGENCIES') {
-          logbookService.downloadReport(item.evIdProc);
-        }
-        break;
+            logbookService.downloadReport(item.evIdProc);
+            break;
+        } else if (item.evType.toUpperCase() == 'HOLDINGSCHEME') {
+            logbookService.downloadObject(item.evIdProc);
+            break;
+        } 
+        
     }
 
   }
