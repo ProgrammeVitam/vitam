@@ -101,7 +101,7 @@
       "stepName": "STP_OG_CHECK_AND_TRANSFORME",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
+        "kind": "LIST_ORDERING_IN_FILE",
         "element": "ObjectGroup"
       },
       "actions": [
@@ -142,7 +142,7 @@
       "stepName": "STP_UNIT_CHECK_AND_PROCESS",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
+        "kind": "LIST_ORDERING_IN_FILE",
         "element": "Units"
       },
       "actions": [
@@ -194,7 +194,7 @@
       "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
+        "kind": "LIST_ORDERING_IN_FILE",
         "element": "ObjectGroup"
       },
       "actions": [
@@ -229,7 +229,7 @@
       "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
+        "kind": "LIST_ORDERING_IN_FILE",
         "element": "Units"
       },
       "actions": [

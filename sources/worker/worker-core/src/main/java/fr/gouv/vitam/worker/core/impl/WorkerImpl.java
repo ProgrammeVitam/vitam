@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +36,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -42,13 +43,10 @@ import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AuditWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Action;
 import fr.gouv.vitam.common.model.processing.ActionDefinition;
-import fr.gouv.vitam.common.model.processing.DistributionKind;
-import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -59,7 +57,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookType;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -109,9 +106,7 @@ public class WorkerImpl implements Worker {
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
     private static final String HANDLER_NOT_FOUND = ": handler not found exception: ";
-    private static final String UNIT_LIST_WITHOUT_LEVEL = "UnitsWithoutLevel";
-    private static final String OG_LIST_WITHOUT_LEVEL = "ObjectGroupWithoutLevel";
-    public static final String DATA_BINARIES_JSON = "data/binaries.json";
+
     private final Map<String, ActionHandler> actions = new HashMap<>();
     private String workerId;
     private final PluginLoader pluginLoader;
@@ -136,7 +131,7 @@ public class WorkerImpl implements Worker {
     /**
      * Add an actionhandler in the pool of action
      *
-     * @param actionName    action name
+     * @param actionName action name
      * @param actionHandler action handler
      * @return WorkerImpl
      */
@@ -256,13 +251,8 @@ public class WorkerImpl implements Worker {
 
                             ItemStatus pluginResponse;
                             LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
-                            boolean shouldWriteLFC = (!actionPlugin.lfcHandledInternally()) &&
-                                ((step.getDistribution().getKind().equals(DistributionKind.LIST) ||
-                                    step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) &&
-                                    (!step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL) &&
-                                        !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL) &&
-                                        !step.getDistribution().getElement().equals(DATA_BINARIES_JSON)));
-                            if (shouldWriteLFC) {
+
+                            if (action.getActionDefinition().lifecycleEnabled()) {
                                 LogbookLifeCycleParameters lfcParam =
                                     createStartLogbookLfc(step, handlerName, workParams);
                                 pluginResponse = actionPlugin.execute(workParams, handlerIO);
@@ -327,47 +317,38 @@ public class WorkerImpl implements Worker {
         WorkerParameters workParams)
         throws InvalidGuidOperationException {
         LogbookLifeCycleParameters lfcParam = null;
-        if (step.getDistribution().getElement()
-            .equals(LogbookType.UNITS.getType())) {
-            lfcParam = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
-                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                VitamLogbookMessages.getEventTypeLfc(handlerName),
-                GUIDReader.getGUID(workParams.getContainerName()),
-                // TODO Le type de process devrait venir du message recu (paramètre du workflow)
-                workParams.getLogbookTypeProcess(),
-                StatusCode.OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
-                GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
-        } else if (step.getDistribution().getElement()
-            .equals(LogbookType.OBJECTGROUP.getType()) ||
-            DistributionType.ObjectGroup .equals(step.getDistribution().getType())) {
-            lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                VitamLogbookMessages.getEventTypeLfc(handlerName),
-                GUIDReader.getGUID(workParams.getContainerName()),
-                // TODO Le type de process devrait venir du message recu (paramètre du workflow)
-                workParams.getLogbookTypeProcess(),
-                StatusCode.OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
-                GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
-        } else if (step.getDistribution().getElement()
-            .equals(AuditWorkflowConstants.AUDIT_FILE)) {
-            lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                VitamLogbookMessages.getEventTypeLfc(handlerName),
-                GUIDReader.getGUID(workParams.getContainerName()),
-                // TODO Le type de process devrait venir du message recu (paramètre du workflow)
-                workParams.getLogbookTypeProcess(),
-                StatusCode.OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
-                GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
-        }
-        if (lfcParam != null) {
-            lfcParam.putParameterValue(LogbookParameterName.eventDateTime,
-                LocalDateUtil.now().toString());
+        switch (step.getDistribution().getType()) {
+
+            case Units:
+                lfcParam = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
+                    GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+                    VitamLogbookMessages.getEventTypeLfc(handlerName),
+                    GUIDReader.getGUID(workParams.getContainerName()),
+                    // TODO Le type de process devrait venir du message recu (paramètre du workflow)
+                    workParams.getLogbookTypeProcess(),
+                    StatusCode.OK,
+                    VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
+                    VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
+                    GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
+
+                lfcParam.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
+
+                break;
+            case ObjectGroup:
+                lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                    GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+                    VitamLogbookMessages.getEventTypeLfc(handlerName),
+                    GUIDReader.getGUID(workParams.getContainerName()),
+                    // TODO Le type de process devrait venir du message recu (paramètre du workflow)
+                    workParams.getLogbookTypeProcess(),
+                    StatusCode.OK,
+                    VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
+                    VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
+                    GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
+
+                lfcParam.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
+
+                break;
         }
         return lfcParam;
     }

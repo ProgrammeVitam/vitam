@@ -339,7 +339,7 @@ public class ProcessManagementImplTest {
         step.setBehavior(ProcessBehavior.NOBLOCKING);
         Distribution distrib = new Distribution();
         distrib.setElement(element);
-        distrib.setKind(DistributionKind.LIST);
+        distrib.setKind(DistributionKind.LIST_ORDERING_IN_FILE);
         step.setDistribution(distrib);
         step.setStepName(name);
         ItemStatus itemStatus = new ItemStatus();

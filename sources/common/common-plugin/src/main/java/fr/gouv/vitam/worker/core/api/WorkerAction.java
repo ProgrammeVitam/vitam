@@ -63,12 +63,4 @@ public interface WorkerAction {
      */
     void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException;
 
-    /**
-     * Should be used to check if LFC log is handled by the WorkerAction itself
-     * 
-     * @return true if LFC in handled internally
-     */
-    default boolean lfcHandledInternally() {
-        return false;
-    }
 }

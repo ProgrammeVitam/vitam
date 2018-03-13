@@ -3,8 +3,9 @@
       "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "Units"
+        "kind": "LIST_ORDERING_IN_FILE",
+        "element": "Units",
+        "type": "Units"
       },
       "actions": [
         {

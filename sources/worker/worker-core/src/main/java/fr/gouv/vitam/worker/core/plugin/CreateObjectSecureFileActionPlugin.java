@@ -83,9 +83,4 @@ public class CreateObjectSecureFileActionPlugin extends CreateSecureFileActionPl
         // Nothing to do
     }
 
-    @Override
-    public boolean lfcHandledInternally() {
-        // De not create LFC in @see WorkerImpl
-        return true;
-    }
 }

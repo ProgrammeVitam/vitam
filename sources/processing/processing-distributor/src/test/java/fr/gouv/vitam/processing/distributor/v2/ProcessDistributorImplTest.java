@@ -25,6 +25,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Distribution;
 import fr.gouv.vitam.common.model.processing.DistributionKind;
+import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
@@ -218,17 +219,6 @@ public class ProcessDistributorImplTest {
             ProcessBehavior.NOBLOCKING);
     }
 
-    private ProcessStep getStep() {
-        return getStep("FakeStepId", "FakeStepName", DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS,
-            ProcessBehavior.NOBLOCKING);
-    }
-
-
-    private ProcessStep getStep(String stepId, String stepName) {
-        return getStep(stepId, stepName, DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS,
-            ProcessBehavior.NOBLOCKING);
-    }
-
     private ProcessStep getStep(String stepId, String stepName, DistributionKind distributionKind,
         String distributorElement, ProcessBehavior processBehavior) {
         final Step step = new Step();
@@ -236,6 +226,7 @@ public class ProcessDistributorImplTest {
         final Distribution distribution = new Distribution();
         distribution.setKind(distributionKind);
         distribution.setElement(distributorElement);
+        distribution.setType(DistributionType.Units);
         step.setDistribution(distribution);
         step.setBehavior(processBehavior);
         return new ProcessStep(step, 0, 0, stepId);
@@ -359,7 +350,7 @@ public class ProcessDistributorImplTest {
                 workspaceClientFactory);
 
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS), operationId,
+            .distribute(workerParameters, getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
         assertTrue(StatusCode.OK.equals(itemStatus.getGlobalStatus()));
@@ -402,7 +393,7 @@ public class ProcessDistributorImplTest {
                 workspaceClientFactory);
 
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS), operationId,
+            .distribute(workerParameters, getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
         assertTrue(StatusCode.KO.equals(itemStatus.getGlobalStatus()));
@@ -443,7 +434,7 @@ public class ProcessDistributorImplTest {
                 workspaceClientFactory);
 
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS), operationId,
+            .distribute(workerParameters, getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
         assertTrue(StatusCode.WARNING.equals(itemStatus.getGlobalStatus()));
@@ -476,7 +467,7 @@ public class ProcessDistributorImplTest {
                 workspaceClientFactory);
 
         ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS), operationId,
+            .distribute(workerParameters, getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS), operationId,
                 PauseRecover.NO_RECOVER);
         assertNotNull(itemStatus);
         assertTrue(StatusCode.FATAL.equals(itemStatus.getGlobalStatus()));
@@ -485,9 +476,8 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenDistributePauseOK() throws WorkerAlreadyExistsException,
-        IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        WorkerNotFoundClientException, WorkerServerClientException {
+    public void whenDistributePauseOK() throws IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, WorkerNotFoundClientException, WorkerServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
 
@@ -500,6 +490,7 @@ public class ProcessDistributorImplTest {
         when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
+            System.out.println("submit step");
             countDownLatchSubmit.countDown();
             return getMockedItemStatus(StatusCode.OK);
         });
@@ -508,14 +499,12 @@ public class ProcessDistributorImplTest {
             new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
                 workspaceClientFactory);
 
-        Step step = getStep(DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS);
+        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final ItemStatus[] itemStatus = new ItemStatus[1];
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-            itemStatus[0] = processDistributor
-                .distribute(workerParameters, step, operationId,
-                    PauseRecover.NO_RECOVER);
+            itemStatus[0] = processDistributor.distribute(workerParameters, step, operationId, PauseRecover.NO_RECOVER);
 
             countDownLatch.countDown();
         });
@@ -585,7 +574,7 @@ public class ProcessDistributorImplTest {
             new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
                 workspaceClientFactory);
 
-        Step step = getStep(DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS);
+        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final ItemStatus[] itemStatus = new ItemStatus[1];
@@ -654,7 +643,7 @@ public class ProcessDistributorImplTest {
             new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
                 workspaceClientFactory);
 
-        Step step = getStep(DistributionKind.LIST, ProcessDistributor.ELEMENT_UNITS);
+        Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         final ItemStatus[] itemStatus = new ItemStatus[1];
