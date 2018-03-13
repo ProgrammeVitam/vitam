@@ -20,37 +20,37 @@ Exemple de JSON : rapport d'audit KO
      "source": [
         {
            "_tenant": "2",
-           "agIdOrig": "FRAN_NP_009913",
+           "OriginatingAgency": "FRAN_NP_009913",
            "evIdProc": "aedqaaaaakeuctkoabjgkak6lowhh6yaaaaq"
         },
         {
            "_tenant": "2",
-           "agIdOrig": "RATP",
+           "OriginatingAgency": "RATP",
            "evIdProc": "aedqaaaaakhu4m3aaaz2aak6loy4jxqaaaaq"
         },
         {
            "_tenant": "2",
-           "agIdOrig": "RATP",
+           "OriginatingAgency": "RATP",
            "evIdProc": "aedqaaaaakhu4m3aaaz2aak6lo2shsiaaaaq"
         },
         {
            "_tenant": "2",
-           "agIdOrig": "OBJ_KO",
+           "OriginatingAgency": "OBJ_KO",
            "evIdProc": "aedqaaaaakhfetkwabvlcak6lso7c7aaaaaq"
         },
         {
            "_tenant": "2",
-           "agIdOrig": "PROD_AUDIT_KO_2OBJ_1GO",
+           "OriginatingAgency": "PROD_AUDIT_KO_2OBJ_1GO",
            "evIdProc": "aedqaaaaakhfetkwabvlcak6lsvp75aaaaaq"
         },
         {
            "_tenant": "2",
-           "agIdOrig": "PROD_OBJ_PHYSIQUE",
+           "OriginatingAgency": "PROD_OBJ_PHYSIQUE",
            "evIdProc": "aedqaaaaakfuavsrab2diak6mdzyw6aaaaaq"
         },
         {
            "_tenant": "2",
-           "agIdOrig": "SP_SANS_OBJ",
+           "OriginatingAgency": "SP_SANS_OBJ",
            "evIdProc": "aedqaaaaakfuavsrab2diak6mdz7rraaaaaq"
         }
      ],
