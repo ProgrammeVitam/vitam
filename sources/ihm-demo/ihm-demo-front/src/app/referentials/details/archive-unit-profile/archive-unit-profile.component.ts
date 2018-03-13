@@ -50,14 +50,13 @@ export class ArchiveUnitProfileComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Documents type', routerLink: 'admin/search/archiveunitprofile'},
+        {label: 'Documents type', routerLink: 'admin/search/archiveUnitProfile'},
         {label: 'Détail du document type ' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);
     });
   }
-
 
   getValue(key: string) {
     return this.archiveUnitProfile[key];
