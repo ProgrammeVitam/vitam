@@ -1,0 +1,21 @@
+[
+  {
+    "Name": "Context_IT",
+    "Identifier": "Context_IT",
+    "Status": true,
+    "EnableControl": true,
+    "SecurityProfile": "admin-security-profile",
+    "Permissions": [
+      {
+        "_tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      },
+      {
+        "_tenant": 0,
+        "AccessContracts": [],
+        "IngestContracts": ["ArchivalAgreement0", "ArchivalAgreement1", "ArchivalAgreement0Test", "aName 2", "ArchivalAgreementWithPlan", "IC_WITH_PROFILE"]
+      }
+    ]
+  }
+]

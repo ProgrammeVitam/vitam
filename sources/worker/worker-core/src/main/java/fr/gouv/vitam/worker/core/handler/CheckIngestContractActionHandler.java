@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -40,8 +42,11 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -65,11 +70,26 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     private HandlerIO handlerIO;
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
+    private AdminManagementClient adminManagementClient;
+
     /**
      * Constructor with parameter SedaUtilsFactory
      */
     public CheckIngestContractActionHandler() {
+        adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
     }
+
+
+    /**
+     * Constructor with parameter SedaUtilsFactory
+     *
+     * @param adminManagementClient
+     */
+    @VisibleForTesting
+    public CheckIngestContractActionHandler(AdminManagementClient adminManagementClient) {
+        this.adminManagementClient = adminManagementClient;
+    }
+
 
     /**
      * @return HANDLER_ID
@@ -87,7 +107,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         try {
             ObjectNode infoNode = JsonHandler.createObjectNode();
             checkMandatoryIOParameter(ioParam);
-            final Map<String, Object> mandatoryValueMap = (Map<String, Object>) handlerIO.getInput(SEDA_PARAMETERS_RANK);
+            final Map<String, Object> mandatoryValueMap =
+                (Map<String, Object>) handlerIO.getInput(SEDA_PARAMETERS_RANK);
             String contractIdentifier = null;
 
             if (null != mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
@@ -98,19 +119,51 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             status = checkIngestContract(contractIdentifier);
 
             switch (status) {
-                case INACTIVE:
-                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.INACTIVE.toString());
+                case CONTRACT_INACTIVE:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTRACT_INACTIVE.toString());
                     itemStatus.increment(StatusCode.KO);
                     break;
-                case UNKNOWN:
-                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.UNKNOWN.toString());
+                case CONTRACT_UNKNOWN:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTRACT_UNKNOWN.toString());
                     itemStatus.increment(StatusCode.KO);
                     break;
-                case NOT_PRESENT_IN_MANIFEST:
-                    infoNode.put("MsgError", "Error Ingest constract not found in the Manifest");
-                    String evdev = JsonHandler.unprettyPrint(infoNode);
-                    itemStatus.setEvDetailData(evdev);
+                case CONTRACT_NOT_IN_MANIFEST:
+                    itemStatus
+                        .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTRACT_NOT_IN_MANIFEST.toString());
+                    infoNode.put("MsgError", "Error ingest contract not found in the Manifest");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
+                    break;
+                case CONTEXT_INACTIVE:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTEXT_INACTIVE.toString());
+                    infoNode.put("MsgError", "Context inactive");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.KO);
+                    break;
+                case CONTEXT_UNKNOWN:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTEXT_UNKNOWN.toString());
+                    infoNode.put("MsgError", "Context not found");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.KO);
+                    break;
+                case CONTEXT_CHECK_ERROR:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTEXT_CHECK_ERROR.toString());
+                    infoNode.put("MsgError", "Loading context error");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.KO);
+                    break;
+                case CONTRACT_NOT_IN_CONTEXT:
+                    itemStatus
+                        .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTRACT_NOT_IN_CONTEXT.toString());
+                    infoNode.put("MsgError", "Error ingest contract not found in the Context");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.KO);
+                    break;
+                case FATAL:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.FATAL.toString());
+                    infoNode.put("MsgError", "Cannot check context");
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                    itemStatus.increment(StatusCode.FATAL);
                     break;
                 case KO:
                     itemStatus.increment(StatusCode.KO);
@@ -135,39 +188,106 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
         // Case when no contract on the manifest
         if (!ParametersChecker.isNotEmpty(contractIdentifier)) {
-            return CheckIngestContractStatus.NOT_PRESENT_IN_MANIFEST;
+            return CheckIngestContractStatus.CONTRACT_NOT_IN_MANIFEST;
         }
 
-        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<IngestContractModel> referenceContracts = client.findIngestContractsByID(contractIdentifier);
+        try {
+            RequestResponse<IngestContractModel> referenceContracts =
+                adminManagementClient.findIngestContractsByID(contractIdentifier);
             if (referenceContracts.isOk()) {
                 List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
                         ContractStatus status = result.getStatus();
                         if (ContractStatus.ACTIVE.equals(status)
-                                && result.getIdentifier().equals(contractIdentifier)) {
-                            return CheckIngestContractStatus.OK;
+                            && result.getIdentifier().equals(contractIdentifier)) {
+
+                            return checkIngestContractInTheContext(contractIdentifier);
                         } else {
-                            return CheckIngestContractStatus.INACTIVE;
+                            return CheckIngestContractStatus.CONTRACT_INACTIVE;
                         }
                     }
                 }
             }
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error(e);
+            return CheckIngestContractStatus.FATAL;
         } catch (ReferentialNotFoundException e) {
             // Case when the manifest's contract is not in the database of contracts
             LOGGER.error("Contract not found :", e);
-            return CheckIngestContractStatus.UNKNOWN;
+            return CheckIngestContractStatus.CONTRACT_UNKNOWN;
         }
 
         return CheckIngestContractStatus.KO;
     }
 
+    /**
+     * @param ingestContract
+     */
+    private CheckIngestContractStatus checkIngestContractInTheContext(String ingestContract) {
+        try {
+            final String contextId = VitamThreadUtils.getVitamSession().getContextId();
+
+            if (null == contextId || contextId.isEmpty()) {
+                return CheckIngestContractStatus.CONTEXT_UNKNOWN;
+            }
+            RequestResponse<ContextModel>
+                contextResponse = adminManagementClient.findContextById(contextId);
+
+            if (contextResponse.isOk()) {
+
+                List<ContextModel> results = ((RequestResponseOK<ContextModel>) contextResponse).getResults();
+                if (results.isEmpty()) {
+                    LOGGER.error("CheckContract : The context " + contextId + "  not found in database");
+                    return CheckIngestContractStatus.CONTEXT_UNKNOWN;
+                } else {
+                    final ContextModel context = Iterables.getFirst(results, null);
+
+                    // Do not validate contract by the context if enable control is False
+                    if (Boolean.FALSE.equals(context.isEnablecontrol())) {
+                        return CheckIngestContractStatus.OK;
+                    }
+
+                    if (!context.isStatus()) {
+                        LOGGER.error("CheckContract : The context " + contextId + "  is not activated");
+                        return CheckIngestContractStatus.CONTEXT_INACTIVE;
+                    }
+
+                    Integer tenant = ParameterHelper.getTenantParameter();
+
+                    long count = context.getPermissions().stream()
+                        .filter(p -> p.getTenant() == tenant)
+                        .filter(p -> p.getIngestContract() != null)
+                        .filter(p -> p.getIngestContract().contains(ingestContract))
+                        .count();
+                    if (count > 0) {
+                        return CheckIngestContractStatus.OK;
+                    } else {
+                        return CheckIngestContractStatus.CONTRACT_NOT_IN_CONTEXT;
+                    }
+                }
+            } else {
+                LOGGER.error("Context check error : " + contextResponse.toString());
+                return CheckIngestContractStatus.CONTEXT_CHECK_ERROR;
+            }
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error("Context not found :", e);
+            return CheckIngestContractStatus.CONTEXT_UNKNOWN;
+
+        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+            LOGGER.error("Context check error :", e);
+            return CheckIngestContractStatus.FATAL;
+        }
+    }
+
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void close() {
+        this.adminManagementClient.close();
     }
 
     /**
@@ -178,15 +298,31 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         /**
          * Ingest constract not present in the Manifest.
          */
-        NOT_PRESENT_IN_MANIFEST,
+        CONTRACT_NOT_IN_MANIFEST,
+        /**
+         * IngestContract not present in the context
+         */
+        CONTRACT_NOT_IN_CONTEXT,
+        /**
+         * Context not found
+         */
+        CONTEXT_UNKNOWN,
+        /**
+         * Context inactive
+         */
+        CONTEXT_INACTIVE,
+        /**
+         * Error when checking context
+         */
+        CONTEXT_CHECK_ERROR,
         /**
          * Missing contract: not exists in the database
          */
-        UNKNOWN,
+        CONTRACT_UNKNOWN,
         /**
          * Existing but inactive contract
          */
-        INACTIVE,
+        CONTRACT_INACTIVE,
         /**
          * OK contract
          */
@@ -194,6 +330,10 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         /**
          * Other error situation
          */
-        KO
+        KO,
+        /**
+         * Fatal when getting referential
+         */
+        FATAL
     }
 }

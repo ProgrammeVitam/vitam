@@ -82,7 +82,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private int stepIndex = -1;
     private int stepTotal = 0;
-    
+
     private boolean replayAfterFatal = false;
 
     private List<ProcessStep> steps = new ArrayList<>();
@@ -213,6 +213,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     @Override
     public String getWorkflowId() {
         return processWorkflow.getWorkflowId();
+    }
+
+    @Override
+    public String getContextId() {
+        return processWorkflow.getContextId();
     }
 
     @Override
@@ -348,7 +353,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * Change state of the process to running Can be called only from pause state
      *
      * @param workerParameters the parameters to be passed to the distributor
-     * @param targetState if true, run ony the next step
+     * @param targetState      if true, run ony the next step
      * @throws StateNotAllowedException
      */
     protected void doRunning(WorkerParameters workerParameters, ProcessState targetState)
@@ -363,10 +368,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.state = ProcessState.RUNNING;
         this.targetState = targetState;
         stepByStep = ProcessState.PAUSE.equals(targetState);
-        
+
         // if pause after fatal, force replay last step (if resume or next)
-        replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover()) 
-                && StatusCode.FATAL.equals(processWorkflow.getStatus()));
+        replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover())
+            && StatusCode.FATAL.equals(processWorkflow.getStatus()));
 
         executeSteps(workerParameters, processWorkflow.getPauseRecover(), replayAfterFatal);
     }
@@ -375,7 +380,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * Change state of the process to running Can be called only from pause state
      *
      * @param workerParameters the parameters to be passed to the distributor
-     * @param targetState if true, run ony the next step
+     * @param targetState      if true, run ony the next step
      * @throws StateNotAllowedException
      */
     protected void doReplay(WorkerParameters workerParameters, ProcessState targetState)
@@ -393,7 +398,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         // check if pause after FATAL
         replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover())
-                && StatusCode.FATAL.equals(processWorkflow.getStatus()));
+            && StatusCode.FATAL.equals(processWorkflow.getStatus()));
 
         // here, we need to add something in order to tell that we want the current step to be re executed
         executeSteps(workerParameters, processWorkflow.getPauseRecover(), true);
@@ -456,8 +461,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         if (stepIndex <= stepTotal - 1) {
             currentStep = steps.get(stepIndex);
-            
-            if(backwards){
+
+            if (backwards) {
                 currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_REPLAY);
             }
         } else {
@@ -531,39 +536,39 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         StatusCode stepStatusCode = currentStep.getStepStatusCode();
         if (stepStatusCode != null) {
             // if replay after FATAL and Process in PauseFromAPI, accept newest statusCode otherwise increment status
-            stepStatusCode = (stepStatusCode.compareTo(statusCode) < 0 || replayAfterFatal) 
-                    ? statusCode : stepStatusCode;
+            stepStatusCode = (stepStatusCode.compareTo(statusCode) < 0 || replayAfterFatal)
+                ? statusCode : stepStatusCode;
         }
         currentStep.setStepStatusCode(stepStatusCode);
-        
+
         // if replay after FATAL and Process in PauseFromAPI, compute newest statusCode otherwise increment status
         if (replayAfterFatal) {
             this.status = recomputeProcessWorkflowStatus(statusCode);
         } else if (this.status.compareTo(statusCode) < 0) {
             this.status = statusCode;
         }
-        
+
         // only force status update for replayed step
-        if(replayAfterFatal){
+        if (replayAfterFatal) {
             replayAfterFatal = false;
         }
     }
 
     /**
      * recompute processWorkflow statusCode
-     * 
+     *
      * @param statusCode initial statusCode
      * @return the computed statusCode
      */
-    private StatusCode recomputeProcessWorkflowStatus(StatusCode statusCode){
+    private StatusCode recomputeProcessWorkflowStatus(StatusCode statusCode) {
         StatusCode computedStatus = statusCode;
-        for (int i = 0; i < stepIndex; i++){
+        for (int i = 0; i < stepIndex; i++) {
             StatusCode previousStatusCode = this.steps.get(i).getStepStatusCode();
-            if(previousStatusCode.compareTo(computedStatus) > 0){
+            if (previousStatusCode.compareTo(computedStatus) > 0) {
                 computedStatus = previousStatusCode;
             }
         }
-        
+
         return computedStatus;
     }
 
@@ -579,13 +584,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     synchronized public void onError(Throwable throwable, WorkerParameters workerParameters) {
         LOGGER.error("Error in Engine", throwable);
         status = StatusCode.FATAL;
-        
+
         state = ProcessState.PAUSE;
         targetState = ProcessState.PAUSE;
-        
+
         // To enable recover when replay after FATAL
         processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_API_PAUSE);
-        
+
         this.persistProcessWorkflow();
     }
 
@@ -624,13 +629,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // if the step has been defined as Blocking and stepStatus is KO or FATAL
             // then stop the process
             if (itemStatus.shallStop(currentStep.getBehavior().equals(ProcessBehavior.BLOCKING))) {
-                if(statusCode.isGreaterOrEqualToFatal()){
+                if (statusCode.isGreaterOrEqualToFatal()) {
                     state = ProcessState.PAUSE;
                     targetState = ProcessState.PAUSE;
 
                     // To enable recover when replay after FATAL
                     processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_API_PAUSE);
-                    
+
                     this.persistProcessWorkflow();
                 } else {
                     this.executeFinallyStep(workerParameters);
@@ -739,7 +744,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {}
+            } catch (InterruptedException e1) {
+            }
             try {
                 dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
                     operationId, processWorkflow);
@@ -770,13 +776,15 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {}
+            } catch (InterruptedException e1) {
+            }
 
             try {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
                 final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
-                logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
-                    .getParameterValue(WorkerParameterName.context));
+                logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status,
+                    workParams
+                        .getParameterValue(WorkerParameterName.context));
 
             } catch (Exception ex) {
                 LOGGER.error("Retry > error while finalize logbook of the process workflow", e);
@@ -816,7 +824,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
     }
 
-    private void logbook(LogbookOperationsClient client, GUID eventIdentifier, GUID operationGuid, LogbookTypeProcess logbookTypeProcess,
+    private void logbook(LogbookOperationsClient client, GUID eventIdentifier, GUID operationGuid,
+        LogbookTypeProcess logbookTypeProcess,
         StatusCode statusCode, String eventType) throws Exception {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationParameters parameters = LogbookParametersFactory

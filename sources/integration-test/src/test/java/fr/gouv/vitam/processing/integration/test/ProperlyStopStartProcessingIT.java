@@ -290,6 +290,7 @@ public class ProperlyStopStartProcessingIT {
     public void whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final GUID objectGuid = GUIDFactory.newManifestGUID(TENANT_ID);

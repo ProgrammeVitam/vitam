@@ -35,13 +35,13 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 
 /**
@@ -230,7 +230,7 @@ public class ClientMockResultHelper {
         "\"Permissions\": [{" +
         "\"_tenant\": 0," +
         "\"AccessContracts\": []," +
-        "\"IngestContracts\": []" +
+        "\"IngestContracts\": [\"ArchivalAgreement0\"]" +
         "}]}";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
@@ -481,10 +481,10 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse createReponse(String s, int statuscode) throws InvalidParseOperationException {
+    public static RequestResponse createReponse(String s, int statuscode, Class clazz) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s));
+            responseOK.addResult(JsonHandler.getFromString(s, clazz));
         return responseOK.setHttpCode(statuscode);
     }
 
@@ -555,11 +555,11 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException {
-        return createReponse(CONTEXTS, statusCode);
+        return createReponse(CONTEXTS, statusCode, ContextModel.class);
     }
 
     public static RequestResponse getProfiles(int statusCode) throws InvalidParseOperationException {
-        return createReponse(PROFILES, statusCode);
+        return createReponse(PROFILES, statusCode, ObjectNode.class);
     }
 
     /**
