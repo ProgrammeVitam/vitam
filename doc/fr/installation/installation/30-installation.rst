@@ -9,6 +9,11 @@ Procédure de première installation
 Déploiement
 ===========
 
+Cas particulier : utilisation de ClamAv en environnement Debian
+---------------------------------------------------------------
+
+Dans le cas de l'installation en environnement Debian, la base de donnée n'est pas intégrée avec l'installation de ClamAv, C'est la commande ``freshclam`` qui en assure la charge. Si vous n'êtes pas connecté à internet, la base de données doit s'installer manuellement. Les liens suivants indiquent la procédure à suivre: `Installation ClamAv <https://www.clamav.net/documents/installing-clamav>`_ et `Section Virus Database <https://www.clamav.net/downloads>`_
+
 Fichier de mot de passe
 -----------------------
 
