@@ -37,7 +37,7 @@ consul_component: consul
 consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_component }}"
 
 # Workspace should be useless but storage have a dependency to it...
-vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos" ]
+vitam_secondary_site_components: [ "consul" , "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos" , "vitam-metadata-reconstruction.timer" , "vitam-logbook-reconstruction.timer" , "vitam-functional-administration-reconstruction.timer" , "library" , "cerebro" ]
 
 
 ### Composants Vitam ###
