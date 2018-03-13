@@ -2,6 +2,11 @@
 
 # Logbook reconstruction
 
+- name: Install curl...
+  package:
+    name: curl
+    state: present
+
 - name: Copy the logbook reconstruction script
   template:
     src: "{{ item }}.j2"
