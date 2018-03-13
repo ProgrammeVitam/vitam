@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { IntervalObservable } from "rxjs/observable/IntervalObservable";
+import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
 import { NavigationStart, Router } from '@angular/router';
-import { Observable, Subscription } from "rxjs";
+import { Observable, Subscription } from 'rxjs/Rx';
 
 import { ResourcesService } from '../../resources.service';
 import { UploadService, ingestStatusElement } from '../upload.service';
@@ -17,14 +17,14 @@ import { AuthenticationService } from '../../../authentication/authentication.se
 export class UploadSipComponent implements OnInit {
 
   fileUpload: File;
-  fileName : string;
-  uploadState : Subscription;
+  fileName: string;
+  uploadState: Subscription;
   uploadInProgess = false;
   ingestInProgess = false;
-  contextId : string;
+  contextId: string;
   action = 'RESUME';
-  uploadProgress : number;
-  ingestIcon : string;
+  uploadProgress: number;
+  ingestIcon: string;
   displayDialog = false;
   displayUploadMessage = false;
   importError = false;
@@ -37,9 +37,9 @@ export class UploadSipComponent implements OnInit {
   @Input() uploadAPI: string;
   @Input() extensions: string[];
 
-  constructor(private uploadService : UploadService, private router: Router, private authenticationService : AuthenticationService) {
+  constructor(private uploadService: UploadService, private router: Router, private authenticationService: AuthenticationService) {
     this.router.events.subscribe(event => {
-      if(event instanceof NavigationStart) {
+      if (event instanceof NavigationStart) {
         delete this.fileName;
         delete this.fileUpload;
       }
@@ -49,7 +49,7 @@ export class UploadSipComponent implements OnInit {
   ngOnInit() {
     this.contextId = this.uploadType;
     if (!this.extensions) {
-      this.extensions = ["tar", "zip"];
+      this.extensions = ['.zip', '.tar', '.tar.gz', '.tar.bz2'];
     }
     this.isAdmin = this.authenticationService.isAdmin();
   }
@@ -57,25 +57,12 @@ export class UploadSipComponent implements OnInit {
   ngOnDestroy() {
   }
 
-  checkFileExtension(fileName : string) : boolean {
+  checkFileExtension(fileName: string): boolean {
     this.fileName = fileName;
-    let extension = fileName.split('.');
-    if (extension.length === 2){
-      if (this.extensions.indexOf(extension.pop()) >= 0) {
+    if (fileName.endsWith(this.extensions[0]) || fileName.endsWith(this.extensions[1])
+      || fileName.endsWith(this.extensions[2]) || fileName.endsWith(this.extensions[3])) {
         return true;
-      } else {
-        this.displayDialog = true;
-        return false;
-      }
-    } else if (extension.length > 2) {
-      let extensionRev = fileName.split('.').reverse();
-      if (this.extensions.indexOf(extensionRev[1]) >= 0) {
-        return true;
-      } else {
-        this.displayDialog = true;
-        return false;
-      }
-    } else {
+    }else {
       this.displayDialog = true;
       return false;
     }
@@ -98,15 +85,15 @@ export class UploadSipComponent implements OnInit {
   }
 
   computeSize(size) {
-    let units = [' octets', ' ko', ' Mo', ' Go', ' To'];
+    const units = [' octets', ' ko', ' Mo', ' Go', ' To'];
     let indice = 0;
-    while (size >= 1000 || indice >=4) {
-      size = Math.round(size/1000);
+    while (size >= 1000 || indice >= 4) {
+      size = Math.round(size / 1000);
       indice++;
     }
     return size + units[indice];
   }
-  
+
   uploadFile() {
     this.uploadInProgess = true;
     this.uploadService.uploadFile(this.fileUpload, this.contextId, this.action);
@@ -115,7 +102,7 @@ export class UploadSipComponent implements OnInit {
       (uploadProgress) => {
         if (uploadProgress.ingestStatus === 'NOT_STARTED') {
           setTimeout(() => {
-            this.uploadProgress = Math.round(uploadProgress.uploadStatus*100/this.fileUpload.size);
+            this.uploadProgress = Math.round(uploadProgress.uploadStatus * 100 / this.fileUpload.size);
           }, 0);
         } else {
           setTimeout(() => {
@@ -123,12 +110,12 @@ export class UploadSipComponent implements OnInit {
             this.uploadProgress = 100;
           }, 0);
           setTimeout(() => {
-              this.checkIngestStatus()}
+            this.checkIngestStatus()
+          }
             , 2000);
         }
       }
     );
-
   }
 
   finishUpload(response: any) {
@@ -142,15 +129,15 @@ export class UploadSipComponent implements OnInit {
 
   checkIngestStatus() {
     this.uploadService.checkIngestStatus().subscribe((response) => {
-      if(response.status === 204){
+      if (response.status === 204) {
         this.ingestInProgess = true;
         setTimeout(() => {
           this.checkIngestStatus();
         }, 500);
-      } else if(response.status === 200) {
+      } else if (response.status === 200) {
         this.ingestIcon = 'fa-check';
         this.finishUpload(response);
-      }  else if(response.status === 206) {
+      } else if (response.status === 206) {
         this.ingestIcon = 'fa-exclamation-triangle';
         this.finishUpload(response);
       }
