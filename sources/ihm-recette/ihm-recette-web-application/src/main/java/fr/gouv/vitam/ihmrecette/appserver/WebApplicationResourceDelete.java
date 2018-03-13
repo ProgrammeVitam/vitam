@@ -1108,7 +1108,7 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.PROFILE)) {
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1122,7 +1122,7 @@ public class WebApplicationResourceDelete {
                 LOGGER.error("Cannot update delegate logbook operation", exc);
             }
             LOGGER.error(e);
-            collectionKO.add(FunctionalAdminCollections.PROFILE.name());
+            collectionKO.add(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name());
         }
     }
 
