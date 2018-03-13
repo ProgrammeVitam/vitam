@@ -113,6 +113,8 @@ public class CheckHeaderActionHandlerTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        VitamThreadUtils.getVitamSession().setContextId("FakeContext");
+
     }
 
     @Test

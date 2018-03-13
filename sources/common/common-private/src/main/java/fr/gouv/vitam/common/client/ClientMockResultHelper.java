@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 
 /**
@@ -244,7 +245,7 @@ public class ClientMockResultHelper {
         "\"Permissions\": [{" +
         "\"_tenant\": 0," +
         "\"AccessContracts\": []," +
-        "\"IngestContracts\": []" +
+        "\"IngestContracts\": [\"ArchivalAgreement0\"]" +
         "}]}";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
@@ -495,10 +496,10 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse createReponse(String s, int statuscode) throws InvalidParseOperationException {
+    public static RequestResponse createReponse(String s, int statuscode, Class clazz) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s));
+            responseOK.addResult(JsonHandler.getFromString(s, clazz));
         return responseOK.setHttpCode(statuscode);
     }
 
@@ -569,11 +570,11 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException {
-        return createReponse(CONTEXTS, statusCode);
+        return createReponse(CONTEXTS, statusCode, ContextModel.class);
     }
 
     public static RequestResponse getProfiles(int statusCode) throws InvalidParseOperationException {
-        return createReponse(PROFILES, statusCode);
+        return createReponse(PROFILES, statusCode, ObjectNode.class);
     }
 
     /**
@@ -714,7 +715,7 @@ public class ClientMockResultHelper {
 
     /**
      * method to get mocked archive unit profiles with the givel status code
-     * 
+     *
      * @param statusCode
      * @return a mock of response for ArchiveUnitProfiles
      * @throws InvalidParseOperationException

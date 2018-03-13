@@ -56,11 +56,12 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * @param workflowId the workflow identifier
      * @param logbookTypeProcess the process type
      * @param tenantId the tenant identifier
-     * @return ProcessWorkflow 
+     * @param contextId the context ID
+     * @return ProcessWorkflow
      * @throws ProcessingException if the process could not be initialized
      */
     ProcessWorkflow init(WorkerParameters workerParameters, String workflowId, LogbookTypeProcess logbookTypeProcess,
-        Integer tenantId) throws ProcessingException;
+        Integer tenantId, String contextId) throws ProcessingException;
 
     /**
      * Handle a next action for the corresponding process workflow

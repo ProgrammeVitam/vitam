@@ -323,6 +323,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final String operationId = workerParameters.getContainerName();
         final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
         final String contractId = VitamThreadUtils.getVitamSession().getContractId();
+        final String contextId = VitamThreadUtils.getVitamSession().getContextId();
         final String uniqueStepId = step.getId();
         if (objectsList == null || objectsList.isEmpty()) {
             step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
@@ -437,7 +438,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 workerParameters.setObjectNameList(newSubList);
                 final WorkerTask task = new WorkerTask(
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId);
+                    tenantId, requestId, contractId, contextId);
                 currentWorkerTaskList.add(task);
                 completableFutureList.add(prepare(task, operationId, tenantId));
 

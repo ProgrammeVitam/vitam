@@ -17,6 +17,25 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+import javax.ws.rs.core.Response;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -64,24 +83,6 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 
 @RunWith(PowerMockRunner.class)
@@ -240,6 +241,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeRequiredParametersThenOK() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -293,7 +295,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeManifestThenOK() throws WorkerAlreadyExistsException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
-
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final ProcessDistributor processDistributor =
@@ -317,6 +319,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeManifestThenFATAL() throws WorkerAlreadyExistsException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
 
         final ProcessDistributor processDistributor =
             new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
@@ -336,7 +339,7 @@ public class ProcessDistributorImplTest {
         IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
-
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         int numberOfObjectIningestLevelStack = 170;
@@ -369,7 +372,7 @@ public class ProcessDistributorImplTest {
         WorkerNotFoundClientException, WorkerServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
-
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -411,7 +414,7 @@ public class ProcessDistributorImplTest {
         WorkerNotFoundClientException, WorkerServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
-
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -452,6 +455,7 @@ public class ProcessDistributorImplTest {
         WorkerNotFoundClientException, WorkerServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
 
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
@@ -480,7 +484,7 @@ public class ProcessDistributorImplTest {
         ContentAddressableStorageServerException, WorkerNotFoundClientException, WorkerServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
-
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -549,7 +553,7 @@ public class ProcessDistributorImplTest {
         WorkerNotFoundClientException, WorkerServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
-
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File resourceFile = PropertiesUtils.getResourceFile("ingestLevelStack.json");
@@ -624,7 +628,7 @@ public class ProcessDistributorImplTest {
     public void whenDistributeCancelOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         VitamThreadUtils.getVitamSession().setRequestId("FakeRequestId");
-
+        VitamThreadUtils.getVitamSession().setContextId("FakeContextId");
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
