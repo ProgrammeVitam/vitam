@@ -17,7 +17,7 @@ Tuning JVM
 .. caution:: en cas de colocalisation, bien prendre en compte la taille JVM de chaque composant (VITAM : -Xmx512m par défaut) pour éviter de swapper.
 
 
-Un tuning fin des paramètres JVM de chaque composant VITAM est possible
+Un tuning fin des paramètres JVM de chaque composant VITAM est possible.
 Pour cela, il faut modifier le fichier ``group_vars/all/jvm_opts.yml``
 
 Pour chaque composant, il est possible de modifier ces 3 variables:
@@ -94,16 +94,15 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
      :language: yaml
      :linenos:
 
-** |repertoire_inventory| ``/group_vars/all/cots_vars.yml``, comme suit :
+* |repertoire_inventory| ``/group_vars/all/cots_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
      :language: yaml
      :linenos:
 
-
 .. note:: installation multi-sites. Déclarer dans ``consul_remote_sites`` les datacenters Consul des autres site ; se référer à l'exemple fourni pour renseigner les informations.
 
-** |repertoire_inventory| ``/group_vars/all/jvm_vars.yml``, comme suit :
+* |repertoire_inventory| ``/group_vars/all/jvm_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/jvm_opts.yml
      :language: yaml

@@ -33,7 +33,7 @@ Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fon
 .. note:: Concernant le groupe "hosts-consul-server", il est nécessaire de déclarer un minimum de 3 machines.
 
 
-La configuration des droits d'accès à VITAM est ralisée dans le fichier |repertoire_inventory| ``/group_vars/all/vitam_security.yml``, comme suit :
+La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/vitam_security.yml``, comme suit :
 
 .. literalinclude:: ../../../../deployment/environments/group_vars/all/vitam_security.yml
      :language: yaml
@@ -52,6 +52,7 @@ Se référer aux commentaires dans le fichier pour le renseigner correctement.
 
 .. warning:: Ne pas oublier, en cas de connexion à un keystone en https, de répercuter dans la :term:`PKI` la clé publique de la CA du keystone.
 
+.. _pkiconfsection:
 
 Déclaration des secrets
 =======================
