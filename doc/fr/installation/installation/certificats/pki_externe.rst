@@ -1,24 +1,26 @@
 
-Cas 2: Je dispose d'une PKI
-===========================
+Cas 2: Configuration production
+===============================
 
 
 Procédure générale
 ------------------
 
-Si vous disposez d'une PKI, il n'est pas nécessaire d'utiliser celle de Vitam.
+La procédure suivante s'applique lorsqu'une :term:`PKI` est déjà disponible pour fournir les certificats nécessaires.
 
-Il est par contre être nécessaire de :
+Les étapes d'intégration des certificats à la solution Vitam sont les suivantes :
 
-* déposer les certificats et les autorités de certifications correspondantes dans les bon répertoires.
+* déposer les certificats et les autorités de certifications correspondantes dans les bons répertoires.
 * renseigner les mots de passe des clés privées des certificats dans le vault ansible environmements/certs/vault-certs.yml
 * utiliser le script Vitam permettant de générer les différents keystores.
+
+.. note:: Rappel pré-requis : vous devez disposer d'une ou plusieurs :term:`PKI` pour tout déploiement en production de la solution VITAM.
 
 
 Intégration de certificats existants
 ------------------------------------
 
-Si vous possédez déjà une :term:`PKI`, il convient de positionner les certificats et CA sous ``environmements/certs/....`` en respectant la structure indiquée ci-dessous.
+Une fois les certificats et CA mis à disposition par votre PKI, il convient de les positionner sous ``environmements/certs/....`` en respectant la structure indiquée ci-dessous.
 
 .. only:: html
 
@@ -38,7 +40,7 @@ Si vous possédez déjà une :term:`PKI`, il convient de positionner les certifi
 .. tip::
 
     Dans le doute, n'hésitez pas à utiliser la PKI de test (étapes de génération de CA et de certificats) pour générer les fichiers requis au bon endroit et ainsi voir la structure exacte attendue ;
-    il vous suffira ensuite de remplacer ces certificats "placeholders" par les certificats définitifs avant de lncer le déploiement.
+    il vous suffira ensuite de remplacer ces certificats "placeholders" par les certificats définitifs avant de lancer le déploiement.
 
 Ne pas oublier de renseigner le vault contenant les passphrases des clés des certificats: ``environmements/certs/vault-certs.yml``
 

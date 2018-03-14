@@ -9,7 +9,7 @@ Interfaces externes du système
 Interfaces requises
 ===================
 
-Dans cette version du système, aucune interface externe n'est requise par VITAM.
+Dans cette version du système, aucune interface externe autre que les services IT standard (ntp, dns, dépôts de mise à jours des OS, ...) n'est requise par VITAM.
 
 .. Les interfaces externes requises par le système VITAM sont les suivantes :
 .. Pas pour l'instant, mais à garder pour la suite : * Points de distribution des CRL concernant les CA des certificats trustés par VITAM 

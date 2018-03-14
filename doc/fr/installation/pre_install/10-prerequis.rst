@@ -32,6 +32,14 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 .. warning:: dans le cas d'une installation du composant ``vitam-offer`` en ``filesystem-hash``, il est fortement recommandé d'employer un système de fichiers ``xfs`` pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des filesystems dans :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option ``user_xattr``.
 
 
+PKI
+===
+
+La solution VITAM nécessite des certificats pour son bon fonctionnement (cf. :term:`DAT` pour la liste des secrets et :doc:`/annexes/10-overview_certificats` pour une vue d'ensemble de leur usage.) La gestion de ces certificats, par le biais d'une ou plusieurs PKI, est à charge de l'équipe d'exploitation. La mise à disposition des certificats et des chaînes de validation CA, placés dans les répertoires de déploiement adéquats, est un pré-requis à tout déploiement en production de la solution VITAM. 
+
+.. seealso:: Veuillez vous référer à la section :doc:`/annexes/10-overview_certificats` pour la liste des certificats nécessaires au déploiement de la solution VITAM, ainsi que pour leurs répertoires de déploiement.
+
+
 Systèmes d'exploitation
 =======================
 

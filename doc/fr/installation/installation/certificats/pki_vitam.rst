@@ -1,8 +1,8 @@
 
-Cas 1: Je ne dispose pas de PKI, je souhaite utiliser celle de Vitam
-====================================================================
+Cas 1: Configuration développement / tests 
+==========================================
 
-Dans ce cas, il est nécessaire d'utiliser la :term:`PKI` fournie avec la solution logicielle VITAM.
+Pour des usages de développement ou de tests hors production, il est possible d'utiliser la :term:`PKI` fournie avec la solution logicielle VITAM.
 
 Procédure générale
 ------------------
@@ -50,7 +50,7 @@ Puis, dans le répertoire de déploiement, lancer le script :
 Ce script génère sous ``environmements/certs`` les certificats (format crt & key) nécessaires pour un bon fonctionnement dans VITAM.
 Les mots de passe des clés privées des certificats sont stockés dans le vault ansible environmements/certs/vault-certs.yml
 
-.. caution::  Les certificats générés à l'issue ont une durée de validité de (à vérifier).
+.. caution::  Les certificats générés à l'issue ont une durée de validité de 3 ans.
 
 .. include:: swift.rst
 

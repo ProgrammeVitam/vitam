@@ -5,9 +5,9 @@ Architecture des données & multisite
 Inventaire des données
 ======================
 
-.. Cf. documentation de données
+.. seealso:: Le modèle de données complet est explicité dans la documentation externe dédiée ("Modèle de données").
 
-Le tableau ci-dessous représente l'inventaire des données gérées par VITAM, ainsi que leur localisation et du composant responsable du cycle de vie de la donnée (i.e. règles de création / modification / suppression) :
+Le tableau ci-dessous représente l'inventaire des données gérées par VITAM, avec leur localisation et le composant responsable du cycle de vie de la donnée (i.e. règles de création / modification / suppression) :
 
 .. tabularcolumns:: |p{1cm}|p{4cm}|p{2cm}|p{1.5cm}|p{1.5cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|
 
@@ -24,7 +24,7 @@ Quelques remarques :
 * il existe 2 types de journaux d'écriture :
 
     - le premier au niveau du moteur de stockage, qui permet de s'assurer de la bonne prise en compte des écritures par le système VITAM. Il s'agit d'un journal métier, participant à la preuve systémique (il est donc sécurisé comme les journaux d'opération et de cycle de vie des archives) ;
-    - le deuxième au niveau de l'offre de sockage, qui permet de conserver l'ordre d'écriture des éléments stockés pour permettre leur rejeu lors d'une reconstruction (totale ou partielle). Il s'agit donc d'un journal technique, s'inspirant fortement du concept des archivelog des bases de données.
+    - le deuxième au niveau de l'offre de stockage, qui permet de conserver l'ordre d'écriture des éléments stockés pour permettre leur rejeu lors d'une reconstruction (totale ou partielle). Il s'agit donc d'un journal technique, s'inspirant fortement du concept des archivelog des bases de données.
 
 
 Multisite
@@ -50,11 +50,10 @@ Le fonctionnement multisite s'appuie fortement sur les capacités de reconstruct
     - Référentiels : reconstruction régulière et totale
     - AU/GOT/BDO/Journaux : reconstruction au fil de l’eau
 
-En cas de perte du site secondaire, l'intégralité des données est donc présente dans le stockage sur le site secondaire, et est presque entièrement reconstruit dans les bases de données du même site. Une fois la reconstruction complètement terminée, le site secondaire est donc accessible ; le niveau d'accessibilité dépendra de la stratégie de stockage sur le site secondaire :
+En cas de perte du site primaire, l'intégralité des données est donc présente dans le stockage sur le site secondaire, et est presque entièrement reconstruit dans les bases de données du même site. Une fois la reconstruction complètement terminée, le site secondaire est donc accessible ; le niveau d'accessibilité dépendra de la stratégie de stockage sur le site secondaire :
 
-* Soit cette stratégie continue à requérir l'écriture sur 2 offres de stockage, et le système ne sera accessible qu'en lecture seule ; seule une recréation de l'offre de stockage sur le site principal permettra le retour à un fonctionnement nominal (Cf. admonition ci-dessous)
 * Soit la dégradation du niveau de résilience des offres est acceptée, et la stratégie de stockage devra être modifiée pour limiter les écritures à une seule offre.
-
+* Soit cette stratégie continue à requérir l'écriture sur 2 offres de stockage, et le système ne sera accessible qu'en lecture seule ; seule une recréation de l'offre de stockage sur le site principal permettra le retour à un fonctionnement nominal (Cf. admonition ci-dessous). Ce scénario est délicat à implémenter, et nécessite notamment la mise en place d'un contrat d'accès spécifique permettant de bloquer les accès en modification.
 
 .. caution:: La version courante de la solution logicielle VITAM ne permet pas la resynchronisation d'une offre de stockage à partir d'une autre offre de stockage. Ainsi la réplication de l'offre de stockage du site secondaire vers une nouvelle offre de stockage du site principal,  indispensable pour un retour à la normale une fois le PRA terminé, doit être réalisé par des moyens d'infrastructure uniquement (recopie de systèmes de fichiers, duplication d'un object storage, dump + restoration de la base MongoDB des offres de stockage, ...)
 
