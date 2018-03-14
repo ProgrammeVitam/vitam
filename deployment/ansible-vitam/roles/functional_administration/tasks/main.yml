@@ -1,5 +1,10 @@
 ---
 
+- name: Install curl...
+  package:
+    name: curl
+    state: present
+
 - name: Copy the functional_administration reconstruction script
   template:
     src: "reconstruction.sh.j2"
