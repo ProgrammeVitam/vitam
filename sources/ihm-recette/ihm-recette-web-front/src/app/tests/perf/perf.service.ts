@@ -4,6 +4,7 @@ import 'rxjs/add/operator/toPromise';
 import { saveAs } from 'file-saver/FileSaver';
 
 import { ResourcesService } from '../../common/resources.service';
+import { HttpHeaders } from "@angular/common/http";
 
 @Injectable()
 export class PerfService {
@@ -30,12 +31,17 @@ export class PerfService {
   }
 
   downloadURL(fileName) {
-    return this.client.get(this.REPORT + fileName).toPromise()
-      .then(response => this.saveToFileSystem(response, fileName));
-  }
+    let header = new HttpHeaders().set('Accept', 'text/plain');
+    this.client.get(this.REPORT + fileName, header, 'blob').subscribe(
+      (response) => {
+        const a = document.createElement('a');
+        document.body.appendChild(a);
 
-  saveToFileSystem(response, fileName : string) {
-    const blob = new Blob([response._body], { type: 'text/plain' });
-    saveAs(blob, fileName);
+        a.href = URL.createObjectURL(response.body);
+
+        a.download = fileName;
+        a.click();
+      }
+    );
   }
 }
