@@ -1,6 +1,6 @@
 # Authors of Vitam
 
-## Release 5 active development team (11/2017)
+## Release 6 (V1) active development team (03/2018)
 
 ### French government team
 
@@ -15,16 +15,13 @@
 * Marion Ville
 * Nathalie Morin
 
-### Goood
-
-* Frédéric Nguyen Huynh (Agile coach)
-
 ### Linagora development team
 
 * Zhang Chen
 * Laurent Dubois
 * Olivier Elbhar
 * Ba Tuan Ngo
+* Abderrahim Fraoucene
 
 ### Smile - Palpateam development team
 
@@ -36,6 +33,8 @@
 * Hassen Bamri
 * Ludivine Lenoir
 * Guillaume Dutey-Harispe
+* Clémence Boyer
+* Thomas Peigné
 
 ### Smile - HexaTeam development team
 
@@ -45,7 +44,10 @@
 * Idrissa Manzo
 * Clément Massard
 * Pierre Pavy
-* Dédé Agnodji
+* Dédé Agbodji
+* Claude Prabel
+* Lilas Becha
+* Lotfi Gheribi
 
 ### Thales integration team
 
@@ -54,6 +56,7 @@
 * Nicolas Ménétrier
 * Kristopher Waltzer
 * Bernardo Resende
+* Nicolas Roselier
 
 ## Those who have gone a long (or short) way with us
 
@@ -64,7 +67,6 @@
 * Arnaud Gervais
 * Yousri Kouki
 * Marie Laperdrix
-* Nathalie Morin
 * Gaël Nieutin
 * Mathilde Remy
 * Violette Rouchy-Levy
@@ -80,6 +82,7 @@
 * Jean-Yves Gateau
 * Nathanaël Attar
 * Ismail Jamel
+* Frédéric Nguyen Huynh
 * ...
 
 ## Thanks for collaboration
