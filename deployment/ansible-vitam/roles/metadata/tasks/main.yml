@@ -1,5 +1,10 @@
 ---
 
+- name: Install curl...
+  package:
+    name: curl
+    state: present
+
 - name: Copy the metadata reconstruction script
   template:
     src: "{{ item }}.j2"
