@@ -14,7 +14,6 @@ Fichier de mot de passe
 
 Par défaut, le mot de passe des "vault" sera demandé à chaque exécution d'ansible. Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environments/group_vars/all/vault-vitam.yml``, le mot de passe ne sera pas demandé (dans ce cas, changez l'option ``--ask-vault-pass`` des invocations ansible par l'option ``--vault-password-file=VAULT_PASSWORD_FILES``.
 
-.. _pkiconfsection:
 
 Mise en place des repositories VITAM (optionnel)
 -------------------------------------------------
@@ -103,7 +102,8 @@ Extra
 
 Deux playbook d'extra sont fournis pour usage "tel quel".
 
-1. ihm-recette
+ihm-recette
+^^^^^^^^^^^
 
 Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette.
 
@@ -112,16 +112,18 @@ Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette
    ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
 
-2. extra complet
+extra complet
+^^^^^^^^^^^^^
 
 Ce playbook permet d'installer :
-  - topbeat
-  - packetbeat
-  - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
-  - mongo-express (en docker  ; une connexion internet est alors nécessaire)
-  - le composant :term:`VITAM` library, hébergeant les documentations du projet
-  - le composant :term:`VITAM` ihm-recette (nécessite un accès à un répertoire "partagé" pour récupérer les jeux de tests)
-  - un reverse proxy, afin de simplifier les appels aux composants
+
+    - topbeat
+    - packetbeat
+    - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
+    - mongo-express (en docker  ; une connexion internet est alors nécessaire)
+    - le composant :term:`VITAM` library, hébergeant les documentations du projet
+    - le composant :term:`VITAM` ihm-recette (nécessite un accès à un répertoire "partagé" pour récupérer les jeux de tests)
+    - un reverse proxy, afin de simplifier les appels aux composants
 
 
 .. code-block:: console

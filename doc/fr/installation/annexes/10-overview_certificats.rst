@@ -139,4 +139,4 @@ La gestion de la PKI se fait avec 3 scripts dans le répertoire deployment de l'
     - Récupère le mot de passe du magasin indiqué dans ``environments/group_vars/all/vault-keystore.yml``
     - Insère les bon certificats dans les magasins qui en ont besoin
 
-Si les certificats sont créés par la PKI externe, il faut donc les positionner dans l'arborescence attendue avec le nom attendu pour certains (cf :ref:`arborescence_certs`)
+Si les certificats sont créés par la PKI externe, il faut donc les positionner dans l'arborescence attendue avec le nom attendu pour certains (cf :ref:`l'image ci-dessus<arborescence_certs>`).
