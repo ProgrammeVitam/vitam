@@ -29,7 +29,7 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
     - Protocoles exclus : ``SSLv2``, ``SSLv3``
     - Ciphers exclus : ``.*NULL.*``, ``.*RC4.*``, ``.*MD5.*``, ``.*DES.*``, ``.*DSS.*``
 
-.. note:: Dans cette version du système VITAM, les ciphers recommandés sont : ``TLS_ECDHE.*``, ``TLS_DHE_RSA.*``
+.. note:: Les ciphers recommandés sont : ``TLS_ECDHE.*``, ``TLS_DHE_RSA.*``
 
 * Authentification par certificat x509 requise des applications externes (authentification M2M) basée sur une liste blanche de certificats valides ;
 
@@ -40,7 +40,7 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 * Filtrage exhaustif des données et requêtes entrant dans le système basé sur :
 
     - Un WAF applicatif permettant le filtrage d'entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ dans les composants ``*-external`` protégeant notamment contre les attaques de type XSS)
-    - Support de l'utilisation d'un ou plusieurs antivirus (configurables et extensibles) dans le composant d'entrée (``ingest-external``) permettant de valider l'inocuité des données entrantes.
+    - Support de l'utilisation d'un ou plusieurs antivirus (configurables et extensibles) dans le composant d'entrée (``ingest-external``) permettant de valider l'innocuité des données entrantes.
 
 .. note:: Dans cette version du système, le paramétrage de l'antivirus est supporté lors de l'installation, mais pas le paramétrage d'ESAPI (notamment les filtres appliqués).
 

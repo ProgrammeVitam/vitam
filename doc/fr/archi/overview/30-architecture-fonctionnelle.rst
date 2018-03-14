@@ -1,7 +1,6 @@
 Architecture fonctionnelle
 ##########################
 
-.. KWA FIXME : dans la suite, éviter de mélanger (ou plutôt bien définir) les notions de traitemtn et d'exécution.
 
 .. figure:: images/vitam-functional-architecture.png
 	:align: center

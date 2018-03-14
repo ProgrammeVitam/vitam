@@ -85,7 +85,7 @@ html:
 	for item in $(LIST_ITEMS); do \
 		echo "Building \"$${item}\""; \
 		$(SPHINXBUILD) -q -b html -d $(BUILDDIR)/$${item}/doctrees $(ALLSPHINXOPTS) $(SRCDIR)/$${item} $(HTMLBUILDDIR)/$${item} || exit 1; \
-		echo "HTML Build finished. The HTML pages are in \"$${item}/html\"."; \
+		echo "HTML Build finished. The HTML pages are in \"$(HTMLBUILDDIR)/$${item}\"."; \
 	done;
 
 .PHONY: autres
