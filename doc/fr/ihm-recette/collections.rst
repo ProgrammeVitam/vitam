@@ -3,14 +3,14 @@ Administration des collections
 
 L'administration des collections permet de supprimer certains ou tous les référentiels / journaux / objets / contrats dans le but de recetter la solution logicielle Vitam ou de faire des tests variés pour éprouver la stabilité du système.
 
-L'utilisateur y accède par le menu, en cliquant sur "Administration des collections", ou par défaut lors de sa connexion. 
+L'utilisateur y accède par le menu, en cliquant sur "Administration des collections", ou par défaut lors de sa connexion.
 
 .. image:: images/RECETTE_admin_collections.png
 
 Actions de suppression
 =======================
 
-Chaque action comporte un bouton "Purger". 
+Chaque action comporte un bouton "Purger".
 Lors du clic sur ce bouton "Purger", une fenêtre modale apparaît et demande de confirmer l'action de suppression.
 Il existe deux types de purges.
 
@@ -58,6 +58,10 @@ Lors de son exécution, la fonctionnalité de purge des contextes contrôle qu'i
 **Purge des services agents**
 
 Le référentiel des services agents de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des services agents est vide de contenu. Sans référentiel de service agents, aucun SIP ne pourra être importé sur le tenant dans la solution logicielle Vitam.
+
+**Purge des documents type**
+
+Le référentiel des documents type de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des documents type est vide de contenu.
 
 Purge des journaux
 ------------------
