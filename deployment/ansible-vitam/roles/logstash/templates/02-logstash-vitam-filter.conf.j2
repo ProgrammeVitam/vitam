@@ -65,7 +65,7 @@ filter
         grok {
             match => [
                 "message",
-                "\[%{TIMESTAMP_ISO8601:timestamp}\]%{SPACE}\[%{LOGLEVEL:log_level}(%{SPACE})?\]%{SPACE}\[(?<elastic_module>[^ ]*)%{SPACE}\]%{SPACE}\[(?<elastic_node>[^\]]*)\]%{SPACE}%{GREEDYDATA:log_message}%{SPACE}"
+                "\[%{TIMESTAMP_ISO8601:timestamp}\]%{SPACE}\[%{LOGLEVEL:log_level}%{SPACE}\]%{SPACE}\[(?<elastic_module>[^\]]*)%{SPACE}\]%{SPACE}(\[(?<elastic_node>[^\]]*)\])?%{SPACE}%{GREEDYDATA:log_message}%{SPACE}"
             ]
             overwrite => [ "timestamp" ]
         }
