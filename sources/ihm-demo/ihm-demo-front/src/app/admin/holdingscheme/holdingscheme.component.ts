@@ -12,13 +12,13 @@ import { PageComponent } from "../../common/page/page-component";
 export class HoldingschemeComponent   extends PageComponent {
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService) {
-    super('Import de l\'arbre de positionnement', [], titleService, breadcrumbService);
+    super('Import d\'un arbre de positionnement ', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
     let newBreadcrumb = [
       {label: 'Administration', routerLink: ''},
-      {label: 'Import de l\'arbre de positionnement', routerLink: ''}
+      {label: 'Import d\'un arbre de positionnement', routerLink: ''}
     ];
 
     this.setBreadcrumb(newBreadcrumb);

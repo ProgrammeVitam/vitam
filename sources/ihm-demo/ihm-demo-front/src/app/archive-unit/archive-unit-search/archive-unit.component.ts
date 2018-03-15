@@ -53,7 +53,7 @@ export class ArchiveUnitComponent extends PageComponent {
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public service: ArchiveUnitService,
               public archiveUnitHelper: ArchiveUnitHelper, private router: Router) {
-    super('Recherche d\'archive', breadcrumb, titleService, breadcrumbService);
+    super('Recherche d\'archives', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {

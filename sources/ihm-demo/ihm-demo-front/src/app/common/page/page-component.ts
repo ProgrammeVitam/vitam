@@ -2,6 +2,8 @@ import {OnInit} from '@angular/core';
 import {Title} from '@angular/platform-browser';
 import {BreadcrumbElement, BreadcrumbService} from '../breadcrumb.service';
 
+const TITLE_PREFIX = 'VITAM - ';
+
 /**
  * This component is an abstract class for all page component of the application.
  * When calling this component with good title breadcrumb and services, this class initialize all that.
@@ -18,7 +20,7 @@ export abstract class PageComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.titleService.setTitle(`VITAM - ${this.title}`);
+    this.titleService.setTitle(`${TITLE_PREFIX}${this.title}`);
     this.breadcrumbService.changeState(this.breadcrumb);
     this.pageOnInit();
   }
@@ -26,6 +28,10 @@ export abstract class PageComponent implements OnInit {
   public setBreadcrumb(breadcrumb: BreadcrumbElement[]) {
     this.breadcrumb = breadcrumb;
     this.breadcrumbService.changeState(this.breadcrumb);
+  }
+
+  public setTitle(title: string) {
+      this.titleService.setTitle(`${TITLE_PREFIX}${title}`);
   }
 
 }

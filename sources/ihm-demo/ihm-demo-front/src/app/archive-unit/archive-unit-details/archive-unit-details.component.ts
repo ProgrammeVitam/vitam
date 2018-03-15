@@ -25,7 +25,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
   constructor(private route: ActivatedRoute, public titleService: Title, public breadcrumbService: BreadcrumbService,
               private archiveUnitService: ArchiveUnitService, public router: Router, private dialogService: DialogService,
               private errorService: ErrorService) {
-    super('Détails de l\'unité archivistique', [], titleService, breadcrumbService);
+    super('Détail de l\'unité archivistique', [], titleService, breadcrumbService);
     this.routerObserver = router.events.subscribe((val) => {
       if (val instanceof NavigationEnd) {
         this.pageOnInit();
@@ -53,7 +53,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
           {label: 'Recherche', routerLink: ''},
           {label: 'Recherche d\'archives', routerLink: 'search/archiveUnit'},
           {
-            label: 'Détails de l\'unité archivistique ' + this.id,
+            label: 'Détail de l\'unité archivistique ' + this.id,
             routerLink: 'search/archiveUnit/' + this.id
           }
         ];

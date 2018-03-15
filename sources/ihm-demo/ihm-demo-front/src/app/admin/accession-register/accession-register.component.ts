@@ -31,7 +31,7 @@ export class AccessionRegisterSearchComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService) {
-    super('Recherche du référentiel', [], titleService, breadcrumbService);
+    super('Recherche par service producteur', [], titleService, breadcrumbService);
 
 
     this.breadcrumbName = "Recherche par service producteur";

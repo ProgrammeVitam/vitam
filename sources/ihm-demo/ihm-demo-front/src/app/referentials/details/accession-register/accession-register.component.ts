@@ -50,8 +50,7 @@ export class AccessionRegisterComponent  extends PageComponent {
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService,
               public logbookService: LogbookService, private errorService: ErrorService) {
-    super('Détail du fond', [], titleService, breadcrumbService);
-
+    super('Détail du fonds', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {

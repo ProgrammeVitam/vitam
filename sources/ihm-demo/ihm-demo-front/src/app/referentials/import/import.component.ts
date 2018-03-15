@@ -33,7 +33,7 @@ export class ImportComponent  extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router, private authenticationService : AuthenticationService,
               public titleService: Title, public breadcrumbService: BreadcrumbService) {
-    super('Import du référentiel', [], titleService, breadcrumbService);
+    super('Import des référentiels', [], titleService, breadcrumbService);
     this.activatedRoute.params.subscribe( params => {
       this.referentialType = params['referentialType'];
       if (!this.authenticationService.isTenantAdmin()) {

@@ -30,6 +30,7 @@ export class SearchReferentialsComponent extends PageComponent {
   initialSortKey: string;
   searchButtonLabel: string;
   isImportable :boolean;
+  specificTitle: string;
 
   referentialData = [];
   public columns = [];
@@ -46,10 +47,12 @@ export class SearchReferentialsComponent extends PageComponent {
       let newBreadcrumb = [];
       this.isImportable = true;
       this.searchButtonLabel = '';
+      this.specificTitle = 'Recherche du référentiel';
       switch (this.referentialType) {
         case "accessContract":
           this.searchReferentialsService.setSearchAPI('accesscontracts');
           this.breadcrumbName = "Contrats d'accès";
+          this.specificTitle = 'Contrats d\'accès';
           this.referentialData = [
             new FieldDefinition('ContractName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8)
@@ -81,6 +84,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "ingestContract":
           this.searchReferentialsService.setSearchAPI('contracts');
           this.breadcrumbName = "Contrats d'entrée";
+          this.specificTitle = 'Contrats d\'entrée';
           this.referentialData = [
             new FieldDefinition('ContractName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8)
@@ -112,6 +116,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "format":
           this.searchReferentialsService.setSearchAPI('admin/formats');
           this.breadcrumbName = "Formats";
+          this.specificTitle = 'Formats';
           this.referentialData = [
             new FieldDefinition('FormatName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('PUID', "PUID", 6, 8)
@@ -145,6 +150,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "rule":
           this.searchReferentialsService.setSearchAPI('admin/rules');
           this.breadcrumbName = "Règles de gestion";
+          this.specificTitle = 'Règles de gestion';
           let options = [
             {label: "Tous", value: "All"},
             {label: "Durée d'utilité administrative", value: "AppraisalRule"},
@@ -179,6 +185,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "profil":
           this.searchReferentialsService.setSearchAPI('profiles');
           this.breadcrumbName = "Profils d'archivage";
+          this.specificTitle = 'Profils d\'archivage';
           this.referentialData = [
             new FieldDefinition('ProfileName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('ProfileID', "Identifiant", 6, 8)
@@ -207,6 +214,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "archiveUnitProfile":
           this.searchReferentialsService.setSearchAPI('archiveunitprofiles');
           this.breadcrumbName = "Documents type";
+          this.specificTitle = 'Documents type';
           this.referentialData = [
             new FieldDefinition('ArchiveUnitProfileName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('ArchiveUnitProfileID', "Identifiant", 6, 8)
@@ -236,6 +244,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "context":
           this.searchReferentialsService.setSearchAPI('contexts');
           this.breadcrumbName = "Contextes applicatifs";
+          this.specificTitle = 'Contextes applicatifs';
           this.referentialData = [
             new FieldDefinition('ContextName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('ContextID', "Identifiant", 6, 8)
@@ -274,6 +283,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "agencies":
           this.searchReferentialsService.setSearchAPI('agencies');
           this.breadcrumbName = "Services agents";
+          this.specificTitle = 'Services agents';
           this.referentialData = [
             new FieldDefinition('AgencyName', "Intitulé", 4, 10),
             FieldDefinition.createIdField('AgencyID', "Identifiant", 4, 10),
@@ -297,6 +307,7 @@ export class SearchReferentialsComponent extends PageComponent {
         case "accession-register":
           this.searchReferentialsService.setSearchAPI('admin/accession-register');
           this.breadcrumbName = "Recherche par service producteur";
+          this.specificTitle = 'Services producteurs';
           this.referentialData = [
             new FieldDefinition('OriginatingAgency', "Service producteur", 12, 4),
           ];
@@ -333,6 +344,7 @@ export class SearchReferentialsComponent extends PageComponent {
 
       }
       this.setBreadcrumb(newBreadcrumb);
+      this.setTitle(this.specificTitle);
 
       this.searchReferentialsService.getResults(this.searchForm).subscribe(
         data => {
