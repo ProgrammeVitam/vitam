@@ -2,31 +2,26 @@
     {
         "collection":"UNIT",
         "tenant":0,
-        "offset":350,
         "status":"OK"
     },
     {
         "collection":"OBJECTGROUP",
         "tenant":0,
-        "offset":130,
         "status":"OK"
     },
     {
         "collection":"UNIT",
         "tenant":1,
-        "offset":0,
         "status":"KO"
     },
     {
         "collection":"UNIT",
         "tenant":2,
-        "offset":9005,
         "status":"OK"
     },
     {
         "collection":"OBJECTGROUP",
         "tenant":2,
-        "offset":810,
         "status":"OK"
     }
 ]
