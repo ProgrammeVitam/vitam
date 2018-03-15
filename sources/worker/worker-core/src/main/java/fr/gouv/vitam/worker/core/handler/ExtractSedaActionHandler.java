@@ -66,10 +66,10 @@ import javax.xml.stream.events.XMLEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
@@ -1215,7 +1215,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     ruleNode.remove(RULES);
                 }
             }
-            archiveUnitMgtNode.set(SedaConstants.TAG_ORIGINATINGAGENCY, new TextNode(originatingAgency));
         }
         archiveUnitNode.set(SedaConstants.TAG_MANAGEMENT, archiveUnitMgtNode);
     }

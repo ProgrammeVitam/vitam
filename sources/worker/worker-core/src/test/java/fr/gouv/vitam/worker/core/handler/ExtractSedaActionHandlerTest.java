@@ -103,8 +103,6 @@ public class ExtractSedaActionHandlerTest {
     private static final String EMPTY_TEXT_TYPE = "extractSedaActionHandler/empty_text_type.xml";
     private static final String SIP_RULES = "extractSedaActionHandler/rules-test.xml";
     private static final String SIP_ARBO_RULES_MD = "extractSedaActionHandler/OK_arbo_RG_MD_complexe.xml";
-    private static final String SIP_WITHOUT_ORIGINATING_AGENCY =
-        "extractSedaActionHandler/manifestKO/originating_agency_not_set.xml";
     private static final String SIP_RULES_INHERITANCE = "extractSedaActionHandler/1066_SIP_RULES_INHERITENCE.xml";
     private static final String SIP_REFID_RULES_INHERITANCE =
         "extractSedaActionHandler/1069_SIP_REFID_RULES_INHERITENCE.xml";
