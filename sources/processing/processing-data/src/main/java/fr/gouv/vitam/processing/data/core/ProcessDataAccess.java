@@ -28,7 +28,6 @@ package fr.gouv.vitam.processing.data.core;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
@@ -48,9 +47,11 @@ public interface ProcessDataAccess {
      * @param containerName : null not allowed , the name of the container to be processed
      * @param logbookTypeProcess {@link LogbookTypeProcess}
      * @param tenantId the working tenant
+     * @param contextId the context ID
      * @return {@link LogbookTypeProcess}
      */
-    ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName, LogbookTypeProcess logbookTypeProcess, Integer tenantId);
+    ProcessWorkflow initProcessWorkflow(WorkFlow workflow, String containerName, LogbookTypeProcess logbookTypeProcess,
+        Integer tenantId, String contextId);
 
     /**
      * Update a step in a workflow, knowing its unique id

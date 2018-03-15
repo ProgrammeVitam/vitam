@@ -50,6 +50,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -475,6 +477,7 @@ public class IngestInternalIT {
     private void tryImportFile() {
 
         VitamThreadUtils.getVitamSession().setContractId(contractId);
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         flush();
 
         if (!imported) {
@@ -512,6 +515,18 @@ public class IngestInternalIT {
                     });
                 client.importAccessContracts(accessContractModelList);
 
+                // Import Security Profile
+                client.importSecurityProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-ingest-internal/security_profile_ok.json"),
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        }));
+
+                // Import Context
+                client.importContexts(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/contexts.json"),
+                        new TypeReference<List<ContextModel>>() {
+                        }));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

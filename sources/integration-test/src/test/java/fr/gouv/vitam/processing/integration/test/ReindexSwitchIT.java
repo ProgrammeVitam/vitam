@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -38,17 +37,9 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -79,9 +70,11 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -116,6 +109,12 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class ReindexSwitchIT {
 
@@ -321,6 +320,7 @@ public class ReindexSwitchIT {
     }
 
     private void tryImportFile() {
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         flush();
 
         if (!imported) {
@@ -360,6 +360,19 @@ public class ReindexSwitchIT {
                 client.importAccessContracts(accessContractModelList);
 
                 client.importIngestContracts(IngestContractModelList);
+
+                // Import Security Profile
+                client.importSecurityProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        }));
+
+                // Import Context
+                client.importContexts(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
+                        new TypeReference<List<ContextModel>>() {
+                        }));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

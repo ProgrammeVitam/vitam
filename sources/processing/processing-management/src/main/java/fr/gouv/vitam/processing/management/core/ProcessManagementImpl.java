@@ -144,6 +144,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
                 VitamThreadUtils.getVitamSession().setTenantId(stateMachine.getTenant());
                 VitamThreadUtils.getVitamSession().setRequestId(operationId);
+                VitamThreadUtils.getVitamSession().setContextId(stateMachine.getContextId());
 
                 final WorkerParameters workerParameters =
                     WorkerParametersFactory.newWorkerParameters()
@@ -189,7 +190,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     @Override
     public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId,
-        LogbookTypeProcess logbookTypeProcess, Integer tenantId)
+        LogbookTypeProcess logbookTypeProcess, Integer tenantId, String contextId)
         throws ProcessingException {
 
         // check data container and folder
@@ -201,10 +202,10 @@ public class ProcessManagementImpl implements ProcessManagement {
         if (ParametersChecker.isNotEmpty(workflowId)) {
             processWorkflow = processData
                 .initProcessWorkflow(poolWorkflow.get(workflowId), workerParameters.getContainerName(),
-                    logbookTypeProcess, tenantId);
+                    logbookTypeProcess, tenantId, contextId);
         } else {
             processWorkflow = processData
-                .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId);
+                .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId, contextId);
         }
 
         processWorkflow.setWorkflowId(workflowId);

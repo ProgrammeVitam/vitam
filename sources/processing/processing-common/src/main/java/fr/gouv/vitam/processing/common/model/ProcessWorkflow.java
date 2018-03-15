@@ -26,15 +26,15 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 /**
  * Proccess Workflow contains a different operations and status attribute
@@ -48,6 +48,8 @@ public class ProcessWorkflow {
     private String workflowId;
 
     private String operationId;
+
+    private String contextId;
 
     private String messageIdentifier;
 
@@ -254,6 +256,23 @@ public class ProcessWorkflow {
      */
     public ProcessWorkflow setWorkflowId(String workflowId) {
         this.workflowId = workflowId;
+        return this;
+    }
+
+    /**
+     *
+     * @return The context id
+     */
+    public String getContextId() {
+        return contextId;
+    }
+
+    /**
+     * @param contextId the context ID
+     * @return current instance
+     */
+    public ProcessWorkflow setContextId(String contextId) {
+        this.contextId = contextId;
         return this;
     }
 

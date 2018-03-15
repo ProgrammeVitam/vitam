@@ -108,9 +108,11 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -177,6 +179,8 @@ public class ProcessingIT {
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
     private static final String ACCESS_CONTRACT =
         "integration-processing/access_contract_every_originating_angency.json";
+    private static final String CONTEXT =
+        "integration-processing/contexts.json";
     private static final String UNIT_ATTACHEMENT_ID = "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq";
     private static final String OG_ATTACHEMENT_ID = "aebaaaaaaacu6xzeabinwak6t5ecmmaaaaaq";
     private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
@@ -256,6 +260,7 @@ public class ProcessingIT {
     private static String SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_INGEST_CONTRACT_UNKNOW = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
+    private static String SIP_INGEST_CONTRACT_NOT_IN_CONTEXT = "integration-processing/SIP_INGEST_CONTRACT_NOT_IN_CONTEXT.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
     // TODO : use for IT test to add a link between two AUs (US 1686)
 
@@ -481,6 +486,7 @@ public class ProcessingIT {
 
     private void tryImportFile() {
         VitamThreadUtils.getVitamSession().setContractId("aName");
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         flush();
 
         if (!imported) {
@@ -530,6 +536,21 @@ public class ProcessingIT {
                     .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
                     });
                 client.importAccessContracts(accessContractModelList);
+
+
+                // Import Security Profile
+                client.importSecurityProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        }));
+
+                // Import Context
+                client.importContexts(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
+                        new TypeReference<List<ContextModel>>() {
+                        }));
+
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -841,7 +862,57 @@ public class ProcessingIT {
         JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertEquals(logbookNode.get("events").get(6).get("outDetail").asText(),
-            "CHECK_HEADER.CHECK_CONTRACT_INGEST.UNKNOWN.KO");
+            "CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO");
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowIngestContractNotInContextUnknow() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_INGEST_CONTRACT_NOT_IN_CONTEXT);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
+        JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
+        JsonNode logbookNode = logbookResult.get("$results").get(0);
+        assertEquals(logbookNode.get("events").get(6).get("outDetail").asText(),
+            "CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
     }
 
     @RunWithCustomExecutor
@@ -2707,9 +2778,9 @@ public class ProcessingIT {
         MongoIterable<Document> resultUnitsAfter = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
         Document unitAfter = resultUnitsAfter.first();
         String opiAfter = (String) unitAfter.get("_opi");
-        
+
         assertEquals(opiBefore, opiAfter);
-        
+
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName2,
             new fr.gouv.vitam.common.database.builder.request.single.Select().getFinalSelect());

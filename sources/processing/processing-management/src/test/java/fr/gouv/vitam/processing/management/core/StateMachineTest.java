@@ -18,6 +18,16 @@
 
 package fr.gouv.vitam.processing.management.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -56,16 +66,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
-
 /**
  *
  */
@@ -75,6 +75,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 public class StateMachineTest {
 
     private static final Integer TENANT_ID = 0;
+    public static final String FAKE_CONTEXT = "FakeContext";
     private WorkerParameters workParams;
 
     private ProcessDataAccessImpl processDataAccess;
@@ -253,7 +254,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         final ProcessEngine processEngine = mock(ProcessEngineImpl.class);
         final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
@@ -302,7 +303,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -353,7 +354,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -404,7 +405,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -440,7 +441,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -488,7 +489,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -535,7 +536,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -583,7 +584,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -633,7 +634,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
@@ -655,7 +656,7 @@ public class StateMachineTest {
             processDataAccess.initProcessWorkflow(
                 ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE),
                 workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setState(ProcessState.RUNNING);

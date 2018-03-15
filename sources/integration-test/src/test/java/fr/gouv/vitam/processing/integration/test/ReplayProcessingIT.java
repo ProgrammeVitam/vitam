@@ -78,8 +78,10 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -328,6 +330,7 @@ public class ReplayProcessingIT {
     }
 
     private void tryImportFile() {
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         flush();
 
         if (!imported) {
@@ -367,6 +370,19 @@ public class ReplayProcessingIT {
                 client.importAccessContracts(accessContractModelList);
 
                 client.importIngestContracts(IngestContractModelList);
+
+                // Import Security Profile
+                client.importSecurityProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        }));
+
+                // Import Context
+                client.importContexts(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
+                        new TypeReference<List<ContextModel>>() {
+                        }));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

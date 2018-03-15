@@ -167,7 +167,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", operationId);
         ParametersChecker.checkParameter("pauseRecover is a mandatory parameter", pauseRecover);
-        /**
+        /*
          * use index only if pauseRecover of the processWorkflow
          * is PauseRecover.RECOVER_FROM_API_PAUSE or PauseRecover.RECOVER_FROM_SERVER_PAUSE
          * and pauseCancelAction of the step is PauseOrCancelAction.ACTION_RECOVER
@@ -318,6 +318,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final String operationId = workerParameters.getContainerName();
         final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
         final String contractId = VitamThreadUtils.getVitamSession().getContractId();
+        final String contextId = VitamThreadUtils.getVitamSession().getContextId();
         final String uniqueStepId = step.getId();
         if (objectsList == null || objectsList.isEmpty()) {
             step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
@@ -432,7 +433,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 workerParameters.setObjectNameList(newSubList);
                 final WorkerTask task = new WorkerTask(
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId);
+                    tenantId, requestId, contractId, contextId);
                 currentWorkerTaskList.add(task);
                 completableFutureList.add(prepare(task, operationId, tenantId));
 

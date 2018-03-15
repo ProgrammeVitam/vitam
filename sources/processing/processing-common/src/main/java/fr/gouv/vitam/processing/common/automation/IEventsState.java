@@ -118,4 +118,6 @@ public interface IEventsState {
      * @return The workflow Id
      */
     String getWorkflowId();
+
+    String getContextId();
 }
