@@ -40,7 +40,7 @@ export class ArchiveUnitComponent extends PageComponent {
 
   public columns = [
     ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({'width': '325px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('Title', 'Intitulé', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Intitulé', this.archiveUnitHelper.getTitle, undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('#unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'}), false),
     ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date la plus ancienne', this.archiveUnitHelper.getStartDate, DateService.handleDate, () => ({'width': '100px'}), false),
@@ -149,6 +149,7 @@ export class ArchiveUnitComponent extends PageComponent {
     criteriaSearch.projection_id = '#id';
     criteriaSearch.projection_unitType = '#unittype';
     criteriaSearch.projection_title = 'Title';
+    criteriaSearch.projection_titlefr = 'Title_.fr';
     criteriaSearch.projection_object = '#object';
     criteriaSearch.orderby = {field: 'TransactedDate', sortType: 'ASC'};
     return criteriaSearch;

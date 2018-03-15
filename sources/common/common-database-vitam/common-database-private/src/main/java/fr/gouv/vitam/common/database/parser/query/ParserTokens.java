@@ -70,7 +70,7 @@ public class ParserTokens extends BuilderToken {
      * @deprecated Quick & dirty fix of non analyzed fields.
      */
     private static final Set<String> NON_ANALYZED_FIELDS = new HashSet<>(Arrays.asList(
-            /* Units */
+        /* Units */
         "AcquiredDate",
         "Addressee.BirthDate",
         "Addressee.BirthPlace.PostalCode",
@@ -233,7 +233,7 @@ public class ParserTokens extends BuilderToken {
         "_us",
         "_v",
         "_id",
-            /* Object Groups */
+        /* Object Groups */
         "FileInfo.DateCreatedByApplication",
         "FileInfo.LastModified",
         "Metadata",
@@ -287,7 +287,7 @@ public class ParserTokens extends BuilderToken {
         "_us",
         "_v",
         "_id",
-            /* Access Contracts */
+        /* Access Contracts */
         "Identifier",
         "Status",
         "OriginatingAgencies",
@@ -304,13 +304,13 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score",
         "_id",
-            /* Agencies */
+        /* Agencies */
         "Identifier",
         "_tenant",
         "_v",
         "_score",
         "_id",
-            /* Context */
+        /* Context */
         "Identifier",
         "Status",
         "LastUpdate",
@@ -325,7 +325,7 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score",
         "_id",
-            /* Format */
+        /* Format */
         "PUID",
         "Extension",
         "VersionPronom",
@@ -336,7 +336,7 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score",
         "_id",
-            /* Ingest Contract */
+        /* Ingest Contract */
         "Identifier",
         "Status",
         "ArchiveProfiles",
@@ -349,7 +349,7 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score",
         "_id",
-            /* Profiles */
+        /* Profiles */
         "Identifier",
         "Status",
         "Format",
@@ -362,7 +362,7 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score",
         "_id",
-            /* Rule */
+        /* Rule */
         "RuleType",
         "RuleDuration",
         "_tenant",
@@ -373,14 +373,14 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score",
         "_id",
-            /* Security profiles*/
+        /* Security profiles */
         "Identifier",
         "FullAccess",
         "Permissions",
         "_v",
         "_score",
         "_id",
-            /* Accession register summary */
+        /* Accession register summary */
         "OriginatingAgency",
         "creationDate",
         "TotalObjects.ingested",
@@ -411,7 +411,7 @@ public class ParserTokens extends BuilderToken {
         "_tenant",
         "_v",
         "_score",
-            /* Accession register detail */
+        /* Accession register detail */
         "OriginatingAgency",
         "SubmissionAgency",
         "ArchivalAgreement",
@@ -448,8 +448,7 @@ public class ParserTokens extends BuilderToken {
         "_id",
         "_tenant",
         "_v",
-        "_score"
-    ));
+        "_score"));
 
     private ParserTokens() {
         // Empty
@@ -540,7 +539,7 @@ public class ParserTokens extends BuilderToken {
          */
         OPERATIONS("operations"),
         /**
-         * Unit or GOT's initial operation 
+         * Unit or GOT's initial operation
          */
         INITIAL_OPERATION("opi"),
         /**
@@ -622,8 +621,8 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-         * This function check the field name for know if it's allowed to inserting or updating the given field from external.
-         * This check is done by the API-internal by the VarNameAdapter.
+         * This function check the field name for know if it's allowed to inserting or updating the given field from
+         * external. This check is done by the API-internal by the VarNameAdapter.
          *
          * @param name field name
          * @return True if the field is not allowed, false
@@ -660,7 +659,7 @@ public class ParserTokens extends BuilderToken {
                     case "_ops":
                         return OPERATIONS;
                     case "_opi":
-                        return INITIAL_OPERATION;                                                
+                        return INITIAL_OPERATION;
                     case "_up":
                         return UNITUPS;
                     case "_us":
@@ -776,8 +775,8 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-         * This function check the field name for know if it's allowed to inserting or updating the given field from external.
-         * This check is done by the API-internal by the VarNameAdapter.
+         * This function check the field name for know if it's allowed to inserting or updating the given field from
+         * external. This check is done by the API-internal by the VarNameAdapter.
          *
          * @param name field name
          * @return True if this value is not allowed on set (insert, update)
@@ -999,6 +998,8 @@ public class ParserTokens extends BuilderToken {
             default:
         }
         if (SUB_FIELDS_NOT_ARRAY.parallelStream().anyMatch(name::contains)) {
+            return false;
+        } else if (name.startsWith("Title_")) {
             return false;
         }
         return true;

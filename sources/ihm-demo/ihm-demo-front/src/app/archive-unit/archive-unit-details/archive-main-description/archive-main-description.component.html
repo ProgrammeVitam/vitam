@@ -30,8 +30,10 @@
                           class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Date de fin'" [originalTitle]="'EndDate'" [yearRange]="'400:2500'" [value]="dataToDisplay.EndDate"  [keyToLabel]="keyToLabel" [labelSize]="5"
                           class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Titre'" [originalTitle]="'Title'" [value]="dataToDisplay.Title" [keyToLabel]="keyToLabel" [labelSize]="2"
+    <vitam-metadata-field *ngIf="dataToDisplay.Title !== undefined" [title]="'Titre'" [originalTitle]="'Title'" [value]="dataToDisplay.Title" [keyToLabel]="keyToLabel" [labelSize]="2"
                           class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+	<vitam-metadata-field *ngIf="dataToDisplay.Title === undefined && dataToDisplay.Title_ !== undefined && dataToDisplay.Title_.fr !== undefined" [title]="'Titre'" [originalTitle]="'Title_.fr'" [value]="dataToDisplay.Title_.fr" [keyToLabel]="keyToLabel" [labelSize]="2"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>                          
     <vitam-metadata-field [title]="'Niveau de description'" [originalTitle]="'DescriptionLevel'" [value]="dataToDisplay.DescriptionLevel" [keyToLabel]="keyToLabel"
                           class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Service versant'" [originalTitle]="'#management.SubmissionAgency'" [labelSize]="2"

@@ -1,6 +1,7 @@
-<vitam-archive-tree-view *ngIf="data" [unitId]="data['#id']" [title]="data.Title"
+<vitam-archive-tree-view *ngIf="data && data.Title !== undefined" [unitId]="data['#id']" [title]="data.Title"
                          [unitUps]="data['#unitups']"></vitam-archive-tree-view>
-
+<vitam-archive-tree-view *ngIf="data && data.Title === undefined && data.Title_ !== undefined && data.Title_['fr'] !== undefined" [unitId]="data['#id']" [title]="data.Title_['fr']"
+                         [unitUps]="data['#unitups']"></vitam-archive-tree-view>
 <vitam-loading-block [displayLoading]="loading" [displayContent]="!loading" [blockTitle]="'Description principale'">
     <vitam-archive-main-description [archiveUnit]="data" (titleUpdate)="updateTitle($event)"></vitam-archive-main-description>
 </vitam-loading-block>

@@ -28,12 +28,9 @@ package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.BeforeClass;
@@ -50,7 +47,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * DslQueryHelper junit test
@@ -92,8 +88,7 @@ public class DslQueryHelperTest {
         "$action : " + updateAction + " }";
 
     @BeforeClass
-    public static void setup() throws Exception {
-    }
+    public static void setup() throws Exception {}
 
     /**
      * Tests createLogBookSelectDSLQuery method : main scenario
@@ -170,6 +165,8 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getRoots().size() == 1);
         assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
         assertTrue(selectParser.getRequest().getProjection().size() == 1);
+        // check that we also search on Title_.fr field
+        assertTrue(selectParser.getRequest().getQueries().toString().contains("\"Title_.fr\""));
     }
 
     @Test
@@ -447,7 +444,7 @@ public class DslQueryHelperTest {
      */
     @Test
     public void testIngestDateDSLQuery()
-            throws InvalidParseOperationException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "INGEST");
 
