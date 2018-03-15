@@ -32,7 +32,7 @@
     "font-awesome": "^4.7.0",
     "intl": "^1.2.5",
     "ng2-vis": "0.0.6",
-    "primeng": "^4.1.2",
+    "primeng": "^5.2.3",
     "rxjs": "^5.5.5",
     "zone.js": "^0.8.4"
   },
@@ -43,6 +43,7 @@
     "@types/jasmine": "2.5.45",
     "@types/node": "~6.0.60",
     "codelyzer": "~3.0.1",
+    "cuint": "^0.2.2",    
     "jasmine-core": "~2.6.2",
     "jasmine-spec-reporter": "~4.1.0",
     "karma": "~1.7.0",

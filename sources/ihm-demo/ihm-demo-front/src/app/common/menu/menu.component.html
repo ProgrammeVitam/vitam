@@ -7,7 +7,7 @@
     <!-- <span class="title">vitam</span> -->
   </a>
 </div>
-<p-menubar [model]="items" [style]="{ 'text-align': 'left', 'padding': '23px 0 0 230px'}">
+<p-menubar [model]="items"  [autoDisplay]="false" [style]="{ 'text-align': 'left', 'padding': '23px 0 0 230px'}">
   <div id="accessContract" *ngIf="isAuthenticated">
     <p-dropdown [style]="{'width':'200px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
                 [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>

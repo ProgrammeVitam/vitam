@@ -587,6 +587,11 @@ $globalActiveRed: #FF507F;
 
 .ui-menubar {
   min-height: 80px;
+  background: linear-gradient(to bottom, #f6f7f9 0%, #ebedf0 100%);
+}
+
+.ui-menubar .ui-submenu-list {
+  background: linear-gradient(to bottom, #f6f7f9 0%, #ebedf0 100%);
 }
 
 #logout-text {
