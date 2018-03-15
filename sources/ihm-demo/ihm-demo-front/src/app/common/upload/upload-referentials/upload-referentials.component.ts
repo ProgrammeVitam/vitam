@@ -1,10 +1,10 @@
-import {Component, OnInit, OnDestroy, Input} from '@angular/core';
-import {IntervalObservable} from "rxjs/observable/IntervalObservable";
-import {NavigationStart, Router} from '@angular/router';
-import {Observable} from "rxjs";
+import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
+import { NavigationStart, Router } from '@angular/router';
+import { Observable } from 'rxjs/Rx';
 
-import {ResourcesService} from '../../resources.service';
-import {UploadService, ingestStatusElement} from '../upload.service';
+import { ResourcesService } from '../../resources.service';
+import { UploadService, ingestStatusElement } from '../upload.service';
 
 
 @Component({
@@ -41,9 +41,7 @@ export class UploadReferentialsComponent implements OnInit {
 
   ngOnInit() {
     this.contextId = this.uploadType;
-    if (!this.extensions) {
-      this.extensions = ["tar", "zip"];
-    }
+    this.extensions = ['.zip', '.tar', '.tar.gz', '.tar.bz2', '.json', '.xsd', '.rng', '.csv', '.xml'];
   }
 
   ngOnDestroy() {
@@ -51,13 +49,13 @@ export class UploadReferentialsComponent implements OnInit {
 
   checkFileExtension(fileName: string): boolean {
     this.fileName = fileName;
-    let extension = fileName.split('.').pop();
-    if (this.extensions.indexOf(extension) >= 0) {
-      return true;
-    } else {
-      this.displayDialog = true;
-      return false;
+    for (const extension of this.extensions) {
+      if (fileName.endsWith(extension)) {
+        return true;
+      }
     }
+    this.displayDialog = true;
+    return false;
   }
 
   onFileDrop(file) {
