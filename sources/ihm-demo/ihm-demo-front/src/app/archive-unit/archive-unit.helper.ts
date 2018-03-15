@@ -95,6 +95,15 @@ export class ArchiveUnitHelper {
     }
   }
 
+  getTitle(unitData: any) {
+    if (unitData.Title !== undefined) {
+        return unitData.Title; 
+    } else if (unitData.Title_ !== undefined && unitData.Title_.fr !== undefined) {
+        return unitData.Title_.fr; 
+    }
+    return '';
+  }
+    
   getStartDate(unitData: any) {
     if (unitData.DescriptionLevel && unitData.DescriptionLevel !== 'Item') {
       return unitData.StartDate;
@@ -329,8 +338,8 @@ export class ArchiveUnitHelper {
       '#mgt': {
         'NeedAuthorization': 'Autorisation requise',
       },
-      'Titles': this.getFieldWithLang('Titres'),
-      'Descriptions': this.getFieldWithLang('Descriptions'),
+      'Title_': this.getFieldWithLang('Titres'),
+      'Description_': this.getFieldWithLang('Descriptions'),
       'Gps': {
         '@@': 'Coordonnées GPS',
         'GpsLatitude': 'Latitude',

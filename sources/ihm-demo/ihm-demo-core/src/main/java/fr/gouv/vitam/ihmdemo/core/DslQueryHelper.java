@@ -85,6 +85,7 @@ public final class DslQueryHelper {
     private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
     private static final String DESCRIPTION = "Description";
     private static final String TITLE = "Title";
+    private static final String TITLE_FR = "Title_.fr";
     private static final String EVENT_DATE_TIME = "evDateTime";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
     private static final String EVENT_OUT_DETAIL = "events.outDetail";
@@ -510,6 +511,7 @@ public final class DslQueryHelper {
 
             if (searchKeys.equals(TITLE_AND_DESCRIPTION)) {
                 booleanQueries.add(match(TITLE, (String) searchValue));
+                booleanQueries.add(match(TITLE_FR, (String) searchValue));
                 booleanQueries.add(match(DESCRIPTION, (String) searchValue));
                 continue;
             }
@@ -518,7 +520,7 @@ public final class DslQueryHelper {
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(TITLE)) {
-                andQuery.add(match(TITLE, (String) searchValue));
+                andQuery.add(or().add(match(TITLE, (String) searchValue)).add(match(TITLE_FR, (String) searchValue)));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(DESCRIPTION)) {
