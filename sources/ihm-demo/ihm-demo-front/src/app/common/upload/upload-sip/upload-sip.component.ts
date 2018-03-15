@@ -48,9 +48,7 @@ export class UploadSipComponent implements OnInit {
 
   ngOnInit() {
     this.contextId = this.uploadType;
-    if (!this.extensions) {
-      this.extensions = ['.zip', '.tar', '.tar.gz', '.tar.bz2'];
-    }
+    this.extensions = ['.zip', '.tar', '.tar.gz', '.tar.bz2', '.json', '.xsd', '.rng', '.csv', '.xml'];
     this.isAdmin = this.authenticationService.isAdmin();
   }
 
@@ -59,13 +57,13 @@ export class UploadSipComponent implements OnInit {
 
   checkFileExtension(fileName: string): boolean {
     this.fileName = fileName;
-    if (fileName.endsWith(this.extensions[0]) || fileName.endsWith(this.extensions[1])
-      || fileName.endsWith(this.extensions[2]) || fileName.endsWith(this.extensions[3])) {
+    for (const extension of this.extensions) {
+      if (fileName.endsWith(extension)) {
         return true;
-    }else {
-      this.displayDialog = true;
-      return false;
+      }
     }
+    this.displayDialog = true;
+    return false;
   }
 
   onFileDrop(file) {

@@ -304,7 +304,7 @@ public class ProfileServiceImpl implements ProfileService {
                     ", to import the file, the metadata profile must be created first", StatusCode.KO));
         }
 
-        manager.logStarted(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId());
+        manager.logStarted(PROFILES_FILE_IMPORT_EVENT, null);
 
         try {
 
@@ -374,7 +374,7 @@ public class ProfileServiceImpl implements ProfileService {
                 // Do nothing
             }
 
-            manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(), wellFormedJson);
+            manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, null, wellFormedJson);
 
         } catch (Exception e) {
             LOGGER.error(e);
