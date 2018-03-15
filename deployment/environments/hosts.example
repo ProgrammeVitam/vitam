@@ -156,11 +156,10 @@ hosts-mongod-data
 [hosts-mongos-offer]
 # TODO: put here servers where this service will be deployed : mongos cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
-# Optional param : mongo_rs_bootstrap=true on first (or chosen) server
 # Example (for a more complete one, see the one in the group hosts-mongos-data) :
-# vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1                       mongo_rs_bootstrap=true
+# vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1
-# vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1                          mongo_rs_bootstrap=true
+# vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1
 
 [hosts-mongoc-offer]
@@ -219,9 +218,8 @@ hosts-mongod-data
 [hosts-mongos-data]
 # TODO: Put here servers where this service will be deployed : mongos cluster
 # Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
-# Mandatory param on one node of the replica_set : mongo_rs_bootstrap=true : on first (or chosen) server
 # Example :
-# vitam-mdbs-01   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
+# vitam-mdbs-01   mongo_cluster_name=mongo-data
 # vitam-mdbs-01   mongo_cluster_name=mongo-data
 # vitam-mdbs-01   mongo_cluster_name=mongo-data
 
