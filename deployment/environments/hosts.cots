@@ -108,7 +108,7 @@ hosts-mongoc-offer
 hosts-mongod-offer
 
 [hosts-mongos-offer]
-localhost                       mongo_rs_bootstrap=true
+localhost
 
 [hosts-mongoc-offer]
 localhost                       mongo_rs_bootstrap=true
@@ -135,7 +135,7 @@ hosts-mongod-data
 mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
-localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
+localhost   mongo_cluster_name=mongo-data
 
 [hosts-mongoc-data]
 localhost   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
