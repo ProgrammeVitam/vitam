@@ -1548,7 +1548,7 @@ public class IngestInternalIT {
         assertNotNull(unit);
 
         // Check the added management rules
-        assertEquals(unit.get("#management").size(), 2);
+        assertEquals(unit.get("#management").size(), 1);
 
         // Check that only the rule declared in "ManagementMetaData" was added : StorageRule
         assertTrue(unit.get("#management").has("StorageRule"));
@@ -1612,7 +1612,7 @@ public class IngestInternalIT {
         assertNotNull(unit);
 
         // Check the added management rules
-        assertEquals(unit.get("#management").size(), 3);
+        assertEquals(unit.get("#management").size(), 2);
 
         // Check that both the rules declared in "ManagementMetaData" and in the unit were added : StorageRule +
         // AccessRule
@@ -1677,7 +1677,7 @@ public class IngestInternalIT {
         assertNotNull(unit);
 
         // Check the added management rules
-        assertEquals(unit.get("#management").size(), 2);
+        assertEquals(unit.get("#management").size(), 1);
 
         // Check that the rule declared in the unit was added : AccessRule
         assertTrue(unit.get("#management").has("AccessRule"));
