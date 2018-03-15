@@ -8,3 +8,4 @@ Base MetaData
    introduction.rst
    unit.rst
    objectgroup.rst
+   offset.rst
