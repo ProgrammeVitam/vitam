@@ -356,21 +356,21 @@
 .ui-breadcrumb a {
   color: #1b1d1f; }
 
-.ui-menu .ui-menuitem .ui-menuitem-link {
+.ui-menuitem .ui-menuitem-link {
   color: #222222; }
-  .ui-menu .ui-menuitem .ui-menuitem-link:hover {
+  .ui-menuitem .ui-menuitem-link:hover {
     border-color: #c0c0c0;
     background: #eeeeee;
     color: #212121;
     border-color: transparent; }
-    .ui-menu .ui-menuitem .ui-menuitem-link:hover a {
+    .ui-menuitem .ui-menuitem-link:hover a {
       color: #212121; }
-.ui-menu .ui-menuitem.ui-menuitem-active > .ui-menuitem-link {
+.ui-menuitem.ui-menuitem-active > .ui-menuitem-link {
   border-color: #c0c0c0;
   background: #eeeeee;
   color: #212121;
   border-color: transparent; }
-  .ui-menu .ui-menuitem.ui-menuitem-active > .ui-menuitem-link a {
+  .ui-menuitem.ui-menuitem-active > .ui-menuitem-link a {
     color: #212121; }
 
 .ui-tabmenu .ui-tabmenu-nav li:not(.ui-state-active):hover {
@@ -984,7 +984,11 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
   cursor: pointer; }
 
 .ui-menubar {
-  min-height: 80px; }
+  min-height: 80px;
+  background: linear-gradient(to bottom, #f6f7f9 0%, #ebedf0 100%); }
+
+.ui-menubar .ui-submenu-list {
+  background: linear-gradient(to bottom, #f6f7f9 0%, #ebedf0 100%); }
 
 #logout-text {
   text-decoration: underline; }
