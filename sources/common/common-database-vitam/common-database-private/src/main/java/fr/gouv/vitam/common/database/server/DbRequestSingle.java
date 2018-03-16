@@ -563,7 +563,7 @@ public class DbRequestSingle {
             int nbTry = 0;
             boolean modified = false;
 
-            while (updatedDocument == null && nbTry < 3) {
+            while (updatedDocument == null && nbTry < 10) {
                 nbTry++;
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
 

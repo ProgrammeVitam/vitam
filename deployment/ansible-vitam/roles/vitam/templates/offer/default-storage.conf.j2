@@ -11,3 +11,5 @@ projectName: {{ vitam_offers[offer_conf]["projectName"] | default("") }}
 swiftUrl: {{ vitam_offers[offer_conf]["swiftUrl"] | default("") }}
 swiftTrustTore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
 swiftTrustTorePassword: {{ password_truststore }}
+swiftMaxConnectionsPerRoute: 200
+swiftMaxConnections: 200

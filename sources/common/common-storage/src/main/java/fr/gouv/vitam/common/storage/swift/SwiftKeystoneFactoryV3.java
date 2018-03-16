@@ -65,7 +65,9 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
         domainIdentifier = Identifier.byName(configuration.getSwiftUid());
         projectIdentifier = Identifier.byName(configuration.getProjectName());
         configOS4J = Config.newConfig()
-            .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration));
+            .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
+            .withMaxConnections(configuration.getSwiftMaxConnections())
+            .withMaxConnectionsPerRoute(configuration.getSwiftMaxConnectionsPerRoute());
 
         if (configuration.getKeystoneEndPoint().startsWith("https")) {
             File file = new File(configuration.getSwiftTrustTore());
