@@ -99,7 +99,8 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
         adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
     }
 
-    @VisibleForTesting InternalSecurityFilter(HttpServletRequest httpServletRequest,
+    @VisibleForTesting
+    InternalSecurityFilter(HttpServletRequest httpServletRequest,
         InternalSecurityClient internalSecurityClient,
         AdminManagementClient adminManagementClient) {
         this.httpServletRequest = httpServletRequest;

@@ -44,6 +44,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -88,6 +89,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.PermissionModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
@@ -100,6 +103,8 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbNa
 public class AccessStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessStep.class);
+    public static final String CONTEXT_IDENTIFIER = "CT-000001";
+    public static final String INGEST_CONTRACT_IDENTIFIER = "contrat_de_rattachement_TNR";
 
     private static final String UNIT_GUID = "UNIT_GUID";
     private static String CONTRACT_WITH_LINK = "[{" +
@@ -224,18 +229,53 @@ public class AccessStep {
      */
     @When("^j'importe le contrat d'entrée avec le noeud de rattachement dont le titre est (.*)")
     public void upload_contract_ingest_with_noeud(String title) throws Throwable {
+
+        boolean exists = false;
         try {
             String unitGuid =
                 world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(), world.getTenantId(),
                     world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), title);
             String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
-            JsonNode node = JsonHandler.getFromString(newContract);
             world.getAdminClient().createIngestContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 new ByteArrayInputStream(newContract.getBytes()));
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
             // Do Nothing
             LOGGER.warn("Contrat d'entrée est déjà importé");
+            exists = true;
+        }
+
+        // TODO: 3/16/18 Ugly fix
+        if (!exists) {
+            // update context
+
+            RequestResponse<ContextModel> res = world.getAdminClient()
+                .findContextById(new VitamContext(world.getTenantId())
+                    .setApplicationSessionId(world.getApplicationSessionId()), CONTEXT_IDENTIFIER);
+            assertThat(res.isOk()).isTrue();
+            ContextModel contextModel = ((RequestResponseOK<ContextModel>) res).getFirstResult();
+            assertThat(contextModel).isNotNull();
+            List<PermissionModel> permissions = contextModel.getPermissions();
+            assertThat(permissions).isNotEmpty();
+
+
+            boolean changed = false;
+            for (PermissionModel p : permissions) {
+                if (p.getTenant() != world.getTenantId()) {
+                    continue;
+                }
+
+                if (null == p.getIngestContract()) {
+                    p.setIngestContract(new HashSet<>());
+                }
+                changed = p.getIngestContract().add(INGEST_CONTRACT_IDENTIFIER) || changed;
+            }
+
+            if (changed) {
+                ContractsStep.updateContext(world.getAdminClient(), world.getApplicationSessionId(), CONTEXT_IDENTIFIER,
+                    permissions);
+            }
+
         }
     }
 

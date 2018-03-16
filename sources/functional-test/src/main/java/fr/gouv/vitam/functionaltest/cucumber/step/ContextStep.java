@@ -141,7 +141,7 @@ public class ContextStep {
     }
 
     @When("^je modifie le contexte nommé (.*) le statut de la requête est (.*)$")
-    public void update_context_by_query(String name, Integer status)
+    public void update_context_by_name_query(String name, Integer status)
         throws InvalidParseOperationException, VitamClientException, IOException, AccessExternalClientException,
         InvalidCreateOperationException {
         this.contextName = name;
@@ -164,6 +164,26 @@ public class ContextStep {
 
     }
 
+
+    @When("^je modifie le contexte dont l'identifiant est (.*) le statut de la requête est (.*)$")
+    public void update_context_by_identifier_query(String contextIdentifier, Integer status)
+        throws InvalidParseOperationException, IOException, AccessExternalClientException {
+        Path queryFile = Paths.get(world.getBaseDirectory(), fileName);
+        this.query = FileUtil.readFile(queryFile.toFile());
+        if (world.getOperationId() != null) {
+            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+        }
+
+        JsonNode queryDsl = JsonHandler.getFromString(query);
+
+        VitamContext context = new VitamContext(world.getTenantId());
+        context.setApplicationSessionId(world.getApplicationSessionId());
+
+        RequestResponse<ContextModel> requestResponse =
+            world.getAdminClient().updateContext(context, contextIdentifier, queryDsl);
+        assertThat(requestResponse.getHttpCode()).isEqualTo(status);
+
+    }
 
 
     @When("^je recherche un contexte nommé (.*)$")
@@ -188,7 +208,7 @@ public class ContextStep {
     }
 
     @Then("^les métadonnées du context sont$")
-    public void metadata_are(DataTable dataTable) throws Throwable {
+    public void metadata_are(DataTable dataTable) {
         List<List<String>> raws = dataTable.raw();
         for (List<String> raw : raws) {
             String index = raw.get(0);

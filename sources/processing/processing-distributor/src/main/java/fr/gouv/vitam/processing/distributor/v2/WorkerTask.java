@@ -53,7 +53,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
     private volatile WorkerTaskState workerTaskState = WorkerTaskState.PENDING;
 
     public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId, String contextId) {
-        ParametersChecker.checkParameter("Params are required", descriptionStep, requestId, contextId);
+        ParametersChecker.checkParameter("Params are required", descriptionStep, requestId);
         this.descriptionStep = descriptionStep;
         this.tenantId = tenantId;
         this.requestId = requestId;
