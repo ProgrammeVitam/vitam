@@ -160,8 +160,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case FATAL:
-                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.FATAL.toString());
-                    infoNode.put("MsgError", "Cannot check context");
+                    infoNode.put("MsgError", "Cannot check ingest contract and context");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.FATAL);
                     break;

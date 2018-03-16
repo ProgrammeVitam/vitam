@@ -861,6 +861,9 @@ public class ParserTokens extends BuilderToken {
     public static boolean isAnArrayVariable(String name) {
         // FIXME Patch for Single collection
         switch (name) {
+            // context
+            case "SecurityProfile":
+            case "EnableControl":
             // Formats
             case "Status":
             case "Name":
