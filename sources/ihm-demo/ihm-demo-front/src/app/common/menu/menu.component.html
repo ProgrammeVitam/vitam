@@ -14,8 +14,14 @@
   </div>
   <div class="userInfo" *ngIf="isAuthenticated">
     <span class="tenant-text">Tenant : <b>{{tenantChosen ? tenantChosen : '-'}}</b></span>
-    <i class="fa fa-power-off logout-icon" (click)="logOut()">
-      <a id="logout-text">Déconnexion</a>
-    </i>
+    <div class="menu-actions">
+      <i class="fa fa-power-off logout-icon clickableDiv" (click)="logOut()">
+        <a >Déconnexion</a>
+      </i>
+      <i class="fa fa-shopping-basket basket-icon clickableDiv" routerLink="basket">
+        <a id="basket-text">Mon panier</a>
+      </i>
+    </div>
   </div>
+
 </p-menubar>

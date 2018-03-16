@@ -98,8 +98,6 @@ export class ResultsComponent implements OnInit {
     || (this.infoListElem && this.infoListElem.nativeElement.contains(targetElement))) ? true : false;
   }
 
-
-
   onRowSelect() {
     this.changeDetectorRef.detectChanges();
     this.selectedCols = this.cols.concat(this.extraSelectedCols);
@@ -107,11 +105,11 @@ export class ResultsComponent implements OnInit {
 
   paginate(event) {
     this.firstItem = event.first;
-    let page = event.page;
+    const page = event.page;
 
     // TODO If unloadedPage reached (See how to trigg) => Call search with offset.
     if (event.page >= this.lastPage || event.page <= this.firstPage) {
-      var searchScope = { response: null };
+      const searchScope = { response: null };
       this.firstPage = page;
       this.searchFunction(this.service, this.firstItem, event.rows, searchScope).subscribe(
         (response) => {

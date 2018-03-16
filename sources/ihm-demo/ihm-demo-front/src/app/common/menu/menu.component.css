@@ -40,14 +40,18 @@ a:hover {
     text-decoration: none;
 }
 
-.logout-icon {
-    color: #AD9FFF;
-    cursor: pointer;
-}
-
 .tenant-text {
     float: left;
     padding: 0px 10px;
+}
+
+.menu-actions {
+    float: left;
+    width: 120px;
+}
+
+.basket-icon {
+    padding-top: 10px;
 }
 
 #accessContract {
