@@ -83,7 +83,7 @@ export class LifecycleComponent extends PageComponent {
           {label: 'Recherche', routerLink: ''},
           {label: 'Recherche d\'archives', routerLink: 'search/archiveUnit'},
           {label: 'Détails de l\'unité archivistique ' + this.unitId, routerLink: 'search/archiveUnit/' + this.unitId},
-          {label: 'Journal du cycle de vie', routerLink: 'search/archiveUnit/' + this.unitId + '/' + this.urlCompletion}
+          {label: this.panelHeader, routerLink: 'search/archiveUnit/' + this.unitId + '/' + this.urlCompletion}
         ];
         this.setBreadcrumb(newBreadcrumb);
         this.titleService.setTitle(`VITAM - ${this.panelHeader}`);

@@ -63,14 +63,14 @@ export class LogbookOperationDetailsComponent extends PageComponent {
 
   constructor(private route: ActivatedRoute, public logbookService: LogbookService,
               public titleService: Title, public breadcrumbService: BreadcrumbService) {
-    super('Détail d\'une opération', breadcrumb, titleService, breadcrumbService);
+    super('Détail de l\'opération', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {
     this.route.params.subscribe(params => {
       this.id = params['id'];
       this.breadcrumb[this.breadcrumb.length - 1] = {
-        label: 'Détail d\'une opération ' + this.id,
+        label: 'Détail de l\'opération ' + this.id,
         routerLink: 'admin/logbookOperation/' + this.id
       };
       this.breadcrumbService.changeState(this.breadcrumb);

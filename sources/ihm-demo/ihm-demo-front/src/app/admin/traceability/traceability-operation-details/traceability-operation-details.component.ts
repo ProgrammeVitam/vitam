@@ -59,7 +59,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
         let newBreadcrumb = [
           {label: 'Administration', routerLink: ''},
           {label: 'Opérations de sécurisation', routerLink: 'admin/traceabilityOperation'},
-          {label: 'Détails de l\'opération ' + this.id, routerLink: ''}
+          {label: 'Détail  de l\'opération de sécurisation ' + this.id, routerLink: ''}
         ];
         this.setBreadcrumb(newBreadcrumb);
         return [];
