@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.workflowStatusKo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -244,23 +246,48 @@ public class TransferNotificationActionHandlerIteratorTest {
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             XMLEventReader reader = xmlInputFactory.createXMLEventReader(xmlFile);
             String archiveUnitId = null;
+            boolean isEventPresent = false,
+                    mgmtPresent =true;
             while (reader.hasNext()) {
-                String tempArchiveUnitId = null;
                 XMLEvent event = reader.nextEvent();
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart().equals("ArchiveUnit")) {
                     event = reader.nextEvent();
                     if (event.isStartElement() &&
+                        event.asStartElement().getName().getLocalPart().equals("Management")) {
+                        mgmtPresent = true;
+                        event = reader.nextEvent();
+                        if (event.isStartElement() &&
+                            event.asStartElement().getName().getLocalPart().equals("LogBook")) {
+                            event = reader.nextEvent();
+                            if (event.isStartElement() &&
+                                event.asStartElement().getName().getLocalPart().equals("Event")) {
+                                isEventPresent = true;
+                                event = reader.nextEvent();
+                            }
+                        }
+                        while(!event.isEndElement() ||
+                            !event.asEndElement().getName().getLocalPart().equals("Management")){
+                            event = reader.nextEvent();
+                        }
+
+                    }
+                    if(mgmtPresent){
+                        event = reader.nextEvent();
+                    }
+                    if (event.isStartElement() &&
+                        event.asStartElement().getName().getLocalPart().equals("Content")) {
+                        event = reader.nextEvent();
+                    }
+                    if (event.isStartElement() &&
                         event.asStartElement().getName().getLocalPart().equals("SystemId")) {
                         String elementText = reader.getElementText();
-                        tempArchiveUnitId = elementText;
+                        if(isEventPresent) {
+                            archiveUnitId = elementText;
+                            break;
+                        }
                     }
                     event = reader.nextEvent();
-                    if (event.isStartElement() &&
-                        event.asStartElement().getName().getLocalPart().equals("Event")) {
-                        archiveUnitId = tempArchiveUnitId;
-                        break;
-                    }
                 }
             }
 

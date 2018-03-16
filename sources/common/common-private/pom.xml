@@ -224,6 +224,77 @@
 				<groupId>org.jvnet.jaxb2.maven2</groupId>
 				<artifactId>maven-jaxb2-plugin</artifactId>
 				<version>0.13.1</version>
+				<executions>
+					<execution>
+						<configuration>
+							<catalog>src/main/resources/seda-vitam/seda-vitam.cat</catalog>
+							<args>
+								<arg>-Xinheritance</arg>
+								<arg>-Xannotate</arg>
+							</args>
+
+							<strict>false</strict>
+							<schemaDirectory>src/main/resources</schemaDirectory>
+							<schemaExcludes>
+								<exclude>seda-2.0-main.xsd</exclude>
+							</schemaExcludes>
+							<schemaIncludes>
+								<include>seda-vitam/seda-vitam-2.0-main.xsd</include>
+							</schemaIncludes>
+							<plugins>
+								<plugin>
+									<groupId>org.jvnet.jaxb2_commons</groupId>
+									<artifactId>jaxb2-basics-annotate</artifactId>
+									<version>${jaxb2.version}</version>
+								</plugin>
+							</plugins>
+						</configuration>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+					<!-- SEDA 2.1 Types generation -->
+					<execution>
+						<id>generate-seda-2.1-types</id>
+						<configuration>
+							<catalog>src/main/resources/seda-2.1/seda-vitam.cat</catalog>
+							<args>
+								<arg>-Xinheritance</arg>
+								<arg>-Xannotate</arg>
+							</args>
+
+							<strict>false</strict>
+							<schemaDirectory>src/main/resources/seda-2.1</schemaDirectory>
+							<generatePackage>fr.gouv.culture.archivesdefrance.seda.v2_1</generatePackage>
+							<generateDirectory>target/generated-sources/xjc/v2_1</generateDirectory>
+							<schemaIncludes>
+								<include>seda-2.1-main.xsd</include>
+							</schemaIncludes>
+							<plugins>
+								<plugin>
+									<groupId>org.jvnet.jaxb2_commons</groupId>
+									<artifactId>jaxb2-basics-annotate</artifactId>
+									<version>${jaxb2.version}</version>
+								</plugin>
+							</plugins>
+						</configuration>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.jvnet.jaxb2_commons</groupId>
+						<artifactId>jaxb2-basics</artifactId>
+						<version>0.6.5</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<!--plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.13.1</version>
 				<configuration>
 					<catalog>src/main/resources/seda-vitam/seda-vitam.cat</catalog>
 					<args>
@@ -253,6 +324,35 @@
 							<goal>generate</goal>
 						</goals>
 					</execution>
+					<SEDA 2.1 Types generation >
+					<execution>
+						<id>generate-seda-2.1-types</id>
+						<configuration>
+							<catalog>src/main/resources/seda-2.1/seda-vitam.cat</catalog>
+							<args>
+								<arg>-Xinheritance</arg>
+								<arg>-Xannotate</arg>
+							</args>
+
+							<strict>false</strict>
+							<schemaDirectory>src/main/resources/seda-2.1</schemaDirectory>
+							<generatePackage>fr.gouv.culture.archivesdefrance.seda.v2_1</generatePackage>
+							<generateDirectory>src/main/java</generateDirectory>
+							<schemaIncludes>
+								<include>seda-2.1-main.xsd</include>
+							</schemaIncludes>
+							<plugins>
+								<plugin>
+									<groupId>org.jvnet.jaxb2_commons</groupId>
+									<artifactId>jaxb2-basics-annotate</artifactId>
+									<version>${jaxb2.version}</version>
+								</plugin>
+							</plugins>
+						</configuration>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
 				</executions>
 				<dependencies>
 					<dependency>
@@ -261,7 +361,7 @@
 						<version>0.6.5</version>
 					</dependency>
 				</dependencies>
-			</plugin>
+			</plugin-->
 		</plugins>
 	</build>
 

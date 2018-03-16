@@ -24,15 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.model;
+package fr.gouv.vitam.common.model.unit.v2_1;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import fr.gouv.culture.archivesdefrance.seda.v2_1.RuleIdType;
+import fr.gouv.vitam.common.model.unit.CommonRuleBase;
+
+import java.util.List;
 
 /**
- * The override of the generated pojo is needed to describe it as a root element for physical data objects to generate
- * the XML Stream
+ * Common rule Interface
  */
-@XmlRootElement(name = "PhysicalDataObject")
-public class PhysicalDataObjectTypeRoot extends DataObjectTypeRoot {
+public interface CommonRuleV21 extends CommonRuleBase {
 
+    /**
+     * Gets the value of the refNonRuleId property.
+     * 
+     * @return refNonRuleId for SEDA V21 rules
+     */
+    List<RuleIdType> getRefNonRuleId();
 }

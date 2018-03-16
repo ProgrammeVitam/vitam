@@ -100,13 +100,13 @@ public class SedaUtils {
     private static final String INCORRECT_PHYSICAL_ID = "IncorrectPhysicalId";
     private static final int USAGE_POSITION = 0;
     private static final int VERSION_POSITION = 1;
-
     /**
      * nbAUExisting: number of the AU already existing
      */
     public static final String NB_AU_EXISTING = "nbAUExisting";
     public static final String INVALID_DATAOBJECT_VERSION = "INVALID_DATAOBJECT_VERSION";
     public static final String VALID_DATAOBJECT_VERSION = "VALID_DATAOBJECT_VERSION";
+    public static final String SEDA_XSD_VERSION = "seda-2.1/seda-2.1-main.xsd";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
