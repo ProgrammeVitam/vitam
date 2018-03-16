@@ -10,6 +10,7 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 - Recherche
 - Administration
 - Gestion des archives
+
 .. image:: images/menu_general.png
 
 Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages.
@@ -35,7 +36,10 @@ Le titre de la page est visible sur les onglets des navigateurs Internet. Il cor
 - Transfert de SIP et plan de classement Vitam.
 - Recherche d'archives Vitam.
 - Journal des opérations
-.. image:: images/titre_IHM_demo.png
+
+|
+
+    .. image:: images/titre_IHM_demo.png
 
 
 Formulaire de recherche
@@ -86,9 +90,11 @@ Il est possible d'afficher des colonnes supplémentaires dans certains tableaux.
 
 
 .. image:: images/general_info_bt.png
+
 |
-.. image:: images/general_info_options.png
-   :scale: 50
+
+    .. image:: images/general_info_options.png
+       :scale: 50
    
    
 A partir de là, il est possible de choisir les options (colonnes) que l'on souhaite afficher en les cochant. Il est également possible de tout sélectionner par un clic sur la première case, située tout en en haut. 
@@ -168,26 +174,28 @@ Import de fichier ou dossier
 La solution logicielle Vitam permet d'importer des fichiers ou des dossiers compressés de différents formats. 
 Les formats acceptés sont: 
 
-*Pour les entrées : .zip, .tar,  .tar.gz, .tar.bz2 et tar.gz2. 
-*Pour les contextes, les contrats d'entrée, les contrats d'accès, les notices de profils d'archivage: Json 
-*Pour les référentiels des services agents, les réferentiels des règles de gestion : CSV
-*Pour les référentiels des formats: xml
-*Pour les profils d'archivage: rng ou xsd
+* Pour les entrées : .zip, .tar,  .tar.gz, .tar.bz2 et tar.gz2. 
+* Pour les contextes, les contrats d'entrée, les contrats d'accès, les notices de profils d'archivage: Json 
+* Pour les référentiels des services agents, les réferentiels des règles de gestion : CSV
+* Pour les référentiels des formats: xml
+* Pour les profils d'archivage: rng ou xsd
 
 Il existe deux façons d'importer un fichier ou dossier :
 
 - De façon classique en sélectionnant son fichier ou dossier via l'interface de votre navigateur en cliquant sur le lien "sélectionner un fichier"
 - De façon plus intuitive en faisant glisser le fichier ou dossier de votre ordinateur à la page d'import. Pour cela le fichier ou dossier doit être déplacé dans la zone grisée de téléchargement.
+
 |
-.. image:: images/zone_dl.png
-   :scale: 50
-   
+
+    .. image:: images/zone_dl.png
+       :scale: 50
+
 Dans les deux cas, le nom du fichier ou dossier s'inscrit en bas de la zone de téléchargement.
 
 |
 
-.. image:: images/zone_dl_file.png
-   :scale: 50
+    .. image:: images/zone_dl_file.png
+       :scale: 50
    
    
 Référentiels

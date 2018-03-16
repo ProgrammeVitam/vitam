@@ -64,7 +64,9 @@ Détail d'un format
 Pour accéder au détail d'un format, l'utilisateur clique sur la ligne souhaitée.
 
 |
-.. image:: images/detail_format.png
+
+    .. image:: images/detail_format.png
+
 
 Le détail d'un format est composé des informations suivantes :
 
@@ -361,8 +363,10 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 - Profils d'archivage
 - Nœud de rattachement
 - Tenant
+
 |
-.. image:: images/detail_ce.png
+
+    .. image:: images/detail_ce.png
 
 Modifier un contrat d'entrée
 -----------------------------
@@ -370,7 +374,8 @@ Modifier un contrat d'entrée
 Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification de plusieurs champs du contrat, l'ajout d'un noeud de rattachement, ainsi que la modification du statut (actif/inactif). Il est également possible d'ajouter ou de supprimer des profils d'archivage (identifiant).
 
 |
-.. image:: images/ce_update.png
+
+    .. image:: images/ce_update.png
 
 * Statut
 
@@ -402,6 +407,7 @@ L'administrateur devra au préalable construire son contrat plusieurs critères 
 - Nom (obligatoire)
 - Description (obligatoire)
 - Statut (facultatif) : si aucun statut n'est défini, le contrat sera inactif par défaut.
+
 La structure et les valeurs des contrats sont décrites dans la documentation "Gestion des habilitations".
 
 Pour importer un contrat d'accès, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contrats d'accès".
@@ -590,8 +596,10 @@ Les tenants sont affichés par bloc. Chaque bloc contenant les informations suiv
 - L'identifiant du tenant
 - La liste des contrats d'accès associés à ce tenant
 - La liste des contrats d'entrée associés à ce tenant
+
 |
-.. image:: images/detail_contexte.png
+
+    .. image:: images/detail_contexte.png
 
 Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.
 
@@ -615,10 +623,11 @@ L'import de notice détaillant les profils d'archivage est une fonctionnalité r
 
 L'utilisateur construit au prélable la notice descriptive du profil d'archivage au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
 
-- Nom : intitulé du profil d'archivage (obligatoire)
-- Description : description du profil d'archivage (obligatoire)
-- Format : format attendu pour le profil SEDA (XSD ou RNG) (obligatoire)
-- Statut (facultatif) : si aucun statut n'est défini, le profil sera inactif par défaut
+    - Nom : intitulé du profil d'archivage (obligatoire)
+    - Description : description du profil d'archivage (obligatoire)
+    - Format : format attendu pour le profil SEDA (XSD ou RNG) (obligatoire)
+    - Statut (facultatif) : si aucun statut n'est défini, le profil sera inactif par défaut
+
 La structure et les valeurs des notices descriptives de profils d'archivages sont décrites dans la documentation "Profil d'archivage".
 
 Pour importer une notice descriptive de profil d'archivage, l'utilisateur survole le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des profils d'archivage".
@@ -1000,7 +1009,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Type de journal sécurisé : liste déroulante permettant de sélectionner le type de journal sécurisé à afficher.
 	* Journal des écritures
 	* Journal des opérations
-	* Jounraux des cycles de vie
+	* Journaux des cycles de vie
 
 |
 
@@ -1012,8 +1021,10 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Date de début : indique la date de début de l’opération de sécurisation
 - Date de fin : indique la date de fin de l’opération de sécurisation
 - Télécharger : icône permettant de télécharger le journal sécurisé. En cliquant sur ce symbole, le journal est téléchargé sous forme de zip. Le nom de ce fichier correspond à la valeur du champ FileName du dernier event du journal de l'opération.
+
 |
-.. image:: images/res_secu.png
+
+    .. image:: images/res_secu.png
 
 Détail d'un journal sécurisé
 ----------------------------
@@ -1073,9 +1084,11 @@ Pour importer un référentiel des formats, l'administration:
 - Clique sur le bouton "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement
 - Sélectionne le fichier .xml PRONOM récupéré précédemment
 - Clique sur le bouton "Importer"
+
 |
-.. image:: images/import_formats.png
-   :scale: 50
+
+    .. image:: images/import_formats.png
+       :scale: 50
 
 A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas sont possibles :
 
@@ -1113,6 +1126,7 @@ Un bloc Permissions détaille le périmètre du contexte, tenant par tenant. Il 
  - le tenant dans lequel vont s’appliquer un ou plusieurs contrats
  - le(s) identifiant(s) de(s) contrat(s) d’accès appliqué(s) sur le tenant
  - le(s) identifiant(s) de(s) contrat(s) d’entrée appliqué(s) sur le tenant
+
 La structure et les valeurs des contextes applicatifs sont décrites dans la documentation "Gestion des habilitations".
 
 Pour importer un contexte, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contextes applicatifs".
