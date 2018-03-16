@@ -18,8 +18,9 @@ Séparation des tests TDD et tests d'intégration
 ===============================================
 
 - Il y a plusieurs tests d'intégration présents dans le module *integration-test* :
-	*.ProcessingIT : test d'intégration pour différents services : workspace, functional-administration, 
-	worker, metadata, logbook, processing
+
+*.ProcessingIT : test d'intégration pour différents services : workspace, functional-administration, worker, metadata, logbook, processing
+
 	
 	StorageClientIT : test d'intégration pour le client du service de storage. Cela concerne deux modules:
 	storage (client & rest) et le client de workspace 
