@@ -214,9 +214,10 @@ public class CreateManifest extends ActionHandler {
                 });
                 manifestBuilder.endDescriptiveMetadata();
 
-                manifestBuilder.endDataObjectPackage();
+                manifestBuilder.writeOriginatingAgency(Iterables.getOnlyElement(originatingAgencies));
 
-                manifestBuilder.writeOriginatingAgencyAndClose(Iterables.getOnlyElement(originatingAgencies));
+                manifestBuilder.endDataObjectPackage();
+                manifestBuilder.closeManifest();
 
             } catch (IOException |
                 MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException |
