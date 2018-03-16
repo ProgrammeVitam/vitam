@@ -45,4 +45,6 @@ How to produce .json files
 ```
 => For each resources, `touch` an **_id**.json file, e.g. **myAwesomeVisualization.json**, in the corresponding **_type** directory, here **visualization**. The result should be: `/visualization/myAwesomeVisualization.json`. Copy the **_source** content in the new file.
 
+> The ES object id must correspond to the name of the json file. 
+
 > Since the index-patterns are not exportable from the Kibana web interface, you can get them with a **GET** request at the following address: ``http://{{elasticsearch_host}}/.kibana/index-pattern/{{index_pattern_name}}`` then proceed as if you were at step 6.
