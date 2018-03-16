@@ -26,42 +26,9 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
-import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
-import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -89,11 +56,40 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import org.assertj.core.api.Fail;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
+import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
+import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * step defining access glue
@@ -138,10 +134,10 @@ public class AccessStep {
 
     /**
      * Check facet bucket value count
-     * 
+     *
      * @param facetName facet name
-     * @param count bucket count
-     * @param value bucket value
+     * @param count     bucket count
+     * @param value     bucket value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) contient (\\d+) valeurs (.*)$")
@@ -151,16 +147,16 @@ public class AccessStep {
         assertThat(facetResult).as("facetResult with name " + facetName + " was not found").isPresent();
         Optional<FacetBucket> facetBucket =
             facetResult.get().getBuckets().stream().filter(item -> item.getValue().equals(value)).findFirst();
-        assertThat(facetBucket).as("facetResult with name " + facetName + " does not contains value " + value).isPresent();
+        assertThat(facetBucket).as("facetResult with name " + facetName + " does not contains value " + value)
+            .isPresent();
         assertThat(facetBucket.get().getCount()).isEqualTo(count);
     }
 
     /**
      * Check facet does not contains bucket for value
-     * 
+     *
      * @param facetName facet name
-     * @param count count
-     * @param value value
+     * @param value     value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) ne contient pas la valeur (.*)$")
@@ -188,7 +184,7 @@ public class AccessStep {
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable dataTable
+     * @param dataTable    dataTable
      * @param resultNumber resultNumber
      * @throws Throwable
      */
@@ -267,7 +263,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field field name
+     * @param field     field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -365,7 +361,7 @@ public class AccessStep {
      * replace in the loaded query the given parameter by the given value
      *
      * @param parameter parameter name in the query
-     * @param value the valeur to replace the parameter
+     * @param value     the valeur to replace the parameter
      * @throws Throwable
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
@@ -659,8 +655,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename name of the file to import or check
+     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename   name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -867,29 +863,28 @@ public class AccessStep {
 
     @When("^je réalise un audit de traçabilité de l'unité$")
     public void unit_traceability_audit() throws Throwable {
-
         String unitId = world.getUnitId();
 
         // Run unit traceability audit
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-            .setApplicationSessionId(world.getApplicationSessionId());
+        VitamContext vitamContext =
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId());
         world.getAdminClient().unitEvidenceAudit(vitamContext, unitId);
     }
 
     @When("^je réalise un audit de traçabilité de l'objet group$")
     public void object_group_traceability_audit() throws Throwable {
-
         String objectGroupId = world.getObjectGroupId();
 
         // Run unit traceability audit
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-            .setApplicationSessionId(world.getApplicationSessionId());
+        VitamContext vitamContext =
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId());
         world.getAdminClient().objectGroupEvidenceAudit(vitamContext, objectGroupId);
     }
 
     @Then("^le journal d'opération de l'audit de traçabilité a pour statut (.*)$")
     public void check_traceability_audit_status(String expectedStatus) throws Throwable {
-
         // Select operation
         Select select = new Select();
         BooleanQuery query = and().add(
@@ -898,51 +893,52 @@ public class AccessStep {
         select.setLimitFilter(0, 1);
         select.addOrderByDescFilter("events.evDateTime");
 
-        JsonNode logbookOperation = world.getLogbookOperationsClient().selectOperation(select.getFinalSelect());
-        assertThat(logbookOperation.get(TAG_RESULTS)).hasSize(1);
+        VitamContext vitamContext =
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<LogbookOperation>
+            operationRequestResponse = world.getAccessClient().selectOperations(vitamContext, select.getFinalSelect());
+        assertThat(operationRequestResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<LogbookOperation>) operationRequestResponse).getResults()).hasSize(1);
 
-        ArrayNode events = (ArrayNode) logbookOperation.get(TAG_RESULTS).get(0).get("events");
-        ObjectNode lastEvent = (ObjectNode) events.get(events.size() - 1);
+        LogbookOperation logbookOperation =
+            ((RequestResponseOK<LogbookOperation>) operationRequestResponse).getResults().get(0);
 
-        assertThat(lastEvent.get(LogbookLifeCycleMongoDbName.eventType.getDbname()).asText()).isEqualTo(EVIDENCE_AUDIT);
+        List<LogbookEventOperation> events = logbookOperation.getEvents();
+        LogbookEventOperation lastEvent = events.get(events.size() - 1);
 
-        String traceabilityAuditStatus = lastEvent.get(LogbookLifeCycleMongoDbName.outcome.getDbname()).asText();
-        assertThat(traceabilityAuditStatus).isEqualTo(expectedStatus);
+        assertThat(lastEvent.getEvType()).isEqualTo(EVIDENCE_AUDIT);
+        assertThat(lastEvent.getOutcome()).isEqualTo(expectedStatus);
     }
 
     @When("^on lance la traçabilité des journaux de cycles de vie$")
     public void lfc_traceability() {
         runInVitamThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-                RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLFC();
-                assertThat(requestResponseOK.isOk()).isTrue();
+            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLFC();
+            assertThat(requestResponseOK.isOk()).isTrue();
 
-                final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                assertThat(traceabilityOperationId).isNotNull();
+            final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            assertThat(traceabilityOperationId).isNotNull();
 
-                final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-                boolean process_timeout = vitamPoolingClient
-                    .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
-                        TimeUnit.MILLISECONDS);
-                if (!process_timeout) {
-                    fail("Traceability processing not finished. Timeout exceeded.");
-                }
-
-                VitamContext vitamContext =
-                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId());
-                RequestResponse<ItemStatus> operationProcessExecutionDetails =
-                    world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
-
-                assertThat(operationProcessExecutionDetails.isOk()).isTrue();
-                assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
-                    .getGlobalStatus()).isEqualTo(StatusCode.OK);
-            } catch (Throwable e) {
-                LOGGER.error(e);
-                fail(e.getMessage());
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+            boolean process_timeout = vitamPoolingClient
+                .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
+                    TimeUnit.MILLISECONDS);
+            if (!process_timeout) {
+                fail("Traceability processing not finished. Timeout exceeded.");
             }
+
+            VitamContext vitamContext =
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId());
+            RequestResponse<ItemStatus> operationProcessExecutionDetails =
+                world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
+
+            assertThat(operationProcessExecutionDetails.isOk()).isTrue();
+            assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
+                .getGlobalStatus()).isEqualTo(StatusCode.OK);
         });
     }
 
@@ -951,14 +947,31 @@ public class AccessStep {
      *
      * @param
      */
-    private void runInVitamThread(Runnable r) {
-        Thread thread = VitamThreadFactory.getInstance().newThread(r);
+    private void runInVitamThread(MyRunnable r) {
+
+        AtomicReference<Throwable> exception = new AtomicReference<>();
+
+        Thread thread = VitamThreadFactory.getInstance().newThread(() -> {
+            try {
+                r.run();
+            } catch (Throwable e) {
+                exception.set(e);
+            }
+        });
+
         thread.start();
         try {
             thread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        if (exception.get() != null) {
+            fail("Test failed with error", exception.get());
+        }
+    }
+
+    public interface MyRunnable {
+        void run() throws Throwable;
     }
 }
-
