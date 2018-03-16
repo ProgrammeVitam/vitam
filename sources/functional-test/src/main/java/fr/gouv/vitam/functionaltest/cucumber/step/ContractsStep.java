@@ -37,30 +37,44 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.PermissionModel;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class ContractsStep {
+
+    public static final String CONTEXT_IDENTIFIER = "CT-000001";
+    public static final String INGEST_CONTRACT_NOT_IN_CONTEXT = "IngestContractNotInContext";
 
     public ContractsStep(World world) {
         this.world = world;
@@ -117,8 +131,8 @@ public class ContractsStep {
     @Then("^j'importe ce contrat de type (.*)")
     public void upload_contract(String type) throws IOException {
         try {
-            uploadContract(type);
-        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            uploadContract(type, CONTEXT_IDENTIFIER, false);
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException | InvalidCreateOperationException | VitamClientException e) {
             fail("should not produce an exception", e);
         }
     }
@@ -132,16 +146,26 @@ public class ContractsStep {
     @Then("^j'importe ce contrat sans échec de type (.*)")
     public void upload_contract_without_fail(String type) throws IOException {
         try {
-            uploadContract(type);
-        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            uploadContract(type, CONTEXT_IDENTIFIER, true);
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException | InvalidCreateOperationException | VitamClientException e) {
             // catch nothing
         }
     }
 
-    private void uploadContract(String type)
-        throws IOException, InvalidParseOperationException, AccessExternalClientException {
+    private void uploadContract(String type, String contextIdentifier, boolean withoutFailure)
+        throws IOException, InvalidParseOperationException, AccessExternalClientException, VitamClientException,
+        InvalidCreateOperationException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+            RequestResponse<ContextModel> res = world.getAdminClient()
+                .findContextById(new VitamContext(world.getTenantId())
+                    .setApplicationSessionId(world.getApplicationSessionId()), contextIdentifier);
+            assertThat(res.isOk()).isTrue();
+            ContextModel contextModel = ((RequestResponseOK<ContextModel>) res).getFirstResult();
+            assertThat(contextModel).isNotNull();
+            List<PermissionModel> permissions = contextModel.getPermissions();
+            assertThat(permissions).isNotEmpty();
+
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             if (AdminCollections.ACCESS_CONTRACTS.equals(collection)) {
@@ -149,16 +173,102 @@ public class ContractsStep {
                     world.getAdminClient().createAccessContracts(
                         new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                         inputStream);
-                assertThat(response instanceof RequestResponseOK);
+
+                if (!withoutFailure) {
+                    assertThat(response.isOk()).isTrue();
+                }
+
+                final List<IngestContractModel> accessContractModelList =
+                    JsonHandler.getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
+                    });
+
+                if (accessContractModelList != null && !accessContractModelList.isEmpty()) {
+                    Set<String> contractIdentifier =
+                        accessContractModelList.stream().map(ac -> ac.getIdentifier()).collect(Collectors.toSet());
+
+                    boolean changed = false;
+                    for (PermissionModel p : permissions) {
+                        if (p.getTenant() != world.getTenantId()) {
+                            continue;
+                        }
+                        if (null == p.getAccessContract()) {
+                            p.setAccessContract(new HashSet<>());
+                        }
+                        changed = p.getAccessContract().addAll(contractIdentifier) || changed;
+                    }
+
+                    if (changed) {
+                        updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
+                            permissions);
+                    }
+                }
+
             } else if (AdminCollections.INGEST_CONTRACTS.equals(collection)) {
                 RequestResponse response =
                     world.getAdminClient().createIngestContracts(
                         new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                         inputStream);
-                assertThat(response instanceof RequestResponseOK);
+
+                if (!withoutFailure) {
+                    assertThat(response.isOk()).isTrue();
+                }
+
+
+                final List<IngestContractModel> ingestContractModelList =
+                    JsonHandler.getFromFileAsTypeRefence(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
+                    });
+
+                if (ingestContractModelList != null && !ingestContractModelList.isEmpty()) {
+                    Set<String> contractIdentifier =
+                        ingestContractModelList.stream().map(ic -> ic.getIdentifier()).collect(Collectors.toSet());
+
+                    // Remove, because TNR testing security control on ingest contract
+                    contractIdentifier.remove(INGEST_CONTRACT_NOT_IN_CONTEXT);
+
+                    boolean changed = false;
+                    for (PermissionModel p : permissions) {
+                        if (p.getTenant() != world.getTenantId()) {
+                            continue;
+                        }
+
+                        if (null == p.getIngestContract()) {
+                            p.setIngestContract(new HashSet<>());
+                        }
+                        changed = p.getIngestContract().addAll(contractIdentifier) || changed;
+                    }
+
+                    if (changed) {
+                        updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
+                            permissions);
+                    }
+                }
             }
 
         }
+    }
+
+    public static void updateContext(AdminExternalClient adminExternalClient, String applicationSessionId,
+        String contextIdentifier, List<PermissionModel> permissions)
+        throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientException {
+        // update contexte
+        ObjectNode permissionsNode = JsonHandler.createObjectNode();
+        permissionsNode.set(ContextModel.TAG_PERMISSIONS, JsonHandler.toJsonNode(permissions));
+
+        // TODO: 3/16/18 Ugly fix
+        final String s = JsonHandler.writeAsString(permissionsNode);
+        final String s1 = s.replaceAll("#", "_");
+        final JsonNode fromString = JsonHandler.getFromString(s1);
+
+        VitamContext context = new VitamContext(1);
+        context.setApplicationSessionId(applicationSessionId);
+        final SetAction setPermission = UpdateActionHelper.set((ObjectNode) fromString);
+        final Update update = new Update();
+        update.addActions(setPermission);
+        JsonNode queryDsl = update.getFinalUpdateById();
+
+        RequestResponse<ContextModel> requestResponse =
+            adminExternalClient.updateContext(context, contextIdentifier, queryDsl);
+        assertThat(requestResponse.isOk()).isTrue();
     }
 
     /**
