@@ -26,9 +26,11 @@ Un Workflow est défini en JSON avec la structure suivante :
     - kind: un type pouvant être :
 
         - REF : pas de distribution pour ce step et définit une référence vers un fichier à traiter. (Exemple: manifest.xml)
-        - LIST : 
+        - LIST :
+
          - si la valeur de 'element' est 'Units' : la liste des éléments à traiter est incluse dans un fichier ingestLevelStack.json. Ce fichier contient les guid des archive units ordonnés par niveau de graphe.
-         - si la valeur de 'element' est autre : la liste des éléments à traiter est représentée par les fichiers présents dans le sous-répertoire représenté par 'element' (ex : 'ObjectGroup')          
+         - si la valeur de 'element' est autre : la liste des éléments à traiter est représentée par les fichiers présents dans le sous-répertoire représenté par 'element' (ex : 'ObjectGroup')
+
         - LIST_IN_FILE: Fichier contenant une liste de GUID à traiter dans la distribution
 
     - l'élément de distribution (element) indiquant l'élément unique (REF) ou le chemin vers un dossier ou un fichier sur le Workspace (LIST, LIST_IN_FILE)
@@ -97,7 +99,9 @@ Etapes
     - CHECK_ARCHIVEPROFILE: valider le manifest avec le fichier XSD/RNG défini dans le profile d'archivage
 
   - CHECK_DATAOBJECTPACKAGE:
+
     - Cas 1: arbres et plans d'accès
+
         - CHECK_NO_OBJECT
         - CHECK_MANIFEST_OBJECTNUMBER
         - CHECK_MANIFEST

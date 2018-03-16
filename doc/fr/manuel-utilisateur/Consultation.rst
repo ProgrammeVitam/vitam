@@ -294,7 +294,7 @@ Pour le télécharger, retourner au Journal des Opérations, rechercher dans la 
 
 
 Consultation des journaux du cycle de vie
-========================
+=========================================
 
 Le journal du cycle de vie est généré, une fois le processus d'entrée d'un SIP terminé avec succès et les nouvelles unités archivistiques et groupe d'objets créés.
 Il trace tous les événements qui impactent l'unité archivistique et les objets, dès leur prise en charge dans la solution logicielle Vitam.
