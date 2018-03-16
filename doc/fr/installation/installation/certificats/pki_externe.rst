@@ -16,6 +16,7 @@ Les étapes d'intégration des certificats à la solution Vitam sont les suivant
 
 .. note:: Rappel pré-requis : vous devez disposer d'une ou plusieurs :term:`PKI` pour tout déploiement en production de la solution VITAM.
 
+.. note:: Ne pas oublier, dans les certificats, de prendre en compte des alias "web" (subjectAltName).
 
 Intégration de certificats existants
 ------------------------------------
