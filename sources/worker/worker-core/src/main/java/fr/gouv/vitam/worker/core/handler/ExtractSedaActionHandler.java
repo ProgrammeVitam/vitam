@@ -480,7 +480,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             e.printStackTrace();
             LOGGER.debug("ProcessingException", e);
             globalCompositeItemStatus.increment(StatusCode.FATAL);
-        } catch (final CycleFoundException e) {//
+        } catch (final CycleFoundException e) {
             LOGGER.debug("ProcessingException: cycle found", e);
             globalCompositeItemStatus.setEvDetailData(e.getEventDetailData());
             updateDetailItemStatus(globalCompositeItemStatus, e.getCycle(), SUBTASK_LOOP);
@@ -843,7 +843,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (serviceLevel != null) {
                         LOGGER.debug("Find a service Level: " + serviceLevel);
                         evDetData.put("ServiceLevel", serviceLevel.asText());
+                    } else {
+                        LOGGER.debug("Put a null ServiceLevel (No service Level)");
+                        evDetData.set("ServiceLevel", (ObjectNode) null);
                     }
+                } else {
+                    LOGGER.debug("Put a null ServiceLevel (No Data Object Package)");
+                    evDetData.set("ServiceLevel", (ObjectNode) null);
                 }
 
             } catch (InvalidParseOperationException e) {
@@ -1514,7 +1520,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return parentsList;
     }
 
-    private void checkArchiveUnitIdReference(String llcEvDetData) throws ProcessingException, InvalidParseOperationException {
+    private void checkArchiveUnitIdReference(String llcEvDetData) throws ProcessingException {
 
         if (unitIdToGroupId != null && !unitIdToGroupId.isEmpty()) {
             for (final Entry<String, String> entry : unitIdToGroupId.entrySet()) {

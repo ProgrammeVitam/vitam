@@ -68,6 +68,7 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
      * @param unitId
      * @param bdoId
      * @param gotId
+     * @param eventDetailData
      */
     public ArchiveUnitContainDataObjectException(String message, String unitId, String bdoId, String gotId,String eventDetailData) {
         super(message);
