@@ -36,8 +36,9 @@ export class ImportComponent  extends PageComponent {
     this.activatedRoute.params.subscribe( params => {
       this.referentialType = params['referentialType'];
       if (!this.authenticationService.isTenantAdmin()) {
-        this.referentialTypes.splice(3, 1);
-        this.referentialTypes.shift();
+          this.referentialTypes = this.referentialTypes.filter(
+              item => item.value !== 'format' && item.value !== 'context'
+          );
       }
       switch (this.referentialType)
       {
