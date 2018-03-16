@@ -465,6 +465,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ArchiveUnitContainDataObjectException e) {
             LOGGER.debug("ProcessingException: archive unit contain an data object declared object group.", e);
+            globalCompositeItemStatus.setEvDetailData(e.getEventDetailData());
             updateDetailItemStatus(globalCompositeItemStatus,
                 getMessageItemStatusAUDeclaringObject(e.getUnitId(), e.getBdoId(), e.getGotId()),
                 EXISTING_OG_NOT_DECLARED);
@@ -479,8 +480,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             e.printStackTrace();
             LOGGER.debug("ProcessingException", e);
             globalCompositeItemStatus.increment(StatusCode.FATAL);
-        } catch (final CycleFoundException e) {
+        } catch (final CycleFoundException e) {//
             LOGGER.debug("ProcessingException: cycle found", e);
+            globalCompositeItemStatus.setEvDetailData(e.getEventDetailData());
             updateDetailItemStatus(globalCompositeItemStatus, e.getCycle(), SUBTASK_LOOP);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (JAXBException e) {
@@ -760,24 +762,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // save maps
             saveGuidsMaps();
 
-            // 2-detect cycle : if graph has a cycle throw CycleFoundException
-            // Define Treatment DirectedCycle detection
-            checkCycle(logbookLifeCycleClient, containerId);
-
-            // 2- create graph and create level
-            // Define Treatment Graph and Level Creation
-            createIngestLevelStackFile(new Graph(archiveUnitTree).getGraphWithLongestPaths(),
-                GRAPH_WITH_LONGEST_PATH_IO_RANK);
-
-            checkArchiveUnitIdReference();
-            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
-                storageInfo);
-
-            // Add parents to archive units and save them into workspace
-            finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
-                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, logbookLifeCycleClient, storageInfo);
-
-            // Fill evDetData
+            // Fill evDetData EvDetailReq,ArchivalAgreement,ArchivalProfile and ServiceLevel properties
             try {
                 JsonNode metadataAsJson =
                     JsonHandler.getFromFile(globalSedaParametersFile).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
@@ -858,19 +843,34 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (serviceLevel != null) {
                         LOGGER.debug("Find a service Level: " + serviceLevel);
                         evDetData.put("ServiceLevel", serviceLevel.asText());
-                    } else {
-                        LOGGER.debug("Put a null ServiceLevel (No service Level)");
-                        evDetData.set("ServiceLevel", (ObjectNode) null);
                     }
-                } else {
-                    LOGGER.debug("Put a null ServiceLevel (No Data Object Package)");
-                    evDetData.set("ServiceLevel", (ObjectNode) null);
                 }
 
             } catch (InvalidParseOperationException e) {
                 LOGGER.error("Can't parse globalSedaPareters", e);
                 throw new ProcessingException(e);
             }
+
+            String evDetDataJson=JsonHandler.unprettyPrint(evDetData);
+
+            // 2-detect cycle : if graph has a cycle throw CycleFoundException
+            // Define Treatment DirectedCycle detection
+            checkCycle(logbookLifeCycleClient, containerId,evDetDataJson);
+
+            // 2- create graph and create level
+            // Define Treatment Graph and Level Creation
+            createIngestLevelStackFile(new Graph(archiveUnitTree).getGraphWithLongestPaths(),
+                GRAPH_WITH_LONGEST_PATH_IO_RANK);
+
+            checkArchiveUnitIdReference(evDetDataJson);
+            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
+                storageInfo);
+
+            // Add parents to archive units and save them into workspace
+            finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, logbookLifeCycleClient, storageInfo);
+
+
 
             handlerIO.addOuputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false, asyncIO);
 
@@ -926,12 +926,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     /**
+     *
+     * @param logbookLifeCycleClient
+     * @param containerId
+     * @param evDetData
      * @throws CycleFoundException
+     * @throws LogbookClientNotFoundException
      * @throws InvalidParseOperationException
-     * @throws LogbookClientServerException
      * @throws LogbookClientBadRequestException
+     * @throws LogbookClientServerException
      */
-    private void checkCycle(LogbookLifeCyclesClient logbookLifeCycleClient, String containerId)
+    private void checkCycle(LogbookLifeCyclesClient logbookLifeCycleClient, String containerId, String evDetData)
         throws CycleFoundException, LogbookClientNotFoundException, InvalidParseOperationException,
         LogbookClientBadRequestException, LogbookClientServerException {
         final DirectedGraph directedGraph = new DirectedGraph(archiveUnitTree);
@@ -961,7 +966,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             handlerIO.getHelper().updateDelegate(llcp);
             bulkLifeCycleUnit(containerId, logbookLifeCycleClient, Lists.newArrayList(unitGuid));
         }
-        throw new CycleFoundException(GRAPH_CYCLE_MSG, cycleMessage);
+        throw new CycleFoundException(GRAPH_CYCLE_MSG, cycleMessage,evDetData);
 
     }
 
@@ -1509,7 +1514,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return parentsList;
     }
 
-    private void checkArchiveUnitIdReference() throws ProcessingException {
+    private void checkArchiveUnitIdReference(String llcEvDetData) throws ProcessingException, InvalidParseOperationException {
 
         if (unitIdToGroupId != null && !unitIdToGroupId.isEmpty()) {
             for (final Entry<String, String> entry : unitIdToGroupId.entrySet()) {
@@ -1519,12 +1524,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (Strings.isNullOrEmpty(groupId)) {
                         throw new ProcessingException("Archive Unit references a BDO Id but is not correct");
                     } else {
-                        //
                         if (!groupId.equals(entry.getValue())) {
                             throw new ArchiveUnitContainDataObjectException(
                                 "The archive unit " + entry.getKey() + " references one BDO Id " + entry.getValue() +
                                     " while this BDO has a GOT id " + groupId,
-                                entry.getKey(), entry.getValue(), groupId);
+                                entry.getKey(), entry.getValue(), groupId,llcEvDetData);
                         }
                     }
                 }

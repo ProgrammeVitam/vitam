@@ -37,7 +37,10 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
     private String unitId;
     private String bdoId;
     private String gotId;
-
+    /**
+     * the eventDetailData
+     */
+    private String eventDetailData;
     /**
      * @param message associated message
      * @param cause associated cause
@@ -66,11 +69,12 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
      * @param bdoId
      * @param gotId
      */
-    public ArchiveUnitContainDataObjectException(String message, String unitId, String bdoId, String gotId) {
+    public ArchiveUnitContainDataObjectException(String message, String unitId, String bdoId, String gotId,String eventDetailData) {
         super(message);
         this.unitId = unitId;
         this.gotId = gotId;
         this.bdoId = bdoId;
+        this.eventDetailData = eventDetailData;
     }
 
     /**
@@ -95,6 +99,15 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
      */
     public String getUnitId() {
         return unitId;
+    }
+
+    /**
+     * Get the eventDetailData
+     *
+     * @return eventDetailData
+     */
+    public String getEventDetailData() {
+        return eventDetailData;
     }
 
 }
