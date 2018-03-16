@@ -117,7 +117,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
         writeLfcFromItemStatus(param, itemStatus);
 
-        if (actionType != null) {
+        if (actionType != null && itemStatus.getGlobalStatus().isGreaterOrEqualToKo()) {
             itemStatus.setGlobalOutcomeDetailSubcode(actionType);
         }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
