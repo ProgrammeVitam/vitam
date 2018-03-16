@@ -154,11 +154,8 @@ Le rapport généré est :
   }
 
 
-<<<<<<< HEAD
-**Exemple 2 : ajout d'un service agent, en erreur**
-=======
-**Exemple 2 : ajout en erreur d'un service agent, causé par un champ obligatoire qui est manquant  **
->>>>>>> 658e36f... Workflow documentation update for V1
+**Exemple 2 : ajout en erreur d'un service agent, causé par un champ obligatoire qui est manquant**
+
 
 Le rapport généré est :
 
