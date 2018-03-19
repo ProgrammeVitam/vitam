@@ -26,6 +26,19 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import javax.validation.constraints.NotNull;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
@@ -52,18 +65,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.validation.constraints.NotNull;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  *
@@ -113,6 +114,7 @@ public class WorkerManagerTest {
             WORKKER_DB_FILE.delete();
         }
     }
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.getConfiguration().setData(defautDataFolder);
@@ -135,7 +137,7 @@ public class WorkerManagerTest {
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
 
-        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId");
+        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId");
 
         workerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
@@ -160,7 +162,7 @@ public class WorkerManagerTest {
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
-        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId");
+        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId");
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
 
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
@@ -189,7 +191,8 @@ public class WorkerManagerTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenProcessDistributorWhenRegisterExistingWorkerThenProcessingException() throws Exception {
         final String familyId = "DefaultWorker";
-        final String workerId = "NewWorkerId1"+ GUIDFactory.newGUID().getId();;
+        final String workerId = "NewWorkerId1" + GUIDFactory.newGUID().getId();
+        ;
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
     }
@@ -198,11 +201,11 @@ public class WorkerManagerTest {
     @Test
     public void givenProcessDistributorWhenUnRegisterExistingWorkerThenOK() throws Exception {
         final String familyId = "DefaultWorker";
-        final String workerId = "NewWorkerId2"+ GUIDFactory.newGUID().getId();
+        final String workerId = "NewWorkerId2" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         WorkerFamilyManager workerfamily = workerManager.findWorkerBy(familyId);
         assertNotNull(workerfamily);
-        assertEquals(workerfamily.getWorkers().size(),  1);
+        assertEquals(workerfamily.getWorkers().size(), 1);
 
         workerManager.unregisterWorker(familyId, workerId);
         workerfamily = workerManager.findWorkerBy(familyId);
@@ -219,7 +222,7 @@ public class WorkerManagerTest {
 
     @Test
     public void givenProcessDistributorWhenUnRegisterNonExistingWorkerThenProcessingException() throws Exception {
-        final String familyId = "DefaultWorker" ;
+        final String familyId = "DefaultWorker";
         final String workerId = "NewWorkerId3" + GUIDFactory.newGUID().getId();
         final String workerUnknownId = "UnknownWorkerId";
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
@@ -233,18 +236,19 @@ public class WorkerManagerTest {
         workerManager.registerWorker(familyId, workerId, "{\"fakeKey\" : \"fakeValue\"}");
     }
 
-    private class RunnableMock implements Runnable{
-        public RunnableMock(){
+    private class RunnableMock implements Runnable {
+        public RunnableMock() {
 
         }
 
         @Override
-        public void run(){
+        public void run() {
 
         }
     }
 
-    private class VitamSessionMock extends VitamSession{
+
+    private class VitamSessionMock extends VitamSession {
         /**
          * @param owningThread
          */

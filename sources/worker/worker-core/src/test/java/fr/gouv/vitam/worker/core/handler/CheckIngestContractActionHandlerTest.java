@@ -1,7 +1,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -13,17 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
-
-import org.assertj.core.api.Assertions;
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -49,6 +37,16 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -71,7 +69,8 @@ public class CheckIngestContractActionHandlerTest {
     private static final String MESSAGE_IDENTIFIER = "MessageIdentifier";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
 
@@ -88,12 +87,14 @@ public class CheckIngestContractActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenSipWithValidContractReferenceFoundThenReturnResponseOK()
-            throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
-            InvalidCreateOperationException, AdminManagementClientServerException,
-            ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ReferentialNotFoundException {
+        throws InvalidParseOperationException,
+        AdminManagementClientServerException,
+        ReferentialNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
         when(adminClient.findIngestContractsByID(anyObject())).thenReturn(createIngestContract(ContractStatus.ACTIVE));
+        when(adminClient.findContextById(anyObject())).thenReturn(ClientMockResultHelper.getContexts(200));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
         handler = new CheckIngestContractActionHandler();
@@ -104,18 +105,19 @@ public class CheckIngestContractActionHandlerTest {
 
         reset(adminClient);
         when(adminClient.findIngestContractsByID(anyObject()))
-                .thenReturn(createIngestContract(ContractStatus.INACTIVE));
+            .thenReturn(createIngestContract(ContractStatus.INACTIVE));
         response = handler.execute(getWorkerParametersInstance(), handlerIO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), "INACTIVE");
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "CONTRACT_INACTIVE");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenSipWithoutContractThenReturnResponseKO()
-            throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
-            InvalidCreateOperationException, AdminManagementClientServerException,
-            ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ReferentialNotFoundException {
+        throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
+        InvalidCreateOperationException, AdminManagementClientServerException,
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        ReferentialNotFoundException {
 
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(false));
 
@@ -124,7 +126,7 @@ public class CheckIngestContractActionHandlerTest {
 
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        Assertions.assertThat(response.getEvDetailData()).contains("Error Ingest constract not found in the Manifest");
+        Assertions.assertThat(response.getEvDetailData()).contains("Error ingest contract not found in the Manifest");
     }
 
     /**
@@ -134,7 +136,8 @@ public class CheckIngestContractActionHandlerTest {
      * @return the created instance.
      * @throws InvalidParseOperationException
      */
-    private static RequestResponse<IngestContractModel> createIngestContract(ContractStatus status) throws InvalidParseOperationException {
+    private static RequestResponse<IngestContractModel> createIngestContract(ContractStatus status)
+        throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setIdentifier(CONTRACT_IDENTIFIER);
         contract.setStatus(status);
@@ -153,7 +156,7 @@ public class CheckIngestContractActionHandlerTest {
         mandatoryValueMap.put(SUBMISSION_AGENCY_IDENTIFIER, "Vitam");
         mandatoryValueMap.put(ORIGINATING_AGENCY_IDENTIFIER, ORIGINATING_AGENCY_IDENTIFIER);
         mandatoryValueMap.put(MESSAGE_IDENTIFIER, "Dossier d'agent Nicolas Perrin");
-        if(withIngestContract){
+        if (withIngestContract) {
             mandatoryValueMap.put(ARCHIVAL_AGREEMENT, CONTRACT_NAME);
         }
 
@@ -167,12 +170,12 @@ public class CheckIngestContractActionHandlerTest {
      */
     private WorkerParameters getWorkerParametersInstance() {
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
-                .setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json")
-                .setCurrentStep("STP_INGEST_CONTROL_SIP")
-                .setContainerName(guid.getId());
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("STP_INGEST_CONTROL_SIP")
+            .setContainerName(guid.getId());
 
         return params;
     }

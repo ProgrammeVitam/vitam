@@ -26,6 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -57,18 +65,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InOrder;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 /**
  * Do not forget init method on test method !
  */
 public class ProcessEngineImplTest {
+    public static final String FAKE_CONTEXT = "FakeContext";
     private ProcessEngine processEngine;
     private WorkerParameters workParams;
     private ProcessDistributor processDistributor;
@@ -128,7 +129,7 @@ public class ProcessEngineImplTest {
 
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -164,7 +165,7 @@ public class ProcessEngineImplTest {
 
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -202,7 +203,7 @@ public class ProcessEngineImplTest {
     public void startTestIEventsProcessEngineRequiredKO() throws Exception {
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
-                LogbookTypeProcess.INGEST, TENANT_ID);
+                LogbookTypeProcess.INGEST, TENANT_ID, FAKE_CONTEXT);
         processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
 
     }

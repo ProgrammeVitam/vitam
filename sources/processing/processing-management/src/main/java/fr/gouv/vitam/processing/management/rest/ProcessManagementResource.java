@@ -26,6 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.codahale.metrics.Gauge;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -66,27 +88,6 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoring;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
@@ -223,6 +224,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
 
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        String contextId = VitamThreadUtils.getVitamSession().getContextId();
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
 
         try {
@@ -255,7 +257,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     // TODO #2774: end ugly hack
 
                     ProcessWorkflow pw =
-                        processManagement.init(workParams, process.getWorkflow(), logbookTypeProcess, tenantId);
+                        processManagement.init(workParams, process.getWorkflow(), logbookTypeProcess, tenantId, contextId);
                     return buildResponse(Status.CREATED, pw);
 
                 case NEXT:

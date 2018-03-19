@@ -337,6 +337,7 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -392,6 +393,7 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -452,7 +454,7 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
-
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -488,7 +490,7 @@ public class WorkerIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
         VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
-
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;

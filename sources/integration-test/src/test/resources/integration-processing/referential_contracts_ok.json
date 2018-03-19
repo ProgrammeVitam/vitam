@@ -1,7 +1,7 @@
 [
   {
-    "Name": "ArchivalAgreement0",
-    "Identifier": "ArchivalAgreement0",
+    "Name": "NOT_IN_CONTEXT",
+    "Identifier": "NOT_IN_CONTEXT",
     "Description": "aDescription of the contract",
     "Status": "ACTIVE",
     "LastUpdate": "10/12/2016",
@@ -9,6 +9,16 @@
     "ActivationDate": "10/12/2016",
     "DeactivationDate": "10/12/2016"
   },
+  {
+  "Name": "ArchivalAgreement0",
+  "Identifier": "ArchivalAgreement0",
+  "Description": "aDescription of the contract",
+  "Status": "ACTIVE",
+  "LastUpdate": "10/12/2016",
+  "CreationDate": "10/12/2016",
+  "ActivationDate": "10/12/2016",
+  "DeactivationDate": "10/12/2016"
+},
   {
     "Name": "ArchivalAgreement1",
     "Identifier": "ArchivalAgreement1",

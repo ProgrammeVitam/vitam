@@ -50,6 +50,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -476,6 +478,7 @@ public class IngestInternalIT {
     private void tryImportFile() {
 
         VitamThreadUtils.getVitamSession().setContractId(contractId);
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         flush();
 
         if (!imported) {
@@ -504,6 +507,7 @@ public class IngestInternalIT {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                     new TypeReference<List<IngestContractModel>>() {
                     });
@@ -517,8 +521,23 @@ public class IngestInternalIT {
                 List<AccessContractModel> accessContractModelList = JsonHandler
                     .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
                     });
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importAccessContracts(accessContractModelList);
 
+                // Import Security Profile
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                client.importSecurityProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-ingest-internal/security_profile_ok.json"),
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        }));
+
+                // Import Context
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                client.importContexts(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/contexts.json"),
+                        new TypeReference<List<ContextModel>>() {
+                        }));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

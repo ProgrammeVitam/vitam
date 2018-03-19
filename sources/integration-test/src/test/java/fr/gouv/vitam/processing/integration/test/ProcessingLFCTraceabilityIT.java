@@ -27,6 +27,18 @@
 package fr.gouv.vitam.processing.integration.test;
 
 
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -65,8 +77,10 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -112,18 +126,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Processing integration test
@@ -361,6 +363,7 @@ public class ProcessingLFCTraceabilityIT {
     }
 
     private void tryImportFile() {
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         flush();
 
         if (!imported) {
@@ -383,10 +386,13 @@ public class ProcessingLFCTraceabilityIT {
                 List<ProfileModel> profileModelList =
                     JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
                     });
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.createProfiles(profileModelList);
+
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importProfileFile(response.getResults().get(0).getIdentifier(),
                     PropertiesUtils.getResourceAsStream("integration-processing/profil_ok.rng"));
 
@@ -398,7 +404,23 @@ public class ProcessingLFCTraceabilityIT {
                     new TypeReference<List<IngestContractModel>>() {
                     });
 
-                client.importIngestContracts(IngestContractModelList);
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                Status importStatus = client.importIngestContracts(IngestContractModelList);
+
+                // Import Security Profile
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                client.importSecurityProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        }));
+
+                // Import Context
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                client.importContexts(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
+                        new TypeReference<List<ContextModel>>() {
+                        }));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

@@ -83,7 +83,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private int stepIndex = -1;
     private int stepTotal = 0;
-    
+
     private boolean replayAfterFatal = false;
 
     private List<ProcessStep> steps = new ArrayList<>();
@@ -214,6 +214,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     @Override
     public String getWorkflowId() {
         return processWorkflow.getWorkflowId();
+    }
+
+    @Override
+    public String getContextId() {
+        return processWorkflow.getContextId();
     }
 
     @Override
