@@ -149,6 +149,9 @@ public class CreateManifestTest {
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveRestitutionRequest/vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:Uri",
             equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq"))
             .withNamespaceContext(prefix2Uri));
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveRestitutionRequest/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
+            equalTo("FRAN_NP_005568"))
+            .withNamespaceContext(prefix2Uri));
     }
 
 }

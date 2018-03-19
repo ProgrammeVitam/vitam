@@ -223,15 +223,17 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndElement();
     }
 
-    public void writeOriginatingAgencyAndClose(String originatingAgency) throws JAXBException, XMLStreamException {
+    public void writeOriginatingAgency(String originatingAgency) throws JAXBException, XMLStreamException {
         writer.writeStartElement(NAMESPACE_URI, TAG_MANAGEMENT_METADATA);
 
         marshaller.marshal(new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ORIGINATINGAGENCYIDENTIFIER),
             String.class, originatingAgency), writer);
 
         writer.writeEndElement();
+    }
+
+    public void closeManifest() throws XMLStreamException {
         writer.writeEndElement();
         writer.writeEndDocument();
     }
-
 }
