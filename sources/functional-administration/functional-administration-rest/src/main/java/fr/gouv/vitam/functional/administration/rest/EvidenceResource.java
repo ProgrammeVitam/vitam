@@ -62,7 +62,6 @@ public class EvidenceResource {
     /**
      *
      * @param unitId unit Id
-     * @param xTenantId tenant Id
      * @return  OK if everything OK
      */
     @POST
@@ -81,7 +80,6 @@ public class EvidenceResource {
     /**
      *
      * @param objectGroupId objectGroupId
-     * @param xTenantId xTenantId
      * @return  OK if everything OK
      */
     @POST

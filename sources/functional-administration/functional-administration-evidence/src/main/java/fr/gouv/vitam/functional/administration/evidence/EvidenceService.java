@@ -665,6 +665,11 @@ public class EvidenceService {
                 }
             }
 
+            if(auditParameters.isLastSecurisation()) {
+                throw new EvidenceAuditException(EvidenceStatus.WARN,
+                    "Could not find matching traceability info in the last traceability file");
+            }
+
             throw new EvidenceAuditException(EvidenceStatus.KO,
                 "Could not find matching traceability info in the file");
 
