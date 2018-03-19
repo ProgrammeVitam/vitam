@@ -238,7 +238,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
             archiveUnitNode.set(VitamFieldsHelper.originatingAgencies(), originatingAgencies);
             archiveUnitNode.put(VitamFieldsHelper.originatingAgency(), prodService);
         }
-        archiveUnitNode.set(SedaConstants.PREFIX_MGT, (JsonNode) managementNode);
+        archiveUnitNode.set(VitamFieldsHelper.management(), (JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);
 
         // remove DataObjectReference

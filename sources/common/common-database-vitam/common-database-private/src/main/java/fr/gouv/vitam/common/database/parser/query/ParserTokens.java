@@ -202,7 +202,6 @@ public class ParserTokens extends BuilderToken {
         "_mgt.DisseminationRule.Rules.EndDate",
         "_mgt.DisseminationRule.Rules.Rule",
         "_mgt.DisseminationRule.Rules.StartDate",
-        "_mgt.OriginatingAgency",
         "_mgt.ReuseRule.Inheritance.PreventInheritance",
         "_mgt.ReuseRule.Inheritance.PreventRulesId",
         "_mgt.ReuseRule.Rules.EndDate",
