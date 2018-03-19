@@ -282,7 +282,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(pauseRecover)) {
 
             try {
-                this.waitMonitor.get(5, TimeUnit.MINUTES);
+                this.waitMonitor.get(4, TimeUnit.SECONDS);
             } catch (Exception e) {
                 LOGGER.error(e);
             } finally {
