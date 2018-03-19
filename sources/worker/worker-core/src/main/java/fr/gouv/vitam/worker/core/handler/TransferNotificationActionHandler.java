@@ -617,7 +617,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                         dataObjectGroupList.addAll(
                             buildListOfSimpleDataObjectGroup(dataObjectsForOG, dataObjectSystemGuid,
-                            dataObjectToDetailDataObject, bdoObjectGroupSystemGuid, objectGroupSystemGuid)
+                            dataObjectToDetailDataObject, objectGroupSystemGuid)
                         );
                     }
                 }
@@ -691,7 +691,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private List<DataObjectGroupType> buildListOfSimpleDataObjectGroup(Map<String, List<String>> dataObjectsForOG,
             Map<String, Object> dataObjectSystemGuid, Map<String, DataObjectDetail> dataObjectToDetailDataObject,
-        Map<String, Object> bdoObjectGroupSystemGuid, Map<String, Object> objectGroupSystemGuid) {
+            Map<String, Object> objectGroupSystemGuid) {
 
         final List<DataObjectGroupType> dataObjectGroupList = new ArrayList<>();
 
@@ -705,7 +705,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             Object dataObjectGroupSystemId = objectGroupSystemGuid.get(dataObjectGroupId);
 
-            dataObjectGroup.setId(dataObjectGroupSystemId.toString());
+            dataObjectGroup.setId(dataObjectGroupId);
 
             for (final String dataObjectId : dataObjectGroupEntry.getValue()) {
 
@@ -728,6 +728,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 if (dataObjectSystemGUID != null) {
                     binaryOrPhysicalDataObject.setDataObjectSystemId(dataObjectSystemGUID);
                 }
+
+                binaryOrPhysicalDataObject.setDataObjectVersion(dataObjectDetail.getVersion());
 
                 //add  dataObject to dataObjectGroup
                 dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject().add(binaryOrPhysicalDataObject);

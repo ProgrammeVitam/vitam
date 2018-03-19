@@ -128,8 +128,10 @@ public class IngestATRStep {
      */
     @Then("^le fichier ATR contient (.*) balise[s]? de type (.*)$")
     public void atr_contains_n_times_the_tag(int count, String tag) {
-        // count ending tag to ensure there is no attribute in the checked tag
-        int realCount = StringUtils.countMatches(atr, "</" + tag + ">");
+        // count ending tag and empty tag to ensure there is no attribute in the checked tag
+        int realCount = StringUtils.countMatches(atr, "</" + tag + ">")
+            + StringUtils.countMatches(atr, "<" + tag + "/>");
+
         if (realCount != count) {
             LOGGER.error(String.format("expected %d tags %s but was %d", count, tag, realCount));
             fail(String.format("expected %d tags %s but was %d", count, tag, realCount));
