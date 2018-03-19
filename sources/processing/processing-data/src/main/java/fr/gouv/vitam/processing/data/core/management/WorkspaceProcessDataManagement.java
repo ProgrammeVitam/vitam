@@ -243,9 +243,9 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                         uri.getPath().lastIndexOf(URLEncoder.encode(".", CharsetUtils.UTF_8)));
                     ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, processId);
                     if (ProcessState.RUNNING.equals(processWorkflow.getState())) {
-                        processWorkflow.setState(ProcessState.COMPLETED);
+                        processWorkflow.setState(ProcessState.PAUSE);
                         processWorkflow.setProcessCompletedDate(LocalDateTime.now());
-                        processWorkflow.setStatus(StatusCode.UNKNOWN);
+                        processWorkflow.setStatus(StatusCode.FATAL);
                     }
 
                     if (tenantId == null || processWorkflow.getTenantId().equals(tenantId)) {
