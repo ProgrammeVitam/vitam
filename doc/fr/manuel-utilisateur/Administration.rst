@@ -726,6 +726,110 @@ L'opération est journalisée et disponible depuis l'écran de consultation du j
 
 En cas de succès de l'import du profil XSD ou RNG, la date de mise à jour de la notice descriptive de profil est ajustée en conséquence. Si l'utilisateur importe un nouveau profil SEDA au format XSD ou RNG alors qu'un autre profil SEDA a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
+
+Documents types ( EN COURS !!!! ) 
+===============
+
+Un document type est un fichier JSON schéma qui permet de définir précisément et d'effectuer des contrôles sur la structure des métadonnées attendues des archives destinées à être transférées à la solution logicielle Vitam.
+
+Il s'accompagne dans la solution logicielle Vitam d'une notice descriptive en JSON.
+
+Pour plus d'information se référer à la documentation "Document Type"
+
+
+Importer une notice de document type
+------------------------------------
+
+L'import de notice détaillant les documents types est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. 
+
+L'utilisateur construit au prélable la notice descriptive du document type au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
+
+    - Nom : intitulé du document type (obligatoire)
+    - Description : description du document type (Facultative)
+    - Date de Création ( Facultative ) 
+    - Date d'Activation: Date au format JJ/MM/AA ( Facultative ) 
+    - Date de désactivation: Date au format JJ/MM/AA ( Facultative ) 
+    - Statut : Date au format JJ/MM/AA (Facultatif) 
+      NOTE : si aucun statut n'est défini, le profil sera inactif par défaut
+
+La structure et les valeurs des notices descriptives de documents types sont décrites dans la documentation "Documents types".
+
+Pour importer une notice descriptive de documents types, l'utilisateur survole le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des documents type".
+
+
+.. image:: images/menu_import_doctype.png
+
+
+L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
+
+
+.. image:: images/import_doctype.png
+ 
+
+Une fenêtre modale indique alors soit :
+
+- Les documents types ont bien été importés
+- Échec de l’import du fichier, pouvant être causé par :
+	- le fait que le document type existe déjà pour le tenant
+	- le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
+
+Cette opération est journalisée et disponible dans le Journal des opérations.
+
+
+
+Recherche d' un document type
+------------------------------
+
+Pour consulter et rechercher les documents types, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Documents type".
+
+Par défaut, les documents types sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+- Intitulé : permet d’effectuer une recherche approchante sur les noms des notices descriptives de profils d'archivage disponibles dans la solution logicielle Vitam.
+- Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de profils d'archivage.
+
+NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+
+
+.. image:: images/rrecherche_doctype.png
+
+
+Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des notices est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
+
+- Intitulé
+- Identifiant
+- Statut (Actif / Inactif) 
+- Date de de création
+- Dernière modification
+- Document
+
+
+Détail d'un document type
+--------------------------
+
+Pour accéder au détail d'une notice de profil d'archivage, l'utilisateur clique sur la ligne souhaitée. La page "Détail du profil" contient les informations suivantes :
+
+- Identifiant
+- Intitulé
+- Description
+- Statut
+- Tenant
+- Date de création
+- Dernière modification
+
+A COMPLETER !! 
+
+**Modifier un document type**
+
+Il est possible de modifier le document type en cliquant sur le bouton "Modifier" sur l'écran "Détail du document type". L'interface permet la modification de plusieurs champs.
+
+Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
+
+A COMPLETER !!!!! 
+
+
+
 Import d'un arbre de positionnement
 ===================================
 
