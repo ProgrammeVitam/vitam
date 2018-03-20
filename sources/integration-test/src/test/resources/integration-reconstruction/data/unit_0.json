@@ -7,8 +7,7 @@
           "PreventRulesId" : [ "R1" ]
         },
         "FinalAction" : "Copy"
-      },
-      "OriginatingAgency" : "FRAN_NP_009913"
+      }
     },
     "DescriptionLevel" : "RecordGrp",
     "Title" : "AU13",

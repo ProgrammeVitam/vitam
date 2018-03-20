@@ -11,8 +11,7 @@
         "Inheritance" : {
           "PreventRulesId" : [ "DIS-00001" ]
         }
-      },
-      "OriginatingAgency" : "RATP"
+      }
     },
     "DescriptionLevel" : "RecordGrp",
     "Title" : "Gare du Nord",
