@@ -3,7 +3,7 @@
     <div class="ui-g" *ngIf="hits">
         <div class="ui-g-12">
             <div class="ui-g-4">Nombre d'objet dans le panier: </div>
-            <div class="ui-g-3">{{hits.total}}</div>
+            <div class="ui-g-3" *ngIf="hits">{{hits.total}}</div>
         </div>
         <div class="ui-g-12">
             <div class="ui-g-4">Nombre d'objet sélectionnés dans la page: </div>

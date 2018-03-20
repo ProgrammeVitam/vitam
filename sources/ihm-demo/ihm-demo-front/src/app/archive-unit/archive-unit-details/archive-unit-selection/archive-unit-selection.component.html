@@ -1,0 +1,34 @@
+<p-panel [header]="'Ajouter au panier'" [toggleable]="true" [collapsed]="true" *ngIf="id">
+  <div class="ui-g">
+    <div class="ui-g-4 textAlignLeft">
+      <p-radioButton value="AU" label="Unité archivistique" [(ngModel)]="exportType"></p-radioButton>
+    </div>
+    <div class="ui-g-8"></div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-radioButton value="FULL" label="Unité archivistique et sa descendance" [(ngModel)]="exportType"></p-radioButton>
+    </div>
+    <div class="ui-g-8"></div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-radioButton value="INGEST" label="Ensemble de l'entrée" [(ngModel)]="exportType"></p-radioButton>
+    </div>
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2">
+      <button pButton type="button" (click)="addToBasket()" label="Ajouter au panier"></button>
+    </div>
+
+    <p-dialog header="Succès de l'opération" [(visible)]="display">
+      Votre sélection à bien été ajoutée au panier
+      <p-footer>
+        <button pButton type="button" (click)="display = false" label="OK"></button>
+      </p-footer>
+    </p-dialog>
+
+    <p-dialog header="Echec de l'opération" [(visible)]="displayError">
+      Une erreur est survenue lors de l'ajout au panier
+      <p-footer>
+        <button pButton type="button" (click)="displayError = false" label="OK"></button>
+      </p-footer>
+    </p-dialog>
+  </div>
+
+</p-panel>

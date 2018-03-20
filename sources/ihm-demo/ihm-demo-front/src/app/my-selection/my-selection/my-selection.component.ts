@@ -142,12 +142,11 @@ export class MySelectionComponent extends PageComponent {
 
   getFromResponse(response: VitamResponse): ArchiveUnitSelection[] {
     const metadata: ArchiveUnitMetadata[] = plainToClass(ArchiveUnitMetadata, response.$results);
-    const responseItems: ArchiveUnitSelection[] = metadata.map(
+    return metadata.map(
       (item) => {
         return new ArchiveUnitSelection(item, this.mySelectionService.haveChildren(item['#id']));
       }
     );
-    return responseItems;
   }
 
   hideAllChildrenInPage() {

@@ -92,6 +92,7 @@ import {LoadingBlockComponent} from './common/loading-block/loading-block.compon
 import {ArchiveUnitProfileComponent} from './referentials/details/archive-unit-profile/archive-unit-profile.component';
 import {MySelectionComponent} from './my-selection/my-selection/my-selection.component';
 import {MySelectionService} from './my-selection/my-selection.service';
+import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
 
 
 const appRoutes: Routes = [
@@ -266,7 +267,8 @@ const appRoutes: Routes = [
     TraceabilityOperationDetailsComponent,
     WorkflowComponent,
     LoadingBlockComponent,
-    MySelectionComponent
+    MySelectionComponent,
+    ArchiveUnitSelectionComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
