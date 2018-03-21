@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -426,6 +426,7 @@ public class FunctionalAdminIT {
         IngestContractModel contractModel = contractModels.get(0);
         assertThat(contractModel).isNotNull();
         assertThat(contractModel.getStatus().equals("ACTIVE"));
+        assertThat(contractModel.getCheckParentLink().equals("INACTIVE"));
         String contractToUpdate = contractModel.getIdentifier();
 
         // do an update
@@ -436,7 +437,7 @@ public class FunctionalAdminIT {
         // check update
         IngestContractModel updatedContractModel = ingestContract.findByIdentifier(contractToUpdate);
         assertThat(updatedContractModel).isNotNull();
-        assertThat(updatedContractModel.getStatus().equals(ContractStatus.INACTIVE)).isTrue();
+        assertThat(updatedContractModel.getStatus().equals(ActivationStatus.INACTIVE)).isTrue();
 
         // check update log
         select.setQuery(new CompareQuery(QUERY.EQ, "evType", "STP_UPDATE_INGEST_CONTRACT"));

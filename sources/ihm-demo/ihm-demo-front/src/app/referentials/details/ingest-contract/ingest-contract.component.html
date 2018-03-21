@@ -66,6 +66,18 @@
           </div>
         </div>
 
+		<div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Contrôle sur noeud de rattachement</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words" >{{isCheckParent ? 'Actif' : 'Inactif'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="update">
+            <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="isCheckParent" (onChange)="changeCheckControl()"></p-toggleButton>
+          </div>
+        </div>
+
       </div>
       <div class="ui-g-12">
            <div class="ui-g-nopad ui-g-12" *ngIf="update">

@@ -58,6 +58,17 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -66,9 +77,11 @@ import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -85,11 +98,16 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -162,16 +180,6 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * Processing integration test
@@ -264,7 +272,8 @@ public class ProcessingIT {
     private static String SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_INGEST_CONTRACT_UNKNOW = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
-    private static String SIP_INGEST_CONTRACT_NOT_IN_CONTEXT = "integration-processing/SIP_INGEST_CONTRACT_NOT_IN_CONTEXT.zip";
+    private static String SIP_INGEST_CONTRACT_NOT_IN_CONTEXT =
+        "integration-processing/SIP_INGEST_CONTRACT_NOT_IN_CONTEXT.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
     // TODO : use for IT test to add a link between two AUs (US 1686)
 
@@ -519,8 +528,7 @@ public class ProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
-                    });
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
                 client.createProfiles(profileModelList);
 
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
@@ -535,16 +543,14 @@ public class ProcessingIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {
-                    });
+                    new TypeReference<List<IngestContractModel>>() {});
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
                 // import access contract
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                    });
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
                 client.importAccessContracts(accessContractModelList);
 
 
@@ -553,15 +559,13 @@ public class ProcessingIT {
                 client.importSecurityProfiles(JsonHandler
                     .getFromFileAsTypeRefence(
                         PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
-                        new TypeReference<List<SecurityProfileModel>>() {
-                        }));
+                        new TypeReference<List<SecurityProfileModel>>() {}));
 
                 // Import Context
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importContexts(JsonHandler
                     .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
-                        new TypeReference<List<ContextModel>>() {
-                        }));
+                        new TypeReference<List<ContextModel>>() {}));
 
             } catch (final Exception e) {
                 LOGGER.error(e);
@@ -655,8 +659,7 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -1543,7 +1546,7 @@ public class ProcessingIT {
     public void testWorkflowAddAndLinkSIP() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
-        // 1. First we create an AU by sip
+        // 1. First we create an AU by sip (Tree)
         final String containerName = createOperationContainer();
 
         // workspace client dezip SIP in workspace
@@ -1555,14 +1558,15 @@ public class ProcessingIT {
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
+
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, INGEST_TREE_WORFKLOW);
         final RequestResponse<JsonNode> ret =
-            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+            processingClient.executeOperationProcess(containerName, INGEST_TREE_WORFKLOW,
                 Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
@@ -1573,25 +1577,79 @@ public class ProcessingIT {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-        String zipPath = null;
-        // 2. then we link another SIP to it
-        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
-        // prepare zip
+        // 2. First we create another AU by sip (Tree)
+        final String containerName2 = createOperationContainer();
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        final InputStream zipInputStreamSipObject2 =
+            PropertiesUtils.getResourceAsStream(OK_RATTACHEMENT);
+        workspaceClient.createContainer(containerName2);
+        workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject2);
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, INGEST_TREE_WORFKLOW);
+        final RequestResponse<JsonNode> ret2 =
+            processingClient.executeOperationProcess(containerName2, INGEST_TREE_WORFKLOW,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret2);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
+
+        wait(containerName2);
+        processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        // 3. we get id of both au from 1 and 2
         final MongoDatabase db = mongoClient.getDatabase("Vitam");
         MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
-        Document unit = resultUnits.first();
-        String idUnit = (String) unit.get("_id");
+        MongoCursor<Document> cursor = resultUnits.iterator();
+        Document unit1 = null;
+        Document unit2 = null;
+        if (cursor.hasNext()) {
+            unit1 = cursor.next();
+        }
+        if (cursor.hasNext()) {
+            unit2 = cursor.next();
+        }
+        assertNotNull(unit1);
+        assertNotNull(unit2);
+        String idUnit = (String) unit1.get("_id");
+        String idUnit2 = (String) unit2.get("_id");
+
+        // 4. creation of 2 zip files : 1 containing id1, the other one containing id2
+        String zipPath = null;
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
+        // we now create another zip file that will contain an incorrect GUID
+        String zipPath2 = null;
+        // 2. then we link another SIP to it
+        String zipName2 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            idUnit2);
+        zipPath2 = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName2;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath2);
+        
+        // 5. we now update the ingest contract, we set the check to ACTIVE and the link parent id takes id1 value
+        updateIngestContractLinkParentId("ArchivalAgreement0", idUnit, "ACTIVE");
 
-        final String containerName2 = createOperationContainer();
+        
+        // 6. ingest here should be ok, we link the correct id (referenced in the ingest contract) to the sip
+        final String containerName3 = createOperationContainer();
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1602,37 +1660,121 @@ public class ProcessingIT {
                 "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName2);
-        workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
+        workspaceClient.createContainer(containerName3);
+
+        workspaceClient.uncompressObject(containerName3, SIP_FOLDER, CommonMediaType.ZIP,
             zipStream);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
 
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
-        final RequestResponse<JsonNode> ret2 =
-            processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName3, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret3 =
+            processingClient.executeOperationProcess(containerName3, WORFKLOW_NAME,
                 Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-        assertNotNull(ret2);
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
-        wait(containerName2);
-        ProcessWorkflow processWorkflow2 = processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
-        assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow2.getStatus());
-        assertNotNull(processWorkflow2.getSteps());
+        assertNotNull(ret3);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret3.getStatus());
+
+        wait(containerName3);
+        ProcessWorkflow processWorkflow3 = processMonitoring.findOneProcessWorkflow(containerName3, tenantId);
+        assertNotNull(processWorkflow3);
+        assertEquals(ProcessState.COMPLETED, processWorkflow3.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow3.getStatus());
+        assertNotNull(processWorkflow3.getSteps());
+
+        
+        // 6. ingest here should be KO, we link an incorrect id (not a child of the referenced au in the ingest contract) into the sip        
+        final String containerName4 = createOperationContainer();
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream2 = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName2));
+        workspaceClient.createContainer(containerName4);
+        workspaceClient.uncompressObject(containerName4, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream2);
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName4, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret4 =
+            processingClient.executeOperationProcess(containerName4, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret4);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret4.getStatus());
+        wait(containerName4);
+        ProcessWorkflow processWorkflow4 = processMonitoring.findOneProcessWorkflow(containerName4, tenantId);
+        assertNotNull(processWorkflow4);
+        assertEquals(ProcessState.COMPLETED, processWorkflow4.getState());
+        assertEquals(StatusCode.KO, processWorkflow4.getStatus());
 
         // Check that we have an AU where in his up we have idUnit
         MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
         assertNotNull(newChildUnit);
         assertNotNull(newChildUnit.first());
+        MongoIterable<Document> operation =
+            db.getCollection("LogbookOperation").find(Filters.eq("_id", containerName4));
+        assertNotNull(operation);
+        assertNotNull(operation.first());
+        assertTrue(operation.first().toString().contains("CHECK_MANIFEST_WRONG_ATTACHMENT_LINK.KO"));
+        
+        // 7. we now put che check as inactive for the ingest contract
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", "INACTIVE");
+
+        // 8. ingest here should be ok (warning), as check is inactive, we do what we want to do         
+        final String containerName5 = createOperationContainer();
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream3 = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName2));
+        workspaceClient.createContainer(containerName5);
+        workspaceClient.uncompressObject(containerName5, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream3);
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName5, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret5 =
+            processingClient.executeOperationProcess(containerName5, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret5);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret4.getStatus());
+        wait(containerName5);
+        ProcessWorkflow processWorkflow5 = processMonitoring.findOneProcessWorkflow(containerName5, tenantId);
+        assertNotNull(processWorkflow5);
+        assertEquals(ProcessState.COMPLETED, processWorkflow5.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow5.getStatus());
+        
         try {
             Files.delete(new File(zipPath).toPath());
+            Files.delete(new File(zipPath2).toPath());
+            //Files.delete(new File(zipPath3).toPath());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void updateIngestContractLinkParentId(String contractId, String linkParentId, String checkParentLink)
+        throws Exception {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
+            final SetAction setLinkParentId = UpdateActionHelper.set(IngestContractModel.LINK_PARENT_ID, linkParentId);
+            final SetAction setCheckParentLink =
+                UpdateActionHelper.set(IngestContractModel.TAG_CHECK_PARENT_LINK, checkParentLink);
+            final Update updateLinkParent = new Update();
+            updateLinkParent.setQuery(QueryHelper.eq("Identifier", contractId));
+            updateLinkParent.addActions(setLinkParentId, setCheckParentLink);
+            updateParserActive.parse(updateLinkParent.getFinalUpdate());
+            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            RequestResponse<IngestContractModel> requestResponse = client.updateIngestContract(contractId, queryDsl);
+            assertTrue(requestResponse.isOk());
         }
     }
 
@@ -1659,11 +1801,9 @@ public class ProcessingIT {
     }
 
     /**
-     * This is a duplicate test for attaching AU to an existing GOT
-     * But we want this to test Attach AU by query to an existing one
-     * As the query by #object return the wanted number of AU in results
-     * We first attach AU to an existing GOT
-     * Then in the test of attach to existing AU by query (the query by #object return more than one= > KO)
+     * This is a duplicate test for attaching AU to an existing GOT But we want this to test Attach AU by query to an
+     * existing one As the query by #object return the wanted number of AU in results We first attach AU to an existing
+     * GOT Then in the test of attach to existing AU by query (the query by #object return more than one= > KO)
      *
      * Why after simulateAttachUnitToExistingGOT the returned GOT have two AU
      *
@@ -1766,8 +1906,10 @@ public class ProcessingIT {
         assertThat(idGOT).isNotNull();
 
         // Search unit by #object: {$eq : idGOT}
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataName>).*?(?=</MetadataName>)","#object");
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
+            "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
+            "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
@@ -1819,8 +1961,10 @@ public class ProcessingIT {
 
         // Search unit by #object: {$eq : idGOT}
         // As we have already attached AU to this GOT then the query will return more than one. KO
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataName>).*?(?=</MetadataName>)","#object");
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml", "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
+            "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
+            "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
@@ -3029,8 +3173,7 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
             functionalClient.importIngestContracts(IngestContractModelList);
 

@@ -344,6 +344,7 @@ public class ParserTokens extends BuilderToken {
         "ActivationDate",
         "DeactivationDate",
         "LinkParentId",
+        "CheckParentLink",
         "_tenant",
         "_v",
         "_score",
@@ -886,6 +887,7 @@ public class ParserTokens extends BuilderToken {
             case "RuleDuration":
                 // Ingest contracts
             case "LinkParentId":
+            case "CheckParentLink":
                 // Access contracts
             case "Identifier":
             case "CreationDate":

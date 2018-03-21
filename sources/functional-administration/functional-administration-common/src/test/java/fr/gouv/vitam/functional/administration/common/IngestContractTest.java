@@ -6,7 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -39,7 +39,8 @@ public class IngestContractTest {
         contract
             .setId(id)
             .setName(name)
-            .setDescription(description).setStatus(ContractStatus.ACTIVE)
+            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
+            .setCheckParentLink(ActivationStatus.INACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).

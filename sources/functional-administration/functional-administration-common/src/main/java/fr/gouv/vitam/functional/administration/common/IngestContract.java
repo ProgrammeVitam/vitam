@@ -33,7 +33,7 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
@@ -65,6 +65,10 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public static final String STATUS = "Status";
 
+    /**
+     * check parent link status (ACTIVE / INACTIVE)
+     */
+    public static final String CHECKPARENTLINK = "CheckParentLink";
     /**
      * Archive profile
      */
@@ -185,13 +189,13 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * 
      * @return status of ingest contact
      */
-    public ContractStatus getStatus() {
+    public ActivationStatus getStatus() {
         String status = getString(STATUS);
         if (status == null) {
             return null;
         }
         try {
-            return ContractStatus.valueOf(status);
+            return ActivationStatus.valueOf(status);
         } catch (IllegalArgumentException exp) {
             // no value corresponds to this status => corrupted state
             return null;
@@ -204,9 +208,38 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param status to set
      * @return this
      */
-    public IngestContract setStatus(ContractStatus status) {
+    public IngestContract setStatus(ActivationStatus status) {
         append(STATUS, status.name());
         return this;
+    }
+
+    /**
+     * Set or change the contract status
+     * 
+     * @param checkParentLink to set
+     * @return this
+     */
+    public IngestContract setCheckParentLink(ActivationStatus checkParentLink) {
+        append(CHECKPARENTLINK, checkParentLink.name());
+        return this;
+    }
+
+    /**
+     * Get the contract check ParentLink status
+     * 
+     * @return status of checkParentLink for this ingest contact
+     */
+    public ActivationStatus getCheckParentLink() {
+        String checkParentLink = getString(CHECKPARENTLINK);
+        if (checkParentLink == null) {
+            return null;
+        }
+        try {
+            return ActivationStatus.valueOf(checkParentLink);
+        } catch (IllegalArgumentException exp) {
+            // no value corresponds to this checkParentLink => corrupted state
+            return null;
+        }
     }
 
     /**

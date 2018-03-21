@@ -21,7 +21,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -93,7 +93,7 @@ public class CheckIngestContractActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(anyObject())).thenReturn(createIngestContract(ContractStatus.ACTIVE));
+        when(adminClient.findIngestContractsByID(anyObject())).thenReturn(createIngestContract(ActivationStatus.ACTIVE));
         when(adminClient.findContextById(anyObject())).thenReturn(ClientMockResultHelper.getContexts(200));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
@@ -105,7 +105,7 @@ public class CheckIngestContractActionHandlerTest {
 
         reset(adminClient);
         when(adminClient.findIngestContractsByID(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.INACTIVE));
+            .thenReturn(createIngestContract(ActivationStatus.INACTIVE));
         response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "CONTRACT_INACTIVE");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -136,7 +136,7 @@ public class CheckIngestContractActionHandlerTest {
      * @return the created instance.
      * @throws InvalidParseOperationException
      */
-    private static RequestResponse<IngestContractModel> createIngestContract(ContractStatus status)
+    private static RequestResponse<IngestContractModel> createIngestContract(ActivationStatus status)
         throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setIdentifier(CONTRACT_IDENTIFIER);

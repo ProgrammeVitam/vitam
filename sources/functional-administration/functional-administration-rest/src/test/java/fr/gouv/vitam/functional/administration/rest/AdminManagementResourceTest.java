@@ -86,7 +86,7 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -345,7 +345,7 @@ public class AdminManagementResourceTest {
         contractModel.setOriginatingAgencies(Sets.newHashSet(originatingAgency));
         contractModel.setIdentifier(contractId);
         contractModel.setName(contractId);
-        contractModel.setStatus(ContractStatus.ACTIVE);
+        contractModel.setStatus(ActivationStatus.ACTIVE);
 
         contractModel.initializeDefaultValue();
 

@@ -85,7 +85,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -838,7 +838,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static JsonNode getQueryDsl(String headerAccessContratId) throws InvalidCreateOperationException {
         Select select = new Select();
         Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.IDENTIFIER, headerAccessContratId),
-            QueryHelper.eq(AccessContract.STATUS, ContractStatus.ACTIVE.name()));
+            QueryHelper.eq(AccessContract.STATUS, ActivationStatus.ACTIVE.name()));
         select.setQuery(query);
         return select.getFinalSelect();
     }

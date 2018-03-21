@@ -85,7 +85,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -367,13 +367,13 @@ public class AccessContractImplTest {
             accessContractService.findContracts(queryDsl);
         assertThat(accessContractModelList2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelList2.getResults()) {
-            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus()));
+            assertThat(ActivationStatus.ACTIVE.equals(accessContractModel.getStatus()));
         }
 
         // Test update for access contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ContractStatus.INACTIVE.toString());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ActivationStatus.INACTIVE.toString());
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
 
@@ -392,7 +392,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(queryDsl);
         assertThat(accessContractModelListForassert.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert.getResults()) {
-            assertThat(ContractStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(ActivationStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
@@ -408,7 +408,7 @@ public class AccessContractImplTest {
 
         // Test update for access contract Status => Active
         final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusActive = UpdateActionHelper.set("Status", ContractStatus.ACTIVE.toString());
+        final SetAction setActionStatusActive = UpdateActionHelper.set("Status", ActivationStatus.ACTIVE.toString());
         final SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
         final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
         final Update updateStatusActive = new Update();
@@ -426,7 +426,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(queryDsl);
         assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert2.getResults()) {
-            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(ActivationStatus.ACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getActivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
@@ -458,13 +458,13 @@ public class AccessContractImplTest {
         responseCast = accessContractService.findContracts(queryDsl);
         assertThat(responseCast.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : responseCast.getResults()) {
-            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus()));
+            assertThat(ActivationStatus.ACTIVE.equals(accessContractModel.getStatus()));
         }
 
         // Test update for access contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ContractStatus.INACTIVE.toString());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", ActivationStatus.INACTIVE.toString());
         final SetAction setActionName = UpdateActionHelper.set(NAME, NEW_NAME);
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
@@ -484,7 +484,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(newSelect.getFinalSelect());
         assertThat(accessContractModelListForassert.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert.getResults()) {
-            assertThat(ContractStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(ActivationStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getEveryOriginatingAgency()).isFalse();
             assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
@@ -505,7 +505,7 @@ public class AccessContractImplTest {
             accessContractService.findContracts(newSelect.getFinalSelect());
         assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelListForassert2.getResults()) {
-            assertThat(ContractStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
+            assertThat(ActivationStatus.INACTIVE.equals(accessContractModel.getStatus())).isTrue();
             assertThat(accessContractModel.getEveryOriginatingAgency()).isTrue();
             assertThat(accessContractModel.getActivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
@@ -896,7 +896,7 @@ public class AccessContractImplTest {
                 accessContractService.findContracts(queryDsl);
         assertThat(accessContractModelList2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelList2.getResults()) {
-            assertThat(ContractStatus.ACTIVE.equals(accessContractModel.getStatus()));
+            assertThat(ActivationStatus.ACTIVE.equals(accessContractModel.getStatus()));
         }
         
         // Test invalid status

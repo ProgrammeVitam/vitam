@@ -73,7 +73,7 @@ public class AbstractContractModel {
     private String description;
 
     @JsonProperty(TAG_STATUS)
-    private ContractStatus status;
+    private ActivationStatus status;
 
     @JsonProperty("CreationDate")
     private String creationdate;
@@ -206,7 +206,7 @@ public class AbstractContractModel {
      *
      * @return status of contract
      */
-    public ContractStatus getStatus() {
+    public ActivationStatus getStatus() {
         return this.status;
     }
 
@@ -217,7 +217,7 @@ public class AbstractContractModel {
      * @param status toi set
      * @return this
      */
-    public AbstractContractModel setStatus(ContractStatus status) {
+    public AbstractContractModel setStatus(ActivationStatus status) {
         this.status = status;
         return this;
     }

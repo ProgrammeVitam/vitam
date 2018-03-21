@@ -80,7 +80,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
@@ -548,7 +548,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 GenericRejectionCause rejection = null;
                 final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
                 if (contract.getStatus() == null) {
-                    contract.setStatus(ContractStatus.INACTIVE);
+                    contract.setStatus(ActivationStatus.INACTIVE);
                 }
 
                 try {
@@ -830,7 +830,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         final String field, final JsonNode value) {
 
         if (AccessContract.STATUS.equals(field)) {
-            if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
+            if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
                 .name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText(), StatusCode.KO));
