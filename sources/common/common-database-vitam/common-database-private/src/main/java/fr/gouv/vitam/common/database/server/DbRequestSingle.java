@@ -573,7 +573,7 @@ public class DbRequestSingle {
 
                 try {
                     SchemaValidationUtils validator = new SchemaValidationUtils();
-                    SchemaValidationStatus status =validator.validateJson(updatedJsonDocument,vitamCollection.getName() ) ;
+                    SchemaValidationStatus status = validator.validateJson(updatedJsonDocument,vitamCollection.getName() ) ;
                     if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                         throw new SchemaValidationException(status.getValidationMessage());
                     }

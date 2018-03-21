@@ -149,10 +149,14 @@ La tâche check_header contient les traitements suivants :
 
     - KO :
 
-      - Cas 1 : le contrat déclaré dans le SIP est inexistant (CHECK_HEADER.CHECK_CONTRACT_INGEST.UNKNOWN.KO=Échec du contrôle de la présence du contrat d'entrée)
-      - Cas 2 : le contrat déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_CONTRACT_INGEST.INACTIVE.KO=Échec du contrôle du caractère actif du contrat d'entrée)
-
-    - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle du contrat d'entrée (CHECK_HEADER.CHECK_CONTRACT_INGEST.FATAL=Erreur fatale lors de la vérification de la présence et du contrôle du contrat d'entrée)
+      - Cas 1 : le contrat déclaré dans le SIP est inexistant (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO=Échec du contrôle de la présence du contrat d'entrée : contrat d'entrée inconnu du référentiel des contrats d''entrée)
+      - Cas 2 : le contrat déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_INACTIVE.KO=Échec du contrôle du caractère actif du contrat d'entrée)
+      - Cas 3 : Aucun contrat d'entrée trouvé dans le manifest (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_MANIFEST.KO=Échec du contrôle de la présence du contrat d'entrée dans le bordereau de transfert)
+      - Cas 4 : le contrat déclaré dans le SIP n'existe pas dans le contexte applicatif (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO=Échec du contrôle de la présence du contrat d'entrée dans le contexte applicatif)
+      - Cas 5 : le contexte applicatif est inexistant (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTEXT_UNKNOWN.KO=Échec du contrôle de la présence du contexte applicatif : contexte inconnu du référentiel des contextes)
+      - Cas 6 : le contexte applicatif est inactif (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTEXT_INACTIVE.KO=Échec du contrôle du caractère actif du contexte applicatif)
+      - Cas 7 : Erreur lors de la récupération du contexte applicatif (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTEXT_CHECK_ERROR.KO=Échec de la vérification de la présence et du contrôle du contexte applicatif)
+    - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle du contrat d'entrée ou du contexte applicatif (CHECK_HEADER.CHECK_CONTRACT_INGEST.FATAL=Erreur fatale lors de la vérification de la présence et du contrôle du contrat d'entrée ou du contexte applicatif)
 
 * Vérification de la relation entre le contrat d'entrée et le profil d'archivage (CHECK_IC_AP_RELATION). Cette tâche est exécutée si la valeur IN de ``checkProfile`` est true.
 
