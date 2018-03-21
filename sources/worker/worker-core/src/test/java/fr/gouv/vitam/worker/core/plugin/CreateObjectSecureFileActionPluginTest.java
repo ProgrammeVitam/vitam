@@ -41,6 +41,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
+import fr.gouv.vitam.common.model.MetadataType;
+import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -55,7 +57,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -67,11 +68,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.Statement;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -82,7 +83,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -94,12 +97,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class, StorageClientFactory.class})
 public class CreateObjectSecureFileActionPluginTest {
 
-    CreateObjectSecureFileActionPlugin plugin = new CreateObjectSecureFileActionPlugin();
+    CreateObjectSecureFileActionPlugin plugin;
 
     private static final Integer TENANT_ID = 0;
     private static final String OBJECT_LFC_1 = "CreateObjectSecureFileActionPlugin/object1.json";
@@ -110,7 +110,7 @@ public class CreateObjectSecureFileActionPluginTest {
     private String guidOg = "aebaaaaaaahgausqab7boak55jchzyqaaaaq";
 
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
-
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -124,13 +124,12 @@ public class CreateObjectSecureFileActionPluginTest {
             .setObjectName(guidOg + ".json").setCurrentStep("currentStep")
             .setContainerName(guid.getId())
             .setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
-    private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;
-    private MetaDataClient metadataClient;
-    private MetaDataClientFactory metadataClientFactory;
+    @Mock private WorkspaceClient workspaceClient;
+    @Mock private MetaDataClient metadataClient;
+    @Mock private MetaDataClientFactory metadataClientFactory;
 
-    private StorageClientFactory storageClientFactory;
-    private StorageClient storageClient;
+    @Mock private StorageClientFactory storageClientFactory;
+    @Mock private StorageClient storageClient;
 
     public CreateObjectSecureFileActionPluginTest() {
         // do nothing
@@ -141,23 +140,10 @@ public class CreateObjectSecureFileActionPluginTest {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
-        workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        PowerMockito.mockStatic(MetaDataClientFactory.class);
-        metadataClient = mock(MetaDataClient.class);
-        metadataClientFactory = mock(MetaDataClientFactory.class);
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
-        PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
-            .thenReturn(metadataClient);
 
-        PowerMockito.mockStatic(StorageClientFactory.class);
-        storageClientFactory = mock(StorageClientFactory.class);
-        storageClient = mock(StorageClient.class);
-        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        PowerMockito.when(StorageClientFactory.getInstance().getClient())
-            .thenReturn(storageClient);
-
+        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory,storageClientFactory);
         handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId");
     }
 
@@ -241,7 +227,7 @@ public class CreateObjectSecureFileActionPluginTest {
                 "INGEST",
                 "2017-08-16T09:29:25.562",
                 guidOg,
-                LifeCycleTraceabilitySecureFileObject.MetadataType.OBJECTGROUP,
+                MetadataType.OBJECTGROUP,
                 0,
                 "OK",
                 gotLFCHash,
@@ -250,11 +236,12 @@ public class CreateObjectSecureFileActionPluginTest {
                 null
             );
         //add object documents (qualifiers->version)
-        lfcTraceSecFileDataLineExpected.addObjectGroupDocumentHashToList("aeaaaaaaaahgausqab7boak55jchzzqaaaaq",
-            expectedMDLFCGlobalHashFromStorage
-        );
-        lfcTraceSecFileDataLineExpected.addObjectGroupDocumentHashToList("aeaaaaaaaahgausqab7boak55jchzyiaaabq",
-            expectedMDLFCGlobalHashFromStorage);
+        List<ObjectGroupDocumentHash> objectGroupDocumentHashToList=  new ArrayList<>() ;
+
+        objectGroupDocumentHashToList.add(new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzzqaaaaq", expectedMDLFCGlobalHashFromStorage)       );
+        objectGroupDocumentHashToList.add(new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzyiaaabq", expectedMDLFCGlobalHashFromStorage)       );
+
+        lfcTraceSecFileDataLineExpected.setObjectGroupDocumentHashList(objectGroupDocumentHashToList);
 
         assertEquals(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected).toString(), fileAsString);
 

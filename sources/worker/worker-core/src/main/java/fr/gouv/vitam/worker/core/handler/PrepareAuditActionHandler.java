@@ -99,7 +99,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         ArrayNode ogIdList = JsonHandler.createArrayNode();
-        List<String> originatingAgency = new ArrayList<>();
+        List<String> originatingAgency ;
         ArrayNode originatingAgencyEmpty = JsonHandler.createArrayNode();
 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
@@ -109,7 +109,6 @@ public class PrepareAuditActionHandler extends ActionHandler {
             Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
             String auditType = mapParameters.get(WorkerParameterName.auditType);
             if (auditType.toLowerCase().equals("tenant")) {
-                auditType = BuilderToken.PROJECTIONARGS.TENANT.exactToken();
                 originatingAgency = listOriginatingAgency(originatingAgencyEmpty, null);
                 String[] arrayOriginatingAgency = new String[originatingAgency.size()];
                 originatingAgency.toArray(arrayOriginatingAgency);

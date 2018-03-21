@@ -965,7 +965,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse unitEvidenceAudit(VitamContext vitamContext, String unitId)
+    public RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode dslQuery)
         throws VitamClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -973,9 +973,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
         try {
             response = performRequest(HttpMethod.POST,
-                AccessExtAPI.UNIT_EVIDENCE_AUDIT_API + "/" + unitId,
+                AccessExtAPI.UNIT_EVIDENCE_AUDIT_API,
                 headers,
-                null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                dslQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
@@ -986,27 +986,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    @Override
-    public RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId)
-        throws VitamClientException {
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
 
-        try {
-            response = performRequest(HttpMethod.POST,
-                AccessExtAPI.OBJECT_GROUP_EVIDENCE_AUDIT_API + "/" + objectGroupId,
-                headers,
-                null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
-
-            return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
 
     @Override
     public RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream archiveUnitProfiles)

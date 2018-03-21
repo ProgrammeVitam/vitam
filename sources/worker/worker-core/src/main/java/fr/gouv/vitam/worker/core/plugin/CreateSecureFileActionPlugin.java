@@ -28,19 +28,20 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
+import fr.gouv.vitam.common.model.MetadataType;
+import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -50,17 +51,12 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbNa
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.StorageClientUtil;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-
-import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -70,20 +66,34 @@ import java.util.List;
 
 
 /**
- * CreateSecureFileAction Plugin.<br>
+ * CreateSecureFileAction Plugin.
  */
 public abstract class CreateSecureFileActionPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CreateSecureFileActionPlugin.class);
     private static final String JSON_EXTENSION = ".json";
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
+    private final MetaDataClientFactory metaDataClientFactory;
+    private final StorageClientFactory storageClientFactory;
 
+    @VisibleForTesting CreateSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory,
+        StorageClientFactory storageClientFactory) {
+        this.metaDataClientFactory = metaDataClientFactory;
+        this.storageClientFactory = storageClientFactory;
+    }
 
-    protected void storeLifecycle(JsonNode lifecycle, String lfGuid, HandlerIO handlerIO, String lifecycleType)
+    CreateSecureFileActionPlugin() {
+        metaDataClientFactory = MetaDataClientFactory.getInstance();
+        storageClientFactory = StorageClientFactory.getInstance();
+    }
+
+    void storeLifecycle(JsonNode lifecycle, String lfGuid, HandlerIO handlerIO, String lifecycleType)
         throws ProcessingException {
         String folder = "";
         final File lifecycleGlobalTmpFile = handlerIO.getNewLocalFile(lfGuid);
-        try (FileWriter fw = new FileWriter(lifecycleGlobalTmpFile);) {
+        try (
+            FileWriter fw = new FileWriter(lifecycleGlobalTmpFile);
+            StorageClient storageClient = storageClientFactory.getClient()) {
 
             LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLine;
 
@@ -99,7 +109,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
 
             String lfcAndMetadataGlobalHashFromStorage = null;
             String hashMetaData = null;
-            LifeCycleTraceabilitySecureFileObject.MetadataType metadataType = null;
+            MetadataType metadataType = null;
 
             lfcTraceSecFileDataLine = new LifeCycleTraceabilitySecureFileObject(
                 finalEventIdProc,
@@ -118,18 +128,20 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             if (LogbookLifeCycleUnit.class.getName().equals(lifecycleType)) {
                 folder = SedaConstants.LFC_UNITS_FOLDER;
                 JsonNode unit = selectArchiveUnitById(objectGroupId);
-                metadataType = LifeCycleTraceabilitySecureFileObject.MetadataType.UNIT;
+                metadataType = MetadataType.UNIT;
                 hashMetaData = generateDigest(unit);
-                lfcAndMetadataGlobalHashFromStorage = getLFCAndMetadataGlobalHashFromStorage(unit,
-                    DataCategory.UNIT, lfGuid + JSON_EXTENSION);
+                lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(unit,
+                    DataCategory.UNIT, lfGuid + JSON_EXTENSION, storageClient);
             } else if (LogbookLifeCycleObjectGroup.class.getName().equals(lifecycleType)) {
                 folder = SedaConstants.LFC_OBJECTS_FOLDER;
                 JsonNode og = selectObjectGroupById(objectGroupId);
-                metadataType = LifeCycleTraceabilitySecureFileObject.MetadataType.OBJECTGROUP;
+                metadataType = MetadataType.OBJECTGROUP;
                 hashMetaData = generateDigest(og);
-                lfcAndMetadataGlobalHashFromStorage = getLFCAndMetadataGlobalHashFromStorage(og,
-                    DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION);
-                extractListObjectsFromJson(og, lfcTraceSecFileDataLine);
+                lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(og,
+                    DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient);
+                List<ObjectGroupDocumentHash> list = StorageClientUtil.extractListObjectsFromJson(og, storageClient);
+
+                lfcTraceSecFileDataLine.setObjectGroupDocumentHashList(list);
             }
 
             lfcTraceSecFileDataLine.setMetadataType(metadataType);
@@ -151,7 +163,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
     }
 
     private JsonNode selectArchiveUnitById(String archiveUnitId) throws ProcessingException {
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             RequestResponse<JsonNode> requestResponse =
                 metadataClient.getUnitByIdRaw(archiveUnitId);
 
@@ -165,42 +177,9 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
         }
     }
 
-    /**
-     * Extract Document Objects from ObjectGroup jsonNode and populate  {@link fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject#objectGroupDocumentHashList}
-     * with hash retrieved from storage offer
-     *
-     * @param og
-     * @param lfcTracabilityScureFileDataLine
-     * @return
-     * @throws ProcessingException
-     */
-    private void extractListObjectsFromJson(JsonNode og,
-        LifeCycleTraceabilitySecureFileObject lfcTracabilityScureFileDataLine) throws ProcessingException {
-        JsonNode qualifiers = og.get(SedaConstants.PREFIX_QUALIFIERS);
-        if (qualifiers != null && qualifiers.isArray() && qualifiers.size() > 0) {
-            List<JsonNode> listQualifiers = JsonHandler.toArrayList((ArrayNode) qualifiers);
-            for (final JsonNode qualifier : listQualifiers) {
-                JsonNode versions = qualifier.get(SedaConstants.TAG_VERSIONS);
-                if (versions.isArray() && versions.size() > 0) {
-                    for (final JsonNode version : versions) {
-                        if (version.get(SedaConstants.TAG_PHYSICAL_ID) != null) {
-                            // Skip physical objects
-                            continue;
-                        }
-                        String objectId = version.get(VitamDocument.ID).asText();
-                        lfcTracabilityScureFileDataLine.addObjectGroupDocumentHashToList(
-                            objectId, getLFCAndMetadataGlobalHashFromStorage(version,
-                                DataCategory.OBJECT, objectId)
-                        );
-                    }
-                }
-            }
-        }
-
-    }
 
     private JsonNode selectObjectGroupById(String objectGroupId) throws ProcessingException {
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             RequestResponse<JsonNode> requestResponse =
                 metadataClient.getObjectGroupByIdRaw(objectGroupId);
 
@@ -214,96 +193,6 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
         }
     }
 
-    /**
-     * retrieve global Hash (lfc+metadata{unit|og} or Object Doucment under og) from storage offers picked from the optimistic {@code SedaConstants.STORAGE}  node
-     *
-     * @param metadataOrDocumentJsonNode json document for the metadadataObject (Unit  or ObjectGroup) or plain document (raw type)
-     * @param dataCategory the data category
-     * @param objectId the object id
-     * @return the Digest of the document containing (LFC + METADATA) as saved in the storage offers
-     * @throws ProcessingException Exception thrown when :
-     * <ul>
-     *    li>
-     *       {@code StorageNotFoundClientException} or {@code StorageServerClientException} if no connection can be done for the given storage strategy
-     *     </li>
-     *     <li>
-     *       {@code InvalidParseOperationException} if no digest information was found when parsing json node
-     *     </li>
-     * </ul>
-     */
-    private String getLFCAndMetadataGlobalHashFromStorage(JsonNode metadataOrDocumentJsonNode,
-        DataCategory dataCategory, String objectId)
-        throws ProcessingException {
-
-        final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
-        String digest = null, firstDigest = null;
-
-        try (final StorageClient storageClient = storageClientFactory.getClient()) {
-            // store binary data object
-
-            StoredInfoResult mdOptimisticStorageInfos = fromMetadataJson(metadataOrDocumentJsonNode);
-
-            JsonNode storageMetadatasResultListJsonNode = storageClient.
-                getInformation(mdOptimisticStorageInfos.getStrategy(),
-                    dataCategory,
-                    objectId,
-                    mdOptimisticStorageInfos.getOfferIds());
-
-            boolean isFirstDigest = false;
-
-            for (String offerId : mdOptimisticStorageInfos.getOfferIds()) {
-                JsonNode metadataResultJsonNode = storageMetadatasResultListJsonNode.get(offerId);
-                if (metadataResultJsonNode != null && metadataResultJsonNode.isObject()) {
-                    StorageMetadatasResult storageMetadatasResult =
-                        JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadatasResult.class);
-
-                    if (storageMetadatasResult == null) {
-                        logAndThrowProcessingException("The {} is null for the offer {}", null,
-                            StorageMetadatasResult.class.getSimpleName(), offerId);
-                    }
-
-                    digest = storageMetadatasResult.getDigest();
-
-                    if (!isFirstDigest) {
-                        isFirstDigest = true;
-                        firstDigest = String.copyValueOf(digest.toCharArray());
-                    } else if (digest == null || !digest.equals(firstDigest)) {
-                        logAndThrowProcessingException(
-                            "The digest '{}' for the offer '{}' is null or not equal to the first Offer globalDigest expected ({})",
-                            null,
-                            digest, offerId, firstDigest);
-                    }
-
-                }
-            }
-
-        } catch (StorageNotFoundClientException | StorageServerClientException | IllegalArgumentException e) {
-            logAndThrowProcessingException("Exception when retrieving storage client ", e);
-        } catch (InvalidParseOperationException e) {
-            logAndThrowProcessingException("Exception when parsing JsonNode to StorageMetadatasResult object ", e);
-        }
-
-        return digest;
-    }
-
-    /**
-     * log and throw ProcessingException to abort Handler Work
-     *
-     * @param msg
-     * @param exception
-     * @throws ProcessingException
-     */
-    private void logAndThrowProcessingException(String msg, Exception exception, Object... args)
-        throws ProcessingException {
-        if (exception != null) {
-            LOGGER.error(msg, args, exception);
-            throw new ProcessingException(msg, exception);
-        } else {
-            LOGGER.error(msg, args);
-            throw new ProcessingException(msg);
-        }
-
-    }
 
     /**
      * Generate a hash for a JsonNode using VITAM Digest Algorithm

@@ -551,12 +551,9 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse<JsonNode> unitEvidenceAudit(String unitId) throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> evidenceAudit(JsonNode query) throws AdminManagementClientServerException {
         return new RequestResponseOK();
     }
 
-    @Override
-    public RequestResponse<JsonNode> objectGroupEvidenceAudit(String objectGroupId) throws AdminManagementClientServerException {
-        return new RequestResponseOK();
-    }
+
 }

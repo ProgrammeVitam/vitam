@@ -736,26 +736,15 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
-     * launch a traceability audit for the unit
-     *
-     * @param vitamContext the vitam context
-     * @param unitId the unit id
-     * @return Vitam response
-     * @throws VitamClientException
+     * launch a traceability audit for the request
+     * @param vitamContext the vitamContext
+     * @param queryDsl the queryDsl
+     * @return RequestResponse
+     * @throws VitamClientException The Exception
      */
-    RequestResponse unitEvidenceAudit(VitamContext vitamContext, String unitId)
+    RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode queryDsl )
         throws VitamClientException;
 
-    /**
-     * launch a traceability audit for the object group
-     *
-     * @param vitamContext the vitam context
-     * @param objectGroupId the object group id
-     * @return Vitam response
-     * @throws VitamClientException
-     */
-    RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId)
-        throws VitamClientException;
 
     /**
      * Create a ArchiveUnitProfile after passing the validation steps. If profiles are json and valid, they are stored in
