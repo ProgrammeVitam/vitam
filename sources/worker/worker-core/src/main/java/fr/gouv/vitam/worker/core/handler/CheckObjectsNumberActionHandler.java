@@ -246,7 +246,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             });
             error.set(ERROR_IN_MANIFEST, errorDetailsManifest);
         }
-        if (!uriNotInWorkspace.isEmpty()) {
+        if (!uriNotInManifest.isEmpty()) {
             ArrayNode errorDetailsContent = JsonHandler.createArrayNode();
             uriNotInManifest.forEach(uri -> {
                 errorDetailsContent.add(uri.getPath());
