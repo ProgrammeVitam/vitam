@@ -153,12 +153,13 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_OK = "jeu_ok.csv";
     private static final String FILE_DURATION_EXCEED = "regle_test_duration.csv";
     private static final String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
+    private static final String FILE_TO_TEST_KO_EMPTY_LINE = "jeu_donnees_KO_regles_CSV_empty_line.csv";
     private static final String FILE_TO_TEST_RULES_DURATION_KO = "jeu_donnees_KO_regles_CSV_test.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
     private static final String FILE_DELETE_RULE = "jeu_donnees_OK_regles_CSV_delete_rule.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
-    private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";    
+    private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
     private static final String USED_DELETED_RULE_RESULT = "used_deleted_rule_result.json";
@@ -236,7 +237,7 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         dbImpl = create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List<Integer> tenants = new ArrayList<>();
-        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10, 11};
+        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10, 11, 12};
         tenants.addAll(Arrays.asList(tenantsList));
         createRuleDurationConfigration(tenants);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
@@ -311,12 +312,14 @@ public class RulesManagerFileImplTest {
         } catch (FileRulesUpdateException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         }
+
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         Select selectTenant = new Select();
         selectTenant.setQuery(eq("#tenant", tenantId));
-        List<FileRules> fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(selectTenant.getFinalSelect()));
+        List<FileRules> fileRules =
+            convertResponseResultToFileRules(rulesFileManager.findDocuments(selectTenant.getFinalSelect()));
         assertEquals(22, fileRules.size());
 
         final Select select = new Select();
@@ -331,6 +334,31 @@ public class RulesManagerFileImplTest {
         assertThat(file.getVersion()).isEqualTo(1);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testimportRulesFileWithEmptyLine() throws Exception {
+        int tenantId = 12;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+
+        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
+        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> insertRules = new ArrayList<>();
+        Set<String> notUsedDeletedRules = new HashSet<>();
+        Set<String> notUsedUpdatedRules = new HashSet<>();
+
+        assertThatThrownBy(() -> rulesFileManager.checkFile(
+            new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO_EMPTY_LINE)), errors, usedDeletedRules,
+            usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
+                .isInstanceOf(FileRulesCsvException.class)
+                .hasMessageContaining("Index for header 'RuleType' is 1 but CSVRecord only has 1 values!");
+
+    }
+
     @Test(expected = FileRulesDurationException.class)
     @RunWithCustomExecutor
     public void testImportRuleDurationExceed() throws Exception {
@@ -343,7 +371,8 @@ public class RulesManagerFileImplTest {
 
         try {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
-            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)), FILE_DURATION_EXCEED);
+            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)),
+                FILE_DURATION_EXCEED);
         } catch (final FileRulesException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         } catch (FileRulesDeleteException e) {
@@ -489,8 +518,7 @@ public class RulesManagerFileImplTest {
             try {
                 select.setQuery(eq("#tenant", tenantId));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {
-            }
+            } catch (ReferentialException e) {}
             if (fileRules.size() == 0) {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
@@ -536,8 +564,7 @@ public class RulesManagerFileImplTest {
             try {
                 select.setQuery(eq("#tenant", tenantId));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {
-            }
+            } catch (ReferentialException e) {}
             if (fileRules.size() == 0) {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
@@ -685,7 +712,7 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void should_contains_outMessg_in_error_report_when_csv_with_bad_format_is_upload()
         throws Exception {
-        //Given
+        // Given
         // mock Storage
         final InputStream inputStream =
             getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
@@ -701,7 +728,7 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void should_contains_outMessg_in_error_report_when_csv_with_no_rule_type_is_upload()
         throws Exception {
-        //Given
+        // Given
         // mock Storage
         final InputStream inputStream =
             getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_INVALID_FORMAT);
@@ -712,15 +739,16 @@ public class RulesManagerFileImplTest {
         assertThat(errorNode.get("outMessg").asText())
             .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
     }
-    
-    
+
+
     @Test
     @RunWithCustomExecutor
     public void should_contains_report_in_error_report_when_csv_invalid()
         throws Exception {
-        //Given
+        // Given
         // mock Storage
-        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_MISSING_COLUMN);
+        final InputStream inputStream =
+            getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_MISSING_COLUMN);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
         final JsonNode operationNode = errorReportAtJson.get(ReportConstants.JDO_DISPLAY);
@@ -741,9 +769,10 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void should_contains_outMessg_in_error_report_when_csv_with_missing_Column()
         throws Exception {
-        //Given
+        // Given
         // mock Storage
-        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_MISSING_COLUMN);
+        final InputStream inputStream =
+            getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_MISSING_COLUMN);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
         final JsonNode errorNode = errorReportAtJson.get(ReportConstants.JDO_DISPLAY);
@@ -781,7 +810,7 @@ public class RulesManagerFileImplTest {
         assertThatThrownBy(() -> rulesFileManager
             .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
                 usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
-            .isInstanceOf(ReferentialException.class);
+                    .isInstanceOf(ReferentialException.class);
 
         return rulesFileManager.generateErrorReport(errorsMap, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
             null);
@@ -1019,17 +1048,20 @@ public class RulesManagerFileImplTest {
     @Test
     public void testJsonDiff() throws Exception {
         String s1 = "{\"a\":1,\"b\":2,\"c\":[{\"a\":1,\"b\":2},{\"a\":3,\"b\":4}]}";
-        String s2 = "{\"a\":1,\"b\":2,\"c\":[{\"xa\":199,\"b\":20},{\"a\":1,\"b\":2}],\"e\":{\"alpha\":123,\"bravo\":1234}}";
+        String s2 =
+            "{\"a\":1,\"b\":2,\"c\":[{\"xa\":199,\"b\":20},{\"a\":1,\"b\":2}],\"e\":{\"alpha\":123,\"bravo\":1234}}";
 
         JsonNode json1 = JsonHandler.getFromString(s1);
         JsonNode json2 = JsonHandler.getFromString(s2);
 
         JsonNode target = JsonDiff.asJson(json1, json2);
-        assertEquals(target.toString(), "[{\"op\":\"add\",\"path\":\"/c/0\",\"value\":{\"xa\":199,\"b\":20}},{\"op\":\"remove\",\"path\":\"/c/2\"},{\"op\":\"add\",\"path\":\"/e\",\"value\":{\"alpha\":123,\"bravo\":1234}}]");
+        assertEquals(target.toString(),
+            "[{\"op\":\"add\",\"path\":\"/c/0\",\"value\":{\"xa\":199,\"b\":20}},{\"op\":\"remove\",\"path\":\"/c/2\"},{\"op\":\"add\",\"path\":\"/e\",\"value\":{\"alpha\":123,\"bravo\":1234}}]");
         target = JsonDiff.asJson(json1, json1);
         assertEquals(target.toString(), "[]");
 
-        assertTrue(rulesFileManager.checkRuleConformity(JsonHandler.createArrayNode(), JsonHandler.createArrayNode(), 0));
+        assertTrue(
+            rulesFileManager.checkRuleConformity(JsonHandler.createArrayNode(), JsonHandler.createArrayNode(), 0));
     }
 
 }

@@ -85,7 +85,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -226,13 +225,13 @@ public class AgenciesServiceTest {
             Files.copy(argumentAt, reportPath);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT),
-            eq(DataCategory.REPORT), endsWith(".json")
-        );
+            eq(DataCategory.REPORT), endsWith(".json"));
 
         File fileAgencies1 = getResourceFile("agencies.csv");
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(fileAgencies1),null);
+        RequestResponse<AgenciesModel> response =
+            agencyService.importAgencies(new FileInputStream(fileAgencies1), null);
 
         // Then
         assertThat(response.isOk()).isTrue();
@@ -243,7 +242,7 @@ public class AgenciesServiceTest {
         // import 2
         File fileAgencies2 = getResourceFile("agencies2.csv");
 
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies2),null);
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies2), null);
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("Operation")).isNotNull();
         assertThat(response.isOk()).isTrue();
@@ -254,13 +253,27 @@ public class AgenciesServiceTest {
 
         File fileAgencies3 = getResourceFile("agencies3.csv");
         //
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies3),"test.json");
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies3), "test.json");
         report = getFromFile(reportPath.toFile());
 
         assertThat(response.isOk()).isFalse();
         assertThat(report.get("Operation")).isNotNull();
         String error =
             "{\"line 4\":\"[{\\\"Code\\\":\\\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\\\",\\\"Message\\\":\\\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\\\",\\\"Information additionnelle\\\":\\\"Name\\\"}]\"}";
+        assertThat(report.get("error").toString()).isEqualTo(error);
+        reportPath.toFile().delete();
+
+        // import 3 error invalid
+        instantiateAgencyService();
+
+        File fileAgenciesEmptyLine = getResourceFile("agencies_empty_line.csv");
+        response = agencyService.importAgencies(new FileInputStream(fileAgenciesEmptyLine), "test.json");
+        report = getFromFile(reportPath.toFile());
+
+        assertThat(response.isOk()).isFalse();
+        assertThat(report.get("Operation")).isNotNull();
+        error =
+            "{\"line 3\":\"[{\\\"Code\\\":\\\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\\\",\\\"Message\\\":\\\"Le fichier importé n'est pas au format CSV\\\"}]\"}";
         assertThat(report.get("error").toString()).isEqualTo(error);
         reportPath.toFile().delete();
 
@@ -272,7 +285,7 @@ public class AgenciesServiceTest {
         assertThat(doc.getName()).isEqualTo("agency222");
 
         File fileAgencies4 = getResourceFile("agencies_delete.csv");
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies4),"test.json");
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies4), "test.json");
         assertThat(response.isOk()).isFalse();
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("Operation")).isNotNull();
@@ -388,24 +401,24 @@ public class AgenciesServiceTest {
     private JsonNode getReportJsonAdnCleanFile() throws InvalidParseOperationException {
         File[] reports = tempFolder.getRoot().listFiles((dir, name) -> "report_agencies.json".equals(name));
         JsonNode reportNode = getFromFile(reports[0]);
-        for(File report : reports) {
+        for (File report : reports) {
             report.delete();
         }
         return reportNode;
     }
 
-    private   void instantiateAgencyService(){
+    private void instantiateAgencyService() {
         agencyService =
-                new AgenciesService(dbImpl,
-                        vitamCounterService,
-                        functionalBackupService,
-                        logbookOperationsClientFactory,
-                        manager,
-                        agenciesInDb,
-                        agenciesToDelete,
-                        agenciesToInsert,
-                        agenciesToUpdate,
-                        usedAgenciesByAU,
-                        usedAgenciesByContracts);
+            new AgenciesService(dbImpl,
+                vitamCounterService,
+                functionalBackupService,
+                logbookOperationsClientFactory,
+                manager,
+                agenciesInDb,
+                agenciesToDelete,
+                agenciesToInsert,
+                agenciesToUpdate,
+                usedAgenciesByAU,
+                usedAgenciesByContracts);
     }
 }
