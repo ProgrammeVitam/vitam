@@ -1031,10 +1031,8 @@ CheckArchiveUnitSchema permet d'exécuter un contrôle intelligent des archive u
 
 .. only:: latex
 
-    .. literalinclude:: includes/archive-unit-schema.json
-       :dedent: 4
+    Le schéma est disponible dans les sources de VITAM (fichier ``archive-unit-schema.json``)
 
-.. FIXME : Ne  marche pas !.
 
 Détail des données utilisées
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
