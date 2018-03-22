@@ -454,6 +454,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesIdLinkedToUnitForDelete,
                 eip);
             LOGGER.error(String.format(DELETE_RULES_LINKED_TO_UNIT));
+            updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
             throw new FileRulesException(String.format(DELETE_RULES_LINKED_TO_UNIT));
         } catch (StorageException e) {
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);

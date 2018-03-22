@@ -44,6 +44,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,9 +61,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.flipkart.zjsonpatch.JsonDiff;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -113,6 +129,9 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -121,18 +140,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 /**
  * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant ID
@@ -149,10 +156,12 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_RULES_DURATION_KO = "jeu_donnees_KO_regles_CSV_test.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
+    private static final String FILE_DELETE_RULE = "jeu_donnees_OK_regles_CSV_delete_rule.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";    
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
+    private static final String USED_DELETED_RULE_RESULT = "used_deleted_rule_result.json";
     private static final Integer TENANT_ID = 0;
 
     @Rule
@@ -227,7 +236,7 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         dbImpl = create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List<Integer> tenants = new ArrayList<>();
-        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10};
+        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10, 11};
         tenants.addAll(Arrays.asList(tenantsList));
         createRuleDurationConfigration(tenants);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
@@ -928,6 +937,59 @@ public class RulesManagerFileImplTest {
                 assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
             }
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_csv_with_usedDeletedRuleIds_is_upload()
+        throws Exception {
+        int tenantId = 11;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final Select select = new Select();
+        // given
+        
+        // init data with first import
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+
+        File file = folder.newFolder();
+        final Path report = Paths.get(file.getAbsolutePath(), "report.json");
+        getInputStreamAndInitialiseMockWhenImportFileRules(report);
+
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
+            FILE_TO_TEST_OK);
+
+        List<FileRules> fileRulesAfterImport =
+            convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+        assertEquals(22, fileRulesAfterImport.size());
+        final Path reportAfterUpdate = Paths.get(file.getAbsolutePath(), "reportAfterUpdate.json");
+        getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate);
+
+        // prepare for import ko with linked deleted rule
+        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.getFromFile(PropertiesUtils.findFile(USED_DELETED_RULE_RESULT)));
+        final ArgumentCaptor<LogbookOperationParameters> logOpParamsCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        doNothing().when(logbookOperationsclient).update(logOpParamsCaptor.capture());
+        
+        // when
+		assertThatThrownBy(() -> rulesFileManager
+				.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DELETE_RULE)), FILE_DELETE_RULE))
+						.isInstanceOf(FileRulesException.class);
+		List<LogbookOperationParameters> logbooks = logOpParamsCaptor.getAllValues();
+		assertThat(logbooks).hasSize(2);
+		assertThat(logbooks.get(0).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
+		assertThat(logbooks.get(0).getStatus()).isEqualTo(StatusCode.KO);
+		assertThat(logbooks.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo("CHECK_RULES");
+		assertThat(logbooks.get(1).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
+		assertThat(logbooks.get(1).getStatus()).isEqualTo(StatusCode.KO);
+		assertThat(logbooks.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo("STP_IMPORT_RULES");
+		
 
     }
 
