@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Strings;
 
@@ -204,6 +205,11 @@ public class VitamConfigurationParameters {
      */
     private Integer BUFFER_NUMBER;
 
+    /**
+     * default originatingAgency for DIP export when multiple originatingAgencies are in conflict in exported AU
+     */
+    private Map<Integer, String> defaultOriginatingAgencyForExport;
+    
     /**
      * Setter for   vitamCleanPeriod;
      */
@@ -896,4 +902,23 @@ public class VitamConfigurationParameters {
     public void setTenants(List<Integer> tenants) {
         this.tenants = tenants;
     }
+
+
+    /**
+     * Getter for defaultOriginatingAgencyForExport
+     * 
+     * @return defaultOriginatingAgencyForExport
+     */
+    public Map<Integer, String> getDefaultOriginatingAgencyForExport() {
+        return defaultOriginatingAgencyForExport;
+    }
+
+    /**
+     * @param defaultOriginatingAgencyForExport
+     */
+    public void setDefaultOriginatingAgencyForExport(Map<Integer, String> defaultOriginatingAgencyForExport) {
+        this.defaultOriginatingAgencyForExport = defaultOriginatingAgencyForExport;
+    }
+    
+    
 }

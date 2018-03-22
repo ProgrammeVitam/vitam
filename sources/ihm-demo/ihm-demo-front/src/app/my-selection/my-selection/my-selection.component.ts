@@ -10,9 +10,12 @@ import {DateService} from '../../common/utils/date.service';
 import {Hits, VitamResponse} from '../../common/utils/response';
 import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
 import {MySelectionService} from '../my-selection.service';
+import {ArchiveUnitService} from '../../archive-unit/archive-unit.service';
+import {Router} from '@angular/router';
+import {DialogService} from '../../common/dialog/dialog.service';
 
 const breadcrumb: BreadcrumbElement[] = [
-    {label: 'Panier', routerLink: 'mySelection'}
+    {label: 'Panier', routerLink: 'basket'}
 ];
 
 @Component({
@@ -23,26 +26,10 @@ const breadcrumb: BreadcrumbElement[] = [
 export class MySelectionComponent extends PageComponent {
   selectedArchiveUnits: ArchiveUnitSelection[] = [];
   displayedItems: ArchiveUnitSelection[] = [];
+  displaySelectedDelete = false;
+  displayDeleteAll = false;
 
-  manualColumns: ColumnDefinition[] = [
-    ColumnDefinition.makeSpecialValueColumn('Intitulé',
-      (x: ArchiveUnitSelection) => x.archiveUnitMetadata.Title, undefined,
-      () => ({'width': '325px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Type',
-      (x: ArchiveUnitSelection) => x.archiveUnitMetadata['#unitType'], this.archiveUnitHelper.transformType,
-      () => ({'width': '100px'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de début',
-      (x: ArchiveUnitSelection) => x.archiveUnitMetadata.StartDate, DateService.handleDate,
-      () => ({'width': '100px'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de fin',
-      (x: ArchiveUnitSelection) => x.archiveUnitMetadata.EndDate, DateService.handleDate,
-      () => ({'width': '100px'}), false),
-    ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
-      (x: ArchiveUnitSelection) => x.archiveUnitMetadata['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({'width': '150px'}),
-      () => {}, null, false),
-    ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], undefined,
-      () => true, () => ({'width': '100px'}), null, false)
-  ];
+  columns: ColumnDefinition[];
 
   nbRows = 25;
   firstItem = 0;
@@ -52,11 +39,13 @@ export class MySelectionComponent extends PageComponent {
   lastPage = 0;
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService,
-              public archiveUnitHelper: ArchiveUnitHelper, public mySelectionService: MySelectionService) {
+              public archiveUnitHelper: ArchiveUnitHelper, public mySelectionService: MySelectionService,
+              public archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService) {
       super('Ma selection', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {
+    this.columns = this.getColumns('EXPORT');
     this.mySelectionService.getResults(this.firstItem, 50).subscribe(
       (response: VitamResponse) => {
         this.selectedArchiveUnits = this.getFromResponse(response);
@@ -94,29 +83,14 @@ export class MySelectionComponent extends PageComponent {
   }
 
   isCheckedLabel(item: ArchiveUnitSelection): string {
-    return item.selected ? 'fa fa-check' : 'fa fa-close greyColor';
-  }
-
-  deleteSelected() {
-    const ids: string[] = this.displayedItems
-      .filter(value => value.selected)
-      .map(value => value.archiveUnitMetadata['#id']);
-    this.mySelectionService.deleteFromBasket(ids);
-    this.mySelectionService.getResults(this.firstItem, 50).subscribe(
-      (response: VitamResponse) => {
-        this.selectedArchiveUnits = this.getFromResponse(response);
-        this.hits = response.$hits;
-        this.lastPage = this.hits.limit / this.nbRows;
-        this.displayedItems = this.selectedArchiveUnits.slice(this.firstItem, this.firstItem + this.nbRows);
-      }
-    );
+    return item.selected ? 'fa fa-check clickableDiv' : 'fa fa-close greyColor clickableDiv';
   }
 
   getRootIcon(item: ArchiveUnitSelection): string {
     if (!item.haveChildren) {
       return '';
     }
-    return item.displayChildren ? 'fa fa-minus' : 'fa fa-plus';
+    return item.displayChildren ? 'fa fa-minus clickableDiv' : 'fa fa-plus clickableDiv';
   }
 
   showHideChildren(item: ArchiveUnitSelection, index: number) {
@@ -141,7 +115,21 @@ export class MySelectionComponent extends PageComponent {
   }
 
   getFromResponse(response: VitamResponse): ArchiveUnitSelection[] {
-    const metadata: ArchiveUnitMetadata[] = plainToClass(ArchiveUnitMetadata, response.$results);
+    const results = response.$results.map((x) => {
+      x.StartDate = this.archiveUnitHelper.getStartDate(x);
+      x.EndDate = this.archiveUnitHelper.getEndDate(x);
+      if (!x.Title && x.Title_) {
+        for (const prop in x.Title_) {
+          if (x.Title_.hasOwnProperty(prop)) {
+            x.Title = x.Title_[prop];
+            break;
+          }
+        }
+      }
+      return x;
+    });
+
+    const metadata: ArchiveUnitMetadata[] = plainToClass(ArchiveUnitMetadata, results);
     return metadata.map(
       (item) => {
         return new ArchiveUnitSelection(item, this.mySelectionService.haveChildren(item['#id']));
@@ -166,7 +154,7 @@ export class MySelectionComponent extends PageComponent {
     // TODO If unloadedPage reached (See how to trigg) => Call search with offset.
     if (event.page >= this.lastPage || event.page <= this.firstPage) {
       this.firstPage = page;
-      this.mySelectionService.getResults(this.firstItem, event.rows).subscribe(
+      this.mySelectionService.getResults(this.firstItem).subscribe(
         (response) => {
           const filler: any[] = Array.from('x'.repeat(event.page * event.rows));
           this.selectedArchiveUnits = filler.concat(this.getFromResponse(response));
@@ -179,9 +167,165 @@ export class MySelectionComponent extends PageComponent {
     }
   }
 
-  exportBasket() {
-    // FIXME: To do!
-    console.log(`Export ${this.displayedItems.length} items`);
+  doDelete(deleteSelection: boolean = false) {
+    let ids = [];
+
+    if (deleteSelection) {
+      // Export all selected items
+      ids = this.displayedItems
+        .filter(value => value.selected)
+        .map(value => value.archiveUnitMetadata['#id']);
+    } else {
+      // Export all items in basket
+      ids = this.selectedArchiveUnits
+        .map(value => value.archiveUnitMetadata['#id']);
+    }
+
+    this.mySelectionService.deleteFromBasket(ids);
+    this.displaySelectedDelete = false;
+    this.mySelectionService.getResults(this.firstItem, 50).subscribe(
+      (response: VitamResponse) => {
+        this.selectedArchiveUnits = this.getFromResponse(response);
+        this.hits = response.$hits;
+        this.lastPage = this.hits.limit / this.nbRows;
+        this.displayedItems = this.selectedArchiveUnits.slice(this.firstItem, this.firstItem + this.nbRows);
+        this.displayActionEnded(true, true);
+      }, () => {
+        this.displayActionEnded(true, false);
+      }
+    );
   }
 
+  deleteBasket(deleteSelection: boolean = false) {
+    deleteSelection ? this.displaySelectedDelete = true : this.displayDeleteAll = true;
+  }
+
+  displayActionEnded(isDelete: boolean, isOK: boolean) {
+    let message = '';
+    let title = '';
+    if (isDelete) {
+      if (isOK) {
+        title = 'Succès de la suppression';
+        message = 'Les unités archivistiques ont bien étés supprimés du panier';
+      } else {
+        title = 'Erreur lors de la suppression';
+        message = 'Erreur lors de la suppression des unités archivistiques du panier';
+      }
+    } else {
+      if (isOK) {
+        title = 'Export en cours';
+        message = 'L\'export DIP des unités archivistiques du panier est en cours';
+      } else {
+        title = 'Erreur lors de l\'export';
+        message = 'Erreur lors du lancement de l\'export des unités archivistiques du panier';
+      }
+    }
+
+    this.dialogService.displayMessage(message, title);
+  }
+
+  getExportQuery(archiveUnits: ArchiveUnitSelection[]) {
+    const {ids, roots} = archiveUnits.reduce(
+      (finalIds: {ids: string[], roots: string[]}, currentArchiveUnit: ArchiveUnitSelection) => {
+        if (currentArchiveUnit.haveChildren) {
+          finalIds.roots.push(currentArchiveUnit.archiveUnitMetadata['#id']);
+        }
+        finalIds.ids.push(currentArchiveUnit.archiveUnitMetadata['#id']);
+        return finalIds;
+      }, {ids: [], roots: []});
+
+    return {
+      '$query': [
+        {
+          '$or': [
+            {
+              '$in': {
+                '#id': ids
+              }
+            },
+            {
+              '$in': {
+                '#allunitups': roots
+              }
+            }
+          ]
+        }
+      ],
+      '$filter': {},
+      '$projection': {}
+    };
+  }
+
+  exportBasket(exportSelection: boolean = false, item: ArchiveUnitSelection = null) {
+    let query: any;
+    if (item !== null) {
+      // Export only the triggered item
+      query = this.getExportQuery([item]);
+    } else if (exportSelection) {
+      // Export all selected items
+      const selection: ArchiveUnitSelection[] = this.displayedItems
+        .filter(value => value.selected);
+      query = this.getExportQuery(selection);
+    } else {
+      // Export all items in basket
+      query = this.getExportQuery(this.selectedArchiveUnits);
+    }
+
+    this.archiveUnitService.exportDIP(query).subscribe(
+      () => {
+        this.displayActionEnded(false, true);
+      }, () => {
+        this.displayActionEnded(false, false);
+      }
+    );
+  }
+
+  clickable(col: ColumnDefinition): string {
+    return col.icons.length ? '' : 'clickableDiv';
+  }
+
+  navigateTo(event) {
+    const htmlPath = event.originalEvent.target;
+    if (htmlPath.tagName === 'SPAN' ||
+      (htmlPath.tagName === 'TD' && htmlPath.getElementsByTagName('i').length === 0)) {
+      this.router.navigate(['/search/archiveUnit', event.data.archiveUnitMetadata['#id']]);
+    }
+  }
+
+  goToAUSearch() {
+    this.router.navigate(['search/archiveUnit']);
+  }
+
+  goToUnitLifecycles(item: ArchiveUnitSelection) {
+    this.router.navigate([`search/archiveUnit/${item.archiveUnitMetadata['#id']}/unitlifecycle`]);
+  }
+
+  // 1st step to specific basket with different colomn and actions
+  getColumns(type: string): ColumnDefinition[] {
+    if (type === 'EXPORT') {
+      return [
+        ColumnDefinition.makeSpecialValueColumn('Intitulé',
+          (x: ArchiveUnitSelection) => x.archiveUnitMetadata.Title, undefined,
+          () => ({'width': '325px', 'overflow-wrap': 'break-word'}), false),
+        ColumnDefinition.makeSpecialValueColumn('Service producteur',
+          (x: ArchiveUnitSelection) => x.archiveUnitMetadata['#originating_agency'], undefined,
+          () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
+        ColumnDefinition.makeSpecialValueColumn('Type',
+          (x: ArchiveUnitSelection) => x.archiveUnitMetadata['#unitType'], this.archiveUnitHelper.transformType,
+          () => ({'width': '100px'}), false),
+        ColumnDefinition.makeSpecialValueColumn('Date la plus ancienne',
+          (x: ArchiveUnitSelection) => x.archiveUnitMetadata.StartDate, DateService.handleDate,
+          () => ({'width': '100px'}), false),
+        ColumnDefinition.makeSpecialValueColumn('Date la plus récente',
+          (x: ArchiveUnitSelection) => x.archiveUnitMetadata.EndDate, DateService.handleDate,
+          () => ({'width': '100px'}), false),
+        ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
+          (x: ArchiveUnitSelection) => x.archiveUnitMetadata['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({'width': '150px'}),
+          () => {}, null, false),
+        ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (x) => this.goToUnitLifecycles(x),
+          () => true, () => ({'width': '75px'}), null, false)
+      ];
+    }
+    return [];
+  }
 }

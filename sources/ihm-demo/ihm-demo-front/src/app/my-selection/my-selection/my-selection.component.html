@@ -1,32 +1,49 @@
-<p-panel [header]="'Panier'" [toggleable]="false" [collapsed]="false">
+<p-panel [toggleable]="false" [collapsed]="false">
+    <p-header>
+        <div class="ui-g-4"></div>
+        <span class="ui-g-4" style="padding: 0">Panier</span>
+        <div class="ui-g-3" style="padding: 0; text-align: right">
+            <button pButton class="ui-button secondaryButton" (click)="goToAUSearch()" label="Ajouter des unités archivistiques"
+                    icon="fa-search-plus" iconPos="left"></button>
+        </div>
+    </p-header>
 
+    <!-- Header -->
     <div class="ui-g" *ngIf="hits">
         <div class="ui-g-12">
-            <div class="ui-g-4">Nombre d'objet dans le panier: </div>
-            <div class="ui-g-3" *ngIf="hits">{{hits.total}}</div>
-        </div>
-        <div class="ui-g-12">
-            <div class="ui-g-4">Nombre d'objet sélectionnés dans la page: </div>
-            <div class="ui-g-3">{{countSelected()}}</div>
-        </div>
-        <div class="ui-g-12">
-            <div class="ui-g-4">Actions: </div>
+            <div class="ui-g-4">Unités archivistiques dans le panier</div>
+            <div class="ui-g-2">{{hits ? hits.total : 0}}</div>
             <div class="ui-g-3">
-                <button type="button" pButton icon="fa-trash" label="Supprimer la sélection" (click)="deleteSelected()"></button>
+                <button type="button" pButton icon="fa-download" label="Exporter le panier"
+                        (click)="exportBasket()" [disabled]="!hits || hits.total === 0"></button>
             </div>
             <div class="ui-g-3">
-                <button type="button" pButton icon="fa-trash" label="Exporter le panier" (click)="exportBasket()"></button>
+                <button type="button" pButton icon="fa-trash" label="Vider le panier"
+                        (click)="deleteBasket()" [disabled]="!hits || hits.total === 0"></button>
+            </div>
+        </div>
+        <div class="ui-g-12">
+            <div class="ui-g-4">Unités archivistiques sélectionnées</div>
+            <div class="ui-g-2">{{hits ? countSelected() : 0}}</div>
+            <div class="ui-g-3">
+                <button type="button" pButton icon="fa-download" label="Exporter la sélection"
+                        (click)="exportBasket(true)" [disabled]="!hits || countSelected() === 0"></button>
+            </div>
+            <div class="ui-g-3">
+                <button type="button" pButton icon="fa-trash" label="Supprimer la sélection"
+                        (click)="deleteBasket(true)" [disabled]="!hits || countSelected() === 0"></button>
             </div>
         </div>
     </div>
 
+    <!-- DataTable -->
     <p-paginator *ngIf="hits" [(rows)]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)"
                  [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
-    <p-dataTable [(value)]="displayedItems" [sortField]="filter" [selectionMode]="selectionMode"
-                 [scrollable]="true" scrollWidth="100%" [paginator]="false" scrollHeight="400px">
+    <p-dataTable [(value)]="displayedItems" [scrollable]="true" scrollWidth="100%" [paginator]="false" scrollHeight="400px"
+                 [emptyMessage]="'Le panier est vide'" (onRowClick)="navigateTo($event)">
 
         <!-- First Column: Manage Children -->
-        <p-column [style]="{'width': '20px'}">
+        <p-column [style.width]="'20px'">
             <ng-template let-item="rowData" let-index="rowIndex" pTemplate="body">
                 <i *ngIf="!item.isChild" (click)="showHideChildren(item, index)" [ngClass]="getRootIcon(item)"></i>
                 <i *ngIf="item.isChild" [ngClass]="'fa fa-angle-right'"></i>
@@ -34,7 +51,9 @@
         </p-column>
 
         <!-- Main Columns: Display AU infos -->
-        <p-column *ngFor="let col of manualColumns" [field]="col.field" [header]="col.label" [style]="col.computeCss()">
+        <!-- -->
+        <p-column *ngFor="let col of columns" [field]="col.field" [header]="col.label"
+                  [style]="col.computeCss()" [styleClass]="clickable(col)" >
 
             <ng-template let-item="rowData" pTemplate="body">
                 <ng-template [ngIf]="col.forceIcon || (col.icons.length > 0 && col.shouldDisplay(item))">
@@ -48,15 +67,33 @@
             </ng-template>
         </p-column>
 
-        <!-- Last Column: Manage Selection -->
-        <p-column [style]="{'width': '100px'}">
+        <!-- Manage Selection -->
+        <p-column [style.width]="'100px'">
             <ng-template pTemplate="header">
-                <i (click)="checkAll()" [ngClass]="isAllCheckedLabel()"></i> {{isAllChecked() ? 'Tout désélectionner' : 'Tout sélectionner'}}
+                <span class="clickableDiv" (click)="checkAll()">{{isAllChecked() ? 'Tout désélectionner' : 'Tout sélectionner'}}</span>
             </ng-template>
             <ng-template pTemplate="body" let-item="rowData">
-                <i *ngIf="!item.isChild" (click)="inverseSelection(item)" [ngClass]="isCheckedLabel(item)" title="Test"></i>
+                <p-checkbox *ngIf="!item.isChild" [(ngModel)]="item.selected" binary="true" title="Sélectionner"></p-checkbox>
             </ng-template>
         </p-column>
 
     </p-dataTable>
 </p-panel>
+
+<!-- Manage messages and alerts -->
+<p-dialog header="Suppression d'éléments du panier ?" [(visible)]="displaySelectedDelete"
+          *ngIf="this.countSelected() as count">
+    <p>Êtes-vous certain de vouloir supprimer {{count}} élément{{count>1?'s':''}} ?</p>
+    <p-footer>
+        <button pButton icon="fa-check" (click)="doDelete(true)" label="Oui"></button>
+        <button pButton icon="fa-close" (click)="displaySelectedDelete=false" label="Non"></button>
+    </p-footer>
+</p-dialog>
+
+<p-dialog header="Vider le panier ?" [(visible)]="displayDeleteAll">
+    <p>Êtes-vous certain de vouloir vider le panier ?</p>
+    <p-footer>
+        <button pButton icon="fa-check" (click)="doDelete(false)" label="Oui"></button>
+        <button pButton icon="fa-close" (click)="displayDeleteAll=false" label="Non"></button>
+    </p-footer>
+</p-dialog>

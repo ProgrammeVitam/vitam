@@ -14,7 +14,6 @@ export class MySelectionService {
   constructor(public archiveUnitService: ArchiveUnitService, public resourceService: ResourcesService) { }
 
   getQueryForBasket(offset: number, limit: number) {
-    // FIXME Set Tenant !
     const basket: BasketInfo[] = this.getBasketFromLocalStorage(this.resourceService.getTenant());
     const ids = basket.map((x) => x.id);
     return {
@@ -34,7 +33,18 @@ export class MySelectionService {
           '#id': 1,
           '#unitType': 1,
           '#object': 1,
-          Title: 1
+          '#originating_agency': 1,
+          'Title': 1,
+          'Title_': 1,
+          'AcquiredDate': 1,
+          'CreatedDate': 1,
+          'ReceivedDate': 1,
+          'RegisteredDate': 1,
+          'SentDate': 1,
+          'TransactedDate': 1,
+          'StartDate': 1,
+          'EndDate': 1,
+          'DescriptionLevel': 1
         }
       }
     };
@@ -59,13 +69,24 @@ export class MySelectionService {
           '#id': 1,
           '#unitType': 1,
           '#object': 1,
-          'Title': 1
+          'Title': 1,
+          'Title_': 1,
+          '#originating_agency': 1,
+          'AcquiredDate': 1,
+          'CreatedDate': 1,
+          'ReceivedDate': 1,
+          'RegisteredDate': 1,
+          'SentDate': 1,
+          'TransactedDate': 1,
+          'StartDate': 1,
+          'EndDate': 1,
+          'DescriptionLevel': 1
         }
       }
     };
   }
 
-  getResults(offset, limit): Observable<VitamResponse> {
+  getResults(offset, limit: number = 125): Observable<VitamResponse> {
     const query = this.getQueryForBasket(offset, limit);
     return this.archiveUnitService.getByQuery(query);
   }

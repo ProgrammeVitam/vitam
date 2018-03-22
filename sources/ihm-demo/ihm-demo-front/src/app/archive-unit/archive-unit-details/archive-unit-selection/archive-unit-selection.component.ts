@@ -22,7 +22,6 @@ export class ArchiveUnitSelectionComponent implements OnInit {
     const isIngest: boolean = this.exportType === 'INGEST';
     this.mySelectionService.getIdsToSelect(isIngest, isIngest ? this.operation : this.id).subscribe(
       (response) => {
-        // TODO Check response only contains ids ? and Always contains ids ?
         const ids: string[] = response.$results.reduce(
           (x, y) => {
             x.push(y['#id']);

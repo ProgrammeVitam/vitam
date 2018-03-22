@@ -42,15 +42,22 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,9 +76,15 @@ public class CreateManifestTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
+    private static final int TENANT_ID = 0;
+    
     private CreateManifest createManifest;
 
     static Map<String, String> prefix2Uri = new HashMap<>();
@@ -86,11 +99,13 @@ public class CreateManifestTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_create_manifest() throws Exception {
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryUnit =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));

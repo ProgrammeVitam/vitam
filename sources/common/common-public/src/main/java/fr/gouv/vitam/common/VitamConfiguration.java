@@ -28,8 +28,10 @@ package fr.gouv.vitam.common;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.google.common.base.Strings;
 
@@ -327,6 +329,14 @@ public class VitamConfiguration {
      * Max queue in ES
      */
     private static int numberEsQueue = 5000;
+    /**
+     * Default OriginatingAgency for DIP export with multiple originating agencies
+     */
+    private static final String DEFAULT_ORIGINATING_AGENCY_FOR_EXPORT = "Export VITAM";
+    /**
+     * Map to override defalt Originating agency for each tenant for a DIP Export with multiple originating agencies
+     */
+    private static Map<Integer, String> defaultOriginatingAgencyByTenant = new HashMap<Integer, String>();
     /**
      * Default LANG
      */
@@ -714,6 +724,10 @@ public class VitamConfiguration {
 
         if (null != parameters.getTenants()) {
             setTenants(parameters.getTenants());
+        }
+        
+        if (null != parameters.getDefaultOriginatingAgencyForExport()) {
+            setDefaultOriginatingAgencyByTenant(parameters.getDefaultOriginatingAgencyForExport());
         }
 
     }
@@ -1639,6 +1653,28 @@ public class VitamConfiguration {
      */
     private static void setNumberEsQueue(int numberEsQueue) {
         VitamConfiguration.numberEsQueue = numberEsQueue;
+    }
+    
+    
+    /**
+     * Getter for default OriginatingAgency for DIP export OriginatingAgency conflict
+     * 
+     * @return default originatingAgency for export
+     */
+    public static String getDefaultOriginatingAgencyForExport(Integer tenant) {
+        if (defaultOriginatingAgencyByTenant.containsKey(tenant)) {
+            return defaultOriginatingAgencyByTenant.get(tenant);
+        }
+        return DEFAULT_ORIGINATING_AGENCY_FOR_EXPORT;
+    }
+
+    /**
+     * Setter for default OriginatingAgency for DIP export OriginatingAgency conflict
+     * 
+     * @param default originatingAgency for export
+     */
+    public static void setDefaultOriginatingAgencyByTenant(Map<Integer, String> defaultOriginatingAgencyForExport) {
+        VitamConfiguration.defaultOriginatingAgencyByTenant = defaultOriginatingAgencyForExport;
     }
 
     /**

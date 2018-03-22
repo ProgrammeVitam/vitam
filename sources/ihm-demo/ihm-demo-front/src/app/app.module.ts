@@ -94,7 +94,6 @@ import {MySelectionComponent} from './my-selection/my-selection/my-selection.com
 import {MySelectionService} from './my-selection/my-selection.service';
 import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
 
-
 const appRoutes: Routes = [
   {
     path: 'home', component: HomeComponent

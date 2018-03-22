@@ -8,6 +8,7 @@ import {ArchiveUnitService} from '../archive-unit/archive-unit.service';
 import {Observable} from 'rxjs/Observable';
 import {VitamResponse} from '../common/utils/response';
 import {ResourcesService} from '../common/resources.service';
+import {BasketInfo} from './selection';
 
 const DefaultResponse = {
   $context: {},
@@ -17,9 +18,7 @@ const DefaultResponse = {
 };
 
 const ResourcesServiceStub = {
-  get: (url) => Observable.of(new VitamResponse()),
-  post: (url, header, body) => Observable.of(new VitamResponse()),
-  delete: (url) => Observable.of(new VitamResponse()),
+  getTenant: () => '0'
 };
 
 const ArchiveUnitServiceStub = {
@@ -28,6 +27,17 @@ const ArchiveUnitServiceStub = {
   getResults: (body, offset, limit) => Observable.of(new VitamResponse()),
   updateMetadata: (id, updateRequest) => Observable.of(new VitamResponse())
 };
+
+const defaultBasket: BasketInfo[] = [
+  {
+    id: 'id0',
+    child: false
+  },
+  {
+    id: 'id1',
+    child: true
+  }
+];
 
 describe('MySelectionService', () => {
   beforeEach(() => {
@@ -46,4 +56,15 @@ describe('MySelectionService', () => {
   it('should be created', inject([MySelectionService], (service: MySelectionService) => {
     expect(service).toBeTruthy();
   }));
+
+  it('should check if item in basket have children',
+    inject([MySelectionService], (service: MySelectionService) => {
+      spyOn(service, 'getBasketFromLocalStorage').and.returnValue(defaultBasket);
+
+      expect(service.haveChildren('id0')).toBeFalsy();
+      expect(service.haveChildren('id1')).toBeTruthy();
+      expect(service.haveChildren('unknowId')).toBeFalsy();
+    })
+  );
+
 });

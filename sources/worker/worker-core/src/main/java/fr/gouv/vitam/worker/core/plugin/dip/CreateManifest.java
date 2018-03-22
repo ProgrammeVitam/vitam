@@ -58,6 +58,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -72,6 +74,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -132,6 +135,7 @@ public class CreateManifest extends ActionHandler {
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
+            String originatingAgency = VitamConfiguration.getDefaultOriginatingAgencyForExport(ParameterHelper.getTenantParameter());
             Map<String, String> ogs = new HashMap<>();
 
             SelectParserMultiple parser = new SelectParserMultiple();
@@ -157,14 +161,8 @@ public class CreateManifest extends ActionHandler {
                 return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
             }
 
-            if (originatingAgencies.size() > 1) {
-                itemStatus.increment(StatusCode.KO);
-                ObjectNode infoNode = JsonHandler.createObjectNode();
-                infoNode.put("Reason",
-                    "Too many originating agencies (dip must have only units of one originating agencies)");
-                String evdev = JsonHandler.unprettyPrint(infoNode);
-                itemStatus.setEvDetailData(evdev);
-                return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
+            if (originatingAgencies.size() == 1) {
+                originatingAgency = Iterables.getOnlyElement(originatingAgencies);
             }
 
             File manifestFile = handlerIO.getNewLocalFile(handlerIO.getOutput(MANIFEST_XML_RANK).getPath());
@@ -214,11 +212,9 @@ public class CreateManifest extends ActionHandler {
                 });
                 manifestBuilder.endDescriptiveMetadata();
 
-                manifestBuilder.writeOriginatingAgency(Iterables.getOnlyElement(originatingAgencies));
-
+                manifestBuilder.writeOriginatingAgency(originatingAgency);
                 manifestBuilder.endDataObjectPackage();
                 manifestBuilder.closeManifest();
-
             } catch (IOException |
                 MetaDataExecutionException | InvalidCreateOperationException | MetaDataClientServerException |
                 XMLStreamException | JAXBException | MetaDataDocumentSizeException e) {
