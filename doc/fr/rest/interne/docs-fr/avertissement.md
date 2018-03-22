@@ -1,6 +1,3 @@
-**Les API internes présentées dans ces pages ne sont pas en conformités avec l'implémentation actuelle mais indiquent la cible prévue pour la version 1.**
-
-
 Cette version d'API présente des fonctionnalités sous différents statuts :
 
   - Supportées : rien n'est spécifié, la fonctionnalité ou la donnée est supportée

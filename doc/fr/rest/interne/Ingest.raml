@@ -31,7 +31,6 @@ documentation:
     content: !include docs-fr/license.md
 
   - title: API Ingest Interne
-    content: TODO
 
 /ingests:
   displayName: Ingests
@@ -57,7 +56,7 @@ documentation:
 /operations:
   # root endpoint request
   displayName: Operations
-  description: | 
+  description: |
     Administration des Workflows Asynchrones (opérations).
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -68,7 +67,7 @@ documentation:
     StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
     StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     get:
-      description: | 
+      description: |
         Permet de récupérer le statut du workflow en cours
       responses:
         202:
@@ -135,10 +134,10 @@ documentation:
       responses:
        200:
          description: |
-           operation trouve et status retourne avec succes 
+           operation trouve et status retourne avec succes
        204:
          description: |
-          operation non trouve 
+          operation non trouve
 /status:
   get:
     is: [ StandardTraits.Status, StandardTraits.StandardHeader200,

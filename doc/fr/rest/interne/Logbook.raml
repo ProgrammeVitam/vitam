@@ -31,7 +31,6 @@ documentation:
     content: !include docs-fr/license.md
 
   - title: API Logbook Interne
-    content: TODO
 
 /operations:
   displayName: Operations Logbooks
@@ -273,20 +272,20 @@ documentation:
     displayName: Unit Life Cycle Bulk
     description:  |
      Insertion des cycles de vie des Unit en masse.
-    
+
     post:
       description : |
-        Insert or replace existing Lifecycle Units 
+        Insert or replace existing Lifecycle Units
       is: [LogbookTraits.LogbookBulkRawInsert]
 
   /objectgrouplifecycles/bulk:
     displayName: Object Group Life Cycle Bulk
     description:  |
      Insertion des cycles de vie des Objets en masse.
-    
+
     post:
       description : |
-        Insert or replace existing Lifecycle Objects 
+        Insert or replace existing Lifecycle Objects
       is: [LogbookTraits.LogbookBulkRawInsert]
 
 /status:
