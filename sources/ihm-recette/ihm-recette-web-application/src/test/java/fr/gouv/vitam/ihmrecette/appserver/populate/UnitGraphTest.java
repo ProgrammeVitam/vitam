@@ -34,7 +34,7 @@ public class UnitGraphTest {
         populateModel.setSp("vitam");
         populateModel.setRootId("1234");
         populateModel.setWithGots(false);
-        UnitModel rootUnit = new UnitModel();
+        UnitModel rootUnit = new UnitModel(2, "default");
         rootUnit.getSps().add("saphir");
         given(metadataRepository.findUnitById(populateModel.getRootId())).willReturn(Optional.of(rootUnit));
 
@@ -62,7 +62,7 @@ public class UnitGraphTest {
         populateModel.setSp("vitam");
         populateModel.setRootId("1234");
         populateModel.setWithGots(true);
-        UnitModel rootUnit = new UnitModel();
+        UnitModel rootUnit = new UnitModel(2, "default");
         rootUnit.getUp().add("123");
         rootUnit.getUs().add("123");
         rootUnit.getUds().put("123", 1);
@@ -103,6 +103,24 @@ public class UnitGraphTest {
         // When / Then
         assertThatThrownBy(() -> unitGraph.createGraph(0, populateModel))
                 .hasMessageContaining("rootId not present in database: 1234");
+    }
+
+    @Test
+    public void should_generate_operation_id() {
+        // Given
+        PopulateModel populateModel = new PopulateModel();
+        populateModel.setTenant(1);
+        populateModel.setSp("vitam");
+        populateModel.setWithGots(true);
+
+        // When
+        UnitGotModel unitGotModel = unitGraph.createGraph(1, populateModel);
+
+        // Then
+        assertThat(unitGotModel.getUnit().getOperationIds()).hasSize(1);
+        assertThat(unitGotModel.getUnit().getOperationOriginId()).isNotNull();
+        assertThat(unitGotModel.getGot().getOperationOriginId()).isNotNull();
+        assertThat(unitGotModel.getGot().getOperationIds()).hasSize(1);
     }
 
 }

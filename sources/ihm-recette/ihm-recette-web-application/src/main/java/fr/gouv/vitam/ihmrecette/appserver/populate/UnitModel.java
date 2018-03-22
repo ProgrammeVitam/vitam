@@ -32,8 +32,10 @@ import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -78,6 +80,23 @@ public class UnitModel {
 
     @JsonProperty("_v")
     private int version = 0;
+
+    @JsonProperty("_ops")
+    private List<String> operationIds = new ArrayList<>();
+
+    @JsonProperty("_opi")
+    private String operationOriginId;
+
+    @JsonProperty("_storage")
+    private StorageModel storageModel;
+
+    // use only for jackson
+    public UnitModel() {
+    }
+
+    public UnitModel(int nbCopy, String strategyId) {
+        storageModel = new StorageModel(nbCopy, strategyId);
+    }
 
     /*
      * getter and setter
@@ -184,5 +203,25 @@ public class UnitModel {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public List<String> getOperationIds() {
+        return operationIds;
+    }
+
+    public void setOperationIds(List<String> operationIds) {
+        this.operationIds = operationIds;
+    }
+
+    public String getOperationOriginId() {
+        return operationOriginId;
+    }
+
+    public void setOperationOriginId(String operationOriginId) {
+        this.operationOriginId = operationOriginId;
+    }
+
+    public StorageModel getStorageModel() {
+        return storageModel;
     }
 }

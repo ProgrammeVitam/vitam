@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -50,6 +49,8 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
+import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
 
 /**
  * Unit Graph class
@@ -59,9 +60,11 @@ public class UnitGraph {
 
     private final LoadingCache<String, UnitModel> cache;
 
+    private final StorageStrategyProvider strategyProvider;
+
     /**
      * Constructor
-     * 
+     *
      * @param metadataRepository metadata repository
      */
     public UnitGraph(MetadataRepository metadataRepository) {
@@ -76,6 +79,8 @@ public class UnitGraph {
                     return unitById.orElseThrow(() -> new RuntimeException("rootId not present in database: " + key));
                 }
             });
+
+        strategyProvider = StorageStrategyProviderFactory.getDefaultProvider();
     }
 
     /**
@@ -93,10 +98,11 @@ public class UnitGraph {
         final boolean withLFCGots = populateModel.isWithLFCGots();
         // id of the unit.
         String uuid = GUIDFactory.newUnitGUID(tenantId).toString();
+        String operationId = GUIDFactory.newOperationLogbookGUID(tenantId).toString();
 
         // create unitModel
-        UnitModel unitModel = createUnitModel(uuid, DescriptiveMetadataGenerator.generateDescriptiveMetadataModel(i),
-            populateModel, i);
+        UnitModel unitModel = createUnitModel(operationId, uuid,
+            DescriptiveMetadataGenerator.generateDescriptiveMetadataModel(i), populateModel, i);
 
         UnitGotModel unitGotModel = new UnitGotModel(unitModel);
 
@@ -116,7 +122,7 @@ public class UnitGraph {
             unitModel.setOg(guid);
 
             // create gotModel
-            ObjectGroupModel gotModel = createObjectGroupModel(guid, tenantId,
+            ObjectGroupModel gotModel = createObjectGroupModel(guid, operationId, tenantId,
                 DescriptiveMetadataGenerator.generateFileInfoModel(i), unitModel, populateModel.getObjectSize());
             unitGotModel.setGot(gotModel);
             // set object size
@@ -137,12 +143,14 @@ public class UnitGraph {
     /**
      * Create a unitModel
      *
+     * @param operationId
      * @param uuid Guid
      * @param descriptiveMetadataModel MetadataModel
      * @param populateModel populate Model
      * @return a UnitModel
      */
-    private UnitModel createUnitModel(String uuid, DescriptiveMetadataModel descriptiveMetadataModel,
+    private UnitModel createUnitModel(String operationId, String uuid,
+        DescriptiveMetadataModel descriptiveMetadataModel,
         PopulateModel populateModel, int unitNumber) {
 
         final int tenantId = populateModel.getTenant();
@@ -151,17 +159,21 @@ public class UnitGraph {
 
         // get rootUnit if any
         UnitModel rootUnit = null;
+
+        UnitModel unitModel = new UnitModel(1, "default");
+
         if (rootId != null) {
             rootUnit = cache.getUnchecked(rootId);
+            unitModel.getUp().add(rootId);
         }
 
-        UnitModel unitModel = new UnitModel();
+        unitModel.getOperationIds().add(operationId);
+        unitModel.setOperationOriginId(operationId);
 
         unitModel.setId(uuid);
         unitModel.setSp(originatingAgency);
         unitModel.getSps().add(originatingAgency);
 
-        unitModel.getUp().add(rootId);
         unitModel.setTenant(tenantId);
         unitModel.setDescriptiveMetadataModel(descriptiveMetadataModel);
 
@@ -207,12 +219,14 @@ public class UnitGraph {
      * Create a GotModel
      *
      * @param guid GUID
+     * @param operationId
      * @param tenantId tenant identifier
      * @param fileInfoModel fileInfo
      * @param parentUnit unitModel of the parent AU
      * @return a ObjectGroupModel
      */
-    private ObjectGroupModel createObjectGroupModel(String guid, int tenantId, FileInfoModel fileInfoModel,
+    private ObjectGroupModel createObjectGroupModel(String guid, String operationId, int tenantId,
+        FileInfoModel fileInfoModel,
         UnitModel parentUnit, int objectSize) {
         ObjectGroupModel gotModel = new ObjectGroupModel();
 
@@ -220,6 +234,10 @@ public class UnitGraph {
         gotModel.setTenant(tenantId);
         gotModel.getUp().add(parentUnit.getId());
         gotModel.setFileInfoModel(fileInfoModel);
+
+        gotModel.getOperationIds().add(operationId);
+        gotModel.setOperationOriginId(operationId);
+
         List<ObjectGroupQualifiersModel> qualifiers = new ArrayList<>();
         if (objectSize != 0) {
             ObjectGroupQualifiersModel qualifier = new ObjectGroupQualifiersModel();
@@ -285,7 +303,7 @@ public class UnitGraph {
         logbookLifecycle.setEvTypeProc("INGEST");
         logbookLifecycle.setEvDateTime(getDate());
 
-        List<LogbookEvent> events = new ArrayList();
+        List<LogbookEvent> events = new ArrayList<>();
         for (int i = 0; i < eventsSize; i++) {
             LogbookEvent event = new LogbookEvent();
             event.setEvIdProc(evId);

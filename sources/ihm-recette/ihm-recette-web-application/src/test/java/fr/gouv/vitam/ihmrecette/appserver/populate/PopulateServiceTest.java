@@ -20,7 +20,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.InjectMocks;
 
 import java.net.InetAddress;
 import java.util.Arrays;
@@ -85,7 +84,7 @@ public class PopulateServiceTest {
         ruleMap.put("ACC-000111", 20);
         populateModel.setRuleTemplatePercent(ruleMap);
 
-        UnitModel unitModel = new UnitModel();
+        UnitModel unitModel = new UnitModel(2, "default");
 
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");
@@ -154,7 +153,7 @@ public class PopulateServiceTest {
         populateModel.setLFCUnitsEventsSize(10);
         populateModel.setLFCGotsEventsSize(5);
 
-        UnitModel unitModel = new UnitModel();
+        UnitModel unitModel = new UnitModel(2, "default");
         ObjectGroupModel got = new ObjectGroupModel();
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");
