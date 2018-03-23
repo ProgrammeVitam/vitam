@@ -1,8 +1,9 @@
 <jxb:bindings version="2.0"
-      xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
-      xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
-      xmlns:annox="http://annox.dev.java.net"
-      xmlns:xs="http://www.w3.org/2001/XMLSchema" >
+              xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+              xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+              xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
+              xmlns:annox="http://annox.dev.java.net"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
     <jxb:bindings schemaLocation="http://www.w3.org/1999/xlink.xsd" node="/xs:schema">
 
@@ -19,7 +20,7 @@
         </jxb:bindings>              
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-descriptive.xsd" node="/xs:schema">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-descriptive.xsd" node="/xs:schema">
 
         <jxb:bindings node="xs:complexType[@name='ArchiveUnitType']">
             <jxb:bindings node="//xs:element[@name='ArchiveUnitRefId']">
@@ -34,22 +35,26 @@
                 <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
                                 name="ArchiveUnit" />
             </annox:annotate>
-
         </jxb:bindings>
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-main.xsd" node="/xs:schema">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-main.xsd" node="/xs:schema">
 
         <jxb:bindings node="xs:complexType[@name='DataObjectPackageType']">
             <annox:annotate>
                 <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
                                 name="DataObjectPackage" />
             </annox:annotate>
-
+        </jxb:bindings>
+        <jxb:bindings node="xs:complexType[@name='ArchiveTransferReplyType']">
+            <annox:annotate>
+                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                                name="ArchiveTransferReply"/>
+            </annox:annotate>
         </jxb:bindings>
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-technical.xsd" node="/xs:schema">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-technical.xsd" node="/xs:schema">
 
         <jxb:bindings node="xs:complexType[@name='BinaryDataObjectType']">
             <annox:annotate>
@@ -69,7 +74,7 @@
 
 
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-management.xsd">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-management.xsd">
         <jxb:bindings node="//xs:complexType[@name='StorageRuleType']">
             <inheritance:implements>fr.gouv.vitam.common.model.unit.CommonRule</inheritance:implements>
         </jxb:bindings>
@@ -90,7 +95,7 @@
         </jxb:bindings>
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-types.xsd">
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-types.xsd">
         <jxb:bindings node="//xs:element[@name='DataObjectReferenceId']">
             <jxb:property>
                 <jxb:baseType>
@@ -108,8 +113,7 @@
 
     </jxb:bindings>
 
-    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-ontology.xsd">
-
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.1-ontology.xsd">
         <jxb:bindings node="//xs:element[@name='SignedObjectId']">
             <jxb:property>
                 <jxb:baseType>
@@ -126,6 +130,10 @@
         <jxb:bindings node="//xs:element[@name='Signer']">
             <jxb:class ref="fr.gouv.vitam.common.model.unit.ValidatorOrSignerModel" />
         </jxb:bindings>
+        <jxb:bindings node="//xs:element[@name='Writer']">
+            <jxb:class ref="fr.gouv.vitam.common.model.unit.WriterModel" />
+        </jxb:bindings>
+
     </jxb:bindings>
 
 </jxb:bindings>

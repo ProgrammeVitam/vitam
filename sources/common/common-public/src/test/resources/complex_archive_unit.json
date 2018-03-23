@@ -3,7 +3,10 @@
     "_id" : "aeaqaaaaaaabpv3caaw3oak3scwsmxiaaaaq",
     "DescriptionLevel" : "Item",
     "Title" : "Test 1h39",
-    "OriginatingSystemId" : "&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@programmevitam.fr&gt;",
+    "OriginatingSystemId" : [
+      "&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1780@programmevitam.fr&gt;",
+      "&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1781@programmevitam.fr&gt;"
+      ],
     "Description" : "D\u00E9but du texte [Pour voir!\\r\\n]",
     "Writer" : {
       "FirstName" : "Writer1",

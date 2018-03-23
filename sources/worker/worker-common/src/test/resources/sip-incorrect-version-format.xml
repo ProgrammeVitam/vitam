@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID000">
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID000">
     <Comment>Version valide : 1 Unit 1 Object</Comment>
     <Date>2006-05-04T18:13:51.0</Date>
     <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
@@ -109,7 +109,7 @@
                     </ClassificationRule>
                     <NeedAuthorization>false</NeedAuthorization>
                 </Management>
-                <Content xml:id="ID026">
+                <Content>
                     <DescriptionLevel>Fonds</DescriptionLevel>
                     <Title xml:lang="fr-FR">Title0</Title>
                     <FilePlanPosition>FilePlanPosition0</FilePlanPosition>

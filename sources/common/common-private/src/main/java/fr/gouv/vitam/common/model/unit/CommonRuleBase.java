@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
-
 import java.util.List;
 
 /**

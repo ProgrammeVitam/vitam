@@ -29,20 +29,15 @@ package fr.gouv.vitam.common.mapping.dip;
 import static java.util.Collections.singletonList;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveTechnicalMetadataType;
-import fr.gouv.culture.archivesdefrance.seda.v2.FileInfoType;
-import fr.gouv.culture.archivesdefrance.seda.v2.FormatIdentificationType;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.PhysicalDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.*;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
@@ -73,30 +68,30 @@ public class ObjectGroupMapper {
     public DataObjectPackageType map(ObjectGroupResponse objectGroupResponse) throws InternalServerException {
         final DataObjectPackageType dataObjectPackageType = new DataObjectPackageType();
 
-        int i = 0;
-
         if (!objectGroupResponse.getQualifiers().isEmpty()) {
+            String objectGroupId = objectGroupResponse.getId();
+            DataObjectGroupType dataObjectGroup = new DataObjectGroupType();
+            dataObjectGroup.setId(objectGroupId);
+
             for (QualifiersModel qualifiersModel : objectGroupResponse.getQualifiers()) {
 
                 final int lastIndexVersion = qualifiersModel.getVersions().size() - 1;
                 final VersionsModel version = qualifiersModel.getVersions().get(lastIndexVersion);
                 MinimalDataObjectType minimalDataObjectType;
+
                 if (version != null && version.getPhysicalId() != null && !version.getPhysicalId().isEmpty()) {
                     minimalDataObjectType = mapPhysicalDataObject(version);
-                    dataObjectPackageType.getBinaryDataObjectOrPhysicalDataObject().add(minimalDataObjectType);
                 } else {
                     minimalDataObjectType = mapBinaryDataObject(version);
-                    dataObjectPackageType.getBinaryDataObjectOrPhysicalDataObject().add(minimalDataObjectType);
                 }
 
-                if (i == 0) {
-                    minimalDataObjectType.setDataObjectGroupId(objectGroupResponse.getId());
-                } else {
-                    minimalDataObjectType.setDataObjectGroupReferenceId(objectGroupResponse.getId());
-                }
+                dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject()
+                    .add(minimalDataObjectType);
 
-                i += 1;
             }
+
+            dataObjectPackageType.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject()
+                .add(dataObjectGroup);
         }
 
         return dataObjectPackageType;

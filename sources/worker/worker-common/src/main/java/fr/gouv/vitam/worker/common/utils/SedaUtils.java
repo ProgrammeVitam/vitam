@@ -85,10 +85,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-    public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
+    public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.1";
     public static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
 
-    private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
+    private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.1-main.xsd";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
 
@@ -106,7 +106,7 @@ public class SedaUtils {
     public static final String NB_AU_EXISTING = "nbAUExisting";
     public static final String INVALID_DATAOBJECT_VERSION = "INVALID_DATAOBJECT_VERSION";
     public static final String VALID_DATAOBJECT_VERSION = "VALID_DATAOBJECT_VERSION";
-    public static final String SEDA_XSD_VERSION = "seda-2.1/seda-2.1-main.xsd";
+    public static final String SEDA_XSD_VERSION = "seda-vitam-2.1-main.xsd";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -200,6 +200,8 @@ public class SedaUtils {
             final QName contractName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVAL_AGREEMENT);
             final QName commentName = new QName(NAMESPACE_URI, SedaConstants.TAG_COMMENT);
             final QName profilName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVE_PROFILE);
+            final QName acquisitionInformationName = new QName(NAMESPACE_URI, SedaConstants.TAG_ACQUISITIONINFORMATION);;
+            final QName legalStatusName = new QName(NAMESPACE_URI, SedaConstants.TAG_LEGALSTATUS);
 
             StringBuffer sedaComment = new StringBuffer();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
@@ -233,6 +235,15 @@ public class SedaUtils {
                     if (element.getName().equals(originatingAgencyName)) {
                         madatoryValueMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, reader.getElementText());
                     }
+
+                    if (element.getName().equals(acquisitionInformationName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_ACQUISITIONINFORMATION, reader.getElementText());
+                    }
+
+                    if (element.getName().equals(legalStatusName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_LEGALSTATUS, reader.getElementText());
+                    }
+
                 }
                 if (event.isEndDocument()) {
                     break;

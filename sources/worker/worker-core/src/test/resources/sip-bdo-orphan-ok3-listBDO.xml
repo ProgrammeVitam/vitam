@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <ArchiveTransfer
-        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+        xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID1">
+        xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID1">
     <Comment>Glossaire du projet Vitam - dossier local</Comment>
     <Date>2016-09-02T13:31:57</Date>
     <MessageIdentifier>2016090201</MessageIdentifier>

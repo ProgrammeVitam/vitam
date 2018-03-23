@@ -314,6 +314,8 @@ public class ProcessingIT {
     private static String SIP_PROD_SERV_A = "integration-processing/Sip_A.zip";
     private static String SIP_PROD_SERV_B_ATTACHED = "integration-processing/SIP_B";
 
+    private static String SIP_FULL_SEDA_2_1 = "integration-processing/OK_SIP_FULL_SEDA2.1.zip";
+
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
@@ -1325,6 +1327,7 @@ public class ProcessingIT {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
+
 
 
     @RunWithCustomExecutor
@@ -3433,6 +3436,77 @@ public class ProcessingIT {
         final String finalAction = (String) appraisalRule.get("FinalAction");
         assertThat(finalAction).isNotNull().isEqualTo("Keep");
         assertThat(rules).isNull();
+
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowSipSeda2_1_full() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final String containerName = createOperationContainer();
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_FULL_SEDA_2_1);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+        final MongoDatabase db = mongoClient.getDatabase("Vitam");
+        MongoIterable<Document> resultUnits = db.getCollection("Unit").find(Filters.eq("Title", "monSIP"));
+        final Document unitToAssert = resultUnits.first();
+
+        //AgentType fullname field
+
+        List<Object> addressees = (List<Object>)unitToAssert.get("Addressee");
+        assertThat(addressees).isNotNull().isNotEmpty();
+
+        Document addressee = (Document)addressees.get(0);
+        assertThat(addressee.get("FullName")).isEqualTo("Iulius Caesar Divus");;
+
+        //sender
+        List<Object> senders = (List<Object>)unitToAssert.get("Sender");
+        assertThat(senders).isNotNull().isNotEmpty();
+
+        Document sender = (Document)senders.get(0);
+        final List<String> mandates = ((List<String>) sender.get("Mandate"));
+
+        assertThat(sender.get("GivenName")).isEqualTo("Alexander");
+        assertThat(mandates.size()).isEqualTo(2);
+        assertThat(mandates.get(0)).isEqualTo("Mandataire_1");
+        assertThat(mandates.get(1)).isEqualTo("Mandataire_2");
+
+        //transmitter
+        List<Object> transmitters = (List<Object>)unitToAssert.get("Transmitter");
+        assertThat(senders).isNotNull().isNotEmpty();
+
+        Document transmitter = (Document) transmitters.get(0);
+        final List<String> functions = (List<String>) transmitter.get("Function");
+        assertThat(functions).isNotNull().isNotEmpty();
+        assertThat(functions.get(0)).isEqualTo("Service de transmission");
 
     }
 

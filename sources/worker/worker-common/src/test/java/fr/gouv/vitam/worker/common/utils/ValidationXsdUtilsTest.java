@@ -43,8 +43,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 
 public class ValidationXsdUtilsTest {
 
-    private static final String SEDA_VITAM_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
-    private static final String SEDA_VALIDATION_FILE = "seda-2.0-main.xsd";
+    private static final String SEDA_VITAM_VALIDATION_FILE = "seda-vitam-2.1-main.xsd";
+    private static final String SEDA_VALIDATION_FILE = "seda-2.1-main.xsd";
     private static final String SEDA_FILE = "sip1.xml";
     private static final String SEDA_FILE2 = "manifestOK.xml";
     private static final String SEDA_FILE_DATA_OBJ_REF = "manifestWithDataObjectGroupExistingReferenceId.xml";

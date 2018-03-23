@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="Profil20.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
-<ArchiveTransfer xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0">
+<ArchiveTransfer xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1">
     <Comment>Transfert des enregistrements des délibérations</Comment>
     <Date>2017-05-17T10:07:28.8714077Z</Date>
     <MessageIdentifier>IDMessage</MessageIdentifier>

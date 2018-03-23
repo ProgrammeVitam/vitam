@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransferReply xmlns:xlink="http://www.w3.org/1999/xlink"
  xmlns:pr="info:lc/xmlns/premis-v2"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd">
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.0-main.xsd">
     <Comment>#COMMENT#</Comment>
     <Date>#MADATE#</Date>
     <MessageIdentifier>#MESSAGE_IDENTIFIER#</MessageIdentifier>

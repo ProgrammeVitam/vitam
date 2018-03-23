@@ -55,7 +55,7 @@ public class ObjectGroupDipServiceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(inputStream);
 
         Map<String, String> prefix2Uri = new HashMap<>();
-        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.0");
+        prefix2Uri.put("vitam", "fr:gouv:culture:archivesdefrance:seda:v2.1");
 
         // When
         Response response = objectGrouDipService.jsonToXml(jsonNode, "");

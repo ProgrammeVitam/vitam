@@ -67,7 +67,7 @@ public class ArchiveUnitMapper {
             archiveUnitType.setArchiveUnitProfile(identifierType);
         }
 
-        archiveUnitType.getContent().add(descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel()));
+        archiveUnitType.setContent(descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel()));
         ArchiveUnitType.Management management = new ArchiveUnitType.Management();
 
         management.setAccessRule(ruleMapper.fillCommonRule(model.getManagement().getAccess(), AccessRuleType::new));

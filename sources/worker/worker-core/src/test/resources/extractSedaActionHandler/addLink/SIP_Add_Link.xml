@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID_ARCH">
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID_ARCH">
     <Comment>SIP link AU : AU PARENT (EXISTING) - AU CHILD (EXISTING)</Comment>
     <Date>2016-10-18T11:20:26</Date>
     <MessageIdentifier>MessageIdentifier0</MessageIdentifier>

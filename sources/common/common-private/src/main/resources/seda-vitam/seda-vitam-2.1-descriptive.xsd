@@ -2,9 +2,9 @@
 <xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
     elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-2.1-types.xsd"/>
-    <xsd:include schemaLocation="seda-2.1-management.xsd"/>
-    <xsd:include schemaLocation="seda-2.1-ontology.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-management.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-ontology.xsd"/>
     
     <!-- Hierarchy and recursivity -->
     <xsd:complexType name="ArchiveUnitType">
@@ -43,16 +43,23 @@
                                 <xsd:documentation>Gestion de la récursivité. Une ArchiveUnit peut être contenu dans une ature ArchiveUnit.</xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element ref="ArchiveUnitReferenceAbstract">
+<!--                        <xsd:element ref="ArchiveUnitReferenceAbstract">
                             <xsd:annotation>
                                 <xsd:documentation>Permet de faire référence à une sous unité d'archives, pouvant être déjà présente dans le système d'archivage provenant d'une transaction précédente.</xsd:documentation>
                             </xsd:annotation>
-                        </xsd:element>
+                        </xsd:element>-->
                         <xsd:element name="DataObjectReference" type="DataObjectRefType">
                             <xsd:annotation>
                                 <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
+                        <!-- Redefined by VITAM -->
+                        <xsd:element name="DataObjectGroup" type="ObjectGroupRefType">
+                            <xsd:annotation>
+                                <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà existant.</xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:any processContents="lax" minOccurs="0"/>
                     </xsd:choice>
             </xsd:sequence>
         </xsd:choice>
@@ -62,8 +69,26 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
+    <!-- Extension VITAM : Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans le SAE -->
+    <xsd:complexType name="ObjectGroupRefType">
+        <xsd:annotation>
+            <xsd:documentation>Référence à un objet-données ou à un groupe d'objets-données existant.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="DataObjectReference" type="DataObjectRefType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà existant.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="DataObjectGroupExistingReferenceId" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à un groupe d'objets-données déjà existants.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
-    <!-- In ArchiveUnitType from seda-2.1-descriptive.xsd: Descriptive Metadata Content -->
+    <!-- In ArchiveUnitType fseda-vitam-2.1-descriptive.xsd.xsd: Descriptive Metadata Content -->
     <xsd:complexType name="DescriptiveMetadataContentType">
         <xsd:annotation>
             <xsd:documentation>Permet de définir les métadonnées de description. Peut être étendu.</xsd:documentation>

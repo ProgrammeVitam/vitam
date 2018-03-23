@@ -58,15 +58,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
-
-import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ObjectGroupRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.culture.archivesdefrance.seda.v2.*;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -278,10 +270,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             DescriptiveMetadataModel descriptiveMetadataModel =
                 archiveUnitRoot.getArchiveUnit().getDescriptiveMetadataModel();
 
-            if (descriptiveMetadataModel.getSignature() != null &&
-                descriptiveMetadataModel.getSignature().getReferencedObject() != null) {
-                enhanceSignature(descriptiveMetadataModel);
-            }
+
+            enhanceSignatures(descriptiveMetadataModel);
 
             // fill list rules to map
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccess());
@@ -305,7 +295,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             // clean archiveUnitType
             archiveUnitType.setManagement(null);
-            archiveUnitType.getContent().clear();
+            archiveUnitType.setContent(null);
             archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().clear();
             // transform it to tree
             archiveUnitType.setArchiveUnitRefId(archiveUnitId);
@@ -315,17 +305,25 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     }
 
     /**
-     * fill binaryId instead of intenal seda id.
+     * fill binaryId instead of internal seda id.
      *
      * @param descriptiveMetadataModel
      */
-    private void enhanceSignature(DescriptiveMetadataModel descriptiveMetadataModel) {
-        String signedObjectId = descriptiveMetadataModel.getSignature().getReferencedObject().getSignedObjectId();
+    private void enhanceSignatures(DescriptiveMetadataModel descriptiveMetadataModel) {
 
-        if (dataObjectIdToGuid.containsKey(signedObjectId)) {
-            descriptiveMetadataModel.getSignature().getReferencedObject()
-                .setSignedObjectId(dataObjectIdToGuid.get(signedObjectId));
+        if(descriptiveMetadataModel.getSignature() != null && !descriptiveMetadataModel.getSignature().isEmpty()){
+            for (DescriptiveMetadataContentType.Signature signature : descriptiveMetadataModel.getSignature()) {
+
+                String signedObjectId =
+                    signature.getReferencedObject().getSignedObjectId();
+
+                if (dataObjectIdToGuid.containsKey(signedObjectId)) {
+                    signature.getReferencedObject()
+                        .setSignedObjectId(dataObjectIdToGuid.get(signedObjectId));
+                }
+            }
         }
+
     }
 
     /**

@@ -325,7 +325,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
         final String puid = refFormat.getPuid();
         final StringBuilder diff = new StringBuilder();
-        JsonNode newFormatIdentification = formatIdentification.deepCopy();
+        JsonNode newFormatIdentification = formatIdentification != null ? formatIdentification.deepCopy() : null;
         if ((newFormatIdentification == null || !newFormatIdentification.isObject()) && puid != null) {
             newFormatIdentification = JsonHandler.createObjectNode();
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);

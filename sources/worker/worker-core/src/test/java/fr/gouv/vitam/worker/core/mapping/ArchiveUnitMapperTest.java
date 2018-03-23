@@ -80,18 +80,43 @@ public class ArchiveUnitMapperTest {
         assertThat(recipients).hasSize(1);
 
         AgentTypeModel recipient = Iterables.getOnlyElement(recipients);
-        assertThat(recipient.getFirstName()).isEqualTo("John");
-        assertThat(recipient.getBirthName()).isEqualTo("Doe");
-        assertThat(recipient.getNationalities()).hasSize(2);
-        assertThat(recipient.getNationalities().get(1)).isEqualTo("Algerian");
-        assertThat(recipient.getIdentifiers()).hasSize(2);
-        assertThat(recipient.getIdentifiers().get(1)).isEqualTo("EFG");
-        assertThat(recipient.getGivenName()).isEqualTo("Martin");
-        assertThat(recipient.getBirthPlace()).isNotNull();
-        assertThat(recipient.getBirthPlace().getGeogname()).isEqualTo("Geogname");
-        assertThat(recipient.getDeathPlace()).isNotNull();
-        assertThat(recipient.getDeathPlace().getAddress()).isEqualTo("123 my Street");
+        assertAgentTypeModelProperties(recipient);
 
+        final List<AgentTypeModel> transmitters = archiveUnit.getDescriptiveMetadataModel().getTransmitter();
+        assertThat(transmitters).hasSize(2);
+        for(AgentTypeModel transmitter : transmitters){
+            assertAgentTypeModelProperties(transmitter);
+        }
+
+        final List<AgentTypeModel> senders = archiveUnit.getDescriptiveMetadataModel().getSender();
+        assertThat(senders).hasSize(2);
+        for(AgentTypeModel sender : senders){
+            assertAgentTypeModelProperties(sender);
+        }
+
+        AgentTypeModel sender2 = senders.get(1);
+        assertThat(sender2.getFunction().size()).isEqualTo(2);
+        assertThat(sender2.getFunction()).contains("IT Specialist");
+        assertThat(sender2.getRole()).contains("Architect");
+        assertThat(sender2.getMandate()).contains("Self Mandate");
+
+
+    }
+
+    private void assertAgentTypeModelProperties(AgentTypeModel agentTypeModel){
+
+        assertThat(agentTypeModel.getFirstName()).isEqualTo("John");
+        assertThat(agentTypeModel.getBirthName()).isEqualTo("Doe");
+        assertThat(agentTypeModel.getNationalities()).hasSize(2);
+        assertThat(agentTypeModel.getNationalities().get(1)).isEqualTo("Algerian");
+        assertThat(agentTypeModel.getIdentifiers()).hasSize(2);
+        assertThat(agentTypeModel.getIdentifiers().get(1)).isEqualTo("EFG");
+        assertThat(agentTypeModel.getGivenName()).isEqualTo("Martin");
+        assertThat(agentTypeModel.getBirthPlace()).isNotNull();
+        assertThat(agentTypeModel.getBirthPlace().getGeogname()).isEqualTo("Geogname");
+        assertThat(agentTypeModel.getDeathPlace()).isNotNull();
+        assertThat(agentTypeModel.getDeathPlace().getAddress()).isEqualTo("123 my Street");
+        assertThat(agentTypeModel.getFullName()).isEqualTo("John Doe Martin");
     }
 
     @Test

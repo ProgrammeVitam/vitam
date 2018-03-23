@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0"
-    xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" elementFormDefault="qualified"
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+    xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-vitam-2.0-types.xsd"/>
-
+    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
+    
     <xsd:group name="ObjectGroup">
         <xsd:annotation>
             <xsd:documentation>Contient les éléments nécessaires à
@@ -14,15 +14,18 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="BaseObjectGroup"/>
+            <!-- Redefined by VITAM -->
+            <!--<xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>-->
             <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- <xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/> -->
         </xsd:sequence>
     </xsd:group>
-
+    
     <xsd:group name="BaseObjectGroup">
         <xsd:sequence>
-            <xsd:group ref="LevelGroup" minOccurs="1"/>
-            <xsd:group ref="TitleGroup" minOccurs="1"/>
+            <!-- Redefined by VITAM -->
+            <xsd:group ref="LevelGroup"  minOccurs="1"/>
+            <!-- Redefined by VITAM -->
+            <xsd:group ref="TitleGroup"  minOccurs="1" />
             <xsd:group ref="IdentifierGroup"/>
             <xsd:group ref="DescriptionGroup"/>
             <xsd:group ref="CustodialHistoryGroup"/>
@@ -35,6 +38,7 @@
             <xsd:group ref="CoverageGroup"/>
             <xsd:group ref="OriginatingAgencyGroup"/>
             <xsd:group ref="SubmissionAgencyGroup"/>
+            <xsd:group ref="AgentGroup"/>
             <xsd:group ref="AuthorizedAgentGroup"/>
             <xsd:group ref="WritingGroup"/>
             <xsd:group ref="AudienceGroup"/>
@@ -50,7 +54,7 @@
     <!-- Level description -->
     <xsd:group name="LevelGroup">
         <xsd:sequence>
-            <xsd:element name="DescriptionLevel" type="LevelType" minOccurs="1">
+            <xsd:element name="DescriptionLevel" type="LevelType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>Niveau de description au sens de la norme ISAD (G). Indique si l’ArchiveUnit correspond à un fonds, 
                         à un sous-fonds, à une classe, à une série organique, à une sous-série organique, à un dossier, à un sous-dossier ou à une pièce.</xsd:documentation>
@@ -75,12 +79,13 @@
             <xsd:enumeration value="SubGrp"/>
             <xsd:enumeration value="File"/>
             <xsd:enumeration value="Item"/>
+            <xsd:enumeration value="OtherLevel"/>
         </xsd:restriction>
     </xsd:simpleType>
     <!-- Title description -->
     <xsd:group name="TitleGroup">
         <xsd:sequence>
-            <xsd:element name="Title" type="TextType" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="Title" type="TextType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Intitulé de l'ArchiveUnit.</xsd:documentation>
                     <xsd:documentation>Références : DC.Title ead.unittitle</xsd:documentation>
@@ -92,36 +97,36 @@
     <!-- Identification description -->
     <xsd:group name="IdentifierGroup">
         <xsd:sequence>
-            <xsd:element name="FilePlanPosition" type="NonEmptyTokenType" minOccurs="0">
+            <xsd:element name="FilePlanPosition" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Position de l’ArchiveUnit dans le plan de classement du service producteur.</xsd:documentation>
                     <xsd:documentation>Références : seda.FilePlanPosition</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="SystemId" type="NonEmptyTokenType" minOccurs="0">
+            <xsd:element name="SystemId" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant attribué aux objets. Il est attribué par le SAE et correspond à un identifiant interne.</xsd:documentation>
                     <xsd:documentation>Références : ARMS</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="OriginatingSystemId" type="NonEmptyTokenType" minOccurs="0">
+            <xsd:element name="OriginatingSystemId" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant système attribué à l’ArchiveUnit par l’application du service producteur.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="ArchivalAgencyArchiveUnitIdentifier" type="NonEmptyTokenType" minOccurs="0">
+            <xsd:element name="ArchivalAgencyArchiveUnitIdentifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant métier attribué à l'ArchiveUnit par le service d'archives. Peut être comparé à une cote.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="OriginatingAgencyArchiveUnitIdentifier" type="NonEmptyTokenType"
-                minOccurs="0">
+                minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant métier attribué à l’ArchiveUnit par le service producteur.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="TransferringAgencyArchiveUnitIdentifier" type="NonEmptyTokenType"
-                minOccurs="0">
+                minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Identifiant attribué à l'ArchiveUnit par le service versant.</xsd:documentation>
                 </xsd:annotation>
@@ -203,7 +208,7 @@
     <!-- Language description -->
     <xsd:group name="LanguageGroup">
         <xsd:sequence>
-            <xsd:element name="Language" type="xsd:language" minOccurs="0">
+            <xsd:element name="Language" type="xsd:language" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Langue du contenu des objets-données.</xsd:documentation>
                     <xsd:documentation>Références : seda.Language</xsd:documentation>
@@ -409,7 +414,7 @@
     <!-- Proxy description -->
     <xsd:group name="AuthorizedAgentGroup">
         <xsd:sequence>
-            <xsd:element name="AuthorizedAgent" type="AgentType" minOccurs="0">
+            <xsd:element name="AuthorizedAgent" type="AgentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Titulaire des droits de propriété intellectuelle.</xsd:documentation>
                 </xsd:annotation>
@@ -436,20 +441,21 @@
     </xsd:group>
     <xsd:group name="WriterGroup">
         <xsd:sequence>
-            <xsd:group ref="PersonGroup"/>
+            <xsd:group ref="PersonOrEntityGroup"/>
             <xsd:group ref="BusinessGroup"/>
         </xsd:sequence>
     </xsd:group>
-    
 
     <!-- Audience description -->
     <xsd:group name="AudienceGroup">
         <xsd:sequence>
             <xsd:annotation>
-                <xsd:documentation>Audience du document. Permet de gérer les questions de "diffusion restreinte", de "spécial France" et de "Confidentiel Industrie".</xsd:documentation>
+                <xsd:documentation>Audience du document.</xsd:documentation>
             </xsd:annotation>
             <xsd:group ref="AddresseeGroup"/>
             <xsd:group ref="RecipientGroup"/>
+            <xsd:group ref="TransmitterGroup"/>
+            <xsd:group ref="SenderGroup"/>
         </xsd:sequence>
     </xsd:group>
 
@@ -538,6 +544,11 @@
                     <xsd:documentation>Référence à un un objet-données ou à un groupe d'objets-données déjà conservé(s) dans un système d'archivage.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="ExternalReference" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Référence externe.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:choice>
     </xsd:complexType>
     <!-- Date description -->
@@ -592,7 +603,7 @@
         </xsd:sequence>
     </xsd:group>
     <xsd:simpleType name="DateType">
-        <xsd:union memberTypes="xsd:date xsd:dateTime"/>
+        <xsd:union memberTypes="xsd:date xsd:dateTime xsd:gYear xsd:gYearMonth xsd:gMonth xsd:gMonthDay xsd:gDay"/>
     </xsd:simpleType>
     <!-- Event description -->
     <xsd:group name="EventGroup">
@@ -612,12 +623,17 @@
                     <xsd:documentation>Références : premis.eventIdentifier</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="EventTypeCode" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Code du type d'événement.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="EventType" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Type d'événement.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="EventDateTime" type="xsd:dateTime">
+            <xsd:element name="EventDateTime" type="DateType">
                 <xsd:annotation>
                     <xsd:documentation>Date et heure de l'événement.</xsd:documentation>
                 </xsd:annotation>
@@ -627,23 +643,43 @@
                     <xsd:documentation>Détail sur l'événement.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="Outcome" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Résultat du traitement.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="OutcomeDetail" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Détail sur le résultat du traitement.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="OutcomeDetailMessage" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Message détaillé sur le résultat du traitement.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="EventDetailData" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Message technique détaillant l'erreur.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="EventAbstract" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Permet d'étendre de nouveaux types d'évenéments.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <!-- Signature description -->
     <xsd:group name="SignatureGroup">
         <xsd:sequence>
-            <xsd:element name="Signature" minOccurs="0">
+            <xsd:element name="Signature" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Contient toutes les informations relatives à la signature.</xsd:documentation>
                 </xsd:annotation>
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="DateSignature" type="xsd:dateTime">
-                            <xsd:annotation>
-                                <xsd:documentation>Date de l'objet signature.</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="Signer">
+                        <xsd:element name="Signer" maxOccurs="unbounded">
                             <xsd:annotation>
                                 <xsd:documentation>Signataire(s) de la transaction ou de l'objet.</xsd:documentation>
                                 <xsd:documentation>Références : premis.signer</xsd:documentation>
@@ -737,80 +773,32 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
-    <!-- Person description -->
-    <xsd:group name="PersonGroup">
+    <!-- Transmitter description -->
+    <xsd:group name="TransmitterGroup">
         <xsd:sequence>
-            <xsd:element name="FirstName" type="xsd:string">
+            <xsd:element name="Transmitter" type="AgentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
-                    <xsd:documentation>Prénom d'une personne.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="BirthName" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>Nom de naissance d'une personne.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="GivenName" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>Nom d'usage d'une personne.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="Gender" type="NonEmptyTokenType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>Sexe de la personne.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="BirthDate" type="xsd:date" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>Date de naissance de la personne.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="BirthPlace" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>Lieu de naissance de la personne.</xsd:documentation>
-                </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:group ref="LocationGroup"/>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="DeathDate" type="xsd:date" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>Date de décès d'une personne.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="DeathPlace" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>Lieu de décès d'une personne.</xsd:documentation>
-                </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:group ref="LocationGroup"/>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="Nationality" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>Nationalité d'une personne.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>Dans le PersonGroup, Identifiant de type numéro matricule.</xsd:documentation>
+                    <xsd:documentation>Emetteur du message.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
-    <!-- Entity description -->
-    <xsd:group name="EntityGroup">
+    <!-- Sender description -->
+    <xsd:group name="SenderGroup">
         <xsd:sequence>
-            <xsd:element name="Corpname" type="xsd:string">
+            <xsd:element name="Sender" type="AgentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
-                    <xsd:documentation>Nom d'une entité.</xsd:documentation>
+                    <xsd:documentation>Expéditeur du message.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>Identifiant de l'entité.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+   
+    <!-- Pour ajouter des extensions d'agents -->
+    <xsd:group name="AgentGroup">
+        <xsd:sequence>
+            <!-- Ajout d'un abstract à AgentType -->
+            <xsd:element ref="AgentAbstract" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:group>
     <!-- Agent description -->
@@ -820,13 +808,93 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="PersonOrEntityGroup"/>
+            <xsd:group ref="BusinessGroup"/>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <!-- Person or Entity description -->
     <xsd:group name="PersonOrEntityGroup">
-        <xsd:choice>
-            <xsd:group ref="PersonGroup"/>
-            <xsd:group ref="EntityGroup"/>
-        </xsd:choice>
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:sequence>
+                    <xsd:element name="FirstName" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Prénom d'une personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="BirthName" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Nom de naissance d'une personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="FullName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Nom complet d'une personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="GivenName" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Nom d'usage d'une personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Gender" type="NonEmptyTokenType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Sexe de la personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="BirthDate" type="xsd:date" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Date de naissance de la personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="BirthPlace" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Lieu de naissance de la personne.</xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:complexType>
+                            <xsd:group ref="LocationGroup"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="DeathDate" type="xsd:date" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Date de décès d'une personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="DeathPlace" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Lieu de décès d'une personne.</xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:complexType>
+                            <xsd:group ref="LocationGroup"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="Nationality" minOccurs="0" maxOccurs="unbounded" type="NonEmptyTokenType">
+                        <xsd:annotation>
+                            <xsd:documentation>Nationalité d'une personne.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>Dans le PersonGroup, Identifiant de type numéro matricule.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+                <xsd:sequence>
+                    <xsd:element name="Corpname" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>Nom d'une entité.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>Identifiant de l'entité.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:choice>
+        </xsd:sequence>
     </xsd:group>
     <!-- Business description -->
     <xsd:group name="BusinessGroup">
@@ -853,6 +921,11 @@
                 <xsd:annotation>
                     <xsd:documentation>Droits avec lesquels un utilisateur a réalisé une opération, notamment dans une application.</xsd:documentation>
                     <xsd:documentation>Références : moreq.role</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Mandate" type="TextType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Définit la propriété intellectuelle et artistique.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -916,28 +989,38 @@
             </xsd:element>
             <xsd:element name="GpsAltitude" type="xsd:integer" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Altitude de la position GPS.</xsd:documentation>
+                    <xsd:documentation>Indique l'altitude basée sur la référence dans GPSAltitudeRef. L'altitude est exprimée en mètres.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="GpsAltitudeRef" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>0 (niveau de la mer) / 1 (référence au niveau de la mer - valeur négative -).</xsd:documentation>
+                    <xsd:documentation>Indique l'altitude utilisée comme altitude de référence.</xsd:documentation>
+                    <xsd:documentation>Si l'altitude est au dessus du niveau de la mer, la valeur 0 est normalement donnée.</xsd:documentation>
+                    <xsd:documentation>Si l'altitude est au-dessous du niveau de la mer, la veleur 1 est normalement donnée.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="GpsLatitude" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>N (Nord) /  S (Sud).</xsd:documentation>
+                    <xsd:documentation>La latitude peut être exprimée de deux manières différentes : 1)degrés, décimaux ou 2)degrés, minutes et secondes.</xsd:documentation>
+                    <xsd:documentation>1)Si la latitude est exprimée en degrés, décimaux, le format type est dd, dd. Par ex: "45.3130339".</xsd:documentation>
+                    <xsd:documentation>2)Si la latitude est exprimée en degrés, minutes et secondes, le format type est dd, mm, ss. Par ex: "45 18 46.922".</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="GpsLatitudeRef" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="GpsLatitudeRef" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Indique si la latitude est nord ou sud. La valeur 'N' indique la latitude nord, et 'S' indique la latitude sud.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="GpsLongitude" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Latitude de la position GPS.</xsd:documentation>
+                    <xsd:documentation>La longitude peut être exprimée de deux manières différentes : 1)degrés, décimaux ou 2)degrés, minutes et secondes.</xsd:documentation>
+                    <xsd:documentation>1)Si la longitude est exprimée en degrés, décimaux, le format type est dd, dd. Par ex: "5.392285833333334".</xsd:documentation>
+                    <xsd:documentation>2)Si la longitude est exprimée en degrés, minutes et secondes, le format type est dd, mm, ss. Par ex: "5 23 32.229".</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="GpsLongitudeRef" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>E (Est) / W (Ouest).</xsd:documentation>
+                    <xsd:documentation>Indique si la longitude est est ou ouest. La valeur 'E' indique la longitude est, et 'W' indique la longitude Ouest.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="GpsDateStamp" type="xsd:string" minOccurs="0">

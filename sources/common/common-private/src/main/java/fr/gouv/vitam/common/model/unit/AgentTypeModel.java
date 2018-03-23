@@ -55,6 +55,12 @@ public class AgentTypeModel {
     public static final String NATIONALITY = "Nationality";
     public static final String DEATH_DATE = "DeathDate";
     public static final String IDENTIFIER = "Identifier";
+    private static final String FUNCTION = "Function";
+    private static final String ACTIVITY = "Activity";
+    private static final String POSITION = "Position";
+    private static final String ROLE = "Role";
+    private static final String MANDATE = "Mandate";
+    private static final String FULLNAME = "FullName";
 
     @JsonProperty(BIRTH_PLACE)
     @XmlElement(name = BIRTH_PLACE, namespace = NAMESPACE_URI)
@@ -80,6 +86,10 @@ public class AgentTypeModel {
     @XmlElement(name = FIRST_NAME, namespace = NAMESPACE_URI)
     private String firstName;
 
+    @JsonProperty(FULLNAME)
+    @XmlElement(name = FULLNAME, namespace = NAMESPACE_URI)
+    private String fullName;
+
     @JsonProperty(TAG_GENDER)
     @XmlElement(name = TAG_GENDER, namespace = NAMESPACE_URI)
     private String gender;
@@ -99,6 +109,28 @@ public class AgentTypeModel {
     @JsonProperty(IDENTIFIER)
     @XmlElement(name = IDENTIFIER, namespace = NAMESPACE_URI)
     private List<String> identifiers;
+
+    //BusinessGroup element's properties
+    @JsonProperty(FUNCTION)
+    @XmlElement(name = FUNCTION, namespace = NAMESPACE_URI)
+    private List<String> function;
+
+    @JsonProperty(ACTIVITY)
+    @XmlElement(name = ACTIVITY, namespace = NAMESPACE_URI)
+    private List<String> activity;
+
+    @JsonProperty(POSITION)
+    @XmlElement(name = POSITION, namespace = NAMESPACE_URI)
+    private List<String> position;
+
+    @JsonProperty(ROLE)
+    @XmlElement(name = ROLE, namespace = NAMESPACE_URI)
+    private List<String> role;
+
+    @JsonProperty(MANDATE)
+    @XmlElement(name = MANDATE, namespace = NAMESPACE_URI)
+    private List<String> mandate;
+
 
     public AgentTypeModel() {
     }
@@ -159,6 +191,22 @@ public class AgentTypeModel {
         this.gender = gender;
     }
 
+    /**
+     * getter for fullName
+     *
+     * @return fullName value
+     */
+    public String getFullName() {
+        return fullName;
+    }
+
+    /**
+     * set fullName
+     */
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
     public String getCorpname() {
         return corpname;
     }
@@ -195,5 +243,85 @@ public class AgentTypeModel {
 
     public void setIdentifiers(List<String> identifiers) {
         this.identifiers = identifiers;
+    }
+
+    /**
+     * getter for function
+     *
+     * @return function value
+     */
+    public List<String> getFunction() {
+        return function;
+    }
+
+    /**
+     * set function
+     */
+    public void setFunction(List<String> function) {
+        this.function = function;
+    }
+
+    /**
+     * getter for activity
+     *
+     * @return activity value
+     */
+    public List<String> getActivity() {
+        return activity;
+    }
+
+    /**
+     * set activity
+     */
+    public void setActivity(List<String> activity) {
+        this.activity = activity;
+    }
+
+    /**
+     * getter for position
+     *
+     * @return position value
+     */
+    public List<String> getPosition() {
+        return position;
+    }
+
+    /**
+     * set position
+     */
+    public void setPosition(List<String> position) {
+        this.position = position;
+    }
+
+    /**
+     * getter for role
+     *
+     * @return role value
+     */
+    public List<String> getRole() {
+        return role;
+    }
+
+    /**
+     * set role
+     */
+    public void setRole(List<String> role) {
+        this.role = role;
+    }
+
+    /**
+     * getter for mandate
+     *
+     * @return mandate value
+     */
+    public List<String> getMandate() {
+        return mandate;
+    }
+
+    /**
+     * set mandate
+     */
+    public void setMandate(List<String> mandate) {
+        this.mandate = mandate;
     }
 }

@@ -28,10 +28,12 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import java.util.Collections;
 
+import com.google.common.collect.Lists;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import org.apache.commons.collections4.ListUtils;
 
 /**
  * Map the object DescriptiveMetadataModel generated from Unit data base model To a jaxb object
@@ -56,9 +58,6 @@ public class DescriptiveMetadataMapper {
         dmc.getAny().addAll(
             TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(metadataModel.getAny())));
 
-        dmc.setArchivalAgencyArchiveUnitIdentifier(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
-
-        dmc.setAuthorizedAgent(metadataModel.getAuthorizedAgent());
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());
 
@@ -78,47 +77,84 @@ public class DescriptiveMetadataMapper {
         dmc.setDocumentType(metadataModel.getDocumentType());
         dmc.setEndDate(metadataModel.getEndDate());
         dmc.getEvent().addAll(metadataModel.getEvent());
-        dmc.setFilePlanPosition(metadataModel.getFilePlanPosition());
         dmc.setGps(metadataModel.getGps());
-        dmc.setHref(metadataModel.getHref());
-        dmc.setId(metadataModel.getId());
-        dmc.getKeyword().addAll(metadataModel.getKeyword());
-        dmc.setLanguage(metadataModel.getLanguage());
         dmc.setOriginatingAgency(metadataModel.getOriginatingAgency());
-        dmc.setOriginatingAgencyArchiveUnitIdentifier(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
-        dmc.setOriginatingSystemId(metadataModel.getOriginatingSystemId());
+
+
+        if (metadataModel.getFilePlanPosition() != null && !metadataModel.getFilePlanPosition().isEmpty()){
+            dmc.getFilePlanPosition().addAll(metadataModel.getFilePlanPosition());
+        }
+
+        if (metadataModel.getSystemId() != null && !metadataModel.getSystemId().isEmpty()) {
+            dmc.getSystemId().addAll(metadataModel.getSystemId());
+        }
+
+        if ( metadataModel.getOriginatingSystemId() != null && !metadataModel.getOriginatingSystemId().isEmpty()) {
+            dmc.getOriginatingSystemId().addAll(metadataModel.getOriginatingSystemId());
+        }
+
+        if (metadataModel.getArchivalAgencyArchiveUnitIdentifier() != null && !metadataModel.getArchivalAgencyArchiveUnitIdentifier().isEmpty()){
+            dmc.getArchivalAgencyArchiveUnitIdentifier().addAll(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
+        }
+
+        if (metadataModel.getOriginatingAgencyArchiveUnitIdentifier() != null && !metadataModel.getOriginatingAgencyArchiveUnitIdentifier().isEmpty()) {
+            dmc.getOriginatingAgencyArchiveUnitIdentifier().addAll(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
+        }
+
+        if (metadataModel.getTransferringAgencyArchiveUnitIdentifier() != null && !metadataModel.getTransferringAgencyArchiveUnitIdentifier().isEmpty() ){
+            dmc.getTransferringAgencyArchiveUnitIdentifier().addAll(
+                metadataModel.getTransferringAgencyArchiveUnitIdentifier());
+        }
+
+        if (metadataModel.getLanguage() != null && !metadataModel.getLanguage().isEmpty()) {
+            dmc.getLanguage().addAll(metadataModel.getLanguage());
+        }
+
+        if(metadataModel.getAuthorizedAgent() != null && !metadataModel.getAuthorizedAgent().isEmpty()){
+            dmc.getAuthorizedAgent().addAll(metadataModel.getAuthorizedAgent());
+        }
+
+
+        if (metadataModel.getSignature() != null && !metadataModel.getSignature().isEmpty()) {
+            dmc.getSignature().addAll(metadataModel.getSignature());
+        }
+
+
+        if (metadataModel.getRecipient() != null && !metadataModel.getRecipient().isEmpty()) {
+            dmc.getRecipient().addAll(metadataModel.getRecipient());
+        }
+
+        if (metadataModel.getKeyword() != null && !metadataModel.getKeyword().isEmpty()) {
+            dmc.getKeyword().addAll(metadataModel.getKeyword());
+        }
+        
         dmc.setReceivedDate(metadataModel.getReceivedDate());
-
-        dmc.getRecipient().addAll(metadataModel.getRecipient());
-
         dmc.setRegisteredDate(metadataModel.getRegisteredDate());
         dmc.setRelatedObjectReference(metadataModel.getRelatedObjectReference());
-        dmc.setRestrictionEndDate(metadataModel.getRestrictionEndDate());
-        dmc.setRestrictionRuleIdRef(metadataModel.getRestrictionRuleIdRef());
-        dmc.setRestrictionValue(metadataModel.getRestrictionValue());
         dmc.setRegisteredDate(metadataModel.getRegisteredDate());
         dmc.setSentDate(metadataModel.getSentDate());
-        dmc.setSignature(metadataModel.getSignature());
         dmc.setSource(metadataModel.getSource());
         dmc.setStartDate(metadataModel.getStartDate());
         dmc.setStatus(metadataModel.getStatus());
         dmc.setSubmissionAgency(metadataModel.getSubmissionAgency());
-        dmc.setSystemId(metadataModel.getSystemId());
+
         dmc.getTag().addAll(metadataModel.getTag());
 
         if (metadataModel.getTitle_() != null) {
             dmc.getTitle().addAll(metadataModel.getTitle_().getTextTypes());
         }
+
         TextType title = new TextType();
         title.setValue(metadataModel.getTitle());
         dmc.getTitle().add(title);
 
         dmc.setTransactedDate(metadataModel.getTransactedDate());
-        dmc.setTransferringAgencyArchiveUnitIdentifier(
-            metadataModel.getTransferringAgencyArchiveUnitIdentifier());
         dmc.setType(metadataModel.getType());
         dmc.setVersion(metadataModel.getVersion());
         dmc.getWriter().addAll(metadataModel.getWriter());
+
+        dmc.getTransmitter().addAll(metadataModel.getTransmitter());
+        dmc.getSender().addAll(metadataModel.getSender());
 
         return dmc;
     }

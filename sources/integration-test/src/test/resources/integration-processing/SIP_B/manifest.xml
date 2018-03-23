@@ -1,1 +1,96 @@
-<?xml version='1.0' encoding='UTF-8'?><ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID1"><Comment>2eme SIP</Comment><Date>2017-09-25T11:31:04</Date><MessageIdentifier>MessageIdentifier0</MessageIdentifier><ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement><CodeListVersions><ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion><MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion><MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion><EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion><FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion><CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion><DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion><StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion><AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion><AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion><DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion><ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion><ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion><AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion><RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion></CodeListVersions><DataObjectPackage xml:id="ID2"><BinaryDataObject id="ID6"><DataObjectGroupId>ID5</DataObjectGroupId><DataObjectVersion>BinaryMaster</DataObjectVersion><Uri>Content/ID6.png</Uri><MessageDigest algorithm="SHA-512">f4cb2ee3d12a5425ee039efcb023c0a5f336cb1d72663497d30348fe454704893900987ac650464b9f25fb35d1ab15a7d15426486bd634073b3354863cfe5560</MessageDigest><Size>285804</Size><FormatIdentification><FormatLitteral>Portable Network Graphics</FormatLitteral><MimeType>image/png</MimeType><FormatId>fmt/11</FormatId></FormatIdentification><FileInfo><Filename>workflow_ingest.png</Filename><LastModified>2017-09-21T11:07:46.000+02:00</LastModified></FileInfo></BinaryDataObject><DescriptiveMetadata><ArchiveUnit id="ID4"><Management><UpdateOperation><SystemId>aeaqaaaaaahhwl3tabk2yak6zawme3qaaaaq</SystemId></UpdateOperation></Management><Content><DescriptionLevel>RecordGrp</DescriptionLevel><Title>Sénat</Title></Content><ArchiveUnit id="ID9"><ArchiveUnitRefId>ID3</ArchiveUnitRefId></ArchiveUnit></ArchiveUnit><ArchiveUnit id="ID3"><Content><DescriptionLevel>RecordGrp</DescriptionLevel><Title>SP_B</Title><Description>/home/pipav/Bureau/SP_B</Description><StartDate>2017-09-21T11:07:46</StartDate><EndDate>2017-09-21T11:07:46</EndDate></Content><ArchiveUnit id="ID8"><ArchiveUnitRefId>ID7</ArchiveUnitRefId></ArchiveUnit></ArchiveUnit><ArchiveUnit id="ID7"><Content><DescriptionLevel>Item</DescriptionLevel><Title>workflow_ingest.png</Title><Description>Pseudo Archive Unit du fichier :/home/pipav/Bureau/SP_B/workflow_ingest.png</Description><TransactedDate>2017-09-21T11:07:46</TransactedDate></Content><DataObjectReference><DataObjectGroupReferenceId>ID5</DataObjectGroupReferenceId></DataObjectReference></ArchiveUnit></DescriptiveMetadata><ManagementMetadata><OriginatingAgencyIdentifier>Service_producteur</OriginatingAgencyIdentifier><SubmissionAgencyIdentifier>Service_versant</SubmissionAgencyIdentifier></ManagementMetadata></DataObjectPackage><ArchivalAgency><Identifier>Identifier4</Identifier></ArchivalAgency><TransferringAgency><Identifier>Identifier5</Identifier></TransferringAgency></ArchiveTransfer>
+<?xml version='1.0' encoding='UTF-8'?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2017-09-25T11:31:04</Date>
+    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID6">
+            <DataObjectGroupId>ID5</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID6.png</Uri>
+            <MessageDigest algorithm="SHA-512">f4cb2ee3d12a5425ee039efcb023c0a5f336cb1d72663497d30348fe454704893900987ac650464b9f25fb35d1ab15a7d15426486bd634073b3354863cfe5560</MessageDigest>
+            <Size>285804</Size>
+            <FormatIdentification>
+                <FormatLitteral>Portable Network Graphics</FormatLitteral>
+                <MimeType>image/png</MimeType>
+                <FormatId>fmt/11</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>workflow_ingest.png</Filename>
+                <LastModified>2017-09-21T11:07:46.000+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID4">
+                <Management>
+                    <UpdateOperation>
+                        <SystemId>aeaqaaaaaahhwl3tabk2yak6zawme3qaaaaq</SystemId>
+                    </UpdateOperation>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Sénat</Title>
+                </Content>
+                <ArchiveUnit id="ID9">
+                    <ArchiveUnitRefId>ID3</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>SP_B</Title>
+                    <Description>/home/pipav/Bureau/SP_B</Description>
+                    <StartDate>2017-09-21T11:07:46</StartDate>
+                    <EndDate>2017-09-21T11:07:46</EndDate>
+                </Content>
+                <ArchiveUnit id="ID8">
+                    <ArchiveUnitRefId>ID7</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID7">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>workflow_ingest.png</Title>
+                    <Description>Pseudo Archive Unit du fichier :/home/pipav/Bureau/SP_B/workflow_ingest.png
+                    </Description>
+                    <TransactedDate>2017-09-21T11:07:46</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID5</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>Service_producteur</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>Service_versant</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

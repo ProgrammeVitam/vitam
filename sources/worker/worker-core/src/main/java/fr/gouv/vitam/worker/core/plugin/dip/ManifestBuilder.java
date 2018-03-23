@@ -26,11 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
-import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_PACKAGE;
-import static fr.gouv.vitam.common.SedaConstants.TAG_DESCRIPTIVE_METADATA;
-import static fr.gouv.vitam.common.SedaConstants.TAG_MANAGEMENT_METADATA;
-import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
+import static fr.gouv.vitam.common.SedaConstants.*;
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
 
@@ -54,13 +50,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ListMultimap;
-import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
-import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
+import fr.gouv.culture.archivesdefrance.seda.v2.*;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -70,6 +61,7 @@ import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.worker.common.utils.SedaUtils;
 
 /**
  * build a SEDA manifest with JAXB.
@@ -118,7 +110,7 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeNamespace("pr", "info:lc/xmlns/premis-v2");
         writer.writeDefaultNamespace(NAMESPACE_URI);
         writer.writeNamespace("xsi", XSI_URI);
-        writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " seda-2.0-main.xsd");
+        writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " "+SedaUtils.SEDA_XSD_VERSION);
     }
 
     /**
@@ -131,26 +123,38 @@ public class ManifestBuilder implements AutoCloseable {
      * @throws ProcessingException
      */
     public Map<String, String> writeGOT(JsonNode og)
-        throws JsonProcessingException, JAXBException, ProcessingException {
+        throws JsonProcessingException, JAXBException, ProcessingException, XMLStreamException {
         Map<String, String> maps = new HashMap<>();
 
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
         final DataObjectPackageType xmlObject;
         try {
             xmlObject = objectGroupMapper.map(objectGroup);
-            List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
-                xmlObject.getBinaryDataObjectOrPhysicalDataObject();
-            for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
-                if (minimalDataObjectType instanceof BinaryDataObjectType) {
-                    BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
 
-                    String binaryId = binaryDataObjectType.getId();
+            List<Object> dataObjectGroupList = xmlObject.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
+            //must be only 1 GOT (vitam seda restriction)
+            for (Object dataObjectGroupItem : dataObjectGroupList) {
 
-                    String fileName = StoreDIP.CONTENT + "/" + binaryId;
-                    binaryDataObjectType.setUri(fileName);
-                    maps.put(minimalDataObjectType.getId(), fileName);
+                DataObjectGroupType dataObjectGroup = (DataObjectGroupType) dataObjectGroupItem;
+
+                startDataObjectGroup(dataObjectGroup.getId());
+
+                List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
+                    dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
+                for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
+                    if (minimalDataObjectType instanceof BinaryDataObjectType) {
+                        BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
+
+                        String binaryId = binaryDataObjectType.getId();
+
+                        String fileName = StoreDIP.CONTENT + "/" + binaryId;
+                        binaryDataObjectType.setUri(fileName);
+                        maps.put(minimalDataObjectType.getId(), fileName);
+                    }
+                    marshaller.marshal(minimalDataObjectType, writer);
                 }
-                marshaller.marshal(minimalDataObjectType, writer);
+
+                endDataObjectGroup();
             }
         } catch (InternalServerException e) {
             throw new ProcessingException(e);
@@ -215,6 +219,11 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeStartElement(TAG_DATA_OBJECT_PACKAGE);
     }
 
+    public void startDataObjectGroup(String groupId) throws XMLStreamException {
+        writer.writeStartElement(TAG_DATA_OBJECT_GROUP);
+        writer.writeAttribute(NAMESPACE_URI, ATTRIBUTE_ID, groupId);
+    }
+
     public void endDescriptiveMetadata() throws XMLStreamException {
         writer.writeEndElement();
     }
@@ -223,6 +232,9 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndElement();
     }
 
+    public void endDataObjectGroup() throws XMLStreamException {
+        writer.writeEndElement();
+    }
     public void writeOriginatingAgency(String originatingAgency) throws JAXBException, XMLStreamException {
         writer.writeStartElement(NAMESPACE_URI, TAG_MANAGEMENT_METADATA);
 

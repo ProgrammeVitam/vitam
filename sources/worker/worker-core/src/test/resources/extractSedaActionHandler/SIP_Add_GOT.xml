@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
  xmlns:pr="info:lc/xmlns/premis-v2"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/gwendoline.stab.CULTURE.DOM/Documents/Travaux_transversaux/SEDA/SEDA_Vitam/seda-2.0-main.xsd" xml:id="ID001">
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/C:/Users/gwendoline.stab.CULTURE.DOM/Documents/Travaux_transversaux/SEDA/SEDA_Vitam/seda-2.1-main.xsd" xml:id="ID001">
     <Comment lang="en">English Comment</Comment>
     <Comment>Commentaire par défaut</Comment>
     <Comment lang="fr">Commentaire français</Comment>

@@ -8,7 +8,7 @@
                     <DisseminationRule><Rule>DIS-00001</Rule><StartDate>2016-01-01</StartDate><EndDate>2041-01-01</EndDate></DisseminationRule>
                     <NeedAuthorization>false</NeedAuthorization>
                 </Management>
-                <Content xml:id="ID029">
+                <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
                     <Title>Sensibilisation API</Title>
                     <FilePlanPosition>FilePlanPosition0</FilePlanPosition>

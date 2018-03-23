@@ -39,6 +39,8 @@ public class VitamConstants {
 
     public static final String CONTENT_SIP_FOLDER = SIP_FOLDER + "/Content";
 
+    public static final String SEDA_CURRENT_VERSION = "2.1";
+
     /**
      * tag of StorageRule
      */

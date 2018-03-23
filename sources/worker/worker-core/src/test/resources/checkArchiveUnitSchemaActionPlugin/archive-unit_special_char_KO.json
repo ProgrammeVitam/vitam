@@ -1,7 +1,7 @@
 {
     "ArchiveUnit": {
-        "_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
-        "Management": {
+		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
+		"Management": {
 			"StorageRule": {
 				"Rules": [
 					{
@@ -89,16 +89,19 @@
 				"ArchiveUnitRefId": "ID_CHILD"
 			}
 		},
-        "AnyOtherField": "AnyOtherValue",
-        "DescriptionLevel": "Item",
-        "Title": "My title &amp;apos;",
-        "AuthorizedAgent": {
-            "FirstName": "Ludovic",
-            "GivenName": "BLANCHET",
-            "BirthName": "1990-10-01",
-            "BirthPlace": {
-				"City":"Lagny sur Marne"
+		"AnyOtherField": "AnyOtherValue",
+		"DescriptionLevel": "Item",
+		"Title": "My title &amp;apos;",
+		"AuthorizedAgent":
+		[
+			{
+				"FirstName": "Ludovic",
+				"GivenName": "BLANCHET",
+				"BirthName": "1990-10-01",
+				"BirthPlace": {
+					"City": "Lagny sur Marne"
+				}
 			}
-        }
-    }
+		]
+	}
 }

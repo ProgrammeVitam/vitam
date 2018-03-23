@@ -224,6 +224,15 @@ public class CheckHeaderActionHandler extends ActionHandler {
             final String profileName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
             infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileName);
         }
+        if (madatoryValueMap.get(SedaConstants.TAG_ACQUISITIONINFORMATION) != null) {
+            final String  acquisitionInformation = (String) madatoryValueMap.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+            infoNode.put(SedaConstants.TAG_ACQUISITIONINFORMATION, acquisitionInformation);
+        }
+        if (madatoryValueMap.get(SedaConstants.TAG_LEGALSTATUS) != null) {
+            final String legalStatus = (String) madatoryValueMap.get(SedaConstants.TAG_LEGALSTATUS);
+            infoNode.put(SedaConstants.TAG_LEGALSTATUS, legalStatus);
+        }
+
     }
 
     @Override

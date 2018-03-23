@@ -2,7 +2,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
     
     <xsd:group name="ObjectGroup">
         <xsd:annotation>
@@ -14,14 +14,18 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="BaseObjectGroup"/>
-            <xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Redefined by VITAM -->
+            <!--<xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>-->
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:group>
     
     <xsd:group name="BaseObjectGroup">
         <xsd:sequence>
-            <xsd:group ref="LevelGroup"/>
-            <xsd:group ref="TitleGroup"/>
+            <!-- Redefined by VITAM -->
+            <xsd:group ref="LevelGroup"  minOccurs="1"/>
+            <!-- Redefined by VITAM -->
+            <xsd:group ref="TitleGroup"  minOccurs="1" />
             <xsd:group ref="IdentifierGroup"/>
             <xsd:group ref="DescriptionGroup"/>
             <xsd:group ref="CustodialHistoryGroup"/>
@@ -869,6 +873,7 @@
                             <xsd:documentation>Nationalité d'une personne.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+
                     <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>Dans le PersonGroup, Identifiant de type numéro matricule.</xsd:documentation>
@@ -886,6 +891,7 @@
                             <xsd:documentation>Identifiant de l'entité.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+
                 </xsd:sequence>
             </xsd:choice>
         </xsd:sequence>
