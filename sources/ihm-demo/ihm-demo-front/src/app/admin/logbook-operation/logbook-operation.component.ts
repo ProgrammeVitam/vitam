@@ -1,13 +1,13 @@
 import { Component, EventEmitter } from '@angular/core';
 import {FieldDefinition} from '../../common/search/field-definition';
-import {VitamResponse} from "../../common/utils/response";
-import {PageComponent} from "../../common/page/page-component";
-import {BreadcrumbElement, BreadcrumbService} from "../../common/breadcrumb.service";
-import {Title} from "@angular/platform-browser";
-import {Preresult} from "../../common/search/preresult";
-import {LogbookService} from "../../ingest/logbook.service";
-import {ColumnDefinition} from "../../common/generic-table/column-definition";
-import {DateService} from "../../common/utils/date.service";
+import {VitamResponse} from '../../common/utils/response';
+import {PageComponent} from '../../common/page/page-component';
+import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.service';
+import {Title} from '@angular/platform-browser';
+import {Preresult} from '../../common/preresult';
+import {LogbookService} from '../../ingest/logbook.service';
+import {ColumnDefinition} from '../../common/generic-table/column-definition';
+import {DateService} from '../../common/utils/date.service';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Administration', routerLink: ''},

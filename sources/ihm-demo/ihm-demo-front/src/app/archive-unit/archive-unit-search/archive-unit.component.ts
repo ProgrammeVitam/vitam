@@ -1,19 +1,19 @@
 import { Component, EventEmitter } from '@angular/core';
-import { PageComponent } from "../../common/page/page-component";
+import { PageComponent } from '../../common/page/page-component';
 import { Title } from '@angular/platform-browser';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
-import { ArchiveUnitService } from "../archive-unit.service";
-import { FieldDefinition } from "../../common/search/field-definition";
-import { Preresult } from "../../common/search/preresult";
-import { ColumnDefinition } from "../../common/generic-table/column-definition";
-import { VitamResponse } from "../../common/utils/response";
-import { ArchiveUnitHelper } from "../archive-unit.helper";
-import { Router } from "@angular/router";
-import {DateService} from "../../common/utils/date.service";
+import { ArchiveUnitService } from '../archive-unit.service';
+import { FieldDefinition } from '../../common/search/field-definition';
+import { Preresult } from '../../common/preresult';
+import { ColumnDefinition } from '../../common/generic-table/column-definition';
+import { VitamResponse } from '../../common/utils/response';
+import { ArchiveUnitHelper } from '../archive-unit.helper';
+import { Router } from '@angular/router';
+import { DateService } from '../../common/utils/date.service';
 
 const breadcrumb: BreadcrumbElement[] = [
-  {label: 'Recherche', routerLink: ''},
-  {label: 'Recherche d\'archives', routerLink: 'search/archiveUnit'}
+  { label: 'Recherche', routerLink: '' },
+  { label: 'Recherche d\'archives', routerLink: 'search/archiveUnit' }
 ];
 
 @Component({
@@ -22,8 +22,8 @@ const breadcrumb: BreadcrumbElement[] = [
   styleUrls: ['./archive-unit.component.css']
 })
 export class ArchiveUnitComponent extends PageComponent {
-
   public response: VitamResponse;
+  public searchRequest: any = {};
   public searchForm: any = {};
   advancedMode = false;
   public archiveUnitFields = [
@@ -39,27 +39,33 @@ export class ArchiveUnitComponent extends PageComponent {
   ];
 
   public columns = [
-    ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({'width': '325px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Intitulé', this.archiveUnitHelper.getTitle, undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('#unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'}), false),
-    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date la plus ancienne', this.archiveUnitHelper.getStartDate, DateService.handleDate, () => ({'width': '100px'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date la plus récente', this.archiveUnitHelper.getEndDate, DateService.handleDate, () => ({'width': '100px'}), false),
+    ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({ 'width': '325px', 'overflow-wrap': 'break-word' }), false),
+    ColumnDefinition.makeSpecialValueColumn('Intitulé', this.archiveUnitHelper.getTitle, undefined,
+      () => ({ 'width': '200px', 'overflow-wrap': 'break-word' }), false),
+    ColumnDefinition.makeStaticColumn('#unitType', 'Type', this.archiveUnitHelper.transformType,
+      () => ({ 'width': '100px' }), false),
+    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined,
+      () => ({ 'width': '200px', 'overflow-wrap': 'break-word' }), false),
+    ColumnDefinition.makeSpecialValueColumn('Date la plus ancienne', this.archiveUnitHelper.getStartDate, DateService.handleDate,
+      () => ({ 'width': '100px' }), false),
+    ColumnDefinition.makeSpecialValueColumn('Date la plus récente', this.archiveUnitHelper.getEndDate, DateService.handleDate,
+      () => ({ 'width': '100px' }), false),
     ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
-      (data) => data['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({'width': '100px'}), null, null, false),
-    ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (item) => this.routeToLFC(item), () => true, () => ({'width': '50px'}), null, false)
+      (data) => data['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({ 'width': '100px' }), null, null, false),
+    ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (item) => this.routeToLFC(item),
+      () => true, () => ({ 'width': '50px' }), null, false)
   ];
   public extraColumns = [];
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public service: ArchiveUnitService,
-              public archiveUnitHelper: ArchiveUnitHelper, private router: Router) {
+    public archiveUnitHelper: ArchiveUnitHelper, private router: Router) {
     super('Recherche d\'archives', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {
     if (ArchiveUnitService.getInputRequest() && ArchiveUnitService.getInputRequest().originatingagencies) {
-      let form = ArchiveUnitComponent.addCriteriaProjection({});
-      let agencies = ArchiveUnitService.getInputRequest().originatingagencies;
+      const form = ArchiveUnitComponent.addCriteriaProjection({});
+      const agencies = ArchiveUnitService.getInputRequest().originatingagencies;
       form.originatingagencies = agencies;
       form.isAdvancedSearchFlag = 'Yes';
       this.service.getResults(form, 0).subscribe(
@@ -78,18 +84,22 @@ export class ArchiveUnitComponent extends PageComponent {
     this.router.navigate(['search/archiveUnit/' + item['#id'] + '/unitlifecycle']);
   }
 
-  public preSearchFunction(request, advancedMode):Preresult {
-    var criteriaSearch:any = {}; // TODO Type me !
+  public preSearchFunction(request, advancedMode): Preresult {
+    var criteriaSearch: any = {}; // TODO Type me !
     let preResult = new Preresult();
     preResult.searchProcessSkip = false;
+
+    if (!!request.requestFacet) {
+      criteriaSearch.requestFacet = request.requestFacet;
+    }
 
     if (advancedMode) {
       if (request.id) {
         criteriaSearch.id = request.id;
       } else {
-        if (request.title) criteriaSearch.Title = request.title;
-        if (request.description) criteriaSearch.Description = request.description;
-        if (request.originatingagencies) criteriaSearch.originatingagencies = request.originatingagencies;
+        if (request.title) { criteriaSearch.Title = request.title };
+        if (request.description) { criteriaSearch.Description = request.description };
+        if (request.originatingagencies) { criteriaSearch.originatingagencies = request.originatingagencies };
 
         const isStartDate = request.startDate;
         const isEndDate = request.endDate;
@@ -109,8 +119,11 @@ export class ArchiveUnitComponent extends PageComponent {
 
       if (criteriaSearch.id || criteriaSearch.Title || criteriaSearch.Description || criteriaSearch.StartDate
         || criteriaSearch.EndDate || criteriaSearch.originatingagencies) {
+        if (!!request.facets) {
+          criteriaSearch.facets = request.facets;
+        }
         ArchiveUnitComponent.addCriteriaProjection(criteriaSearch);
-        criteriaSearch.isAdvancedSearchFlag = "Yes";
+        criteriaSearch.isAdvancedSearchFlag = 'Yes';
         preResult.request = criteriaSearch;
         preResult.success = true;
         return preResult;
@@ -122,6 +135,9 @@ export class ArchiveUnitComponent extends PageComponent {
     } else {
       if (!!request.titleCriteria) {
         criteriaSearch.titleAndDescription = request.titleCriteria;
+        if (!!request.facets) {
+          criteriaSearch.facets = request.facets;
+        }
         ArchiveUnitComponent.addCriteriaProjection(criteriaSearch);
         criteriaSearch.isAdvancedSearchFlag = 'No';
 
@@ -133,6 +149,7 @@ export class ArchiveUnitComponent extends PageComponent {
         return preResult;
       }
     }
+
   }
 
   static addCriteriaProjection(criteriaSearch) {
@@ -151,14 +168,15 @@ export class ArchiveUnitComponent extends PageComponent {
     criteriaSearch.projection_title = 'Title';
     criteriaSearch.projection_titlefr = 'Title_.fr';
     criteriaSearch.projection_object = '#object';
-    criteriaSearch.orderby = {field: 'TransactedDate', sortType: 'ASC'};
+    criteriaSearch.orderby = { field: 'TransactedDate', sortType: 'ASC' };
+
     return criteriaSearch;
   }
 
   public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any, offset) {
     service.getResults(form, offset).subscribe(
       (response) => {
-        responseEvent.emit({response: response, form: form});
+        responseEvent.emit({ response: response, form: form });
       },
       (error) => console.log('Error: ', error)
     );
@@ -167,6 +185,10 @@ export class ArchiveUnitComponent extends PageComponent {
   onNotify(event) {
     this.response = event.response;
     this.searchForm = event.form;
+  }
+
+  onChangedSearchRequest(searchRequest) {
+    this.searchRequest = searchRequest;
   }
 
   /**
@@ -179,9 +201,13 @@ export class ArchiveUnitComponent extends PageComponent {
   public paginationSearch(service: any, offset) {
     return service.getResults(this.searchForm, offset);
   }
-  
+
   public onClearPressed() {
     delete this.response;
+  }
+
+  onChangedSearchMode(searchMode) {
+    this.advancedMode = searchMode;
   }
 
 }

@@ -4,13 +4,13 @@ import { ColumnDefinition } from '../../common/generic-table/column-definition';
 import { LogbookService } from '../logbook.service';
 import { IngestUtilsService } from '../../common/utils/ingest-utils.service';
 import { FieldDefinition } from '../../common/search/field-definition';
-import { Preresult } from '../../common/search/preresult';
-import { VitamResponse } from "../../common/utils/response";
-import { BreadcrumbService, BreadcrumbElement } from "../../common/breadcrumb.service";
+import { Preresult } from '../../common/preresult';
+import { VitamResponse } from '../../common/utils/response';
+import { BreadcrumbService, BreadcrumbElement } from '../../common/breadcrumb.service';
 import { Title } from '@angular/platform-browser';
-import { PageComponent } from "../../common/page/page-component";
-import { ArchiveUnitHelper } from "../../archive-unit/archive-unit.helper";
-import { DateService } from "../../common/utils/date.service";
+import { PageComponent } from '../../common/page/page-component';
+import { ArchiveUnitHelper } from '../../archive-unit/archive-unit.helper';
+import { DateService } from '../../common/utils/date.service';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Entrée', routerLink: ''},
@@ -18,9 +18,9 @@ const breadcrumb: BreadcrumbElement[] = [
 ];
 
 const operationType = [
-  {label : "Tous", value : ""},
-  {label : "Upload d'un SIP", value : "PROCESS_SIP_UNITARY"},
-  {label : "Plan de classement", value : "FILINGSCHEME"}
+  {label : 'Tous', value : ''},
+  {label : "Upload d'un SIP", value : 'PROCESS_SIP_UNITARY'},
+  {label : 'Plan de classement', value : 'FILINGSCHEME'}
 ];
 
 @Component({

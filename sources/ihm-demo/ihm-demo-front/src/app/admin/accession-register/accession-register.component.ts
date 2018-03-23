@@ -2,13 +2,13 @@ import { Component, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 
-import { BreadcrumbService } from "../../common/breadcrumb.service";
-import { VitamResponse } from "../../common/utils/response";
-import { PageComponent } from "../../common/page/page-component";
-import { Preresult } from '../../common/search/preresult';
+import { BreadcrumbService } from '../../common/breadcrumb.service';
+import { VitamResponse } from '../../common/utils/response';
+import { PageComponent } from '../../common/page/page-component';
+import { Preresult } from '../../common/preresult';
 import { FieldDefinition } from '../../common/search/field-definition';
 import { ColumnDefinition } from '../../common/generic-table/column-definition';
-import { ReferentialsService } from "../../referentials/referentials.service";
+import { ReferentialsService } from '../../referentials/referentials.service';
 
 @Component({
   selector: 'vitam-accession-register',
@@ -17,13 +17,13 @@ import { ReferentialsService } from "../../referentials/referentials.service";
 })
 export class AccessionRegisterSearchComponent extends PageComponent {
 
-  referentialType : string;
-  breadcrumbName : string;
+  referentialType: string;
+  breadcrumbName: string;
   public response: VitamResponse;
   public searchForm: any = {};
 
-  referentialData : FieldDefinition[]  = [];
-  fundRegisters : string[]= [];
+  referentialData: FieldDefinition[]  = [];
+  fundRegisters: string[]= [];
   public columns: ColumnDefinition[] = [];
   public extraColumns: ColumnDefinition[] = [];
 

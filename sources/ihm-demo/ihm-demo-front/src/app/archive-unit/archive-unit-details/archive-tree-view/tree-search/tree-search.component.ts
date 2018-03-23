@@ -1,12 +1,12 @@
 import {Component, OnInit, Input, OnChanges} from '@angular/core';
-import {FormGroup, FormControl} from "@angular/forms";
-import {Preresult} from "../../../../common/search/preresult";
-import {ArchiveUnitService} from "../../../archive-unit.service";
+import {FormGroup, FormControl} from '@angular/forms';
+import {Preresult} from '../../../../common/preresult';
+import {ArchiveUnitService} from '../../../archive-unit.service';
 import {TreeNode, NodeData} from '.././tree-node';
-import {ColumnDefinition} from "../../../../common/generic-table/column-definition";
-import {ArchiveUnitHelper} from "../../../archive-unit.helper";
-import {Hits} from "../../../../common/utils/response";
-import {DateService} from "../../../../common/utils/date.service";
+import {ColumnDefinition} from '../../../../common/generic-table/column-definition';
+import {ArchiveUnitHelper} from '../../../archive-unit.helper';
+import {Hits} from '../../../../common/utils/response';
+import {DateService} from '../../../../common/utils/date.service';
 
 @Component({
   selector: 'vitam-tree-search',

@@ -206,6 +206,7 @@ public class SelectMultiQueryTest {
             assertEquals(1, select.getFacets().size());
             select.resetFacets();
             assertEquals(0, select.getFacets().size());
+
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());

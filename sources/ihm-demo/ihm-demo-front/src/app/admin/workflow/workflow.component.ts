@@ -1,15 +1,15 @@
 import {Component, EventEmitter, OnDestroy} from '@angular/core';
-import {ColumnDefinition} from "../../common/generic-table/column-definition";
-import {WorkflowService} from "../workflow.service";
-import {VitamResponse} from "../../common/utils/response";
-import {PageComponent} from "../../common/page/page-component";
-import {Title} from "@angular/platform-browser";
-import {BreadcrumbElement, BreadcrumbService} from "../../common/breadcrumb.service";
-import {DateService} from "../../common/utils/date.service";
-import {Preresult} from "../../common/search/preresult";
-import {DynamicSelectItem, FieldDefinition} from "../../common/search/field-definition";
-import {SelectItem} from "primeng/primeng";
-import {FormGroup} from "@angular/forms";
+import {ColumnDefinition} from '../../common/generic-table/column-definition';
+import {WorkflowService} from '../workflow.service';
+import {VitamResponse} from '../../common/utils/response';
+import {PageComponent} from '../../common/page/page-component';
+import {Title} from '@angular/platform-browser';
+import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.service';
+import {DateService} from '../../common/utils/date.service';
+import {Preresult} from '../../common/preresult';
+import {DynamicSelectItem, FieldDefinition} from '../../common/search/field-definition';
+import {SelectItem} from 'primeng/primeng';
+import {FormGroup} from '@angular/forms';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Administration', routerLink: ''},
@@ -26,7 +26,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
 
 
   public response: VitamResponse;
-  public searchForm: any = {"states": ["PAUSE", "RUNNING"]};
+  public searchForm: any = {'states': ['PAUSE', 'RUNNING']};
   public service;
   public optionsCategories: SelectItem[];
   public optionsStatuses: SelectItem[] = [{

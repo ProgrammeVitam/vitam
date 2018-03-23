@@ -240,7 +240,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         String requestId;
         RequestResponse result;
-        OffsetBasedPagination pagination;        
+        OffsetBasedPagination pagination;
         try {
             Enumeration<String> headersReqId = request.getHeaders(IhmWebAppHeader.REQUEST_ID.name());
             while (headersReqId.hasMoreElements()) {

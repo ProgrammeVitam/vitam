@@ -11,8 +11,7 @@ import {
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
-  CheckboxModule, DataGridModule
-} from 'primeng/primeng';
+  CheckboxModule, DataGridModule, SliderModule } from 'primeng/primeng';
 
 import {AppComponent} from './app.component';
 import {MenuComponent} from './common/menu/menu.component';
@@ -93,6 +92,8 @@ import {ArchiveUnitProfileComponent} from './referentials/details/archive-unit-p
 import {MySelectionComponent} from './my-selection/my-selection/my-selection.component';
 import {MySelectionService} from './my-selection/my-selection.service';
 import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
+import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
 
 const appRoutes: Routes = [
   {
@@ -267,7 +268,8 @@ const appRoutes: Routes = [
     WorkflowComponent,
     LoadingBlockComponent,
     MySelectionComponent,
-    ArchiveUnitSelectionComponent
+    ArchiveUnitSelectionComponent,
+  ArchiveUnitFacetComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -281,7 +283,6 @@ const appRoutes: Routes = [
     GrowlModule,
     PanelModule,
     RadioButtonModule,
-    BrowserAnimationsModule,
     FormsModule,
     ListboxModule,
     PaginatorModule,
@@ -306,6 +307,8 @@ const appRoutes: Routes = [
     CheckboxModule,
     BrowserModule,
     HttpClientModule,
+    ScrollPanelModule,
+    SliderModule,
     TranslateModule.forRoot({
       loader: {provide: TranslateLoader, useClass: CustomLoader}
     })

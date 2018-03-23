@@ -30,9 +30,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
+import fr.gouv.vitam.common.model.FacetDateRangeItem;
+import fr.gouv.vitam.common.model.FacetType;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -50,7 +55,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
  * DslQueryHelper junit test
- *
  */
 public class DslQueryHelperTest {
     private static final String ACCESSION_REGISTER = "ACCESSIONREGISTER";
@@ -88,7 +92,8 @@ public class DslQueryHelperTest {
         "$action : " + updateAction + " }";
 
     @BeforeClass
-    public static void setup() throws Exception {}
+    public static void setup() throws Exception {
+    }
 
     /**
      * Tests createLogBookSelectDSLQuery method : main scenario
@@ -167,6 +172,57 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getProjection().size() == 1);
         // check that we also search on Title_.fr field
         assertTrue(selectParser.getRequest().getQueries().toString().contains("\"Title_.fr\""));
+    }
+
+    @Test
+    public void testCreateFacetDSLQuery()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final Map<String, Object> queryMap = new HashMap();
+        List<FacetDateRangeItem> ranges = Arrays.asList(new FacetDateRangeItem("800", "2018"));
+        queryMap.put("titleAndDescription", "Arch");
+
+        List<FacetItem> facetItems = Arrays.asList(
+            new FacetItem("DescriptionLevelFacet", FacetType.TERMS, "DescriptionLevel", 100, FacetOrder.ASC, null,
+                null),
+            new FacetItem("OriginatingAgencyFacet", FacetType.TERMS, "#originating_agency", 100, FacetOrder.ASC, null,
+                null),
+            new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges),
+            new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges)
+        );
+
+        queryMap.put("facets", facetItems);
+
+        final HashMap<String, String> sortSetting = new HashMap();
+        sortSetting.put("field", "date");
+        sortSetting.put("sortType", "DESC");
+        queryMap.put("orderby", sortSetting);
+        queryMap.put("projection_", "#id");
+        queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
+
+        final JsonNode selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
+        assertNotNull(selectRequest);
+
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
+        assertTrue(selectParser instanceof SelectParserMultiple);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
+        assertTrue(selectParser.getRequest().getProjection().size() == 1);
+
+        assertTrue(selectParser.getRequest().getFacets().size() == 4);
+
+        assertTrue(selectParser.getRequest().getFacets().get(0).toString().contains(
+            "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
+
+        assertTrue(selectParser.getRequest().getFacets().get(1).toString().contains(
+            "{\"$name\":\"OriginatingAgencyFacet\",\"$terms\":{\"$field\":\"#originating_agency\",\"$size\":100,\"$order\":\"ASC\"}}"));
+
+        assertTrue(selectParser.getRequest().getFacets().get(2).toString().contains(
+            "{\"$name\":\"StartDateFacet\",\"$date_range\":{\"$field\":\"StartDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+
+        assertTrue(selectParser.getRequest().getFacets().get(3).toString().contains(
+            "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+
     }
 
     @Test

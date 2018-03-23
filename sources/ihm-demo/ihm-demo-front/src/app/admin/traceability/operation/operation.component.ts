@@ -3,14 +3,14 @@ import {Title} from '@angular/platform-browser';
 
 
 import {ColumnDefinition} from '../../../common/generic-table/column-definition';
-import {LogbookService} from "../../../ingest/logbook.service";
+import {LogbookService} from '../../../ingest/logbook.service';
 import {FieldDefinition} from '../../../common/search/field-definition';
-import {Preresult} from '../../../common/search/preresult';
-import {VitamResponse} from "../../../common/utils/response";
-import {BreadcrumbService, BreadcrumbElement} from "../../../common/breadcrumb.service";
-import {PageComponent} from "../../../common/page/page-component";
-import {DateService} from "../../../common/utils/date.service";
-import {ArchiveUnitHelper} from "../../../archive-unit/archive-unit.helper";
+import {Preresult} from '../../../common/preresult';
+import {VitamResponse} from '../../../common/utils/response';
+import {BreadcrumbService, BreadcrumbElement} from '../../../common/breadcrumb.service';
+import {PageComponent} from '../../../common/page/page-component';
+import {DateService} from '../../../common/utils/date.service';
+import {ArchiveUnitHelper} from '../../../archive-unit/archive-unit.helper';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Administration', routerLink: ''},
