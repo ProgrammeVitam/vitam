@@ -1,0 +1,46 @@
+{	"$roots": [],
+	"$query": [
+		{
+			"$in": {
+				"#operations": [
+					"aeeaaaaaach3bwy7abghkalcfeknvaiaaaaq"
+				]
+			}
+		}
+	],
+	"$filter": {
+		"$offset": 0,
+		"$limit": 1
+	},
+	"$projection": {
+		"$fields": {
+			"#id": 1,
+			"Title": 1,
+			"DescriptionLevel": 1,
+			"EndDate": 1
+		}
+	},
+	"$facets": [
+		{
+			"$name": "NAME_FACET",
+			"$date_range": {
+				"$field": "EndDate",
+				"$format": "yyyy",
+				"$ranges": [
+					{
+					},
+					{
+						"$from": "2014",
+						"$to": "2020"
+					},
+					{
+						"$to": "2007"
+					},
+					{
+						"$from": "1900"
+					}
+				]
+			}
+		}
+	]
+}

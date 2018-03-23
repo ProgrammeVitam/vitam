@@ -32,9 +32,11 @@ import static org.mockito.Mockito.mock;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -74,6 +76,38 @@ public class ElasticsearchFacetResultHelperTest {
         assertThat(facet.getBuckets().get(0).getValue()).isEqualTo("Value1");
         assertThat(facet.getBuckets().get(0).getCount()).isEqualTo(2L);
         assertThat(facet.getBuckets().get(1).getValue()).isEqualTo("Value2");
+        assertThat(facet.getBuckets().get(1).getCount()).isEqualTo(1L);
+    }
+
+
+    @Test
+    public void should_return_valid_result_when_valid_date_range_aggregation() throws InvalidParseOperationException {
+
+        // given
+        Range range = Mockito.mock(Range.class);
+        Mockito.when(range.getName()).thenReturn("EndDate");
+        Mockito.when(range.getType()).thenReturn(DateRangeAggregationBuilder.NAME);
+
+        Range.Bucket bucket1 = mock(Range.Bucket.class);
+        Mockito.when(bucket1.getKeyAsString()).thenReturn("2000-2010");
+        Mockito.when(bucket1.getDocCount()).thenReturn(2L);
+        Range.Bucket bucket2 = mock(Range.Bucket.class);
+        Mockito.when(bucket2.getKeyAsString()).thenReturn("1800");
+        Mockito.when(bucket2.getDocCount()).thenReturn(1L);
+        List bucketList = new ArrayList();
+        bucketList.add(bucket1);
+        bucketList.add(bucket2);
+        Mockito.when(range.getBuckets()).thenReturn(bucketList);
+
+        // when
+        FacetResult facet = ElasticsearchFacetResultHelper.transformFromEsAggregation(range);
+
+        // then
+        assertThat(facet.getName()).isEqualTo("EndDate");
+        assertThat(facet.getBuckets()).hasSize(2);
+        assertThat(facet.getBuckets().get(0).getValue()).isEqualTo("2000-2010");
+        assertThat(facet.getBuckets().get(0).getCount()).isEqualTo(2L);
+        assertThat(facet.getBuckets().get(1).getValue()).isEqualTo("1800");
         assertThat(facet.getBuckets().get(1).getCount()).isEqualTo(1L);
     }
 

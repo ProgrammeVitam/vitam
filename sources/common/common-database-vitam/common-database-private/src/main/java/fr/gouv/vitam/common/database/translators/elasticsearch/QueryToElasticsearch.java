@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.node.NullNode;
+import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -43,6 +45,9 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.range.RangeAggregator;
+import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.geodistance.GeoDistanceAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -1010,6 +1015,25 @@ public class QueryToElasticsearch {
                             termsBuilder.size(terms.get(FACETARGS.SIZE.exactToken()).asInt());
                         }
                         builders.add(termsBuilder);
+                        break;
+                    case DATE_RANGE:
+                        DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(facet.getName());//
+                        JsonNode dateRange = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
+                        dateRangeBuilder.field(dateRange.get(FACETARGS.FIELD.exactToken()).asText());
+                        dateRangeBuilder.format(dateRange.get(FACETARGS.FORMAT.exactToken()).asText());
+                        JsonNode ranges = dateRange.get(FACETARGS.RANGES.exactToken());
+                        ranges.forEach(item -> {
+                            JsonNode from = item.get(FACETARGS.FROM.exactToken());
+                            JsonNode to = item.get(FACETARGS.TO.exactToken());
+                            if (from != null && !(from instanceof NullNode) && to != null && !(to instanceof NullNode)) {
+                                dateRangeBuilder.addRange(from.asText(), to.asText());
+                            } else if (from != null && !(from instanceof NullNode)) {
+                                dateRangeBuilder.addUnboundedFrom(from.asText());
+                            } else if (to != null && !(to instanceof NullNode)) {
+                                dateRangeBuilder.addUnboundedTo(to.asText());
+                            }
+                        });
+                        builders.add(dateRangeBuilder);
                         break;
                     default:
                         break;

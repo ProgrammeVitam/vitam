@@ -242,8 +242,14 @@
       "$terms": {
         "format": "ref",
         "type": "BUCKET_FACET",
-    	"optional": true,
+        "optional": true,
         "hint": "Terms facet of type bucket"
+      },
+      "$date_range": {
+        "format": "ref",
+        "type": "DATE_RANGE_FACET",
+        "optional": true,
+        "hint": "Date range facet"
       }
     }
   },
@@ -263,5 +269,49 @@
         "hint": "Max number of buckets"
       }
     }
+  },
+  "DATE_RANGE_FACET": {
+    "format": "object",
+    "elements": {
+      "$field": {
+        "format": "ref",
+        "type": "string",
+        "optional": false,
+        "hint": "Field of facet"
+      },
+      "$format": {
+        "format": "ref",
+        "type": "string",
+        "optional": false,
+        "hint": "Date format"
+      },
+      "$ranges": {
+        "format": "array",
+        "itemtype": "RANGE",
+        "optional": false,
+        "min": 1,
+        "hint": "List of ranges"
+      }
+    }
+  },
+  "RANGE": {
+    "format": "object",
+    "min": 1,
+    "max": 2,
+    "elements": {
+      "$from": {
+        "format": "ref",
+        "type": "string",
+        "optional": true,
+        "hint": "Date from"
+      },
+      "$to": {
+        "format": "ref",
+        "type": "string",
+        "optional": true,
+        "hint": "Date to"
+      }
+    }
   }
+
 }

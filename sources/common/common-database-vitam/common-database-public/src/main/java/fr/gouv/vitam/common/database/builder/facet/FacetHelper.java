@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.facet;
 
+import java.util.List;
+
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
 /**
@@ -65,5 +67,20 @@ public class FacetHelper {
     public static final Facet terms(String name, String field, Integer size)
         throws InvalidCreateOperationException {
         return new TermsFacet(name, field, size);
+    }
+
+
+    /**
+     * Create a date range facet
+     * @param name name of the facet
+     * @param field field of facet data
+     * @param dateFormat the date format for the ranges of the facet
+     * @param ranges
+     * @return
+     * @throws InvalidCreateOperationException
+     */
+    public static final Facet dateRange(String name, String field, String dateFormat, List<RangeFacetValue> ranges)
+        throws InvalidCreateOperationException {
+        return new DateRangeFacet(name, field, dateFormat, ranges);
     }
 }

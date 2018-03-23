@@ -259,4 +259,55 @@ public class ValidatorSelectQueryMultipleTest {
             .hasMessageContaining("$facets")
             .hasMessageContaining("WRONG_JSON_TYPE: OBJECT");
     }
+
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_no_From_no_To() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_from_no_To.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("$ranges")
+            .hasMessageContaining("ELEMENT_TOO_SHORT");
+    }
+
+        @Test
+        public void should_retrieve_errors_when_select_multiple_complete_empty_ranges() throws Exception {
+            JsonNode test1Json =
+                JsonHandler
+                    .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty_ranges.json"));
+            final Schema schema =
+                loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+            assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+                .hasMessageContaining("$ranges")
+                .hasMessageContaining("ELEMENT_TOO_SHORT");
+
+    }
+
+    @Test
+    public void should_not_retrieve_errors_when_select_multiple_complete_facet_date_Ranges() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+
+        assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
+    }
+
+
+    @Test
+    public void should_not_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_one_from() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range_one_from.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
+    }
+
 }

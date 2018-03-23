@@ -649,8 +649,9 @@ Les commandes de la Facet peuvent être :
 
 | Opérateur            | Arguments                                  | Commentaire                                                                   |
 |----------------------|--------------------------------------------|-------------------------------------------------------------------------------|
-| $terms               | nom du champ et nombre de résulats        | Répartition selon des valeurs textuelles du champ                              |
-
+| $terms               | nom du champ et nombre de résulats         | Répartition selon des valeurs textuelles du champ                             |
+| $date_range          | nom de champ,  format, ranges              | indique la répartition selon les dates selon un intervalle défini "ranges"    |
+								   
 ### Opérateur $terms : répartition selon des valeurs textuelles du champ
 
 **Format :**
@@ -660,7 +661,34 @@ Les commandes de la Facet peuvent être :
 Recherche la répartition de tous les résultats de recherche pour les 3 valeurs les plus utilisées du champ DescriptionLevel :
 ```json
 { "$name": "facet_desclevel", "$terms" : { "$field" : "DescriptionLevel", "$size" : 3 } }
-```
+
+### Opérateur $date_range : 
+**Format :**
+- `{ "$date_range" : { "$field" : "field_name", "$format" : "format" , "$ranges": [ {"$from": "from","$to": "to"}]} }` : où *field_name* (obligatoire) est le nom du champ, *format*(obligatoire) le format de la date (Ex :'dd-mm-yyyy), *ranges*(obligatoire) une liste d'object possedant un champ *from* et/ou un champ *to*
+
+**Exemple :**
+Recherche du nombre de résultats pour une date EndDate située entre 2010 et 2018 et une EndDate supèrieure à 1900 :
+```json
+ "$facets": [
+    {"$name": "EndDate",
+      "$date_range": {
+        "$field": "EndDate",
+        "$format": "yyyy",
+        "$ranges": [
+          {
+            "$from": "1900"
+          },
+	  {
+            "$to": "2007"
+          },
+          {
+            "$from": "2010",
+            "$to": "2018"
+          }
+        ]
+      }
+    }
+  ]
 
 **Notes :**
 - Les champs analysés ne peuvent pas être utilisés en argument *$field*.
