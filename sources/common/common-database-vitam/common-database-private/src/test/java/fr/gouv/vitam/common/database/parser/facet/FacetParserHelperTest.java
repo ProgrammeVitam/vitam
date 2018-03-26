@@ -46,6 +46,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -70,17 +71,17 @@ public class FacetParserHelperTest {
     public void testTerms() {
         try {
             // basic terms
-            Facet facet1 = terms("facet1", "var1");
+            Facet facet1 = terms("facet1", "var1", 2, FacetOrder.ASC);
             Facet facet2 = terms(facet1.getCurrentFacet(), noAdapter);
             assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
                 facet2.getCurrentFacet().toString());
             // terms with size
-            facet1 = terms("facet1", "var1", 1);
+            facet1 = terms("facet1", "var1", 1, FacetOrder.ASC);
             facet2 = terms(facet1.getCurrentFacet(), noAdapter);
             assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
                 facet2.getCurrentFacet().toString());
             // different facet by size
-            facet1 = terms("facet1", "var1");
+            facet1 = terms("facet1", "var1", 3, FacetOrder.ASC);
             assertNotEquals("String shall be equal", facet1.getCurrentFacet().toString(),
                 facet2.getCurrentFacet().toString());
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {

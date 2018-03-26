@@ -37,12 +37,13 @@
 			"Title": 1
 		}
 	},
-	"$facets": {
-		"$name": "mgt_facet",
-		"$terms": {
-			"$field": "#management.StorageRule.Rules.Rule",
-			"$size": 5,
-			"$order": "ASC"
+	"$facets": [
+		{
+			"$name": "mgt_facet",
+			"$terms": {
+				"$field": "#management.StorageRule.Rules.Rule",
+				"$size": 5
+			}
 		}
-	}
+	]
 }

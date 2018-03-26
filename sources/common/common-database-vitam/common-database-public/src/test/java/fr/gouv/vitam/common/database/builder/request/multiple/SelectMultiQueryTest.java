@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -197,11 +198,11 @@ public class SelectMultiQueryTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         assertTrue(select.facets.isEmpty());
         try {
-            select.addFacets(new TermsFacet("myFacet1", "myField1"),
-                new TermsFacet("myFacet2", "myField2"));
-            select.addFacets(new TermsFacet("myFacet3", "myField3"));
+            select.addFacets(new TermsFacet("myFacet1", "myField1", 5, FacetOrder.ASC),
+                new TermsFacet("myFacet2", "myField2", 10, FacetOrder.ASC));
+            select.addFacets(new TermsFacet("myFacet3", "myField3", 5, FacetOrder.ASC));
             assertEquals(3, select.getFacets().size());
-            select.setFacet(new TermsFacet("myFacet1", "myField1"));
+            select.setFacet(new TermsFacet("myFacet1", "myField1", 1, FacetOrder.DESC));
             assertEquals(1, select.getFacets().size());
             select.resetFacets();
             assertEquals(0, select.getFacets().size());
@@ -228,7 +229,7 @@ public class SelectMultiQueryTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection("var1");
         select.setUsageProjection("usageId1");
-        select.addFacets(new TermsFacet("myFacet1", "myField1"));
+        select.addFacets(new TermsFacet("myFacet1", "myField1", 2, FacetOrder.ASC));
         assertEquals(2, select.getProjection().size());
         assertEquals(1, select.getFacets().size());
         select.reset();

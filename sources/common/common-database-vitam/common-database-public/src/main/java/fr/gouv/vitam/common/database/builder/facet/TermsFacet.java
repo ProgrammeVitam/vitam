@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
@@ -38,21 +39,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class TermsFacet extends Facet {
 
-    /**
-     * Terms Facet constructor
-     * 
-     * @param name name of the facet
-     * @param field field of the facet data
-     * @throws InvalidCreateOperationException when not valid
-     */
-    public TermsFacet(String name, String field) throws InvalidCreateOperationException {
-        super(name);
-        setName(name);
-        currentTokenFACET = FACET.TERMS;
-        ObjectNode facetNode = JsonHandler.createObjectNode();
-        facetNode.put(FACETARGS.FIELD.exactToken(), field);
-        currentFacet = facetNode;
-    }
 
     /**
      * Terms Facet constructor
@@ -60,14 +46,25 @@ public class TermsFacet extends Facet {
      * @param name name of the facet
      * @param field field of the facet data
      * @param size of the facet
-     * @throws InvalidCreateOperationException when not valid
+     * @param order of the facet
+     * @throws InvalidCreateOperationExceptionwhen not valid
      */
-    public TermsFacet(String name, String field, Integer size) throws InvalidCreateOperationException {
-        this(name, field);
+    public TermsFacet(String name, String field, Integer size, FacetOrder order)
+        throws InvalidCreateOperationException {
+        super(name);
+        setName(name);
+        currentTokenFACET = FACET.TERMS;
+        ObjectNode facetNode = JsonHandler.createObjectNode();
+        facetNode.put(FACETARGS.FIELD.exactToken(), field);
+        currentFacet = facetNode;
         if (size == null || size <= 0) {
             throw new InvalidCreateOperationException("Size must be > 0 in Terms Facet");
         }
         currentFacet.put(FACETARGS.SIZE.exactToken(), size);
+        if (order == null) {
+            throw new InvalidCreateOperationException("Order is mandatory in Terms Facet");
+        }
+        currentFacet.put(FACETARGS.ORDER.exactToken(), order.name());
     }
 
 }

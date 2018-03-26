@@ -203,7 +203,7 @@ public class DbRequestTest {
             "] } }";
     private static final String REQUEST_SELECT_TEST_ES_5 =
         "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
-            "$facets : [ { $name : 'desc_level_facet' , $terms : { $field : 'DescriptionLevel' } } ] }";
+            "$facets : [ { $name : 'desc_level_facet' , $terms : { $field : 'DescriptionLevel', $size: 10, $order: 'ASC' } } ] }";
 
     private static final String REQUEST_SELECT_TEST_ES_6 =
         "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +

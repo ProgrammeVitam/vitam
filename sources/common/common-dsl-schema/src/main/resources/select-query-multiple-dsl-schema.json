@@ -265,8 +265,14 @@
       "$size": {
         "format": "ref",
         "type": "posinteger",
-        "optional": true,
+        "optional": false,
         "hint": "Max number of buckets"
+      },
+      "$order": {
+        "format": "ref",
+        "type": "string",
+        "optional": false,
+        "hint": "Order of buckets"
       }
     }
   },
