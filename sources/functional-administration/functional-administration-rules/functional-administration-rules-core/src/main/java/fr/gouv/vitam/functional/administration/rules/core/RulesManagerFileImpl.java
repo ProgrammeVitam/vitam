@@ -865,7 +865,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         try (FileReader reader = new FileReader(csvFileReader)) {
             @SuppressWarnings("resource")
             final CSVParser parser =
-                new CSVParser(reader, CSVFormat.DEFAULT.withHeader().withTrim());
+                new CSVParser(reader, CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false));
             final HashSet<String> ruleIdSet = new HashSet<>();
             try {
                 for (final CSVRecord record : parser) {
