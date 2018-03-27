@@ -37,8 +37,7 @@ export class ResultsComponent implements OnInit {
   firstPage = 0;
   lastPage = 0;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) {
-  }
+  constructor(private changeDetectorRef: ChangeDetectorRef) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (!!this.data) {
@@ -94,8 +93,10 @@ export class ResultsComponent implements OnInit {
 
   @HostListener('document:click', ['$event', '$event.target'])
   clickOutside($event, targetElement) {
-    this.displayOptions = ((this.infoSuppElem && this.infoSuppElem.nativeElement.contains(targetElement))
-    || (this.infoListElem && this.infoListElem.nativeElement.contains(targetElement))) ? true : false;
+    this.displayOptions = !!(
+      (this.infoSuppElem && this.infoSuppElem.nativeElement.contains(targetElement))
+    || (this.infoListElem && this.infoListElem.nativeElement.contains(targetElement))
+    );
   }
 
   onRowSelect() {

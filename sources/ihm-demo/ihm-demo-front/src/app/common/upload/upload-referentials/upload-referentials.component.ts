@@ -4,7 +4,7 @@ import { NavigationStart, Router } from '@angular/router';
 import { Observable } from 'rxjs/Rx';
 
 import { ResourcesService } from '../../resources.service';
-import { UploadService, ingestStatusElement } from '../upload.service';
+import { UploadService, IngestStatusElement } from '../upload.service';
 
 
 @Component({

@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
-import { Title } from '@angular/platform-browser';
-import { SelectItem } from 'primeng/primeng';
-import { Subscription } from 'rxjs/Subscription';
-import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
-import { PageComponent } from '../../common/page/page-component';
-import { Contract } from '../../common/contract';
-import { TenantService } from '../../common/tenant.service';
-import { QueryDslService } from '../query-dsl/query-dsl.service';
+import {Component} from '@angular/core';
+import {Title} from '@angular/platform-browser';
+import {SelectItem} from 'primeng/primeng';
+import {Subscription} from 'rxjs/Subscription';
+import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.service';
+import {PageComponent} from '../../common/page/page-component';
+import {Contract} from '../../common/contract';
+import {TenantService} from '../../common/tenant.service';
+import {QueryDslService} from '../query-dsl/query-dsl.service';
 
 import {
   VisNode,
@@ -18,8 +18,8 @@ import {
 } from 'ng2-vis';
 
 const breadcrumb: BreadcrumbElement[] = [
-  { label: 'Tests', routerLink: '' },
-  { label: 'Visualisation du Graphe', routerLink: 'tests/dag-visualization' }
+  {label: 'Tests', routerLink: ''},
+  {label: 'Visualisation du Graphe', routerLink: 'tests/dag-visualization'}
 ];
 
 class VitamNetworkData implements VisNetworkData {
@@ -37,33 +37,33 @@ export class DagVisualizationComponent extends PageComponent {
   contractsList: Array<SelectItem>;
   operationId: string;
   requestResponse: string;
-  showError: boolean = false;
-  showGraph: boolean = false;
+  showError = false;
+  showGraph = false;
   detail: string;
   visNetworkData: VitamNetworkData;
   visNetworkOptions: VisNetworkOptions;
-  visNetwork: string = 'networkId1';
+  visNetwork = 'networkId1';
   tenant: string;
 
   constructor(public breadcrumbService: BreadcrumbService, public queryDslService: QueryDslService,
-    private visNetworkService: VisNetworkService,
-    public titleService: Title, public tenantService: TenantService) {
+              private visNetworkService: VisNetworkService,
+              public titleService: Title, public tenantService: TenantService) {
     super('Visualisation du Graphe', breadcrumb, titleService, breadcrumbService)
   }
 
 
   public sendRequest(): void {
-    var selectedCollection = 'UNIT';
-    var selectedMethod = 'GET';
-    var selectedAction = 'GET';
-    var contractIdentifier = !this.selectedContract ? null : this.selectedContract.Identifier;
-    var jsonRequest = {
+    const selectedCollection = 'UNIT';
+    const selectedMethod = 'GET';
+    const selectedAction = 'GET';
+    const contractIdentifier = !this.selectedContract ? null : this.selectedContract.Identifier;
+    const jsonRequest = {
       $roots: [],
-      $query: [{ $eq: {} }],
+      $query: [{$eq: {}}],
       $projection: {}
     };
     if (contractIdentifier != null) {
-      jsonRequest.$query[0].$eq["#operations"] = this.operationId;
+      jsonRequest.$query[0].$eq['#operations'] = this.operationId;
     }
 
     // manage errors
@@ -89,7 +89,7 @@ export class DagVisualizationComponent extends PageComponent {
           this.requestResponse = error._body;
         }
       }
-      );
+    );
   }
 
   public getContracts(): Subscription {
@@ -97,7 +97,7 @@ export class DagVisualizationComponent extends PageComponent {
       (response) => {
         this.contractsList = response.map(
           (contract) => {
-            return { label: contract.Name, value: contract }
+            return {label: contract.Name, value: contract}
           }
         );
       }
@@ -115,44 +115,42 @@ export class DagVisualizationComponent extends PageComponent {
     );
   }
 
+  // FIXME: Useless method
   private networkInitialized(): void {
     // now we can use the service to register on events
     this.visNetworkService.on(this.visNetwork, 'click');
   }
 
-
   public displayDag(units): void {
-    this.detail = "";
+    this.detail = '';
     // create network datas
-    var nbUnits = !units ? 0 : units.length;
-    var unitNodes = [];
-    var unitEdges = [];
-    var nbEdges = 0;
-    for (var i = 0; i < nbUnits; i++) {
-      var unit = {
+    const nbUnits = !units ? 0 : units.length;
+    const unitNodes = [];
+    const unitEdges = [];
+    let nbEdges = 0;
+    for (let i = 0; i < nbUnits; i++) {
+      unitNodes[i] = {
         // data
-        id: units[i]["#id"],
-        label: units[i]["Title"],
+        id: units[i]['#id'],
+        label: units[i]['Title'],
         // options
-        widthConstraint: { maximum: 200 },
-        heightConstraint: { maximum: 200 },
-        group: units[i]["#max"]
-
+        widthConstraint: {maximum: 200},
+        heightConstraint: {maximum: 200},
+        group: units[i]['#max']
       };
-      unitNodes[i] = unit;
-      if (units[i]["#unitups"] != undefined) {
-        var nbUps = units[i]["#unitups"].length;
-        for (var e = 0; e < nbUps; e++) {
-          unitEdges[nbEdges] = { from: units[i]["#id"], to: units[i]["#unitups"][e] };
+      if (units[i]['#unitups'] !== undefined) {
+        const nbUps = units[i]['#unitups'].length;
+        for (let e = 0; e < nbUps; e++) {
+          unitEdges[nbEdges] = {from: units[i]['#id'], to: units[i]['#unitups'][e]};
           nbEdges++;
         }
       }
     }
 
     // create an array with nodes
-    var nodes = new VisNodes(unitNodes);
+    const nodes = new VisNodes(unitNodes);
     // create an array with edges
-    var edges = new VisEdges(unitEdges);
+    const edges = new VisEdges(unitEdges);
 
     this.visNetworkData = {
       nodes,
@@ -163,11 +161,11 @@ export class DagVisualizationComponent extends PageComponent {
     this.visNetworkOptions = {
       layout: {
         hierarchical: {
-          direction: "DU",
-          sortMethod: "directed"
+          direction: 'DU',
+          sortMethod: 'directed'
         }
       },
-      interaction: { hover: true },
+      interaction: {hover: true},
       /*pathysics: {
         forceAtlas2Based: {
           gravitationalConstant: -26,
@@ -190,10 +188,9 @@ export class DagVisualizationComponent extends PageComponent {
 
     this.visNetworkService.click.subscribe((eventData: any[]) => {
       if (eventData[0] === this.visNetwork) {
-        this.detail = "";
-        var nbUnits = units.length;
-        for (var i = 0; i < nbUnits; i++) {
-          if (units[i]["#id"] === eventData[1].nodes[0]) {
+        this.detail = '';
+        for (let i = 0; i < units.length; i++) {
+          if (units[i]['#id'] === eventData[1].nodes[0]) {
             this.detail = JSON.stringify(units[i], null, 2);
           }
         }
