@@ -85,25 +85,25 @@ export class ArchiveUnitHelper {
       default: return unitType;
     }
   }
-    
+
   getDimensions(unitType: string): string  {
     let matchingOption = this.unece.find(option => option.value === unitType);
     if (matchingOption) {
       return matchingOption.label;
     } else {
-      return unitType;  
+      return unitType;
     }
   }
 
   getTitle(unitData: any) {
     if (unitData.Title !== undefined) {
-        return unitData.Title; 
+        return unitData.Title;
     } else if (unitData.Title_ !== undefined && unitData.Title_.fr !== undefined) {
-        return unitData.Title_.fr; 
+        return unitData.Title_.fr;
     }
     return '';
   }
-    
+
   getStartDate(unitData: any) {
     if (unitData.DescriptionLevel && unitData.DescriptionLevel !== 'Item') {
       return unitData.StartDate;
