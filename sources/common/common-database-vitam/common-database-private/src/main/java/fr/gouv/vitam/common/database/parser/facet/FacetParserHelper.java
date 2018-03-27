@@ -26,10 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.facet;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
+import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -73,6 +78,36 @@ public class FacetParserHelper extends FacetHelper {
         } else {
             return FacetHelper.terms(name, translatedField);
         }
+
+    }
+
+    /**
+     * Transform facet jsonNode into a dateRange Facet object
+     * @param facet
+     * @param adapter
+     * @return
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     */
+    public static final Facet dateRange(final JsonNode facet, VarNameAdapter adapter)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        final String name = facet.get(FACETARGS.NAME.exactToken()).asText();
+        JsonNode dateRange = facet.get(FACET.DATE_RANGE.exactToken());
+        ArrayNode ranges = (ArrayNode)dateRange.get(FACETARGS.RANGES.exactToken());
+
+        String dateFormat=dateRange.get(FACETARGS.FORMAT.exactToken()).asText();
+        String field = dateRange.get(FACETARGS.FIELD.exactToken()).asText();
+        String translatedField = adapter.getVariableName(field);
+        if (translatedField == null) {
+            translatedField = field;
+        }
+        List<RangeFacetValue> rangesList=new ArrayList<>();
+        ranges.forEach(item -> {
+            JsonNode from = item.get(FACETARGS.FROM.exactToken());
+            JsonNode to = item.get(FACETARGS.TO.exactToken());
+            rangesList.add(new RangeFacetValue(from != null && !from.isNull() ? from.asText() : null,to != null && !to.isNull() ? to.asText() : null));
+        });
+        return FacetHelper.dateRange(name, translatedField, dateFormat,rangesList);
 
     }
 }

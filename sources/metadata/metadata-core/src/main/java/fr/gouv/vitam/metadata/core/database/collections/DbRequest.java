@@ -284,12 +284,6 @@ public class DbRequest {
         return result;
     }
 
-    private void executeFacets(final RequestParserMultiple requestParser,
-        final SelectToMongodb requestToMongodb, final Result<MetadataDocument<?>> result) {
-        // ids
-        result.getCurrentIds();
-
-    }
 
     /**
      * Check Unit at startup against Roots

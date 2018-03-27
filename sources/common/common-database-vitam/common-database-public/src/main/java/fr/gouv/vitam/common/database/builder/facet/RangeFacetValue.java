@@ -24,50 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
+
 package fr.gouv.vitam.common.database.builder.facet;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-
 /**
- * Terms facet
+ * RangeFacetValue pojo
  */
-public class TermsFacet extends Facet {
+public class RangeFacetValue {
 
     /**
-     * Terms Facet constructor
-     * 
-     * @param name name of the facet
-     * @param field field of the facet data
-     * @throws InvalidCreateOperationException when not valid
+     * Range from value
      */
-    public TermsFacet(String name, String field) throws InvalidCreateOperationException {
-        super(name);
-        setName(name);
-        currentTokenFACET = FACET.TERMS;
-        ObjectNode facetNode = JsonHandler.createObjectNode();
-        facetNode.put(FACETARGS.FIELD.exactToken(), field);
-        currentFacet = facetNode;
-    }
+    String from;
 
     /**
-     * Terms Facet constructor
-     * 
-     * @param name name of the facet
-     * @param field field of the facet data
-     * @param size of the facet
-     * @throws InvalidCreateOperationException when not valid
+     * Range to value
      */
-    public TermsFacet(String name, String field, Integer size) throws InvalidCreateOperationException {
-        this(name, field);
-        if (size == null || size <= 0) {
-            throw new InvalidCreateOperationException("Size must be > 0 in Terms Facet");
-        }
-        currentFacet.put(FACETARGS.SIZE.exactToken(), size);
+    String to;
+
+    /**
+     * RangeFacetValue constructor
+     * @param from
+     * @param to
+     */
+    public RangeFacetValue(String from, String to) {
+        this.from = from;
+        this.to = to;
     }
 
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
 }

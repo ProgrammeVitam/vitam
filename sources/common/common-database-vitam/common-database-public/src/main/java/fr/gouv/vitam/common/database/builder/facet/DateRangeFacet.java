@@ -26,48 +26,59 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.facet;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
 
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 
 /**
- * Terms facet
+ * Date Range facet
  */
-public class TermsFacet extends Facet {
+public class DateRangeFacet extends Facet {
 
     /**
-     * Terms Facet constructor
-     * 
-     * @param name name of the facet
-     * @param field field of the facet data
-     * @throws InvalidCreateOperationException when not valid
+     * Date Range facet constructor
+     *
+     * @param name
+     * @param field
+     * @param dateFormat
+     * @param ranges
+     * @throws InvalidCreateOperationException
      */
-    public TermsFacet(String name, String field) throws InvalidCreateOperationException {
+    public DateRangeFacet(String name, String field, String dateFormat, List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
         super(name);
         setName(name);
-        currentTokenFACET = FACET.TERMS;
+        currentTokenFACET = FACET.DATE_RANGE;
+        if (name == null || name.isEmpty()) {
+            throw new InvalidCreateOperationException("name value is requested");
+        }
+        if (field == null || field.isEmpty() ) {
+            throw new InvalidCreateOperationException("field value is requested");
+        }
+        if (dateFormat == null  || dateFormat.isEmpty()) {
+            throw new InvalidCreateOperationException("dateFormat value is requested");
+        }
+        if (ranges == null || ranges.size() <= 0) {
+            throw new InvalidCreateOperationException("Ranges must be > 0 ");
+        }
+
         ObjectNode facetNode = JsonHandler.createObjectNode();
         facetNode.put(FACETARGS.FIELD.exactToken(), field);
+        facetNode.put(FACETARGS.FORMAT.exactToken(), dateFormat);
+        ArrayNode rangesNode = JsonHandler.createArrayNode();
+        for (RangeFacetValue item:ranges){
+            ObjectNode rangeNode = JsonHandler.createObjectNode();
+            if ((item.getFrom() == null || item.getFrom().isEmpty()) && (item.getTo() == null || item.getTo().isEmpty()))
+                throw new InvalidCreateOperationException("Either a 'from' or a 'to' value are requested");
+            rangeNode.put(FACETARGS.FROM.exactToken(), item.getFrom());
+            rangeNode.put(FACETARGS.TO.exactToken(), item.getTo());
+            rangesNode.add(rangeNode);
+        }
+        facetNode.set(FACETARGS.RANGES.exactToken(), rangesNode);
         currentFacet = facetNode;
     }
-
-    /**
-     * Terms Facet constructor
-     * 
-     * @param name name of the facet
-     * @param field field of the facet data
-     * @param size of the facet
-     * @throws InvalidCreateOperationException when not valid
-     */
-    public TermsFacet(String name, String field, Integer size) throws InvalidCreateOperationException {
-        this(name, field);
-        if (size == null || size <= 0) {
-            throw new InvalidCreateOperationException("Size must be > 0 in Terms Facet");
-        }
-        currentFacet.put(FACETARGS.SIZE.exactToken(), size);
-    }
-
 }

@@ -66,6 +66,8 @@ import java.util.List;
 import java.util.Map;
 
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.model.FacetBucket;
+import fr.gouv.vitam.common.model.FacetResult;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -202,6 +204,10 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST_ES_5 =
         "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
             "$facets : [ { $name : 'desc_level_facet' , $terms : { $field : 'DescriptionLevel' } } ] }";
+
+    private static final String REQUEST_SELECT_TEST_ES_6 =
+        "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
+            "$facets : [ { $name : 'EndDate' ,  \"$date_range\": { $field : 'EndDate',$format : 'yyyy' , \"$ranges\": [ {\"$from\": \"1800\",\"$to\": \"2080\"}]} } ] }";
     private static final String REQUEST_INSERT_TEST_ES_1_TENANT_1 =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaabaq\", " +
             "\"#tenant\": 1, " +
@@ -212,6 +218,7 @@ public class DbRequestTest {
         "{ \"#id\": \"" + UUID2 + "\", " + "\"Title\": \"title vitam\", " +
             "\"Description\": \"description est OK\"," +
             "\"DescriptionLevel\": \"Item\"," +
+            "\"EndDate\": \"2050-12-30\"," +
             "\"#management\" : {\"ClassificationRule\" : [ {\"Rule\" : \"RuleId\"} ] } }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" , \"DescriptionLevel\": \"Item\" }";
@@ -1682,6 +1689,19 @@ public class DbRequestTest {
         final Result resultSelect5 = dbRequest.execRequest(selectParser5, null);
         assertEquals(1, resultSelect5.nbResult);
         assertEquals(1, resultSelect5.facetResult.size());
+
+
+        final JsonNode selectRequest6 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_6);
+        final SelectParserMultiple selectParser6 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser6.parse(selectRequest6);
+        LOGGER.debug("SelectParser: {}", selectRequest6);
+        final Result resultSelect6 = dbRequest.execRequest(selectParser6, null);
+        assertEquals(1, resultSelect6.nbResult);
+        assertEquals(1, resultSelect6.facetResult.size());
+        FacetResult result = (FacetResult)resultSelect6.facetResult.get(0);
+        assertEquals("EndDate", result.getName());
+        FacetBucket bucket = result.getBuckets().get(0);
+        assertEquals(1, bucket.getCount());
 
         InsertMultiQuery insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots(UUID2);
