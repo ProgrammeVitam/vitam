@@ -28,9 +28,9 @@
 package fr.gouv.vitam.common.model.administration;
 
 /**
- * Enum for contract status
+ * Enum for activation status (ACTIVE / INACTIVE)
  */
-public enum ContractStatus {
+public enum ActivationStatus {
     /**
      * status active 
      */

@@ -30,7 +30,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
@@ -91,7 +91,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.ACTIVE));
+            .thenReturn(createIngestContract(ActivationStatus.ACTIVE));
         when(adminClient.findProfiles(anyObject()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
 
@@ -121,7 +121,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.ACTIVE));
+            .thenReturn(createIngestContract(ActivationStatus.ACTIVE));
         when(adminClient.findProfiles(anyObject()))
             .thenReturn(createProfile(ProfileStatus.INACTIVE));
         final WorkerParameters params =
@@ -238,7 +238,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.ACTIVE, null));
+            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, null));
         when(adminClient.findProfiles(anyObject()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
         final WorkerParameters params =
@@ -255,7 +255,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
 
 
 
-    private static RequestResponse createIngestContract(ContractStatus status) throws InvalidParseOperationException {
+    private static RequestResponse createIngestContract(ActivationStatus status) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setName("ArchivalAgreement0");
         contract.setStatus(status);
@@ -265,7 +265,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         return ClientMockResultHelper.createReponse(contract);
     }
 
-    private static RequestResponse createIngestContract(ContractStatus status, String profileIdentifier) throws InvalidParseOperationException {
+    private static RequestResponse createIngestContract(ActivationStatus status, String profileIdentifier) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setName("ArchivalAgreement0");
         contract.setStatus(status);

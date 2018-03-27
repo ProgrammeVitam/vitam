@@ -44,13 +44,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -80,15 +92,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 public class ExtractSedaActionHandlerTest {
 
@@ -121,7 +124,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
     private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
     private static final String KO_CYCLE = "extractSedaActionHandler/KO_cycle.xml";
-    private static final String KO_AU_REF_OBJ = "extractSedaActionHandler/KO_AU_REF_OBJ.xml";    
+    private static final String KO_AU_REF_OBJ = "extractSedaActionHandler/KO_AU_REF_OBJ.xml";
     private HandlerIOImpl handlerIO;
     private List<IOParameter> out;
     private List<IOParameter> in;
@@ -195,7 +198,8 @@ public class ExtractSedaActionHandlerTest {
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
         out.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
+        out.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
 
         in = new ArrayList<>();
         in.add(new IOParameter()
@@ -550,7 +554,8 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_manifest_with_simple_metadata() throws ContentAddressableStorageNotFoundException,
+    public void given_manifest_with_simple_metadata()
+        throws ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -566,11 +571,13 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_manifest_with_signature_in_content() throws ContentAddressableStorageNotFoundException,
+    public void given_manifest_with_signature_in_content()
+        throws ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException, FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("SIP_with_signature_in_content.xml"));
+        final InputStream sedaLocal =
+            new FileInputStream(PropertiesUtils.findFile("SIP_with_signature_in_content.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -719,7 +726,8 @@ public class ExtractSedaActionHandlerTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("extractSedaActionHandler/SIP_Add_GOT.xml"));
+        final InputStream sedaLocal =
+            new FileInputStream(PropertiesUtils.findFile("extractSedaActionHandler/SIP_Add_GOT.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
 
@@ -980,7 +988,7 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenManifestWithAUDeclaringObjWhenExecuteThenReturnResponseKO() throws Exception {
@@ -992,7 +1000,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         handlerIO.addOutIOParameters(out);
 
-        final ItemStatus response = handler.execute(params, handlerIO);       
+        final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
         assertNotNull(evDetData);
@@ -1001,6 +1009,6 @@ public class ExtractSedaActionHandlerTest {
         assertTrue(evDetData.get("evDetTechData").asText().contains("BinaryDataObjectID"));
         assertTrue(evDetData.get("evDetTechData").asText().contains("DataObjectGroupId"));
         assertTrue(evDetData.get("evDetTechData").asText().contains("ID22"));
-    }    
+    }
 
 }

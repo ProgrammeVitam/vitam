@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -199,8 +199,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                 List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
-                        ContractStatus status = result.getStatus();
-                        if (ContractStatus.ACTIVE.equals(status)
+                        ActivationStatus status = result.getStatus();
+                        if (ActivationStatus.ACTIVE.equals(status)
                             && result.getIdentifier().equals(contractIdentifier)) {
 
                             return checkIngestContractInTheContext(contractIdentifier);

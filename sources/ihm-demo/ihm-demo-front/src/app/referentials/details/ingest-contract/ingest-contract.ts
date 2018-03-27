@@ -6,6 +6,7 @@ export class IngestContract {
   Description: string;
   LinkParentId: string;
   Status: string;
+  CheckParentLink: string;
   isActive : boolean;
   CreationDate: string;
   LastUpdate: string;

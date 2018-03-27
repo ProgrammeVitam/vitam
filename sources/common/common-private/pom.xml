@@ -235,6 +235,7 @@
 
 							<strict>false</strict>
 							<schemaDirectory>src/main/resources</schemaDirectory>
+							<generateDirectory>target/generated-sources/xjc/v2_0</generateDirectory>
 							<schemaExcludes>
 								<exclude>seda-2.0-main.xsd</exclude>
 							</schemaExcludes>

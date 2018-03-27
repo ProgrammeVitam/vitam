@@ -33,6 +33,9 @@ package fr.gouv.vitam.processing.common.exception;
 public class ProcessingUnitLinkingException extends ProcessingException {
     private static final long serialVersionUID = 3818219095508337803L;
 
+    private String unitGuid;
+    private String unitIngestContractGuid;
+
     /**
      * @param message associated message
      * @param cause associated cause
@@ -54,4 +57,36 @@ public class ProcessingUnitLinkingException extends ProcessingException {
     public ProcessingUnitLinkingException(String message) {
         super(message);
     }
+
+    /**
+     * @param message associated message
+     * @param unitGuid unit Guid
+     * @param unitIngestContractGuid unit Ingest Contract Guid
+     */
+    public ProcessingUnitLinkingException(String message, String unitGuid, String unitIngestContractGuid) {
+        super(message);
+        this.unitGuid = unitGuid;
+        this.unitIngestContractGuid = unitIngestContractGuid;
+    }
+
+    /**
+     * Get the unitGuid
+     * 
+     * @return unitGuid
+     */
+    public String getUnitGuid() {
+        return unitGuid;
+    }
+
+    /**
+     * Get the unitIngestContractGuid
+     * 
+     * @return unitIngestContractGuid
+     */
+    public String getUnitIngestContractGuid() {
+        return unitIngestContractGuid;
+    }
+
+
+
 }

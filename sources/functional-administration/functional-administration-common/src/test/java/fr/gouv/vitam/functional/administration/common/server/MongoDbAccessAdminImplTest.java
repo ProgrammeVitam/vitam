@@ -69,7 +69,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -574,7 +574,8 @@ public class MongoDbAccessAdminImplTest {
         final String lastupdate = "10/12/2016";
         contract
             .setName(name)
-            .setDescription(description).setStatus(ContractStatus.ACTIVE)
+            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
+            .setCheckParentLink(ActivationStatus.INACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
@@ -591,7 +592,7 @@ public class MongoDbAccessAdminImplTest {
 
         contract
             .setName(name)
-            .setDescription(description).setStatus(ContractStatus.ACTIVE)
+            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
             .setOriginatingAgencies(originatingAgencies)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)

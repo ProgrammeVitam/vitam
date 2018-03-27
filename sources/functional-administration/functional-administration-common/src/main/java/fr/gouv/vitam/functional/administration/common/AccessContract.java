@@ -33,7 +33,7 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
@@ -178,13 +178,13 @@ public class AccessContract extends VitamDocument<AccessContract> {
      * 
      * @return status of access contact
      */
-    public ContractStatus getStatus() {
+    public ActivationStatus getStatus() {
         String status = getString(STATUS);
         if (status == null) {
             return null;
         }
         try {
-            return ContractStatus.valueOf(status);
+            return ActivationStatus.valueOf(status);
         } catch (IllegalArgumentException exp) {
             // no value corresponds to this status => corrupted state
             return null;
@@ -197,7 +197,7 @@ public class AccessContract extends VitamDocument<AccessContract> {
      * @param status to set
      * @return this
      */
-    public AccessContract setStatus(ContractStatus status) {
+    public AccessContract setStatus(ActivationStatus status) {
         append(STATUS, status.name());
         return this;
     }

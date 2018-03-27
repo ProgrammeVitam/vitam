@@ -23,6 +23,7 @@ export class IngestContractComponent extends PageComponent {
   modifiedContract : IngestContract;
   id: string;
   isActif :boolean;
+  isCheckParent :boolean;
   update : boolean;
   updatedFields: any = {};
   saveRunning = false;
@@ -65,6 +66,15 @@ export class IngestContractComponent extends PageComponent {
     }
   }
 
+    
+  changeCheckControl() {
+    if (this.isCheckParent) {
+      this.updatedFields.CheckParentLink = 'ACTIVE';
+    } else {
+      this.updatedFields.CheckParentLink = 'INACTIVE';
+    }
+  }
+    
   valueChange(key : string) {
     this.updatedFields[key] = this.modifiedContract[key];
   }
@@ -113,5 +123,6 @@ export class IngestContractComponent extends PageComponent {
     this.contract = plainToClass(IngestContract, value.$results)[0];
     this.modifiedContract =  ObjectsService.clone(this.contract);
     this.isActif = this.modifiedContract.Status === 'ACTIVE';
+    this.isCheckParent = this.modifiedContract.CheckParentLink === 'ACTIVE';
   }
 }

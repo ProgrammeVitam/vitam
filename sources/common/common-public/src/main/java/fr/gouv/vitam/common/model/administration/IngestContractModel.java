@@ -38,9 +38,18 @@ import java.util.Set;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class IngestContractModel extends AbstractContractModel {
 
+    /**
+     * Archive Profiles
+     */
     public static final String ARCHIVE_PROFILES = "ArchiveProfiles";
-
-    public static final String LINK_PARENT_ID = "LinkParentId";
+    /**
+     * Attachment GUID
+     */
+    public static final String LINK_PARENT_ID = "LinkParentId";    
+    /**
+     * Activated control on parent id (ACTIVE / INACTOVE)
+     */
+    public static final String TAG_CHECK_PARENT_LINK = "CheckParentLink";
 
     @JsonProperty(LINK_PARENT_ID)
     private String linkParentId;
@@ -48,6 +57,9 @@ public class IngestContractModel extends AbstractContractModel {
     @JsonProperty(ARCHIVE_PROFILES)
     private Set<String> archiveProfiles;
 
+    @JsonProperty(TAG_CHECK_PARENT_LINK)
+    private ActivationStatus checkParentLink;
+    
     public IngestContractModel() {
         super();
     }
@@ -78,4 +90,26 @@ public class IngestContractModel extends AbstractContractModel {
         this.archiveProfiles = archiveProfiles;
         return this;
     }
+    
+    /**
+     * Get the check parent link status
+     *
+     * @return Check Parent Link status
+     */
+    public ActivationStatus getCheckParentLink() {
+        return this.checkParentLink;
+    }
+
+
+    /**
+     * Set or change the check parent link status
+     *
+     * @param status to set
+     * @return this
+     */
+    public AbstractContractModel setCheckParentLink(ActivationStatus status) {
+        this.checkParentLink = status;
+        return this;
+    }
+    
 }

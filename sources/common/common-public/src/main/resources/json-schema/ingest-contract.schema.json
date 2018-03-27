@@ -23,7 +23,18 @@
       "type": "string"
     },
     "Status": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
+    },
+    "CheckParentLink": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
     },
     "CreationDate": {
       "description": "pattern: Date",

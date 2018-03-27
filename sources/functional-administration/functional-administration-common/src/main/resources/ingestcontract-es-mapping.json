@@ -13,6 +13,9 @@
     "Status": {
       "type": "keyword"
     },
+    "CheckParentLink": {
+      "type": "keyword"
+    },
     "ArchiveProfiles": {
       "type": "keyword"
     },

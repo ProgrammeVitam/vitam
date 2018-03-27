@@ -57,7 +57,7 @@ public class IngestContractModelTest {
             .setId(id)
             .setTenant(TENANT_ID)
             .setName(name)
-            .setDescription(description).setStatus(ContractStatus.ACTIVE)
+            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).
