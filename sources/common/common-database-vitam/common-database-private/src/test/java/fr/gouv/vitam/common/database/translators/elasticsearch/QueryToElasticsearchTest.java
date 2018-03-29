@@ -83,7 +83,17 @@ public class QueryToElasticsearchTest {
         "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
         "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
         "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }, "+
-        "$facets: [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1, $order: 'ASC'} }] }";
+        "$facets: [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1, $order: 'ASC'} }," +
+        "{" + 
+        "    $name: 'filters_facet'," + 
+        "    $filters: {" + 
+        "        $query_filters: [" + 
+        "            {$name: 'StorageRules', $query: {$exists: '#management.StorageRule.Rules.Rule'}}," + 
+        "            {$name: 'AccessRules',$query: {$exists: '#management.AccessRule.Rules.Rule'}}" + 
+        "        ]" + 
+        "    }" + 
+        "}"+
+        "] }";
 
     private static JsonNode example;
 
@@ -121,7 +131,7 @@ public class QueryToElasticsearchTest {
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser);
             VitamCollection.setMatch(false);
             assertEquals(4, sortBuilders.size());
-            assertEquals(1, facetBuilders.size());
+            assertEquals(2, facetBuilders.size());
 
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
@@ -158,7 +168,21 @@ public class QueryToElasticsearchTest {
                     "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
                     "$orderby : { #id : 1, maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
                     "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }, "+
-                    "$facets: [{$name : 'mafacet', $terms : {$field : '#id', $size : 1, $order: 'ASC'} },{$name : 'EndDate', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800',$to: '2080'}]} },{$name : 'EndDate2', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800'}]} }] }] }"));
+                    "$facets: [" +
+                    "{$name : 'mafacet', $terms : {$field : '#id', $size : 1, $order: 'ASC'} }," +
+                    "{$name : 'EndDate', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800',$to: '2080'}]} }," +
+                    "{$name : 'EndDate2', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800'}]} }] }," +
+                    "{$name : 'facetFilters', $filters : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800'}]} }] }," +
+                    "{" + 
+                    "    $name: 'filters_facet'," + 
+                    "    $filters: {" + 
+                    "        $query_filters: [" + 
+                    "            {$name: 'StorageRules', $query: {$exists: '#management.StorageRule.Rules.Rule'}}," + 
+                    "            {$name: 'AccessRules',$query: {$exists: '#management.AccessRule.Rules.Rule'}}" + 
+                    "        ]" + 
+                    "    }" + 
+                    "}"+
+                    "] }"));
             } catch (final Exception e) {
                 e.printStackTrace();
                 fail(e.getMessage());

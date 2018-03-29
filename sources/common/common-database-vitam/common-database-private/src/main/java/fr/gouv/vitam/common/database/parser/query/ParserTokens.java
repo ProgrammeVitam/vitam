@@ -88,6 +88,7 @@ public class ParserTokens extends BuilderToken {
         "CustodialHistory.CustodialHistoryFile.DataObjectGroupReferenceId",
         "DescriptionLevel",
         "Descriptions",
+        "DescriptionLanguage",
         "EndDate",
         "Event.EventDateTime",
         "Event.EventIdentifier",
@@ -103,6 +104,7 @@ public class ParserTokens extends BuilderToken {
         "Keyword.KeywordContent",
         "Keyword.KeywordReference",
         "Keyword.KeywordType",
+        "Language",
         "OriginatingAgency.Identifier",
         "OriginatingAgencyArchiveUnitIdentifier",
         "OriginatingSystemId",
@@ -1017,7 +1019,7 @@ public class ParserTokens extends BuilderToken {
         }
         if (SUB_FIELDS_NOT_ARRAY.parallelStream().anyMatch(name::contains)) {
             return false;
-        } else if (name.startsWith("Title_")) {
+        } else if (name.startsWith("Title_") || name.startsWith("Description_")) {
             return false;
         }
         return true;

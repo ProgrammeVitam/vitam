@@ -26,14 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.query;
 
+import java.util.Map.Entry;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Query from Parser Helper
@@ -340,5 +346,199 @@ public class QueryParserHelper extends QueryHelper {
      */
     public static final NopQuery nop() throws InvalidCreateOperationException {
         return new NopQuery();
+    }
+
+    /**
+     * Transform command to query
+     * 
+     * @param refCommand ref of command
+     * @param command command
+     * @param adapter dapater
+     * @return query
+     * @throws InvalidParseOperationException if could not parse to JSON
+     * @throws InvalidCreateOperationException if could not create the query
+     */
+    public static final Query query(final String refCommand, final JsonNode command, final VarNameAdapter adapter)
+        throws InvalidParseOperationException,
+        InvalidCreateOperationException {
+        final QUERY query = getRequestId(refCommand);
+        switch (query) {
+            case FLT:
+            case MLT:
+            case MATCH:
+            case MATCH_ALL:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+            case NIN:
+            case IN:
+            case RANGE:
+            case REGEX:
+            case TERM:
+            case WILDCARD:
+            case EQ:
+            case NE:
+            case GT:
+            case GTE:
+            case LT:
+            case LTE:
+            case SEARCH:
+            case SIZE:
+                GlobalDatas.sanityValueCheck(command.toString());
+                break;
+            default:
+        }
+        switch (query) {
+            case AND:
+                return and().add(analyzeArrayCommand(query, command, adapter));
+            case NOT:
+                return not().add(analyzeArrayCommand(query, command, adapter));
+            case OR:
+                return or().add(analyzeArrayCommand(query, command, adapter));
+            case EXISTS:
+                return exists(command, adapter);
+            case MISSING:
+                return missing(command, adapter);
+            case ISNULL:
+                return isNull(command, adapter);
+            case FLT:
+                return flt(command, adapter);
+            case MLT:
+                return mlt(command, adapter);
+            case MATCH:
+                return match(command, adapter);
+            case MATCH_ALL:
+                return matchAll(command, adapter);
+            case MATCH_PHRASE:
+                return matchPhrase(command, adapter);
+            case MATCH_PHRASE_PREFIX:
+                return matchPhrasePrefix(command, adapter);
+            case NIN:
+                return nin(command, adapter);
+            case IN:
+                return in(command, adapter);
+            case RANGE:
+                return range(command, adapter);
+            case REGEX:
+                return regex(command, adapter);
+            case TERM:
+                return term(command, adapter);
+            case WILDCARD:
+                return wildcard(command, adapter);
+            case EQ:
+                return eq(command, adapter);
+            case NE:
+                return ne(command, adapter);
+            case GT:
+                return gt(command, adapter);
+            case GTE:
+                return gte(command, adapter);
+            case LT:
+                return lt(command, adapter);
+            case LTE:
+                return lte(command, adapter);
+            case SEARCH:
+                return search(command, adapter);
+            case SIZE:
+                return size(command, adapter);
+            case NOP:
+                return null;
+            case GEOMETRY:
+            case BOX:
+            case POLYGON:
+            case CENTER:
+            case GEOINTERSECTS:
+            case GEOWITHIN:
+            case NEAR:
+                throw new InvalidParseOperationException(
+                    "Unimplemented command: " + refCommand);
+            case PATH:
+                throw new InvalidParseOperationException(
+                    "Invalid position for command: " + refCommand);
+            default:
+                throw new InvalidParseOperationException(
+                    "Invalid command: " + refCommand);
+        }
+    }
+
+    /**
+     * Compute the QUERY from command
+     *
+     * @param queryroot String
+     * @return the QUERY
+     * @throws InvalidParseOperationException if queryroot could not parse to JSON
+     */
+    public static final QUERY getRequestId(final String queryroot)
+        throws InvalidParseOperationException {
+        if (!queryroot.startsWith(BuilderToken.DEFAULT_PREFIX)) {
+            throw new InvalidParseOperationException(
+                "Incorrect request $command: " + queryroot);
+        }
+        final String command = queryroot.substring(1).toUpperCase();
+        QUERY query;
+        try {
+            query = QUERY.valueOf(command);
+        } catch (final IllegalArgumentException e) {
+            throw new InvalidParseOperationException(
+                "Invalid request command: " + command, e);
+        }
+        return query;
+    }
+
+    /**
+     * Analyze an array of commands
+     * 
+     * @param query query
+     * @param commands commands
+     * @param adapter adapter
+     * @return array of Queries
+     * @throws InvalidParseOperationException if could not parse to JSON
+     * @throws InvalidCreateOperationException if could not create the query
+     */
+    public static final Query[] analyzeArrayCommand(final QUERY query, final JsonNode commands,
+        final VarNameAdapter adapter)
+        throws InvalidParseOperationException,
+        InvalidCreateOperationException {
+        if (commands == null) {
+            throw new InvalidParseOperationException("Not correctly parsed: " + query);
+        }
+        int nb = 0;
+        Query[] queries;
+        if (commands.isArray()) {
+            queries = new Query[commands.size()];
+            // multiple elements in array
+            for (final JsonNode subcommand : commands) {
+                // one item
+                final Entry<String, JsonNode> requestItem =
+                    JsonHandler.checkUnicity(query.exactToken(), subcommand);
+                final Query subquery =
+                    query(requestItem.getKey(), requestItem.getValue(), adapter);
+                if (subquery == null) {
+                    // NOP
+                    continue;
+                }
+                queries[nb++] = subquery;
+            }
+            if (nb != queries.length) {
+                final Query[] newQueries = new Query[nb];
+                for (int i = 0; i < nb; i++) {
+                    newQueries[i] = queries[i];
+                }
+                queries = newQueries;
+            }
+        } else {
+            throw new InvalidParseOperationException(
+                "Boolean operator needs an array of expression: " + commands);
+        }
+        if (query == QUERY.NOT) {
+            if (queries.length == 1) {
+                return queries;
+            } else {
+                final Query[] and = new Query[1];
+                and[0] = and().add(queries);
+                return and;
+            }
+        } else {
+            return queries;
+        }
     }
 }

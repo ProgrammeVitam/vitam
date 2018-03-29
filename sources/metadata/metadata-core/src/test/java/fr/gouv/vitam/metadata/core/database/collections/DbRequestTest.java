@@ -208,6 +208,10 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST_ES_6 =
         "{$query: [ { $eq : { 'DescriptionLevel' : 'Item' } } ]," +
             "$facets : [ { $name : 'EndDate' ,  \"$date_range\": { $field : 'EndDate',$format : 'yyyy' , \"$ranges\": [ {\"$from\": \"1800\",\"$to\": \"2080\"}]} } ] }";
+
+    private static final String REQUEST_SELECT_TEST_ES_7 =
+        "{$query: [ { $match : { 'Description' : 'OK' } } ]," +
+            "$facets : [ { $name : 'filtersFacet',  $filters: { $query_filters: [ {$name:'has_desc_level', $query : { $exists : 'DescriptionLevel' } }]} } ] }";
     private static final String REQUEST_INSERT_TEST_ES_1_TENANT_1 =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaabaq\", " +
             "\"#tenant\": 1, " +
@@ -1702,6 +1706,19 @@ public class DbRequestTest {
         assertEquals("EndDate", result.getName());
         FacetBucket bucket = result.getBuckets().get(0);
         assertEquals(1, bucket.getCount());
+
+
+        final JsonNode selectRequest7 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_7);
+        final SelectParserMultiple selectParser7 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser7.parse(selectRequest7);
+        LOGGER.debug("SelectParser: {}", selectRequest7);
+        final Result resultSelect7 = dbRequest.execRequest(selectParser7, null);
+        assertEquals(1, resultSelect7.nbResult);
+        assertEquals(1, resultSelect7.facetResult.size());
+        FacetResult facetResult7 = (FacetResult)resultSelect7.facetResult.get(0);
+        assertEquals("filtersFacet", facetResult7.getName());
+        FacetBucket bucket7 = facetResult7.getBuckets().get(0);
+        assertEquals(1, bucket7.getCount());
 
         InsertMultiQuery insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots(UUID2);

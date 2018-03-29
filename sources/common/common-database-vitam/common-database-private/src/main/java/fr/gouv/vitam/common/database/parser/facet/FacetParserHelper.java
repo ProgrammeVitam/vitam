@@ -27,20 +27,26 @@
 package fr.gouv.vitam.common.database.parser.facet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
+import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * Facet from Parser Helper
@@ -89,6 +95,7 @@ public class FacetParserHelper extends FacetHelper {
 
     /**
      * Transform facet jsonNode into a dateRange Facet object
+     * 
      * @param facet
      * @param adapter
      * @return
@@ -99,21 +106,48 @@ public class FacetParserHelper extends FacetHelper {
         throws InvalidCreateOperationException, InvalidParseOperationException {
         final String name = facet.get(FACETARGS.NAME.exactToken()).asText();
         JsonNode dateRange = facet.get(FACET.DATE_RANGE.exactToken());
-        ArrayNode ranges = (ArrayNode)dateRange.get(FACETARGS.RANGES.exactToken());
+        ArrayNode ranges = (ArrayNode) dateRange.get(FACETARGS.RANGES.exactToken());
 
-        String dateFormat=dateRange.get(FACETARGS.FORMAT.exactToken()).asText();
+        String dateFormat = dateRange.get(FACETARGS.FORMAT.exactToken()).asText();
         String field = dateRange.get(FACETARGS.FIELD.exactToken()).asText();
         String translatedField = adapter.getVariableName(field);
         if (translatedField == null) {
             translatedField = field;
         }
-        List<RangeFacetValue> rangesList=new ArrayList<>();
+        List<RangeFacetValue> rangesList = new ArrayList<>();
         ranges.forEach(item -> {
             JsonNode from = item.get(FACETARGS.FROM.exactToken());
             JsonNode to = item.get(FACETARGS.TO.exactToken());
-            rangesList.add(new RangeFacetValue(from != null && !from.isNull() ? from.asText() : null,to != null && !to.isNull() ? to.asText() : null));
+            rangesList.add(new RangeFacetValue(from != null && !from.isNull() ? from.asText() : null,
+                to != null && !to.isNull() ? to.asText() : null));
         });
-        return FacetHelper.dateRange(name, translatedField, dateFormat,rangesList);
+        return FacetHelper.dateRange(name, translatedField, dateFormat, rangesList);
 
+    }
+
+    /**
+     * Transform facet jsonNode in filters Facet object
+     * 
+     * @param facet facet node
+     * @param adapter adapter
+     * @return filters Facet object
+     * @throws InvalidCreateOperationException error while creating terms Facet
+     * @throws InvalidParseOperationException error in adapater
+     */
+    public static final Facet filters(final JsonNode facet, VarNameAdapter adapter)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
+        final String name = facet.get(FACETARGS.NAME.exactToken()).asText();
+        JsonNode filtersFacetnode = facet.get(FACET.FILTERS.exactToken());
+
+        Map<String, Query> filters = new HashMap<>();
+        ArrayNode filtersNode = (ArrayNode) filtersFacetnode.get(FACETARGS.QUERY_FILTERS.exactToken());
+        for (JsonNode node : filtersNode) {
+            String key = node.get(FACETARGS.NAME.exactToken()).asText();
+            JsonNode queryNode = node.get(FACETARGS.QUERY.exactToken());
+            final Entry<String, JsonNode> queryItem = JsonHandler.checkUnicity("RootRequest", queryNode);
+            Query query = QueryParserHelper.query(queryItem.getKey(), queryItem.getValue(), adapter);
+            filters.put(key, query);
+        }
+        return FacetHelper.filters(name, filters);
     }
 }

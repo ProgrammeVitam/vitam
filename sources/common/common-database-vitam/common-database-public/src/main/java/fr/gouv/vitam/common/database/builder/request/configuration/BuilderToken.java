@@ -415,7 +415,8 @@ public abstract class BuilderToken {
     public static enum FACET {
 
         TERMS("terms"),
-        DATE_RANGE("date_range");
+        DATE_RANGE("date_range"),
+        FILTERS("filters");
 
 
         private final String exactToken;
@@ -507,6 +508,14 @@ public abstract class BuilderToken {
          * Used in range facets
          */
         FORMAT("format"),
+        /**
+         * Used in filters facets
+         */
+        QUERY_FILTERS("query_filters"),
+        /**
+         * Used in filters facets
+         */
+        QUERY("query"),
         /**
          * Used in range facets
          */
