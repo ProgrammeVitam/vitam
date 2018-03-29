@@ -1,27 +1,58 @@
-<p-growl [(value)]="msgs" life="2000"></p-growl>
-<div class="fixed">
-  <a routerLink="/admin/collection" class="vitam_logo">
-    <!-- FIXME may be missed in dev build -->
-    <img src="assets/images/logo_vitam.png"
-         class="logo" alt="Vitam" title="Vitam"/>
-    <!-- <span class="title">vitam</span> -->
-  </a>
-</div>
-<p-menubar [model]="items"  [autoDisplay]="false" [style]="{ 'text-align': 'left', 'padding': '23px 0 0 230px'}">
-  <div id="accessContract" *ngIf="isAuthenticated">
-    <p-dropdown [style]="{'width':'200px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
-                [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
+<div class="ui-g ui-menubar ui-widget ui-widget-content ui-corner-all">
+  <!-- Handle Logo -->
+  <div class="ui-g-2 ui-sm-12 no-padding">
+    <a routerLink="/admin/collection" class="logo">
+      <!-- FIXME may be missed in dev build -->
+      <img src="assets/images/logo_vitam.png"
+           class="logo" alt="Vitam" title="Vitam"/>
+    </a>
   </div>
-  <div class="userInfo" *ngIf="isAuthenticated">
-    <span class="tenant-text">Tenant : <b>{{tenantChosen ? tenantChosen : '-'}}</b></span>
-    <div class="menu-actions">
-      <i class="fa fa-power-off logout-icon clickableDiv" (click)="logOut()">
-        <a >Déconnexion</a>
-      </i>
-      <i class="fa fa-shopping-basket basket-icon clickableDiv" routerLink="basket">
-        <a id="basket-text">Mon panier</a>
-      </i>
+
+  <!-- Handle Menu Content -->
+  <div class="ui-g-6 ui-sm-12 ui-menubar-root-list menu-vitam">
+    <div *ngFor="let item of items" class="ui-sm-12 relative" [ngClass]="'ui-g-' + item.size">
+      <div (click)="clickInside($event, [item])" class="ui-g-12 ui-menuitem clickableDiv">
+        <i *ngIf="item.icon" class="fa" [ngClass]="item.icon"></i>
+        <span>{{item.label}}</span><br/>
+        <i *ngIf="item.icon" class="fa fa-fw fa-caret-down"></i>
+      </div>
+      <div class="ui-g-12 ui-submenu-list ui-widget-content ui-shadow subMenu" *ngIf="item.displayed">
+        <div *ngFor="let subItem of item.items" class="clickableDiv subItem"
+             (click)="clickInside($event, [item, subItem])">
+          <span>{{subItem.label}}</span>
+          <i *ngIf="subItem.items && subItem.items.length > 0" class="fa fa-fw fa-caret-right"></i>
+          <div class="ui-submenu-list ui-widget-content ui-shadow subContent" *ngIf="subItem.displayed">
+            <div *ngFor="let subSubItem of subItem.items" class="ui-menuitem clickableDiv subItem"
+                 (click)="clickInside($event, [item, subItem, subSubItem])">
+              {{subSubItem.label}}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-</p-menubar>
+  <!-- Info & Actions -->
+  <div class="ui-g-4 ui-sm-12">
+    <div class="ui-g-8 ui-sm-12" *ngIf="isAuthenticated">
+      <div class="ui-g-12">
+        <p-dropdown [style]="{'width':'250px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
+                    [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
+      </div>
+      <div class="ui-g-4"></div>
+      <div class="ui-g-4">
+        <span class="">Tenant : <b>{{tenantChosen ? tenantChosen : '-'}}</b></span>
+      </div>
+    </div>
+    <div class="ui-g-4 ui-sm-12 menu-vitam" *ngIf="isAuthenticated">
+      <div>
+        <i class="fa fa-power-off clickableDiv tenant-text" (click)="logOut()">
+          <a>Déconnexion</a>
+        </i>
+        <i class="fa fa-shopping-basket clickableDiv tenant-text basket-icon" routerLink="basket">
+          <a id="basket-text">Mon panier</a>
+        </i>
+      </div>
+    </div>
+  </div>
+</div>

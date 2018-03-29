@@ -1,33 +1,5 @@
-.menuStyle {
-    text-align: left;
-    padding-left: 200px;
-}
-
-.float {
-    float: left;
-}
-
-.fixed {
-    position: absolute;
-    left: 10px;
-    top: 5px;
-    z-index: 10;
-}
-
-.fixed a.vitam_logo {
-    position: relative;
-}
-
 .logo {
-    max-height: 80px;
-    padding-top: 3px;
-}
-
-.title {
-    position: relative;
-    top: -10px;
-    font-size: 45px;
-    font-family: Verdana, sans-serif;
+    max-height: 90px;
 }
 
 a {
@@ -42,25 +14,35 @@ a:hover {
 
 .tenant-text {
     float: left;
-    padding: 0px 10px;
+    padding: 0 10px 10px 0;
 }
 
-.menu-actions {
-    float: left;
-    width: 120px;
+.menu-vitam {
+    padding-top: 25px;
 }
 
-.basket-icon {
-    padding-top: 10px;
+.relative {
+    position: relative;
 }
 
-#accessContract {
-    float: left;
-    max-width: 200px;
+.subMenu {
+    position: absolute;
+    z-index: 1015;
+    width: 240px;
+    top: 35px;
+    left: 25%;
+    display: block;
 }
 
-.userInfo {
-    float: left;
-    width: 220px;
-    padding-bottom: 10px;
+.subItem {
+    padding: 5px 0;
+    text-align: left;
+}
+
+.subContent {
+    position: absolute;
+    z-index: 1030;
+    left: 240px;
+    top: -10px;
+    display: block;
 }
