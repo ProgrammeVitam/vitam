@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.builder.facet;
 import java.util.List;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 
 /**
  * Facet helper
@@ -46,27 +47,14 @@ public class FacetHelper {
      * 
      * @param name name of the facet
      * @param field field of facet data
-     * @return a Facet
-     * @throws InvalidCreateOperationException when creating facet errors
-     */
-    public static final Facet terms(String name, String field)
-        throws InvalidCreateOperationException {
-        return new TermsFacet(name, field);
-    }
-
-
-    /**
-     * Create a facet
-     * 
-     * @param name name of the facet
-     * @param field field of facet data
      * @param size size of the facet
+     * @param order order of the facet
      * @return a Facet
      * @throws InvalidCreateOperationException when creating facet errors
      */
-    public static final Facet terms(String name, String field, Integer size)
+    public static final Facet terms(String name, String field, Integer size, FacetOrder order)
         throws InvalidCreateOperationException {
-        return new TermsFacet(name, field, size);
+        return new TermsFacet(name, field, size, order);
     }
 
 

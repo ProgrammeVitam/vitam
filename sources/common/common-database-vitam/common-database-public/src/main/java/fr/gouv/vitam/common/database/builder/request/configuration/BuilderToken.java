@@ -492,7 +492,7 @@ public abstract class BuilderToken {
          */
         FIELD("field"),
         /**
-         * Used in all facets
+         * Used in terms facet
          */
         SIZE("size"),
         /**
@@ -507,12 +507,14 @@ public abstract class BuilderToken {
          * Used in range facets
          */
         FORMAT("format"),
-
-
         /**
          * Used in range facets
          */
-        RANGES("ranges");
+        RANGES("ranges"),
+        /**
+         * Used in terms facet
+         */
+        ORDER("order");
 
         private final String exactToken;
 

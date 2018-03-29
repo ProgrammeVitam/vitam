@@ -40,7 +40,9 @@
 	"$facets": [
 		{
 			"$terms": {
-				"$field": "#management.StorageRule.Rules.Rule"
+				"$field": "#management.StorageRule.Rules.Rule",
+				"$size": 5,
+				"$order": "ASC"
 			}
 		}
 	]

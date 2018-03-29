@@ -42,7 +42,8 @@
 			"$name": "mgt_facet",
 			"$terms": {
 				"$field": "#management.StorageRule.Rules.Rule",
-				"$size": 5
+				"$size": 5,
+				"$order": "ASC"
 			}
 		}
 	]

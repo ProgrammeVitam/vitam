@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -66,18 +67,23 @@ public class FacetParserHelper extends FacetHelper {
         final String name = facet.get(FACETARGS.NAME.exactToken()).asText();
         JsonNode terms = facet.get(FACET.TERMS.exactToken());
 
+        if (!terms.has(FACETARGS.ORDER.exactToken())) {
+            throw new InvalidCreateOperationException(
+                String.format("facet must contain a %s parameter", FACETARGS.ORDER.exactToken()));
+        }
+        if (!terms.has(FACETARGS.SIZE.exactToken())) {
+            throw new InvalidCreateOperationException(
+                String.format("facet must contain a %s parameter", FACETARGS.SIZE.exactToken()));
+        }
+
         String field = terms.get(FACETARGS.FIELD.exactToken()).asText();
         String translatedField = adapter.getVariableName(field);
         if (translatedField == null) {
             translatedField = field;
         }
-
-        if (terms.has(FACETARGS.SIZE.exactToken())) {
-            Integer size = terms.get(FACETARGS.SIZE.exactToken()).asInt();
-            return FacetHelper.terms(name, translatedField, size);
-        } else {
-            return FacetHelper.terms(name, translatedField);
-        }
+        Integer size = terms.get(FACETARGS.SIZE.exactToken()).asInt();
+        FacetOrder order = FacetOrder.valueOf(terms.get(FACETARGS.ORDER.exactToken()).asText());
+        return FacetHelper.terms(name, translatedField, size, order);
 
     }
 

@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -149,9 +150,13 @@ public class SelectUnitResourceTest {
     private static final String SEARCH_QUERY =
         "{\"$query\": [], \"$projection\": {}, \"$filter\": {}}";
     private static final String SEARCH_QUERY_WITH_FACET_MGT =
-        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"mgt_facet\",\"$terms\":{\"$field\":\"#management.StorageRule.Rules.Rule\"}}]}";
+        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"mgt_facet\",\"$terms\":{\"$field\":\"#management.StorageRule.Rules.Rule\", \"$size\": 5, \"$order\": \"ASC\"}}]}";
     private static final String SEARCH_QUERY_WITH_FACET_DESC_LEVEL =
-        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\"}}]}";
+        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5, \"$order\": \"ASC\"}}]}";
+    private static final String SEARCH_QUERY_WITH_FACET_TERMS_INVALID_SIZE =
+        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$order\": \"ASC\"}}]}";
+    private static final String SEARCH_QUERY_WITH_FACET_TERMS_INVALID_ORDER =
+        "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5}}]}";
     private static final String SEARCH_QUERY_WITH_RULE =
         "{\"$query\": [], \"$projection\": {\"$fields\" : {\"$rules\" : 1}}, \"$filter\": {}}";
 
@@ -398,6 +403,22 @@ public class SelectUnitResourceTest {
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().get(0).getCount()).isEqualTo(1);
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().get(1).getValue()).isEqualTo("Item");
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().get(1).getCount()).isEqualTo(1);
+
+        VitamError responseKO1 = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_TERMS_INVALID_ORDER)).when()
+            .get("/units").then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).extract().as(VitamError.class);
+        assertThat(responseKO1.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+        VitamError responseKO2 = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_TERMS_INVALID_SIZE)).when()
+            .get("/units").then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).extract().as(VitamError.class);
+        assertThat(responseKO2.getHttpCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test

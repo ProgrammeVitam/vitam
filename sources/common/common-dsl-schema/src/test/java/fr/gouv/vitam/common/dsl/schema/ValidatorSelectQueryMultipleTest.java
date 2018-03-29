@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -35,6 +35,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -196,18 +197,13 @@ public class ValidatorSelectQueryMultipleTest {
     }
 
     @Test
-    public void should_retrieve_errors_when_select_multiple_complete_facet_no_name()
+    public void should_not_retrieve_errors_when_select_multiple_complete_facet()
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete.json"));
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet.json"));
         final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-        try {
-            Validator.validate(schema, "DSL", test1Json);
-        } catch (ValidationException e) {
-            e.printStackTrace();
-            fail();
-        }
+        assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
     }
 
     @Test
@@ -260,7 +256,6 @@ public class ValidatorSelectQueryMultipleTest {
             .hasMessageContaining("WRONG_JSON_TYPE: OBJECT");
     }
 
-
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_no_From_no_To() throws Exception {
         JsonNode test1Json =
@@ -298,7 +293,6 @@ public class ValidatorSelectQueryMultipleTest {
         assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
     }
 
-
     @Test
     public void should_not_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_one_from() throws Exception {
         JsonNode test1Json =
@@ -308,6 +302,47 @@ public class ValidatorSelectQueryMultipleTest {
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
 
         assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_terms_no_size() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_no_size.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("$size: posinteger ~ MANDATORY");
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_terms_no_order() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_no_order.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("Validating $order")
+            .hasMessageContaining("MANDATORY");
+    }
+
+    // FIXME : remove ignore when fixing bug #4353
+    @Test
+    @Ignore
+    public void should_retrieve_errors_when_select_multiple_complete_facet_terms_invalid_order() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(
+                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_invalid_order.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("Validating $order")
+            .hasMessageContaining("WRONG_JSON_TYPE");
     }
 
 }
