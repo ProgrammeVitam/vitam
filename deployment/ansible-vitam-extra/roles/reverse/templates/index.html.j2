@@ -132,8 +132,16 @@
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Elasticsearch logs</div>
 						<div class="col-md-9">
+{% if groups['hosts-dev-tools']|length >0 %}
+
 							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+
+{% endif %}
+{% if groups['hosts-cerebro']|length >0 %}
+
 							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.log|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
+{% endif %}
+
 							<a href="/{{ elasticsearch.log.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
 							<a href="/{{ elasticsearch.log.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
@@ -144,8 +152,16 @@
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Elasticsearch data</div>
 						<div class="col-md-9">
+
+{% if groups['hosts-dev-tools']|length >0 %}
+
 							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
+{% endif %}
+{% if groups['hosts-cerebro']|length >0 %}
+
 							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.data|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
+{% endif %}
+
 							<a href="/{{ elasticsearch.data.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
 							<a href="/{{ elasticsearch.data.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
