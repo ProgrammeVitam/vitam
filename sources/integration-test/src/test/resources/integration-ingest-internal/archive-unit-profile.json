@@ -1,0 +1,11 @@
+{
+	"Identifier":"AUP-000001",
+	"Name":"archiveUnitProfileIT",
+	"Description":"Document Type pour IT",
+	"Status":"ACTIVE",
+	"CreationDate":"2018-03-02",
+	"LastUpdate":"2018-03-29",
+	"ActivationDate":"2018-03-02",
+	"DeactivationDate":"2018-03-02",
+	"ControlSchema":"{}"
+}

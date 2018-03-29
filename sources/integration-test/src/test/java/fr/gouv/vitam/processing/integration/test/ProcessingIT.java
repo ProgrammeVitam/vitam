@@ -128,6 +128,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
@@ -568,6 +569,12 @@ public class ProcessingIT {
                     .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
                         new TypeReference<List<ContextModel>>() {}));
 
+                // Import Archive Unit Profile
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                client.createArchiveUnitProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/archive-unit-profile.json"),
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {
+                        }));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

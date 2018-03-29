@@ -337,6 +337,10 @@ public class SedaConstants {
      */
     public static final String TAG_ARCHIVE_TRANSFER = "ArchiveTransfer";
     /**
+     * tag of ArchiveUnit
+     */
+    public static final String TAG_ARCHIVE_UNIT_PROFILE = "ArchiveUnitProfile";
+    /**
      * tag of GrantDate
      */
     public static final String TAG_GRANT_DATE = "GrantDate";

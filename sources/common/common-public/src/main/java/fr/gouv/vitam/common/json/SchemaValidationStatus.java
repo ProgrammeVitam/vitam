@@ -111,6 +111,10 @@ public class SchemaValidationStatus {
          */
         NOT_JSON_FILE,
         /**
+         * Not found
+         */
+        NOT_FOUND,
+        /**
          * Sanitize the unit
          */
         UNIT_SANITIZE,

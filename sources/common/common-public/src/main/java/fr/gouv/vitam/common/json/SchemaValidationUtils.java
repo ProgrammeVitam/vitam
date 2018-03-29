@@ -30,7 +30,6 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
@@ -140,7 +139,7 @@ public class SchemaValidationUtils {
 
     /**
      * Constructor with a specified schema filename or an external json schema as a string
-     * 
+     *
      * @param schema schemaFilename or external json schema as a string
      * @param external true if the schema is provided as a string
      * @throws FileNotFoundException
@@ -158,7 +157,7 @@ public class SchemaValidationUtils {
 
     /**
      * Get the default Vitam JsonSchemaFactory
-     * 
+     *
      * @return
      */
     private static JsonSchemaFactory getJsonSchemaFactory() {
@@ -208,7 +207,7 @@ public class SchemaValidationUtils {
 
     /**
      * Validate the json against the schema of the specified collectionName
-     * 
+     *
      * @param jsonNode
      * @param collectionName
      * @return a status ({@link SchemaValidationStatus})
@@ -244,6 +243,10 @@ public class SchemaValidationUtils {
             setSchema(PROFILE_SCHEMA_FILENAME);
         } else if ("SecurityProfile".equals(collectionName)) {
             setSchema(SECURITY_PROFILE_SCHEMA_FILENAME);
+        } else if ("ArchiveUnitProfileSchema".equals(collectionName)) {
+            // Archive Unit Profile Schema is set before and used for validation
+            // no need to set it again here
+            return validateJson(jsonNode);
         }
         // used for test
         else if ("CollectionSample".equals(collectionName)) {
