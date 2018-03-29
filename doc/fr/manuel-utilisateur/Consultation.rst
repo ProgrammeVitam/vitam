@@ -97,6 +97,8 @@ En cas de recherche infructueuse, le message "Aucun résultat" s'affiche sous le
 
 .. image:: images/au_res_ko.png
 
+
+
 Consultation du détail d'une unité archivistique
 ================================================
 
@@ -291,6 +293,10 @@ Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix
 Suite au clic sur le bouton "Exporter" une fenêtre modale s'ouvre et indique que le DIP est en cours de création et qu'il sera téléchargeable dans le journal des opérations. Un bouton "OK" ferme la fenêtre.
 
 Pour le télécharger, retourner au Journal des Opérations, rechercher dans la catégorie d'opérations " Export DIP ", et sélectionner dans les options de colonnes disponibles la case "Rapport". Le ligne correspondant au dernier export sera affichée, et il suffit de cliquer sur l'icone correspondant au rapport pour afficher le répertoire du DIP généré. 
+
+Note: Via le Panier: il est possible d'exporter une sélection d'unités archivistiques, même si celles ci proviennent de services producteurs différents, en créant une sélection. Par contre, le service producteur qui sera affiché dans le DIP est "pré-configuré" vis à vis du serveur utilisé. 
+
+L'export du panier ou de la sélection se fait de la même façon que pour un export classique. Un pop-up informe du fait que la génération du DIP est en cours, et le fichier en question se retrouvera via le journal des opérations, et sera disponible à l'export. 
 
 
 Consultation des journaux du cycle de vie
