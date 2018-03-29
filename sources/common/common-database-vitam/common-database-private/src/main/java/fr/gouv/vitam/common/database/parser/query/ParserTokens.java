@@ -362,6 +362,18 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score",
         "_id",
+        /* ArchiveUnitProfile */
+        "Identifier",
+        "Status",
+        "ControlSchema",
+        "CreationDate",
+        "LastUpdate",
+        "ActivationDate",
+        "DeactivationDate",
+        "_tenant",
+        "_v",
+        "_score",
+        "_id",
         /* Rule */
         "RuleType",
         "RuleDuration",
@@ -885,6 +897,8 @@ public class ParserTokens extends BuilderToken {
             case "RuleValue":
             case "RuleDescription":
             case "RuleDuration":
+                // ArchiveUnitProfile
+            case "ControlSchema":
                 // Ingest contracts
             case "LinkParentId":
             case "CheckParentLink":

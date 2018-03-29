@@ -20,6 +20,7 @@ const AU_PROFILE_KEY_TRANSLATION = {
   Name : 'Intitulé',
   Status : 'Statut',
   Description : 'Description',
+  ControlSchema : 'Schéma de contrôle',
   '#tenant' : 'Tenant',
 };
 @Component({
@@ -37,6 +38,7 @@ export class ArchiveUnitProfileComponent extends PageComponent {
   update: boolean;
   updatedFields: any = {};
   saveRunning = false;
+  validRequest: any;
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router, private errorService: ErrorService,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
@@ -142,6 +144,31 @@ export class ArchiveUnitProfileComponent extends PageComponent {
       }
     );
   }
+    
+  initJson(jsonQuery: string) {
+    try {
+      JSON.parse(jsonQuery);
+      jsonQuery = JSON.stringify(JSON.parse(jsonQuery), null, 2);
+    } catch (e) {
+        return jsonQuery;  
+    }    
+    return jsonQuery;
+  }
+    
+  public checkJson() {
+    try {
+      if (this.updatedFields.ControlSchema !== undefined) {
+        JSON.parse(this.updatedFields.ControlSchema);
+      } else {
+        JSON.parse(this.modifiedArchiveUnitProfile.ControlSchema);
+      }        
+      this.validRequest = {valid: 'valide', css: 'font-color-green'};
+      return true;
+    } catch (e) {
+      this.validRequest = {valid: 'non valide', css: 'font-color-red'};
+      return false;
+    }
+  }
 
   changeStatus() {
     if (this.isActif) {
@@ -159,5 +186,6 @@ export class ArchiveUnitProfileComponent extends PageComponent {
     this.archiveUnitProfile = plainToClass(ArchiveUnitProfile, value.$results)[0];
     this.modifiedArchiveUnitProfile =  ObjectsService.clone(this.archiveUnitProfile);
     this.isActif = this.modifiedArchiveUnitProfile.Status === 'ACTIVE' ? true : false;
+    this.modifiedArchiveUnitProfile.ControlSchema = this.initJson(this.modifiedArchiveUnitProfile.ControlSchema);
   }
 }

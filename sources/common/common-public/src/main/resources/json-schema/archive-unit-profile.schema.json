@@ -96,7 +96,11 @@
           "format": "date-time-vitam"
         }
       ]
-    }
+    },
+	"ControlSchema": {
+    	"type": "string"
+	}
+    
   },
-  "required": ["_id", "_tenant", "_v", "Identifier", "Name", "Status", "CreationDate", "LastUpdate"]
+  "required": ["_id", "_tenant", "_v", "Identifier", "Name", "Status", "CreationDate", "LastUpdate","ControlSchema"]
 }

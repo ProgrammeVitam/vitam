@@ -20,7 +20,6 @@ package fr.gouv.vitam.functional.administration.archiveunitprofiles.core;
 import java.util.Optional;
 
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ProfileModel;
 
 /**
  * Used to validate archive unit profiles and to apply acceptance rules.
@@ -71,6 +70,8 @@ public interface ArchiveUnitProfileValidator {
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating archive unit profile (%s)";
         private static final String ERR_DUPLICATE_ARCHIVE_PROFILE = "The archive unit profile %s already exists in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        private static final String ERR_JSON_SHEMA = "The field %s is not a json schema";
+        private static final String ERR_JSON_SCHEMA_IN_USE = "The field %s is used by an archiveUnit";
 
         private String reason;
 
@@ -86,7 +87,7 @@ public interface ArchiveUnitProfileValidator {
         /**
          * Reject if id exisit and the action is creation. If id exists, it should be an update instead of create
          *
-         * @param profileIdentifier
+         * @param archiveUnitProfileIdentifier
          * @return RejectionCause
          */
         public static RejectionCause rejectIdNotAllowedInCreate(String archiveUnitProfileIdentifier) {
@@ -105,8 +106,30 @@ public interface ArchiveUnitProfileValidator {
         }
 
         /**
-         * Reject if one of multiple mandatory parameter are null
+         * Reject if the field is not a json shema
          * 
+         * @param fieldName
+         * @return RejectionCause
+         */
+        public static RejectionCause rejectJsonSchemaModificationIfInUse(String fieldName) {
+            return new RejectionCause(String.format(ERR_JSON_SCHEMA_IN_USE, fieldName));
+        }
+
+        /**
+         * Reject if the field is not a json shema
+         *
+         * @param fieldName
+         * @return RejectionCause
+         */
+        public static RejectionCause rejectJsonShema(String fieldName) {
+            return new RejectionCause(String.format(ERR_JSON_SHEMA, fieldName));
+        }
+
+
+
+        /**
+         * Reject if one of multiple mandatory parameter are null
+         *
          * @param fieldName
          * @return RejectionCause
          */

@@ -30,6 +30,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   typeOfField: string;
   displayMode: string;
   physicalUnitMode: boolean;
+  schemaJsonMode: boolean;
   @Output() updatedFieldsChange = new EventEmitter<{}>();
     
   frLocale = {
@@ -118,6 +119,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
     }
 
     if (!this.displayMode) {
+      this.schemaJsonMode = this.archiveUnitHelper.isSchemaJsonMode(this.originalTitle);
       if (this.archiveUnitHelper.isTextArea(this.originalTitle)) {
         this.displayMode = 'TextArea';
       } else if (this.archiveUnitHelper.isSelection(this.originalTitle)) {

@@ -525,7 +525,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
-    
+
 
 
     @Override
@@ -1069,7 +1069,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
-    
+
     @Override
     public RequestResponse createArchiveUnitProfiles(List<ArchiveUnitProfileModel> profileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
@@ -1105,7 +1105,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     ArchiveUnitProfileModel.class);
             }
 
-            return RequestResponse.parseFromResponse(response, ProfileModel.class);
+            return RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -1136,16 +1136,16 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<ArchiveUnitProfileModel> resp =
                     JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        ProfileModel.class);
+                        ArchiveUnitProfileModel.class);
 
-
-                if (resp.getResults() == null || resp.getResults().size() == 0)
-                    throw new ReferentialNotFoundException("Profile not found with id: " + documentId);
+                if (resp.getResults() == null || resp.getResults().size() == 0) {
+                    throw new ReferentialNotFoundException("ArchiveUnitProfile not found with id: " + documentId);
+                }
 
                 return resp;
             }
 
-            return RequestResponse.parseFromResponse(response, ProfileModel.class);
+            return RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
 
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
@@ -1174,7 +1174,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 throw new ReferentialNotFoundException("Profile not found with id: " + id);
             }
 
-            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
+            return RequestResponse.parseFromResponse(response, ArchiveUnitProfileModel.class);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -1554,6 +1554,5 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
-
 
 }

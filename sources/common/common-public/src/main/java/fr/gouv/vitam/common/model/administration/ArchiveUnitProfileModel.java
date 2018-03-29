@@ -29,6 +29,8 @@ package fr.gouv.vitam.common.model.administration;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
@@ -37,15 +39,43 @@ import fr.gouv.vitam.common.model.ModelConstants;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ArchiveUnitProfileModel {
 
+    /**
+     * Identifier Tag
+     */
     public static final String TAG_IDENTIFIER = "Identifier";
+    /**
+     * Name Tag
+     */
     public static final String TAG_NAME = "Name";
+    /**
+     * Description Tag
+     */
     public static final String TAG_DESCRIPTION = "Description";
+    /**
+     * Status Tag
+     */
     public static final String TAG_STATUS = "Status";
+    /**
+     * CreationDate Tag
+     */
     public static final String CREATION_DATE = "CreationDate";
+    /**
+     * LastUpdate Tag
+     */
     public static final String LAST_UPDATE = "LastUpdate";
+    /**
+     * ActivationDate Tag
+     */
     public static final String ACTIVATION_DATE = "ActivationDate";
+    /**
+     * DeactivationDate Tag
+     */
     public static final String DEACTIVATION_DATE = "DeactivationDate";
-    
+    /**
+     * ControlSchema Tag
+     */
+    public static final String CONTROLSCHEMA = "ControlSchema";
+
     /**
      * unique id
      */
@@ -87,7 +117,10 @@ public class ArchiveUnitProfileModel {
 
     @JsonProperty(DEACTIVATION_DATE)
     private String deactivationdate;
-    
+
+    @JsonProperty(CONTROLSCHEMA)
+    private String controlSchema;
+
     /**
      * Constructor without fields use for jackson
      */
@@ -191,6 +224,15 @@ public class ArchiveUnitProfileModel {
 
     public ArchiveUnitProfileModel setDeactivationdate(String deactivationdate) {
         this.deactivationdate = deactivationdate;
+        return this;
+    }
+
+    public String getControlSchema() {
+        return controlSchema;
+    }
+
+    public ArchiveUnitProfileModel setControlSchema(String controlSchema) {
+        this.controlSchema = controlSchema;
         return this;
     }
 }
