@@ -1,21 +1,57 @@
-<p-growl [(value)]="msgs" life="2000"></p-growl>
-<p-menubar [model]="items" [autoDisplay]="false">
-  <div class="fixed">
-    <a routerLink="/admin/collection">
+<div class="ui-g ui-menubar ui-widget ui-widget-content ui-corner-all menuIcons">
+  <!-- Handle Logo -->
+  <div class="ui-g-2 ui-sm-12 ui-g-nopad">
+    <a routerLink="/admin/collection" class="logo">
       <!-- FIXME may be missed in dev build -->
       <img src="assets/images/logo_vitam.png"
-           class="logo" alt="Vitam Beta" title="Vitam"/>
-      <!-- <span class="title">vitam</span> -->
+           class="logo" alt="Vitam" title="Vitam"/>
     </a>
   </div>
-  <div *ngIf="isAuthenticated">
-    Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b> | Sélection:
-    <select [(ngModel)]="tenantId" #ctrl="ngModel" style="display: inline; margin: 0 0 0 10px">
-        <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
-    </select>
-    <button pButton type="button" (click)="setCurrentTenant(tenantId)" label="Acceder"></button>
-      <i class="fa fa-power-off logout-icon" (click)="logOut()">
-        <a id="logout-text">Déconnexion</a>
-      </i>
+
+  <!-- Handle Menu Content -->
+  <div class="ui-g-7 ui-sm-12 ui-menubar-root-list menu-vitam ui-g-nopad">
+    <div *ngFor="let item of items" class="ui-sm-12 relative" [ngClass]="'ui-g-' + item.size">
+      <div (click)="clickInside($event, [item])" class="ui-g-12 ui-menuitem clickableDiv">
+        <i *ngIf="item.icon" class="fa" [ngClass]="item.icon"></i>
+        <span>{{item.label}}</span><br/>
+        <i *ngIf="item.items && item.items.length > 0" class="fa fa-fw fa-caret-down"></i>
+      </div>
+      <div class="ui-g-12 ui-submenu-list ui-widget-content ui-shadow subMenu" *ngIf="item.displayed">
+        <div *ngFor="let subItem of item.items" class="clickableDiv subItem"
+             (click)="clickInside($event, [item, subItem])">
+          <span>{{subItem.label}}</span>
+          <i *ngIf="subItem.items && subItem.items.length > 0" class="fa fa-fw fa-caret-right"></i>
+          <div class="ui-submenu-list ui-widget-content ui-shadow subContent" *ngIf="subItem.displayed">
+            <div *ngFor="let subSubItem of subItem.items" class="ui-menuitem clickableDiv subItem"
+                 (click)="clickInside($event, [item, subItem, subSubItem])">
+              {{subSubItem.label}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</p-menubar>
+
+  <!-- Info & Actions -->
+  <div class="ui-g-3 ui-sm-12">
+    <div class="ui-g-8 ui-sm-12 ui-g-nopad" *ngIf="isAuthenticated">
+      <div class="ui-g-12">
+        Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b>
+      </div>
+      <div class="ui-g-12">
+        Sélection:
+        <select [(ngModel)]="tenantId" #ctrl="ngModel" style="display: inline; margin: 0 0 0 10px">
+          <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
+        </select>
+        <button pButton type="button" (click)="setCurrentTenant(tenantId)" label="Acceder"></button>
+      </div>
+    </div>
+    <div class="ui-g-4 ui-sm-12 menu-vitam" *ngIf="isAuthenticated">
+      <div>
+        <i class="fa fa-power-off clickableDiv" (click)="logOut()">
+          <a>Déconnexion</a>
+        </i>
+      </div>
+    </div>
+  </div>
+</div>

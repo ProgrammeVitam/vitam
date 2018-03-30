@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, HostListener, OnDestroy, OnInit} from '@angular/core';
 import {Message} from 'primeng/primeng';
 import {ResourcesService} from '../resources.service';
 import {AuthenticationService} from '../../authentication/authentication.service';
@@ -47,25 +47,31 @@ export class MenuComponent implements OnInit, OnDestroy {
       if (value) {
         this.items = [
           {
+            id: 'admin',
             label: 'Admin',
             items: [
               {label: 'Administration des collections', routerLink: ['admin/collection']}
-            ]
+            ],
+            size: 2
           },
           {
+            id: 'test',
             label: 'Tests',
             items: [
               {label: 'Tests de performance', routerLink: ['tests/perf']},
               {label: 'Tests fonctionnels', routerLink: ['tests/functional-tests']},
               {label: 'Tests requêtes DSL', routerLink: ['tests/queryDSL']},
               {label: 'Visualisation du Graphe', routerLink: ['tests/dag-visualization']}
-            ]
+            ],
+            size: 2
           },
           {
+            id: 'traceability',
             label: 'Sécurisation',
             items: [
               {label: 'Sécurisation des journaux', routerLink: ['traceability/logbook']}
-            ]
+            ],
+            size: 2
           }
         ];
         this.isAuthenticated = true;
@@ -98,5 +104,61 @@ export class MenuComponent implements OnInit, OnDestroy {
   logOut() {
     this.authenticationService.logOut().subscribe();
     this.authenticationService.loggedOut();
+  }
+
+  clickInside(event, items: any[]) {
+    const lastItem = items[items.length - 1];
+
+    // Handle navigation to other page (All menu should be hiden)
+    if (lastItem.routerLink) {
+      this.router.navigate(lastItem.routerLink);
+      this.hideAll(this.items);
+      return;
+    }
+
+    // Handle subMenu open
+    event.data = {
+      ids: items.map(item => item.id)
+    };
+
+    for (const item of items) {
+      item.displayed = true;
+    }
+  }
+
+  hideAll(items: any[]) {
+    if (!items) {
+      return;
+    }
+
+    for (const item of items) {
+      item.displayed = false;
+      this.hideAll(item.items);
+    }
+  }
+
+  hideRecursively(items: any[], ids: string[]) {
+    if (ids.length === 0 || !items) {
+      return;
+    }
+
+    for (const item of items) {
+      if (item.id !== ids[0]) {
+        item.displayed = false;
+        this.hideAll(item.items);
+      } else {
+        this.hideRecursively(item.items, ids.slice(1));
+      }
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickedOutside(event) {
+    // This function is called on each click and will hide all submenu that the mouse is out of
+    if (!event.data || !event.data.ids || event.data.ids.length === 0) {
+      this.hideAll(this.items);
+    } else {
+      this.hideRecursively(this.items, event.data.ids);
+    }
   }
 }

@@ -8,18 +8,57 @@
   top: 2px
 }
 
-.logo {
-  max-height: 80px;
-  margin-top: -3px;
-}
-
-.title {
+.title2 {
   position: relative;
   top: -15px;
   font-size: 45px;
   font-family: Verdana,sans-serif;
 }
 
+.logo {
+  max-height: 90px;
+}
+
 a {
   text-decoration: none;
+}
+
+.tenant-text {
+  float: left;
+  padding: 0 10px 10px 0;
+}
+
+.menu-vitam {
+  padding-top: 25px;
+}
+
+.relative {
+  position: relative;
+}
+
+.subMenu {
+  position: absolute;
+  z-index: 1015;
+  width: 240px;
+  top: 35px;
+  left: 25%;
+  display: block;
+}
+
+.subItem {
+  padding: 5px 0;
+  text-align: left;
+}
+
+.subContent {
+  position: absolute;
+  z-index: 1030;
+  left: 240px;
+  top: -10px;
+  display: block;
+}
+
+.menuIcons i {
+  color: red;
+
 }

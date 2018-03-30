@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
+import {Component, HostListener, OnInit} from '@angular/core';
+import {Router} from '@angular/router';
+import {HttpErrorResponse} from '@angular/common/http';
 import {Message, SelectItem} from 'primeng/primeng';
 
-import { ResourcesService } from '../resources.service';
-import { AuthenticationService } from '../../authentication/authentication.service';
-import {AccessContractService} from "../access-contract.service";
+import {ResourcesService} from '../resources.service';
+import {AuthenticationService} from '../../authentication/authentication.service';
+import {AccessContractService} from '../access-contract.service';
 
 @Component({
   selector: 'vitam-menu',
@@ -14,21 +14,28 @@ import {AccessContractService} from "../access-contract.service";
 })
 export class MenuComponent implements OnInit {
 
-  msgs: Message[] = [];
-  isAuthenticated : boolean;
+  isAuthenticated: boolean;
   tenantChosen: string;
   accessContracts: SelectItem[] = [];
   accessContract = '';
   items = [];
 
-  constructor(private resourcesService: ResourcesService, private authenticationService : AuthenticationService,
-              private router : Router, private accessContractService: AccessContractService) {
+  constructor(private resourcesService: ResourcesService, private authenticationService: AuthenticationService,
+              private router: Router, private accessContractService: AccessContractService) {
   }
 
   ngOnInit() {
     this.authenticationService.getLoginState().subscribe((value) => {
       if (value) {
-        //FIXME change menu model or wait primeng fix the bug of visible https://github.com/primefaces/primeng/issues/3072
+        const ingestItems = [
+          {id: 'sip', label: 'Transfert de SIP et plan de classement', routerLink: ['ingest/sip']},
+          {id: 'jop', label: 'Suivi des opérations d\'entrée', routerLink: ['ingest/logbook']}
+        ];
+        const search = [
+          {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
+          {label: 'Recherche par service producteur', routerLink: ['admin/accessionRegister']}
+        ];
+
         if (this.authenticationService.isAdmin()) {
           let importItems = [];
           if (this.authenticationService.isTenantAdmin()) {
@@ -57,26 +64,26 @@ export class MenuComponent implements OnInit {
 
           this.items = [
             {
+              id: 'ingest',
               label: 'Entrée',
               icon: 'fa-sign-in',
-              items: [
-                {label: 'Transfert de SIP et plan de classement',routerLink: ['ingest/sip']},
-                {label: 'Suivi des opérations d\'entrée', routerLink: ['ingest/logbook']}
-              ]
+              items: ingestItems,
+              size: 2
             },
             {
+              id: 'search',
               label: 'Recherche',
               icon: 'fa-search',
-              items: [
-                {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
-                {label: 'Recherche par service producteur', routerLink: ['admin/accessionRegister']}
-              ]
+              items: search,
+              size: 3
             },
             {
+              id: 'admin',
               label: 'Administration',
               icon: 'fa-cogs',
               items: [
                 {
+                  id: 'details',
                   label: 'Référentiels',
                   items: [
                     {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
@@ -85,15 +92,17 @@ export class MenuComponent implements OnInit {
                     {label: 'Documents type', routerLink: ['admin/search/archiveUnitProfile']},
                     {label: 'Formats', routerLink: ['admin/search/format']},
                     {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
-                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
+                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled: false},
                     {label: 'Services agents', routerLink: ['admin/search/agencies']}
                   ]
                 },
                 {
+                  id: 'import',
                   label: 'Import des référentiels',
                   items: importItems
                 },
                 {
+                  id: 'operation',
                   label: 'Opérations',
                   items: [
                     {label: 'Gestion des opérations', routerLink: ['admin/workflow']},
@@ -101,39 +110,40 @@ export class MenuComponent implements OnInit {
                     {label: 'Opérations de sécurisation', routerLink: ['admin/traceabilityOperation']}
                   ]
                 }
-              ]
+              ],
+              size: 3
             },
             {
+              id: 'archives',
               label: 'Gestion des archives',
               icon: 'fa-area-chart',
               items: [
                 {label: 'Audit', routerLink: ['admin/audits']}
-              ]
+              ],
+              size: 4
             }
           ];
         } else {
           this.items = [
             {
+              id: 'ingest',
               label: 'Entrée',
               icon: 'fa-sign-in',
-              items: [
-                {label: 'Transfert de SIP et plan de classement',routerLink: ['ingest/sip']},
-                {label: 'Suivi des opérations d\'entrée', routerLink: ['ingest/logbook']}
-              ]
+              items: ingestItems
             },
             {
+              id: 'search',
               label: 'Recherche',
               icon: 'fa-search',
-              items: [
-                {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
-                {label: 'Recherche par service producteur', routerLink: ['admin/accessionRegister']}
-              ]
+              items: search
             },
             {
+              id: 'admin',
               label: 'Administration',
               icon: 'fa-cogs',
               items: [
                 {
+                  id: 'details',
                   label: 'Référentiels',
                   items: [
                     {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
@@ -142,11 +152,12 @@ export class MenuComponent implements OnInit {
                     {label: 'Documents type', routerLink: ['admin/search/archiveUnitProfile']},
                     {label: 'Formats', routerLink: ['admin/search/format']},
                     {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
-                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
+                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled: false},
                     {label: 'Services agents', routerLink: ['admin/search/agencies']}
                   ]
                 },
                 {
+                  id: 'operation',
                   label: 'Opérations',
                   items: [
                     {label: 'Journal des opérations', routerLink: ['admin/logbookOperation']}
@@ -161,10 +172,10 @@ export class MenuComponent implements OnInit {
 
         this.resourcesService.getAccessContrats().subscribe((data) => {
           this.accessContracts = [];
-          let contractInCookie = this.resourcesService.getAccessContract();
+          const contractInCookie = this.resourcesService.getAccessContract();
           let hasContract = false;
-          for (let contract of data.$results) {
-            this.accessContracts.push({label:contract.Name, value:contract.Identifier});
+          for (const contract of data.$results) {
+            this.accessContracts.push({label: contract.Name, value: contract.Identifier});
             if (contract.Identifier === contractInCookie) {
               hasContract = true
             }
@@ -185,7 +196,7 @@ export class MenuComponent implements OnInit {
           }
 
           // Logout when cookie expired
-          if (error.status == 0) {
+          if (error.status === 0) {
             this.isAuthenticated = false;
             this.logOut();
             this.router.navigate(['login']);
@@ -208,5 +219,61 @@ export class MenuComponent implements OnInit {
   updateContract() {
     this.resourcesService.setAccessContract(this.accessContract);
     this.accessContractService.update(this.accessContract);
+  }
+
+  clickInside(event, items: any[]) {
+    const lastItem = items[items.length - 1];
+
+    // Handle navigation to other page (All menu should be hiden)
+    if (lastItem.routerLink) {
+      this.router.navigate(lastItem.routerLink);
+      this.hideAll(this.items);
+      return;
+    }
+
+    // Handle subMenu open
+    event.data = {
+      ids: items.map(item => item.id)
+    };
+
+    for (const item of items) {
+      item.displayed = true;
+    }
+  }
+
+  hideAll(items: any[]) {
+    if (!items) {
+      return;
+    }
+
+    for (const item of items) {
+      item.displayed = false;
+      this.hideAll(item.items);
+    }
+  }
+
+  hideRecursively(items: any[], ids: string[]) {
+    if (ids.length === 0 || !items) {
+      return;
+    }
+
+    for (const item of items) {
+      if (item.id !== ids[0]) {
+        item.displayed = false;
+        this.hideAll(item.items);
+      } else {
+        this.hideRecursively(item.items, ids.slice(1));
+      }
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  clickedOutside(event) {
+    // This function is called on each click and will hide all submenu that the mouse is out of
+    if (!event.data || !event.data.ids || event.data.ids.length === 0) {
+      this.hideAll(this.items);
+    } else {
+      this.hideRecursively(this.items, event.data.ids);
+    }
   }
 }
