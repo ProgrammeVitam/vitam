@@ -14,6 +14,7 @@ export class ArchiveUnitFacetComponent implements OnInit {
   @Input() label: string;
   @Input() advancedMode = false;
   @Input() public searchRequest: any = {};
+  @Input() disabledFacet = false;
   @Input() public submitFunction: (service: any, emitter: EventEmitter<any>, request: any) => void;
   @Output() responseEvent: EventEmitter<any> = new EventEmitter<any>();
   facets: any[] = [];
@@ -51,7 +52,9 @@ export class ArchiveUnitFacetComponent implements OnInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (!!this.data && this.data.$facetResults.length > 0) {
+
+    if (!!this.data && this.data.$facetResults
+      && this.data.$facetResults.length > 0) {
       this.facetResults = this.data.$facetResults;
       for (const facetResult of this.facetResults) {
         switch (facetResult.name) {
@@ -84,6 +87,14 @@ export class ArchiveUnitFacetComponent implements OnInit {
     } else {
       delete this.facetResults;
       this.isCollapsed = true;
+    }
+    if (!this.advancedMode) {
+      this.disabledFacet = false;
+    }
+
+    if (this.disabledFacet) {
+      this.clearFacetResults();
+      delete this.data.$facetResults;
     }
   }
 
@@ -177,15 +188,20 @@ export class ArchiveUnitFacetComponent implements OnInit {
   }
 
   clearFacets() {
+    this.clearFacetResults();
+    this.processPreSearch(this.searchRequest);
+  }
+
+  clearFacetResults() {
     delete this.facets;
     delete this.selectedFacets;
     delete this.facetDLResults;
     delete this.facetOAResults;
     delete this.facetSDResults;
     delete this.facetEDResults;
+    this.rangeStartDate = [800, this.currentFullYear];
+    this.rangeEndDate = [800, this.currentFullYear];
     delete this.searchRequest.requestFacet;
-
-    this.processPreSearch(this.searchRequest);
   }
 }
 

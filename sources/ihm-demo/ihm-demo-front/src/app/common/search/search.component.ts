@@ -30,6 +30,7 @@ export class SearchComponent implements OnInit {
   @Output() clearResults: EventEmitter<any> = new EventEmitter<any>();
   @Output() onChangedSearchRequest: EventEmitter<any> = new EventEmitter<any>();
   @Output() onChangedSearchMode: EventEmitter<any> = new EventEmitter<any>();
+  @Output() onDisabledFiled: EventEmitter<any> = new EventEmitter<any>();
 
   frLocale = {
     dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
@@ -146,15 +147,19 @@ export class SearchComponent implements OnInit {
       if (field.disableOtherFields && this.searchForm.get(field.name).value) {
         this.searchForm.disable();
         this.searchForm.get(field.name).enable();
+        this.onDisabledFiled.emit(true)
       } else {
         this.searchForm.enable();
+        this.onDisabledFiled.emit(false)
       }
     } else {
       if (field.disableOtherFields && this.advancedSearchForm.get(field.name).value) {
         this.advancedSearchForm.disable();
         this.advancedSearchForm.get(field.name).enable();
+        this.onDisabledFiled.emit(true)
       } else {
         this.advancedSearchForm.enable();
+        this.onDisabledFiled.emit(false)
       }
     }
   }

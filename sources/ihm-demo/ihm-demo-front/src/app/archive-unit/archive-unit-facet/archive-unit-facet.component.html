@@ -76,8 +76,8 @@
       </p-scrollPanel>
     </div>
     <div class="ui-g-12">
-      <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer" (click)="clearFacets()"></button>
-      <button pButton type="button" (click)="searchFacets()" label="Rechercher" icon="fa-search"></button>
+      <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer" (click)="clearFacets()" [disabled]="disabledFacet"></button>
+      <button pButton type="button" (click)="searchFacets()" label="Rechercher" icon="fa-search" [disabled]="disabledFacet"></button>
     </div>
   </div>
 </p-panel>

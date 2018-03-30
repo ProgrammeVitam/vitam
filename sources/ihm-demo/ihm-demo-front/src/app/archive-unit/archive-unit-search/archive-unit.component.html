@@ -1,9 +1,10 @@
 <vitam-search label="Recherche d'archives" [service]="service" [data]="archiveUnitFields" [preSearch]="preSearchFunction"
     [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" (clearResults)="onClear($event)" [advancedData]="advancedSearchFields"
-    [advancedMode]="advancedMode" (onChangedSearchRequest)="onChangedSearchRequest($event)" (onChangedSearchMode)="onChangedSearchMode($event)"></vitam-search>
+    [advancedMode]="advancedMode" (onChangedSearchRequest)="onChangedSearchRequest($event)" (onChangedSearchMode)="onChangedSearchMode($event)"
+    (onDisabledFiled)="onDisabledFiled($event)"></vitam-search>
 
 <vitam-archive-unit-facet label="Affiner la recherche" [data]="response" [searchRequest]="searchRequest" [advancedMode]="advancedMode"
-    [service]="service" (responseEvent)="onNotify($event)" [preSearch]="preSearchFunction" [submitFunction]="initialSearch" (clearFacetResults)="onClearFacetResults($event)"></vitam-archive-unit-facet>
+    [disabledFacet]="disabledFacet" [service]="service" (responseEvent)="onNotify($event)" [preSearch]="preSearchFunction" [submitFunction]="initialSearch"></vitam-archive-unit-facet>
 
 <vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="service" [searchFunction]="paginationSearch"
     [searchForm]="searchForm" [path]="'/search/archiveUnit'"></vitam-results>
