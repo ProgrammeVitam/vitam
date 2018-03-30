@@ -73,7 +73,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 try (CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
                     CheckObjectsNumberActionHandler checkObjectsNumberActionHandler =
                         new CheckObjectsNumberActionHandler();
-                    ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();) {
+                    ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler()) {
                     ItemStatus checkNoObjectStatus = checkNoObjectsActionHandler.execute(params, handlerIO);
                     itemStatus.setItemsStatus(CheckNoObjectsActionHandler.getId(), checkNoObjectStatus);
 

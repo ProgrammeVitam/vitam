@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
@@ -67,11 +68,9 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -89,17 +88,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class, StorageClientFactory.class})
 public class CreateUnitSecureFileActionPluginTest {
 
-    CreateUnitSecureFileActionPlugin plugin = new CreateUnitSecureFileActionPlugin();
-
+    CreateUnitSecureFileActionPlugin plugin;
     private static final Integer TENANT_ID = 0;
     private static final String UNIT_LFC_1 = "CreateUnitSecureFileActionPlugin/lfc_unit1.json";
     private static final String UNIT_MD = "CreateUnitSecureFileActionPlugin/unit_md.json";
@@ -110,26 +104,26 @@ public class CreateUnitSecureFileActionPluginTest {
 
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
 
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-    private HandlerIO handler = mock(HandlerIO.class);
+    @Rule public TemporaryFolder folder = new TemporaryFolder();
+    @Mock private HandlerIO handler;
     private final WorkerParameters params =
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
             .setObjectName(guidUnit + ".json").setCurrentStep("currentStep")
             .setContainerName(guid.getId())
             .setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
-    private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;
-    private MetaDataClient metadataClient;
-    private MetaDataClientFactory metadataClientFactory;
+    @Mock private WorkspaceClient workspaceClient;
 
-    private StorageClientFactory storageClientFactory;
-    private StorageClient storageClient;
+    @Mock private MetaDataClient metadataClient;
+    @Mock private MetaDataClientFactory metadataClientFactory;
+
+    @Mock private StorageClientFactory storageClientFactory;
+    @Mock private StorageClient storageClient;
 
     public CreateUnitSecureFileActionPluginTest() {
         // do nothing
@@ -140,23 +134,13 @@ public class CreateUnitSecureFileActionPluginTest {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
-        workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        PowerMockito.mockStatic(MetaDataClientFactory.class);
-        metadataClient = mock(MetaDataClient.class);
-        metadataClientFactory = mock(MetaDataClientFactory.class);
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
-        PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
-            .thenReturn(metadataClient);
+        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        plugin =
+            new CreateUnitSecureFileActionPlugin(metadataClientFactory, storageClientFactory);
+
         handler = new HandlerIOImpl(workspaceClient, "CreateUnitSecureFileActionPluginTest", "workerId");
 
-        PowerMockito.mockStatic(StorageClientFactory.class);
-        storageClientFactory = mock(StorageClientFactory.class);
-        storageClient = mock(StorageClient.class);
-        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        PowerMockito.when(StorageClientFactory.getInstance().getClient())
-            .thenReturn(storageClient);
     }
 
     @Test
@@ -205,7 +189,8 @@ public class CreateUnitSecureFileActionPluginTest {
 
         objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
 
-        when(storageClient.getInformation(eq("default"), eq(DataCategory.UNIT), eq(guidUnit + ".json"), eq(Arrays.asList(offerIds))))
+        when(storageClient
+            .getInformation(eq("default"), eq(DataCategory.UNIT), eq(guidUnit + ".json"), eq(Arrays.asList(offerIds))))
             .thenReturn(objectInformationResult);
 
         ItemStatus response = plugin.execute(params, handler);
@@ -235,7 +220,7 @@ public class CreateUnitSecureFileActionPluginTest {
                 "INGEST",
                 "2017-08-16T14:34:40.426",
                 guidUnit,
-                LifeCycleTraceabilitySecureFileObject.MetadataType.UNIT,
+                MetadataType.UNIT,
                 0,
                 "OK",
                 unitLFCHash,

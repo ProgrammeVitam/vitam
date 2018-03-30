@@ -189,11 +189,7 @@ public class AccessExtAPI {
     /**
      * Unit evidence audit uri
      */
-    public static final String UNIT_EVIDENCE_AUDIT_API = "/evidenceaudit/unit";
-    /**
-     * Object group evidence audit uri
-     */
-    public static final String OBJECT_GROUP_EVIDENCE_AUDIT_API = "/evidenceaudit/objects";
+    public static final String UNIT_EVIDENCE_AUDIT_API = "/evidenceaudit";
     /**
      * Archive unit profile base uri
      */

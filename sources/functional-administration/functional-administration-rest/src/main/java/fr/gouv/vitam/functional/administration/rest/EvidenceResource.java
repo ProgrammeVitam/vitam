@@ -26,22 +26,56 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseError;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.functional.administration.evidence.EvidenceService;
+import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
 
 /**
  * Lifecycle traceability audit resource
@@ -51,47 +85,131 @@ import fr.gouv.vitam.functional.administration.evidence.EvidenceService;
 public class EvidenceResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResource.class);
-    private static final String UNIT_IS_MANDATORY = "Unit is mandatory";
-    private static final String OBJECT_GROUP_IS_MANDATORY = "Object group is mandatory";
+    private static final String EVIDENCE_AUDIT = "EVIDENCE_AUDIT";
+    private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
 
     /**
      * Evidence service
      */
-    private EvidenceService evidenceService = new EvidenceService();
+    private ProcessingManagementClientFactory processingManagementClientFactory =
+        ProcessingManagementClientFactory.getInstance();
+    private LogbookOperationsClientFactory logbookOperationsClientFactory =
+        LogbookOperationsClientFactory.getInstance();
 
-    /**
-     *
-     * @param unitId unit Id
-     * @return  OK if everything OK
-     */
-    @POST
-    @Path("/evidenceaudit/unit/{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
-        ParametersChecker.checkParameter(UNIT_IS_MANDATORY, unitId);
+    private WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
 
-        RequestResponse<JsonNode> requestResponse = evidenceService
-            .launchEvidence(unitId, LifeCycleTraceabilitySecureFileObject.MetadataType.UNIT);
-
-        return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
+    @VisibleForTesting
+    public EvidenceResource(
+        ProcessingManagementClientFactory processingManagementClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
+        this.processingManagementClientFactory = processingManagementClientFactory;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
-    /**
-     *
-     * @param objectGroupId objectGroupId
-     * @return  OK if everything OK
-     */
+
+    EvidenceResource() {  /*nothing to do   */}
+
+    private void createEvidenceAuditOperation(GUID eip)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException {
+
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+
+            final LogbookOperationParameters logbookParameters;
+            logbookParameters = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, EVIDENCE_AUDIT, eip,
+                    LogbookTypeProcess.AUDIT,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(EVIDENCE_AUDIT, StatusCode.STARTED), eip);
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+            logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
+                unprettyPrint(evDetData));
+            client.create(logbookParameters);
+        }
+    }
+
     @POST
-    @Path("/evidenceaudit/objects/{id}")
+    @Path("/evidenceaudit")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
-        ParametersChecker.checkParameter(OBJECT_GROUP_IS_MANDATORY, objectGroupId);
+    public Response audit(JsonNode queryDsl) {
 
-        RequestResponse<JsonNode> requestResponse = evidenceService
-            .launchEvidence(objectGroupId, LifeCycleTraceabilitySecureFileObject.MetadataType.OBJECTGROUP);
+        Response.Status status;
+        LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
 
-        return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
+        try {
+            checkEmptyQuery(queryDsl);
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+                String operationId = eip.getId();
+                createEvidenceAuditOperation(eip);
+
+
+                workspaceClient.createContainer(operationId);
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+
+                processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), operationId, EVIDENCE_AUDIT);
+
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    processingClient.executeOperationProcess(operationId, EVIDENCE_AUDIT,
+                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                return jsonNodeRequestResponse.toResponse();
+
+            } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+
+                VitamClientException | LogbookClientServerException | InternalServerException e) {
+                LOGGER.error("Error while auditing", e);
+
+                return Response.status(INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+
+            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException e) {
+                return Response.status(INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            }
+
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Response.Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
+        }
+
+    }
+
+
+    private Response buildErrorResponse(VitamCode vitamCode) {
+        return Response.status(vitamCode.getStatus())
+            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+            .build();
+    }
+
+    private VitamError getErrorEntity(Response.Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+
+
+    private void checkEmptyQuery(JsonNode queryDsl)
+        throws InvalidParseOperationException, BadRequestException {
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl.deepCopy());
+        if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {
+            throw new BadRequestException("Query cant be empty");
+        }
     }
 }

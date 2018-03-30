@@ -41,7 +41,8 @@ public enum Contexts {
     CHECK(LogbookTypeProcess.CHECK, "CHECK_LOGBOOK_OP_SECURISATION"),
     AUDIT_WORKFLOW(LogbookTypeProcess.AUDIT, "PROCESS_AUDIT"),
     SECURISATION_LC(LogbookTypeProcess.TRACEABILITY, "LOGBOOK_LC_SECURISATION"),
-    EXPORT_DIP(LogbookTypeProcess.EXPORT_DIP, "EXPORT_DIP");
+    EXPORT_DIP(LogbookTypeProcess.EXPORT_DIP, "EXPORT_DIP"),
+    EVIDENCE_AUDIT(LogbookTypeProcess.AUDIT, "EVIDENCE_AUDIT");
 
     private LogbookTypeProcess logbookTypeProcess;
     private String eventType;

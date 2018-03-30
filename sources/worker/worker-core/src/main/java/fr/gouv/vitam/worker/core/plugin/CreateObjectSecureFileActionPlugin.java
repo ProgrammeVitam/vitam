@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -36,12 +37,15 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
+
 /**
- * CreateObjectSecureFileAction Plugin.<br>
+ * CreateObjectSecureFileAction Plugin.
  *
  */
 public class CreateObjectSecureFileActionPlugin extends CreateSecureFileActionPlugin implements VitamAutoCloseable {
@@ -52,8 +56,14 @@ public class CreateObjectSecureFileActionPlugin extends CreateSecureFileActionPl
     /**
      * Empty constructor
      */
-    public CreateObjectSecureFileActionPlugin() {}
+    public CreateObjectSecureFileActionPlugin() {super();}
 
+
+    @VisibleForTesting
+    public CreateObjectSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory ,
+        StorageClientFactory storageClientFactory) {
+        super(metaDataClientFactory,storageClientFactory);
+    }
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         handlerIO = handler;

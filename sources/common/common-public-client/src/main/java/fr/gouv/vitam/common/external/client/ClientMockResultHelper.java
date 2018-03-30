@@ -801,11 +801,7 @@ public class ClientMockResultHelper {
 	            .setHttpCode(Status.OK.getStatusCode());
 	}
 
-    public static RequestResponse<ProfileModel> getUnitEvidenceAudit(int statusCode) {
-        return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
-    }
-
-    public static RequestResponse<ProfileModel> getObjectGroupEvidenceAudit(int statusCode) {
+    public static RequestResponse<ProfileModel> getEvidenceAudit(int statusCode) {
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
     }
 

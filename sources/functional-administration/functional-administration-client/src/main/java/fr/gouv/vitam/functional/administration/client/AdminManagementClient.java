@@ -601,22 +601,14 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * launch a traceability audit for the unit
      *
-     * @param unitId the id
+     * @param queryDsl the id
      * @return the server response
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<JsonNode> unitEvidenceAudit(String unitId)
+    RequestResponse<JsonNode> evidenceAudit(JsonNode queryDsl)
         throws AdminManagementClientServerException;
 
-    /**
-     * launch a traceability audit for the object group
-     *
-     * @param objectGroupId the id
-     * @return the server response
-     * @throws AdminManagementClientServerException
-     */
-    RequestResponse<JsonNode> objectGroupEvidenceAudit(String objectGroupId)
-        throws AdminManagementClientServerException;
+
 
     /**
      * Import a set of archive unit profile metadata. </BR>

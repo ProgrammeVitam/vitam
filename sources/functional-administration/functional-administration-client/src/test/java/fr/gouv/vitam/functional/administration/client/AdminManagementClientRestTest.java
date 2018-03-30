@@ -446,21 +446,15 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/evidenceaudit/unit/{id}")
+        @Path("/evidenceaudit")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
+        public Response checkEvidenceAudit( String query) {
             return expectedResponse.post();
         }
 
-        @POST
-        @Path("/evidenceaudit/objects/{id}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
-            return expectedResponse.post();
-        }
-        
+
+
 
         @POST
         @Path("/archiveunitprofiles")
@@ -824,7 +818,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findIngestContracts is reachable and does not return elements
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -844,7 +838,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findIngestContracts is reachable and return two elements as expected
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -865,7 +859,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findIngestContractsByID is reachable
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -895,7 +889,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findAccessContracts is reachable and does not return elements
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -915,7 +909,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findAccessContracts is reachable and return two elements as expected
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -936,7 +930,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that findAccessContractsByID is reachable
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -956,13 +950,15 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     private List<AccessContractModel> getAccessContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
+        });
     }
 
     private List<IngestContractModel> getIngestContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+        });
     }
 
 
@@ -992,7 +988,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that profiles is reachable and does not return elements
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -1024,7 +1020,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that profiles is reachable and return two elements as expected
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -1063,7 +1059,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that profiles by id is reachable
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -1113,7 +1109,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     private List<ProfileModel> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+        return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+        });
     }
 
     @Test
@@ -1152,7 +1149,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException {
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
+        return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+        });
     }
 
     @Test
@@ -1193,25 +1191,13 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     @Test
     @RunWithCustomExecutor
-    public void unitEvidenceAuditTest()
+    public void evidenceAuditTest()
         throws ReferentialException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.post()).thenReturn(Response.status(Status.OK)
             .build());
-        RequestResponse<JsonNode> resp = client.unitEvidenceAudit("ID");
-        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void objectGroupEvidenceAuditTest()
-        throws ReferentialException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
-        when(mock.post()).thenReturn(Response.status(Status.OK)
-            .build());
-        RequestResponse<JsonNode> resp = client.objectGroupEvidenceAudit("ID");
+        RequestResponse<JsonNode> resp = client.evidenceAudit(new Select().getFinalSelect());
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
     }
 
@@ -1228,7 +1214,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that archive unit profiles is reachable and does not return elements
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -1260,7 +1246,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that archive unit profiles is reachable and return two elements as expected
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
@@ -1280,7 +1266,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     /**
      * Test that archive unit profiles by id is reachable
-     * 
+     *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException

@@ -135,6 +135,7 @@ import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -1476,6 +1477,40 @@ public class ProcessingIT {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
+    }
+    @RunWithCustomExecutor
+    @Test
+    public void testworkFlowAudit() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+
+        String containerName = createOperationContainer();
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+
+        //workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
+
+        processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), containerName, "EVIDENCE_AUDIT");
+        // When
+        RequestResponse<JsonNode> jsonNodeRequestResponse =
+            processingClient.executeOperationProcess(containerName, "EVIDENCE_AUDIT",
+                Contexts.EVIDENCE_AUDIT.name(), ProcessAction.RESUME.getValue());
+
+
+        assertNotNull(jsonNodeRequestResponse);
+        assertEquals(Status.ACCEPTED.getStatusCode(), jsonNodeRequestResponse.getStatus());
+
+        wait(containerName);
+
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+
+      //  assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
     }
 
     @Test

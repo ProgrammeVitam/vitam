@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -175,18 +174,7 @@ public class LifeCycleTraceabilitySecureFileObject {
         }
     }
 
-    /**
-     * construct and add to list an ObjectGroupDocumentHash element
-     * @param objectGroupDocumentId
-     * @param objectGroupDocumentHash
-     */
-    public void addObjectGroupDocumentHashToList(String objectGroupDocumentId, String objectGroupDocumentHash) {
-        if(getObjectGroupDocumentHashList() == null){
-            this.setObjectGroupDocumentHashList(new ArrayList<>());
-        }
-        getObjectGroupDocumentHashList().add(
-                new ObjectGroupDocumentHash(objectGroupDocumentId, objectGroupDocumentHash));
-    }
+
 
 
 
@@ -289,18 +277,4 @@ public class LifeCycleTraceabilitySecureFileObject {
         return objectGroupDocumentHashList;
     }
 
-    public enum MetadataType {
-        UNIT("Unit"),
-        OBJECTGROUP("ObjectGroup");
-
-        private String name;
-
-        MetadataType(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
 }

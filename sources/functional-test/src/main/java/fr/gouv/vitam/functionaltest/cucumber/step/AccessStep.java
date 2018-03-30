@@ -1,29 +1,29 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
@@ -506,7 +506,7 @@ public class AccessStep {
     /**
      * search an archive unit according to the query define before
      *
-     * @throws Throwable
+     * @throws Throwable throw
      */
     @When("^je recherche une unité archivistique et je recupère son id$")
     public void search_one_archive_unit() throws Throwable {
@@ -904,27 +904,18 @@ public class AccessStep {
         assertThat(auditStatus.getStatusCode()).isEqualTo(202);
     }
 
-    @When("^je réalise un audit de traçabilité de l'unité$")
+    @When("^je réalise un audit de traçabilité de la requete$")
     public void unit_traceability_audit() throws Throwable {
-        String unitId = world.getUnitId();
+
+        JsonNode queryFromString = JsonHandler.getFromString(world.getQuery());
 
         // Run unit traceability audit
-        VitamContext vitamContext =
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId());
-        world.getAdminClient().unitEvidenceAudit(vitamContext, unitId);
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
+        world.getAdminClient().evidenceAudit(vitamContext, queryFromString);
     }
 
-    @When("^je réalise un audit de traçabilité de l'objet group$")
-    public void object_group_traceability_audit() throws Throwable {
-        String objectGroupId = world.getObjectGroupId();
 
-        // Run unit traceability audit
-        VitamContext vitamContext =
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId());
-        world.getAdminClient().objectGroupEvidenceAudit(vitamContext, objectGroupId);
-    }
 
     @Then("^le journal d'opération de l'audit de traçabilité a pour statut (.*)$")
     public void check_traceability_audit_status(String expectedStatus) throws Throwable {

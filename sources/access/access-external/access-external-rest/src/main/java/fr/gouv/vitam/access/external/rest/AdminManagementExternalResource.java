@@ -2307,20 +2307,20 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
 
     /**
-     * launch a traceability audit for the unit
+     * launch a traceability audit for the query
      *
-     * @param unitId unit Id
+     * @param select the query select
      * @return Response response
      */
-    @Path("/evidenceaudit/unit/{id}")
+    @Path("/evidenceaudit")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "evidenceaudit:unit:id:check", description = "Audit de traçabilité d'une unité archivistique")
-    public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
-        ParametersChecker.checkParameter("mandatory parameter", unitId);
+    @Secured(permission = "evidenceaudit:check", description = "Audit de traçabilité d'unités archivistiques")
+    public Response checkEvidenceAudit(@Dsl(value = DslSchema.SELECT_MULTIPLE)JsonNode select) {
+        ParametersChecker.checkParameter("mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> result = client.unitEvidenceAudit(unitId);
+            RequestResponse<JsonNode> result = client.evidenceAudit(select);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {
@@ -2332,29 +2332,4 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-    /**
-     * launch a traceability audit for the object group
-     *
-     * @param objectGroupId object group Id
-     * @return Response response
-     */
-    @Path("/evidenceaudit/objects/{id}")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "evidenceaudit:objects:id:check", description = "Audit de traçabilité d'un groupe d'objets")
-    public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
-        ParametersChecker.checkParameter("mandatory parameter", objectGroupId);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> result = client.objectGroupEvidenceAudit(objectGroupId);
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result).build();
-        } catch (AdminManagementClientServerException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            return Response.serverError()
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_OBJECT_GROUP_TRACREABILITY_AUDIT,
-                    e.getLocalizedMessage()))
-                .build();
-        }
-    }
 }
