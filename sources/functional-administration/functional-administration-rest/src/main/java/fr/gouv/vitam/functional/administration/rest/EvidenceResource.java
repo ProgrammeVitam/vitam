@@ -35,10 +35,12 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -48,6 +50,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -111,22 +114,25 @@ public class EvidenceResource {
 
     EvidenceResource() {  /*nothing to do   */}
 
-    private void createEvidenceAuditOperation(GUID eip)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
-        LogbookClientServerException {
+    private void createEvidenceAuditOperation(String operationId)
+        throws
+        LogbookClientServerException, InvalidGuidOperationException, LogbookClientBadRequestException,
+        LogbookClientAlreadyExistsException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
-            final LogbookOperationParameters logbookParameters;
-            logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, EVIDENCE_AUDIT, eip,
+            final LogbookOperationParameters initParameters =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    GUIDReader.getGUID(operationId),
+                    "EVIDENCE_AUDIT",
+                    GUIDReader.getGUID(operationId),
                     LogbookTypeProcess.AUDIT,
                     StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(EVIDENCE_AUDIT, StatusCode.STARTED), eip);
-            ObjectNode evDetData = JsonHandler.createObjectNode();
-            logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                unprettyPrint(evDetData));
-            client.create(logbookParameters);
+                    VitamLogbookMessages.getLabelOp("EVIDENCE_AUDIT.STARTED") + " : " + GUIDReader.getGUID(operationId),
+                    GUIDReader.getGUID(operationId));
+
+            client.create(initParameters);
+
         }
     }
 
@@ -138,19 +144,18 @@ public class EvidenceResource {
 
         Response.Status status;
         LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
-
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         try {
             checkEmptyQuery(queryDsl);
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
-                GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-                String operationId = eip.getId();
-                createEvidenceAuditOperation(eip);
-
 
                 workspaceClient.createContainer(operationId);
+
+                createEvidenceAuditOperation(operationId);
+
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
 
                 processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), operationId, EVIDENCE_AUDIT);
@@ -162,7 +167,7 @@ public class EvidenceResource {
 
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
 
-                VitamClientException | LogbookClientServerException | InternalServerException e) {
+                VitamClientException | LogbookClientServerException | InternalServerException |InvalidGuidOperationException e) {
                 LOGGER.error("Error while auditing", e);
 
                 return Response.status(INTERNAL_SERVER_ERROR)
