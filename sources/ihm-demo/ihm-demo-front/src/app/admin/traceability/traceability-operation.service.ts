@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import {Observable} from "rxjs/Observable";
-import {ResourcesService} from "../../common/resources.service";
-import {VitamResponse} from "../../common/utils/response";
+import {Observable} from 'rxjs/Observable';
+import {ResourcesService} from '../../common/resources.service';
+import {VitamResponse} from '../../common/utils/response';
 
 @Injectable()
 export class TraceabilityOperationService {
-  TRACEABILITY_OPERATION_DETAIL ='logbook/operations';
+  TRACEABILITY_OPERATION_DETAIL = 'logbook/operations';
   EXTRACT_TIMESTAMP = 'traceability/extractTimestamp';
   CHECK_TRACEABILITY_OPERATION = 'traceability/check';
 

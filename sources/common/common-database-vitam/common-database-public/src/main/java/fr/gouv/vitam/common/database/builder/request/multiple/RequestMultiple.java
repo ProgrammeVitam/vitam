@@ -38,9 +38,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -53,6 +55,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public abstract class RequestMultiple extends AbstractRequest {
     protected Set<String> roots = new HashSet<>();
     protected List<Query> queries = new ArrayList<>();
+    protected List<Facet> facets = new ArrayList<>();
 
     /**
      *
@@ -236,6 +239,21 @@ public abstract class RequestMultiple extends AbstractRequest {
         return queries.get(nth);
     }
 
+    /**
+     * getFacets
+     * @return
+     */
+    public List<Facet> getFacets() {
+        return facets;
+    }
+
+    /**
+     * setFacets
+     * @param facets
+     */
+    public void setFacets(List<Facet> facets) {
+        this.facets = facets;
+    }
 
     /**
      * default implements of getData

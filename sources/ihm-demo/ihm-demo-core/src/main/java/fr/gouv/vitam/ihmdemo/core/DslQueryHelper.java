@@ -36,17 +36,20 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.database.builder.facet.DateRangeFacet;
+import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
+import fr.gouv.vitam.common.database.builder.facet.TermsFacet;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -55,8 +58,10 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestFacetItem;
 
 /**
  * Helper class to create DSL queries
@@ -83,6 +88,8 @@ public final class DslQueryHelper {
     private static final String ARCHIVE_UNIT_PROFILE_ID = "ArchiveUnitProfileID";
     private static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER = "ArchiveUnitProfileIdentifier";
     private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
+    private static final String ORIGINATING_AGENCY_TAG = "#originating_agency";
+    private static final String DESCRIPTION_LEVEL_TAG = "DescriptionLevel";
     private static final String DESCRIPTION = "Description";
     private static final String TITLE = "Title";
     private static final String TITLE_FR = "Title_.fr";
@@ -128,10 +135,12 @@ public final class DslQueryHelper {
     private static final String MANAGEMENT_KEY = "#management";
     private static final String INGEST_START_DATE = "IngestStartDate";
     private static final String INGEST_END_DATE = "IngestEndDate";
+    private static final String FACETS_PREFIX = "facets";
 
     private static final String ASC_SORT_TYPE = "ASC";
     private static final String SORT_TYPE_ENTRY = "sortType";
     private static final String SORT_FIELD_ENTRY = "field";
+    private static final String REQUEST_FACET_PREFIX = "requestFacet";
 
 
 
@@ -146,7 +155,7 @@ public final class DslQueryHelper {
      *
      * @param searchCriteriaMap the map containing the criteria
      * @return DSL request
-     * @throws InvalidParseOperationException if a parse exception is encountered
+     * @throws InvalidParseOperationException  if a parse exception is encountered
      * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
     @SuppressWarnings("unchecked")
@@ -359,7 +368,7 @@ public final class DslQueryHelper {
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
 
@@ -417,7 +426,7 @@ public final class DslQueryHelper {
      *
      * @param projectionCriteriaMap the given projection parameters
      * @return request with projection
-     * @throws InvalidParseOperationException null key or value parameters
+     * @throws InvalidParseOperationException  null key or value parameters
      * @throws InvalidCreateOperationException queryDsl create operation
      */
     public static JsonNode createGetByIdDSLSelectMultipleQuery(Map<String, String> projectionCriteriaMap)
@@ -447,7 +456,7 @@ public final class DslQueryHelper {
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
     @SuppressWarnings("unchecked")
@@ -457,6 +466,7 @@ public final class DslQueryHelper {
         final SelectMultiQuery select = new SelectMultiQuery();
         final BooleanQuery andQuery = and();
         final BooleanQuery booleanQueries = or();
+        boolean advancedFacetQuery = false;
         String startDate = null;
         String endDate = null;
         String advancedSearchFlag = "";
@@ -472,6 +482,38 @@ public final class DslQueryHelper {
             // Add projection for fields prefixed by projection_
             if (searchKeys.startsWith(PROJECTION_PREFIX)) {
                 select.addUsedProjection((String) searchValue);
+                continue;
+            }
+
+            // add facets
+            if (searchKeys.startsWith(FACETS_PREFIX)) {
+                List<FacetItem> facetSettings = (List<FacetItem>) searchValue;
+                for (int i = 0; i < facetSettings.size(); i++) {
+                    FacetItem facetItem = JsonHandler
+                        .getFromString(JsonHandler.writeAsString(facetSettings.get(i)), FacetItem.class);
+
+                    if (facetItem.getFacetType() != null) {
+                        switch (facetItem.getFacetType()) {
+                            case TERMS:
+                                select.addFacets(new TermsFacet(facetItem.getName(), facetItem.getField(),
+                                    facetItem.getSize(), facetItem.getOrder()));
+                                break;
+
+                            case DATE_RANGE:
+                                List<RangeFacetValue> ranges = facetItem.getRanges().stream()
+                                    .map(range -> new RangeFacetValue(range.getDateMin(), range.getDateMax()))
+                                    .collect(Collectors.toList());
+
+                                select.addFacets(
+                                    new DateRangeFacet(facetItem.getName(), facetItem.getField(),
+                                        facetItem.getFormat(), ranges));
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                }
                 continue;
             }
 
@@ -547,9 +589,38 @@ public final class DslQueryHelper {
                 advancedSearchFlag = (String) searchValue;
                 continue;
             }
+            if (searchKeys.equalsIgnoreCase(REQUEST_FACET_PREFIX)) {
+                RequestFacetItem requestFacetItem = JsonHandler
+                    .getFromString(JsonHandler.writeAsString(searchValue), RequestFacetItem.class);
+                if (requestFacetItem != null && requestFacetItem.getField() != null &&
+                    requestFacetItem.getValue() != null) {
+                    switch (requestFacetItem.getField()) {
+                        case ORIGINATING_AGENCY_TAG:
+                        case DESCRIPTION_LEVEL_TAG:
+                            advancedFacetQuery = true;
+                            andQuery.add(eq(requestFacetItem.getField(), requestFacetItem.getValue()));
+                            break;
+                        case START_DATE:
+                        case END_DATE:
+                            final String[] values = requestFacetItem.getValue().split("-");
+                            if (values.length == 2) {
+                                advancedFacetQuery = true;
+                                andQuery.add(gte(requestFacetItem.getField(), values[0]),
+                                    lte(requestFacetItem.getField(), values[1]));
+                            }
+                            break;
+
+                        default:
+                            break;
+                    }
+                    continue;
+                }
+            }
+
             // By default add equals query
             booleanQueries.add(match(searchKeys, (String) searchValue));
         }
+
         // US 509:start AND end date must be filled.
         if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {
             andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
@@ -557,7 +628,14 @@ public final class DslQueryHelper {
 
         boolean noRoots = select.getRoots() == null || select.getRoots().isEmpty();
 
-        if (advancedSearchFlag.equalsIgnoreCase(YES)) {
+        if (advancedFacetQuery) {
+            if (booleanQueries.isReady()) {
+                // do no set depth when no root and first query
+                if (!(noRoots && select.getNbQueries() == 0)) {
+                    booleanQueries.setDepthLimit(DEPTH_LIMIT);
+                }
+                andQuery.add(booleanQueries);
+            }
             if (andQuery.isReady()) {
                 // do no set depth when no root and first query
                 if (!(noRoots && select.getNbQueries() == 0)) {
@@ -566,12 +644,22 @@ public final class DslQueryHelper {
                 select.addQueries(andQuery);
             }
         } else {
-            if (booleanQueries.isReady()) {
-                // do no set depth when no root and first query
-                if (!(noRoots && select.getNbQueries() == 0)) {
-                    booleanQueries.setDepthLimit(DEPTH_LIMIT);
+            if (advancedSearchFlag.equalsIgnoreCase(YES)) {
+                if (andQuery.isReady()) {
+                    // do no set depth when no root and first query
+                    if (!(noRoots && select.getNbQueries() == 0)) {
+                        andQuery.setDepthLimit(DEPTH_LIMIT);
+                    }
+                    select.addQueries(andQuery);
                 }
-                select.addQueries(booleanQueries);
+            } else {
+                if (booleanQueries.isReady()) {
+                    // do no set depth when no root and first query
+                    if (!(noRoots && select.getNbQueries() == 0)) {
+                        booleanQueries.setDepthLimit(DEPTH_LIMIT);
+                    }
+                    select.addQueries(booleanQueries);
+                }
             }
         }
 
@@ -580,9 +668,9 @@ public final class DslQueryHelper {
 
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
-     * @param updateRules rules that must be updated in the AU.
+     * @param updateRules       rules that must be updated in the AU.
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
     public static JsonNode createUpdateByIdDSLQuery(Map<String, JsonNode> searchCriteriaMap,

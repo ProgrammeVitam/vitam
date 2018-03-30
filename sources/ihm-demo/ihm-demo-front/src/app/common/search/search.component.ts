@@ -3,8 +3,8 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { FieldDefinition } from './field-definition';
-import { Preresult } from './preresult';
-import {AccessContractService} from "../access-contract.service";
+import { Preresult } from '../preresult';
+import {AccessContractService} from '../access-contract.service';
 
 @Component({
   selector: 'vitam-search',
@@ -28,6 +28,8 @@ export class SearchComponent implements OnInit {
   @Output() responseEvent: EventEmitter<any> = new EventEmitter<any>();
   @Output() panelButtonEvent: EventEmitter<any> = new EventEmitter<any>();
   @Output() clearResults: EventEmitter<any> = new EventEmitter<any>();
+  @Output() onChangedSearchRequest: EventEmitter<any> = new EventEmitter<any>();
+  @Output() onChangedSearchMode: EventEmitter<any> = new EventEmitter<any>();
 
   frLocale = {
     dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
@@ -106,6 +108,7 @@ export class SearchComponent implements OnInit {
       Object.keys( form.controls).forEach(key => {
         body[key] = form.controls[key].value;
       });
+      this.onChangedSearchRequest.emit(body);
       let preSearchResult: Preresult = this.processPreSearch(body);
       if (preSearchResult.success) {
         this.submitFunction(this.service, this.responseEvent, preSearchResult.request);
@@ -158,6 +161,7 @@ export class SearchComponent implements OnInit {
 
   switchMode(isAdvanced: boolean) {
     this.advancedMode = isAdvanced;
+    this.onChangedSearchMode.emit(this.advancedMode);
   }
 
   clickPanelButton() {
