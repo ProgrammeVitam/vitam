@@ -192,6 +192,19 @@ public class ArchiveUnitProfileServiceImplTest {
         assertThat(response.isOk()).isFalse();
         verifyZeroInteractions(functionalBackupService);
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenATestMissingSchemaReturnBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_missing_schema.json");
+        final List<ArchiveUnitProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+
+        assertThat(response.isOk()).isFalse();
+        verifyZeroInteractions(functionalBackupService);
+    }
 
     @Test
     @RunWithCustomExecutor

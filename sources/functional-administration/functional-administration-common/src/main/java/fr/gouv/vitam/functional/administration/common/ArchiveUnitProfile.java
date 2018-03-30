@@ -69,6 +69,11 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
      * the desactication date of the profile
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
+    /**
+     * the controlSchema of the profile
+     */
+    public static final String CONTROLSCHEMA = "ControlSchema";
+
 
 
     /**
@@ -267,6 +272,26 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
         append(DEACTIVATIONDATE, deactivationdate);
         return this;
     }
+
+
+    /**
+     * @return the ControlSchema of the profile
+     */
+    public String getControlSchema() {
+        return getString(CONTROLSCHEMA);
+    }
+
+    /**
+     * @param ControlSchema to set
+     * @return this
+     */
+    public ArchiveUnitProfile setControlSchema(String ControlSchema) {
+        append(CONTROLSCHEMA, ControlSchema);
+        return this;
+    }
+
+
+
 
 
 }

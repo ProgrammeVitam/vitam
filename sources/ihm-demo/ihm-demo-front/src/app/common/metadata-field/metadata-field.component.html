@@ -4,7 +4,10 @@
     <label class="label fieldLabel">{{title}}</label>
   </div>
   <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="!updateMode || !canUpdate">
-    <span *ngIf="!dateValue && displayMode !== 'MultiSelect' && displayMode !== 'DropDown' && !physicalUnitMode" class="overflow-break-words" >{{value}}</span>
+    <span *ngIf="!dateValue && displayMode !== 'MultiSelect' && displayMode !== 'DropDown' && !physicalUnitMode  && !schemaJsonMode" class="overflow-break-words" >{{value}}</span>
+    <span *ngIf="schemaJsonMode" class="overflow-break-words" >
+		<textarea pInputTextarea *ngIf="displayMode === 'TextArea' && schemaJsonMode" [(ngModel)]="value" readonly class="allDiv" (change)="valueChange()" rows="15"></textarea>
+	</span>
     <span *ngIf="physicalUnitMode" class="overflow-break-words">{{getLabelPhysicalDimensions(value)}}</span>
     <span *ngIf="dateValue" class="overflow-break-words" >{{value | date:'dd/MM/yyyy'}}</span>
     <span *ngIf="displayMode === 'MultiSelect' || displayMode === 'DropDown'" class="overflow-break-words">{{getLabels(value)}}</span>
@@ -12,7 +15,8 @@
   <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="updateMode && canUpdate">
     <p-calendar *ngIf="displayMode === 'Date'" [(ngModel)]="dateValue" [inputStyle]="{'width':'100%'}" (onSelect)="valueChange()"
                 (onBlur)="checkDateValid()" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true" [yearRange]="yearRange" [locale]="frLocale"></p-calendar>
-    <textarea pInputTextarea *ngIf="displayMode === 'TextArea'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" rows="3"></textarea>
+    <textarea pInputTextarea *ngIf="displayMode === 'TextArea' && !schemaJsonMode" [(ngModel)]="value" class="allDiv" (change)="valueChange()" rows="3"></textarea>
+    <textarea pInputTextarea *ngIf="displayMode === 'TextArea' && schemaJsonMode" [(ngModel)]="value" class="allDiv" (change)="valueChange()" rows="15"></textarea>
     <p-dropdown *ngIf="displayMode === 'DropDown'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()"></p-dropdown>
     <input pInputText *ngIf="displayMode === 'TextInput'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" (blur)="valueChange()"/>
     <p-toggleButton *ngIf="displayMode === 'SwitchButton'" onLabel="Oui" offLabel="Non" [(ngModel)]="value" (onChange)="valueChange()"></p-toggleButton>

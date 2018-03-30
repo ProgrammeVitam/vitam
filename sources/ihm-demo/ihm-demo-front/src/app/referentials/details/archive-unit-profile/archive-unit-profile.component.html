@@ -51,6 +51,16 @@
                               class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
 
       </div>
+      
+      <div class="ui-g-12">
+      	<vitam-metadata-field [title]="'Schéma de contrôle'"  [originalTitle]="'ControlSchema'"  [value]="modifiedArchiveUnitProfile.ControlSchema" [labelSize]="2"
+                              class="ui-g-12 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+		<button pButton type="button" label="Valider JSON" (click)="checkJson()"></button>                              		
+		<div class="ui-g-3 margin-top-5" [ngClass]="validRequest ? validRequest.css : ''">
+      		{{validRequest ? "JSON " + validRequest.valid : ""}}
+    	</div>
+      </div>
+      
     </div>
   </div>
 

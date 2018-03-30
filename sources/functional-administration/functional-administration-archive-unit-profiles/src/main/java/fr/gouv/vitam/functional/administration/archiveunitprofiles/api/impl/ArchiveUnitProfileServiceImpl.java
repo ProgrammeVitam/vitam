@@ -75,6 +75,8 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 /**
  * The implementation of the archive unit profile CRUD
@@ -103,6 +105,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
+    private final MetaDataClient metaDataClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
     private static final String _TENANT = "_tenant";
@@ -120,6 +123,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        metaDataClient=MetaDataClientFactory.getInstance().getClient();
         this.functionalBackupService = functionalBackupService;
     }
 
@@ -139,7 +143,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.PROFILE_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
 
-        ArchiveUnitProfileManager manager = new ArchiveUnitProfileManager(logbookClient, eip);
+        ArchiveUnitProfileManager manager = new ArchiveUnitProfileManager(logbookClient, metaDataClient,eip);
         manager.logStarted(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null);
 
         final Set<String> profileIdentifiers = new HashSet<>();
@@ -190,6 +194,13 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 if (aupm.getTenant() == null) {
                     aupm.setTenant(ParameterHelper.getTenantParameter());
                 }
+
+                //Json schema validation of profile ControlSchema property
+                final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
+                    manager.createJsonSchemaValidator().validate(aupm);
+                checkSchema.ifPresent(t -> error
+                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                        .setMessage(checkSchema.get().getReason())));
 
                 final Optional<ArchiveUnitProfileValidator.RejectionCause> resultName =
                     manager.createCheckDuplicateNamesInDatabaseValidator().validate(aupm);
@@ -287,7 +298,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         }
 
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final ArchiveUnitProfileManager manager = new ArchiveUnitProfileManager(logbookClient, eip);
+        final ArchiveUnitProfileManager manager = new ArchiveUnitProfileManager(logbookClient, metaDataClient,eip);
         Map<String, List<String>> updateDiffs;
         manager.logStarted(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId());
 
@@ -423,6 +434,14 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             }
         }
 
+        if (ArchiveUnitProfileModel.CONTROLSCHEMA.equals(field)) {
+            final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
+                manager.createJsonSchemaValidator().validate(new ArchiveUnitProfileModel().setControlSchema(value.asText()));
+            checkSchema.ifPresent(t -> error
+                .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                    .setMessage(checkSchema.get().getReason())));
+        }
+        
         if (ArchiveUnitProfileModel.TAG_IDENTIFIER.equals(field)) {
             if (!value.isTextual()) {
                 error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
@@ -440,6 +459,25 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 }
             }
         }
+
+
+        if (ArchiveUnitProfileModel.CONTROLSCHEMA.equals(field)) {
+            //Json schema validation of profileModel ControlSchema property
+            final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
+                manager.createJsonSchemaValidator().validate(profileModel);
+            checkSchema.ifPresent(t -> error
+                .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                    .setMessage(checkSchema.get().getReason())));
+
+            //check if the archiveUnitProfile is used by an archiveUnit
+            final Optional<ArchiveUnitProfileValidator.RejectionCause> checkUsedJsonSchema =
+                manager.createCheckUsedJsonSchema().validate(profileModel);
+            checkUsedJsonSchema.ifPresent(t -> error
+                .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                    .setMessage(checkUsedJsonSchema.get().getReason())));
+        }
+
+
     }
 
     private void setIdentifier(boolean slaveMode, ArchiveUnitProfileModel archiveUnitProfilModel)

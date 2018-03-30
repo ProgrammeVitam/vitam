@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
+/**
+ * SchemaValidationStatus
+ */
 public class SchemaValidationStatus {
 
 
@@ -99,6 +102,10 @@ public class SchemaValidationStatus {
          * AU Json File not valid against schema
          */
         NOT_AU_JSON_VALID,
+        /**
+         * Json File is not a correct schema
+         */
+        NOT_SCHEMA_JSON_VALID,
         /**
          * Not a json file
          */

@@ -29,6 +29,9 @@
       "type": "date",
       "format": "strict_date_optional_time"
     },
+    "ControlSchema": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },

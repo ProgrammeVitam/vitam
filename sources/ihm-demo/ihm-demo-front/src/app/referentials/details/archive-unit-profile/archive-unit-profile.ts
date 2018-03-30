@@ -9,4 +9,5 @@ export class ArchiveUnitProfile {
   ActivationDate: string;
   DeactivationDate: string;
   LastUpdate: string;
+  ControlSchema: string;
 }

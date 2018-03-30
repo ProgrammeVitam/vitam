@@ -26,7 +26,11 @@ export class ArchiveUnitHelper {
   };
   public textAreaFields = [
     'Description',
-    'CustodialHistory.CustodialHistoryItem'
+    'CustodialHistory.CustodialHistoryItem',
+    'ControlSchema'
+  ];
+  public jsonSchemaFields = [
+    'ControlSchema'
   ];
   public selectionFields = [
     'DescriptionLevel',
@@ -164,6 +168,10 @@ export class ArchiveUnitHelper {
 
   isTextArea(field: string): boolean {
     return this.textAreaFields.indexOf(field) !== -1;
+  }
+    
+  isSchemaJsonMode(field: string): boolean {
+    return this.jsonSchemaFields.indexOf(field) !== -1;
   }
 
   isSelection(field: string): boolean {

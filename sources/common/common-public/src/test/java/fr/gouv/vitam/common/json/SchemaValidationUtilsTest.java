@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import org.junit.Test;
 
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+
 public class SchemaValidationUtilsTest {
 
     private static final String AU_JSON_FILE = "archive-unit_OK.json";
@@ -69,6 +71,42 @@ public class SchemaValidationUtilsTest {
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
 
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenExternalTxtConstructorThenKO() throws Exception {
+        String schemaString = "I am not a correct json schema";
+        new SchemaValidationUtils(schemaString, true);
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    public void givenExternalXmlConstructorThenKO() throws Exception {
+        String schemaString = "<xml>XML</xml>";
+        new SchemaValidationUtils(schemaString, true);
+    }
+
+
+    @Test(expected = ProcessingException.class)
+    public void givenExternalIncorrectJsonConstructorThenKo() throws Exception {
+        String schemaString = "\"id\":\"myId\"}";
+        new SchemaValidationUtils(schemaString, true);
+    }
+
+    @Test
+    public void givenExternalCorrectJsonConstructorThenKo() throws Exception {
+        String schemaString = "{\"id\":\"myId\"}";
+        new SchemaValidationUtils(schemaString, true);
+    }
+
+    @Test
+    public void givenExternalCorrectJsonConstructorThenValidateArchiveUnitThenOk() throws Exception {
+        // empty schema
+        String schemaString = "{}";
+        SchemaValidationUtils schemaValidation = new SchemaValidationUtils(schemaString, true);
+        SchemaValidationStatus status = schemaValidation
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE))
+                .get(TAG_ARCHIVE_UNIT));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
+    }
+
     @Test
     public void givenConstructorWithCorrectSchemaThenValidateJsonOK() throws Exception {
         final SchemaValidationUtils schemaValidation =
@@ -83,16 +121,19 @@ public class SchemaValidationUtilsTest {
     public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceOK() throws Exception {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
-            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_BIRTH_PLACE_JSON_FILE))
-                .get(TAG_ARCHIVE_UNIT));
+            .validateUnit(
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_BIRTH_PLACE_JSON_FILE))
+                    .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
+
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceKO() throws Exception {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
-            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(STRING_BIRTH_PLACE_JSON_FILE))
-                .get(TAG_ARCHIVE_UNIT));
+            .validateUnit(
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(STRING_BIRTH_PLACE_JSON_FILE))
+                    .get(TAG_ARCHIVE_UNIT));
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
     }
 
@@ -123,12 +164,13 @@ public class SchemaValidationUtilsTest {
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_JSON_FILE)));
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
     }
-    
+
     @Test
     public void givenInvalidDateKO() throws Exception {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
-            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_DATE_JSON_FILE)));
+            .validateUnit(
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_DATE_JSON_FILE)));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
         assertTrue(status.getValidationMessage().contains("EndDate is before StartDate"));
     }
@@ -154,7 +196,9 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESS_CONTRACT_OK_JSON_FILE)),"AccessContract" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESS_CONTRACT_OK_JSON_FILE)),
+            "AccessContract");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
 
@@ -165,7 +209,9 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_OK_JSON_FILE)),"AccessionRegisterDetail" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_OK_JSON_FILE)),
+            "AccessionRegisterDetail");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
 
@@ -176,7 +222,10 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_SUMMARY_OK_JSON_FILE)),"AccessionRegisterSummary" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler
+                .getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_SUMMARY_OK_JSON_FILE)),
+            "AccessionRegisterSummary");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
 
@@ -187,7 +236,8 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AGENCIES_OK_JSON_FILE)),"Agencies" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AGENCIES_OK_JSON_FILE)), "Agencies");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
@@ -197,7 +247,9 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE)), "ArchiveUnitProfile" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE)),
+            "ArchiveUnitProfile");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
@@ -207,7 +259,8 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(CONTEXT_OK_JSON_FILE)),"Context" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(CONTEXT_OK_JSON_FILE)), "Context");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
@@ -217,7 +270,9 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_FORMAT_OK_JSON_FILE)),"FileFormat" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_FORMAT_OK_JSON_FILE)),
+            "FileFormat");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
@@ -227,7 +282,8 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_RULES_OK_JSON_FILE)),"FileRules" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_RULES_OK_JSON_FILE)), "FileRules");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
@@ -237,7 +293,9 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_OK_JSON_FILE)),"IngestContract" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_OK_JSON_FILE)),
+            "IngestContract");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
@@ -249,7 +307,8 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(PROFILE_OK_JSON_FILE)),"Profile" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(PROFILE_OK_JSON_FILE)), "Profile");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
@@ -260,11 +319,12 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SECURITY_PROFILE_OK_JSON_FILE)),"SecurityProfile" );
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SECURITY_PROFILE_OK_JSON_FILE)),
+            "SecurityProfile");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
     }
-
 
 
 
