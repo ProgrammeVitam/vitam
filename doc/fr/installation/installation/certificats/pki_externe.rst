@@ -23,7 +23,12 @@ Les certificats générés doivent prendre en compte des alias "web" (subjectAlt
 
 Le subjectAltName des certificats serveurs (deployment/environments/certs/server/hosts/*) doit contenir le nom dns du service sur consul.
 Exemple avec un cas standard: <composant_vitam>.service.consul.
-Il est possible de prendre exemple sur les certificats fournis par défaut pour un déploiement local (`lien github <https://github.com/ProgrammeVitam/vitam/tree/master_1.0.x/deployment/environments/certs/server>`_).
+Ce qui donne pour le certificat serveur de access-external par exemple:
+
+.. code-block:: text
+
+    X509v3 Subject Alternative Name:
+        DNS:offer.service.consul, DNS:localhost
 
 Intégration de certificats existants
 ------------------------------------
