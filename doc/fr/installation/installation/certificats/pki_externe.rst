@@ -28,7 +28,7 @@ Ce qui donne pour le certificat serveur de access-external par exemple:
 .. code-block:: text
 
     X509v3 Subject Alternative Name:
-        DNS:offer.service.consul, DNS:localhost
+        DNS:access-external.service.consul, DNS:localhost
 
 Intégration de certificats existants
 ------------------------------------
