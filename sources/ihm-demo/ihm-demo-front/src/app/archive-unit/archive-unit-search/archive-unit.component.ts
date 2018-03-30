@@ -26,6 +26,7 @@ export class ArchiveUnitComponent extends PageComponent {
   public searchRequest: any = {};
   public searchForm: any = {};
   advancedMode = false;
+  disabledFacet = false;
   public archiveUnitFields = [
     new FieldDefinition('titleCriteria', 'Intitulé ou description', 12, 4)
   ];
@@ -208,6 +209,10 @@ export class ArchiveUnitComponent extends PageComponent {
 
   onChangedSearchMode(searchMode) {
     this.advancedMode = searchMode;
+  }
+
+  onDisabledFiled(isToDisable) {
+    this.disabledFacet = isToDisable;
   }
 
 }
