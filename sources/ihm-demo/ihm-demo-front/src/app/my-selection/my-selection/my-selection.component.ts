@@ -183,6 +183,7 @@ export class MySelectionComponent extends PageComponent {
 
     this.mySelectionService.deleteFromBasket(ids);
     this.displaySelectedDelete = false;
+    this.displayDeleteAll = false;
     this.mySelectionService.getResults(this.firstItem, 50).subscribe(
       (response: VitamResponse) => {
         this.selectedArchiveUnits = this.getFromResponse(response);
