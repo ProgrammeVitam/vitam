@@ -387,61 +387,103 @@ public class QueryParserHelper extends QueryHelper {
                 break;
             default:
         }
+        Query dslQuery = null;
+        Query[] subQueries = null;
         switch (query) {
             case AND:
-                return and().add(analyzeArrayCommand(query, command, adapter));
+                subQueries = analyzeArrayCommand(query, command, adapter);
+                dslQuery = and().add(subQueries);
+                for (Query subQuery : subQueries) {
+                    dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(subQuery.getQUERY()));
+                }
+                break;
             case NOT:
-                return not().add(analyzeArrayCommand(query, command, adapter));
+                subQueries = analyzeArrayCommand(query, command, adapter);
+                dslQuery = not().add(analyzeArrayCommand(query, command, adapter));
+                for (Query subQuery : subQueries) {
+                    dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(subQuery.getQUERY()));
+                }
+
+                break;
             case OR:
-                return or().add(analyzeArrayCommand(query, command, adapter));
+                subQueries = analyzeArrayCommand(query, command, adapter);
+                dslQuery = or().add(analyzeArrayCommand(query, command, adapter));
+                for (Query subQuery : subQueries) {
+                    dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(subQuery.getQUERY()));
+                }
+                break;
             case EXISTS:
-                return exists(command, adapter);
+                dslQuery = exists(command, adapter);
+                break;
             case MISSING:
-                return missing(command, adapter);
+                dslQuery = missing(command, adapter);
+                break;
             case ISNULL:
-                return isNull(command, adapter);
+                dslQuery = isNull(command, adapter);
+                break;
             case FLT:
-                return flt(command, adapter);
+                dslQuery = flt(command, adapter);
+                break;
             case MLT:
-                return mlt(command, adapter);
+                dslQuery = mlt(command, adapter);
+                break;
             case MATCH:
-                return match(command, adapter);
+                dslQuery = match(command, adapter);
+                break;
             case MATCH_ALL:
-                return matchAll(command, adapter);
+                dslQuery = matchAll(command, adapter);
+                break;
             case MATCH_PHRASE:
-                return matchPhrase(command, adapter);
+                dslQuery = matchPhrase(command, adapter);
+                break;
             case MATCH_PHRASE_PREFIX:
-                return matchPhrasePrefix(command, adapter);
+                dslQuery = matchPhrasePrefix(command, adapter);
+                break;
             case NIN:
-                return nin(command, adapter);
+                dslQuery = nin(command, adapter);
+                break;
             case IN:
-                return in(command, adapter);
+                dslQuery = in(command, adapter);
+                break;
             case RANGE:
-                return range(command, adapter);
+                dslQuery = range(command, adapter);
+                break;
             case REGEX:
-                return regex(command, adapter);
+                dslQuery = regex(command, adapter);
+                break;
             case TERM:
-                return term(command, adapter);
+                dslQuery = term(command, adapter);
+                break;
             case WILDCARD:
-                return wildcard(command, adapter);
+                dslQuery = wildcard(command, adapter);
+                break;
             case EQ:
-                return eq(command, adapter);
+                dslQuery = eq(command, adapter);
+                break;
             case NE:
-                return ne(command, adapter);
+                dslQuery = ne(command, adapter);
+                break;
             case GT:
-                return gt(command, adapter);
+                dslQuery = gt(command, adapter);
+                break;
             case GTE:
-                return gte(command, adapter);
+                dslQuery = gte(command, adapter);
+                break;
             case LT:
-                return lt(command, adapter);
+                dslQuery = lt(command, adapter);
+                break;
             case LTE:
-                return lte(command, adapter);
+                dslQuery = lte(command, adapter);
+                break;
             case SEARCH:
-                return search(command, adapter);
+                dslQuery = search(command, adapter);
+                break;
             case SIZE:
-                return size(command, adapter);
+                dslQuery = size(command, adapter);
+                break;
             case NOP:
-                return null;
+                dslQuery = null;
+                break;
             case GEOMETRY:
             case BOX:
             case POLYGON:
@@ -458,6 +500,10 @@ public class QueryParserHelper extends QueryHelper {
                 throw new InvalidParseOperationException(
                     "Invalid command: " + refCommand);
         }
+        if (dslQuery != null) {
+            dslQuery.setFullText(dslQuery.isFullText() | isCommandAsFullText(query));
+        }
+        return dslQuery;
     }
 
     /**
@@ -539,6 +585,20 @@ public class QueryParserHelper extends QueryHelper {
             }
         } else {
             return queries;
+        }
+    }
+
+    protected static boolean isCommandAsFullText(QUERY query) {
+        switch (query) {
+            case FLT:
+            case MLT:
+            case MATCH:
+            case MATCH_ALL:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+                return true;
+            default:
+                return false;
         }
     }
 }

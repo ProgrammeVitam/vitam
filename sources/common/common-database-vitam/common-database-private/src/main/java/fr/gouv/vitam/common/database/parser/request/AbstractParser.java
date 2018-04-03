@@ -112,7 +112,7 @@ public abstract class AbstractParser<E extends AbstractRequest> {
     public final boolean hasFullTextQuery() {
         return hasFullTextQuery;
     }
-    
+
     /**
      * @return the adapter
      */
@@ -144,7 +144,9 @@ public abstract class AbstractParser<E extends AbstractRequest> {
         throws InvalidParseOperationException,
         InvalidCreateOperationException {
         Query query = QueryParserHelper.query(refCommand, command, adapter);
-        hasFullTextCurrentQuery |= isCommandAsFullText(query.getQUERY());
+        if (query != null) {
+            hasFullTextCurrentQuery |= query.isFullText();
+        }
         return query;
     }
 
