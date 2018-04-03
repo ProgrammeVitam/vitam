@@ -166,7 +166,7 @@ public class ProcessManagementImplTest {
             workflowDefinitions.get("FILINGSCHEME").getIdentifier());
         Assert.assertEquals(11,
             workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().size());
-        Assert.assertEquals(3,
+        Assert.assertEquals(4,
             workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().get(2).getActions().size());
         Assert.assertEquals("CHECK_UNIT_SCHEMA",
             workflowDefinitions.get("PROCESS_SIP_UNITARY").getSteps().get(2).getActions().get(0).getActionDefinition()

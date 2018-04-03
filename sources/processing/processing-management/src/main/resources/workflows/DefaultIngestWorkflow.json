@@ -182,6 +182,18 @@
         },
         {
           "action": {
+            "actionKey": "CHECK_ARCHIVE_UNIT_PROFILE",
+            "behavior": "NOBLOCKING",
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_CLASSIFICATION_LEVEL",
             "behavior": "BLOCKING",
             "in": [

@@ -50,8 +50,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.*;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -117,8 +116,6 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -538,6 +535,13 @@ public class IngestInternalIT {
                     .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/contexts.json"),
                         new TypeReference<List<ContextModel>>() {
                         }));
+
+                // Import Archive Unit Profile
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                client.createArchiveUnitProfiles(JsonHandler
+                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/archive-unit-profile.json"),
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {
+                        }));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -659,9 +663,9 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
-            tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -734,7 +738,7 @@ public class IngestInternalIT {
 
             // get initial lfc version
             String unitId = unit.findValuesAsText("#id").get(0);
-            assertEquals(4, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
+            assertEquals(5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
 
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitBeforeUpdate =
@@ -757,7 +761,7 @@ public class IngestInternalIT {
 
             assertNull(responseUnitAfterUpdate.getFirstResult().get("#management").get("AccessRule"));
             // check version incremented in lfc
-            assertEquals(5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
+            assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
             assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"), responseUnitAfterUpdate.getFirstResult().get("#opi"));
 
             sizedInputStream = new SizedInputStream(inputStream);
@@ -843,8 +847,8 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -932,8 +936,8 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -1007,8 +1011,8 @@ public class IngestInternalIT {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -1085,8 +1089,8 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -1199,8 +1203,8 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -1255,8 +1259,8 @@ public class IngestInternalIT {
     public void testIngestInternal2182CA1() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1320,8 +1324,8 @@ public class IngestInternalIT {
     public void testIngestInternal1791CA1() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1384,8 +1388,8 @@ public class IngestInternalIT {
     public void testIngestInternal1791CA2() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1449,8 +1453,8 @@ public class IngestInternalIT {
     public void testIngestWithManifestIncorrectObjectNumber() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // TODO: 6/6/17 why objectGuid ? The test fail on the logbook
         final GUID objectGuid = GUIDFactory.newManifestGUID(0);
         // workspace client dezip SIP in workspace
@@ -1495,11 +1499,11 @@ public class IngestInternalIT {
     public void testIngestWithManifestHavingMgtRules() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        tryImportFile();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
         // processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
         // ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
-        tryImportFile();
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1559,9 +1563,10 @@ public class IngestInternalIT {
     public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRules() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1626,9 +1631,9 @@ public class IngestInternalIT {
     public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRulesWithoutObjects() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        tryImportFile();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
-        tryImportFile();
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1690,8 +1695,8 @@ public class IngestInternalIT {
         // Now that HTML patterns are refused, this test is now KO
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1757,8 +1762,8 @@ public class IngestInternalIT {
     public void testIngestWithServiceLevelInManifest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1824,8 +1829,8 @@ public class IngestInternalIT {
     public void testIngestWithoutServiceLevelInManifest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1891,8 +1896,8 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -2169,8 +2174,8 @@ public class IngestInternalIT {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;

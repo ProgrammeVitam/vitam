@@ -1,0 +1,36 @@
+{
+	"ArchiveUnit": {
+		"_id": "aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq",
+		"_tenant": 0,
+		"ArchiveUnitProfile": "AUP_0001",
+		"Title": "Archive2",
+		"DescriptionLevel": "Item",
+		"Management": {
+			"StorageRule": {
+				"Rules": [
+					{
+						"Rule": "STR001",
+						"StartDate": "2012-11-15T14:30:23"
+					}
+				],
+				"FinalAction": "Copy"
+			}
+		},
+		"_v": 1,
+		"_max": 2,
+		"_min": 1,
+		"_up": [
+			"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq"
+		],
+		"_nbc": 1,
+		"_us": [
+			"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq"
+		],
+		"_uds": [
+			{
+				"aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq": 1
+			}
+		],
+		"date": "09/09/2015"
+	}
+}
