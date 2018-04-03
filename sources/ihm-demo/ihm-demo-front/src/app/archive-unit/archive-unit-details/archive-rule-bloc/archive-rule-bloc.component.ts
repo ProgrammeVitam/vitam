@@ -1,9 +1,8 @@
-import {Component, Input, OnChanges, OnInit} from "@angular/core";
-import {DatePipe} from "@angular/common";
-import {ArchiveUnitHelper} from "../../archive-unit.helper";
-import {ArchiveUnitService} from "../../archive-unit.service";
-import {ConfirmationService} from "primeng/primeng";
-import {DateService} from "../../../common/utils/date.service";
+import {Component, Input, OnChanges, OnInit} from '@angular/core';
+import {ArchiveUnitHelper} from '../../archive-unit.helper';
+import {ArchiveUnitService} from '../../archive-unit.service';
+import {ConfirmationService} from 'primeng/primeng';
+import {DateService} from '../../../common/utils/date.service';
 
 @Component({
   selector: 'vitam-archive-rule-bloc',
@@ -31,13 +30,13 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   public messageToDisplay: string;
 
   frLocale = {
-    dayNames: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
-    dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
-    dayNamesMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
-    monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"],
-    monthNamesShort: ["Jan", "Fév", "Mars", "Avr", "Mai", "Juin", "Juil", "Aou", "Sep", "Oct", "Nov", "Dec"],
+    dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+    dayNamesShort: ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'],
+    dayNamesMin: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+    monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    monthNamesShort: ['Jan', 'Fév', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'],
     firstDayOfWeek: 1,
-    today: "Aujourd'hui",
+    today: 'Aujourd\'hui',
     clear: 'Vider'
   };
 
@@ -83,8 +82,8 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     if (!this.management[category]) {
       return null;
     }
-    for (let rule of this.management[category].Rules) {
-      if (rule.Rule == id) {
+    for (const rule of this.management[category].Rules) {
+      if (rule.Rule === id) {
         return rule;
       }
     }
@@ -93,7 +92,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
   checkUpdate(category, rule): boolean {
     // FIXME Errors with StartDate ?
-    let mgtRule = this.getMgtRule(category, rule.oldId);
+    const mgtRule = this.getMgtRule(category, rule.oldId);
     if (!this.management[category] || !mgtRule) {
       return false;
     }
@@ -107,14 +106,15 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
       return !!this.updatedFields[category].FinalAction;
     }
 
-    return this.updatedFields[category].FinalAction != this.management[category].FinalAction;
+    return this.updatedFields[category].FinalAction !== this.management[category].FinalAction;
   }
 
   getUpdatedRules() {
     // ruleCategory ~= this.updatedFields
-    // updatedRules = the array that must be updated and pushed in request. updatedRules = [{'CategName': {'Rules': ..., 'Inheritance': ...}, {...}, ...];
+    // updatedRules > the array that must be updated and pushed in request.
+    // updatedRules = [{'CategName': {'Rules': ..., 'Inheritance': ...}, {...}, ...];
 
-    let updateInfo = {
+    const updateInfo = {
       updated: 0,
       added: 0,
       deleted: 0,
@@ -123,25 +123,26 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     };
 
 
-    for (let category in this.updatedFields) {
-      if(!this.updatedFields.hasOwnProperty(category)) {
-        continue;
-      }
+    for (const category in this.updatedFields) {
+      if (!this.updatedFields.hasOwnProperty(category)) { continue; }
+
       // categoryName = need looping over categories in this function and push in updatedRules[]
       let isCategoryUpdated = false;
-      let newCategory: any = {
+      const newCategory: any = {
         Rules: [],
         /*FinalAction: '',
-        Inheritance: {}*/};
+        Inheritance: {}*/
+      };
+
       for (let i = 0, len = this.updatedFields[category].Rules.length; i < len; i++) {
-        let rule = this.updatedFields[category].Rules[i];
+        const rule = this.updatedFields[category].Rules[i];
         rule.StartDate = DateService.handleDateForRules(rule.StartDate);
         if (!rule.inherited) {
-          if (!rule.StartDate) delete rule.StartDate;
+          if (!rule.StartDate) { delete rule.StartDate; }
           if (rule.newRule) {
             // New Rule
             isCategoryUpdated = true;
-            let addedRule = JSON.parse(JSON.stringify(rule));
+            const addedRule = JSON.parse(JSON.stringify(rule));
             delete addedRule.newRule;
             newCategory.Rules.push(addedRule);
 
@@ -153,14 +154,14 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
           } else if (this.checkUpdate(category, rule)) {
             // Updated rule
             isCategoryUpdated = true;
-            let updatedRule = JSON.parse(JSON.stringify(rule));
+            const updatedRule = JSON.parse(JSON.stringify(rule));
             delete updatedRule.oldId;
             delete updatedRule.EndDate;
             newCategory.Rules.push(updatedRule);
             updateInfo.updated++;
           } else {
             // Non-Updated Old Rule
-            let updatedRule = JSON.parse(JSON.stringify(rule));
+            const updatedRule = JSON.parse(JSON.stringify(rule));
             delete updatedRule.oldId;
             delete updatedRule.EndDate;
             newCategory.Rules.push(updatedRule);
@@ -191,7 +192,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   hasFinalActionEmptyRule(category) {
     if (category === 'StorageRule' || category === 'AppraisalRule') {
       if (this.management[category] && this.management[category].Rules) {
-        for (let rule of this.management[category].Rules) {
+        for (const rule of this.management[category].Rules) {
           if (!rule.Rule && rule.FinalAction) {
             return true;
           }
@@ -201,23 +202,24 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     return false;
   }
 
+  // FIXME Unused method ?
   haveFinalActionWithEmptyRules(category): boolean {
-    let mgtCategory = this.management[category];
+    const mgtCategory = this.management[category];
     return mgtCategory && (!mgtCategory.Rules || mgtCategory.Rules.length === 0) && !!mgtCategory.FinalAction;
   }
 
   saveUpdate() {
-    let info = this.getUpdatedRules();
-    let rules = info.rules;
+    const info = this.getUpdatedRules();
+    const rules = info.rules;
     if (rules.length > 0) {
-      this.messageToDisplay = "";
-      let rulesCategoriesFr =
+      this.messageToDisplay = '';
+      const rulesCategoriesFr =
         info.categories.map(
           title => {
-            let filter = this.rulesCategories.filter(x => x.rule === title);
+            const filter = this.rulesCategories.filter(x => x.rule === title);
             return filter[0].label
           });
-      if (info.categories.length == 1) {
+      if (info.categories.length === 1) {
         this.messageToDisplay = `Vous vous apprêtez à modifier la catégorie ${rulesCategoriesFr} pour :<br />`
       } else {
         this.messageToDisplay = `Vous vous apprêtez à modifier les catégories ${rulesCategoriesFr.join(', ')} pour :<br />`
@@ -241,13 +243,13 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
         message: this.messageToDisplay,
         accept: () => {
           this.saveRunning = true;
-          let request = [];
+          const request = [];
           request.push({'UpdatedRules': rules});
           this.archiveUnitService.updateMetadata(this.id, request).subscribe(
-            (value) => {
+            () => {
               this.archiveUnitService.getDetails(this.id)
                 .subscribe((data) => {
-                  let response = data.$results[0];
+                  const response = data.$results[0];
                   this.inheritedRules = response.inheritedRule;
                   this.management = response['#management'];
                   this.id = response['#id'];
@@ -255,7 +257,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
                   this.switchUpdateMode();
                   this.saveRunning = false;
                   this.displayOK = true;
-                }, (error) => {
+                }, () => {
                   this.saveRunning = false;
                 });
             },
@@ -274,31 +276,31 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   }
 
   buildErrorMessage(error) {
-   switch (error) {
-     case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST':
-     case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST':
-      this.errorMessage='La règle ajoutée n\'existe pas dans le référentiel.';
-      break;
-     case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY':
-     case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY':
-      this.errorMessage='La règle de gestion ajoutée n\'est pas de la bonne catégorie.';
-      break;
-     case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE':
-     case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE':
-      this.errorMessage='La date de départ de la règle de gestion est supérieure ou égale à 9000.';
-      break;
-     default:
-      this.errorMessage='Echec lors de la mise à jour des règles.';
-      break;
-   }
+    switch (error) {
+      case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST':
+      case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST':
+        this.errorMessage = 'La règle ajoutée n\'existe pas dans le référentiel.';
+        break;
+      case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY':
+      case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY':
+        this.errorMessage = 'La règle de gestion ajoutée n\'est pas de la bonne catégorie.';
+        break;
+      case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE':
+      case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE':
+        this.errorMessage = 'La date de départ de la règle de gestion est supérieure ou égale à 9000.';
+        break;
+      default:
+        this.errorMessage = 'Echec lors de la mise à jour des règles.';
+        break;
+    }
   }
 
   removeRule(category, index, rule) {
     if (rule.newRule) {
       this.updatedFields[category].Rules.splice(index, 1);
     } else if (rule.inherited) {
-      let preventedIndex = this.updatedFields[category].Inheritance.PreventRulesId.indexOf(rule.Rule);
-      if (preventedIndex == -1) {
+      const preventedIndex = this.updatedFields[category].Inheritance.PreventRulesId.indexOf(rule.Rule);
+      if (preventedIndex === -1) {
         this.updatedFields[category].Inheritance.PreventRulesId.push(rule.Rule);
       } else {
         this.updatedFields[category].Inheritance.PreventRulesId.splice(preventedIndex, 1);
@@ -310,12 +312,12 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
 
   initUpdatedRules() {
-    for (let category of this.rulesCategories) {
+    for (const category of this.rulesCategories) {
       if (this.management[category.rule]) {
-        let rules = [];
-        let ruleIds = [];
-        for (let rule of this.management[category.rule].Rules) {
-          let updatedRule = JSON.parse(JSON.stringify(rule));
+        const rules = [];
+        const ruleIds = [];
+        for (const rule of this.management[category.rule].Rules) {
+          const updatedRule = JSON.parse(JSON.stringify(rule));
           if (updatedRule.StartDate) {
             updatedRule.StartDate = new Date(updatedRule.StartDate);
           } else {
@@ -328,14 +330,16 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
         }
 
         if (this.inheritedRules[category.rule]) {
-          for (let ruleId in this.inheritedRules[category.rule]) {
+          for (const ruleId in this.inheritedRules[category.rule]) {
+            if (!this.inheritedRules[category.rule].hasOwnProperty(ruleId)) { continue; }
             if (ruleIds.indexOf(ruleId) !== -1) {
               continue;
             }
-            for (let id in this.inheritedRules[category.rule][ruleId]) {
-              let inheritedRule = this.inheritedRules[category.rule][ruleId][id];
+            for (const id in this.inheritedRules[category.rule][ruleId]) {
+              if (!this.inheritedRules[category.rule][ruleId].hasOwnProperty(id)) { continue; }
+              const inheritedRule = this.inheritedRules[category.rule][ruleId][id];
 
-              let rule: any = {
+              const rule: any = {
                 Rule: ruleId,
                 StartDate: inheritedRule.StartDate ? new Date(inheritedRule.StartDate) : '',
                 EndDate: inheritedRule.EndDate,
@@ -350,8 +354,8 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
           }
         }
 
-        let inheritance = this.management[category.rule].Inheritance;
-        let finalAction = this.management[category.rule].FinalAction;
+        const inheritance = this.management[category.rule].Inheritance;
+        const finalAction = this.management[category.rule].FinalAction;
 
         this.updatedFields[category.rule] = {
           Rules: rules
@@ -369,16 +373,16 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
       } else {
 
-        let rules = [];
+        const rules = [];
         if (this.inheritedRules[category.rule]) {
-          for (let ruleId in this.inheritedRules[category.rule]) {
+          for (const ruleId in this.inheritedRules[category.rule]) {
             if (this.inheritedRules[category.rule].hasOwnProperty(ruleId)) {
               // add rule
-              for (let id in this.inheritedRules[category.rule][ruleId]) {
+              for (const id in this.inheritedRules[category.rule][ruleId]) {
                 if (this.inheritedRules[category.rule][ruleId].hasOwnProperty(id)) {
-                  let inheritedRule = this.inheritedRules[category.rule][ruleId][id];
+                  const inheritedRule = this.inheritedRules[category.rule][ruleId][id];
 
-                  let rule: any = {
+                  const rule: any = {
                     Rule: ruleId,
                     StartDate: inheritedRule.StartDate ? new Date(inheritedRule.StartDate) : '',
                     EndDate: inheritedRule.EndDate,

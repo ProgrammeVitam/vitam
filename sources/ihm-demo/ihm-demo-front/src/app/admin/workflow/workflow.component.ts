@@ -55,57 +55,31 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
   public workflowData;
   private refreshWorkflow;
 
+  columns = [
+    ColumnDefinition.makeStaticColumn('operationId', 'Identifiant de la demande d\'entrée', undefined,
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('processType', 'Catégorie de l\'opération', undefined,
+      () => ({'width': '130px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('processDate', 'Date de l\'entrée', DateService.handleDateWithTime,
+      () => ({'width': '105px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeSpecialValueColumn('Mode d\'exécution', this.executionMode, undefined,
+      () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('globalState', 'Etat', undefined,
+      () => ({'width': '150px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('stepStatus', 'Statut', undefined,
+      () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('previousStep', 'Etape en cours', undefined,
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('nextStep', 'Prochaine étape', undefined,
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeSpecialIconColumn('Action', this.getIconsByGlobalState,
+      () => ({'width': '175px'}), this.onClickOnIcon, this.workflowService, false, undefined, this.getLabelIcon)
+  ];
 
-  constructor(public workflowService: WorkflowService,
-              public titleService: Title, public breadcrumbService: BreadcrumbService) {
-    super('Gestion des opérations', breadcrumb, titleService, breadcrumbService);
-  }
-
-  public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any) {
-    service.getOperations(form).subscribe(
-      (data) => {
-        responseEvent.emit({response: data, form: form});
-      }, (error) => console.error('Error: ', error)
-    );
-  }
-
-  initSearchForm() {
-    this.workflowService.getWorkflowsDefinition().subscribe(
-      (data) => {
-
-        this.optionsCategories = [{label: 'Tous', value: ''}];
-        this.optionsWorkflowSteps = [new DynamicSelectItem('Tous', '', '')];
-        for (var i = 0; i < data.$results.length; i++) {
-          let workflow = data.$results[i];
-          let item = {label: data.$results[i].name, value: data.$results[i].identifier};
-
-          this.optionsCategories.push(item);
-          for (var stepProp in workflow.steps) {
-            if (workflow.steps.hasOwnProperty(stepProp)) {
-              var step = workflow.steps[stepProp];
-              //FIXME handle categories for change on step (parent: workflow.identifier)
-              this.optionsWorkflowSteps.push(new DynamicSelectItem(step.stepName, step.stepName, workflow.identifier));
-            }
-          }
-        }
-        this.workflowData = [
-          FieldDefinition.createIdField('id', 'Identifiant', 4, 12),
-          FieldDefinition.createDateField('startDateMin', 'Date de début', 4, 8),
-          FieldDefinition.createDateField('startDateMax', 'Date de fin', 4, 12),
-          FieldDefinition.createSelectMultipleField('categories', 'Process', this.optionsCategories, 4, 12)
-            .onChange(WorkflowComponent.updateValues),
-          FieldDefinition.createSelectMultipleField('statuses', 'Statut', this.optionsStatuses, 2, 12),
-          FieldDefinition.createSelectMultipleField('states', 'États', this.optionsStates, 2, 12),
-          FieldDefinition.createDynamicSelectField('steps', 'Dernière étape', this.optionsWorkflowSteps,
-            WorkflowComponent.computeSelectItems, 4, 12)
-        ];
-      }
-    )
-  }
-
+  extraColumns = [];
 
   static updateValues(allData: FieldDefinition[], searchForm: FormGroup): void {
-    let updatingField: FieldDefinition[] = allData.filter((x) => "steps" === x.name);
+    const updatingField: FieldDefinition[] = allData.filter((x) => 'steps' === x.name);
 
     if (updatingField && updatingField.length === 1) {
       updatingField[0].options = WorkflowComponent.computeSelectItems(updatingField[0].baseOptions, searchForm.value.categories);
@@ -114,7 +88,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
 
   static computeSelectItems(items: DynamicSelectItem[], otherData: any): SelectItem[] {
     let filteredItems = [];
-    let alreadyHereItems = [];
+    const alreadyHereItems = [];
     if (otherData && otherData.length > 0 && otherData[0] !== '') {
       filteredItems = items.filter((x) => {
         if (alreadyHereItems.indexOf(x.value) === -1 && otherData.indexOf(x.data) !== -1) {
@@ -136,11 +110,58 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
     return DynamicSelectItem.toSelectItems(filteredItems);
   }
 
+  constructor(public workflowService: WorkflowService,
+              public titleService: Title, public breadcrumbService: BreadcrumbService) {
+    super('Gestion des opérations', breadcrumb, titleService, breadcrumbService);
+  }
+
+  public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any) {
+    service.getOperations(form).subscribe(
+      (data) => {
+        responseEvent.emit({response: data, form: form});
+      }, (error) => console.error('Error: ', error)
+    );
+  }
+
+  initSearchForm() {
+    this.workflowService.getWorkflowsDefinition().subscribe(
+      (data) => {
+
+        this.optionsCategories = [{label: 'Tous', value: ''}];
+        this.optionsWorkflowSteps = [new DynamicSelectItem('Tous', '', '')];
+        for (let i = 0; i < data.$results.length; i++) {
+          const workflow = data.$results[i];
+          const item = {label: data.$results[i].name, value: data.$results[i].identifier};
+
+          this.optionsCategories.push(item);
+          for (const stepProp in workflow.steps) {
+            if (workflow.steps.hasOwnProperty(stepProp)) {
+              const step = workflow.steps[stepProp];
+              // FIXME handle categories for change on step (parent: workflow.identifier)
+              this.optionsWorkflowSteps.push(new DynamicSelectItem(step.stepName, step.stepName, workflow.identifier));
+            }
+          }
+        }
+        this.workflowData = [
+          FieldDefinition.createIdField('id', 'Identifiant', 4, 12),
+          FieldDefinition.createDateField('startDateMin', 'Date de début', 4, 8),
+          FieldDefinition.createDateField('startDateMax', 'Date de fin', 4, 12),
+          FieldDefinition.createSelectMultipleField('categories', 'Process', this.optionsCategories, 4, 12)
+            .onChange(WorkflowComponent.updateValues),
+          FieldDefinition.createSelectMultipleField('statuses', 'Statut', this.optionsStatuses, 2, 12),
+          FieldDefinition.createSelectMultipleField('states', 'États', this.optionsStates, 2, 12),
+          FieldDefinition.createDynamicSelectField('steps', 'Dernière étape', this.optionsWorkflowSteps,
+            WorkflowComponent.computeSelectItems, 4, 12)
+        ];
+      }
+    )
+  }
+
   pageOnInit(): void {
     this.initSearchForm();
     this.workflowService.getOperations(this.searchForm).subscribe(
       data => this.response = data,
-      error => console.error('Error - ', this.response));
+      () => console.error('Error - ', this.response));
 
     this.refreshWorkflow = setInterval(() => {
       this.refreshButton();
@@ -150,29 +171,6 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
   ngOnDestroy() {
     clearInterval(this.refreshWorkflow);
   }
-
-  public columns = [
-    ColumnDefinition.makeStaticColumn('operationId', 'Identifiant de la demande d\'entrée', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('processType', 'Catégorie de l\'opération', undefined,
-      () => ({'width': '130px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('processDate', 'Date de l\'entrée', DateService.handleDateWithTime,
-      () => ({'width': '105px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialValueColumn('Mode d\'exécution', this.executionMode, undefined,
-      () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('globalState', 'Etat', undefined,
-      () => ({'width': '150px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('stepStatus', 'Statut', undefined,
-      () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('previousStep', 'Etape en cours', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('nextStep', 'Prochaine étape', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialIconColumn('Action', this.getIconsByGlobalState,
-      () => ({'width': '175px'}), this.onClickOnIcon, this.workflowService, false, undefined, this.getLabelIcon)
-  ];
-
-  public extraColumns = [];
 
   onNotify(event) {
     this.response = event.response;
@@ -187,9 +185,11 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
     );
   }
 
+
+
   public preSearchFunction(request): Preresult {
 
-    let preResult = new Preresult();
+    const preResult = new Preresult();
 
     delete request.orderby;
 
@@ -221,7 +221,6 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
     } else {
       delete request.workflows;
       delete request.categories;
-
     }
 
     // Handle steps
@@ -289,14 +288,16 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
   getIconsByGlobalState(item) {
     switch (item.globalState) {
       case 'PAUSE':
-        return ['fa-play fa-2x fa-pull-left', 'fa-forward fa-2x fa-pull-left', 'fa-refresh fa-2x fa-pull-left', 'fa-stop fa-2x fa-pull-left'];
+        return ['fa-play fa-2x fa-pull-left', 'fa-forward fa-2x fa-pull-left',
+          'fa-refresh fa-2x fa-pull-left', 'fa-stop fa-2x fa-pull-left'];
       case 'RUNNING':
         return ['fa-pause fa-2x fa-pull-left', 'fa-forward fa-2x fa-pull-left', 'fa-stop fa-2x fa-pull-left'];
       case 'COMPLETED':
         return [];
       default :
         // For the UNKNOWN case we don't know if it is still present.
-        return ['fa-play fa-2x fa-pull-left', 'fa-forward fa-2x fa-pull-left', 'fa-refresh fa-2x fa-pull-left', 'fa-stop fa-2x fa-pull-left'];
+        return ['fa-play fa-2x fa-pull-left', 'fa-forward fa-2x fa-pull-left',
+          'fa-refresh fa-2x fa-pull-left', 'fa-stop fa-2x fa-pull-left'];
     }
   }
 
@@ -307,37 +308,32 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
     switch (iconType) {
       case 'fa-play' :
         workflowService.sendOperationsAction(item.operationId, {}, 'NEXT').subscribe(
-          (data) => {
-          }
+          () => {}
         );
         break;
       case 'fa-forward':
         workflowService.sendOperationsAction(item.operationId, {}, 'RESUME').subscribe(
-          (data) => {
-          }
+          () => {}
         );
         break;
       case 'fa-refresh':
         workflowService.sendOperationsAction(item.operationId, {}, 'REPLAY').subscribe(
-          (data) => {
-          }
+          () => {}
         );
         break;
       case 'fa-stop':
         workflowService.stopOperation(item.operationId, {}).subscribe(
-          (data) => {
-          }
+          () => {}
         );
         break;
       case 'fa-pause':
         workflowService.sendOperationsAction(item.operationId, {}, 'PAUSE').subscribe(
-          (data) => {
-          }
+          () => {}
         );
         break;
     }
   }
-    
+
   getLabelIcon(iconType) {
     if (!!iconType) {
       iconType = iconType.split(' ')[0];
@@ -354,6 +350,6 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
       case 'fa-pause':
         return 'Pause';
     }
-  }    
-    
+  }
+
 }

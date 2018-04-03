@@ -1,9 +1,7 @@
 import {Component, OnInit, OnChanges, Input, Output, EventEmitter} from '@angular/core';
-import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
-import {ReferentialHelper} from "../../referentials/referential.helper";
-import { SelectItem } from 'primeng/primeng';
-import {ObjectsService} from "../utils/objects.service";
-
+import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
+import {ReferentialHelper} from '../../referentials/referential.helper';
+import {SelectItem} from 'primeng/primeng';
 
 @Component({
   selector: 'vitam-metadata-field',
@@ -19,11 +17,11 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   @Input() keyToLabel: (x) => string;
   @Input() collapse = true;
   @Input() noTitle = false;
-  @Input() yearRange = '1970:2500'; //Default value for Calendar yearRange property
+  @Input() yearRange = '1970:2500'; // Default value for Calendar yearRange property
 
   @Input() updateMode = false;
   @Input() canUpdate = true;
-  @Input() disabled : boolean;
+  @Input() disabled: boolean;
   @Input() updatedFields: {};
 
   initialValue: any;
@@ -32,17 +30,17 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   physicalUnitMode: boolean;
   schemaJsonMode: boolean;
   @Output() updatedFieldsChange = new EventEmitter<{}>();
-    
+
   frLocale = {
-      dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
-      dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
-      dayNamesMin: ["Di","Lu","Ma","Me","Je","Ve","Sa"],
-      monthNames: [ "Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Décembre" ],
-      monthNamesShort: [ "Jan", "Fév", "Mars", "Avr", "Mai", "Juin","Juil", "Aou", "Sep", "Oct", "Nov", "Dec" ],
-      firstDayOfWeek: 1, today: "Aujourd'hui", clear: 'Vider'
+    dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+    dayNamesShort: ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'],
+    dayNamesMin: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+    monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    monthNamesShort: ['Jan', 'Fév', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'],
+    firstDayOfWeek: 1, today: 'Aujourd\'hui', clear: 'Vider'
   };
-  labelClass: string = 'ui-g-3';
-  inputClass: string = 'ui-g-9';
+  labelClass = 'ui-g-3';
+  inputClass = 'ui-g-9';
   dateValue: Date;
   fields: any[] = [];
   options: SelectItem[];
@@ -51,10 +49,11 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   arrayValue: any[];
   displayError = false;
 
-  constructor(public archiveUnitHelper: ArchiveUnitHelper, public referentialHelper : ReferentialHelper) { }
+  constructor(public archiveUnitHelper: ArchiveUnitHelper, public referentialHelper: ReferentialHelper) {
+  }
 
   ngOnChanges(change) {
-    if(change.updateMode) {
+    if (change.updateMode) {
       if (change.updateMode.currentValue === false && change.updateMode.previousValue === true) {
         if (this.typeOfField === 'Object') {
           this.value = JSON.parse(this.initialValue);
@@ -88,15 +87,19 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   init() {
     if (this.typeOfField === 'Array') {
       this.arrayValue = [];
-      for (var i=0, len=this.value.length; i<len; i++) {
-        let item = this.value[i];
+      for (let i = 0, len = this.value.length; i < len; i++) {
+        const item = this.value[i];
         if (typeof item === 'object') {
-          let fields = [];
-          for (let field in item) {
-            fields.push({title: this.keyToLabel(`${this.originalTitle}.${field}`), value: item[field],
-              originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}[${i}].${field}`});
+          const fields = [];
+          for (const field in item) {
+            if (item.hasOwnProperty(field)) {
+              fields.push({
+                title: this.keyToLabel(`${this.originalTitle}.${field}`), value: item[field],
+                originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}[${i}].${field}`
+              });
+            }
           }
-          this.arrayValue.push({ isObject: true, value: fields });
+          this.arrayValue.push({isObject: true, value: fields});
 
         } else {
           this.arrayValue.push({isObject: false, value: item, fieldCode: `${this.fieldCode}[${i}]`});
@@ -104,14 +107,18 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
       }
 
     } else if (this.typeOfField === 'Object') {
-      for (let field in this.value) {
-        this.fields.push({title: this.keyToLabel(`${this.originalTitle}.${field}`), value: field,
-          originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}.${field}`});
+      for (const field in this.value) {
+        if (this.value.hasOwnProperty(field)) {
+          this.fields.push({
+            title: this.keyToLabel(`${this.originalTitle}.${field}`), value: field,
+            originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}.${field}`
+          });
+        }
       }
     } else {
       if (!!this.originalTitle && this.originalTitle.toUpperCase().indexOf('DATE') !== -1) {
         this.dateValue = new Date(this.value);
-        if ( isNaN(this.dateValue.getTime()) ) {
+        if (isNaN(this.dateValue.getTime())) {
           this.dateValue = null;
         }
         this.displayMode = 'Date';
@@ -138,12 +145,12 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
         this.displayMode = 'TextInput';
       }
     }
-    
-    if (this.originalTitle !== undefined && this.originalTitle.indexOf('PhysicalDimensions') !== -1 
-        && this.originalTitle.indexOf('unit') !== -1) {
-        this.physicalUnitMode = true;
+
+    if (this.originalTitle !== undefined && this.originalTitle.indexOf('PhysicalDimensions') !== -1
+      && this.originalTitle.indexOf('unit') !== -1) {
+      this.physicalUnitMode = true;
     }
-            
+
     // Handle Specific field size
     if (this.noTitle) {
       this.inputClass = 'ui-g-12';
@@ -154,21 +161,21 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   }
 
   checkDateValid() {
-      setTimeout(() => {
-        if ( this.dateValue === null ) {
-          this.displayError = true;
-          this.dateValue = new Date(this.value);
-          if ( isNaN(this.dateValue.getTime()) ) {
-              this.dateValue = null;
-          }
+    setTimeout(() => {
+      if (this.dateValue === null) {
+        this.displayError = true;
+        this.dateValue = new Date(this.value);
+        if (isNaN(this.dateValue.getTime())) {
+          this.dateValue = null;
         }
-      }, 200);
+      }
+    }, 200);
   }
 
   valueChange() {
     if (this.displayMode === 'Date' && !this.dateValue) {
       this.dateValue = new Date(this.value);
-      if ( isNaN(this.dateValue.getTime()) ) {
+      if (isNaN(this.dateValue.getTime())) {
         this.dateValue = null;
       }
       return;
@@ -182,13 +189,13 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   }
 
   getLabelPhysicalDimensions(value: string) {
-    let labels = [];
-    labels.push(this.archiveUnitHelper.getDimensions(value));  
+    const labels = [];
+    labels.push(this.archiveUnitHelper.getDimensions(value));
     return labels;
   }
-    
+
   getLabels(values: string | string[]) {
-    let labels = [];
+    const labels = [];
     if (values instanceof Array) {
       values.forEach(value => {
         labels.push(this.getLabel(value));
@@ -200,7 +207,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   }
 
   getLabel(value: string) {
-    let matchingOption = this.options.find(option => option.value === value);
+    const matchingOption = this.options.find(option => option.value === value);
     if (!matchingOption) {
       return value;
     }

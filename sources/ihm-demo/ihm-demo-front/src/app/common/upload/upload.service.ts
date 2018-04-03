@@ -1,17 +1,16 @@
-import { Injectable } from '@angular/core';
-import {CookieService} from "angular2-cookie/core";
-import {BehaviorSubject} from "rxjs/BehaviorSubject"
-import {Observable} from "rxjs/Observable";
-import { HttpHeaders } from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject'
+import {Observable} from 'rxjs/Observable';
+import {HttpHeaders} from '@angular/common/http';
 
-import { ResourcesService } from '../resources.service';
+import {ResourcesService} from '../resources.service';
 
 const BYTES_PER_CHUNK = 1024 * 1024;
 const tenantKey = 'X-Tenant-Id';
 const contextIdKey = 'X-Context-Id';
 const actionKey = 'X-Action';
 
-export class ingestStatusElement {
+export class IngestStatusElement {
   uploadStatus: number;
   ingestStatus: string;
 }
@@ -19,9 +18,9 @@ export class ingestStatusElement {
 @Injectable()
 export class UploadService {
 
-  private uploadState = new BehaviorSubject<ingestStatusElement>({
-    uploadStatus : 0,
-    ingestStatus : 'NOT_STARTED',
+  private uploadState = new BehaviorSubject<IngestStatusElement>({
+    uploadStatus: 0,
+    ingestStatus: 'NOT_STARTED',
   });
 
   private uploadedSize = 0;
@@ -29,10 +28,11 @@ export class UploadService {
   private contextId = '';
   private action = '';
 
-  constructor(private resourcesService : ResourcesService) { }
+  constructor(private resourcesService: ResourcesService) {
+  }
 
-  private uploadXHR(component : any, file:any, requestId:any, chunkOffset:any, size:any) {
-    let xhr = new XMLHttpRequest();
+  private uploadXHR(component: any, file: any, requestId: any, chunkOffset: any, size: any) {
+    const xhr = new XMLHttpRequest();
     xhr.open('POST', '/ihm-demo/v1/api/ingest/upload', true);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     xhr.setRequestHeader('X-REQUEST-ID', requestId);
@@ -43,8 +43,8 @@ export class UploadService {
     xhr.setRequestHeader(actionKey, component.action);
     xhr.setRequestHeader(tenantKey, component.resourcesService.getTenant());
     xhr.onreadystatechange = function () {
-      if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-        let totalSize = chunkOffset + BYTES_PER_CHUNK;
+      if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+        const totalSize = chunkOffset + BYTES_PER_CHUNK;
 
         if (totalSize < component.uploadedSize) {
           return;
@@ -52,14 +52,14 @@ export class UploadService {
         if (totalSize < size) {
           component.uploadedSize = totalSize;
           component.changeUploadState({
-            uploadStatus : totalSize,
-            ingestStatus : 'NOT_STARTED'
+            uploadStatus: totalSize,
+            ingestStatus: 'NOT_STARTED'
           });
         } else {
           component.uploadedSize = size;
           component.changeUploadState({
-            uploadStatus : size,
-            ingestStatus : 'STARTED'
+            uploadStatus: size,
+            ingestStatus: 'STARTED'
           });
         }
       }
@@ -67,20 +67,20 @@ export class UploadService {
     return xhr.send(file);
   }
 
-  uploadFile(file : any, contextId : string, action : string) {
-    let blob = file;
-    let SIZE = blob.size;
+  uploadFile(file: any, contextId: string, action: string) {
+    const blob = file;
+    const SIZE = blob.size;
 
     let start = 0;
     let end = (SIZE < BYTES_PER_CHUNK) ? SIZE : BYTES_PER_CHUNK;
 
     this.changeUploadState({
-      uploadStatus : end,
-      ingestStatus : 'NOT_STARTED'
+      uploadStatus: end,
+      ingestStatus: 'NOT_STARTED'
     });
     this.contextId = contextId;
     this.action = action;
-    let xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     let requestId = '';
     xhr.open('POST', '/ihm-demo/v1/api/ingest/upload', true);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
@@ -90,9 +90,9 @@ export class UploadService {
     xhr.setRequestHeader(contextIdKey, contextId);
     xhr.setRequestHeader(actionKey, action);
     xhr.setRequestHeader(tenantKey, this.resourcesService.getTenant());
-    var _self = this;
+    const _self = this;
     xhr.onreadystatechange = function () {
-      if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
+      if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
         requestId = xhr.getResponseHeader('X-REQUEST-ID');
         start = end;
         end = start + BYTES_PER_CHUNK;
@@ -100,12 +100,11 @@ export class UploadService {
         _self.ingestOperationId = requestId;
         if (start >= SIZE) {
           _self.changeUploadState({
-            uploadStatus : SIZE,
-            ingestStatus : 'STARTED'
+            uploadStatus: SIZE,
+            ingestStatus: 'STARTED'
           });
           return;
         }
-        var chunkNumber = 0;
         while (start < SIZE) {
           _self.uploadXHR(_self, blob.slice(start, end), requestId, start, SIZE);
           start = end;
@@ -116,30 +115,29 @@ export class UploadService {
     xhr.send(blob.slice(start, end));
   }
 
-  getUploadState() : Observable<ingestStatusElement>  {
+  getUploadState(): Observable<IngestStatusElement> {
     return this.uploadState;
   }
 
-  changeUploadState(state : ingestStatusElement) {
+  changeUploadState(state: IngestStatusElement) {
     this.uploadState.next(state);
   }
 
   checkIngestStatus() {
-    return this.resourcesService.get('check/' +this.ingestOperationId, null, 'blob');
+    return this.resourcesService.get('check/' + this.ingestOperationId, null, 'blob');
   }
 
   clearIngest() {
-    return this.resourcesService.get('clear/' +this.ingestOperationId);
+    return this.resourcesService.get('clear/' + this.ingestOperationId);
   }
 
   downloadATR(response: any) {
-    let body = response.body ? response.body : response.error;
-    var a = document.createElement("a");
+    const body = response.body ? response.body : response.error;
+    const a = document.createElement('a');
     document.body.appendChild(a);
-    var url = window.URL.createObjectURL(body);
-    a.href = url;
+    a.href = window.URL.createObjectURL(body);
 
-    if(response.headers.get('content-disposition')!== undefined && response.headers.get('content-disposition')!== null){
+    if (response.headers.get('content-disposition') !== undefined && response.headers.get('content-disposition') !== null) {
       a.download = response.headers.get('content-disposition').split('filename=')[1];
       a.click();
       a.remove();
@@ -147,13 +145,14 @@ export class UploadService {
     }
   }
 
-  uploadReferentials(collection : string, file: any) {
+  uploadReferentials(collection: string, file: any) {
     let header = new HttpHeaders();
     header = header.set('Content-Type', 'application/octet-stream').set('X-Filename', file.name);
     return this.resourcesService.post(collection, header, file, 'text');
   }
 
-  checkReferentials(collection : string) {
-    return this.resourcesService.post('check/' +this.ingestOperationId);
+  // FIXME: Unused method ?
+  checkReferentials(collection: string) {
+    return this.resourcesService.post('check/' + this.ingestOperationId);
   }
 }

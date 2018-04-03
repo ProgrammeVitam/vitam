@@ -1,10 +1,8 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { IntervalObservable } from 'rxjs/observable/IntervalObservable';
+import { Component, OnInit, Input } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
-import { Observable, Subscription } from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Rx';
 
-import { ResourcesService } from '../../resources.service';
-import { UploadService, ingestStatusElement } from '../upload.service';
+import { UploadService } from '../upload.service';
 import { AuthenticationService } from '../../../authentication/authentication.service';
 
 
