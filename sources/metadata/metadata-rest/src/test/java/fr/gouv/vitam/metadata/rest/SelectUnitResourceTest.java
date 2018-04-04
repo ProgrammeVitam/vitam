@@ -109,7 +109,7 @@ public class SelectUnitResourceTest {
         "      \"EndDate\" : \"2019-01-01\"" +
         "    }]," +
         "      \"FinalAction\" : \"RestrictedAccess\"" +
-        "    }"+
+        "    }" +
         "  }";
 
     private final static String AU1_MGT = "{" +
@@ -119,14 +119,16 @@ public class SelectUnitResourceTest {
         "    }]}," +
         "    \"AccessRule\" : {" +
         "      \"PreventInheritance\" : \"true\"" +
-        "    }"+
+        "    }" +
         "  }";
 
     private static final String DATA_0 =
-        "{ \"#id\": \"" + GUID_0 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU0_MGT + ", \"DescriptionLevel\" : \"Grp\" }";
+        "{ \"#id\": \"" + GUID_0 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU0_MGT +
+            ", \"DescriptionLevel\" : \"Grp\" }";
 
     private static final String DATA_1 =
-        "{ \"#id\": \"" + GUID_1 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU1_MGT + ", \"DescriptionLevel\" : \"Item\" }";
+        "{ \"#id\": \"" + GUID_1 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU1_MGT +
+            ", \"DescriptionLevel\" : \"Item\" }";
 
     private static final String DATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
@@ -159,6 +161,28 @@ public class SelectUnitResourceTest {
         "{\"$query\": [{\"$exists\" : \"#id\"}], \"$projection\": {}, \"$filter\": {}, \"$facets\": [{\"$name\":\"desc_level_facet\",\"$terms\":{\"$field\":\"DescriptionLevel\", \"$size\": 5}}]}";
     private static final String SEARCH_QUERY_WITH_RULE =
         "{\"$query\": [], \"$projection\": {\"$fields\" : {\"$rules\" : 1}}, \"$filter\": {}}";
+    private static final String SEARCH_QUERY_WITH_FACET_FILTERS =
+        "{" +
+            "    \"$query\": [ { \"$exists\": \"#id\" } ]," +
+            "    \"$projection\": {}," +
+            "    \"$filter\": {}," +
+            "    \"$facets\": [" +
+            "        {" +
+            "            \"$name\": \"filters_facet\"," +
+            "            \"$filters\": {" +
+            "                \"$query_filters\": [" +
+            "                    {" +
+            "                        \"$name\": \"StorageRules\"," +
+            "                        \"$query\": { \"$exists\": \"#management.StorageRule.Rules.Rule\" }" +
+            "                    },{ " +
+            "                        \"$name\": \"AccessRules\"," +
+            "                        \"$query\": { \"$exists\": \"#management.AccessRule.Rules.Rule\" }\n" +
+            "                    }" +
+            "                ]" +
+            "            }" +
+            "        }" +
+            "    ]" +
+            "}";
 
     private static JunitHelper junitHelper;
     private static int serverPort;
@@ -382,7 +406,7 @@ public class SelectUnitResourceTest {
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_MGT)).when()
             .get("/units").then()
             .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
-        
+
         assertThat(responseOK1.getFacetResults().size()).isEqualTo(1);
         assertThat(responseOK1.getFacetResults().get(0).getName()).isEqualTo("mgt_facet");
         assertThat(responseOK1.getFacetResults().get(0).getBuckets().size()).isEqualTo(1);
@@ -395,7 +419,7 @@ public class SelectUnitResourceTest {
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_DESC_LEVEL)).when()
             .get("/units").then()
             .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
-        
+
         assertThat(responseOK2.getFacetResults().size()).isEqualTo(1);
         assertThat(responseOK2.getFacetResults().get(0).getName()).isEqualTo("desc_level_facet");
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().size()).isEqualTo(2);
@@ -404,6 +428,21 @@ public class SelectUnitResourceTest {
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().get(1).getValue()).isEqualTo("Item");
         assertThat(responseOK2.getFacetResults().get(0).getBuckets().get(1).getCount()).isEqualTo(1);
 
+        RequestResponseOK<JsonNode> responseOK3 = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_FACET_FILTERS)).when()
+            .get("/units").then()
+            .statusCode(Status.FOUND.getStatusCode()).extract().as(RequestResponseOK.class);
+
+        assertThat(responseOK3.getFacetResults().size()).isEqualTo(1);
+        assertThat(responseOK3.getFacetResults().get(0).getName()).isEqualTo("filters_facet");
+        assertThat(responseOK3.getFacetResults().get(0).getBuckets().size()).isEqualTo(2);
+        assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(0).getValue()).isEqualTo("AccessRules");
+        assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(0).getCount()).isEqualTo(1);
+        assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(1).getValue()).isEqualTo("StorageRules");
+        assertThat(responseOK3.getFacetResults().get(0).getBuckets().get(1).getCount()).isEqualTo(1);
+        
         VitamError responseKO1 = given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

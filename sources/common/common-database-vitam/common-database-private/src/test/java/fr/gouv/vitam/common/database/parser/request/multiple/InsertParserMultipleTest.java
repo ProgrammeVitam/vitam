@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
+import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -374,7 +375,7 @@ public class InsertParserMultipleTest {
     @Test(expected = InvalidParseOperationException.class)
     public void shouldRaiseException_whenRequestIdwithoutSymbolDollar() throws InvalidParseOperationException {
         final String s = "{mult : false }";
-        AbstractParser.getRequestId(s);
+        QueryParserHelper.getRequestId(s);
     }
 
     @Test

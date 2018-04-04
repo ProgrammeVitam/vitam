@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.multiple;
 
+import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.filters;
 import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.terms;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -59,8 +60,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.BeforeClass;
@@ -110,7 +113,17 @@ public class SelectParserMultipleTest {
                 "{\"$regex\":{\"mavar14\":\"^start?aa.*\"}}],\"$filter\":{\"$offset\":100,\"$limit\":1000," +
                 "\"$hint\":[\"cache\"],\"$orderby\":{\"maclef1\":1,\"maclef2\":-1,\"maclef3\":1}}," +
                 "\"$projection\":{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}," +
-                "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$size\":5,\"$order\":\"ASC\"}}]}");
+                "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$size\":5,\"$order\":\"ASC\"}}," +
+                "{" +
+                "    \"$name\": \"filters_facet\"," +
+                "    \"$filters\": {" +
+                "        \"$query_filters\": [" +
+                "            {\"$name\": \"StorageRules\", \"$query\": {\"$exists\": \"#management.StorageRule.Rules.Rule\"}}," +
+                "            {\"$name\": \"AccessRules\",\"$query\": {\"$exists\": \"#management.AccessRule.Rules.Rule\"}}" +
+                "        ]" +
+                "    }" +
+                "}" +
+                "]}");
 
         exampleMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
             "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
@@ -125,7 +138,17 @@ public class SelectParserMultipleTest {
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }," +
-            "$facets : [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1, $order: 'ASC'}}] }");
+            "$facets : [{$name : 'mafacet', $terms : {$field : 'mavar1', $size : 1, $order: 'ASC'}}," +
+            "{" +
+            "    $name: 'filters_facet'," +
+            "    $filters: {" +
+            "        $query_filters: [" +
+            "            {$name: 'StorageRules', $query: {$exists: '#management.StorageRule.Rules.Rule'}}," +
+            "            {$name: 'AccessRules',$query: {$exists: '#management.AccessRule.Rules.Rule'}}" +
+            "        ]\n" +
+            "    }" +
+            "}" +
+            "] }");
     }
 
     private static String createLongString(int size) {
@@ -210,6 +233,10 @@ public class SelectParserMultipleTest {
                 .addOrderByDescFilter("maclef2").addOrderByAscFilter("maclef3");
             select.addUsedProjection("#dua", "#all").setUsageProjection("abcdef1234");
             select.addFacets(terms("mafacet", "mavar1", 5, FacetOrder.ASC));
+            Map<String, Query> filterQueries = new HashMap<>();
+            filterQueries.put("StorageRules", exists("#management.StorageRule.Rules.Rule"));
+            filterQueries.put("AccessRules", exists("#management.AccessRule.Rules.Rule"));
+            select.addFacets(filters("filters_facet", filterQueries));
             final SelectParserMultiple request2 = new SelectParserMultiple();
             request2.parse(select.getFinalSelect());
             assertNotNull(request2);
@@ -460,6 +487,18 @@ public class SelectParserMultipleTest {
                 request.facetsParse(facetsArray);
             }).isInstanceOf(InvalidParseOperationException.class);
 
+            // fake facet, only $name, invalid $filters value
+            assertThatThrownBy(() -> {
+                ObjectNode fakeFacet = JsonHandler.createObjectNode();
+                fakeFacet.put("$name", "mafacet");
+                ObjectNode fakeQueryFilter = JsonHandler.createObjectNode();
+                fakeQueryFilter.set("$query_filters", JsonHandler.createObjectNode());
+                fakeFacet.set("$filters", fakeQueryFilter);
+                facetsArray.removeAll();
+                facetsArray.add(fakeFacet);
+                request.facetsParse(facetsArray);
+            }).isInstanceOf(InvalidParseOperationException.class);
+
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -597,7 +636,7 @@ public class SelectParserMultipleTest {
         } catch (final InvalidParseOperationException e) {
             // OK
         }
-        
+
         s = "{\"$roots\":[]," +
             "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
             "\"$filter\":{\"$limit\":10000}," +

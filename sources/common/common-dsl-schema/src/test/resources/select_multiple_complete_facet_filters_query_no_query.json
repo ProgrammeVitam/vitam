@@ -51,16 +51,7 @@
 			"$filters": {
 				"$query_filters": [
 					{
-						"$name": "StorageRules",
-						"$query": {
-							"$exists": "#management.StorageRule.Rules.Rule"
-						}
-					},
-					{
-						"$name": "AccessRules",
-						"$query": {
-							"$exists": "#management.AccessRule.Rules.Rule"
-						}
+						"$name": "AccessRules"
 					}
 				]
 			}

@@ -27,7 +27,9 @@
 package fr.gouv.vitam.common.database.builder.facet;
 
 import java.util.List;
+import java.util.Map;
 
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 
@@ -60,6 +62,7 @@ public class FacetHelper {
 
     /**
      * Create a date range facet
+     * 
      * @param name name of the facet
      * @param field field of facet data
      * @param dateFormat the date format for the ranges of the facet
@@ -70,5 +73,19 @@ public class FacetHelper {
     public static final Facet dateRange(String name, String field, String dateFormat, List<RangeFacetValue> ranges)
         throws InvalidCreateOperationException {
         return new DateRangeFacet(name, field, dateFormat, ranges);
+    }
+
+
+    /**
+     * Create a filters facet
+     * 
+     * @param name name of the facet
+     * @param filters map of named filer queries
+     * @return a Facet
+     * @throws InvalidCreateOperationException when creating facet errors
+     */
+    public static final Facet filters(String name, Map<String, Query> filters)
+        throws InvalidCreateOperationException {
+        return new FiltersFacet(name, filters);
     }
 }

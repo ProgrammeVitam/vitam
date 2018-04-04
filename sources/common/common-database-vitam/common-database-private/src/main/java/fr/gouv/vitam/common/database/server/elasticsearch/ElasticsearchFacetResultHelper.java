@@ -29,14 +29,17 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.model.FacetBucket;
-import fr.gouv.vitam.common.model.FacetResult;
 import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.bucket.filters.Filters;
+import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.Range;
 import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
+
+import fr.gouv.vitam.common.model.FacetBucket;
+import fr.gouv.vitam.common.model.FacetResult;
 
 /**
  * ElasticsearchFacetResultHelper for mapping ES object to Vitam FacetResult
@@ -60,10 +63,27 @@ public class ElasticsearchFacetResultHelper {
             case StringTerms.NAME:
                 facetResult.setBuckets(extractBucketTermsAggregation(aggregation));
                 break;
+            case FiltersAggregationBuilder.NAME:
+                facetResult.setBuckets(extractBucketFiltersAggregation(aggregation));
+                break;
             default:
                 break;
         }
         return facetResult;
+    }
+
+    /**
+     * Transform es filters aggregation buckets to FacetBucket
+     * 
+     * @param aggregation es aggregation
+     * @return list of FacetBucket
+     */
+    private static List<FacetBucket> extractBucketFiltersAggregation(Aggregation aggregation) {
+        List<? extends Filters.Bucket> buckets = ((Filters) aggregation).getBuckets();
+        List<FacetBucket> facetBuckets = new ArrayList<>();
+        buckets.stream()
+            .forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));
+        return facetBuckets;
     }
 
     /**
@@ -87,7 +107,7 @@ public class ElasticsearchFacetResultHelper {
      * @return list of FacetBucket
      */
     private static List<FacetBucket> extractBucketRangeAggregation(Aggregation aggregation) {
-        List<? extends Range.Bucket> buckets=buckets = ((Range) aggregation).getBuckets();
+        List<? extends Range.Bucket> buckets = ((Range) aggregation).getBuckets();
         List<FacetBucket> facetBuckets = new ArrayList<>();
         buckets.stream()
             .forEach(bucket -> facetBuckets.add(new FacetBucket(bucket.getKeyAsString(), bucket.getDocCount())));

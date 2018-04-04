@@ -257,7 +257,8 @@ public class ValidatorSelectQueryMultipleTest {
     }
 
     @Test
-    public void should_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_no_From_no_To() throws Exception {
+    public void should_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_no_From_no_To()
+        throws Exception {
         JsonNode test1Json =
             JsonHandler
                 .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_from_no_To.json"));
@@ -268,16 +269,16 @@ public class ValidatorSelectQueryMultipleTest {
             .hasMessageContaining("ELEMENT_TOO_SHORT");
     }
 
-        @Test
-        public void should_retrieve_errors_when_select_multiple_complete_empty_ranges() throws Exception {
-            JsonNode test1Json =
-                JsonHandler
-                    .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty_ranges.json"));
-            final Schema schema =
-                loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-            assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-                .hasMessageContaining("$ranges")
-                .hasMessageContaining("ELEMENT_TOO_SHORT");
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_empty_ranges() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty_ranges.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("$ranges")
+            .hasMessageContaining("ELEMENT_TOO_SHORT");
 
     }
 
@@ -297,7 +298,8 @@ public class ValidatorSelectQueryMultipleTest {
     public void should_not_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_one_from() throws Exception {
         JsonNode test1Json =
             JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range_one_from.json"));
+                .getFromFile(
+                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range_one_from.json"));
         final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
 
@@ -345,4 +347,57 @@ public class ValidatorSelectQueryMultipleTest {
             .hasMessageContaining("WRONG_JSON_TYPE");
     }
 
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_filters_empty_filters() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(
+                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_empty_filters.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("Validating $query_filters")
+            .hasMessageContaining("MANDATORY");
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_filters_empty_filters_filters() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(
+                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_empty_filters_filters.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("Validating $query_filters")
+            .hasMessageContaining("ELEMENT_TOO_SHORT");
+    }
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_filters_query_no_name() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(
+                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_query_no_name.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("Validating $name")
+            .hasMessageContaining("MANDATORY");
+    }
+    @Test
+    public void should_retrieve_errors_when_select_multiple_complete_facet_filters_query_no_query() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(
+                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_query_no_query.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("Validating $query")
+            .hasMessageContaining("MANDATORY");
+    }
 }

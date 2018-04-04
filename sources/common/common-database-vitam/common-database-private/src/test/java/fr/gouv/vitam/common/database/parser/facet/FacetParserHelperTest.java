@@ -26,18 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.facet;
 
+import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.dateRange;
+import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.filters;
 import static fr.gouv.vitam.common.database.builder.facet.FacetHelper.terms;
 import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.dateRange;
 import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.terms;
+import static fr.gouv.vitam.common.database.parser.facet.FacetParserHelper.filters;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import fr.gouv.vitam.common.database.builder.facet.DateRangeFacet;
-import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,6 +50,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.database.builder.facet.Facet;
+import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -92,39 +100,67 @@ public class FacetParserHelperTest {
 
 
     @Test
+    public void testFilters() throws InvalidCreateOperationException, InvalidParseOperationException {
+        // basic filters
+        Map<String, Query> filters = new HashMap<>();
+        filters.put("query_1", QueryHelper.eq("var1", 1));
+        filters.put("query_2", QueryHelper.and().add(QueryHelper.match("var2", "value")));
+        Facet facet1 = filters("facet1", filters);
+        Facet facet2 = filters(facet1.getCurrentFacet(), noAdapter);
+        assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
+            facet2.getCurrentFacet().toString());
+        // different facet by query number
+        filters.remove("query_2");
+        facet1 = filters("facet1", filters);
+        assertNotEquals("String shall be equal", facet1.getCurrentFacet().toString(),
+            facet2.getCurrentFacet().toString());
+        // null filters
+        assertThatThrownBy(() -> {
+            filters("facet1", null);
+        }).isInstanceOf(InvalidCreateOperationException.class);
+        // empty filters
+        assertThatThrownBy(() -> {
+            filters("facet1", new HashMap<>());
+        }).isInstanceOf(InvalidCreateOperationException.class);
+
+    }
+
+    @Test
     public void testDateRangeOk() {
         try {
-            List<RangeFacetValue> ranges=new ArrayList<>();
-            ranges.add(new RangeFacetValue("from",null));
-            Facet facet1 = dateRange("facet1", "EndDate","yyyy",ranges);
+            List<RangeFacetValue> ranges = new ArrayList<>();
+            ranges.add(new RangeFacetValue("from", null));
+            Facet facet1 = dateRange("facet1", "EndDate", "yyyy", ranges);
             Facet facet2 = dateRange(facet1.getCurrentFacet(), noAdapter);
             assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
                 facet2.getCurrentFacet().toString());
-            assertEquals("$date_range",facet1.getCurrentTokenFACET().exactToken());
-            assertEquals("$date_range",facet2.getCurrentTokenFACET().exactToken());
+            assertEquals("$date_range", facet1.getCurrentTokenFACET().exactToken());
+            assertEquals("$date_range", facet2.getCurrentTokenFACET().exactToken());
 
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
     }
+
     @Test(expected = InvalidCreateOperationException.class)
     public void testDateRangeKoNoRanges() throws InvalidParseOperationException, InvalidCreateOperationException {
-        List<RangeFacetValue> ranges=new ArrayList<>();
-        Facet facet1 = dateRange("facet1", "EndDate","yyyy",ranges);
+        List<RangeFacetValue> ranges = new ArrayList<>();
+        Facet facet1 = dateRange("facet1", "EndDate", "yyyy", ranges);
         Facet facet2 = dateRange(facet1.getCurrentFacet(), noAdapter);
     }
+
     @Test(expected = InvalidCreateOperationException.class)
     public void testDateRangeKoNullRangeValue() throws InvalidParseOperationException, InvalidCreateOperationException {
-        List<RangeFacetValue> ranges=new ArrayList<>();
-        ranges.add(new RangeFacetValue(null,null));
-        Facet facet1 = dateRange("facet1", "EndDate","yyyy",ranges);
+        List<RangeFacetValue> ranges = new ArrayList<>();
+        ranges.add(new RangeFacetValue(null, null));
+        Facet facet1 = dateRange("facet1", "EndDate", "yyyy", ranges);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
     public void testDateRangeKoNoField() throws InvalidParseOperationException, InvalidCreateOperationException {
-        List<RangeFacetValue> ranges=new ArrayList<>();
-        ranges.add(new RangeFacetValue("from","to"));
-        Facet facet1 = dateRange("facet1", null,"yyyy",ranges);
+        List<RangeFacetValue> ranges = new ArrayList<>();
+        ranges.add(new RangeFacetValue("from", "to"));
+        Facet facet1 = dateRange("facet1", null, "yyyy", ranges);
     }
 }

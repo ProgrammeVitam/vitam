@@ -241,7 +241,7 @@
       },
       "$terms": {
         "format": "ref",
-        "type": "BUCKET_FACET",
+        "type": "TERMS_FACET",
         "optional": true,
         "hint": "Terms facet of type bucket"
       },
@@ -250,10 +250,16 @@
         "type": "DATE_RANGE_FACET",
         "optional": true,
         "hint": "Date range facet"
+      },
+      "$filters": {
+        "format": "ref",
+        "type": "FILTERS_FACET",
+        "optional": true,
+        "hint": "Filters facet of type bucket"
       }
     }
   },
-  "BUCKET_FACET": {
+  "TERMS_FACET": {
     "format": "object",
     "elements": {
       "$field": {
@@ -316,6 +322,35 @@
         "type": "string",
         "optional": true,
         "hint": "Date to"
+      }
+    }
+  },
+  "FILTERS_FACET": {
+    "format": "object",
+    "elements": {
+      "$query_filters": {
+        "format": "array",
+        "itemtype": "FILTERS_QUERY_OBJECT",
+        "min": 1,
+        "optional": false,
+        "hint": "List of filter query objects"
+      }
+    }
+  },
+  "FILTERS_QUERY_OBJECT": {
+    "format": "object",
+    "elements": {
+      "$name": {
+        "format": "ref",
+        "type": "string",
+        "optional": false,
+        "hint": "Name of filter bucket"
+      },
+      "$query": {
+        "format": "ref",
+        "type": "QUERY",
+        "optional": false,
+        "hint": "Query of the facet filter bucket"
       }
     }
   }

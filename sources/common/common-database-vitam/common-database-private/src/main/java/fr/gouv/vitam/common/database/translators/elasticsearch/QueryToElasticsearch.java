@@ -29,14 +29,14 @@ package fr.gouv.vitam.common.database.translators.elasticsearch;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.node.NullNode;
-import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -45,9 +45,9 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.range.RangeAggregator;
+import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.filters.FiltersAggregator.KeyedFilter;
 import org.elasticsearch.search.aggregations.bucket.range.date.DateRangeAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.range.geodistance.GeoDistanceAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -56,6 +56,7 @@ import org.elasticsearch.search.sort.SortOrder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.facet.Facet;
@@ -66,11 +67,14 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERYARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -1000,40 +1004,28 @@ public class QueryToElasticsearch {
         return boolQueryBuilder;
     }
 
-
-    public static List<AggregationBuilder> getFacets(final AbstractParser<?> requestParser) {
+    /**
+     * Create ES facets from request parser
+     * 
+     * @param requestParser parser
+     * @return list of facets
+     * @throws InvalidParseOperationException if could not create ES facets
+     */
+    public static List<AggregationBuilder> getFacets(final AbstractParser<?> requestParser)
+        throws InvalidParseOperationException {
         List<AggregationBuilder> builders = new ArrayList<>();
         if (requestParser.getRequest() instanceof SelectMultiQuery) {
             List<Facet> facets = ((SelectMultiQuery) requestParser.getRequest()).getFacets();
             for (Facet facet : facets) {
                 switch (facet.getCurrentTokenFACET()) {
                     case TERMS:
-                        TermsAggregationBuilder termsBuilder = AggregationBuilders.terms(facet.getName());
-                        JsonNode terms = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
-                        termsBuilder.field(terms.get(FACETARGS.FIELD.exactToken()).asText());
-                        if (terms.has(FACETARGS.SIZE.exactToken())) {
-                            termsBuilder.size(terms.get(FACETARGS.SIZE.exactToken()).asInt());
-                        }
-                        builders.add(termsBuilder);
+                        termsFacet(builders, facet);
                         break;
                     case DATE_RANGE:
-                        DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(facet.getName());//
-                        JsonNode dateRange = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
-                        dateRangeBuilder.field(dateRange.get(FACETARGS.FIELD.exactToken()).asText());
-                        dateRangeBuilder.format(dateRange.get(FACETARGS.FORMAT.exactToken()).asText());
-                        JsonNode ranges = dateRange.get(FACETARGS.RANGES.exactToken());
-                        ranges.forEach(item -> {
-                            JsonNode from = item.get(FACETARGS.FROM.exactToken());
-                            JsonNode to = item.get(FACETARGS.TO.exactToken());
-                            if (from != null && !(from instanceof NullNode) && to != null && !(to instanceof NullNode)) {
-                                dateRangeBuilder.addRange(from.asText(), to.asText());
-                            } else if (from != null && !(from instanceof NullNode)) {
-                                dateRangeBuilder.addUnboundedFrom(from.asText());
-                            } else if (to != null && !(to instanceof NullNode)) {
-                                dateRangeBuilder.addUnboundedTo(to.asText());
-                            }
-                        });
-                        builders.add(dateRangeBuilder);
+                        dateRangeFacet(builders, facet);
+                        break;
+                    case FILTERS:
+                        filtersFacet(builders, facet, requestParser.getAdapter());
                         break;
                     default:
                         break;
@@ -1043,6 +1035,83 @@ public class QueryToElasticsearch {
         }
         return builders;
 
+    }
+
+    /**
+     * Add date_range es facet from facet
+     * 
+     * @param builders es facets
+     * @param facet facet
+     */
+    private static void dateRangeFacet(List<AggregationBuilder> builders, Facet facet) {
+        DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(facet.getName());//
+        JsonNode dateRange = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
+        dateRangeBuilder.field(dateRange.get(FACETARGS.FIELD.exactToken()).asText());
+        dateRangeBuilder.format(dateRange.get(FACETARGS.FORMAT.exactToken()).asText());
+        JsonNode ranges = dateRange.get(FACETARGS.RANGES.exactToken());
+        ranges.forEach(item -> {
+            JsonNode from = item.get(FACETARGS.FROM.exactToken());
+            JsonNode to = item.get(FACETARGS.TO.exactToken());
+            if (from != null && !(from instanceof NullNode) && to != null && !(to instanceof NullNode)) {
+                dateRangeBuilder.addRange(from.asText(), to.asText());
+            } else if (from != null && !(from instanceof NullNode)) {
+                dateRangeBuilder.addUnboundedFrom(from.asText());
+            } else if (to != null && !(to instanceof NullNode)) {
+                dateRangeBuilder.addUnboundedTo(to.asText());
+            }
+        });
+        builders.add(dateRangeBuilder);
+    }
+
+    /**
+     * Add terms es facet from facet
+     * 
+     * @param builders es facets
+     * @param facet facet
+     */
+    private static void termsFacet(List<AggregationBuilder> builders, Facet facet) {
+        TermsAggregationBuilder termsBuilder = AggregationBuilders.terms(facet.getName());
+        JsonNode terms = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
+        termsBuilder.field(terms.get(FACETARGS.FIELD.exactToken()).asText());
+        if (terms.has(FACETARGS.SIZE.exactToken())) {
+            termsBuilder.size(terms.get(FACETARGS.SIZE.exactToken()).asInt());
+        }
+        builders.add(termsBuilder);
+    }
+
+
+    /**
+     * Add filters es facet from facet
+     * 
+     * @param builders es facets
+     * @param facet facet
+     */
+    private static void filtersFacet(List<AggregationBuilder> builders, Facet facet, VarNameAdapter adapter)
+        throws InvalidParseOperationException {
+        JsonNode filtersFacetNode = facet.getCurrentFacet().get(facet.getCurrentTokenFACET().exactToken());
+
+        Map<String, Query> filtersMap = new HashMap<>();
+        ArrayNode filtersNode = (ArrayNode) filtersFacetNode.get(FACETARGS.QUERY_FILTERS.exactToken());
+        for (JsonNode node : filtersNode) {
+            String key = node.get(FACETARGS.NAME.exactToken()).asText();
+            JsonNode queryNode = node.get(FACETARGS.QUERY.exactToken());
+            final Entry<String, JsonNode> queryItem = JsonHandler.checkUnicity("RootRequest", queryNode);
+            try {
+                Query query = QueryParserHelper.query(queryItem.getKey(), queryItem.getValue(), adapter);
+                filtersMap.put(key, query);
+
+            } catch (InvalidCreateOperationException e) {
+                throw new InvalidParseOperationException(e);
+            }
+        }
+
+        List<KeyedFilter> keyFilters = new ArrayList<>();
+        for (Map.Entry<String, Query> entry : filtersMap.entrySet()) {
+            keyFilters.add(new KeyedFilter(entry.getKey(), getCommand(entry.getValue())));
+        }
+        KeyedFilter[] keyFiltersArray = keyFilters.stream().toArray(KeyedFilter[]::new);
+        FiltersAggregationBuilder filtersBuilder = AggregationBuilders.filters(facet.getName(), keyFiltersArray);
+        builders.add(filtersBuilder);
     }
 
     /**

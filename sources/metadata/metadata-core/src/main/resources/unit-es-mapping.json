@@ -2,8 +2,8 @@
   "typeunique": {
     "dynamic_templates": [
       {
-        "Titles": {
-          "path_match": "Titles.*",
+        "Title_": {
+          "path_match": "Title_.*",
           "mapping": {
             "type": "text",
             "fielddata": true
@@ -11,8 +11,8 @@
         }
       },
       {
-        "Descriptions": {
-          "path_match": "Descriptions.*",
+        "Description_": {
+          "path_match": "Description_.*",
           "mapping": {
             "type": "text"
           }
@@ -57,7 +57,7 @@
         "type": "object"
       },
       "DescriptionLanguage": {
-        "type": "text"
+        "type": "keyword"
       },
       "DescriptionLevel": {
         "type": "keyword"
@@ -87,7 +87,7 @@
         "type": "keyword"
       },
       "Language": {
-        "type": "text"
+        "type": "keyword"
       },
       "OriginatingAgency": {
         "properties": {

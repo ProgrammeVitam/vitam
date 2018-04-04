@@ -24,46 +24,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.translators.elasticsearch;
+package fr.gouv.vitam.common.database.builder.facet;
 
-import java.util.List;
+import java.util.Map;
 
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.parser.request.AbstractParser;
-import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACET;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FACETARGS;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Select To Elasticsearch
+ * Filters facet
  */
-public class SelectToElasticsearch extends RequestToElasticsearch {
+public class FiltersFacet extends Facet {
 
     /**
-     * @param selectParser AbstractParser of unknown type
+     * Filters Facet constructor
+     * 
+     * @param name name of the facet
+     * @param filters map of named filer queries
+     * @throws InvalidCreateOperationException when not valid
      */
-    public SelectToElasticsearch(AbstractParser<?> selectParser) {
-        super(selectParser);
-    }
-
-    /**
-     * FindIterable.sort(orderby) for Elasticsearch
-     *
-     * @param score True to use if necessary score from ES
-     * @return the orderBy Elasticsearch command
-     * @throws InvalidParseOperationException
-     */
-    public List<SortBuilder> getFinalOrderBy(boolean score) throws InvalidParseOperationException {
-        List<SortBuilder> list = QueryToElasticsearch.getSorts(requestParser,
-            requestParser.hasFullTextQuery() || VitamCollection.containMatch(), score);
-        VitamCollection.setMatch(false);
-        return list;
-    }
-
-    public List<AggregationBuilder> getFacets() throws InvalidParseOperationException {
-        return QueryToElasticsearch.getFacets(requestParser);
+    public FiltersFacet(String name, Map<String, Query> filters) throws InvalidCreateOperationException {
+        super(name);
+        setName(name);
+        currentTokenFACET = FACET.FILTERS;
+        if (name == null || name.isEmpty()) {
+            throw new InvalidCreateOperationException("name value is requested");
+        }
+        if (filters == null || filters.size() <= 0) {
+            throw new InvalidCreateOperationException("filters must be > 0 ");
+        }
+        ObjectNode facetNode = JsonHandler.createObjectNode();
+        ArrayNode filtersNode = JsonHandler.createArrayNode();
+        filters.forEach((key, query) -> {
+            ObjectNode filterNode = JsonHandler.createObjectNode();
+            filterNode.put(FACETARGS.NAME.exactToken(), key);
+            filterNode.set(FACETARGS.QUERY.exactToken(), query.getCurrentQuery());
+            filtersNode.add(filterNode);
+        });
+        facetNode.set(FACETARGS.QUERY_FILTERS.exactToken(), filtersNode);
+        currentFacet = facetNode;
     }
 }
-
