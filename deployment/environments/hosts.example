@@ -202,7 +202,7 @@ hosts-mongodb-data
 #    is_data=true/false
 #    is_master=true/false
 #    other options are not handled yet
-# defaults are set to true
+# defaults are set to true, if undefined. If defined, at least one server MUST be is_data=true
 # Examples :
 # server1 is_master=true is_data=false
 # server2 is_master=false is_data=true
