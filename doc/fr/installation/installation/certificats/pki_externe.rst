@@ -16,7 +16,19 @@ Les étapes d'intégration des certificats à la solution Vitam sont les suivant
 
 .. note:: Rappel pré-requis : vous devez disposer d'une ou plusieurs :term:`PKI` pour tout déploiement en production de la solution VITAM.
 
-.. note:: Ne pas oublier, dans les certificats, de prendre en compte des alias "web" (subjectAltName).
+Génération des certificats
+--------------------------
+
+Les certificats générés doivent prendre en compte des alias "web" (subjectAltName).
+
+Le subjectAltName des certificats serveurs (deployment/environments/certs/server/hosts/*) doit contenir le nom dns du service sur consul.
+Exemple avec un cas standard: <composant_vitam>.service.consul.
+Ce qui donne pour le certificat serveur de access-external par exemple:
+
+.. code-block:: text
+
+    X509v3 Subject Alternative Name:
+        DNS:access-external.service.consul, DNS:localhost
 
 Intégration de certificats existants
 ------------------------------------
