@@ -73,13 +73,17 @@
     body_format: json
     status_code: 200,201
 
-# TODO Get Kibana version dynamically and put it in the URL
+- name: Get kibana info for default index pattern 
+  set_fact:
+    packagejson: "{{ lookup('file','/usr/share/kibana/package.json') | from_json }}"
+  run_once: true
+
 - name: set logstash-vitam* as kibana default index pattern
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
-    url: '{{ elasticsearch.log|client_url }}.kibana/config/5.6.3'
+    url: "{{ elasticsearch.log|client_url }}.kibana/config/{{ packagejson.version }}"
     method: PUT
-    body: '{"defaultIndex": "logstash-vitam*", "buildNum": 15533}'
+    body: '{"defaultIndex": "logstash-vitam*", "buildNum": {{ packagejson.build.number }} }'
     body_format: json
     status_code: 200, 201
