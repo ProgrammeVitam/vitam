@@ -64,11 +64,6 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>functional-administration-evidence</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-profile</artifactId>
 			<version>${project.version}</version>
 		</dependency>
