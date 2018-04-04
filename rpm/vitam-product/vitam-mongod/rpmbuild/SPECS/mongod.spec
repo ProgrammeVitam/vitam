@@ -1,5 +1,5 @@
 Name:          vitam-mongod
-Version:       3.4.13
+Version:       3.4.14
 Release:       1%{?dist}
 Summary:       Service files for Vitam mongod cluster configuration nodes
 Group:         Applications/Databases
