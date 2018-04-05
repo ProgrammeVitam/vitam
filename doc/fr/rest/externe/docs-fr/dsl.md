@@ -218,7 +218,8 @@ Les facets peuvent être jouées sur une recherche mono-requête ou multi-requê
       "$name": "facet_desclevel",
       "$terms": {
         "$field": "DescriptionLevel",
-        "$size": 5
+        "$size": 5,
+        "$order": "ASC"
       }
     }
   ]
@@ -250,7 +251,8 @@ Les facets peuvent être jouées sur une recherche mono-requête ou multi-requê
       "$name": "facet_desclevel",
       "$terms": {
         "$field": "DescriptionLevel",
-        "$size": 5
+        "$size": 5,
+        "$order": "ASC"
       }
     }
   ]
@@ -649,20 +651,22 @@ Les commandes de la Facet peuvent être :
 
 | Opérateur            | Arguments                                  | Commentaire                                                                   |
 |----------------------|--------------------------------------------|-------------------------------------------------------------------------------|
-| $terms               | nom du champ et nombre de résulats         | Répartition selon des valeurs textuelles du champ                             |
-| $date_range          | nom de champ,  format, ranges              | indique la répartition selon les dates selon un intervalle défini "ranges"    |
+| $terms               | nom du champ, nombre et ordre des résulats | Répartition selon des valeurs textuelles du champ                             |
+| $date_range          | nom de champ,  format, ranges              | Répartition selon les dates selon un intervalle défini "ranges"       |
+| $filters             | requêtes de filtre                         | Répartition selon les requêtes définies (même format qu'une $query)        |
 								   
 ### Opérateur $terms : répartition selon des valeurs textuelles du champ
 
 **Format :**
-- `{ "$terms" : { "$field" : "field_name", "$size" : x } }` : où *field_name* (obligatoire) est le nom du champ et *x* (optionnel) le nombre de valeurs textuelles remontées.
+- `{ "$terms" : { "$field" : "field_name", "$size" : x, "$order": "field_order" } }` : où *field_name* (obligatoire) est le nom du champ, *x* (obligatoire) le nombre de valeurs textuelles remontées et *field_order* est l'ordre (valeurs : ASC/DESC).
 
 **Exemple :**
 Recherche la répartition de tous les résultats de recherche pour les 3 valeurs les plus utilisées du champ DescriptionLevel :
 ```json
-{ "$name": "facet_desclevel", "$terms" : { "$field" : "DescriptionLevel", "$size" : 3 } }
+{ "$name": "facet_desclevel", "$terms" : { "$field" : "DescriptionLevel", "$size" : 3, "$order" : "ASC"  } }
 
-### Opérateur $date_range : 
+### Opérateur $date_range :
+
 **Format :**
 - `{ "$date_range" : { "$field" : "field_name", "$format" : "format" , "$ranges": [ {"$from": "from","$to": "to"}]} }` : où *field_name* (obligatoire) est le nom du champ, *format*(obligatoire) le format de la date (Ex :'dd-mm-yyyy), *ranges*(obligatoire) une liste d'object possedant un champ *from* et/ou un champ *to*
 
@@ -690,7 +694,35 @@ Recherche du nombre de résultats pour une date EndDate située entre 2010 et 20
     }
   ]
 
-**Notes :**
+								   
+### Opérateur $filters : Répartition selon les requêtes définies
+
+**Format :**
+- `{ "$filters" : { "$query_filters" : [ { "$name" : "filter_name", "$query" : { QUERY } } ] } }` : où pour chaque filtre *name* (obligatoire) est le nom du filter et *query* contient une query dsl valide (cf partie QUERY de cette documentation).
+
+**Exemple :**
+Recherche la répartition des résultat pour la présence d'un champ titre en français et la présence d'un champ titre en anglais :
+```json
+{ "$name": "facet_title_langs", "$filters" : {
+      "$query_filters": [
+        {
+          "$name": "french_title",
+          "$query": {
+            "$exists": "Title_.fr"
+          }
+        },
+        {
+          "$name": "english_title",
+          "$query": {
+            "$exists": "Title_.en"
+          }
+        }
+      ]
+    }
+  }
+
+### Notes sur les opérateurs
+
 - Les champs analysés ne peuvent pas être utilisés en argument *$field*.
 
 
@@ -735,7 +767,7 @@ Une réponse est composée de plusieurs parties :
     "$filter": { "$limit": 100 },
     "$projection": { "$fields": { "#id": 1, "Title": 1 } },
     "$facets": [
-      { "$name": "facet_desclevel",  "$terms" : { "$field" : "DescriptionLevel", "$size" : 3 } }
+      { "$name": "facet_desclevel",  "$terms" : { "$field" : "DescriptionLevel", "$size" : 3, "$order" : "ASC" } }
     ]
   },
   "$results": [
