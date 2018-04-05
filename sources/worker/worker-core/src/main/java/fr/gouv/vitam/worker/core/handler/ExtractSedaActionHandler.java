@@ -286,6 +286,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private Unmarshaller unmarshaller;
+    private ArchiveUnitListener listener;
 
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -361,12 +362,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK).getPath());
 
             unmarshaller = jaxbContext.createUnmarshaller();
-            unmarshaller.setListener(new ArchiveUnitListener(handlerIO, archiveUnitTree, unitIdToGuid, unitIdToGroupId,
+            listener = new ArchiveUnitListener(handlerIO, archiveUnitTree, unitIdToGuid, unitIdToGroupId,
                 objectGroupIdToUnitId, dataObjectIdToObjectGroupId, dataObjectIdWithoutObjectGroupId,
                 guidToLifeCycleParameters, existingUnitGuids, params.getLogbookTypeProcess(),
                 params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
                 dataObjectIdToGuid, unitIdToSetOfRuleId,
-                workflowUnitType, originatingAgencies, existingGOTs));
+                workflowUnitType, originatingAgencies, existingGOTs);
+            unmarshaller.setListener(listener);
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
 
@@ -685,6 +687,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
                     contractName = reader.getElementText();
+                    // FIXME : this should be done in a proper way (check ingest is done before, so we should use the result)
+                    listener.setIngestContract(contractName);
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ARCHIVAL_AGREEMENT));
                     writer.add(eventFactory.createCharacters(contractName));
@@ -881,11 +885,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
 
-            String evDetDataJson=JsonHandler.unprettyPrint(evDetData);
+            String evDetDataJson = JsonHandler.unprettyPrint(evDetData);
 
             // 2-detect cycle : if graph has a cycle throw CycleFoundException
             // Define Treatment DirectedCycle detection
-            checkCycle(logbookLifeCycleClient, containerId,evDetDataJson);
+            checkCycle(logbookLifeCycleClient, containerId, evDetDataJson);
 
             // 2- create graph and create level
             // Define Treatment Graph and Level Creation
@@ -996,7 +1000,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             handlerIO.getHelper().updateDelegate(llcp);
             bulkLifeCycleUnit(containerId, logbookLifeCycleClient, Lists.newArrayList(unitGuid));
         }
-        throw new CycleFoundException(GRAPH_CYCLE_MSG, cycleMessage,evDetData);
+        throw new CycleFoundException(GRAPH_CYCLE_MSG, cycleMessage, evDetData);
 
     }
 
@@ -1557,7 +1561,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             throw new ArchiveUnitContainDataObjectException(
                                 "The archive unit " + entry.getKey() + " references one BDO Id " + entry.getValue() +
                                     " while this BDO has a GOT id " + groupId,
-                                entry.getKey(), entry.getValue(), groupId,llcEvDetData);
+                                entry.getKey(), entry.getValue(), groupId, llcEvDetData);
                         }
                     }
                 }
@@ -2337,8 +2341,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void linkToArchiveUnitDeclaredInTheIngestContract(ArrayNode upNode) {
         findArchiveUnitDeclaredInTheIngestContract();
-        if (linkParentId != null) {
-            upNode.add(linkParentId);
+        // if ingest contract is not null, that means control is activated
+        // if control is activated, then no need to add linkParentId as a up
+        if ((ingestContract != null && ingestContract.getLinkParentId() != null && linkParentId != null &&
+            !ingestContract.getLinkParentId().equals(linkParentId)) ||
+            (linkParentId != null && ingestContract == null)) {
+            if (!upNode.toString().contains(linkParentId)) {
+                upNode.add(linkParentId);
+            }
         }
     }
 
