@@ -75,14 +75,19 @@
     dashboard_dir: "{{ role_path }}/files/kibana-data-configuration/dashboard"
     visualization_dir: "{{ role_path }}/files/kibana-data-configuration/visualization"
 
-# TODO Get Kibana version dynamically and put it in the URL
+- name: Get kibana info for default index pattern 
+  set_fact:
+    packagejson: "{{ lookup('file','/usr/share/kibana/package.json') | from_json }}"
+  run_once: true
+  tags: load_kibana_data
+
 - name: set logbookoperation_* as kibana default index pattern
   when: "{{ (groups['hosts-kibana-data'] | length) > 0}}"
   tags: load_kibana_data
   run_once: true
   uri:
-    url: '{{ elasticsearch.data|client_url }}.kibana/config/5.6.3'
+    url: "{{ elasticsearch.data|client_url }}.kibana/config/{{ packagejson.version }}"
     method: PUT
-    body: '{"defaultIndex": "logbookoperation_*", "buildNum": 10229}'
+    body: '{"defaultIndex": "logbookoperation_*", "buildNum": {{ packagejson.build.number }} }'
     body_format: json
     status_code: 200, 201
