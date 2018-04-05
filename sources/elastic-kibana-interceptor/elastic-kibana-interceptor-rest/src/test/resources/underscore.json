@@ -1,0 +1,8 @@
+{
+  "_tenant": "test",
+  "_v": 0,
+  "test._tenant": "test",
+  "_tenantx": "test",
+  "events._tenant": "test",
+  "_storage._nbc": "test"
+}

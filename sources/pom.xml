@@ -42,6 +42,7 @@
         <module>functional-test</module>
         <module>functional-tnr</module>
         <module>internal-security</module>
+        <module>elastic-kibana-interceptor</module>
     </modules>
 
 

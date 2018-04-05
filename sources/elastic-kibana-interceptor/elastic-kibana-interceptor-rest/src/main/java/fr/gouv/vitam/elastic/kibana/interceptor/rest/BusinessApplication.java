@@ -24,58 +24,51 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.elastic.kibana.interceptor.rest;
 
-package fr.gouv.vitam.common.server.application.configuration;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.google.common.base.Throwables;
+import fr.gouv.vitam.common.PropertiesUtils;
 
 /**
- * Common interface for all application configuration.
+ * Business application for elastic-kibana-interceptor declaring resources and filters
  */
-public interface VitamApplicationConfigurationInterface {
+public class BusinessApplication extends Application {
+
+    private Set<Object> singletons;
 
     /**
-     * getter jettyConfig
+     * Constructor
      *
-     * @return the Jetty config filename
+     * @param servletConfig the servlet configuration
      */
-    String getJettyConfig();
+    public BusinessApplication(@Context ServletConfig servletConfig) {
+        String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
-    /**
-     * setter jettyConfig
-     *
-     * @param jettyConfig the jetty config to set
-     * @return this
-     */
-    VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig);
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+            InterceptorConfiguration interceptorConfiguration =
+                PropertiesUtils.readYaml(yamlIS, InterceptorConfiguration.class);
 
-    /**
-     * getter authentication
-     * 
-     * @return true if authentication is on for the application, false if not
-     */
-    boolean isAuthentication();
+            final InterceptorResource interceptorResource = new InterceptorResource(interceptorConfiguration);
+            singletons = new HashSet<>();
+            singletons.add(interceptorResource);
+        } catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
+    }
 
-    /**
-     * @param authentication the authentication to set
-     *
-     * @return this
-     */
-    VitamApplicationConfigurationInterface setAuthentication(boolean authentication);
-
-    /**
-     * getter tenantFilter
-     * 
-     * @return true if tenant Filtering is on for the application, false if not
-     */
-    boolean isTenantFilter();
-
-    VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
-    
-    default String getBaseUrl() { return null; }
-    default String getStaticContent() { return null; }
-    default String getBaseUri() { return null; }
-
-    default VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) { return this; }
-    default VitamApplicationConfigurationInterface setStaticContent(String staticContent) { return this; }
-    default VitamApplicationConfigurationInterface setBaseUri(String baseUri) { return this; }
-
+    @Override
+    public Set<Object> getSingletons() {
+        return singletons;
+    }
 }
+

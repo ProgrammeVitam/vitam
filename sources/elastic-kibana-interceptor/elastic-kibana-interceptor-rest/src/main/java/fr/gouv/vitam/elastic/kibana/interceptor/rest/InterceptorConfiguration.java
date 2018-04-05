@@ -24,58 +24,54 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.elastic.kibana.interceptor.rest;
 
-package fr.gouv.vitam.common.server.application.configuration;
+
+
+import java.util.List;
+
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
 /**
- * Common interface for all application configuration.
+ * Configuration for interceptor elastic-kibana-interceptor
  */
-public interface VitamApplicationConfigurationInterface {
+public class InterceptorConfiguration extends DbConfigurationImpl {
+
+    private String clusterName;
+    private List<ElasticsearchNode> elasticsearchNodes;
+    private List<String> whitelist;
+
 
     /**
-     * getter jettyConfig
-     *
-     * @return the Jetty config filename
+     * InterceptorConfiguration empty constructor for YAMLFactory
      */
-    String getJettyConfig();
+    public InterceptorConfiguration() {
+        // Empty constructor
+    }
 
-    /**
-     * setter jettyConfig
-     *
-     * @param jettyConfig the jetty config to set
-     * @return this
-     */
-    VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig);
+    public List<ElasticsearchNode> getElasticsearchNodes() {
+        return elasticsearchNodes;
+    }
 
-    /**
-     * getter authentication
-     * 
-     * @return true if authentication is on for the application, false if not
-     */
-    boolean isAuthentication();
+    public void setElasticsearchNodes(
+        List<ElasticsearchNode> elasticsearchNodes) {
+        this.elasticsearchNodes = elasticsearchNodes;
+    }
 
-    /**
-     * @param authentication the authentication to set
-     *
-     * @return this
-     */
-    VitamApplicationConfigurationInterface setAuthentication(boolean authentication);
+    public String getClusterName() {
+        return clusterName;
+    }
 
-    /**
-     * getter tenantFilter
-     * 
-     * @return true if tenant Filtering is on for the application, false if not
-     */
-    boolean isTenantFilter();
+    public void setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+    }
 
-    VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
-    
-    default String getBaseUrl() { return null; }
-    default String getStaticContent() { return null; }
-    default String getBaseUri() { return null; }
+    public List<String> getWhitelist() {
+        return whitelist;
+    }
 
-    default VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) { return this; }
-    default VitamApplicationConfigurationInterface setStaticContent(String staticContent) { return this; }
-    default VitamApplicationConfigurationInterface setBaseUri(String baseUri) { return this; }
-
+    public void setWhitelist(List<String> whitelist) {
+        this.whitelist = whitelist;
+    }
 }

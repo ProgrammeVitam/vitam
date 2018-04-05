@@ -100,6 +100,13 @@
   roles:
     - role: cerebro
 
+# OMA: to be discussed wether place & servers are best one..
+- hosts: hosts-kibana-data
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.elastickibanainterceptor }}"
+
 ### KIBANA DATA INSTALLATION ###
 # OMA/ desactivated as long as ES 5 is not on data cluster
 - hosts: hosts-kibana-data
@@ -110,8 +117,8 @@
   vars:
     composant: "{{ kibana.data }}"
     #groupe: data
-    elasticsearch_host: "{{ elasticsearch.data.host }}"
-    elasticsearch_port: "{{ elasticsearch.data.port_http }}"
+    elasticsearch_host: "{{ vitam.elastickibanainterceptor.host }}"
+    elasticsearch_port: "{{ vitam.elastickibanainterceptor.port_service }}"
     #kibana_port: "{{ kibana.kibana_data.port }}"
 
 ### MONGO DB INSTALLATION ###
