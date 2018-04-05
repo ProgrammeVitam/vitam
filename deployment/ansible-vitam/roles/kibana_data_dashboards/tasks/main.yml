@@ -75,11 +75,16 @@
     dashboard_dir: "{{ role_path }}/files/kibana-data-configuration/dashboard"
     visualization_dir: "{{ role_path }}/files/kibana-data-configuration/visualization"
 
-- name: Get kibana info for default index pattern 
-  set_fact:
-    packagejson: "{{ lookup('file','/usr/share/kibana/package.json') | from_json }}"
+- name: Get kibana info for default index pattern
+  slurp:
+    src: /usr/share/kibana/package.json
+  register: result
   run_once: true
-  tags: load_kibana_data
+
+- name: set fact packagejson
+  set_fact:
+    packagejson: "{{ result['content'] | b64decode | from_json }}"
+  run_once: true
 
 - name: set logbookoperation_* as kibana default index pattern
   when: "{{ (groups['hosts-kibana-data'] | length) > 0}}"

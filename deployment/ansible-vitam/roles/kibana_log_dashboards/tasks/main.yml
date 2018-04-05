@@ -73,9 +73,16 @@
     body_format: json
     status_code: 200,201
 
-- name: Get kibana info for default index pattern 
+
+- name: Get kibana info for default index pattern
+  slurp:
+    src: /usr/share/kibana/package.json
+  register: result
+  run_once: true
+
+- name: set fact packagejson
   set_fact:
-    packagejson: "{{ lookup('file','/usr/share/kibana/package.json') | from_json }}"
+    packagejson: "{{ result['content'] | b64decode | from_json }}"
   run_once: true
 
 - name: set logstash-vitam* as kibana default index pattern
