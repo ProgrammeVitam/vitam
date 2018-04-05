@@ -1499,7 +1499,7 @@ public class ProcessingIT {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
 
-        //workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
+        workspaceClient.putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
 
         processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), containerName, "EVIDENCE_AUDIT");
         // When
@@ -1517,7 +1517,7 @@ public class ProcessingIT {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
 
-      //  assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
     }
 
     @Test

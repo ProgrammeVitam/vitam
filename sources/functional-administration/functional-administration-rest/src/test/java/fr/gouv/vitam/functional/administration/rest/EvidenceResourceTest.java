@@ -6,6 +6,8 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -69,6 +71,9 @@ public class EvidenceResourceTest {
     @RunWithCustomExecutor
     public void testEvidenceResource() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
 
         EvidenceResource evidenceResource =
             new EvidenceResource(processingManagementClientFactory, logbookOperationsClientFactory,

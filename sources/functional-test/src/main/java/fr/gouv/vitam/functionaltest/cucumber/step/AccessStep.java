@@ -29,8 +29,10 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -144,8 +146,8 @@ public class AccessStep {
      * Check facet bucket value count
      *
      * @param facetName facet name
-     * @param count bucket count
-     * @param value bucket value
+     * @param count     bucket count
+     * @param value     bucket value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) contient (\\d+) valeurs (.*)$")
@@ -164,7 +166,7 @@ public class AccessStep {
      * Check facet does not contains bucket for value
      *
      * @param facetName facet name
-     * @param value value
+     * @param value     value
      * @throws Throwable when not valid
      */
     @Then("^le résultat pour la facet (.*) ne contient pas la valeur (.*)$")
@@ -192,7 +194,7 @@ public class AccessStep {
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable dataTable
+     * @param dataTable    dataTable
      * @param resultNumber resultNumber
      * @throws Throwable
      */
@@ -306,7 +308,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field field name
+     * @param field     field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -404,7 +406,7 @@ public class AccessStep {
      * replace in the loaded query the given parameter by the given value
      *
      * @param parameter parameter name in the query
-     * @param value the valeur to replace the parameter
+     * @param value     the valeur to replace the parameter
      * @throws Throwable
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
@@ -698,8 +700,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename name of the file to import or check
+     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename   name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -912,38 +914,23 @@ public class AccessStep {
         // Run unit traceability audit
         VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
             .setApplicationSessionId(world.getApplicationSessionId());
-        world.getAdminClient().evidenceAudit(vitamContext, queryFromString);
+        RequestResponse requestResponse = world.getAdminClient().evidenceAudit(vitamContext, queryFromString);
+
+
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+        world.setOperationId(operationId);
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+
+        boolean process_timeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+        if (!process_timeout) {
+            fail("Sip processing not finished. Timeout exceeded.");
+        }
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
 
-
-    @Then("^le journal d'opération de l'audit de traçabilité a pour statut (.*)$")
-    public void check_traceability_audit_status(String expectedStatus) throws Throwable {
-        // Select operation
-        Select select = new Select();
-        BooleanQuery query = and().add(
-            eq(LogbookMongoDbName.eventType.getDbname(), EVIDENCE_AUDIT));
-        select.setQuery(query);
-        select.setLimitFilter(0, 1);
-        select.addOrderByDescFilter("events.evDateTime");
-
-        VitamContext vitamContext =
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId());
-        RequestResponse<LogbookOperation> operationRequestResponse =
-            world.getAccessClient().selectOperations(vitamContext, select.getFinalSelect());
-        assertThat(operationRequestResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<LogbookOperation>) operationRequestResponse).getResults()).hasSize(1);
-
-        LogbookOperation logbookOperation =
-            ((RequestResponseOK<LogbookOperation>) operationRequestResponse).getResults().get(0);
-
-        List<LogbookEventOperation> events = logbookOperation.getEvents();
-        LogbookEventOperation lastEvent = events.get(events.size() - 1);
-
-        assertThat(lastEvent.getEvType()).isEqualTo(EVIDENCE_AUDIT);
-        assertThat(lastEvent.getOutcome()).isEqualTo(expectedStatus);
-    }
 
     @When("^on lance la traçabilité des journaux de cycles de vie$")
     public void lfc_traceability() {
