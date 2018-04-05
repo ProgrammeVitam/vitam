@@ -95,7 +95,7 @@
 		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditExtractFromZip",
 		"propertiesFile":"evidence_audit_extract_from_zip.properties"
 	},
-	"EVIDENCE_AUDIT_PEPARE_GENERATE_REPORTS":{
+	"EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS":{
 		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditGenerateReports",
 		"propertiesFile":"evidence_audit_generate_reports.properties"
 	},
