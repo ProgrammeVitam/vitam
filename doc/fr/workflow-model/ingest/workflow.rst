@@ -340,6 +340,24 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA - CheckArchiv
 
   - FATAL : une erreur technique est survenue lors de la vérification de l'unité archivistique (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale lors de la vérification globale de l'unité archivistique)
 
+
+Vérification de l' Archive Unit profile - si celle ci est déclarée (CHECK_ARCHIVE_UNIT_PROFILE ) 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++ **Règle** : Vérification de la conformité au niveau des unités archivistiques: si celles ci font référence à un document type, présent dans la balise "ArchiveUnitProfile" 
+
++ **Type** : non bloquant
+
++ **Statuts** :
+
+  - OK : les unités archivistiques versées et ayant un document type de référence sont bien conformes au schéma décrit dans ces documents types, et ceux ci existent bien dans le système ( CHECK_ARCHIVE_UNIT_PROFILE.OK = Succès de la vérification de la conformité aux documents types )
+ 
+  - KO : au moins une unité archivistique n'est pas conforme au schéma décrit dans le document type relié ( CHECK_ARCHIVE_UNIT_PROFILE.KO = Echec de la vérification de la conformité aux documents types ) 
+
+  - PROFILE NOT FOUND : au moins une unité archivistique est déclarée en lien avec un document type via la balise ArchiveUnitProfile , et ce référentiel n'existe pas dans le système ( CHECK_ARCHIVE_UNIT_PROFILE.PROFILE_NOT_FOUND.KO=Échec de la vérification de la conformité aux documents type : document type non trouvé )
+
+
+
 Vérification du niveau de classification (CHECK_CLASSIFICATION_LEVEL - CheckClassificationLevelActionPlugin.java)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -354,6 +372,8 @@ Vérification du niveau de classification (CHECK_CLASSIFICATION_LEVEL - CheckCla
   - KO : au moins une unité archivistique du SIP possède un niveau de classification qui n'est pas un niveau de classification autorisé par la plateforme, ou une unité archivistique n'a pas de niveau de classification alors que la plateforme requiert que toutes les unités archivistiques possèdent un niveau de classification. (CHECK_CLASSIFICATION_LEVEL.KO=Échec de la vérification du niveau de classification, non autorisés par la plateforme  le bordereau de transfert déclare un niveau de classification non autorisé par la plateforme)
 
   - FATAL : une erreur technique est survenue lors de la vérification des niveaux de classifications (CHECK_CLASSIFICATION_LEVEL.FATAL=Erreur fatale lors de la vérification du niveau de classification)
+
+
 
 Application des règles de gestion et calcul des dates d'échéances (UNITS_RULES_COMPUTE - UnitsRulesComputePlugin.java)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
