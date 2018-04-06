@@ -89,6 +89,10 @@ export class ResourcesService {
     localStorage.removeItem(CONTRACT_COOKIE);
   }
 
+  getLanguagesFile(): Observable<any> {
+    return this.http.get('../../assets/resources/languages.json');
+  }
+
   private setDefaultHeader(header?: HttpHeaders) {
     if (!header) {
       header = new HttpHeaders();

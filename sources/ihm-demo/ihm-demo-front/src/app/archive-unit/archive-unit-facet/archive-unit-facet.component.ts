@@ -2,6 +2,12 @@ import { Component, OnInit, Input, Output, ChangeDetectorRef, SimpleChanges, Eve
 import { forEach } from '@angular/router/src/utils/collection';
 import { Preresult } from '../../common/preresult';
 import { FieldDefinition } from '../../common/search/field-definition';
+import { ResourcesService } from '../../common/resources.service';
+
+const TITLE = 'Title_';
+const DESCRIPTION = 'Description_';
+const TITLE_QUERY_FIELD = 'Title_.';
+const DESCRIPTION_QUERY_FIELD = 'Description_.';
 
 @Component({
   selector: 'vitam-archive-unit-facet',
@@ -28,18 +34,22 @@ export class ArchiveUnitFacetComponent implements OnInit {
   currentFullYear: number = new Date().getFullYear();
   rangeStartDate: number[] = [800, this.currentFullYear];
   rangeEndDate: number[] = [800, this.currentFullYear];
+  facetLangTitleResults: string[] = [];
+  facetLangDescResults: string[] = [];
   rangeMax = this.currentFullYear;
   facetSDResults: string[] = [];
   facetEDResults: string[] = [];
-  facetLangResults: string[] = [];
   rangeMin = 800;
   isCollapsed = true;
   mapFacetField: Map<String, String>;
+  titleLangFacets: string[] = [];
+  descriptionLangFacets: string[] = [];
 
   @Input() service: any;
   @Input() preSearch: (request: any, advancedMode?: boolean) => Preresult = (x) => x;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) {
+  constructor(private changeDetectorRef: ChangeDetectorRef,
+    private resourceService: ResourcesService) {
   }
 
   ngOnInit() {
@@ -49,6 +59,18 @@ export class ArchiveUnitFacetComponent implements OnInit {
       .set('StartDateFacet', 'StartDate')
       .set('endDateFacet', 'EndDate');
 
+    this.resourceService.getLanguagesFile()
+      .subscribe(
+      data => {
+        for (const item of data) {
+          this.mapFacetField.set(TITLE + item, TITLE_QUERY_FIELD + item);
+          this.mapFacetField.set(DESCRIPTION + item, DESCRIPTION_QUERY_FIELD + item);
+          this.titleLangFacets.push(TITLE + item);
+          this.descriptionLangFacets.push(DESCRIPTION + item);
+        }
+      },
+      (error) => console.log('[ERROR]: ', error),
+    )
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -66,8 +88,12 @@ export class ArchiveUnitFacetComponent implements OnInit {
             this.facetOAResults = facetResult.buckets;
             break;
           }
-          case 'LanguageFacet': {
-            this.facetLangResults = facetResult.buckets;
+          case 'LanguageTitleFacet': {
+            this.facetLangTitleResults = facetResult.buckets;
+            break;
+          }
+          case 'LanguageDescFacet': {
+            this.facetLangDescResults = facetResult.buckets;
             break;
           }
           case 'StartDateFacet': {
@@ -101,8 +127,8 @@ export class ArchiveUnitFacetComponent implements OnInit {
   searchFacets() {
     const facets = this.facets = [];
     for (const facet of this.selectedFacets) {
-      let facetCriteria: any = {};
-      let dateRangeCriteria: any = {};
+      const facetCriteria: any = {};
+      const dateRangeCriteria: any = {};
       switch (facet) {
         case 'DescriptionLevelFacet': {
           facetCriteria.name = 'DescriptionLevelFacet';
@@ -144,12 +170,17 @@ export class ArchiveUnitFacetComponent implements OnInit {
           facets.push(facetCriteria);
           break;
         }
-        case 'LanguageFacet': {
-          facetCriteria.name = 'LanguageFacet';
-          facetCriteria.field = '#originating_agency';
-          facetCriteria.size = this.size;
-          facetCriteria.order = 'ASC';
-          facetCriteria.facetType = 'TERMS';
+        case 'LanguageTitleFacet': {
+          facetCriteria.name = 'LanguageTitleFacet';
+          facetCriteria.facetType = 'FILTERS';
+          facetCriteria.filters = this.getFilterdQuery(this.titleLangFacets);
+          facets.push(facetCriteria);
+          break;
+        }
+        case 'LanguageDescFacet': {
+          facetCriteria.name = 'LanguageDescFacet';
+          facetCriteria.facetType = 'FILTERS';
+          facetCriteria.filters = this.getFilterdQuery(this.descriptionLangFacets);
           facets.push(facetCriteria);
           break;
         }
@@ -167,9 +198,14 @@ export class ArchiveUnitFacetComponent implements OnInit {
   }
 
   research(selectedFacetValue, facetField) {
-    let facetSearchCriteria: any = {};
-    facetSearchCriteria.field = this.mapFacetField.get(facetField);
-    facetSearchCriteria.value = selectedFacetValue;
+    const facetSearchCriteria: any = {};
+    if (facetField === 'LanguageTitleFacet' || facetField === 'LanguageDescFacet') {
+      facetSearchCriteria.field = selectedFacetValue;
+      facetSearchCriteria.value = this.mapFacetField.get(selectedFacetValue);
+    }else {
+      facetSearchCriteria.field = this.mapFacetField.get(facetField);
+      facetSearchCriteria.value = selectedFacetValue;
+    }
 
     this.searchRequest.requestFacet = facetSearchCriteria;
     this.searchRequest.facets = [];
@@ -187,6 +223,20 @@ export class ArchiveUnitFacetComponent implements OnInit {
     }
   }
 
+  getFilterdQuery(titleLangFacets) {
+    const filtersQuery: any = [];
+    for (const item of titleLangFacets) {
+      filtersQuery.push({
+        '$name': item,
+        '$query':
+          {
+            '$exists': this.mapFacetField.get(item)
+          }
+      });
+    }
+    return filtersQuery;
+  }
+
   clearFacets() {
     this.clearFacetResults();
     this.processPreSearch(this.searchRequest);
@@ -199,10 +249,11 @@ export class ArchiveUnitFacetComponent implements OnInit {
     delete this.facetOAResults;
     delete this.facetSDResults;
     delete this.facetEDResults;
+    delete this.facetLangTitleResults;
+    delete this.facetLangDescResults
     this.rangeStartDate = [800, this.currentFullYear];
     this.rangeEndDate = [800, this.currentFullYear];
     delete this.searchRequest.requestFacet;
   }
+
 }
-
-

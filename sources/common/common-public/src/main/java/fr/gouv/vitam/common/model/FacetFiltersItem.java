@@ -26,20 +26,69 @@
  */
 package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.util.List;
+
 /**
- * Enumeration of the Vitam Facet types. <br/>
+ * Enumeration of the Vitam Facet filters. <br/>
  */
-public enum FacetType {
-    /**
-     * Basic authentication level.
-     */
-    TERMS,
-    DATE_RANGE,
-    FILTERS;
+public class FacetFiltersItem {
 
     /**
-     * default constructor. <br/>
+     * Name value
      */
-    FacetType() {
+    @JsonProperty("$name")
+    String name;
+
+    /**
+     * quey value
+     */
+    @JsonProperty("$query")
+    private JsonNode query;
+
+    public FacetFiltersItem() {
+    }
+
+    public FacetFiltersItem(String name, JsonNode query) {
+        this.name = name;
+        this.query = query;
+    }
+
+    /**
+     * getName
+     *
+     * @return
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * setName
+     *
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * getQuery
+     *
+     * @return
+     */
+    public JsonNode getQuery() {
+        return query;
+    }
+
+    /**
+     * setQuery
+     *
+     * @param query
+     */
+    public void setQuery(JsonNode query) {
+        this.query = query;
     }
 }

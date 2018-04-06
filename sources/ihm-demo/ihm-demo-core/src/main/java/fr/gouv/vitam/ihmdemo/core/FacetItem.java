@@ -30,6 +30,7 @@ package fr.gouv.vitam.ihmdemo.core;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
 import fr.gouv.vitam.common.model.FacetDateRangeItem;
+import fr.gouv.vitam.common.model.FacetFiltersItem;
 import fr.gouv.vitam.common.model.FacetType;
 
 import java.util.List;
@@ -84,6 +85,12 @@ public class FacetItem {
     private List<FacetDateRangeItem> ranges;
 
     /**
+     * Filters.
+     */
+    @JsonProperty("filters")
+    private List<FacetFiltersItem> filters;
+
+    /**
      * Constructor.
      */
     public FacetItem() {
@@ -91,7 +98,7 @@ public class FacetItem {
     }
 
     public FacetItem(String name, FacetType facetType, String field, Integer size,
-        FacetOrder order, String format, List<FacetDateRangeItem> ranges) {
+        FacetOrder order, String format, List<FacetDateRangeItem> ranges, List<FacetFiltersItem> filters) {
         this.name = name;
         this.facetType = facetType;
         this.field = field;
@@ -99,6 +106,7 @@ public class FacetItem {
         this.order = order;
         this.format = format;
         this.ranges = ranges;
+        this.filters = filters;
     }
 
     /**
@@ -189,6 +197,24 @@ public class FacetItem {
      */
     public void setRanges(List<FacetDateRangeItem> ranges) {
         this.ranges = ranges;
+    }
+
+    /**
+     * getFilters
+     *
+     * @return
+     */
+    public List<FacetFiltersItem> getFilters() {
+        return filters;
+    }
+
+    /**
+     * setFilters
+     *
+     * @param filters
+     */
+    public void setFilters(List<FacetFiltersItem> filters) {
+        this.filters = filters;
     }
 
     /**
