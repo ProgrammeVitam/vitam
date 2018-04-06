@@ -149,9 +149,9 @@ hosts-storage-offer-default
 # hostname-offre-2.vitam offer_conf=offer-fs-1
 
 [hosts-mongodb-offer:children]
-hosts-mongos-data
-hosts-mongoc-data
-hosts-mongod-data
+hosts-mongos-offer
+hosts-mongoc-offer
+hosts-mongod-offer
 
 [hosts-mongos-offer]
 # TODO: put here servers where this service will be deployed : mongos cluster for storage offers
