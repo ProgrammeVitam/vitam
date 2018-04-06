@@ -32,6 +32,8 @@ Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fon
 
 .. note:: Concernant le groupe "hosts-consul-server", il est nécessaire de déclarer un minimum de 3 machines.
 
+.. warning:: Il n'est pas possible de colocaliser les clusters MongoDB "data" et "offer".
+
 
 La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/vitam_security.yml``, comme suit :
 

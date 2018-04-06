@@ -154,6 +154,7 @@ hosts-mongoc-offer
 hosts-mongod-offer
 
 [hosts-mongos-offer]
+# WARNING : DO NOT COLLOCATE WITH [hosts-mongos-data]
 # TODO: put here servers where this service will be deployed : mongos cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
 # Example (for a more complete one, see the one in the group hosts-mongos-data) :
@@ -163,6 +164,7 @@ hosts-mongod-offer
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1
 
 [hosts-mongoc-offer]
+# WARNING : DO NOT COLLOCATE WITH [hosts-mongoc-data]
 # TODO: put here servers where this service will be deployed : mongoc cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
@@ -176,6 +178,7 @@ hosts-mongod-offer
 # vitam-fs-offer               mongo_cluster_name=offer-fs-1                          mongo_arbiter=true
 
 [hosts-mongod-offer]
+# WARNING : DO NOT COLLOCATE WITH [hosts-mongod-data]
 # TODO: put here servers where this service will be deployed : mongod cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
 # Mandatory param : id of the current shard, increment by 1 from 0 to n
@@ -216,6 +219,7 @@ hosts-mongoc-data
 hosts-mongod-data
 
 [hosts-mongos-data]
+# WARNING : DO NOT COLLOCATE WITH [hosts-mongos-offer]
 # TODO: Put here servers where this service will be deployed : mongos cluster
 # Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
 # Example :
@@ -224,6 +228,7 @@ hosts-mongod-data
 # vitam-mdbs-01   mongo_cluster_name=mongo-data
 
 [hosts-mongoc-data]
+# WARNING : DO NOT COLLOCATE WITH [hosts-mongoc-offer]
 # TODO: Put here servers where this service will be deployed : mongoc cluster
 # Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
@@ -233,6 +238,7 @@ hosts-mongod-data
 # vitam-mdbc-01   mongo_cluster_name=mongo-data
 
 [hosts-mongod-data]
+# WARNING : DO NOT COLLOCATE WITH [hosts-mongod-offer]
 # TODO: Put here servers where this service will be deployed : mongod cluster
 # Each replica_set should have an odd number of members (2n + 1)
 # Reminder: For Vitam, one mongodb shard is using one replica_set
