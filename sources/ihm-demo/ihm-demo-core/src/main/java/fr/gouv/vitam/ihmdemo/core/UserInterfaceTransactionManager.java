@@ -389,6 +389,20 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
+     * launch Evidance Audit on selected AU
+     *
+     * @param query       search criteria as DSL query to select AU
+     * @param context     VitamContext
+     * @return a JsonNode for dip results
+     * @throws VitamClientException           access client exception
+     */
+    public static RequestResponse evidenceAudit(JsonNode query, VitamContext context) throws VitamClientException {
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
+            return client.evidenceAudit(context, query);
+        }
+    }
+
+    /**
      * generate a DIP to be exported
      *
      * @param query       search criteria as DSL query

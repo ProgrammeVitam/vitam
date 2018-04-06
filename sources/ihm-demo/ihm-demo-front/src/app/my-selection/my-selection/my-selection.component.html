@@ -11,27 +11,33 @@
     <!-- Header -->
     <div class="ui-g" *ngIf="hits">
         <div class="ui-g-12">
-            <div class="ui-g-4">Unités archivistiques dans le panier</div>
-            <div class="ui-g-2">{{hits ? hits.total : 0}}</div>
-            <div class="ui-g-3">
-                <button type="button" pButton icon="fa-download" label="Exporter le panier"
-                        (click)="exportBasket()" [disabled]="!hits || hits.total === 0"></button>
+            <div class="ui-g-3" style="height: 100px;">
+                <div class="ui-g-12" style="height: 45px;">Unités archivistiques dans le panier</div>
+                <div class="ui-g-12" style="height: 45px;">Unités archivistiques sélectionnées</div>
             </div>
-            <div class="ui-g-3">
-                <button type="button" pButton icon="fa-trash" label="Vider le panier"
-                        (click)="deleteBasket()" [disabled]="!hits || hits.total === 0"></button>
+            <div class="ui-g-1" style="height: 100px;">
+                <div class="ui-g-12" style="height: 45px;">{{hits ? hits.total : 0}}</div>
+                <div class="ui-g-12" style="height: 45px;">{{hits ? countSelected() : 0}}</div>
             </div>
-        </div>
-        <div class="ui-g-12">
-            <div class="ui-g-4">Unités archivistiques sélectionnées</div>
-            <div class="ui-g-2">{{hits ? countSelected() : 0}}</div>
-            <div class="ui-g-3">
-                <button type="button" pButton icon="fa-download" label="Exporter la sélection"
-                        (click)="exportBasket(true)" [disabled]="!hits || countSelected() === 0"></button>
+
+            <div class="ui-g-4" style="height: 100px;">
+                <div class="ui-g-12" style="height: 90px; padding-top: 25px;">
+                    <p-dropdown [options]="basketOptions" [(ngModel)]="selectedOption" placeholder="Sélectionner une action"
+                                [disabled]="!hits || hits.total === 0"></p-dropdown>
+                </div>
             </div>
-            <div class="ui-g-3">
-                <button type="button" pButton icon="fa-trash" label="Supprimer la sélection"
-                        (click)="deleteBasket(true)" [disabled]="!hits || countSelected() === 0"></button>
+
+            <div class="ui-g-4" style="height: 100px;">
+                <div class="ui-g-12" style="height: 45px;">
+                    <button type="button" pButton icon="fa-download" label="Lancer l'action sur le panier"
+                            (click)="actionOnBasket(false, selectedOption)"
+                            [disabled]="!hits || hits.total === 0 || !selectedOption"></button>
+                </div>
+                <div class="ui-g-12" style="height: 45px;">
+                    <button type="button" pButton icon="fa-download" label="Lancer l'action sur la sélection"
+                            (click)="actionOnBasket(true, selectedOption)"
+                            [disabled]="!hits || hits.total === 0 || !selectedOption || countSelected() === 0"></button>
+                </div>
             </div>
         </div>
     </div>
