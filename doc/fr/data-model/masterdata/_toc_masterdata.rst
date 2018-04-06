@@ -17,3 +17,4 @@ Base MasterData
    profile.rst
    securityprofile.rst
    vitamsequence.rst
+   archiveunitprofile.rst

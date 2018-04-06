@@ -19,18 +19,19 @@ Les documents type sont importés dans la solution logicielle Vitam sous la form
         "Description":"Document type d''une facture associée à un dossier de marché",
         "Identifier":"AUP_IDENTIFIER_0",
         "Status":"ACTIVE",
+        "ControlSchema":"{}",
         "LastUpdate":"10/12/2016",
         "CreationDate":"10/12/2016",
         "ActivationDate":"10/12/2016",
         "DeactivationDate":"10/12/2016"
     }
-]
-    ]
+
 
 Les champs à renseigner obligatoirement à l'import d''un document type sont :
 
 * Name
 * Description
+* ControlSchema ( même si le champ est vide ) 
 
 Un fichier JSON peut décrire plusieurs documents type.
 
@@ -40,19 +41,20 @@ Exemple de JSON stocké en base comprenant l''exhaustivité des champs de la col
 
 ::
 
-{
+ {
    "_id": "aegaaaaabmhdh434aapnqalcd7mufiyaaaaq",
    "Identifier": "AUP_IDENTIFIER_0",
    "Name":"Facture",
    "Description":"Document type d''une facture associée à un dossier de marché",
    "Status":"ACTIVE",
+   "ControlSchema":"{}",
    "LastUpdate":"10/12/2016",
    "CreationDate":"10/12/2016",
    "ActivationDate":"10/12/2016",
    "DeactivationDate":"10/12/2016"
    "_tenant": 11,
    "_v": 0
-}
+ }
 
 Détail des champs de la collection ArchiveUnitProfile
 =====================================================
@@ -84,6 +86,31 @@ Détail des champs de la collection ArchiveUnitProfile
   * Il s'agit d'une chaîne de caractères.
   * Peut être ACTIVE ou INACTIVE
   * Cardinalité : 1-1
+
+**"ControlSchema":** Schema de contrôle du document type 
+
+  * Il s'agit d'un bloc JSON.
+  * Peut être vide
+  * Cardinalité : 1-1
+
+:: 
+
+ {
+ "$schema": "http://vitam-json-schema.org/draft-04/schema#",
+ "id": "http://example.com/root.json",
+ "type": "object",
+ "additionalProperties": true,
+ "properties": {
+ 
+   "DescriptionLevel": {
+     "type": "string",
+     "enum": [
+       "RecordGrp",
+       "SubGrp",
+       "File"
+     ]
+ }
+ 
 
 **"CreationDate":** date de création du Document type.
 
