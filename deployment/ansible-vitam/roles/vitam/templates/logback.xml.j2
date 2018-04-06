@@ -12,7 +12,7 @@
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			<fileNamePattern>{{vitam_folder_log}}/{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>10MB</maxFileSize>  
+			<maxFileSize>10MB</maxFileSize>
 			<maxHistory>{{ days_to_delete_logback_logfiles }}</maxHistory>
       		<totalSizeCap>5GB</totalSizeCap>
 		</rollingPolicy>
@@ -25,11 +25,11 @@
 		</encoder>
 	</appender>
 
-	
+
 	<appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			<fileNamePattern>{{vitam_folder_log}}/{{ vitam_struct.vitam_component }}_security.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<maxFileSize>10MB</maxFileSize>  
+			<maxFileSize>10MB</maxFileSize>
 			<maxHistory>{{ days_to_delete_logback_logfiles }}</maxHistory>
       		<totalSizeCap>5GB</totalSizeCap>
 		</rollingPolicy>
@@ -46,7 +46,7 @@
 		<suffixPattern>vitam-{{vitam_struct.vitam_component}}: %d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</suffixPattern>
 	</appender>
 	<!-- By default, the level of the root level is set to TRACE -->
-	<root level="{{ vitam_defaults.services.log_level }}">
+	<root level="{{ vitam_struct.log_level | default(vitam_defaults.services.log_level) }}">
 		<!-- <appender-ref ref="STDOUT" /> -->
 		<appender-ref ref="FILE" />
 		<appender-ref ref="SYSLOG" />
