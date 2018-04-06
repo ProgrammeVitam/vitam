@@ -19,23 +19,22 @@ Séparation des tests TDD et tests d'intégration
 
 - Il y a plusieurs tests d'intégration présents dans le module *integration-test* :
 
-*.ProcessingIT : test d'intégration pour différents services : workspace, functional-administration, worker, metadata, logbook, processing
+*ProcessingIT* : test d'intégration pour différents services : workspace, functional-administration, worker, metadata, logbook, processing
 
-	
 	StorageClientIT : test d'intégration pour le client du service de storage. Cela concerne deux modules:
 	storage (client & rest) et le client de workspace 
 	  
 	WorkerIT : test d'intégration pour les services : workspace, worker, metadata, logbook, processing
    
-   FunctionalAdminIT : test d'intégration pour le service FunctionalAdministration.
+	FunctionalAdminIT : test d'intégration pour le service FunctionalAdministration.
    
-   IngestInternalIt : test d'intégration pour le service IngestInternal.
+	IngestInternalIT : test d'intégration pour le service IngestInternal.
    
-   LogbookCheckConsistencyIT : test d'intégration pour le service de vérification de cohérence des journaux.
+	LogbookCheckConsistencyIT : test d'intégration pour le service de vérification de cohérence des journaux.
    
-   \*.Reconstruction\*.IT : test d'intégration pour les services de reconstruction et de backup.
+	\*.Reconstruction\*.IT : test d'intégration pour les services de reconstruction et de backup.
    
-   SecurityInternalIT : test d'intégration pour le service de sécurité interne.
+	SecurityInternalIT : test d'intégration pour le service de sécurité interne.
    
 	
 	Ces tests d'intégration sont en mode séquentiel. Pour cela, nous indiquons dans le pom.xml de ce module de test-integration 
@@ -96,11 +95,10 @@ Pour cela, nous indiquons dans le pom.xml parent pour la phrase de build
 Configuration de build avec les options de tests
 ================================================
 
-- mvn install : lancer le build normal avec tous les tests
- 	
-- mvn clean install -DskipTests : pour ignorer tous les tests:
-	
-- mvn clean test ou mvn clean install -DskipITs: pour ignorer les tests d'intégration
+- ``mvn install`` : lancer le build normal avec tous les tests	
+- ``mvn clean install -DskipTests`` : pour ignorer tous les tests:
+- ``mvn clean test`` ou ``mvn clean install -DskipITs`` : pour ignorer les tests d'intégration
+- ``mvn integration-test`` : pour lancer les tests d'intégration
 
 Pour cela, nous ajoutons le code suivant dans le pom parent.
 
