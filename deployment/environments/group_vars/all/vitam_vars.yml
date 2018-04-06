@@ -16,6 +16,7 @@ vitam_defaults:
         vitamdb: "vitamdb"
         group: "vitam"
     services:
+        # Default log level for vitam components: logback values (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
         log_level: WARN
         start_timeout: 150
         stop_timeout: 3600
@@ -44,13 +45,19 @@ vitam_secondary_site_components: [ "consul" , "logbook" , "metadata" , "function
 
 vitam:
     accessexternal:
+        # Component name: do not modify
         vitam_component: access-external
+        # DNS record for the service: do not modify
         host: "access-external.service.{{ consul_domain }}"
         port_admin: 28102
         port_service: 8444
         baseuri: "access-external"
         https_enabled: true
+        # Use platform secret for this component ? : do not modify
         secret_platform: "false"
+        # Force the log level for this component: this are logback values (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
+        # If this var is not set, the default one will be used (vitam_defaults.services.log_level)
+        # log_level: "DEBUG"
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -59,6 +66,7 @@ vitam:
         baseuri: "access-internal"
         https_enabled: false
         secret_platform: "true"
+        # log_level: "DEBUG"
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -68,6 +76,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
+        # log_level: "DEBUG"
     ingestexternal:
         vitam_component: ingest-external
         host: "ingest-external.service.{{ consul_domain }}"
@@ -85,6 +94,7 @@ vitam:
         fail_dir: "/vitam/data/ingest-external/upload/failure"
         # Action done to file after local ingest (see below for further information)
         upload_final_action: "MOVE"
+        # log_level: "DEBUG"
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -93,6 +103,7 @@ vitam:
         baseuri: "ingest-internal"
         https_enabled: false
         secret_platform: "true"
+        # log_level: "DEBUG"
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -120,6 +131,7 @@ vitam:
             # - x509Realm
             - iniRealm
             # - ldapRealm
+        # log_level: "DEBUG"
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -134,6 +146,7 @@ vitam:
         operationTraceabilityOverlapDelay: 300
         lifecycleTraceabilityOverlapDelay: 300
         disablePurgeForTempLFC: false
+        # log_level: "DEBUG"
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -143,6 +156,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
+        # log_level: "DEBUG"
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
@@ -151,6 +165,7 @@ vitam:
         baseuri: "processing"
         https_enabled: false
         secret_platform: "true"
+        # log_level: "DEBUG"
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -159,6 +174,7 @@ vitam:
         baseuri: "security-internal"
         https_enabled: false
         secret_platform: "true"
+        # log_level: "DEBUG"
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -168,6 +184,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         storageTraceabilityOverlapDelay: 300
+        # log_level: "DEBUG"
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -175,6 +192,7 @@ vitam:
         baseuri: "storage-offer-default"
         https_enabled: false
         secret_platform: "true"
+        # log_level: "DEBUG"
     worker:
         vitam_component: worker
         port_service: 9104
@@ -182,6 +200,7 @@ vitam:
         baseuri: "worker"
         https_enabled: false
         secret_platform: "true"
+        # log_level: "DEBUG"
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -190,6 +209,7 @@ vitam:
         baseuri: "workspace"
         https_enabled: false
         secret_platform: "true"
+        # log_level: "DEBUG"
 
 # ingestexternal:
 # upload_final_action can be set to three different values (lower or upper case does not matter)
