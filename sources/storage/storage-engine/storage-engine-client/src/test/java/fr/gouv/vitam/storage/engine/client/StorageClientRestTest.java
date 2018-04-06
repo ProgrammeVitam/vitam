@@ -513,13 +513,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.deleteContainer("idStrategy"));
         assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
         assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
         assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
         assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
     }
 
     @RunWithCustomExecutor
@@ -529,13 +529,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.deleteContainer("idStrategy"));
         assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
         assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
         assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
         assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+            VitamConfiguration.getDefaultDigestType().getName()));
     }
 
     @RunWithCustomExecutor

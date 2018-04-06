@@ -38,12 +38,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Authorization Filter
  */
 public class AuthorizationFilter implements Filter {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuthorizationFilter.class);
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -55,6 +58,7 @@ public class AuthorizationFilter implements Filter {
         throws IOException, ServletException {
         final AuthorizationWrapper authorizationWrapper = new AuthorizationWrapper((HttpServletRequest) request);
         if (!authorizationWrapper.checkAutorizationHeaders()) {
+            LOGGER.error("Unautorized access");
             final HttpServletResponse newResponse = (HttpServletResponse) response;            
             newResponse.setStatus(Status.UNAUTHORIZED.getStatusCode());
             StreamUtils.closeSilently(request.getInputStream());

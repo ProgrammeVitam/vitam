@@ -28,7 +28,9 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -54,6 +56,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -156,6 +163,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_GET = "GET";
     private static final String HTTP_PUT = "PUT";
     private static final String HTTP_DELETE = "DELETE";
+    public static final String DEFAULT = "default";
 
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
     private List<String> secureMode;
@@ -169,7 +177,81 @@ public class WebApplicationResource extends ApplicationStatusResource {
         super(new BasicVitamStatusServiceImpl());
         this.secureMode = webApplicationConfigonfig.getSecureMode();
         LOGGER.debug("init Admin Management Resource server");
+
+        WorkspaceClientFactory.changeMode(webApplicationConfigonfig.getWorkspaceUrl());
     }
+
+
+    /**
+     * @param xTenantId xtenant
+     * @param uid       uid
+     * @param dataType  data
+     * @return
+     */
+    @POST
+    @Path("/replaceObject/{dataType}/{uid}")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("uid") String uid,
+        @PathParam("dataType") String dataType, InputStream input) {
+
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+
+            StorageCRUDUtils storageCRUDUtils = new StorageCRUDUtils();
+
+            DataCategory dataCategory = DataCategory.valueOf(dataType);
+            storageCRUDUtils.createOrErase(dataCategory, uid, input);
+            return Response.status(Status.OK).build();
+        } catch (BackupServiceException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
+        }
+    }
+
+    /**
+     * Retrieve an Object data as an input stream. Download by access.
+     */
+    @GET
+    @Path("/download/{dataType}/{uid}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getObjectAsInputStreamAsync(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("uid") String uid,
+        @PathParam("dataType") String dataType) {
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+
+        return asyncDowloadObject(DataCategory.valueOf(dataType), uid);
+
+    }
+
+    private InputStream getErrorStream(Status badRequest, String message, VitamError vitamError) {
+        try {
+            return JsonHandler.writeToInpustream(vitamError);
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
+    }
+
+    /**
+     * asyncDowloadObject
+     *
+     * @param dataCategory
+     * @param uid
+     */
+    private Response asyncDowloadObject(DataCategory dataCategory, String uid) {
+        try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
+            Response response = client.getContainerAsync(DEFAULT, uid, dataCategory);
+            return new VitamAsyncInputStreamResponse(response);
+        } catch (StorageServerClientException | StorageNotFoundException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null).toString())
+                .build();
+        }
+    }
+
 
     /**
      * Retrieve all the messages for logbook
@@ -357,10 +439,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Post used because Angular not support Get with body
      *
-     * @param request
+     * @param request the request
      * @param xhttpOverride the use of http override POST method
-     * @param sessionId the id of session
-     * @param options the option for creating query to find logbook
+     * @param sessionId     the id of session
+     * @param options       the option for creating query to find logbook
      * @return Response
      */
     @POST
@@ -383,9 +465,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * this method is used to request logbook with the Vitam DSL
      *
-     * @param request request http
+     * @param request   request http
      * @param sessionId using for pagination
-     * @param options JSON object representing the Vitam DSL query
+     * @param options   JSON object representing the Vitam DSL query
      * @return Response
      */
     @GET
@@ -473,7 +555,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param operationId id of operation
-     * @param xTenantId the tenant id
+     * @param xTenantId   the tenant id
      * @return Response
      */
     @GET
@@ -506,9 +588,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param operationId the operation id
+     * @param operationId   the operation id
      * @param asyncResponse the asynchronized response
-     * @param xTenantId the tenant id
+     * @param xTenantId     the tenant id
      */
 
     @GET
@@ -527,9 +609,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * This method exist only to download a file with a browser
      *
-     * @param operationId the operation id
+     * @param operationId   the operation id
      * @param asyncResponse the asynchronized response
-     * @param tenantId the working tenant
+     * @param tenantId      the working tenant
      */
     @GET
     @Path("/logbooks/{idOperation}/content")
@@ -595,7 +677,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get Access contracts
      *
      * @param request HTTP request
-     * @param select the query to find access contracts
+     * @param select  the query to find access contracts
      * @return Response
      */
     @POST
@@ -627,9 +709,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param request request http
+     * @param request   request http
      * @param sessionId json session id from shiro
-     * @param criteria criteria search for units
+     * @param criteria  criteria search for units
      * @return Reponse
      */
     @POST

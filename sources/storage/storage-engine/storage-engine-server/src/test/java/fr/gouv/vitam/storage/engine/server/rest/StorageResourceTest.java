@@ -1053,6 +1053,10 @@ public class StorageResourceTest {
             return null;
         }
 
+        @Override public List<String> getOfferIds(String strategyId) throws StorageException {
+            return null;
+        }
+
         @Override
         public JsonNode getContainerInformations(String strategyId)
             throws StorageNotFoundException, StorageTechnicalException {

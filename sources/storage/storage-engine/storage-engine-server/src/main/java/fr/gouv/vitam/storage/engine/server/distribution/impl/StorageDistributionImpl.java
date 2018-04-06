@@ -243,6 +243,15 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
+    @Override
+    public List<String> getOfferIds(String strategyId) throws StorageException {
+
+        // Retrieve strategy data
+        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        return hotStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
+    }
+
     private StorageLogbookParameters tryAndRetry(String objectId, ObjectDescription createObjectDescription,
         DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt,
         StorageLogbookParameters parameters)

@@ -19,7 +19,7 @@ export class ResourcesService {
     header = this.setDefaultHeader(header);
     options.headers = header;
 
-    if (responsetype && responsetype != 'json') {
+    if (responsetype && responsetype !== 'json') {
       options.responseType = responsetype;
       options.observe = 'response';
     } else {

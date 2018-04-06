@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.client;
 import java.io.FileNotFoundException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,6 +39,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -110,6 +112,14 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         }
     }
 
+    @Override public List<String> getOffers(String strategyId)
+        throws StorageNotFoundClientException, StorageServerClientException {
+
+        ArrayList<String> array = new ArrayList<>();
+        array.add("id1");
+        return array;
+    }
+
     @Override
     public StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
         ObjectDescription description)
@@ -124,7 +134,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
 
     @Override
     public boolean delete(String strategyId, DataCategory type, String guid, String digest,
-        DigestType digestAlgorithm)
+        String digestAlgorithm)
         throws StorageServerClientException {
         return true;
     }

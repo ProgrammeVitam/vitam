@@ -72,6 +72,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -587,6 +588,30 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         return createObjectByType(headers, operationId, createObjectDescription, DataCategory.BACKUP_OPERATION,
             httpServletRequest.getRemoteAddr());
     }
+
+
+    /**
+     *
+     * @param strategyId
+     * @return
+     */
+    @Path("/offers")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getOffers( @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId)  {
+
+        try {
+            List<String> offerIds = distribution.getOfferIds(strategyId);
+
+            return Response.status(Status.OK)
+                .entity(JsonHandler.toJsonNode(offerIds))
+                .build();
+        } catch (InvalidParseOperationException |StorageException e) {
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
+    }
+
 
 
     /**

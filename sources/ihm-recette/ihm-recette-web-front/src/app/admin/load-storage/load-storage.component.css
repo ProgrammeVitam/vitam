@@ -1,0 +1,20 @@
+.uploadSIPBackground {
+    background-color: #eaedf2;
+    min-height: 310px;
+    border: dashed;
+    border-color:#D5D5D5;
+}
+
+.uploadSIPText {
+    word-wrap: break-word;
+    font-size: 120%;
+    text-align: center;
+}
+
+.uploadFileInput {
+    opacity: 0;
+    width: 100%;
+    top: -30px;
+    position: relative;
+    cursor: pointer;
+}

@@ -57,6 +57,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -101,6 +102,30 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override public List<String> getOffers(String strategyId)
+        throws StorageNotFoundClientException, StorageServerClientException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
+
+        try {
+            response = performRequest(HttpMethod.GET, "/offers", headers,
+                MediaType.APPLICATION_JSON_TYPE);
+            return handleCommonResponseStatus(response, ArrayList.class);
+        } catch (final VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
     }
 
     @Override
@@ -230,7 +255,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid, String digest, DigestType digestAlgorithm)
+    public boolean delete(String strategyId, DataCategory type, String guid, String digest, String digestAlgorithm)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -292,7 +317,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String strategyId, String digest,
-        DigestType digestAlgorithm) {
+        String digestAlgorithm) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);

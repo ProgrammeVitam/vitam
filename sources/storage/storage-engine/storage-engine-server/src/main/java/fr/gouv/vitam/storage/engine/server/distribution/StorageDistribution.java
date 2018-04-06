@@ -77,6 +77,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
             DataCategory category, String requester) throws StorageAlreadyExistsException, StorageException;
 
     /**
+     * get  offer ids list
+     *
+     * @param strategyId strategy  id
+     * @return offers ids list
+     */
+    List<String> getOfferIds ( String strategyId) throws StorageException;
+    /**
      * Get Storage Information (availability and capacity) for the requested
      * tenant + strategy
      *
@@ -149,10 +156,10 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *             thrown in case of any technical problem
      */
     RequestResponse<JsonNode> listContainerObjects(String strategyId, DataCategory category, String cursorId) throws StorageException;
-    
+
     /**
      * Get offer log from referent
-     * 
+     *
      * @param strategyId
      *            the strategy id to get offers
      * @param category
