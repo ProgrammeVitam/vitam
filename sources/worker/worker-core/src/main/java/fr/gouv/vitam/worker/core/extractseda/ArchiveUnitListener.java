@@ -32,9 +32,8 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OPERATIONS;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
-
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,6 +58,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
@@ -87,8 +87,12 @@ import fr.gouv.vitam.common.mapping.serializer.TextByLangSerializer;
 import fr.gouv.vitam.common.mapping.serializer.TextTypeSerializer;
 import fr.gouv.vitam.common.mapping.serializer.XMLGregorianCalendarSerializer;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
@@ -96,6 +100,10 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -155,6 +163,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private UnitType workflowUnitType;
     private List<String> originatingAgencies;
     private final Map<String, JsonNode> existingGOTs;
+    private String ingestContract;
 
     public ArchiveUnitListener(HandlerIO handlerIO, ObjectNode archiveUnitTree, Map<String, String> unitIdToGuid,
         Map<String, String> unitIdToGroupId,
@@ -320,8 +329,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     }
 
     /**
-     * link the current archive unit to an existing archive unit
-     * We can link by systemId(guid) or by key value (metadataName and metadataValue)
+     * link the current archive unit to an existing archive unit We can link by systemId(guid) or by key value
+     * (metadataName and metadataValue)
      *
      * @param archiveUnitType
      * @param archiveUnitId
@@ -531,9 +540,10 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
 
 
-                /*
-                 Add field _existing with value true in order to skip full indexation and just add necessary information like _sps, _ops, _up
-                  */
+            /*
+             * Add field _existing with value true in order to skip full indexation and just add necessary information
+             * like _sps, _ops, _up
+             */
             JsonNode ogInDB = existingObjectGroup.get("$results").get(0);
             ObjectNode work = JsonHandler.createObjectNode();
             ObjectNode originalOGGraphData =
@@ -554,7 +564,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             originalOGGraphData.set(MetadataDocument.UP, ogInDB.get(UNITUPS.exactToken()));
             work.set(SedaConstants.PREFIX_EXISTING, originalOGGraphData);
 
-            // This is used to be saved in ObjectGroup Folder and participate in distribution. But we must use it only to update LFC and save in storage.
+            // This is used to be saved in ObjectGroup Folder and participate in distribution. But we must use it only
+            // to update LFC and save in storage.
             ObjectNode existingOG = JsonHandler.createObjectNode();
             existingOG.set(SedaConstants.PREFIX_WORK, work);
 
@@ -687,7 +698,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                : LogbookParametersFactory.newLogbookOperationParameters();
+                    : LogbookParametersFactory.newLogbookOperationParameters();
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
@@ -712,7 +723,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             LOGGER.error("ID is not a GUID: " + existingUnitGuid, e);
             throw new ProcessingUnitNotFoundException(
                 "Unit " + archiveUnitId + ": [" + existingUnitGuid +
-                    "] is not a valid systemId [guid]", archiveUnitId,
+                    "] is not a valid systemId [guid]",
+                archiveUnitId,
                 existingUnitGuid, false);
         }
 
@@ -723,7 +735,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
 
     /**
-     * @param metadataName  field in the archive unit
+     * @param metadataName field in the archive unit
      * @param metadataValue the value
      * @param archiveUnitId
      * @return
@@ -734,7 +746,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         if (metadataName.isEmpty() || metadataValue.isEmpty()) {
             throw new ProcessingUnitNotFoundException(
                 "Unit " + archiveUnitId + ": [MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
-                    "] are required values", archiveUnitId,
+                    "] are required values",
+                archiveUnitId,
                 "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue + "]", false);
         }
 
@@ -749,9 +762,11 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             LOGGER.error("Existing Unit was not found", e);
             throw new ProcessingUnitNotFoundException(
                 "Unit " + archiveUnitId + ":  [MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
-                    "] Parse operation exception : " + e.getMessage(), archiveUnitId,
+                    "] Parse operation exception : " + e.getMessage(),
+                archiveUnitId,
                 "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
-                    "]", false);
+                    "]",
+                false);
         }
         return loadExistingArchiveUnit(false, "[MetadataName:" + metadataName + ", MetadataValue : " + metadataValue +
             "]", select, archiveUnitId);
@@ -761,27 +776,32 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * Load data of an existing archive unit by its vitam id.
      *
      * @param existingUnitGuidOrKeyValue guid of existing archive unit or key value that identify uniquely the AU
-     * @param archiveUnitId              xml id of archive unit
+     * @param archiveUnitId xml id of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException             thrown if a metadata exception occured
+     * @throws ProcessingException thrown if a metadata exception occured
      */
     private JsonNode loadExistingArchiveUnit(boolean searchByGuid, String existingUnitGuidOrKeyValue,
         SelectMultiQuery selectMultiQuery,
-        String archiveUnitId) throws ProcessingException {
-
-
-        ObjectNode projection = JsonHandler.createObjectNode();
-        ObjectNode fields = JsonHandler.createObjectNode();
-
-        fields.put(UNITTYPE.exactToken(), 1);
-        fields.put(ID.exactToken(), 1);
-        fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
-        fields.put(ORIGINATING_AGENCY.exactToken(), 1);
-        projection.set(FIELDS.exactToken(), fields);
+        String archiveUnitId)
+        throws ProcessingException {
 
 
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
+
+            // if ingest contract is set and control is active, then the root query will be set
+            if (this.ingestContract != null) {
+                addIngestContractRoot(selectMultiQuery);
+            }
+
+            ObjectNode projection = JsonHandler.createObjectNode();
+            ObjectNode fields = JsonHandler.createObjectNode();
+
+            fields.put(UNITTYPE.exactToken(), 1);
+            fields.put(ID.exactToken(), 1);
+            fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
+            fields.put(ORIGINATING_AGENCY.exactToken(), 1);
+            projection.set(FIELDS.exactToken(), fields);
 
 
             selectMultiQuery.setProjection(projection);
@@ -811,7 +831,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * @param objectGroupId guid of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException             thrown if a metadata exception occured
+     * @throws ProcessingException thrown if a metadata exception occured
      */
     private JsonNode loadExistingObjectGroup(String objectGroupId) {
 
@@ -860,6 +880,46 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         objectMapper.registerModule(module1);
 
         return objectMapper;
+    }
+
+    /**
+     * Set the ingest contract name
+     * 
+     * @param contractName
+     */
+    public void setIngestContract(String contractName) {
+        this.ingestContract = contractName;
+    }
+
+    /**
+     * addIngestContractRoot
+     * 
+     * @param selectMultiQuery
+     */
+    private void addIngestContractRoot(SelectMultiQuery selectMultiQuery) {
+        try (final AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+
+            if (this.ingestContract != null) {
+                RequestResponse<IngestContractModel> referenceContracts =
+                    adminClient.findIngestContractsByID(this.ingestContract);
+                if (referenceContracts.isOk()) {
+                    List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
+                    if (!results.isEmpty()) {
+                        for (IngestContractModel result : results) {
+                            if (ActivationStatus.ACTIVE.equals(result.getCheckParentLink())) {
+                                selectMultiQuery.addRoots(result.getLinkParentId());
+                            }
+
+                        }
+                    }
+                }
+            }
+
+
+        } catch (ReferentialNotFoundException | AdminManagementClientServerException |
+            InvalidParseOperationException e) {
+            LOGGER.error("Ingest Contract not found", e);
+        }
     }
 
 }
