@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -45,12 +46,14 @@ import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -59,6 +62,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -153,13 +157,20 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             selectMultiple.addRoots(arrayNode);
             selectMultiple.addProjection(projectionNode);
             LOGGER.debug("Selected Query For linked unit: " + selectMultiple.getFinalSelect().toString());
-            final JsonNode unitsResultNode = metaDataClient.selectUnits(selectMultiple.getFinalSelect());
-            if (unitsResultNode != null) {
-                resultUnitsArray = (ArrayNode) unitsResultNode.get("$results");
-                // if size > 0, that means AU are to be updated
-                if (resultUnitsArray != null && resultUnitsArray.size() > 0) {
-                    for (final JsonNode unitNode : resultUnitsArray) {
-                        String auGuid = unitNode.get("#id").asText();
+            
+            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(selectMultiple,
+                    query -> {
+                        try {
+                            JsonNode jsonNode = metaDataClient.selectUnits(query.getFinalSelect());
+                            return RequestResponseOK.getFromJsonNode(jsonNode);
+                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
+                            throw new IllegalStateException(e);
+                        }
+                    }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+
+            StreamSupport.stream(scrollRequest, false).forEach(
+                    item -> {
+                        String auGuid = item.get("#id").asText();
                         if (!archiveUnitsToBeUpdated.contains(auGuid)) {
                             archiveUnitsToBeUpdated.add(auGuid);
                         }
@@ -173,8 +184,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
                             archiveUnitGuidAndRulesToBeUpdated.put(auGuid, rulesList);
                         }
                     }
-                }
-            }
+            );
         }
     }
 
