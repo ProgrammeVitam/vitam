@@ -727,7 +727,7 @@ L'opération est journalisée et disponible depuis l'écran de consultation du j
 En cas de succès de l'import du profil XSD ou RNG, la date de mise à jour de la notice descriptive de profil est ajustée en conséquence. Si l'utilisateur importe un nouveau profil SEDA au format XSD ou RNG alors qu'un autre profil SEDA a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 
-Documents types ( EN COURS !!!! ) 
+Documents types 
 ===============
 
 Un document type est un fichier JSON schéma qui permet de définir précisément et d'effectuer des contrôles sur la structure des métadonnées attendues des archives destinées à être transférées à la solution logicielle Vitam.
@@ -750,6 +750,8 @@ L'utilisateur construit au prélable la notice descriptive du document type au f
     - Date d'Activation: Date au format JJ/MM/AA ( Facultative ) 
     - Date de désactivation: Date au format JJ/MM/AA ( Facultative ) 
     - Statut : Date au format JJ/MM/AA (Facultatif) 
+    - ControlSchema: bloc au format JSON ( obligatoire , même vide ) 
+
       NOTE : si aucun statut n'est défini, le profil sera inactif par défaut
 
 La structure et les valeurs des notices descriptives de documents types sont décrites dans la documentation "Documents types".
@@ -775,6 +777,21 @@ Une fenêtre modale indique alors soit :
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
+
+Ajout d'un Schéma de contrôle
+-----------------------------
+
+- L'utilisateur peut ajouter des schémas de contrôles de 2 façons: 
+
+	- Soit via le référentiel JSON directement, en rajoutant le bloc de métadonnées à contrôler à l'INGEST des fichiers directement dans le détail du Champ " Controlschema " 
+
+	- Soit via l' IHM, dans le détail de la notice de document type importée précédemment. 
+
+
+.. image:: images/ref_json.png
+
+
+Note: Pour que le contrôle supplémentaire sur les données soit pris en compte, l' intitulé du référentiel devra être présent dans le bordeau d'envoi. 
 
 
 Recherche d' un document type
@@ -817,16 +834,14 @@ Pour accéder au détail d'une notice de profil d'archivage, l'utilisateur cliqu
 - Tenant
 - Date de création
 - Dernière modification
+- Schéma de contrôle
 
-A COMPLETER !! 
 
 **Modifier un document type**
 
 Il est possible de modifier le document type en cliquant sur le bouton "Modifier" sur l'écran "Détail du document type". L'interface permet la modification de plusieurs champs.
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
-
-A COMPLETER !!!!! 
 
 
 
