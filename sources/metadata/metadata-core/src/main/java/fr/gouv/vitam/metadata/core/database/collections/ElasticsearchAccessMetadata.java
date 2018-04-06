@@ -60,7 +60,6 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import com.mongodb.DBObject;
@@ -730,7 +729,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @param tenantId
      * @param id
-     * @param object full object
+     * @param og full object
      * @return True if updated
      */
     public boolean updateFullOneOG(MetadataCollections collection, Integer tenantId, String id, ObjectGroup og) {
