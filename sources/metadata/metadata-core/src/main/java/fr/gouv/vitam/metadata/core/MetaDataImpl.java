@@ -135,42 +135,28 @@ public class MetaDataImpl implements MetaData {
     @Override
     public void insertUnit(JsonNode insertRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException, MetaDataNotFoundException, VitamDBException {
-        Result result;
+        MetaDataAlreadyExistException, MetaDataNotFoundException {
         try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(insertRequest);
-            result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser);
-        } catch (BadRequestException e) {
-            throw new MetaDataExecutionException(e);
+            DbRequestFactoryImpl.getInstance().create().execInsertUnitRequest(insertParser);
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
-        }
-
-        if (result.isError()) {
-            throw new MetaDataNotFoundException("Parents not found");
         }
     }
 
     @Override
     public void insertObjectGroup(JsonNode objectGroupRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException, MetaDataNotFoundException {
-        Result result;
+        MetaDataAlreadyExistException {
 
         try {
             final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-            result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser);
-        } catch (BadRequestException | VitamDBException e) {
-            throw new MetaDataExecutionException(e);
+            DbRequestFactoryImpl.getInstance().create().execInsertObjectGroupRequest(insertParser);
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
-        }
-
-        if (result.isError()) {
-            throw new MetaDataNotFoundException("Parents not found");
         }
     }
 
@@ -301,13 +287,7 @@ public class MetaDataImpl implements MetaData {
             if (shouldComputeUnitRule && result.hasFinalResult()) {
                 computeRuleForUnit(arrayNodeResponse);
             }
-        } catch (MetaDataAlreadyExistException e) {
-            LOGGER.error(e);
-            throw new MetaDataExecutionException(e);
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e);
-            throw e;
-        } catch (final BadRequestException e) {
+        } catch (final MetaDataNotFoundException | BadRequestException e) {
             LOGGER.error(e);
             throw e;
         }
@@ -350,7 +330,7 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final BadRequestException | MetaDataAlreadyExistException |
+        } catch (final BadRequestException |
             MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
@@ -398,7 +378,7 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final BadRequestException | MetaDataAlreadyExistException e) {
+        } catch (final BadRequestException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }

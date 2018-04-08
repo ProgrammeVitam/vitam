@@ -55,6 +55,7 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -226,7 +227,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     private static final Unit getFiltered(final Unit unit) {
         final Unit eunit = new Unit(unit);
-        eunit.remove(VitamLinks.UNIT_TO_UNIT.field1to2);
         eunit.remove(VitamDocument.SCORE);
         return eunit;
     }
@@ -597,75 +597,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     }
 
     /**
-     * create indexes during Object group insert
-     *
-     * @param cursor   the {@link MongoCursor} of ObjectGroup
-     * @param tenantId the tenant for operation
-     * @throws MetaDataExecutionException when insert exception
-     */
-    public void insertBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId)
-        throws MetaDataExecutionException {
-        if (!cursor.hasNext()) {
-            LOGGER.error("ES insert in error since no results to insert");
-            throw new MetaDataExecutionException("No result to insert");
-        }
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.getMaxElasticsearchBulk();
-        while (cursor.hasNext()) {
-            max--;
-            final ObjectGroup og = cursor.next();
-            final String id = og.getId();
-            og.remove(VitamDocument.ID);
-            og.remove(VitamDocument.SCORE);
-
-            final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            // TODO Empty variable (null) might be ignore here
-            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
-            final String toInsert = dbObject.toString().trim();
-            if (toInsert.isEmpty()) {
-                LOGGER.error("ES insert in error since result to insert is empty");
-                throw new MetaDataExecutionException("Result to insert is empty");
-            }
-            bulkRequest.add(client
-                .prepareIndex(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
-                    VitamCollection.getTypeunique(), id)
-                .setSource(toInsert, XContentType.JSON));
-            if (max == 0) {
-                max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse =
-                    bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
-                if (bulkResponse.hasFailures()) {
-                    int duplicates = 0;
-                    for (final BulkItemResponse bulkItemResponse : bulkResponse) {
-                        if (bulkItemResponse.getVersion() > 1) {
-                            duplicates++;
-                        }
-                    }
-                    LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
-                        bulkResponse.buildFailureMessage());
-                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
-                }
-                bulkRequest = client.prepareBulk();
-            }
-        }
-        if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse =
-                bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
-            if (bulkResponse.hasFailures()) {
-                int duplicates = 0;
-                for (final BulkItemResponse bulkItemResponse : bulkResponse) {
-                    if (bulkItemResponse.getVersion() > 1) {
-                        duplicates++;
-                    }
-                }
-                LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
-                    bulkResponse.buildFailureMessage());
-                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
-            }
-        }
-    }
-
-    /**
      * updateBulkOGEntriesIndexes
      * <p>
      * Update a set of entries in the ElasticSearch index based in Cursor Result. <br>
@@ -721,27 +652,62 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     }
 
     /**
+     * Insert one element
+     *
+     * @param collection
+     * @param tenantId
+     * @param id
+     * @param doc        full document to insert
+     * @return True if updated
+     */
+    public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
+        throws MetaDataExecutionException {
+        try {
+            final String mongoJson = doc.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            dbObject.removeField(VitamDocument.ID);
+            final String document = dbObject.toString().trim();
+            IndexResponse indexResponse = client.prepareIndex(getAliasName(collection, tenantId),
+                VitamCollection.getTypeunique(), id)
+                .setSource(document, XContentType.JSON)
+                .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+            if (indexResponse.status() != RestStatus.CREATED && indexResponse.status() != RestStatus.OK) {
+                throw new MetaDataExecutionException(String
+                    .format("Could not index document on ES. Id=%s, collection=%s, status=%s", id, collection,
+                        indexResponse.status()));
+            }
+        } finally {
+            doc.put(VitamDocument.ID, id);
+        }
+    }
+
+    /**
      * Update one element fully
      *
      * @param collection
      * @param tenantId
      * @param id
-     * @param og full object
-     * @return True if updated
+     * @param doc        full document to update
      */
-    public boolean updateFullOneOG(MetadataCollections collection, Integer tenantId, String id, ObjectGroup og) {
-        og.remove(VitamDocument.ID);
-        og.remove(VitamDocument.SCORE);
-        final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
-        // TODO Empty variable (null) might be ignore here
-        final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
-        final String toUpdate = dbObject.toString().trim();
-        UpdateResponse response = client.prepareUpdate(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
-            VitamCollection.getTypeunique(), id)
-            .setDoc(toUpdate, XContentType.JSON)
-            .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
-
-        return response.getId().equals(id);
+    public void updateFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
+        throws MetaDataExecutionException {
+        try {
+            final String mongoJson = doc.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            dbObject.removeField(VitamDocument.ID);
+            final String toUpdate = dbObject.toString().trim();
+            UpdateResponse response = client.prepareUpdate(getAliasName(collection, tenantId),
+                VitamCollection.getTypeunique(), id)
+                .setDoc(toUpdate, XContentType.JSON)
+                .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+            if (response.status() != RestStatus.OK) {
+                throw new MetaDataExecutionException(String
+                    .format("Could not update document on ES. Id=%s, collection=%s, status=%s", id, collection,
+                        response.status()));
+            }
+        } finally {
+            doc.put(VitamDocument.ID, id);
+        }
     }
 
     /**

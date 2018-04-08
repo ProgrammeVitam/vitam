@@ -28,18 +28,17 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.guid.GUIDObjectType;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import org.bson.BSONObject;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
+import static java.util.Collections.singleton;
 
 /**
  * ObjectGroup:<br>
@@ -192,58 +191,26 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         return new ObjectGroup(content);
     }
 
-    @Override
-    public ObjectGroup save() throws MetaDataExecutionException {
-        if (updated()) {
-            return this;
-        }
-        insert();
-        return this;
-    }
+    public void buildParentGraph(Unit unit) {
 
-    @Override
-    protected boolean updated() throws MetaDataExecutionException {
-        final ObjectGroup vt =
-            (ObjectGroup) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
-        BasicDBObject update = null;
-        if (vt != null) {
-            final List<BasicDBObject> list = new ArrayList<>();
-            BasicDBObject updAddToSet =
-                MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_OBJECTGROUP, false);
-            if (updAddToSet != null) {
-                list.add(updAddToSet);
-            }
-            if (!list.isEmpty()) {
-                try {
-                    update = new BasicDBObject();
-                    updAddToSet = new BasicDBObject();
-                    for (final BasicDBObject dbObject : list) {
-                        updAddToSet.putAll((BSONObject) dbObject);
-                    }
-                    update = update.append(MongoDbMetadataHelper.ADD_TO_SET, updAddToSet);
-                    update(update);
-                } catch (final MongoException e) {
-                    LOGGER.error("Exception for " + update, e);
-                    throw e;
-                }
-                list.clear();
-            }
-            return true;
-        } else {
-            MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_OBJECTGROUP, false);
-        }
-        return false;
-    }
+        // Add direct object group parent
+        Set<String> up = new HashSet<>(this.getCollectionOrEmpty(UP));
+        up.add(unit.getId());
+        this.put(UP, up);
 
-    /**
-     * @return the list of parent Unit
-     */
-    @SuppressWarnings("unchecked")
-    public List<String> getFathersUnitIds() {
-        List<String> list = (List<String>) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1);
-        if (list == null) {
-            return SingletonUtils.singletonList();
+        // Merge ObjectGroup originating agencies with unit originating agencies
+        Set<String> originatingAgencies = new HashSet<>(this.getCollectionOrEmpty(ORIGINATING_AGENCIES));
+        originatingAgencies.addAll(unit.getCollectionOrEmpty(ORIGINATING_AGENCIES));
+        this.put(ORIGINATING_AGENCIES, originatingAgencies);
+
+        // Add operation id
+        Set<String> ops = new HashSet<>(unit.getCollectionOrEmpty(OPS));
+        ops.add(VitamThreadUtils.getVitamSession().getRequestId());
+        this.put(OPS, ops);
+
+        // Debug
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("DEBUG: OG {}", JSON.serialize(this));
         }
-        return list;
     }
 }

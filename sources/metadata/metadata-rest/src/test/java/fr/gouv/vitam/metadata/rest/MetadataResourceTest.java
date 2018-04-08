@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -55,6 +56,9 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.jhades.JHades;
 import org.junit.After;
@@ -70,6 +74,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.MarshalException;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -87,8 +92,6 @@ public class MetadataResourceTest {
         "{ \"#id\": \"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
-    private static final String DATA3 =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaz\"," + "\"data\": \"data3\" }";
     private static final String INVALID_DATA = "{ \"INVALID\": true }";
 
     private static final String DATA_URI = "/metadata/v1";
@@ -192,8 +195,12 @@ public class MetadataResourceTest {
         return JsonHandler.getFromString("{ $roots : [], $query : [], $data : " + data + " }");
     }
 
-    private static final JsonNode buildDSLWithOptionsRoot(String root, String data) throws Exception {
-        return JsonHandler.getFromString("{ $roots : [ \"" + root + "\"], $query : [], $data : " + data + " }");
+    private static final JsonNode buildDSLWithOptionsRoots(String data, String... roots) throws Exception {
+        return JsonHandler.getFromString("{ $roots : [ " + joinIds(roots) + "], $query : [], $data : " + data + " }");
+    }
+
+    private static final String joinIds(String... ids) {
+        return (ids.length == 0) ? "" : "\"" + StringUtils.join(ids, "\",\"") + "\"";
     }
 
     private static String createJsonStringWithDepth(int depth) {
@@ -224,11 +231,11 @@ public class MetadataResourceTest {
     /**
      * Test insert Unit endpoint
      */
-
     @Test
     public void shouldRaiseExceptionIfBodyIsNotCorrect() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(INVALID_DATA).when()
             .post("/units").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "Parse in error for Insert: empty data")))
@@ -250,25 +257,8 @@ public class MetadataResourceTest {
             .body(buildDSLWithOptions(DATA)).when()
             .post("/units").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
-                "Unit already exists: aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")))
+                "Metadata already exists: aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")))
             .statusCode(Status.CONFLICT.getStatusCode());
-    }
-
-    @Test
-    public void givenInsertUnitWithQueryPathWhenParentFoundThenReturnCreated() throws Exception {
-        with()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoot("aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq", DATA2)).when()
-            .post("/units").then()
-            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -283,9 +273,91 @@ public class MetadataResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoot("aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq", DATA2)).when()
+            .body(buildDSLWithOptionsRoots(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    public void givenInsertComplexUnitGraphThenCheckGraph() throws Exception {
+
+        /*
+         * Test case :
+         * 1(sp1)  2(sp2)  3(sp3)
+         * |     / |       |
+         * |   /   |       |
+         * | /     |       |
+         * 4(sp1)  5(sp2)  6(sp4)
+         * |     /
+         * |   /
+         * | /
+         * 7(sp1)
+         * |
+         * |
+         * |
+         * 8(sp1)
+         */
+
+        // Given
+        String guid1 = "1";
+        String guid2 = "2";
+        String guid3 = "3";
+        String guid4 = "4";
+        String guid5 = "5";
+        String guid6 = "6";
+        String guid7 = "7";
+        String guid8 = "8";
+
+        String SERVICE_PRODUCER_1 = "sp1";
+        String SERVICE_PRODUCER_2 = "sp2";
+        String SERVICE_PRODUCER_3 = "sp3";
+        String SERVICE_PRODUCER_4 = "sp4";
+
+        createUnit(guid1, SERVICE_PRODUCER_1);
+        createUnit(guid2, SERVICE_PRODUCER_2);
+        createUnit(guid3, SERVICE_PRODUCER_3);
+        createUnit(guid4, SERVICE_PRODUCER_1, guid1, guid2);
+        createUnit(guid5, SERVICE_PRODUCER_2, guid2);
+        createUnit(guid6, SERVICE_PRODUCER_4, guid3);
+        createUnit(guid7, SERVICE_PRODUCER_1, guid4, guid5);
+        createUnit(guid8, SERVICE_PRODUCER_1, guid7);
+
+        // Check graph...
+        checkUnitGraph(guid1, "test_complex_unit_graph_unit1.json");
+        checkUnitGraph(guid6, "test_complex_unit_graph_unit6.json");
+        checkUnitGraph(guid8, "test_complex_unit_graph_unit8.json");
+    }
+
+    private void createUnit(String id, String sp, String... directParents) throws Exception {
+
+        String unitData = "{"
+            + "\"#id\": \"" + id + "\","
+            + "\"#originating_agency\": \"" + sp + "\""
+            + "}";
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptionsRoots(unitData, directParents)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+    }
+
+    private void checkUnitGraph(String id, String expectedContentFileName)
+        throws InvalidParseOperationException, IOException {
+        String responseJson = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .get("/raw/units/" + id).then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().asString();
+
+        JsonNode actualUnitJson = JsonHandler.getFromString(responseJson).get("$results").get(0);
+        JsonNode expectedUnitJson =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(expectedContentFileName));
+
+        JsonAssert.assertJsonEquals(expectedUnitJson.toString(), actualUnitJson.toString(),
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
     @Test(expected = MarshalException.class)
@@ -302,11 +374,11 @@ public class MetadataResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoot("aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab", DATA)).when()
+            .body(buildDSLWithOptionsRoots(DATA, "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")).when()
             .post("/units")
             .then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND,
-                "Cannot find Parent: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
+                "Cannot find parents: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -343,6 +415,7 @@ public class MetadataResourceTest {
     public void givenInsertObjectGroupWithBodyIsNotCorrectThenReturnErrorBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(INVALID_DATA).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.BAD_REQUEST, "Parse in error for Insert: empty data")))
@@ -360,29 +433,18 @@ public class MetadataResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoot("aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq", DATA2)).when()
+            .body(buildDSLWithOptionsRoots(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
             .post("/objectgroups").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoot("aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq", DATA2)).when()
+            .body(buildDSLWithOptionsRoots(DATA2, "aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
-                "ObjectGroup already exists: aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")))
+                "Metadata already exists: aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")))
             .statusCode(Status.CONFLICT.getStatusCode());
-    }
-
-    @Test
-    public void givenInsertObjectGroupWithNoParentThenReturnErrorNotFound() throws Exception {
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(DATA3)).when()
-            .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND, "No Unit parent defined")))
-            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test

@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -68,12 +67,6 @@ public class ObjectGroupTest {
         assertFalse(go2.isEmpty());
         assertEquals("ObjectGroup: Document{{}}", go1.toStringDirect());
         assertNotNull(go3);
-    }
-
-    @Test
-    public void givenObjectGroupWhenGetFathersUnitIdThenReturnAList() {
-        final ObjectGroup group = new ObjectGroup();
-        assertNotNull(group.getFathersUnitIds());
     }
 
     @Test

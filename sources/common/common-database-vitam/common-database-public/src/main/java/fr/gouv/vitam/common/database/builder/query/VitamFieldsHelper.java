@@ -37,6 +37,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ALLUNITUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.DUA;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FORMAT;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.GRAPH;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.INITIAL_OPERATION;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.LAST_PERSISTED_DATE;
@@ -51,6 +52,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.PARENTS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.PARENT_ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SCORE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SIZE;
@@ -220,6 +222,14 @@ public class VitamFieldsHelper {
     public static final String uds() {
         return PARENTS.exactToken();
     }
+
+    /**
+     * @return #graph
+     */
+    public static final String graph() {
+        return GRAPH.exactToken();
+    }
+
     /**
      *
      * @return #management
@@ -254,6 +264,13 @@ public class VitamFieldsHelper {
      */
     public static final String originatingAgencies() {
         return ORIGINATING_AGENCIES.exactToken();
+    }
+
+    /**
+     * @return #parent_originating_agencies
+     */
+    public static final String parentOriginatingAgencies() {
+        return PARENT_ORIGINATING_AGENCIES.exactToken();
     }
 
     /**

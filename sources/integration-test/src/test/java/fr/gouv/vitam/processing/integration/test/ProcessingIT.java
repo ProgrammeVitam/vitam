@@ -193,7 +193,6 @@ public class ProcessingIT {
         "integration-processing/access_contract_every_originating_angency.json";
     private static final String CONTEXT =
         "integration-processing/contexts.json";
-    private static final String UNIT_ATTACHEMENT_ID = "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq";
     private static final String OG_ATTACHEMENT_ID = "aebaaaaaaacu6xzeabinwak6t5ecmmaaaaaq";
     private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
@@ -632,14 +631,13 @@ public class ProcessingIT {
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
             tryImportFile();
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             createLogbookOperation(operationGuid, objectGuid);
 
-            // workspace client dezip SIP in workspace
+            // workspace client unzip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
             final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_BUG_2721);

@@ -7,8 +7,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 
+import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
@@ -35,7 +39,9 @@ public class UnitGraphTest {
         populateModel.setRootId("1234");
         populateModel.setWithGots(false);
         UnitModel rootUnit = new UnitModel(2, "default");
+        rootUnit.setId("1234");
         rootUnit.getSps().add("saphir");
+        rootUnit.getParentOriginatingAgencies().put("saphir", Collections.singletonList("1234"));
         given(metadataRepository.findUnitById(populateModel.getRootId())).willReturn(Optional.of(rootUnit));
 
         // When
@@ -47,9 +53,13 @@ public class UnitGraphTest {
         assertThat(unitModel.getId()).isNotNull();
         assertThat(unitModel.getTenant()).isEqualTo(1);
         assertThat(unitModel.getSp()).isEqualTo(populateModel.getSp());
-        assertThat(unitModel.getSps()).contains(populateModel.getSp(), "saphir");
+        assertThat(unitModel.getSps()).containsExactlyInAnyOrder(populateModel.getSp(), "saphir");
         assertThat(unitModel.getUp()).contains(populateModel.getRootId());
         assertThat(unitModel.getUs()).contains(populateModel.getRootId());
+        assertThat(unitModel.getGraph())
+            .containsExactlyInAnyOrder(createGraphRelation(unitModel.getId(), "1234"));
+        assertThat(unitModel.getParentOriginatingAgencies()).containsOnlyKeys("saphir");
+        assertThat(unitModel.getParentOriginatingAgencies().get("saphir")).containsExactly("1234");
         // and 
         assertNull(unitGotModel.getGot());
     }
@@ -63,9 +73,14 @@ public class UnitGraphTest {
         populateModel.setRootId("1234");
         populateModel.setWithGots(true);
         UnitModel rootUnit = new UnitModel(2, "default");
+        rootUnit.setId("1234");
+        rootUnit.setSp("saphir");
+        rootUnit.setSps(new HashSet<>(Arrays.asList("saphir")));
         rootUnit.getUp().add("123");
         rootUnit.getUs().add("123");
         rootUnit.getUds().put("123", 1);
+        rootUnit.getGraph().add("1234/123");
+        rootUnit.getParentOriginatingAgencies().put("saphir", Collections.singletonList("123"));
         given(metadataRepository.findUnitById(populateModel.getRootId())).willReturn(Optional.of(rootUnit));
 
         // When
@@ -77,10 +92,14 @@ public class UnitGraphTest {
         assertNotNull(unitModel);
         assertThat(unitModel.getTenant()).isEqualTo(1);
         assertThat(unitModel.getSp()).isEqualTo(populateModel.getSp());
-        assertThat(unitModel.getSps()).contains(populateModel.getSp());
+        assertThat(unitModel.getSps()).containsExactlyInAnyOrder(populateModel.getSp(), "saphir");
         assertThat(unitModel.getUp()).contains(populateModel.getRootId());
         assertThat(unitModel.getUs()).contains(populateModel.getRootId(), "123");
         assertThat(unitModel.getUds()).containsEntry(populateModel.getRootId(), 1).containsEntry("123", 2);
+        assertThat(unitModel.getGraph())
+            .containsExactlyInAnyOrder("1234/123", createGraphRelation(unitModel.getId(), "1234"));
+        assertThat(unitModel.getParentOriginatingAgencies()).containsOnlyKeys("saphir");
+        assertThat(unitModel.getParentOriginatingAgencies().get("saphir")).containsExactly("1234", "123");
         // and
         assertNotNull(gotModel);
         assertThat(gotModel.getTenant()).isEqualTo(1);
@@ -102,7 +121,7 @@ public class UnitGraphTest {
 
         // When / Then
         assertThatThrownBy(() -> unitGraph.createGraph(0, populateModel))
-                .hasMessageContaining("rootId not present in database: 1234");
+            .hasMessageContaining("rootId not present in database: 1234");
     }
 
     @Test

@@ -140,6 +140,12 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return ObjectGroup.STORAGE + extension;
                     case SCORE:
                         return VitamDocument.SCORE;
+                    case UDS:
+                        return Unit.UNITDEPTHS;
+                    case GRAPH:
+                        return Unit.GRAPH;
+                    case PARENT_ORIGINATING_AGENCIES:
+                        return Unit.PARENT_ORIGINATING_AGENCIES;
                     case ALL:
                     default:
                         break;

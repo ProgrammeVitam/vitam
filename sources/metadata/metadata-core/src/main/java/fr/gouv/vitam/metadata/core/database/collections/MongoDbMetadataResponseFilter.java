@@ -129,7 +129,7 @@ public class MongoDbMetadataResponseFilter {
                 case UNITTYPE:
                     replace(document, Unit.UNIT_TYPE, VitamFieldsHelper.unitType());
                     break;
-                case PARENTS:
+                case UDS:
                     remove(document, Unit.UNITDEPTHS);
                     break;
                 case ORIGINATING_AGENCY:
@@ -146,6 +146,12 @@ public class MongoDbMetadataResponseFilter {
                     break;
                 case SCORE:
                     replace(document, VitamDocument.SCORE, ParserTokens.PROJECTIONARGS.SCORE.exactToken());
+                    break;
+                case GRAPH:
+                    remove(document, Unit.GRAPH);
+                    break;
+                case PARENT_ORIGINATING_AGENCIES:
+                    remove(document, Unit.PARENT_ORIGINATING_AGENCIES);
                     break;
                 case DUA:
                 case ALL:

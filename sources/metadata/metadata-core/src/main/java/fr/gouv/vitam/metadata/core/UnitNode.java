@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital 
  * archiving back-office system managing high volumetry securely and efficiently.
  *
@@ -42,13 +42,18 @@ import java.util.Set;
  * Object to build the graph of unit
  */
 public class UnitNode {
-    private UnitSimplified unit; 
-    private Map<String, UnitNode> childs; 
+    private UnitSimplified unit;
+    private Map<String, UnitNode> childs;
     private Map<String, UnitNode> allUnitNode;
 
     /**
+     * Empty Constructor
+     */
+    public UnitNode() {}
+
+    /**
      * constructor with UnitSimplified
-     * 
+     *
      * @param u UnitSimplified
      */
     public UnitNode(UnitSimplified u) {
@@ -59,12 +64,12 @@ public class UnitNode {
 
     /**
      * Build a graph of all parents
-     * 
+     *
      * @param parentMap map of parent unit
      * @param allUnitNode map a all unit
      * @param rootList list of root
      */
-    public void buildAncestors(Map<String, UnitSimplified> parentMap, 
+    public void buildAncestors(Map<String, UnitSimplified> parentMap,
         Map<String, UnitNode> allUnitNode, Set<String> rootList) {
         this.allUnitNode = allUnitNode;
         allUnitNode.put(unit.getId(), this);
@@ -83,13 +88,13 @@ public class UnitNode {
         }
     }
 
-    private void addChild(UnitNode childNode) { 
+    private void addChild(UnitNode childNode) {
         this.childs.put(childNode.unit.getId() , childNode);
     }
 
 
-    private void addParent(UnitNode parentNode, 
-        Map<String, UnitSimplified> parentMap, Set<String> rootList) { 
+    private void addParent(UnitNode parentNode,
+        Map<String, UnitSimplified> parentMap, Set<String> rootList) {
         parentNode.addChild(this);
         parentNode.buildAncestors(parentMap, allUnitNode, rootList);
     }

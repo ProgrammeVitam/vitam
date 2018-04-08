@@ -24,30 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.database.collections;
+package fr.gouv.vitam.common.graph;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-public class UnitTest {
-    private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\"}";
-
-    @Test
-    public void testUnitInitialization() throws InvalidParseOperationException {
-        final JsonNode json = JsonHandler.getFromString(s1);
-
-        final Unit unit = new Unit();
-        final Unit unit2 = new Unit(s1);
-        final Unit unit3 = new Unit(json);
-        assertTrue(unit.isEmpty());
-        assertEquals("Unit: Document{{}}", unit.toStringDirect());
-        assertEquals("Unit: null", unit.toStringDebug());
-        assertEquals("Unit: Document{{_id=id1, title=title1}}", unit2.toString());
-        assertEquals("Unit: Document{{_id=id1, title=title1}}", unit3.toString());
+/**
+ * Helper class for graph
+ */
+public final class GraphUtils {
+    public static String createGraphRelation(String childId, String parentId) {
+        return childId + "/" + parentId;
     }
 }

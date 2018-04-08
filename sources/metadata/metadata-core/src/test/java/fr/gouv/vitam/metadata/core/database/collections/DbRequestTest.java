@@ -34,7 +34,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -75,7 +74,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -91,7 +89,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -123,6 +120,7 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -317,7 +315,7 @@ public class DbRequestTest {
             insertParser.parse(insertRequest);
             LOGGER.debug("InsertParser: {}", insertParser);
             // Now execute the request
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             // SELECT
             JsonNode selectRequest = createSelectRequestWithUUID(uuid);
@@ -390,15 +388,15 @@ public class DbRequestTest {
             // Insert data (insertReq1, insertReq2, insertReq3)
             insertParser.parse(insertReq1);
             LOGGER.debug("insertParser: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             insertParser.parse(insertReq2);
             LOGGER.debug("insertParser: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             insertParser.parse(insertReq3);
             LOGGER.debug("insertParser: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -1)
             JsonNode selectQuery =
@@ -472,15 +470,15 @@ public class DbRequestTest {
             // Insert data (insertReq1, insertReq2, insertReq3)
             insertParser.parse(insertReq1);
             LOGGER.debug("insertParser: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             insertParser.parse(insertReq2);
             LOGGER.debug("insertParser: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             insertParser.parse(insertReq3);
             LOGGER.debug("insertParser: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -2)
             JsonNode selectQuery =
@@ -526,11 +524,11 @@ public class DbRequestTest {
             // INSERT
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
-            requestParser =
-                RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("InsertParser: {}", requestParser);
+            InsertParserMultiple insertParserMultiple =
+                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("InsertParser: {}", insertParserMultiple);
             // Now execute the request
-            executeRequest(dbRequest, requestParser);
+            dbRequest.execInsertUnitRequest(insertParserMultiple);
 
             // SELECT
             JsonNode selectRequest = createSelectRequestWithUUID(uuid);
@@ -596,11 +594,11 @@ public class DbRequestTest {
             // INSERT
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
-            requestParser =
-                RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("InsertParser: {}", requestParser);
+            InsertParserMultiple insertParserMultiple =
+                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("InsertParser: {}", insertParserMultiple);
             // Now execute the request
-            executeRequest(dbRequest, requestParser);
+            dbRequest.execInsertUnitRequest(insertParserMultiple);
 
             // SELECT
             JsonNode selectRequest = createSelectRequestWithUUID(uuid);
@@ -672,17 +670,19 @@ public class DbRequestTest {
             // INSERT
             JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
-            requestParser = RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("InsertParser: {}", requestParser);
+            InsertParserMultiple insertParserMultiple1 =
+                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("InsertParser: {}", insertParserMultiple1);
             // Now execute the request
-            executeRequest(dbRequest, requestParser);
+            dbRequest.execInsertUnitRequest(insertParserMultiple1);
 
             insertRequest = createInsertChild2ParentRequest(uuid2, uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
-            requestParser = RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
-            LOGGER.debug("InsertParser: {}", requestParser);
+            InsertParserMultiple insertParserMultiple2 =
+                (InsertParserMultiple) RequestParserHelper.getParser(insertRequest, mongoDbVarNameAdapter);
+            LOGGER.debug("InsertParser: {}", insertParserMultiple2);
             // Now execute the request
-            executeRequest(dbRequest, requestParser);
+            dbRequest.execInsertUnitRequest(insertParserMultiple2);
 
             // SELECT based on UUID
             JsonNode selectRequest = createSelectRequestWithOnlyUUID(uuid);
@@ -795,11 +795,11 @@ public class DbRequestTest {
             // insert1
             insertParser.parse(insertRequest1);
             LOGGER.debug("InsertParser1: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
             // insert2
             insertParser.parse(insertRequest2);
             LOGGER.debug("InsertParser2: {}", insertParser);
-            executeRequest(dbRequest, insertParser);
+            dbRequest.execInsertUnitRequest(insertParser);
 
             // SELECT
             // select with desc sort on title and one query
@@ -863,15 +863,16 @@ public class DbRequestTest {
         final GUID uuid2 = GUIDFactory.newUnitGUID(tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final DbRequest dbRequest = new DbRequest();
-        RequestParserMultiple requestParser = null;
+        InsertParserMultiple insertParser;
 
-        requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        insertParser = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(insertParser);
         assertEquals(1, MetadataCollections.UNIT.getCollection().count());
 
-        requestParser =
-            RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        insertParser = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(insertParser);
         assertEquals(2, MetadataCollections.UNIT.getCollection().count());
     }
 
@@ -883,12 +884,12 @@ public class DbRequestTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final DbRequest dbRequest = new DbRequest();
 
-        RequestParserMultiple requestParser = null;
-        requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
-        requestParser =
-            RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        InsertParserMultiple insertParserMultiple1 = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(insertParserMultiple1);
+        InsertParserMultiple insertParserMultiple2 = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(insertParserMultiple2);
 
         final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid.toString());
         final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2.toString());
@@ -912,18 +913,12 @@ public class DbRequestTest {
      * @param dbRequest
      * @param requestParser
      * @throws InvalidParseOperationException
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws MetaDataNotFoundException
-     * @throws MetaDataAlreadyExistException
      * @throws MetaDataExecutionException
      * @throws SecurityException
-     * @throws NoSuchMethodException
-     * @throws InvocationTargetException
      * @throws IllegalArgumentException
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
-        throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
+        throws MetaDataExecutionException,
         InvalidParseOperationException, BadRequestException,
         VitamDBException {
 
@@ -1025,7 +1020,7 @@ public class DbRequestTest {
             .put(TITLE, VALUE_MY_TITLE + "2").put(DESCRIPTION, "Ma description2 vitam")
             .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 10);
         final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.addData(data).addQueries(eq(VitamFieldsHelper.id(), parent.toString()));
+        insert.addData(data).addRoots(parent.toString());
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         return insert.getFinalInsert();
     }
@@ -1102,26 +1097,6 @@ public class DbRequestTest {
     }
 
     @Test
-    @RunWithCustomExecutor
-    public void testResult() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        final DbRequest dbRequest = new DbRequest();
-        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        LOGGER.debug("InsertParser: {}", insertParser);
-        final Result result = dbRequest.execRequest(insertParser);
-        assertEquals("[]", result.getFinal().toString());
-
-        final Bson projection = null;
-        result.setFinal(projection);
-        assertEquals(1, result.currentIds.size());
-        assertEquals(1, (int) result.nbResult);
-
-        result.putFrom(result);
-        assertEquals(1, result.currentIds.size());
-        assertEquals(1, (int) result.nbResult);
-    }
-
-    @Test
     public void testMongoDbAccess() {
         for (final MetadataCollections col : MetadataCollections.values()) {
             if (col.getCollection() != null) {
@@ -1161,18 +1136,19 @@ public class DbRequestTest {
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final DbRequest dbRequest = new DbRequest();
-        RequestParserMultiple requestParser = null;
+        InsertParserMultiple insertParser;
 
-        requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        insertParser = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(insertParser);
         Result result = checkExistence(dbRequest, uuid, false);
         assertFalse(result.isError());
 
         final GUID uuid2 = GUIDFactory.newObjectGroupGUID(tenantId);
-        requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        requestParser.parse(createInsertRequestGO(uuid2, uuid));
+        insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser.parse(createInsertRequestGO(uuid2, uuid));
 
-        executeRequest(dbRequest, requestParser);
+        dbRequest.execInsertObjectGroupRequest(insertParser);
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
     }
@@ -1183,17 +1159,17 @@ public class DbRequestTest {
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final DbRequest dbRequest = new DbRequest();
-        RequestParserMultiple requestParser = null;
-
-        requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        InsertParserMultiple insertParser;
+        insertParser = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(insertParser);
         Result result = checkExistence(dbRequest, uuid, false);
         assertFalse(result.isError());
         final GUID uuid2 = GUIDFactory.newObjectGroupGUID(tenantId);
-        requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        requestParser.parse(createInsertRequestGO(uuid2, uuid));
+        insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser.parse(createInsertRequestGO(uuid2, uuid));
 
-        executeRequest(dbRequest, requestParser);
+        dbRequest.execInsertObjectGroupRequest(insertParser);
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
 
@@ -1255,7 +1231,6 @@ public class DbRequestTest {
 
     private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException, MetaDataNotFoundException,
         BadRequestException, VitamDBException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
@@ -1273,41 +1248,43 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-        final GUID uuid = GUIDFactory.newObjectGroupGUID(tenantId);
+        final GUID uuidGot = GUIDFactory.newObjectGroupGUID(tenantId);
         final GUID uuidUnit = GUIDFactory.newUnitGUID(tenantId);
 
-
-        final JsonNode insertRequest = createInsertRequestWithUUID(uuidUnit);
-        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        insertParser.parse(insertRequest);
-        executeRequest(dbRequest, insertParser);
-
+        // Insert OG
         final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.resetFilter();
-        insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        insert.addRoots(uuidUnit.getId());
         final ObjectNode json =
             (ObjectNode) JsonHandler
                 .getFromString("{\"#id\":\"" +
-                    uuid +
+                    uuidGot.getId() +
                     "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
 
         insert.addData(json);
         final ObjectNode insertNode = insert.getFinalInsert();
 
-        final RequestParserMultiple requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        requestParser.parse(insertNode);
-        executeRequest(dbRequest, requestParser);
-        assertFalse(requestParser.getRequest().getRoots().isEmpty());
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser.parse(insertNode);
+        dbRequest.execInsertObjectGroupRequest(insertParser);
+
+        // Insert Unit
+        final JsonNode insertRequest = createInsertRequestWithUUID(uuidUnit);
+        ((ObjectNode) insertRequest.get("$data")).put("_og", uuidGot.getId());
+        final InsertParserMultiple insertParser2 = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser2.parse(insertRequest);
+        dbRequest.execInsertUnitRequest(insertParser2);
+
         // Check _og
         Result result = checkExistence(dbRequest, uuidUnit, false);
         assertFalse(result.isError());
         List<MetadataDocument<?>> list = result.getFinal();
-        final Document unit = list.get(0);
-        assertTrue(unit.getString("_og").equals(uuid.getId()));
+        final MetadataDocument unit = list.get(0);
+        assertThat(unit.getCollectionOrEmpty(Unit.GRAPH)).hasSize(0);
+        assertThat(unit.getCollectionOrEmpty(Unit.UNITUPS)).hasSize(0);
+        assertThat(unit.getMapOrEmpty(Unit.UNITDEPTHS)).hasSize(0);
+        assertTrue(unit.getString(Unit.OG).equals(uuidGot.getId()));
 
         // Check _up is set as _og
-        result = checkExistence(dbRequest, uuid, true);
+        result = checkExistence(dbRequest, uuidGot, true);
         assertFalse(result.isError());
         list = result.getFinal();
         final Document og = list.get(0);
@@ -1315,7 +1292,6 @@ public class DbRequestTest {
         System.err.println(og.get("_up"));
         System.err.println(uuidUnit.getId());
         assertTrue(((List<String>) og.get("_up")).contains(uuidUnit.getId()));
-
     }
 
     @Test
@@ -1324,45 +1300,25 @@ public class DbRequestTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID uuid01 = GUIDFactory.newUnitGUID(tenantId);
         final DbRequest dbRequest = new DbRequest();
-        RequestParserMultiple requestParser =
-            RequestParserHelper.getParser(createInsertRequestWithUUID(uuid01), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        InsertParserMultiple insertParser = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertRequestWithUUID(uuid01), mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(insertParser);
         Result result = checkExistence(dbRequest, uuid01, false);
-        assertFalse(result.isError());
-        final GUID uuid02 = GUIDFactory.newUnitGUID(tenantId);
-        requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid02), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
-        result = checkExistence(dbRequest, uuid02, false);
         assertFalse(result.isError());
 
         final GUID uuid1 = GUIDFactory.newObjectGroupGUID(tenantId);
-        final GUID uuid2 = GUIDFactory.newObjectGroupGUID(tenantId);
         final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
 
         final ObjectNode json =
             (ObjectNode) JsonHandler
                 .getFromString("{\"#id\":\"" +
                     uuid1 +
                     "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"Title\":\"title1\"}");
-        final ObjectNode json1 =
-            (ObjectNode) JsonHandler
-                .getFromString("{\"#id\":\"" +
-                    uuid2 +
-                    "\", \"#qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description1\" : \"Test\"}}, \"Title\":\"title1\"}");
         insert.addData(json).addRoots(uuid01.getId());
         ObjectNode insertRequestString = insert.getFinalInsert();
-        requestParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        requestParser.parse(insertRequestString);
-        executeRequest(dbRequest, requestParser);
-
-        final PathQuery query = path(uuid02.getId());
-        insert.reset().addQueries(query).addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        insert.addData(json1);
-        insertRequestString = insert.getFinalInsert();
-        final RequestParserMultiple requestParser1 = new InsertParserMultiple(mongoDbVarNameAdapter);
-        requestParser1.parse(insertRequestString);
-        executeRequest(dbRequest, requestParser1);
+        insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser.parse(insertRequestString);
+        dbRequest.execInsertObjectGroupRequest(insertParser);
     }
 
 
@@ -1392,7 +1348,7 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         esClient.refreshIndex(MetadataCollections.UNIT, tenantId);
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -1437,7 +1393,7 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
@@ -1505,7 +1461,7 @@ public class DbRequestTest {
         insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots(UUID2);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
         SelectMultiQuery select = new SelectMultiQuery();
@@ -1542,7 +1498,7 @@ public class DbRequestTest {
         insert.parseData(REQUEST_INSERT_TEST_ES_3).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
         final Result<MetadataDocument<?>> resultSelectRel4 = dbRequest.execRequest(selectParser1);
@@ -1556,7 +1512,7 @@ public class DbRequestTest {
         insert.parseData(REQUEST_INSERT_TEST_ES_4).addRoots(UUID2);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
         select = new SelectMultiQuery();
@@ -1611,7 +1567,7 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
@@ -1631,7 +1587,7 @@ public class DbRequestTest {
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
@@ -1656,7 +1612,7 @@ public class DbRequestTest {
         insert.parseData(requestInsertTestEsUpdate);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check value should exist in the collection
@@ -1707,10 +1663,10 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
-        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE_KO).addRoots("aeaqaaaaaagbcaacabg44ak45e54criaaaaq");
+        insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE_KO);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
-        dbRequest.execRequest(insertParser);
+        dbRequest.execInsertUnitRequest(insertParser);
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO);
@@ -1723,7 +1679,7 @@ public class DbRequestTest {
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
         throws Exception {
         return JsonHandler.getFromString(new StringBuilder()
-            .append("{ $roots : [ '' ], ")
+            .append("{ $roots : [ ], ")
             .append("$query : [ " + query + " ], ")
             .append("$data : " + data + " }")
             .toString());
@@ -1773,9 +1729,9 @@ public class DbRequestTest {
 
         final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         final DbRequest dbRequest = new DbRequest();
-        RequestParserMultiple requestParser = null;
-        requestParser = RequestParserHelper.getParser(createInsertRequestGOTenant(uuid), mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        InsertParserMultiple insertParser = (InsertParserMultiple) RequestParserHelper
+            .getParser(createInsertRequestGOTenant(uuid), mongoDbVarNameAdapter);
+        dbRequest.execInsertObjectGroupRequest(insertParser);
 
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
@@ -1797,7 +1753,7 @@ public class DbRequestTest {
 
         final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         final DbRequest dbRequest = new DbRequest();
-        RequestParserMultiple requestParser = null;
+        InsertParserMultiple requestParser;
         // INSERT 1
         ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
             .put(TITLE, "Rectorat 1").put(DESCRIPTION, "Ma description public est bien détaillée")
@@ -1809,8 +1765,8 @@ public class DbRequestTest {
         insert.addData(data);
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         ObjectNode insertNode = insert.getFinalInsert();
-        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(requestParser);
         // Insert 2
         final GUID uuid2 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data2 = JsonHandler.createObjectNode().put(id(), uuid2.toString())
@@ -1823,8 +1779,8 @@ public class DbRequestTest {
         insert.addData(data2);
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         insertNode = insert.getFinalInsert();
-        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(requestParser);
         // Insert 3 false description
         final GUID uuid3 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data3 = JsonHandler.createObjectNode().put(id(), uuid3.toString())
@@ -1837,8 +1793,8 @@ public class DbRequestTest {
         insert.addData(data3);
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         insertNode = insert.getFinalInsert();
-        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(requestParser);
         // Insert 4 false Title
         final GUID uuid4 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data4 = JsonHandler.createObjectNode().put(id(), uuid4.toString())
@@ -1851,8 +1807,8 @@ public class DbRequestTest {
         insert.addData(data4);
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         insertNode = insert.getFinalInsert();
-        requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
-        executeRequest(dbRequest, requestParser);
+        requestParser = (InsertParserMultiple) RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
+        dbRequest.execInsertUnitRequest(requestParser);
 
         String query = "{\"$roots\": [],\"$query\": [{\"$or\": " +
             "[{\"$and\": [{\"$match\": {\"Title\": \"Rectorat\"}},{\"$match\": {\"Description\": \"public\"}}]}," +
@@ -1888,7 +1844,7 @@ public class DbRequestTest {
             .put(TITLE, title)
             .put(tenant(), tenantId)
             .put(DESCRIPTION, "Fake description");
-            data.putArray(_OPS).addAll((ArrayNode) JsonHandler.toJsonNode(Arrays.asList(op)));
+        data.putArray(_OPS).addAll((ArrayNode) JsonHandler.toJsonNode(Arrays.asList(op)));
         final InsertMultiQuery insertQuery = new InsertMultiQuery();
         insertQuery.addData(data);
 

@@ -27,16 +27,23 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.ErrorCategory;
 import com.mongodb.MongoException;
+import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -67,10 +74,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      * Parents link (Units or ObjectGroup to parent Units)
      */
     public static final String UP = "_up";
-    /**
-     * Unused field
-     */
-    public static final String UNUSED = "_unused";
     /**
      * ObjectGroup link (Unit to ObjectGroup)
      */
@@ -159,14 +162,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     protected abstract MetadataCollections getMetadataCollections();
 
     /**
-     * Save the object. Implementation should call putBeforeSave before the real save operation (insert or update)
-     *
-     * @return this
-     * @throws MetaDataExecutionException if an exception on insert/update operations occurred
-     */
-    public abstract MetadataDocument<E> save() throws MetaDataExecutionException;
-
-    /**
      * Update the object to the database
      *
      * @param update data of update operation
@@ -187,26 +182,23 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     }
 
     /**
-     * try to update the object if necessary (difference from the current value in the database)
-     *
-     * @return True if the object does not need any extra save operation
-     * @throws MetaDataExecutionException
-     */
-    protected abstract boolean updated() throws MetaDataExecutionException;
-
-    /**
      * Insert the document (only for new): should not be called elsewhere
      *
      * @return this
      * @throws MetaDataExecutionException if mongo exception query or illegal argument of query
      */
     @SuppressWarnings("unchecked")
-    protected final MetadataDocument<E> insert() throws MetaDataExecutionException {
+    protected final MetadataDocument<E> insert() throws MetaDataExecutionException, MetaDataAlreadyExistException {
         checkId();
         try {
             append(VERSION, 0);
             append(TENANT_ID, ParameterHelper.getTenantParameter());
             getCollection().insertOne((E) this);
+        } catch (final MongoWriteException e) {
+            if (e.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
+                throw new MetaDataAlreadyExistException("Metadata already exists: " + getId());
+            }
+            throw new MetaDataExecutionException(e);
         } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -242,4 +234,17 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
         return this.getClass().getSimpleName() + ": " + this.get(ID);
     }
 
+    public <T> Collection<T> getCollectionOrEmpty(String name) {
+        Collection<T> collection = this.get(name, Collection.class);
+        if (collection == null)
+            return Collections.EMPTY_LIST;
+        return collection;
+    }
+
+    public <V> Map<String, V> getMapOrEmpty(String name) {
+        Map<String, V> map = this.get(name, Map.class);
+        if (map == null)
+            return Collections.EMPTY_MAP;
+        return map;
+    }
 }

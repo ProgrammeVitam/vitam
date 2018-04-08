@@ -139,7 +139,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
-        InsertMultiQuery query = null;
+        RequestMultiple query = null;
         InputStream input;
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             input = handlerIO
@@ -149,21 +149,30 @@ public class IndexUnitActionPlugin extends ActionHandler {
             JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
             final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
             final JsonNode work = archiveUnit.get(TAG_WORK);
+            Boolean existing = false;
+            if (work != null && work.get("_existing") != null) {
+                existing = work.get("_existing").asBoolean();
+            }
 
-            query = new InsertMultiQuery();
+            if (existing) {
+                query = new UpdateMultiQuery();
+            } else {
+                query = new InsertMultiQuery();
+            }
             // Add _up to archive unit json object
             if (work != null && work.get("_up") != null) {
                 final ArrayNode parents = (ArrayNode) work.get("_up");
                 query.addRoots(parents);
             }
-            // insert case
-            if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
-                String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
-                data.put(VitamFieldsHelper.unitType(), unitType);
+            if (!Boolean.TRUE.equals(existing)) {
+                // insert case
+                if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()) {
+                    String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
+                    data.put(VitamFieldsHelper.unitType(), unitType);
+                }
+                ObjectNode finalInsert = ((InsertMultiQuery) query).addData(data).getFinalInsert();
+                metadataClient.insertUnit(finalInsert);
             }
-            ObjectNode finalInsert = query.addData(data).getFinalInsert();
-            metadataClient.insertUnit(finalInsert);
-
             itemStatus.increment(StatusCode.OK);
 
         } catch (final MetaDataNotFoundException e) {

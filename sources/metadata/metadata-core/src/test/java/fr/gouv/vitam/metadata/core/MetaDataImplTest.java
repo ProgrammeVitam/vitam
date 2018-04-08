@@ -57,7 +57,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
-import fr.gouv.vitam.metadata.core.database.collections.ResultError;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.BsonDocument;
 import org.junit.Before;
@@ -84,6 +83,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -150,7 +150,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertUnitWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        when(request.execRequest(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        doThrow(new InvalidParseOperationException("")).when(request).execInsertUnitRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -158,7 +158,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        when(request.execRequest(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        doThrow(new InvalidParseOperationException("")).when(request).execInsertObjectGroupRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -168,7 +168,7 @@ public class MetaDataImplTest {
     public void givenInsertUnitWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
-        when(request.execRequest(anyObject())).thenThrow(error);
+        doThrow(error).when(request).execInsertUnitRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -178,7 +178,7 @@ public class MetaDataImplTest {
     public void givenInsertObjectGroupWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
-        when(request.execRequest(anyObject())).thenThrow(error);
+        doThrow(error).when(request).execInsertObjectGroupRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -210,7 +210,7 @@ public class MetaDataImplTest {
 
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertUnitWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
-        when(request.execRequest(anyObject())).thenReturn(new ResultError(FILTERARGS.UNITS));
+        doThrow(MetaDataNotFoundException.class).when(request).execInsertUnitRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -270,11 +270,9 @@ public class MetaDataImplTest {
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(""));
     }
 
-
-
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertObjectGroupWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
-        when(request.execRequest(anyObject())).thenReturn(new ResultError(FILTERARGS.UNITS));
+        doThrow(MetaDataNotFoundException.class).when(request).execInsertObjectGroupRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -300,38 +298,6 @@ public class MetaDataImplTest {
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = MetaDataNotFoundException.class)
-    public void given_updateUnits_ThenThrow_MetaDataNotFoundExecutionException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject())).thenThrow(new MetaDataNotFoundException(""));
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = MetaDataNotFoundException.class)
-    public void given_updateUnits_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject())).thenThrow(new MetaDataNotFoundException(""));
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = MetaDataNotFoundException.class)
-    public void given_selectUnit_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject())).thenThrow(new MetaDataNotFoundException(""));
-
-        metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
-        metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     public void given_empty_query_UpdateUnitbyId_When_IllegalAccessException_ThenThrow_MetaDataExecutionException()

@@ -150,12 +150,6 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
-    public void givenUnitWhenGetChildrenUnitIdsFromParent() {
-        final Unit unit1 = new Unit(s1);
-        unit1.getChildrenUnitIdsFromParent();
-    }
-
-    @Test
     public void should_aggregate_unit_per_operation_id_and_originating_agency() throws Exception {
         // Given
         final MongoCollection unit = MetadataCollections.UNIT.getCollection();

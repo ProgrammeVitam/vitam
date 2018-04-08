@@ -878,6 +878,9 @@
           }
         }
       },
+      "_graph": {
+        "enabled": false
+      },
       "_mgt": {
         "properties": {
           "AccessRule": {
@@ -1119,6 +1122,10 @@
       },
       "_us": {
         "type": "keyword"
+      },
+      "_us_sp": {
+        "type": "object",
+        "enabled": false
       },
       "_v": {
         "type": "long"
