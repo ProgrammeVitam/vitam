@@ -9,6 +9,8 @@
 		</encoder>
 	</appender>
 
+	<logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="DEBUG" />
+
 	<!-- By default, the level of the root level is set to TRACE -->
 	<root level="ERROR">
 		<appender-ref ref="STDOUT" />
