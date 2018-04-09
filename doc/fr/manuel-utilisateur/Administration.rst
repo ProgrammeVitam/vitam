@@ -36,12 +36,13 @@ Par défaut, les formats sont affichés sous le formulaire de recherche et sont 
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
-*Intitulé  : permet d'effectuer une recherche approchante sur les intitulés des formats disponibles dans la solution logicielle Vitam
-La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+* Intitulé  : permet d'effectuer une recherche approchante sur les intitulés des formats disponibles dans la solution logicielle Vitam.
 
-*PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
+  La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
-NB : Il est impossible d'effectuer une recherche croisée par PUID et intitulé. 
+* PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
+
+.. note:: Il est impossible d'effectuer une recherche croisée par PUID et intitulé. 
 
 
 .. image:: images/rechch_formats.png

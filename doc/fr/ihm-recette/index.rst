@@ -10,4 +10,3 @@
    collections.rst
    tests.rst
    securisation.rst
-   scenario_test.rst
