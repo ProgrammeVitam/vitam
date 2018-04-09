@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
@@ -242,8 +243,7 @@ public class ListArchiveUnitsActionHandlerTest {
                 .thenReturn(Response.status(Status.OK).entity(updatedRules).build());
             when(metadataClient.selectUnits(anyObject()))
                 .thenThrow(new MetaDataExecutionException("Error while requesting Metadata"));
-            final ItemStatus response3 = plugin.execute(params, action);
-            assertEquals(StatusCode.FATAL, response3.getGlobalStatus());
+            assertThatThrownBy(() -> plugin.execute(params, action)).isExactlyInstanceOf(IllegalStateException.class);
         } finally {
             updatedRules.close();
         }
