@@ -163,7 +163,7 @@ export class ArchiveUnitFacetComponent implements OnInit {
           facetCriteria.name = 'endDateFacet';
           facetCriteria.field = 'EndDate';
           facetCriteria.format = 'yyyy',
-            dateRangeCriteria.dateMin = this.rangeEndDate[0];
+          dateRangeCriteria.dateMin = this.rangeEndDate[0];
           dateRangeCriteria.dateMax = this.rangeEndDate[1];
           facetCriteria.ranges = new Array(dateRangeCriteria);
           facetCriteria.facetType = 'DATE_RANGE';
@@ -173,14 +173,14 @@ export class ArchiveUnitFacetComponent implements OnInit {
         case 'LanguageTitleFacet': {
           facetCriteria.name = 'LanguageTitleFacet';
           facetCriteria.facetType = 'FILTERS';
-          facetCriteria.filters = this.getFilterdQuery(this.titleLangFacets);
+          facetCriteria.filters = this.getFiltersQuery(this.titleLangFacets);
           facets.push(facetCriteria);
           break;
         }
         case 'LanguageDescFacet': {
           facetCriteria.name = 'LanguageDescFacet';
           facetCriteria.facetType = 'FILTERS';
-          facetCriteria.filters = this.getFilterdQuery(this.descriptionLangFacets);
+          facetCriteria.filters = this.getFiltersQuery(this.descriptionLangFacets);
           facets.push(facetCriteria);
           break;
         }
@@ -202,7 +202,7 @@ export class ArchiveUnitFacetComponent implements OnInit {
     if (facetField === 'LanguageTitleFacet' || facetField === 'LanguageDescFacet') {
       facetSearchCriteria.field = selectedFacetValue;
       facetSearchCriteria.value = this.mapFacetField.get(selectedFacetValue);
-    }else {
+    } else {
       facetSearchCriteria.field = this.mapFacetField.get(facetField);
       facetSearchCriteria.value = selectedFacetValue;
     }
@@ -223,9 +223,9 @@ export class ArchiveUnitFacetComponent implements OnInit {
     }
   }
 
-  getFilterdQuery(titleLangFacets) {
+  getFiltersQuery(langFacets) {
     const filtersQuery: any = [];
-    for (const item of titleLangFacets) {
+    for (const item of langFacets) {
       filtersQuery.push({
         '$name': item,
         '$query':
