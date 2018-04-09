@@ -24,47 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
-package fr.gouv.vitam.storage.engine.common.referential.model;
+import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
+import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 
 /**
- * Unique Reference to an offer declared in a strategy.
- *
+ * Synchronization service interface.
  */
-
-// TODO P1 : this class may change (or be deleted) if we later think there is no
-// need for other attributes
-
-public class OfferReference{
-    private String id;
-    private boolean referent;
+public interface OfferSyncService {
 
     /**
-     * @return the id
+     * Synchronize an offer from anthor using an offset.
+     *
+     * @param sourceOffer      the identifer of the source offer
+     * @param destinationOffer the identifier of the destination offer
+     * @param containerToSync  container to synchronize
+     * @param tenantIdToSyn    tenant id
+     * @param offset           the offset of the process of the synchronisation
+     * @return OfferSync response
+     * @throws VitamSyncException
      */
-    public String getId() {
-        return id;
-    }
+    OfferSyncResponseItem synchronize(String sourceOffer, String destinationOffer, String containerToSync,
+        Integer tenantIdToSyn, Long offset)
+        throws VitamSyncException;
 
-    /**
-     * @param id of {@link OfferReference}
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * 
-     * @return is referent offer
-     */
-    public boolean isReferent() {
-        return referent;
-    }
-
-    /**
-     * @param referent is referent offer
-     */
-    public void setReferent(boolean referent) {
-        this.referent = referent;
-    }
 }

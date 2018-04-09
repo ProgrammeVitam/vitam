@@ -36,7 +36,7 @@ import javax.ws.rs.core.FeatureContext;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
  * Handles REST endpoints's access based on the basic authentication.
@@ -51,14 +51,14 @@ public class BasicAuthenticationFilter implements DynamicFeature {
     /**
      * VitamAdmin configuration.
      */
-    private DbConfigurationImpl configuration;
+    private DefaultVitamApplicationConfiguration configuration;
 
     /**
      * contructor with configuration.
      *
      * @param configuration
      */
-    public BasicAuthenticationFilter(DbConfigurationImpl configuration) {
+    public BasicAuthenticationFilter(DefaultVitamApplicationConfiguration configuration) {
         this.configuration = configuration;
     }
 

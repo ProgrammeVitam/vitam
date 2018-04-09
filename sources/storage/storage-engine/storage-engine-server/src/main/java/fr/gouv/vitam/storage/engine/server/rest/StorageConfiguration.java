@@ -41,7 +41,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private String p12LogbookPassword;
     private String p12LogbookFile;
     private Integer storageTraceabilityOverlapDelay;
-    
+    private int restoreBulkSize = 1000;
+
     /**
      * StorageConfiguration empty constructor for YAMLFactory
      */
@@ -145,7 +146,7 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     public void setP12LogbookFile(String p12LogbookFile) {
         this.p12LogbookFile = p12LogbookFile;
     }
-    
+
 
     /**
      * Gets the overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
@@ -163,4 +164,22 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
         this.storageTraceabilityOverlapDelay = storageTraceabilityOverlapDelay;
     }
 
+    /**
+     * Getter restore bulk size
+     *
+     * @return restoreBulkSize
+     */
+    public int getRestoreBulkSize() {
+        return restoreBulkSize;
+    }
+
+    /**
+     * Setter restore bulk size
+     *
+     * @param restoreBulkSize
+     */
+    public void setRestoreBulkSize(int restoreBulkSize) {
+
+        this.restoreBulkSize = restoreBulkSize;
+    }
 }

@@ -28,6 +28,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -47,20 +48,20 @@ public class TryAndRetryData {
      * Offers transfer KO
      */
     private List<String> koList;
-    
+
     /**
      * Result
      */
     private Map<String, Response.Status> globalOfferResult;
 
     /**
-     * Populate KO offer with offerReferences list to start a new object
+     * Populate KO offer with offer list to start a new object
      * transfer
      *
-     * @param offerReferences
+     * @param storageOffers
      *            list of offer reference
      */
-    public void populateFromOfferReferences(List<OfferReference> offerReferences) {
+    public void populateFromOffers(List<StorageOffer> storageOffers) {
         globalOfferResult = new HashMap<>();
         if (okList == null) {
             okList = new ArrayList<>();
@@ -68,9 +69,9 @@ public class TryAndRetryData {
         if (koList == null) {
             koList = new ArrayList<>();
         }
-        for (OfferReference offerReference : offerReferences) {
-            koList.add(offerReference.getId());
-            globalOfferResult.put(offerReference.getId(), Response.Status.INTERNAL_SERVER_ERROR);
+        for (StorageOffer storageOffer : storageOffers) {
+            koList.add(storageOffer.getId());
+            globalOfferResult.put(storageOffer.getId(), Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -132,7 +133,7 @@ public class TryAndRetryData {
         okList.add(offerId);
         globalOfferResult.put(offerId, Response.Status.CREATED);
     }
-    
+
     /**
      * Change the status of an offer id transfer
      *

@@ -112,6 +112,7 @@ public class RestoreBackupService {
                 default:
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
+
             RequestResponse<OfferLog> result = storageClient.getOfferLogs(strategy, type, offset, limit, Order.ASC);
             if (result.isOk()) {
                 if (!((RequestResponseOK<OfferLog>) result).getResults().isEmpty()) {

@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import sun.misc.BASE64Decoder;
 
 /**
@@ -62,7 +62,7 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
     /**
      * VitamAdmin configuration.
      */
-    private DbConfigurationImpl configuration;
+    private DefaultVitamApplicationConfiguration configuration;
 
     /**
      * Constructor with authentication level. <br/>
@@ -70,7 +70,7 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
      * @param authentLevel
      */
     public EndpointAuthenticationFilter(AuthenticationLevel authentLevel,
-        DbConfigurationImpl configuration) {
+        DefaultVitamApplicationConfiguration configuration) {
         this.authentLevel = authentLevel;
         this.configuration = configuration;
     }

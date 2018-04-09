@@ -194,6 +194,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         storageTraceabilityOverlapDelay: 300
+        restoreBulkSize: 1000
         # log_level: "DEBUG"
     storageofferdefault:
         vitam_component: "offer"

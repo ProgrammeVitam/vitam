@@ -58,6 +58,9 @@ public class OfferLogDatabaseService {
 
     public static final String OFFER_LOG_COLLECTION_NAME = "OfferLog";
 
+    private static final String SEQUENCE = "Sequence";
+    private static final String CONTAINER = "Container";
+
     private MongoCollection<Document> mongoCollection;
 
     private OfferSequenceDatabaseService offerSequenceDatabaseService;
@@ -117,19 +120,19 @@ public class OfferLogDatabaseService {
         throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException {
         try {
             List<OfferLog> offerLog = new ArrayList<>();
-            Bson containerQuery = eq("Container", containerName);
+            Bson containerQuery = eq(CONTAINER, containerName);
             Bson offsetQuery = null;
 
             Bson sequenceSort;
             if (Order.ASC.equals(order)) {
-                sequenceSort = Sorts.orderBy(Sorts.ascending("Sequence"));
+                sequenceSort = Sorts.orderBy(Sorts.ascending(SEQUENCE));
                 if (offset != null) {
-                    offsetQuery = gte("Sequence", offset);
+                    offsetQuery = gte(SEQUENCE, offset);
                 }
             } else {
-                sequenceSort = Sorts.orderBy(Sorts.descending("Sequence"));
+                sequenceSort = Sorts.orderBy(Sorts.descending(SEQUENCE));
                 if (offset != null) {
-                    offsetQuery = lte("Sequence", offset);
+                    offsetQuery = lte(SEQUENCE, offset);
                 }
             }
             Bson searchFilter = containerQuery;

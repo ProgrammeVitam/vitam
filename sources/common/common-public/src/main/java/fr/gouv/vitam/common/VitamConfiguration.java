@@ -1670,8 +1670,8 @@ public class VitamConfiguration {
 
     /**
      * Setter for default OriginatingAgency for DIP export OriginatingAgency conflict
-     * 
-     * @param default originatingAgency for export
+     *
+     * @param defaultOriginatingAgencyForExport
      */
     public static void setDefaultOriginatingAgencyByTenant(Map<Integer, String> defaultOriginatingAgencyForExport) {
         VitamConfiguration.defaultOriginatingAgencyByTenant = defaultOriginatingAgencyForExport;

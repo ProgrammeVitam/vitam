@@ -88,12 +88,14 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 /**
- *
+ * StorageDistributionImplTest
  */
 public class StorageDistributionImplTest {
     // FIXME P1 Fix Fake Driver
 
     private static final String STRATEGY_ID = "strategyId";
+    private static final String OFFER_ID = "default";
+    private static final int TENANT_ID = 0;
     private static StorageDistribution simpleDistribution;
     private static StorageDistribution customDistribution;
     private static WorkspaceClient client;
@@ -116,7 +118,7 @@ public class StorageDistributionImplTest {
         StorageLogServiceImpl storageLogService =
             new StorageLogServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
-        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1,storageLogService);
+        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService);
         //LogbookLifeCyclesClientFactory.changeMode(null);
     }
 
@@ -663,6 +665,37 @@ public class StorageDistributionImplTest {
             simpleDistribution.getOfferLogs(STRATEGY_ID, null, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void getOfferLogsFromOfferId() throws Exception {
+        assertThatCode(() -> {
+            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 0L, 0, Order.ASC);
+        }).isInstanceOf(IllegalArgumentException.class);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertThatCode(() -> {
+            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, null, DataCategory.OBJECT, 0L, 0, Order.ASC);
+        }).isInstanceOf(IllegalArgumentException.class);
+
+        RequestResponse<OfferLog> result =
+            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 1L, 2, Order.ASC);
+        assertNotNull(result);
+        assertTrue(result.isOk());
+
+        result =
+            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, DataCategory.OBJECT, 0L, 1, Order.DESC);
+        assertNotNull(result);
+        assertTrue(result.isOk());
+
+        assertThatCode(() -> {
+            simpleDistribution.getOfferLogsByOfferId(null, OFFER_ID, null, 0L, 0, Order.ASC);
+        }).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatCode(() -> {
+            simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, null, 0L, 0, Order.ASC);
+        }).isInstanceOf(IllegalArgumentException.class);
 
     }
 

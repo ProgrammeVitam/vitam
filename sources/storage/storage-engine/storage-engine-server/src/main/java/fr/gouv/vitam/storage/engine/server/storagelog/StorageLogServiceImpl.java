@@ -94,7 +94,6 @@ public class StorageLogServiceImpl implements StorageLogService {
      * @throws IOException thrown on IO error
      */
     private Path createStoragePathDirectory(Path basePath) throws IOException {
-
         Path storageLogPath = basePath.resolve(STORAGE_LOG_DIR);
         if (!Files.exists(storageLogPath)) {
             Files.createDirectories(storageLogPath);

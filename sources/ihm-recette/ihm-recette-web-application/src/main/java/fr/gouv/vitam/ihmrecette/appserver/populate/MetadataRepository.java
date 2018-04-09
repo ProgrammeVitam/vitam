@@ -126,7 +126,7 @@ public class MetadataRepository {
             this.storeAndIndex(tenant, gots, VitamDataType.GOT, storeInDb, indexInEs);
 
             if (unitGotList.get(0).getObjectSize() != 0) {
-                LOGGER.error("######## Write object" + unitGotList.get(0).getObjectSize());
+                LOGGER.debug("######## Write object" + unitGotList.get(0).getObjectSize());
                 storeObjects(unitGotList);
             }
         }

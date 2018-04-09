@@ -95,7 +95,6 @@ public class RestoreBackupService {
      * Retrieve list of offer log defining objects to reconstruct from offer log
      * 
      * @param strategy storage strategy
-     * @param collection collection
      * @param offset offset
      * @param limit limit
      * @return list of offer log by bulk
@@ -130,7 +129,6 @@ public class RestoreBackupService {
      * Load data from storage
      * 
      * @param strategy storage strategy
-     * @param collection collection
      * @param filename name of file to load
      * @param offset offset
      * @return data

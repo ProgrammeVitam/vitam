@@ -24,47 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.engine.server.exception;
 
-package fr.gouv.vitam.storage.engine.common.referential.model;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Unique Reference to an offer declared in a strategy.
- *
+ * Vitam Synchronization exception.
  */
+public class VitamSyncException extends VitamException {
 
-// TODO P1 : this class may change (or be deleted) if we later think there is no
-// need for other attributes
-
-public class OfferReference{
-    private String id;
-    private boolean referent;
-
-    /**
-     * @return the id
-     */
-    public String getId() {
-        return id;
+    public VitamSyncException(VitamError vitamError) {
+        super(vitamError);
     }
 
     /**
-     * @param id of {@link OfferReference}
+     * @param message associated message
      */
-    public void setId(String id) {
-        this.id = id;
+    public VitamSyncException(String message) {
+        super(message);
     }
 
     /**
-     * 
-     * @return is referent offer
+     * @param cause associated cause
      */
-    public boolean isReferent() {
-        return referent;
+    public VitamSyncException(Throwable cause) {
+        super(cause);
     }
 
     /**
-     * @param referent is referent offer
+     * @param message associated message
+     * @param cause   associated cause
      */
-    public void setReferent(boolean referent) {
-        this.referent = referent;
+    public VitamSyncException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

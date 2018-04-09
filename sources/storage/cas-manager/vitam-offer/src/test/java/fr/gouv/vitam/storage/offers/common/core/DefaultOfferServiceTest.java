@@ -96,6 +96,8 @@ public class DefaultOfferServiceTest {
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String OBJECT_ID_2_CONTENT = "Vitam Test Content";
+    private static final String FAKE_CONTAINER = "fakeContainer";
+    private static final String OBJECT = "object_";
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -119,11 +121,11 @@ public class DefaultOfferServiceTest {
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_3));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_DELETE));
         for (int i = 0; i < 150; i++) {
-            Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, "object_" + i));
+            Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT + i));
         }
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH));
         // Clean fake container part
-        Path fakeContainerPath = Paths.get(conf.getStoragePath(), "fakeContainer");
+        Path fakeContainerPath = Paths.get(conf.getStoragePath(), FAKE_CONTAINER);
         if (Files.exists(fakeContainerPath)) {
             Files.list(fakeContainerPath).forEach(path -> {
                 try {
@@ -133,7 +135,7 @@ public class DefaultOfferServiceTest {
                 }
             });
         }
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), "fakeContainer"));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), FAKE_CONTAINER));
     }
 
     @Test
@@ -145,7 +147,7 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObjectTestNoContainer() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
-        offerService.createObject("fakeContainer", OBJECT_ID, new FakeInputStream(1024), true, OBJECT_TYPE, null);
+        offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), true, OBJECT_TYPE, null);
 
     }
 
@@ -443,8 +445,8 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
         final ObjectInit objectInit = getObjectInit(false);
         for (int i = 0; i < 150; i++) {
-            offerService.initCreateObject(CONTAINER_PATH, objectInit, "object_" + i);
-            offerService.createObject(CONTAINER_PATH, "object_" + i, new FakeInputStream(50), true, OBJECT_TYPE, null);
+            offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT + i);
+            offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), true, OBJECT_TYPE, null);
         }
         String cursorId = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(cursorId);
@@ -495,7 +497,7 @@ public class DefaultOfferServiceTest {
     private List<OfferLog> getOfferLogs(String containerName, long offset, int limit, Order order) {
         List<OfferLog> offerLogs = new ArrayList<>();
         LongStream.range(offset + 1, offset + 1 + limit).forEach(l -> {
-            OfferLog offerLog = new OfferLog(containerName, "object_" + l, "write");
+            OfferLog offerLog = new OfferLog(containerName, OBJECT + l, "write");
             offerLog.setSequence(l);
             offerLog.setTime(LocalDateTime.now());
             offerLogs.add(offerLog);
