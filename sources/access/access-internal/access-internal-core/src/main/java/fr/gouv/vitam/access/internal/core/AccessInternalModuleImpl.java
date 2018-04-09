@@ -26,6 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,19 +44,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.FileUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
@@ -142,6 +138,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
 
 
 
@@ -207,13 +204,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String RULES_KEY = "Rules";
     private static final String FINAL_ACTION_KEY = "FinalAction";
     private static final String INHERITANCE_KEY = "Inheritance";
+    private static final String PREVENT_INHERITANCE_KEY = "PreventInheritance";
     private static final String MANAGEMENT_PREFIX = MANAGEMENT_KEY + '.';
     private static final String RULES_PREFIX = '.' + RULES_KEY;
     private static final String FINAL_ACTION_PREFIX = '.' + FINAL_ACTION_KEY;
+    private static final String PREVENT_INHERITANCE_PREFIX = '.' + INHERITANCE_KEY + '.' + PREVENT_INHERITANCE_KEY;
 
     /**
      * AccessModuleImpl constructor
-     *
      * @param configuration of mongoDB access
      */
     // constructor
@@ -229,7 +227,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient           a StorageClient instance
+     * @param storageClient a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -245,7 +243,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException   Throw if json format is not correct
+     * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -287,8 +285,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit    as String
-     * @throws IllegalArgumentException         Throw if json format is not correct
+     * @param idUnit as String
+     * @throws IllegalArgumentException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -714,7 +712,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @param idUnit the unit id
      * @return a new JsonNode with unit and lfc inside
      * @throws InvalidParseOperationException
-     * @throws AccessInternalException        if unable to find the unit or it's lfc
+     * @throws AccessInternalException if unable to find the unit or it's lfc
      */
     private JsonNode getUnitRawWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
         try {
@@ -744,7 +742,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
-     * @param idDocument   document uuid
+     * @param idDocument document uuid
      * @param dataCategory accepts UNIT or OBJECTGROUP
      * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
@@ -777,7 +775,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error        message to throw if response is null or no result could be found
+     * @param error message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -809,7 +807,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException                 when error in execution
+     * @throws ProcessingException when error in execution
      */
     private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
@@ -1057,6 +1055,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         for (String category : VitamConstants.getSupportedRules()) {
             ArrayNode rulesForCategory = null;
             JsonNode categoryNode = management.get(category);
+            JsonNode updatedPreventInheritanceNode = null;
+
             if (categoryNode != null) {
                 rulesForCategory = (ArrayNode) categoryNode.get(RULES_KEY);
             }
@@ -1070,7 +1070,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 if (updatedCategories.contains(category)) {
                     ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                     JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
-
+                    updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
                     // Check for update (and delete) rules (rules at least present in DB)
                     ArrayNode updatedRules =
                         checkUpdatedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
@@ -1083,11 +1083,16 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     Map<String, JsonNode> action = new HashMap<>();
                     updatedRules.addAll(createdRules);
 
-                    // size = 0 that means this category is empty -> lets unset rules
-                    if (updatedRules.size() != 0) {
-                        action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
-                        if (finalAction != null) {
-                            action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                    // size = 0 and updatedPreventInheritanceNode==null  means this category is empty -> lets unset rules
+                    if (updatedRules.size() != 0 || updatedPreventInheritanceNode != null) {
+                        if (updatedRules.size() != 0) {
+                            action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
+                            if (finalAction != null) {
+                                action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                            }
+                        }
+                        if (updatedPreventInheritanceNode != null) {
+                            action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
                         }
                     } else {
                         try {
@@ -1109,7 +1114,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // Check for new rules (rules only present in request)
                 ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                 JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
-
+                updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
                 ArrayNode createdRules =
                     checkAddedRules(category, null, rulesForUpdatedCategory, finalAction);
 
@@ -1117,6 +1122,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, createdRules);
                 if (finalAction != null) {
                     action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                }
+
+                if (updatedPreventInheritanceNode != null) {
+                    action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
                 }
                 try {
                     request.addActions(new SetAction(action));
@@ -1131,7 +1140,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
      * for the request because they will be computed for endDate and reinserted later
      *
-     * @param request              The initial request
+     * @param request The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
@@ -1167,8 +1176,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             // - {"#management.AccessRule":{"Rules":[...]}}
                             String ruleToBeChecked = field.substring(MANAGEMENT_PREFIX.length());
                             if (ruleToBeChecked.contains(".")) {
-                                String mainAtt = ruleToBeChecked.split("\\.")[0];
-                                String subAtt = ruleToBeChecked.split("\\.")[1];
+                                String[] params = ruleToBeChecked.split("\\.");
+                                String mainAtt = params[0];
+                                String subAtt = params[params.length - 1];
                                 objectToPut = JsonHandler.createObjectNode();
                                 objectToPut.set(subAtt, object.get(field));
                                 ruleToBeChecked = mainAtt;
@@ -1222,46 +1232,48 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         // Check for all rules in rulesForCategory and compare with rules in rulesForUpdatedCategory
         ArrayNode updatedRules = JsonHandler.createArrayNode();
-        for (JsonNode unitRule : rulesForCategory) {
-            boolean findIt = false;
-            Iterator<JsonNode> updateRulesIterator = rulesForUpdatedCategory.iterator();
-            // Try to find a matching rule in order to check update
-            while (!findIt && updateRulesIterator.hasNext()) {
-                JsonNode updateRule = updateRulesIterator.next();
-                String updateRuleName = updateRule.get("Rule").asText();
-                if (unitRule.get("Rule") != null && unitRule.get("Rule").asText().equals(updateRuleName)) {
-                    findIt = true;
+        if (rulesForCategory != null && rulesForUpdatedCategory != null) {
+            for (JsonNode unitRule : rulesForCategory) {
+                boolean findIt = false;
+                Iterator<JsonNode> updateRulesIterator = rulesForUpdatedCategory.iterator();
+                // Try to find a matching rule in order to check update
+                while (!findIt && updateRulesIterator.hasNext()) {
+                    JsonNode updateRule = updateRulesIterator.next();
+                    String updateRuleName = updateRule.get("Rule").asText();
+                    if (unitRule.get("Rule") != null && unitRule.get("Rule").asText().equals(updateRuleName)) {
+                        findIt = true;
 
-                    if (checkEndDateInRule(updateRule)) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule + " contains an endDate");
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_END_DATE.name());
-                    }
-                    if (!checkRuleFinalAction(category, finalAction)) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule + "(FinalAction: " + finalAction +
-                            ") contains wrong FinalAction");
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION.name());
-                    }
-                    JsonNode ruleInReferential = checkExistingRule(updateRuleName);
-                    if (ruleInReferential == null) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not in referential");
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST.name());
-                    }
-                    if (!category.equals(ruleInReferential.get("RuleType").asText())) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not a " + category);
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY.name());
-                    }
+                        if (checkEndDateInRule(updateRule)) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule + " contains an endDate");
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_END_DATE.name());
+                        }
+                        if (!checkRuleFinalAction(category, finalAction)) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule + "(FinalAction: " + finalAction +
+                                ") contains wrong FinalAction");
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION.name());
+                        }
+                        JsonNode ruleInReferential = checkExistingRule(updateRuleName);
+                        if (ruleInReferential == null) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not in referential");
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST.name());
+                        }
+                        if (!category.equals(ruleInReferential.get("RuleType").asText())) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not a " + category);
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY.name());
+                        }
 
-                    try {
-                        updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
-                    } catch (AccessInternalRuleExecutionException e) {
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE.name());
+                        try {
+                            updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
+                        } catch (AccessInternalRuleExecutionException e) {
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE.name());
+                        }
+                        updatedRules.add(updateRule);
                     }
-                    updatedRules.add(updateRule);
                 }
             }
         }
@@ -1273,53 +1285,55 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         JsonNode finalAction)
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         ArrayNode createdRules = JsonHandler.createArrayNode();
-        for (JsonNode updateRule : rulesForUpdatedCategory) {
-            if (updateRule.get("Rule") == null) {
-                throw new AccessInternalRuleExecutionException(
-                    VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES.name());
-            }
-            boolean findIt = false;
-            if (rulesForCategory != null) {
-                for (JsonNode unitRule : rulesForCategory) {
-                    if (unitRule.get("Rule") != null &&
-                        unitRule.get("Rule").asText().equals(updateRule.get("Rule").asText())) {
-                        // Stop loop over unitRule
-                        findIt = true;
+        if (rulesForUpdatedCategory != null) {
+            for (JsonNode updateRule : rulesForUpdatedCategory) {
+                if (updateRule.get("Rule") == null) {
+                    throw new AccessInternalRuleExecutionException(
+                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES.name());
+                }
+                boolean findIt = false;
+                if (rulesForCategory != null) {
+                    for (JsonNode unitRule : rulesForCategory) {
+                        if (unitRule.get("Rule") != null &&
+                            unitRule.get("Rule").asText().equals(updateRule.get("Rule").asText())) {
+                            // Stop loop over unitRule
+                            findIt = true;
+                        }
                     }
                 }
-            }
-            if (!findIt) {
-                // Created Rule
-                if (checkEndDateInRule(updateRule)) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule + " contains an endDate");
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE.name());
-                }
-                if (!checkRuleFinalAction(category, finalAction)) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule + "(FinalAction: " + finalAction +
-                        ") contains wrong FinalAction");
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name());
-                }
-                JsonNode ruleInReferential = checkExistingRule(updateRule.get("Rule").asText());
-                if (ruleInReferential == null) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not in referential");
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST.name());
-                }
-                if (!category.equals(ruleInReferential.get("RuleType").asText())) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not a " + category);
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name());
-                }
+                if (!findIt) {
+                    // Created Rule
+                    if (checkEndDateInRule(updateRule)) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule + " contains an endDate");
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE.name());
+                    }
+                    if (!checkRuleFinalAction(category, finalAction)) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule + "(FinalAction: " + finalAction +
+                            ") contains wrong FinalAction");
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name());
+                    }
+                    JsonNode ruleInReferential = checkExistingRule(updateRule.get("Rule").asText());
+                    if (ruleInReferential == null) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not in referential");
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST.name());
+                    }
+                    if (!category.equals(ruleInReferential.get("RuleType").asText())) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not a " + category);
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name());
+                    }
 
-                try {
-                    updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
-                } catch (AccessInternalRuleExecutionException e) {
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE.name());
+                    try {
+                        updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
+                    } catch (AccessInternalRuleExecutionException e) {
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE.name());
+                    }
+                    createdRules.add(updateRule);
                 }
-                createdRules.add(updateRule);
             }
         }
 
@@ -1377,6 +1391,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
         return response.get("$results").get(0);
     }
+
+
 
     private JsonNode computeEndDate(ObjectNode updatingRule, JsonNode ruleInReferential)
         throws AccessInternalRuleExecutionException {
