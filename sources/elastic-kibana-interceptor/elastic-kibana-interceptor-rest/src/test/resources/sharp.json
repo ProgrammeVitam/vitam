@@ -1,0 +1,8 @@
+{
+  "#tenant": "test",
+  "#v": 0,
+  "test.#tenant": "test",
+  "#tenantx": "tenantx",
+  "events.#tenant": "test",
+  "#storage.#nbc": "test"
+}

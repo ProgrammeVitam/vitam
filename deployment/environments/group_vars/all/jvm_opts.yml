@@ -12,6 +12,11 @@ vitam:
             # memory: "-Xms512m -Xmx512m"
             # gc: ""
             # java: ""
+    elastickibanainterceptor:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
     ingestinternal:
         jvm_opts:
             # memory: "-Xms512m -Xmx512m"
