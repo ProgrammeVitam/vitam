@@ -119,9 +119,6 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                 schemaValidationStatus = checkAUAgainstAUProfileSchema(itemStatus, infoNode, archiveUnit,
                         archiveUnitProfileIdentifier);
 
-                infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, archiveUnitProfileIdentifier);
-                ObjectNode object = JsonHandler.createObjectNode();
-
                 switch (schemaValidationStatus.getValidationStatus()) {
                     case VALID:
                         itemStatus.increment(StatusCode.OK);
@@ -129,21 +126,21 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                             itemStatus);
                     case NOT_JSON_FILE:
                         itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_AU_PROFILE.name());
+                        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
                         itemStatus.increment(StatusCode.KO);
-                        object.put(CHECK_UNIT_PROFILE_TASK_ID, schemaValidationStatus.getValidationMessage());
-                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
+                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
                     case NOT_AU_JSON_VALID:
                         itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
+                        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
                         itemStatus.increment(StatusCode.KO);
-                        object.put(CHECK_UNIT_PROFILE_TASK_ID, schemaValidationStatus.getValidationMessage());
-                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
+                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
                     case NOT_FOUND:
                         itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.PROFILE_NOT_FOUND.name());
+                        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
                         itemStatus.increment(StatusCode.KO);
-                        object.put(CHECK_UNIT_PROFILE_TASK_ID, schemaValidationStatus.getValidationMessage());
-                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
+                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
                 }
             } else {
@@ -153,13 +150,14 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             String evdev = JsonHandler.unprettyPrint(infoNode);
             itemStatus.setEvDetailData(evdev);
             itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
-        }  catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("File could not be converted into json", e);
             itemStatus.increment(StatusCode.KO);
             itemStatus.setGlobalOutcomeDetailSubcode(
                     CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
             infoNode.put(SedaConstants.EV_DET_TECH_DATA,
-                    SchemaValidationStatus.SchemaValidationStatusEnum.NOT_AU_JSON_VALID + " " + archiveUnitProfileIdentifier);
+                    SchemaValidationStatus.SchemaValidationStatusEnum.NOT_AU_JSON_VALID.name());
+            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
             return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, itemStatus);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
                 IOException e) {
@@ -232,7 +230,7 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
          */
         EMPTY_REQUIRED_FIELD,
         /**
-         * Archive unit profile in manifest not found in Mongo
+         * Archive unit profile not found
          */
         PROFILE_NOT_FOUND;
     }
