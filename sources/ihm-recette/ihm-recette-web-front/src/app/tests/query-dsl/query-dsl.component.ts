@@ -120,9 +120,17 @@ export class QueryDSLComponent extends PageComponent {
       (response) => this.requestResponse = JSON.stringify(response, null, 2),
       (error) => {
         try {
-          this.requestResponse = JSON.stringify(JSON.parse(error._body), null, 2);
+          if (error._body) {
+            this.requestResponse = JSON.stringify(JSON.parse(error._body), null, 2);
+          } else if (error.error) {
+            this.requestResponse = JSON.stringify(error.error, null, 2);
+          }
         } catch (e) {
-          this.requestResponse = error._body;
+          if (error._body) {
+            this.requestResponse = error._body;
+          } else {
+            this.requestResponse = error.error;
+          }
         }
       }
     );
