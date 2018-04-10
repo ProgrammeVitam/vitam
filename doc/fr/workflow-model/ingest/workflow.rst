@@ -356,6 +356,10 @@ Vérification de l' Archive Unit profile - si celle ci est déclarée (CHECK_ARC
 
   - PROFILE NOT FOUND : au moins une unité archivistique est déclarée en lien avec un document type via la balise ArchiveUnitProfile , et ce référentiel n'existe pas dans le système ( CHECK_ARCHIVE_UNIT_PROFILE.PROFILE_NOT_FOUND.KO=Échec de la vérification de la conformité aux documents type : document type non trouvé )
 
+  - INVALID UNIT : au moins une unité archivistique n'est pas conforme au schéma décrit dans le document type relié ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_UNIT.KO = Échec de la vérification de la conformité aux documents type : champs non conformes) 
+
+  - INVALID AU: le document type cité dans le référentiel est mal formaté ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_AU_PROFILE.KO=Échec de la vérification de la conformité aux documents type : document type non conforme) 
+
 
 
 Vérification du niveau de classification (CHECK_CLASSIFICATION_LEVEL - CheckClassificationLevelActionPlugin.java)
