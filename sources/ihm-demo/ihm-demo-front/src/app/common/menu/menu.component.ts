@@ -129,13 +129,15 @@ export class MenuComponent implements OnInit {
               id: 'ingest',
               label: 'Entrée',
               icon: 'fa-sign-in',
-              items: ingestItems
+              items: ingestItems,
+              size: 2
             },
             {
               id: 'search',
               label: 'Recherche',
               icon: 'fa-search',
-              items: search
+              items: search,
+              size: 3
             },
             {
               id: 'admin',
@@ -163,7 +165,8 @@ export class MenuComponent implements OnInit {
                     {label: 'Journal des opérations', routerLink: ['admin/logbookOperation']}
                   ]
                 }
-              ]
+              ],
+              size: 3
             }
           ];
         }
