@@ -458,7 +458,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final FileRulesImportInProgressException e) {
             LOGGER.warn(e);
             return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
-        } catch (final FileRulesException e) {
+        } catch (final FileRulesException | FileRulesCsvException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage())
                 .build();

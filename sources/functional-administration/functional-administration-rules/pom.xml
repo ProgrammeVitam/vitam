@@ -21,7 +21,6 @@
 		</dependency>
 	</dependencies>
 	<modules>
-		<module>functional-administration-rules-api</module>
 		<module>functional-administration-rules-core</module>
 	</modules>
 </project>
