@@ -97,35 +97,3 @@ Une fois l'étape de la génération des hosts a été effectuée avec succès, 
 
 .. note:: Une confirmation est demandée pour lancer ce script. Il est possible de rajouter le paramètre ``-e confirmation=yes`` pour bypasser cette demande de confirmation (cas d'un déploiement automatisé).
 
-Extra
-------
-
-Deux playbook d'extra sont fournis pour usage "tel quel".
-
-ihm-recette
-^^^^^^^^^^^
-
-Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette.
-
-.. code-block:: console
-
-   ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
-
-
-extra complet
-^^^^^^^^^^^^^
-
-Ce playbook permet d'installer :
-
-    - topbeat
-    - packetbeat
-    - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
-    - mongo-express (en docker  ; une connexion internet est alors nécessaire)
-    - le composant :term:`VITAM` library, hébergeant les documentations du projet
-    - le composant :term:`VITAM` ihm-recette (nécessite un accès à un répertoire "partagé" pour récupérer les jeux de tests)
-    - un reverse proxy, afin de simplifier les appels aux composants
-
-
-.. code-block:: console
-
-   ansible-playbook ansible-vitam-extra/extra.yml -i environments/<ficher d'inventaire> --ask-vault-pass
