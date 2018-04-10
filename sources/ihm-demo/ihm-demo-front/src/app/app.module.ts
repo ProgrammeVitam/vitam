@@ -89,6 +89,7 @@ import {WorkflowService} from './admin/workflow.service';
 import {ErrorService} from './common/error.service';
 import {LoadingBlockComponent} from './common/loading-block/loading-block.component';
 import {ArchiveUnitProfileComponent} from './referentials/details/archive-unit-profile/archive-unit-profile.component';
+import {OntologyComponent} from './referentials/details/ontology/ontology.component';
 import {MySelectionComponent} from './my-selection/my-selection/my-selection.component';
 import {MySelectionService} from './my-selection/my-selection.service';
 import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
@@ -175,6 +176,11 @@ const appRoutes: Routes = [
     data: {permission: 'archiveunitprofiles:read'}
   },
   {
+    path: 'admin/ontologies/:id',
+    component: OntologyComponent,
+    data: {permission: 'ontologies:read'}
+  },
+  {
     path: 'admin/context/:id', component: ContextComponent, data: {permission: 'contexts:read'}
   },
   {
@@ -247,6 +253,7 @@ const appRoutes: Routes = [
     IngestContractComponent,
     ProfilComponent,
     ArchiveUnitProfileComponent,
+    OntologyComponent,
     ContextComponent,
     MetadataFieldComponent,
     TreeParentComponent,

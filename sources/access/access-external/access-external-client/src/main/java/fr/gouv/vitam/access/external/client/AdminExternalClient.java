@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -765,5 +766,67 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      */
     RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException;
+
+
+    /**
+     * Find ontologies
+     *
+     * @param vitamContext the vitam context
+     * @param query select query
+     * @return list of ontologies
+     * @throws VitamClientException
+     */
+    RequestResponse<OntologyModel> findOntologies(
+        VitamContext vitamContext, JsonNode query)
+        throws VitamClientException;
+
+
+    /**
+     * Find an ontology by its id.
+     *
+     * @param vitamContext the vitam context
+     * @param id the ontology Id
+     * @return an ontology
+     * @throws VitamClientException
+     */
+    RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id)
+        throws VitamClientException;
+
+    /**
+     * Create a set of ontologies metadata. </BR>
+     * If all the ontologies are valid, they will be stored in the ontology collection and indexed. The
+     * input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains an already used identifier</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * </ul>
+     *
+     * @param vitamContext the vitam context
+     * @param ontologies as Json InputStream
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createOntologies(VitamContext vitamContext, InputStream ontologies)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+
+
+    /**
+     * Update the given ontology by query DSL
+     *
+     * @param vitamContext the vitam context
+     * @param ontologyId the id of the ontology target
+     * @param queryDSL the given DSL query
+     * @return Response status OK or a VitamError
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse updateOntology(VitamContext vitamContext, String ontologyId, JsonNode queryDSL)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+
 
 }

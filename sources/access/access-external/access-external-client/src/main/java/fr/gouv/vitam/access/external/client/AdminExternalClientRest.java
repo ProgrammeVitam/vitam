@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -66,6 +67,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String UPDATE_PROFILE = AccessExtAPI.PROFILES_API_UPDATE + "/";
     private static final String UPDATE_AU_PROFILE = AccessExtAPI.ARCHIVE_UNIT_PROFILE + "/";
     private static final String UPDATE_SECURITY_PROFILE = AccessExtAPI.SECURITY_PROFILES + "/";
+    private static final String UPDATE_ONTOLOGY = AccessExtAPI.ONTOLOGY + "/";
 
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final String BLANK_TENANT_ID = "Tenant identifier should be filled";
@@ -1041,4 +1043,61 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override public RequestResponse createOntologies(VitamContext vitamContext, InputStream ontologies) throws InvalidParseOperationException, AccessExternalClientException {
+        ParametersChecker.checkParameter("The input ontologies json is mandatory", ontologies,
+            AdminCollections.ONTOLOGY);
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.POST, AdminCollections.ONTOLOGY.getName(), headers,
+                ontologies, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
+                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+            } else {
+                return RequestResponse.parseFromResponse(response);
+            }
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override public RequestResponse updateOntology(VitamContext vitamContext, String ontologyId, JsonNode queryDSL)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_ONTOLOGY + ontologyId, headers,
+                queryDSL, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override public RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id) throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.ONTOLOGY, id,
+            OntologyModel.class);
+    }
+
+
+    @Override public RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query) throws VitamClientException {
+        return internalFindDocuments(vitamContext, AdminCollections.ONTOLOGY, query,
+            OntologyModel.class);
+    }
 }
+
+

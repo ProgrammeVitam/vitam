@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -72,6 +73,7 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -120,6 +122,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String EVIDENCE_AUDIT_URI = "/evidenceaudit";
     private static final String ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles";
     private static final String UPDATE_ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles/";
+    private static final String ONTOLOGY_URI = "/ontologies";
+    private static final String UPDATE_ONTOLOGY_URI = "/ontologies/";
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
@@ -1555,4 +1559,109 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
+    @Override public RequestResponse importOntologies(List<OntologyModel> ontologyModelList) throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The ontology json is mandatory", ontologyModelList);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, ONTOLOGY_URI, null,
+                ontologyModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override public RequestResponse<OntologyModel> findOntologies(JsonNode query) throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", query);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, ONTOLOGY_URI, null, query,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    OntologyModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response, OntologyModel.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override public RequestResponse<OntologyModel> findOntologyByID(String documentId)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
+        Response response = null;
+        try {
+
+            final SelectParserSingle parser = new SelectParserSingle();
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq(Ontology.IDENTIFIER, documentId));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+            response = performRequest(HttpMethod.GET, ONTOLOGY_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<OntologyModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        OntologyModel.class);
+
+                if (resp.getResults() == null || resp.getResults().size() == 0) {
+                    throw new ReferentialNotFoundException("Ontology not found with id: " + documentId);
+                }
+
+                return resp;
+            }
+
+            return RequestResponse.parseFromResponse(response, OntologyModel.class);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override public RequestResponse<OntologyModel> updateOntology(String id, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_ARCHIVE_UNIT_PROFILE_URI + id, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return new RequestResponseOK<OntologyModel>().setHttpCode(Status.OK.getStatusCode());
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Ontology not found with id: " + id);
+            }
+
+            return RequestResponse.parseFromResponse(response, OntologyModel.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

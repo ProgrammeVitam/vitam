@@ -23,6 +23,7 @@ export class ImportComponent  extends PageComponent {
     {label:"Profils d'archivage", value:'profil'},
     {label:"Règles de gestion", value:'rule'},
     {label:"Documents type", value:'archiveUnitProfile'},
+    {label:"Ontologies", value:'ontology'},
     {label:"Services agents", value:'agencies'}
   ];
   extensions : string[];
@@ -98,6 +99,13 @@ export class ImportComponent  extends PageComponent {
           this.importSucessMsg = 'Les services agents ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
           this.breadcrumbName = "Import des services agents";
+          break;
+        case "ontology":
+          this.extensions = ["json"];
+          this.uploadAPI = 'ontologies';
+          this.importSucessMsg = 'Les ontologies ont bien été importées';
+          this.importErrorMsg = "Echec de l'import du fichier.";
+          this.breadcrumbName = "Import des ontologies";
           break;
         default:
           this.router.navigate(['ingest/sip']);

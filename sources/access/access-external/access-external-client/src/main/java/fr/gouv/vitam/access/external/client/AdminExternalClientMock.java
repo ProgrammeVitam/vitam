@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
@@ -441,5 +442,24 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public RequestResponse updateArchiveUnitProfile(VitamContext vitamContext, String archiveUnitprofileId,
         JsonNode queryDSL) throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
+    }
+
+    @Override public RequestResponse createOntologies(VitamContext vitamContext, InputStream profiles) throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper
+            .createReponse(ClientMockResultHelper.getOntologies(Status.CREATED.getStatusCode()).toJsonNode())
+            .setHttpCode(Status.CREATED.getStatusCode());
+    }
+
+    @Override public RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query) throws VitamClientException {
+        return ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
+    }
+
+    @Override public RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id) throws VitamClientException {
+        return (RequestResponse<OntologyModel>) ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
+    }
+
+    @Override public RequestResponse updateOntology(VitamContext vitamContext, String ontologyId, JsonNode queryDSL)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getOntologies(Status.OK.getStatusCode()).toJsonNode());
     }
 }

@@ -1,0 +1,60 @@
+<p-panel [header]="'Détail du document type'">
+    <div class="ui-g" *ngIf="!saveRunning">
+        <div class="ui-g-8"></div>
+        <div class="ui-g-2" *ngIf="!update"></div>
+        <div class="ui-g-2" *ngIf="!update">
+            <button pButton class="ui-button" (click)="switchUpdateMode()" label="Modifier"
+                    icon="fa-edit" iconPos="left"></button>
+        </div>
+        <div class="ui-g-2" *ngIf="update">
+            <button pButton class="ui-button secondaryButton" (click)="switchUpdateMode()" label="Annuler"
+                    icon="fa-close" iconPos="left"></button>
+        </div>
+        <div class="ui-g-2" *ngIf="update">
+            <button pButton class="ui-button" (click)="saveUpdate()" label="Sauvegarder"
+                    icon="fa-save" iconPos="left"></button>
+        </div>
+        <div class="ui-g-12 textAlignLeft" *ngIf="ontology">
+            <div class="ui-g-12">
+                <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'Identifier'"
+                                      [value]="modifiedOntology.Identifier" [labelSize]="4"
+                                      class="ui-g-4" [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+                <vitam-metadata-field [title]="'Date de création'" [originalTitle]="'CreationDate'"
+                                      [value]="modifiedOntology.CreationDate" [labelSize]="4"
+                                      class="ui-g-4" [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+                <vitam-metadata-field [title]="'Dernière modification'" [originalTitle]="'LastUpdate'"
+                                      [value]="modifiedOntology.LastUpdate" [labelSize]="5"
+                                      class="ui-g-4 " [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+            </div>
+            <div class="ui-g-12">
+                <vitam-metadata-field [title]="'Intitulé SEDA'" [originalTitle]="'SedaField'"
+                                      [value]="modifiedOntology.SedaField" [labelSize]="4"
+                                      class="ui-g-4" [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+
+                <vitam-metadata-field [title]="'Type'" [originalTitle]="'Type'"
+                                      [value]="modifiedOntology.Type" [labelSize]="4"
+                                      class="ui-g-4" [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+                <vitam-metadata-field [title]="'Intitulé externe'" [originalTitle]="'ApiField'"
+                                      [value]="modifiedOntology.ApiField" [labelSize]="4"
+                                      class="ui-g-4" [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+            </div>
+        </div>
+
+        <div *ngIf="saveRunning">
+            Sauvegarde des métadonnées en cours...
+        </div>
+    </div>
+
+</p-panel>

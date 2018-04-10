@@ -151,6 +151,19 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Request archive unit profile file import error"),
 
+    ONTOLOGY_IMPORT_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "17",
+        Status.BAD_REQUEST,
+        "Ontology file import error"),
+
+    ONTOLOGY_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "18",
+        Status.BAD_REQUEST,
+        "Request ontology validation error"),
+
+
+    CTR_SHEMA_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "19",
+        Status.BAD_REQUEST,
+        "Json Schema validation error"),
+
     REFERENTIAL_REPOSITORY_DATABASE_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.DATABASE, "15",
         Status.INTERNAL_SERVER_ERROR,
         "DatabaseException while accessing database through repository service"),
@@ -293,8 +306,15 @@ public enum VitamCode {
     ACCESS_EXTERNAL_OBJECT_GROUP_TRACREABILITY_AUDIT(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "34",
         Status.BAD_REQUEST, "Access external client error. Object group traceability audit service "),
 
-    ACCESS_EXTERNAL_INVALID_JSON(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "35",
+   	ACCESS_EXTERNAL_INVALID_JSON(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "35",
         Status.BAD_REQUEST, "Access external client error. JSON is invalid"),
+
+    ACCESS_EXTERNAL_ONTOLOGY_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "36",
+        Status.BAD_REQUEST, "Access external client error. Ontology not found "),
+
+    ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "37",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateOntology method."),
 
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,

@@ -4,3 +4,5 @@
 - include_tasks: "init_security_profiles.yml"
 
 - include_tasks: "init_context_and_certificates.yml"
+
+- include_tasks: "init_ontologies.yml"

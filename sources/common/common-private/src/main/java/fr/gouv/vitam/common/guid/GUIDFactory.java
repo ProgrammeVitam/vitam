@@ -266,6 +266,20 @@ public final class GUIDFactory {
             GUIDObjectType.getDefaultWorm(type));
     }
 
+
+    /**
+     * Create an ontology GUID
+     *
+     * @param tenantId tenant id between 0 and 2^30-1
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newOntologyGUID(final int tenantId) {
+        final int type = GUIDObjectType.ONTOLOGY_TYPE;
+        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+
     /**
      * Create a Context GUID
      *

@@ -1,0 +1,93 @@
+{
+  "$schema": "http:\/\/vitam-json-schema.org\/draft-04\/schema#",
+  "id": "http:\/\/example.com\/root.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_tenant": {
+      "type": "integer"
+    },
+    "_v": {
+      "type": "integer"
+    },
+    "Identifier": {
+      "type": "string"
+    },
+    "SedaField": {
+      "type": "string"
+    },
+    "ApiField": {
+      "type": "string"
+    },
+    "Description": {
+      "type": "string"
+    },
+    "Type": {
+      "enum": [
+        "TEXT",
+        "KEYWORD",
+        "DATE",
+        "LONG",
+        "DOUBLE",
+        "BOOLEAN",
+        "GEO_POINT",
+        "ENUM"
+      ]
+    },
+    "Origin": {
+      "enum": [
+        "INTERNAL",
+        "EXTERNAL"
+      ]
+    },
+    "CreationDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "LastUpdate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    }
+  },
+  "required": [
+    "_id",
+    "_tenant",
+    "_v",
+    "Identifier",
+    "Origin",
+    "Type",
+    "SedaField",
+    "ApiField",
+    "CreationDate",
+    "LastUpdate"
+  ]
+}

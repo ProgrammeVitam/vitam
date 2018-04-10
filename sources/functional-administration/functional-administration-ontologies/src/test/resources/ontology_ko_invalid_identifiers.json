@@ -1,0 +1,57 @@
+[
+  {
+    "Identifier": "_underscore",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "OriginatingAgencyIdentifier",
+    "Origin": "EXTERNAL",
+    "Type": "KEYWORD",
+    "Description": "Internal ontology sample",
+    "CreationDate": "2016-12-10T00:00:00.000",
+    "LastUpdate": "2018-02-16T18:36:33.444"
+  },
+  {
+    "Identifier": "&and",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "OriginatingAgencyIdentifier",
+    "Origin": "EXTERNAL",
+    "Type": "DATE",
+    "Description": "Internal ontology sample",
+    "CreationDate": "2016-12-10T00:00:00.000",
+    "LastUpdate": "2018-02-16T18:36:33.444"
+  },
+  {
+    "Identifier": "#diese",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "OriginatingAgencyIdentifier",
+    "Origin": "EXTERNAL",
+    "Type": "KEYWORD",
+    "Description": "Internal ontology sample",
+    "CreationDate": "2016-12-10T00:00:00.000",
+    "LastUpdate": "2018-02-16T18:36:33.444"
+  },
+  {
+    "Identifier": "empty space",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "OriginatingAgencyIdentifier",
+    "Origin": "EXTERNAL",
+    "Type": "KEYWORD",
+    "Description": "Internal ontology sample",
+    "CreationDate": "2016-12-10T00:00:00.000",
+    "LastUpdate": "2018-02-16T18:36:33.444"
+  },
+  {
+    "Identifier": "ok",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "OriginatingAgencyIdentifier",
+    "Origin": "EXTERNAL",
+    "Type": "KEYWORD",
+    "Description": "Internal ontology sample",
+    "CreationDate": "2016-12-10T00:00:00.000",
+    "LastUpdate": "2018-02-16T18:36:33.444"
+  }
+]

@@ -89,9 +89,14 @@ public final class GUIDObjectType {
         INGEST_CONTRACT(INGEST_CONTRACT_TYPE),
 
         /**
-         * Ingest contract type
+         * Agencies contract type
          */
-        AGENCIES(AGENCY_TYPE);
+        AGENCIES(AGENCY_TYPE),
+
+        /**
+         * Ontologies type
+         */
+        ONTOLOGIES(ONTOLOGY_TYPE);
 
         final int id;
 
@@ -179,6 +184,11 @@ public final class GUIDObjectType {
      */
     public static final int AGENCY_TYPE = 15;
 
+    /**
+     * Ontology
+     */
+    public static final int ONTOLOGY_TYPE = 16;
+
 
 
     private GUIDObjectType() {
@@ -219,6 +229,8 @@ public final class GUIDObjectType {
                 return GUIDObjectEnumType.INGEST_CONTRACT;
             case AGENCY_TYPE:
                 return GUIDObjectEnumType.AGENCIES;
+            case ONTOLOGY_TYPE:
+                return GUIDObjectEnumType.ONTOLOGIES;
             default:
                 return GUIDObjectEnumType.UNASSIGNED;
         }

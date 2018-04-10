@@ -63,6 +63,12 @@ public enum SequenceType {
      */
     ARCHIVE_UNIT_PROFILE_SEQUENCE(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE, "AUP"),
 
+
+    /**
+     * Ontology collection
+     */
+    ONTOLOGY_SEQUENCE(FunctionalAdminCollections.ONTOLOGY, "ON"),
+
     /**
      * Context collection
      */

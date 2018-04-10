@@ -31,6 +31,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
@@ -1154,5 +1155,83 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         RequestResponse<ItemStatus> result = client.evidenceAudit(new VitamContext(TENANT_ID), dsl);
         assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
     }
+
+    @Test
+    public void testCreateOntologiesWithCorrectJsonReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        when(mock.post()).thenReturn(
+            Response.status(Status.CREATED)
+                .entity(ClientMockResultHelper.getOntologies(Status.CREATED.getStatusCode()))
+                .build());
+        InputStream ontologiesFile = PropertiesUtils.getResourceAsStream("ontology_ok.json");
+        RequestResponse resp = client.createOntologies(new VitamContext(TENANT_ID), ontologiesFile);
+        Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
+        Assert.assertTrue((((RequestResponseOK) resp).isOk()));
+    }
+
+
+    @Test
+    public void testCreateOntologiesWithIncorrectJsonReturnBadRequest()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID")
+            .setMessage("invalid input").setDescription("Input file of ontologies is malformed");
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
+        RequestResponse resp =
+            client.createOntologies(new VitamContext(TENANT_ID), new FakeInputStream(0));
+        Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
+        Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
+    }
+
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateOntologiesWithNullStreamThrowIllegalArgException()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        client.createOntologies(new VitamContext(TENANT_ID), null);
+    }
+
+    /**
+     * Test that findOntologies is reachable and return one elements as expected
+     *
+     * @throws VitamClientException
+     */
+    @Test
+    public void testFindAllOntologiesThenReturnOne()
+        throws VitamClientException {
+
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getOntologies(Status.OK.getStatusCode())).build());
+        RequestResponse<OntologyModel> resp =
+            client.findOntologies(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode());
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OntologyModel>) resp).getResults()).hasSize(1);
+    }
+
+
+    /**
+     * Test that findOntologies is reachable and does not return elements
+     *
+     * @throws VitamClientException
+     */
+    @Test
+    public void testFindAllOntologiesThenReturnEmpty()
+        throws VitamClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse<OntologyModel> resp =
+            client.findOntologies(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode());
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OntologyModel>) resp).getResults()).hasSize(0);
+    }
+
+
+    @Test
+    public void testUpdateOntology() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        assertThat(client.updateOntology(
+            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
+            .isTrue();
+    }
+
+
 
 }

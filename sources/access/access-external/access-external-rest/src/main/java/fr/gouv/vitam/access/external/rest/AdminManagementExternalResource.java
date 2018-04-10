@@ -100,6 +100,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -2354,6 +2355,158 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
                     e.getLocalizedMessage()))
                 .build();
+        }
+    }
+
+
+    /**
+     * Import a set of ontologies
+     *
+     * @param ontologies the ontologies to create
+     * @return Response
+     */
+    @Path("/ontologies")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "ontologies:create:json", description = "Ecrire une ou plusieurs ontologies dans le référentiel")
+    public Response createOntologies(JsonNode ontologies) {
+
+        ParametersChecker.checkParameter("Json ontologies is a mandatory parameter", ontologies);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(ontologies);
+            RequestResponse requestResponse =
+                client.importOntologies(JsonHandler.getFromStringAsTypeRefence(ontologies.toString(),
+                    new TypeReference<List<OntologyModel>>() {
+                    }));
+            return Response.status(requestResponse.getStatus())
+                .entity(requestResponse).build();
+
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+
+    /**
+     * find ontologies using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/ontologies")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "ontologies:read", description = "Lister le contenu du référentiel des ontologies")
+    public Response findOntologies(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
+
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                SanityChecker.checkJsonAll(select);
+                RequestResponse result = client.findOntologies(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * find an ontology by id
+     *
+     * @param documentId the ontology ID to find
+     * @return Response the ontology or an error
+     */
+    @Path("/ontologies/{id_document:.+}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "ontologies:id:read:json", description = "Lire une ontologie")
+    public Response findOntologiesByID(@PathParam("id_document") String documentId) {
+
+        try {
+            ParametersChecker.checkParameter("Ontology ID is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<OntologyModel> requestResponse = client.findOntologyByID(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+
+    /**
+     * Update an ontology
+     *
+     * @param identifier
+     * @param queryDsl
+     * @return Response
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path("/ontologies/{identifier:.+}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "ontologies:id:update:json", description = "Effectuer une mise à jour sur une ontologie")
+    public Response updateOntology(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
+        throws AdminManagementClientServerException {
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));//TODO quel Identifiant ?
+            RequestResponse response = client.updateOntology(identifier, update.getFinalUpdate());
+            return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_ONTOLOGY_NOT_FOUND, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR, e.getMessage())
+                .toResponse();
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         }
     }
 

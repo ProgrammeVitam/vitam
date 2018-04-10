@@ -194,4 +194,11 @@ public class AccessExtAPI {
      * Archive unit profile base uri
      */
     public static final String ARCHIVE_UNIT_PROFILE = "archiveunitprofiles";
+
+    /**
+     * Ontology base uri
+     */
+    public static final String ONTOLOGY = "ontologies";
+
+
 }

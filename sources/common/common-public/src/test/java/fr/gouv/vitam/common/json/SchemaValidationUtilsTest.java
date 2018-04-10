@@ -59,6 +59,8 @@ public class SchemaValidationUtilsTest {
     public static final String INGEST_CONTRACT_OK_JSON_FILE = "ingest_contract_OK.json";
     public static final String PROFILE_OK_JSON_FILE = "profile_OK.json";
     public static final String SECURITY_PROFILE_OK_JSON_FILE = "security_profile_OK.json";
+    public static final String ONTOLOGY_OK_JSON_FILE = "ontology_OK.json";
+    public static final String ONTOLOGY_KO_JSON_FILE = "ontology_KO.json";
 
     public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
 
@@ -252,6 +254,30 @@ public class SchemaValidationUtilsTest {
             "ArchiveUnitProfile");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
+    }
+
+    @Test
+    public void valid_Ontologies() throws Exception {
+        // Given
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        // When
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ONTOLOGY_OK_JSON_FILE)),
+            "Ontology");
+        // Then
+        assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
+    }
+
+    @Test
+    public void unvalid_Ontologies() throws Exception {
+        // Given
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        // When
+        SchemaValidationStatus status = schemaValidation.validateJson(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ONTOLOGY_KO_JSON_FILE)),
+            "Ontology");
+        // Then
+        assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
     }
 
     @Test
