@@ -207,7 +207,7 @@ export class MySelectionComponent extends PageComponent {
     if (isDelete) {
       if (isOK) {
         title = 'Succès de la suppression';
-        message = 'Les unités archivistiques ont bien étés supprimés du panier';
+        message = 'Les unités archivistiques ont bien été supprimées du panier';
       } else {
         title = 'Erreur lors de la suppression';
         message = 'Erreur lors de la suppression des unités archivistiques du panier';

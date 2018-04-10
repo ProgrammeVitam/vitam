@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, HostListener} from '@angular/core';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import 'rxjs/add/operator/filter';
 
@@ -13,6 +13,7 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class AppComponent {
   title = 'vitam';
+  displayGoToTop = false;
   constructor(private router : Router, private authenticationService : AuthenticationService,
               private activatedRoute : ActivatedRoute, private translate: TranslateService) {
     router.events
@@ -24,6 +25,15 @@ export class AppComponent {
         }
       });
     translate.setDefaultLang('fr');
+  }
+
+  scrollToTop() {
+    window.scroll(0,0);
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  doSomething() {
+    this.displayGoToTop = window.pageYOffset !== 0;
   }
 
 }

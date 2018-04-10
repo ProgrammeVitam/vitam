@@ -6,3 +6,10 @@
 .page {
     text-align: center;
 }
+
+.fixedGoToTop {
+    position: fixed;
+    right: 50px;
+    bottom: 50px;
+    width: 70px;
+}
