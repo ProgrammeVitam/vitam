@@ -34,6 +34,10 @@ Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fon
 
 .. warning:: Il n'est pas possible de colocaliser les clusters MongoDB "data" et "offer".
 
+.. bug 114
+
+.. warning:: Il n'est pas possible de colocaliser "kibana-data" et "kibana-log".
+
 
 La configuration des droits d'accès à VITAM est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/vitam_security.yml``, comme suit :
 
