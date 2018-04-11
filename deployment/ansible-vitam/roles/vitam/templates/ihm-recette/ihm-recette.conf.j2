@@ -18,6 +18,9 @@ testSystemSipDirectory: {{ vitam_folder_data }}/test-data/system
 testSystemReportDirectory: {{ vitam_folder_data }}/report/system
 ingestMaxThread: {{ ansible_processor_cores * ansible_processor_threads_per_core + 1 }}
 
+#
+workspaceUrl: {{vitam.workspace | client_url}}
+
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}

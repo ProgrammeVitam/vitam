@@ -53,7 +53,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String testSystemSipDirectory;
     private String testSystemReportDirectory;
     private int ingestMaxThread;
-
+    private String workspaceUrl;
     /**
      * Constructor for tests
      */
@@ -277,4 +277,17 @@ public class WebApplicationConfig extends MetaDataConfiguration {
         this.ingestMaxThread = ingestMaxThread;
     }
 
+    /**
+     * getter for workspaceUrl
+     **/
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
+    /**
+     * setter for workspaceUrl
+     **/
+    public void setWorkspaceUrl(String workspaceUrl) {
+        this.workspaceUrl = workspaceUrl;
+    }
 }

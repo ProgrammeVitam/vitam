@@ -1,0 +1,86 @@
+<p-panel [header]="'Recherche et Modification d\'un fichier'">
+  <div class="ui-g">
+
+    <div class="ui-g-12">
+      <div class="ui-g-4">Titre: </div>
+      <div class="ui-g-4 ui-g-nopad">
+        <input id="identifier" class="fs-1-1em" size="45" pInputText [(ngModel)]="fileName" placeholder="Nom du Fichier"/>
+      </div>
+    </div>
+    <div class="ui-g-12">
+      <div class="ui-g-4">Catégorie: </div>
+      <div class="ui-g-4">
+        <p-dropdown id="category" [options]="categoryOptions" [(ngModel)]="category"
+                    [style.width]="'100%'" placeholder="Sélectionner une catégorie">
+        </p-dropdown>
+      </div>
+    </div>
+    <div class="ui-g-12">
+      <div class="ui-g-4">Tenant: </div>
+      <div class="ui-g-4">
+        {{tenant ? tenant : 'Veuillez choisir un tenant'}}
+      </div>
+    </div>
+
+    <div class="ui-g-12" *ngIf="error" (click)="error = false">Un des champs est mal renseigné</div>
+
+    <div class="ui-g-12">
+      <div class="ui-g-4"></div>
+      <div class="ui-g-4">
+        <button pButton type="button" (click)="getObject()" label="Récupérer le fichier"></button>
+      </div>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+</p-panel>
+
+<p-panel [header]="'Modifier le fichier'">
+  <span *ngIf="dataState === 'OK' && savedData">Modification du fichier: {{savedData.category}} - {{savedData.file}} (Tenant: {{tenant}})</span>
+  <span *ngIf="!savedData">Aucun emplacement cible choisi, merci de remplir le formulaire ci-dessus et récupérer le fichier original</span>
+  <span *ngIf="dataState === 'RUNNING'">Récupération du fichier en cours...</span>
+  <div class="ui-g">
+    <div class="ui-g-12 uploadSIPBackground">
+      <div class="uploadSIPText">
+        <div style="display: inline-block; color:#0099FF; text-align: center">
+          sélectionner un fichier <input #file (change)="onChange(file.files) " type="file" class="uploadFileInput"/>
+        </div>
+        <p style="margin-top: 0">ou</p>
+        <file-drop headertext="Glisser un fichier ici" (onFileDrop)="onFileDrop($event)">
+        </file-drop>
+        <p *ngIf="fileUpload">Nom du fichier: {{fileUpload.name}}</p>
+        <p *ngIf="!fileUpload" class="uploadFileMessage">Aucun fichier choisi</p>
+      </div>
+      <button pButton type="button" (click)="uploadFile()" label="Importer" [disabled]="!fileUpload"></button>
+    </div>
+  </div>
+
+  <div class="clearfix"></div>
+</p-panel>
+
+<p-dialog header="Erreur de recherche" [(visible)]="displayGetError" modal="modal" [responsive]="true">
+  <p>Erreur lors de la recherche du fichier, veuillez vérifier les informations saisies</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayGetError=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Données invalides" [(visible)]="displayErrorInitImport" modal="modal" [responsive]="true">
+  <p>Une recherche en succès doit avoir été effectuée pour définir l'emplacement du fichier importé</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayErrorInitImport=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Erreur de mise à jour" [(visible)]="displayErrorImport" modal="modal" [responsive]="true">
+  <p>Une erreur est survenue lors de la récupération de la mise à jour du fichier</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayErrorImport=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Succès de mise à jour" [(visible)]="displaySuccessImport" modal="modal" [responsive]="true">
+  <p>Le fichier à bien été mis à jour</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displaySuccessImport=false" label="OK"></button>
+  </p-footer>
+</p-dialog>

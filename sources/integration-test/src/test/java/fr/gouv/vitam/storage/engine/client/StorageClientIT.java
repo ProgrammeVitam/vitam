@@ -282,6 +282,6 @@ public class StorageClientIT {
         assertNotNull(stream5);
         Digest digest = Digest.digest(stream5, VitamConfiguration.getDefaultDigestType());
         storageClient.delete("default", DataCategory.OBJECT, "objectId", digest.toString(),
-            VitamConfiguration.getDefaultDigestType());
+            VitamConfiguration.getDefaultDigestType().getName());
     }
 }

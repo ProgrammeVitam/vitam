@@ -6,9 +6,11 @@ import { CookieService } from 'angular2-cookie/core';
 import {
   FieldsetModule, PanelModule, ButtonModule, MenubarModule, InputTextModule,
   DialogModule, MessagesModule, DataTableModule, SharedModule, BreadcrumbModule, DropdownModule,
-  GrowlModule, PasswordModule } from 'primeng/primeng';
+  GrowlModule, PasswordModule, ProgressBarModule
+} from 'primeng/primeng';
 import { RouterModule, Routes } from '@angular/router';
 import { VisNetworkDirective } from 'ng2-vis';
+import { FileDropModule } from 'ngx-file-drop';
 
 import { AppComponent } from './app.component';
 import { MenuComponent } from './common/menu/menu.component';
@@ -31,14 +33,19 @@ import { LogbookService } from './traceability/logbook/logbook.service';
 import { PerfService } from './tests/perf/perf.service';
 import { AuthenticationComponent } from './authentication/authentication.component';
 import { AuthenticationService } from './authentication/authentication.service';
-import { TenantService } from "./common/tenant.service";
+import { TenantService } from './common/tenant.service';
 import { DagVisualizationComponent } from './tests/dag-visualization/dag-visualization.component';
 import { VisNetworkService } from 'ng2-vis';
-import { HttpClientModule } from "@angular/common/http";
+import { HttpClientModule } from '@angular/common/http';
+import { LoadStorageComponent } from './admin/load-storage/load-storage.component';
+import { LoadStorageService } from './admin/load-storage/load-storage.service';
 
 const appRoutes: Routes = [
   {
     path: 'admin/collection', component: CollectionComponent
+  },
+  {
+    path: 'admin/load-storage', component: LoadStorageComponent
   },
   {
     path: 'login', component: AuthenticationComponent
@@ -82,7 +89,8 @@ const appRoutes: Routes = [
     GenericTableComponent,
     AuthenticationComponent,
     DagVisualizationComponent,
-    VisNetworkDirective
+    VisNetworkDirective,
+    LoadStorageComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -102,7 +110,9 @@ const appRoutes: Routes = [
     DropdownModule,
     GrowlModule,
     PasswordModule,
-    InputTextModule
+    InputTextModule,
+    ProgressBarModule,
+    FileDropModule
   ],
   providers: [
     CollectionService,
@@ -115,7 +125,8 @@ const appRoutes: Routes = [
     PerfService,
     AuthenticationService,
     TenantService,
-    VisNetworkService
+    VisNetworkService,
+    LoadStorageService
   ],
   bootstrap: [AppComponent]
 })

@@ -26,6 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -36,6 +42,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -49,9 +58,12 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -73,6 +85,11 @@ import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 /**
@@ -81,6 +98,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 // FIXME find a way to remove VitamSession from ihm-recette from mongoDbAccess
 @Path("/v1/api/delete")
 public class WebApplicationResourceDelete {
+
     private static final String CONTEXT_NAME = "Name";
     private static final String CONTEXT_TO_SAVE = "admin-context";
     private static final String SECURITY_PROFIL_NAME = "Name";
@@ -99,7 +117,8 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_MASTERDATA_INGEST_CONTRACT = "STP_DELETE_MASTERDATA_INGEST_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_ACCESS_CONTRACT = "STP_DELETE_MASTERDATA_ACCESS_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_PROFILE = "STP_DELETE_MASTERDATA_PROFILE";
-    private static final String STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE = "STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE";
+    private static final String STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE =
+        "STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE";
     private static final String STP_DELETE_MASTERDATA_AGENCIES = "STP_DELETE_MASTERDATA_AGENCIES";
     private static final String STP_DELETE_MASTERDATA_CONTEXT = "STP_DELETE_MASTERDATA_CONTEXT";
 
@@ -127,13 +146,13 @@ public class WebApplicationResourceDelete {
             logbookConfiguration =
                 new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
                     webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                        .getElasticsearchNodes(),
+                    .getElasticsearchNodes(),
                     true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                    .getElasticsearchNodes(),
+                .getElasticsearchNodes(),
                 true, webApplicationConfig.getDbUserName(), webApplicationConfig
-                    .getDbPassword());
+                .getDbPassword());
         } else {
             adminConfiguration =
                 new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
@@ -145,7 +164,7 @@ public class WebApplicationResourceDelete {
                         .getElasticsearchNodes());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                    .getElasticsearchNodes());
+                .getElasticsearchNodes());
         }
         mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(),
             webApplicationConfig.getElasticsearchNodes());
@@ -250,7 +269,7 @@ public class WebApplicationResourceDelete {
         } catch (final Exception exc) {
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES).setStatus(StatusCode.KO)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
-                        VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.KO))
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.KO))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.KO));
             try {
@@ -299,7 +318,7 @@ public class WebApplicationResourceDelete {
                 .setStatus(StatusCode.KO)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage, 
+                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO));
             try {
                 helper.updateDelegate(parameters);
@@ -332,7 +351,7 @@ public class WebApplicationResourceDelete {
                 .setStatus(StatusCode.KO)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage, 
+                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO));
             try {
                 helper.updateDelegate(parameters);
@@ -381,11 +400,11 @@ public class WebApplicationResourceDelete {
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-                parameters.setStatus(StatusCode.KO)
-                    .putParameterValue(LogbookParameterName.outcomeDetail,
-                        VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO))
-                    .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO));
+            parameters.setStatus(StatusCode.KO)
+                .putParameterValue(LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO))
+                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO));
             try {
                 helper.updateDelegate(parameters);
                 mongoDbAccessLogbook.createBulkLogbookOperation(
@@ -577,7 +596,7 @@ public class WebApplicationResourceDelete {
         } catch (final Exception exc) {
             parameters.setStatus(StatusCode.KO)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_UNIT, StatusCode.KO)) 
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_UNIT, StatusCode.KO))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.KO));
             try {
@@ -722,7 +741,8 @@ public class WebApplicationResourceDelete {
             }
             parameters.setStatus(StatusCode.OK)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK))
+                    VitamLogbookMessages
+                        .getOutcomeDetail(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK));
             helper.updateDelegate(parameters);
@@ -732,7 +752,8 @@ public class WebApplicationResourceDelete {
         } catch (final Exception exc) {
             parameters.setStatus(StatusCode.KO)
                 .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.KO))
+                    VitamLogbookMessages
+                        .getOutcomeDetail(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.KO))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.KO));
             try {
@@ -1058,7 +1079,7 @@ public class WebApplicationResourceDelete {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail, 
+                .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO));
@@ -1074,8 +1095,8 @@ public class WebApplicationResourceDelete {
 
     private void deleteProfils(List<String> collectionKO, LogbookOperationParameters parameters,
         LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, 
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK))
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK))
             .setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetail,
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK))
@@ -1108,7 +1129,8 @@ public class WebApplicationResourceDelete {
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE)) {
+        try (DbRequestResult result = mongoDbAccessAdmin
+            .deleteCollection(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO)
@@ -1142,7 +1164,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetail,
                     VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.KO))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.KO));
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.KO));
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1156,7 +1178,7 @@ public class WebApplicationResourceDelete {
     private void deleteIngestContracts(List<String> collectionKO, LogbookOperationParameters parameters,
         LogbookOperationsClientHelper helper) {
         parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK))
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK))
             .setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetail,
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK))
@@ -1183,7 +1205,7 @@ public class WebApplicationResourceDelete {
     private void deleteAccessContracts(List<String> collectionKO, LogbookOperationParameters parameters,
         LogbookOperationsClientHelper helper) {
         parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK))
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK))
             .setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetail,
                 VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK))
@@ -1210,10 +1232,10 @@ public class WebApplicationResourceDelete {
     private void deleteContext(List<String> collectionKO, LogbookOperationParameters parameters,
         LogbookOperationsClientHelper helper) {
         parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK))
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK))
             .setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK))    
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK))
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK));
         try {
@@ -1264,4 +1286,5 @@ public class WebApplicationResourceDelete {
         final Status status = Status.INTERNAL_SERVER_ERROR;
         return Response.status(status).entity(exc.getMessage()).build();
     }
+    
 }

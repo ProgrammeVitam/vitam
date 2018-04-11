@@ -65,6 +65,16 @@ public interface StorageClient extends BasicClient {
         throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
+     * get List of offers for a strategy
+     * @param strategyId strategyId
+     * @return list id  of offers
+     * @throws StorageNotFoundClientException
+     * @throws StorageServerClientException
+     */
+    List<String> getOffers(String strategyId)
+        throws StorageNotFoundClientException, StorageServerClientException;
+
+    /**
      * Store an object available in workspace by its vitam guid
      *
      * @param strategyId the storage strategy id
@@ -121,7 +131,7 @@ public interface StorageClient extends BasicClient {
      * @return true if deleted
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean delete(String strategyId, DataCategory type, String guid, String digest, DigestType digestAlgorithm)
+    boolean delete(String strategyId, DataCategory type, String guid, String digest, String digestAlgorithm)
         throws StorageServerClientException;
 
     /**
