@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import {Observable} from "rxjs/Rx";
-import {VitamResponse} from "../common/utils/response";
-import {ResourcesService} from "../common/resources.service";
+import {Observable} from 'rxjs/Rx';
+import {VitamResponse} from '../common/utils/response';
+import {ResourcesService} from '../common/resources.service';
 import { HttpHeaders } from '@angular/common/http';
 
 @Injectable()
@@ -34,8 +34,8 @@ export class ArchiveUnitService {
   }
 
   getObjectURL(ogId, options) {
-    let tenant = this.resourceService.getTenant();
-    let accessContract = this.resourceService.getAccessContract();
+    const tenant = this.resourceService.getTenant();
+    const accessContract = this.resourceService.getAccessContract();
     return `${this.resourceService.getBaseURL()}${this.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL}/${ogId}` +
       `?usage=${options.usage}&filename=${options.filename}&tenantId=${tenant}&contractId=${accessContract}`;
   }

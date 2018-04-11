@@ -30,13 +30,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.facet.model.FacetOrder;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.FacetDateRangeItem;
+import fr.gouv.vitam.common.model.FacetFiltersItem;
 import fr.gouv.vitam.common.model.FacetType;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -181,13 +188,29 @@ public class DslQueryHelperTest {
         List<FacetDateRangeItem> ranges = Arrays.asList(new FacetDateRangeItem("800", "2018"));
         queryMap.put("titleAndDescription", "Arch");
 
+        // Title filters
+        List<FacetFiltersItem> titlesfilters =
+            Arrays.asList(new FacetFiltersItem("title_fr", QueryHelper.exists("Title_.fr").getCurrentObject()),
+                new FacetFiltersItem("title_en", QueryHelper.exists("Title_.en").getCurrentObject())
+            );
+
+        // Description filters
+        List<FacetFiltersItem> descriptionfilters = Arrays
+            .asList(new FacetFiltersItem("Description_fr", QueryHelper.exists("Description_.fr").getCurrentObject()),
+                new FacetFiltersItem("Description_en", QueryHelper.exists("Description_.en").getCurrentObject())
+            );
+
         List<FacetItem> facetItems = Arrays.asList(
             new FacetItem("DescriptionLevelFacet", FacetType.TERMS, "DescriptionLevel", 100, FacetOrder.ASC, null,
-                null),
+                null, null),
             new FacetItem("OriginatingAgencyFacet", FacetType.TERMS, "#originating_agency", 100, FacetOrder.ASC, null,
-                null),
-            new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges),
-            new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges)
+                null, null),
+
+            new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges, null),
+            new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges, null),
+
+            new FacetItem("LanguageTitleFacet", FacetType.FILTERS, null, null, null, null, null, titlesfilters),
+            new FacetItem("LanguageDescFacet", FacetType.FILTERS, null, null, null, null, null, descriptionfilters)
         );
 
         queryMap.put("facets", facetItems);
@@ -209,7 +232,7 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
         assertTrue(selectParser.getRequest().getProjection().size() == 1);
 
-        assertTrue(selectParser.getRequest().getFacets().size() == 4);
+        assertTrue(selectParser.getRequest().getFacets().size() == 6);
 
         assertTrue(selectParser.getRequest().getFacets().get(0).toString().contains(
             "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
@@ -222,6 +245,12 @@ public class DslQueryHelperTest {
 
         assertTrue(selectParser.getRequest().getFacets().get(3).toString().contains(
             "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+
+        assertTrue(selectParser.getRequest().getFacets().get(4).toString().contains(
+            "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"));
+
+        assertTrue(selectParser.getRequest().getFacets().get(5).toString().contains(
+            "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
 
     }
 

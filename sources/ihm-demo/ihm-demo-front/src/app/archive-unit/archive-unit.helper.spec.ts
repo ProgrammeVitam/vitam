@@ -1,5 +1,5 @@
 import { TestBed, inject } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { ArchiveUnitHelper } from './archive-unit.helper';
 
@@ -29,7 +29,7 @@ describe('ArchiveUnitHelper', () => {
   }));
 
   it('should return the good date', inject([ArchiveUnitHelper], (service: ArchiveUnitHelper) => {
-    let unitData = {
+    const unitData = {
       DescriptionLevel: 'RecordGrp',
       StartDate: '2011-02-01',
       EndDate: '2012-02-01',
@@ -49,13 +49,12 @@ describe('ArchiveUnitHelper', () => {
     expect(service.transformType('INGEST')).toBe('Standard');
     expect(service.transformType('UNKNOW_TYPE')).toBe('UNKNOW_TYPE');
   }));
-    
-    
+
   it('should translate the unit type', inject([ArchiveUnitHelper], (service: ArchiveUnitHelper) => {
     expect(service.getDimensions('micrometre')).toBe('micromètre');
     expect(service.getDimensions('4H')).toBe('micromètre');
     expect(service.getDimensions('KGM')).toBe('kilogramme');
-  }));    
+  }));
 
   it('should exclude some fields', inject([ArchiveUnitHelper], (service: ArchiveUnitHelper) => {
     expect(service.mustExcludeFields('#id')).toBeTruthy();

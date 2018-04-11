@@ -48,9 +48,12 @@ import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.database.builder.facet.DateRangeFacet;
+import fr.gouv.vitam.common.database.builder.facet.FiltersFacet;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import fr.gouv.vitam.common.database.builder.facet.TermsFacet;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
@@ -141,6 +144,7 @@ public final class DslQueryHelper {
     private static final String SORT_TYPE_ENTRY = "sortType";
     private static final String SORT_FIELD_ENTRY = "field";
     private static final String REQUEST_FACET_PREFIX = "requestFacet";
+    private static final String EXISTS = "$exists";
 
 
 
@@ -509,6 +513,21 @@ public final class DslQueryHelper {
                                         facetItem.getFormat(), ranges));
                                 break;
 
+                            case FILTERS:
+                                Map<String, Query> filters = new HashMap<>();
+                                facetItem.getFilters().forEach(filter -> {
+                                    if (filter.getQuery().get(EXISTS) != null) {
+                                        try {
+                                            filters.put(filter.getName(),
+                                                QueryHelper.exists(filter.getQuery().get(EXISTS).asText()));
+                                        } catch (InvalidCreateOperationException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                select.addFacets(new FiltersFacet(facetItem.getName(), filters));
+                                break;
+
                             default:
                                 break;
                         }
@@ -611,6 +630,11 @@ public final class DslQueryHelper {
                             break;
 
                         default:
+                            if (requestFacetItem.getField().startsWith(TITLE) ||
+                                requestFacetItem.getField().startsWith(DESCRIPTION)) {
+                                andQuery.add(exists(requestFacetItem.getValue()));
+                            }
+                            advancedFacetQuery = true;
                             break;
                     }
                     continue;

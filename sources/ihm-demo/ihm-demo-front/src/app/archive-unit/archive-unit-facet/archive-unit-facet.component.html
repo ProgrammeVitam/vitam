@@ -18,7 +18,7 @@
           <p-checkbox value="OriginatingAgencyFacet" label="Service producteur" [(ngModel)]="selectedFacets" inputId="oa" #oaFacet></p-checkbox>
           <div *ngIf="facetOAResults" style="padding:1em;line-height:1">
             <div *ngFor="let item of facetOAResults" style="margin-right:10px">
-                <a (click)="research(item.value, oaFacet.value)">{{item.value}} ({{item.count}})</a>
+              <a (click)="research(item.value, oaFacet.value)">{{item.value}} ({{item.count}})</a>
             </div>
           </div>
         </div>
@@ -27,7 +27,24 @@
     <div class="ui-g-4 textAlignLeft">
       <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
         <div style="padding:1em;line-height:1.5">
-          <p-checkbox value="LanguageFacet" label="Langue" [(ngModel)]="selectedFacets" inputId="lf"></p-checkbox>
+          <p-checkbox value="LanguageTitleFacet" label="Titres par langue" [(ngModel)]="selectedFacets" inputId="ltf" #ltFacet></p-checkbox>
+          <div *ngIf="facetLangTitleResults" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetLangTitleResults" style="margin-right:10px">
+              <a (click)="research(item.value, ltFacet.value)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
+        </div>
+      </p-scrollPanel>
+    </div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
+        <div style="padding:1em;line-height:1.5">
+          <p-checkbox value="LanguageDescFacet" label="Descriptions par langue" [(ngModel)]="selectedFacets" inputId="ldf" #ldFacet></p-checkbox>
+          <div *ngIf="facetLangDescResults" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetLangDescResults" style="margin-right:10px">
+              <a (click)="research(item.value, ldFacet.value)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
         </div>
       </p-scrollPanel>
     </div>
@@ -43,7 +60,7 @@
           </div>
           <div *ngIf="facetSDResults" style="padding:1em;line-height:1">
             <div *ngFor="let item of facetSDResults" style="margin-right:10px">
-                <a (click)="research(item.value, sdFacet.value)">{{item.value}} ({{item.count}})</a>
+              <a (click)="research(item.value, sdFacet.value)">{{item.value}} ({{item.count}})</a>
             </div>
           </div>
         </div>
@@ -61,17 +78,9 @@
           </div>
           <div *ngIf="facetEDResults" style="padding:1em;line-height:1">
             <div *ngFor="let item of facetEDResults" style="margin-right:10px">
-                <a (click)="research(item.value, edFacet.value)">{{item.value}} ({{item.count}})</a>
+              <a (click)="research(item.value, edFacet.value)">{{item.value}} ({{item.count}})</a>
             </div>
           </div>
-        </div>
-      </p-scrollPanel>
-    </div>
-
-    <div class="ui-g-4 textAlignLeft">
-      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
-        <div style="padding:1em;line-height:1.5">
-          <p-checkbox value="KeywordFacet" label="Mots clés" [(ngModel)]="selectedFacets" inputId="kf"></p-checkbox>
         </div>
       </p-scrollPanel>
     </div>
