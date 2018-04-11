@@ -13,9 +13,10 @@ import {MySelectionService} from '../my-selection.service';
 import {ArchiveUnitService} from '../../archive-unit/archive-unit.service';
 import {Router} from '@angular/router';
 import {DialogService} from '../../common/dialog/dialog.service';
+import {SelectItem} from 'primeng/api';
 
 const breadcrumb: BreadcrumbElement[] = [
-    {label: 'Panier', routerLink: 'basket'}
+  {label: 'Panier', routerLink: 'basket'}
 ];
 
 @Component({
@@ -31,6 +32,13 @@ export class MySelectionComponent extends PageComponent {
 
   columns: ColumnDefinition[];
 
+  selectedOption: string;
+  basketOptions: SelectItem[] = [
+    { label: 'Export DIP', value: 'EXPORT' },
+    { label: 'Audit de cohérence', value: 'AUDIT' },
+    { label: 'Vider le panier', value: 'DELETE' }
+  ];
+
   nbRows = 25;
   firstItem = 0;
   hits: Hits;
@@ -41,7 +49,7 @@ export class MySelectionComponent extends PageComponent {
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService,
               public archiveUnitHelper: ArchiveUnitHelper, public mySelectionService: MySelectionService,
               public archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService) {
-      super('Ma selection', breadcrumb, titleService, breadcrumbService);
+    super('Ma selection', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {
@@ -190,42 +198,52 @@ export class MySelectionComponent extends PageComponent {
         this.hits = response.$hits;
         this.lastPage = this.hits.limit / this.nbRows;
         this.displayedItems = this.selectedArchiveUnits.slice(this.firstItem, this.firstItem + this.nbRows);
-        this.displayActionEnded(true, true);
+        this.displayActionEnded('DELETE', true);
       }, () => {
-        this.displayActionEnded(true, false);
+        this.displayActionEnded('DELETE', false);
       }
     );
   }
 
-  deleteBasket(deleteSelection: boolean = false) {
-    deleteSelection ? this.displaySelectedDelete = true : this.displayDeleteAll = true;
-  }
-
-  displayActionEnded(isDelete: boolean, isOK: boolean) {
+  displayActionEnded(action: string, isOK: boolean) {
     let message = '';
     let title = '';
-    if (isDelete) {
-      if (isOK) {
-        title = 'Succès de la suppression';
-        message = 'Les unités archivistiques ont bien été supprimées du panier';
-      } else {
-        title = 'Erreur lors de la suppression';
-        message = 'Erreur lors de la suppression des unités archivistiques du panier';
-      }
-    } else {
-      if (isOK) {
-        title = 'Export en cours';
-        message = 'L\'export DIP des unités archivistiques du panier est en cours';
-      } else {
-        title = 'Erreur lors de l\'export';
-        message = 'Erreur lors du lancement de l\'export des unités archivistiques du panier';
-      }
+    switch (action) {
+      case 'DELETE':
+        if (isOK) {
+          title = 'Succès de la suppression';
+          message = 'Les unités archivistiques ont bien été supprimées du panier';
+        } else {
+          title = 'Erreur lors de la suppression';
+          message = 'Erreur lors de la suppression des unités archivistiques du panier';
+        }
+        break;
+      case 'EXPORT':
+        if (isOK) {
+          title = 'Export en cours';
+          message = 'L\'export DIP des unités archivistiques du panier est en cours';
+        } else {
+          title = 'Erreur lors de l\'export';
+          message = 'Erreur lors du lancement de l\'export des unités archivistiques du panier';
+        }
+        break;
+      case 'AUDIT':
+        if (isOK) {
+          title = 'Audit en cours';
+          message = 'L\'audit de cohérence des unités archivistiques du panier est en cours';
+        } else {
+          title = 'Erreur lors de l\'audit';
+          message = 'Erreur lors du lancement de l\'audit de cohérence des unités archivistiques du panier';
+        }
+        break;
+      default:
+        break;
     }
 
     this.dialogService.displayMessage(message, title);
   }
 
-  getExportQuery(archiveUnits: ArchiveUnitSelection[]) {
+  getQuery(archiveUnits: ArchiveUnitSelection[]) {
     const {ids, roots} = archiveUnits.reduce(
       (finalIds: {ids: string[], roots: string[]}, currentArchiveUnit: ArchiveUnitSelection) => {
         if (currentArchiveUnit.haveChildren) {
@@ -257,28 +275,40 @@ export class MySelectionComponent extends PageComponent {
     };
   }
 
-  exportBasket(exportSelection: boolean = false, item: ArchiveUnitSelection = null) {
-    let query: any;
-    if (item !== null) {
-      // Export only the triggered item
-      query = this.getExportQuery([item]);
-    } else if (exportSelection) {
-      // Export all selected items
-      const selection: ArchiveUnitSelection[] = this.displayedItems
-        .filter(value => value.selected);
-      query = this.getExportQuery(selection);
-    } else {
-      // Export all items in basket
-      query = this.getExportQuery(this.selectedArchiveUnits);
+  actionOnBasket(isOnSelection: boolean = false, selectedOption) {
+    if (selectedOption === 'DELETE') {
+      this.doDelete(isOnSelection);
+      return;
     }
 
-    this.archiveUnitService.exportDIP(query).subscribe(
-      () => {
-        this.displayActionEnded(false, true);
-      }, () => {
-        this.displayActionEnded(false, false);
-      }
-    );
+    let query: any;
+    if (isOnSelection) {
+      // Action on all selected items
+      const selection: ArchiveUnitSelection[] = this.displayedItems
+        .filter(value => value.selected);
+      query = this.getQuery(selection);
+    } else {
+      // Action on all items in basket
+      query = this.getQuery(this.selectedArchiveUnits);
+    }
+
+    if (selectedOption === 'EXPORT') {
+      this.archiveUnitService.exportDIP(query).subscribe(
+        () => {
+          this.displayActionEnded(selectedOption, true);
+        }, () => {
+          this.displayActionEnded(selectedOption, false);
+        }
+      );
+    } else {
+      this.archiveUnitService.audit(query).subscribe(
+        () => {
+          this.displayActionEnded(selectedOption, true);
+        }, () => {
+          this.displayActionEnded(selectedOption, false);
+        }
+      );
+    }
   }
 
   clickable(col: ColumnDefinition): string {

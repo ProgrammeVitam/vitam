@@ -14,6 +14,7 @@ export class ArchiveUnitService {
   UNITS = 'units';
   UNIT = 'unit';
   EXPORT = 'dipexport';
+  AUDIT = 'evidenceaudit';
   OBJECTS = 'objects';
 
   static inputRequest : any;
@@ -50,6 +51,10 @@ export class ArchiveUnitService {
 
   exportDIP(body: any): Observable<VitamResponse> {
     return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body);
+  }
+
+  audit(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.AUDIT}`, undefined, body);
   }
 
   downloadDIP(id: string) {

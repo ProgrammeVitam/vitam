@@ -2905,6 +2905,31 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param criteria queryDSL for criteria
      */
     @POST
+    @Path("/archiveunit/evidenceaudit")
+    @RequiresPermissions("evidenceaudit:check")
+    public Response launchEvidanceAudit(@Context HttpServletRequest request, String criteria) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
+        try {
+            JsonNode queryDSL = JsonHandler.getFromString(criteria);
+            final RequestResponse response = UserInterfaceTransactionManager.evidenceAudit(
+                    queryDSL, UserInterfaceTransactionManager.getVitamContext(request));
+            return Response.status(Status.OK).entity(response).build();
+        } catch (VitamClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Send a queryDSL request in order to select some units and create a matching DIP
+     *
+     * @param request HTTP request
+     * @param criteria queryDSL for criteria
+     */
+    @POST
     @Path("/archiveunit/dipexport")
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("dipexport:create")
