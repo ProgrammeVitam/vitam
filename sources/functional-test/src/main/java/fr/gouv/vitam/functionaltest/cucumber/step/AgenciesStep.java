@@ -107,7 +107,7 @@ public class AgenciesStep {
      * @throws IOException
      * @throws IngestExternalException
      */
-    @Then("^j'importe les service producteurs(.*)")
+    @Then("^j'importe les services producteurs(.*)")
     public void upload_agency(String type) {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
@@ -141,7 +141,7 @@ public class AgenciesStep {
 
     }
 
-    @Then("^le service producteur exite$")
+    @Then("^le service producteur existe$")
     public void contract_found_are() {
         assertThat(this.getModel()).isNotNull();
     }
