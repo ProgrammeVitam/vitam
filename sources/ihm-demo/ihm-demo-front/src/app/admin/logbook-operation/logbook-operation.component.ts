@@ -108,8 +108,17 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() == 'IMPORT_AGENCIES' || item.evType.toUpperCase() == 'HOLDINGSCHEME') {
-      return ['fa-download']
+    if (['AUDIT', 'EXPORT_DIP', 'INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
+      || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME') {
+
+      const status = LogbookOperationComponent.getOperationStatus(item);
+      switch (status) {
+        case 'STARTED': case 'En cours':
+          return ['fa-clock-o'];
+        default:
+          return ['fa-download'];
+      }
+
     }else {
       return [];
     }
@@ -126,16 +135,16 @@ export class LogbookOperationComponent extends PageComponent {
   }
 
   static handleValue(item): string {
-    if (!item.events) return '';
+    if (!item.events) { return '' }
     const lastItem = item.events.length -1;
     return item.events[lastItem] ? item.events[lastItem].outcome.toUpperCase() : ''
   }
 
   static getOperationStatus(item): string {
-    let eventsLength = item.events.length;
+    const eventsLength = item.events.length;
 
     if (eventsLength > 0) {
-      if (item.evType == item.events[eventsLength - 1].evType) {
+      if (item.evType === item.events[eventsLength - 1].evType) {
         return item.events[eventsLength - 1].outcome;
       } else {
         return 'En cours';
@@ -146,7 +155,7 @@ export class LogbookOperationComponent extends PageComponent {
   }
 
   public preSearchFunction(request): Preresult {
-    let preResult = new Preresult();
+    const preResult = new Preresult();
     if (!request.evId) {
       request.evId = '';
       if (!request.EventType || request.EventType === '--') {
@@ -176,6 +185,13 @@ export class LogbookOperationComponent extends PageComponent {
   }
 
   static downloadReports(item, logbookService) {
+
+    const status = LogbookOperationComponent.getOperationStatus(item);
+    switch (status) {
+      case 'STARTED': case 'En cours':
+        return;
+    }
+
     switch (item.evTypeProc.toUpperCase()) {
       case 'AUDIT':
         logbookService.downloadReport(item.evIdProc);
@@ -187,14 +203,13 @@ export class LogbookOperationComponent extends PageComponent {
         logbookService.downloadDIP(item.evIdProc);
         break;
       case 'MASTERDATA':
-        if(item.evType.toUpperCase() == 'STP_IMPORT_RULES' || item.evType.toUpperCase() == 'IMPORT_AGENCIES') {
+        if(item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES') {
             logbookService.downloadReport(item.evIdProc);
             break;
-        } else if (item.evType.toUpperCase() == 'HOLDINGSCHEME') {
+        } else if (item.evType.toUpperCase() === 'HOLDINGSCHEME') {
             logbookService.downloadObject(item.evIdProc);
             break;
-        } 
-        
+        }
     }
 
   }
