@@ -1,5 +1,5 @@
 
-Cas 1: Configuration développement / tests 
+Cas 1: Configuration développement / tests
 ==========================================
 
 Pour des usages de développement ou de tests hors production, il est possible d'utiliser la :term:`PKI` fournie avec la solution logicielle VITAM.
@@ -7,7 +7,7 @@ Pour des usages de développement ou de tests hors production, il est possible d
 Procédure générale
 ------------------
 
-.. danger:: La :term:`PKI` fournie avec la solution logicielle Vitam ne doit être utilisée que pour faire des tests, et ne doit par conséquent surtout pas être utilisée en environnement de production !
+.. danger:: La :term:`PKI` fournie avec la solution logicielle Vitam ne doit être utilisée que pour faire des tests, et ne doit par conséquent surtout pas être utilisée en environnement de production ! De plus il n'est pas prévu de l'utiliser pour générer les certificats d'une autre application qui serait cliente de Vitam.
 
 La :term:`PKI` de la solution logicielle VITAM est une suite de scripts qui vont générer dans l'ordre ci-dessous:
 
@@ -47,8 +47,8 @@ Puis, dans le répertoire de déploiement, lancer le script :
     pki/scripts/generate_certs.sh <fichier d'inventaire>
 
 
-Ce script génère sous ``environmements/certs`` les certificats (format crt & key) nécessaires pour un bon fonctionnement dans VITAM.
-Les mots de passe des clés privées des certificats sont stockés dans le vault ansible environmements/certs/vault-certs.yml
+Ce script génère sous ``environments/certs`` les certificats (format crt & key) nécessaires pour un bon fonctionnement dans VITAM.
+Les mots de passe des clés privées des certificats sont stockés dans le vault ansible environments/certs/vault-certs.yml
 
 .. caution::  Les certificats générés à l'issue ont une durée de validité de 3 ans.
 
