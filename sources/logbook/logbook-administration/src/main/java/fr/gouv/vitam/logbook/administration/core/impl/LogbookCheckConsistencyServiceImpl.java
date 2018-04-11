@@ -433,7 +433,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
                         RequestResponse response;
                         try {
                             response = client.unitLifeCyclesByOperationIterator(operationId,
-                                    cycleStatusCode, select.getFinalSelect());
+                                    cycleStatusCode, query.getFinalSelect());
                         } catch (LogbookClientException | InvalidParseOperationException e) {
                             throw new IllegalStateException(e);
                         }
@@ -485,7 +485,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
                         RequestResponse response;
                         try {
                             response = client.objectGroupLifeCyclesByOperationIterator(operationId, cycleStatusCode,
-                                    select.getFinalSelect());
+                                    query.getFinalSelect());
                         } catch (LogbookClientException | InvalidParseOperationException e) {
                             throw new IllegalStateException(e);
                         }

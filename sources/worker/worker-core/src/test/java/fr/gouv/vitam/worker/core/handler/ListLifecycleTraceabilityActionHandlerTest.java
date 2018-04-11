@@ -181,8 +181,10 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
-        when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(objectsLFC);
+        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC)
+                .thenReturn(JsonHandler.createObjectNode());
+        when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(objectsLFC)
+                .thenReturn(JsonHandler.createObjectNode());
         reset(logbookOperationsClient);
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
@@ -245,7 +247,7 @@ public class ListLifecycleTraceabilityActionHandlerTest {
             .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
 
         final ItemStatus response = handler.execute(params, handlerIO);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
