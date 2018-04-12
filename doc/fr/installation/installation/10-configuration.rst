@@ -69,9 +69,14 @@ Les secrets utilisés par la solution logicielle (en-dehors des certificats qui 
 
 .. important:: Tous les vault présents dans l'arborescence d'inventaire doivent être tous protégés par le même mot de passe !
 
-
-
 La première étape consiste à changer les mots de passe de tous les vault présents dans l'arborescence de déploiement (le mot de passe par défaut est contenu dans le fichier ``vault_pass.txt``) à l'aide de la commande ``ansible-vault rekey <fichier vault>``.
+
+Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de passe:
+
+* environments/group_vars/all/vault-vitam.yml
+* environments/group_vars/all/vault-keystores.yml
+* environments/group_vars/all/vault-extra.yml
+* environments/certs/vault-certs.yml
 
 2 vaults sont principalement utilisés dans le déploiement d'une version ; leur contenu est donc à modifier avant tout déploiement :
 
@@ -82,7 +87,7 @@ La première étape consiste à changer les mots de passe de tous les vault pré
      :linenos:
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
-  
+
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.example
      :language: ini
      :linenos:
@@ -93,7 +98,7 @@ Cas des extra
 --------------
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-extra.yml`` contient les mot de passe des magasins de certificats utilisés dans VITAM :
-  
+
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.example
      :language: ini
      :linenos:
