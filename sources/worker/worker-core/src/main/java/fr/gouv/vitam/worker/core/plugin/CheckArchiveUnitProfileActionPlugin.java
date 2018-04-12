@@ -91,6 +91,7 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
 
     /**
      * Empty constructor CheckArchiveUnitProfileActionPlugin
+     * @param adminManagementClientFactory 
      *
      */
     @VisibleForTesting

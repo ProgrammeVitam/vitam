@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -240,6 +241,17 @@ public class DbRequestTest {
             " \"DescriptionLevel\": \"toto\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST_KO =
         "{$roots:['aeaqaaaaaagbcaacabg44ak45e54criaaaaq'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
+
+    private static final String ADDITIONAL_SCHEMA =
+        "{ \"$schema\": \"http://vitam-json-germain-schema.org/draft-04/schema#\", \"id\": \"http://example.com/root.json\", \"type\": \"object\", \"additionalProperties\": true, \"anyOf\": [ { \"required\": [ \"specificField\" ] } ], \"properties\": { \"specificField\": { \"description\": \"champ obligatoire - valeur = item\", \"type\": \"array\", \"items\": { \"description\": \"at least 1 element\", \"type\": \"string\" }, \"minItems\": 1 } } }";
+
+    private static final String REQUEST_UPDATE_INDEX_TEST_KO_SECONDARY_SCHEMA =
+        "{$roots:['" + UUID1 +"'],$query:[],$filter:{},$action:[{$set:{'" +
+            SchemaValidationUtils.TAG_SCHEMA_VALIDATION + "':'" + ADDITIONAL_SCHEMA + "'}}]}";
+    
+    private static final String REQUEST_UPDATE_INDEX_TEST_OK_SECONDARY_SCHEMA =
+        "{$roots:['" + UUID1 +"'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}, {$set:{'" +
+            SchemaValidationUtils.TAG_SCHEMA_VALIDATION + "':'" + ADDITIONAL_SCHEMA + "'}}]}";
 
     @Rule
     public MongoRule mongoRule =
@@ -1632,7 +1644,37 @@ public class DbRequestTest {
         LOGGER.debug("result2", result2.getNbResult());
         assertEquals(1, result2.nbResult);
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        
+        try {
+            final JsonNode updateRequest2 = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO_SECONDARY_SCHEMA);
+            final UpdateParserMultiple updateParser2 = new UpdateParserMultiple(mongoDbVarNameAdapter);
+            updateParser2.parse(updateRequest2);
+            LOGGER.debug("UpdateParser: {}", updateParser2.getRequest());
+            dbRequest.execRequest(updateParser2);
+            fail("should throw an exception cause of the additional schema");
+        } catch (MetaDataExecutionException e) {                        
+            assertTrue(e.getMessage().contains("\"missing\":[\"specificField\"]"));
+        }
+        
+        // add a new field : specificField
+        final JsonNode updateRequestSchema = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_OK_SECONDARY_SCHEMA);
+        final UpdateParserMultiple updateParserSchema = new UpdateParserMultiple(mongoDbVarNameAdapter);
+        updateParserSchema.parse(updateRequestSchema);
+        LOGGER.debug("UpdateParser: {}", updateParserSchema.getRequest());
+        final Result resultSchema = dbRequest.execRequest(updateParserSchema);
+        assertEquals(1, resultSchema.nbResult);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
+        // check new value that should exist in the collection
+        selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
+        select1 = new SelectMultiQuery();
+        select1.addQueries(exists("specificField").setDepthLimit(0)).addRoots(UUID1);
+        selectParser2.parse(select1.getFinalSelect());
+        resultSelectRel6 = dbRequest.execRequest(selectParser2);
+        assertEquals(1, resultSelectRel6.nbResult);
+        assertEquals(UUID1,
+            resultSelectRel6.getCurrentIds().iterator().next().toString());
+        
         // check old value should not exist in the collection
         selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
         select1 = new SelectMultiQuery();

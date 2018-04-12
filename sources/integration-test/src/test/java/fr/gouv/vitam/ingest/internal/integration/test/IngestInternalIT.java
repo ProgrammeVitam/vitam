@@ -50,7 +50,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.administration.*;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -117,6 +116,11 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -751,7 +755,16 @@ public class IngestInternalIT {
             updateQuery.addRoots(unitId);
             RequestResponse response = accessClient
                 .updateUnitbyId(updateQuery.getFinalUpdate(), unitId);
-            assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);            
+            assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
+
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+            // execute update -> rules to be 'unset'
+            UpdateMultiQuery updateQuery2 =
+                new UpdateMultiQuery().addActions(new SetAction("ArchiveUnitProfile", "ArchiveUnitProfile"));
+            updateQuery.addRoots(unitId);
+            RequestResponse response3 = accessClient
+                .updateUnitbyId(updateQuery2.getFinalUpdate(), unitId);
+            assertTrue(!response3.isOk());
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =
@@ -762,11 +775,12 @@ public class IngestInternalIT {
             assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
             assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"),
                 responseUnitAfterUpdate.getFirstResult().get("#opi"));
-            
+
             // execute update -> classification rules without classification owner
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
-                        
-            UpdateMultiQuery updateQueryClassification = new UpdateMultiQuery().addActions(new UnsetAction("#management.ClassificationRule.ClassificationOwner"));
+
+            UpdateMultiQuery updateQueryClassification = new UpdateMultiQuery()
+                .addActions(new UnsetAction("#management.ClassificationRule.ClassificationOwner"));
             updateQueryClassification.addRoots(unitId);
             RequestResponse responseClassification = accessClient
                 .updateUnitbyId(updateQueryClassification.getFinalUpdate(), unitId);

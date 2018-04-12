@@ -890,16 +890,22 @@ public class DbRequest {
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 requestToMongodb.getFinalUpdateActions();
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
-                documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
-                if (!documentId.equals(document)) { // FIXME : comparing different types, result is always true !
+                documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);                
+                if (documentId.equals(document.get(MetadataDocument.ID))) {
                     modified = true;
                     documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
 
                     if (model == FILTERARGS.UNITS) {
                         SchemaValidationStatus status = validator.validateUpdateUnit(updatedJsonDocument);
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                            throw new MetaDataExecutionException("Unable to validate updated Unit");
+                            throw new MetaDataExecutionException(
+                                "Unable to validate updated Unit " + status.getValidationMessage());
                         }
+                        if (updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION) != null) {
+                            validateOtherExternalSchema(updatedJsonDocument);
+                            documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                        }
+
                     }
 
                     // Make Update
@@ -936,6 +942,29 @@ public class DbRequest {
         }
         last.setTotal(last.getNbResult());
         return last;
+    }
+
+    private void validateOtherExternalSchema(ObjectNode updatedJsonDocument)
+        throws InvalidParseOperationException, MetaDataExecutionException {
+        try {
+            SchemaValidationUtils validatorSecond =
+                new SchemaValidationUtils(
+                    updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION).isArray()
+                        ? updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION)
+                            .get(0).asText()
+                        : updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION)
+                            .asText(),
+                    true);
+            SchemaValidationStatus secondstatus =
+                validatorSecond.validateUpdateUnit(updatedJsonDocument);
+            if (!SchemaValidationStatusEnum.VALID.equals(secondstatus.getValidationStatus())) {
+                throw new MetaDataExecutionException(
+                    "Unable to validate updated Unit " + secondstatus.getValidationMessage());
+            }
+        } catch (FileNotFoundException | ProcessingException e) {
+            LOGGER.debug("Unable to initialize External Json Validator");
+            throw new MetaDataExecutionException(e);
+        }
     }
 
     /**
