@@ -26,28 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static com.mongodb.client.model.Indexes.hashed;
-
-import java.util.List;
-
-import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-
 import com.mongodb.BasicDBObject;
-import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.DeleteResult;
-
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+
+import java.util.List;
 
 /**
  * MongoDbAccess Implement for Admin
@@ -60,12 +54,11 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     private final ElasticsearchAccessMetadata esClient;
 
     /**
-     *
      * @param mongoClient MongoClient
-     * @param dbname MongoDB database name
-     * @param recreate True to recreate the index
-     * @param esClient Elasticsearch client
-     * @param tenants the tenant list
+     * @param dbname      MongoDB database name
+     * @param recreate    True to recreate the index
+     * @param esClient    Elasticsearch client
+     * @param tenants     the tenant list
      */
 
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
@@ -89,7 +82,6 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     }
 
     /**
-     *
      * @return The MongoCLientOptions to apply to MongoClient
      */
     public static MongoClientOptions getMongoClientOptions() {
@@ -98,36 +90,6 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(),
             CodecRegistries.fromCodecs(unitCodec, objectGroupCodec));
         return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
-    }
-
-
-    /**
-     * Ensure that all MongoDB database schema are indexed
-     */
-    public static void ensureIndex() {
-        for (final MetadataCollections col : MetadataCollections.values()) {
-            if (col.getCollection() != null) {
-                col.getCollection().createIndex(hashed(MetadataDocument.ID));
-            }
-        }
-        Unit.addIndexes();
-        ObjectGroup.addIndexes();
-    }
-
-    /**
-     * Remove temporarily the MongoDB Index (import optimization?)
-     */
-    public static void removeIndexBeforeImport() {
-        Unit.dropIndexes();
-        ObjectGroup.dropIndexes();
-    }
-
-    /**
-     * Reset MongoDB Index (import optimization?)
-     */
-    public static void resetIndexAfterImport() {
-        LOGGER.info("Rebuild indexes");
-        ensureIndex();
     }
 
     @Override
@@ -141,8 +103,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         }
         for (final MetadataCollections coll : MetadataCollections.values()) {
             if (coll != null && coll.getCollection() != null) {
-                @SuppressWarnings("unchecked")
-                final ListIndexesIterable<Document> list = coll.getCollection().listIndexes();
+                @SuppressWarnings("unchecked") final ListIndexesIterable<Document> list =
+                    coll.getCollection().listIndexes();
                 for (final Document dbObject : list) {
                     builder.append(coll.getName()).append(' ').append(dbObject).append('\n');
                 }
@@ -152,7 +114,6 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     }
 
     /**
-     *
      * @return the current number of Unit
      */
     public static long getUnitSize() {
@@ -160,7 +121,6 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     }
 
     /**
-     *
      * @return the current number of ObjectGroup
      */
     public static long getObjectGroupSize() {
@@ -184,7 +144,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
     /**
      * Delete Unit metadata by tenant Not check, test feature !
-     * 
+     *
      * @param tenantIds the list of tenants
      * @throws DatabaseException thrown when error on delete
      */
@@ -211,7 +171,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
     /**
      * Delete Object Group metadata by Tenant Not check, test feature !
-     * 
+     *
      * @param tenantIds the list of tenants
      * @throws DatabaseException thrown when error on delete
      */

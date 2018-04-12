@@ -26,11 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.collections;
 
-import static com.mongodb.client.model.Indexes.hashed;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadConcern;
@@ -38,12 +33,16 @@ import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.mongodb.client.model.Indexes.hashed;
 
 /**
  * Vitam Collection for mongodb
@@ -57,11 +56,6 @@ public class VitamCollection {
     private final boolean isMultiTenant;
     private final boolean useScore;
     private boolean createIndexByTenant = false;
-    /**
-     * Used by different parser places (isArray, score)
-     */
-    private static final ThreadLocal<FILTERARGS> CURRENT_COLLECTION =
-        ThreadLocal.withInitial(() -> FILTERARGS.OTHERS);
     /**
      * Used by different parser places (isArray, score)
      */
@@ -87,20 +81,6 @@ public class VitamCollection {
      */
     public static void setMatch(Boolean match) {
         CONTAINS_FINALLY_MATCH.set(match);
-    }
-
-    /**
-     * @return the current collection name (UNIT or OBJECTGROUP)
-     */
-    public static FILTERARGS get() {
-        return CURRENT_COLLECTION.get();
-    }
-
-    /**
-     * @param collection the collection to work on currently
-     */
-    public static void set(FILTERARGS collection) {
-        CURRENT_COLLECTION.set(collection);
     }
 
     /**

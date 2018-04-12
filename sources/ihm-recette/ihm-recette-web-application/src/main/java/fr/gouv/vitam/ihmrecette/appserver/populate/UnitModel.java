@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import fr.gouv.vitam.common.model.UnitType;
@@ -33,12 +34,14 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class UnitModel {
 
     @JsonProperty("_id")
@@ -75,6 +78,9 @@ public class UnitModel {
     @JsonProperty("_tenant")
     private int tenant;
 
+    @JsonProperty("_min")
+    private int min = 1;
+
     @JsonProperty("_max")
     private int max = 1;
 
@@ -89,6 +95,12 @@ public class UnitModel {
 
     @JsonProperty("_storage")
     private StorageModel storageModel;
+
+    @JsonProperty("_graph")
+    private Set<String> graph = new HashSet<>();
+
+    @JsonProperty("_us_sp")
+    private Map<String, Collection<String>> parentOriginatingAgencies = new HashMap<>();
 
     // use only for jackson
     public UnitModel() {
@@ -189,6 +201,14 @@ public class UnitModel {
         this.unitType = unitType;
     }
 
+    public int getMin() {
+        return min;
+    }
+
+    public void setMin(int min) {
+        this.min = min;
+    }
+
     public int getMax() {
         return max;
     }
@@ -223,5 +243,21 @@ public class UnitModel {
 
     public StorageModel getStorageModel() {
         return storageModel;
+    }
+
+    public Set<String> getGraph() {
+        return graph;
+    }
+
+    public void setGraph(Set<String> graph) {
+        this.graph = graph;
+    }
+
+    public Map<String, Collection<String>> getParentOriginatingAgencies() {
+        return parentOriginatingAgencies;
+    }
+
+    public void setParentOriginatingAgencies(Map<String, Collection<String>> parentOriginatingAgencies) {
+        this.parentOriginatingAgencies = parentOriginatingAgencies;
     }
 }

@@ -671,6 +671,10 @@ public abstract class BuilderToken {
          */
         ORIGINATING_AGENCIES("originating_agencies"),
         /**
+         * originating agencies by parent
+         */
+        PARENT_ORIGINATING_AGENCIES("parent_originating_agencies"),
+        /**
          * Storage field in OG
          */
         STORAGE("storage"),
@@ -682,6 +686,10 @@ public abstract class BuilderToken {
          * parents arrays
          */
         PARENTS("uds"),
+        /**
+         * List of all parent graph relations
+         */
+        GRAPH("graph"),
         /**
          * Unit or GOT's list of participating operations
          */

@@ -249,7 +249,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public JsonNode selectUnit(JsonNode jsonQuery)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
-        VitamDBException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException {
+        VitamDBException {
 
         JsonNode jsonNode = null;
         LOGGER.debug("DEBUG: start selectUnits {}", jsonQuery);

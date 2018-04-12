@@ -29,34 +29,6 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static com.mongodb.client.model.Accumulators.addToSet;
-import static com.mongodb.client.model.Aggregates.group;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Updates.combine;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -67,12 +39,8 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.ReturnDocument;
-import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -80,12 +48,12 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.PathQuery;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.server.MongoDbInMemory;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -115,6 +83,31 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import org.apache.commons.lang.StringUtils;
+import org.bson.conversions.Bson;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.mongodb.client.model.Accumulators.addToSet;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 
 /**
  * DB Request using MongoDB only
@@ -139,32 +132,28 @@ public class DbRequest {
     private static final String DEPTH_ARRAY = "deptharray";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-    private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
+    private static final String
+        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     /**
      * Constructor
      */
-    public DbRequest() {}
+    public DbRequest() {
+    }
 
     /**
      * The request should be already analyzed.
      *
      * @param requestParser the RequestParserMultiple to execute
-     * @param defaultStartSet the set of id from which the request should start, whatever the roots set
      * @return the Result
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws MetaDataExecutionException when select/insert/update/delete on metadata collection exception occurred
+     * @throws MetaDataExecutionException     when select/update/delete on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException when insert metadata exception
-     * @throws MetaDataNotFoundException when metadata not found exception
      * @throws BadRequestException
      */
-    public Result execRequest(final RequestParserMultiple requestParser,
-        final Result<MetadataDocument<?>> defaultStartSet)
-        throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
-        InvalidParseOperationException, BadRequestException, MetaDataAlreadyExistException, MetaDataNotFoundException,
+    public Result execRequest(final RequestParserMultiple requestParser)
+        throws MetaDataExecutionException,
+        InvalidParseOperationException, BadRequestException,
         VitamDBException {
         final RequestMultiple request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
@@ -172,16 +161,15 @@ public class DbRequest {
         boolean checkConsistency = false;
         Result<MetadataDocument<?>> roots;
         if (requestParser.model() == FILTERARGS.UNITS) {
-            VitamCollection.set(FILTERARGS.UNITS);
-            roots = checkUnitStartupRoots(requestParser, defaultStartSet);
+            roots = checkUnitStartupRoots(requestParser);
         } else {
             // OBJECTGROUPS:
-            VitamCollection.set(FILTERARGS.OBJECTGROUPS);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("OBJECTGROUPS DbRequest: %s", requestParser.toString()));
             }
-            roots = checkObjectGroupStartupRoots(requestParser, defaultStartSet);
+            roots = checkObjectGroupStartupRoots(requestParser);
         }
+
         Result<MetadataDocument<?>> result = roots;
         int rank = 0;
         // if roots is empty, check if first query gives a non empty roots (empty query allowed for insert)
@@ -231,20 +219,6 @@ public class DbRequest {
             }
             LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
         }
-        // Result contains the selection on which to act
-        // Insert allow to have no result
-        if (request instanceof InsertMultiQuery) {
-            final Integer tenantId = ParameterHelper.getTenantParameter();
-            final Result<MetadataDocument<?>> newResult =
-                lastInsertFilterProjection((InsertToMongodb) requestToMongodb, result, tenantId);
-            if (newResult != null) {
-                result = newResult;
-            }
-            if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.debug("Results: {}", result);
-            }
-            return result;
-        }
         // others do not allow empty result
         if (result.getCurrentIds().isEmpty()) {
             LOGGER.debug(NO_RESULT_AT_RANK + rank + FROM + requestParser + WHERE_PREVIOUS_IS + result);
@@ -289,88 +263,44 @@ public class DbRequest {
      * Check Unit at startup against Roots
      *
      * @param request
-     * @param defaultStartSet
      * @return the valid root ids
-     * @throws InvalidParseOperationException
      */
-    protected Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request,
-        final Result<MetadataDocument<?>> defaultStartSet)
-        throws InvalidParseOperationException {
-        VitamCollection.set(FILTERARGS.UNITS);
+    protected Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request) {
         final Set<String> roots = request.getRequest().getRoots();
-        final Set<String> newRoots = checkUnitAgainstRoots(roots, defaultStartSet);
-        if (newRoots.isEmpty()) {
+        if (roots.isEmpty()) {
             return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         }
-        if (!newRoots.containsAll(roots)) {
-            LOGGER.debug("Not all roots are preserved");
-        }
-        // FIXME bug when root does not exists : create a result with total 0
-        return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS, newRoots);
+        return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS, roots);
     }
 
     /**
      * Check ObjectGroup at startup against Roots
      *
      * @param request
-     * @param defaultStartSet
      * @return the valid root ids
-     * @throws InvalidParseOperationException
      */
-    protected Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request,
-        final Result<MetadataDocument<?>> defaultStartSet)
-        throws InvalidParseOperationException {
-        VitamCollection.set(FILTERARGS.OBJECTGROUPS);
-
+    protected Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
         // TODO P1 add unit tests
         final Set<String> roots = request.getRequest().getRoots();
-        if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
-            // no limitation: using roots
-            return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
-        }
-        if (roots.isEmpty()) {
-            return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
-        }
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.OBJECTGROUP,
-                MongoDbMetadataHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
-                ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
-        final Set<String> newRoots = new HashSet<>();
-        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-            while (cursor.hasNext()) {
-                final ObjectGroup og = cursor.next();
-                newRoots.add(og.getId());
-            }
-        }
-        if (newRoots.isEmpty()) {
-            return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
-        }
-        if (!newRoots.containsAll(roots)) {
-            LOGGER.debug("Not all roots are preserved");
-        }
-        return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, newRoots);
+        return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
     }
 
     /**
      * Check Unit parents against Roots
      *
-     * @param current set of result id
+     * @param current         set of result id
      * @param defaultStartSet
      * @return the valid root ids set
-     * @throws InvalidParseOperationException
      */
     protected Set<String> checkUnitAgainstRoots(final Set<String> current,
-        final Result<MetadataDocument<?>> defaultStartSet)
-        throws InvalidParseOperationException {
+        final Result<MetadataDocument<?>> defaultStartSet) {
         // roots
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
             // no limitation: using roots
             return current;
         }
         // TODO P1 add unit tests
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable =
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
             (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
                 MongoDbMetadataHelper.ID_PROJECTION);
@@ -388,8 +318,8 @@ public class DbRequest {
      * Execute one request
      *
      * @param requestToMongodb
-     * @param rank current rank query
-     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
+     * @param rank             current rank query
+     * @param previous         previous Result from previous level (except in level == 0 where it is the subset of valid roots)
      * @return the new Result from this request
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
@@ -411,7 +341,6 @@ public class DbRequest {
         final FILTERARGS collectionType = requestToMongodb.model();
         if (requestToMongodb instanceof SelectToMongodb && isLastQuery) {
             VitamCollection.setMatch(false);
-            QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
             sorts =
                 QueryToElasticsearch.getSorts(requestParser, realQuery.isFullText() || VitamCollection.containMatch(),
                     collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
@@ -428,7 +357,6 @@ public class DbRequest {
             LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + realQuery.getCurrentQuery());
         }
         final QUERY type = realQuery.getQUERY();
-        VitamCollection.set(collectionType);
         if (type == QUERY.PATH) {
             // Check if path is compatible with previous
             if (previous.getCurrentIds().isEmpty()) {
@@ -609,8 +537,7 @@ public class DbRequest {
         if (!previous.getCurrentIds().isEmpty() && relativeDepth > 1) {
             result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
             final Bson newRoots = QueryToMongodb.getRoots(MetadataDocument.ID, resultPreviousFilter.getCurrentIds());
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
+            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT, newRoots,
                     Unit.UNIT_VITAM_PROJECTION);
             final List<String> finalList = new ArrayList<>();
@@ -670,14 +597,12 @@ public class DbRequest {
                 MongoDbHelper.bsonToString(group, false));
         }
         final List<Bson> pipeline = Arrays.asList(match, group);
-        @SuppressWarnings("unchecked")
-        final AggregateIterable<Unit> aggregateIterable =
+        @SuppressWarnings("unchecked") final AggregateIterable<Unit> aggregateIterable =
             MetadataCollections.UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
-            @SuppressWarnings("unchecked")
-            final List<Map<String, Integer>> array =
+            @SuppressWarnings("unchecked") final List<Map<String, Integer>> array =
                 (List<Map<String, Integer>>) aggregate.get(DEPTH_ARRAY);
             relativeDepth = Math.abs(relativeDepth);
             for (final Map<String, Integer> map : array) {
@@ -737,7 +662,7 @@ public class DbRequest {
      * Execute one relative Depth ObjectGroup Query
      *
      * @param realQuery
-     * @param previous units, Note: only immediate Unit parents are allowed
+     * @param previous  units, Note: only immediate Unit parents are allowed
      * @param tenantId
      * @param sorts
      * @param offset
@@ -776,35 +701,6 @@ public class DbRequest {
             VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, null, scrollId, scrollTimeout);
     }
 
-    private Result<MetadataDocument<?>> getDebug(FILTERARGS model, Result<MetadataDocument<?>> last)
-        throws InvalidParseOperationException {
-        final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
-        if (model == FILTERARGS.UNITS) {
-            final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                    roots, null, null, -1, -1);
-            Result<MetadataDocument<?>> units = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
-            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-                while (cursor.hasNext()) {
-                    final Unit unit = cursor.next();
-                    units.addFinal(unit);
-                }
-            }
-            return units;
-        }
-        final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.OBJECTGROUP,
-                roots, null, null, -1, -1);
-        Result<MetadataDocument<?>> objects = MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
-        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-            while (cursor.hasNext()) {
-                final ObjectGroup unit = cursor.next();
-                objects.addFinal(unit);
-            }
-        }
-        return objects;
-    }
-
     /**
      * Finalize the queries with last True Select
      *
@@ -812,11 +708,10 @@ public class DbRequest {
      * @param last
      * @return the final Result
      * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> lastSelectFilterProjection(SelectToMongodb requestToMongodb,
         Result<MetadataDocument<?>> last, boolean checkConsistency)
-        throws InvalidParseOperationException, MetaDataExecutionException, VitamDBException {
+        throws InvalidParseOperationException, VitamDBException {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson projection = requestToMongodb.getFinalProjection();
         final boolean isIdIncluded = requestToMongodb.idWasInProjection();
@@ -828,8 +723,7 @@ public class DbRequest {
         }
         if (model == FILTERARGS.UNITS) {
             final Map<String, Unit> units = new HashMap<>();
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
+            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                     roots, projection, null, -1, -1);
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -881,8 +775,7 @@ public class DbRequest {
         }
         // OBJECTGROUPS:
         final Map<String, ObjectGroup> obMap = new HashMap<>();
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable =
+        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
                 MetadataCollections.OBJECTGROUP,
                 roots, projection, null, -1, -1);
@@ -990,7 +883,6 @@ public class DbRequest {
 
             while (result == null && tries < 3) {
                 final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
-                final String documentBeforeUpdate = JsonHandler.prettyPrint(jsonDocument);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("DEBUG update {} to udate to {}", jsonDocument,
                         MongoDbHelper.bsonToString(requestToMongodb.getFinalUpdateActions(), false));
@@ -1064,8 +956,7 @@ public class DbRequest {
             finalQuery = and(in(MetadataDocument.ID, last.getCurrentIds()),
                 eq(MetadataDocument.TENANT_ID, tenantId));
         }
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
             .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -1092,8 +983,7 @@ public class DbRequest {
         } else {
             finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
         }
-        @SuppressWarnings("unchecked")
-        final FindIterable<ObjectGroup> iterable =
+        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper
                 .select(MetadataCollections.OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
@@ -1112,7 +1002,6 @@ public class DbRequest {
      */
     private void removeOGIndexFields(Result<MetadataDocument<?>> last) throws Exception {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
             // no result to delete
@@ -1129,7 +1018,6 @@ public class DbRequest {
      */
     private void removeUnitIndexFields(Result<MetadataDocument<?>> last) throws Exception {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
             // no result to delete
@@ -1139,134 +1027,58 @@ public class DbRequest {
     }
 
     /**
-     * Finalize the queries with last True Insert
+     * Inserts a unit
      *
-     * @param requestToMongodb
-     * @param last
-     * @return the final Result
-     * @throws InvalidParseOperationException
-     * @throws MetaDataAlreadyExistException
-     * @throws MetaDataExecutionException
-     * @throws MetaDataNotFoundException
+     * @param requestParser the InsertParserMultiple to execute
+     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws InvalidParseOperationException when json data exception occurred
+     * @throws MetaDataAlreadyExistException  when insert metadata exception
+     * @throws MetaDataNotFoundException      when metadata not found exception
      */
-    protected Result<MetadataDocument<?>> lastInsertFilterProjection(InsertToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last, Integer tenantId)
-        throws InvalidParseOperationException, MetaDataAlreadyExistException, MetaDataExecutionException,
-        MetaDataNotFoundException {
-        final Document data = requestToMongodb.getFinalData();
-        LOGGER.debug("DEBUG To Insert: {}", data);
-        final FILTERARGS model = requestToMongodb.model();
+    public void execInsertUnitRequest(InsertParserMultiple requestParser)
+        throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
+        MetaDataAlreadyExistException {
+
+        LOGGER.debug(String.format("Exec db insert unit request: %s", requestParser));
+
         try {
-            if (model == FILTERARGS.UNITS) {
-                final Unit unit = new Unit(data);
-                if (MongoDbMetadataHelper.exists(MetadataCollections.UNIT, unit.getId())) {
-                    // Should not exist
-                    throw new MetaDataAlreadyExistException("Unit already exists: " + unit.getId());
-                }
-                unit.remove(VitamDocument.SCORE);
-                unit.save();
-                @SuppressWarnings("unchecked")
-                final FindIterable<Unit> iterable =
-                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                        in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_VITAM_PROJECTION);
-                final Set<String> notFound = new HashSet<>(last.getCurrentIds());
-                // TODO P2 optimize by trying to update only once the unit
-                try (MongoCursor<Unit> cursor = iterable.iterator()) {
-                    while (cursor.hasNext()) {
-                        final Unit parentUnit = cursor.next();
-                        parentUnit.remove(VitamDocument.SCORE);
-                        parentUnit.addUnit(unit);
-                        notFound.remove(parentUnit.getId());
-                    }
-                }
-                if (!notFound.isEmpty()) {
-                    LOGGER.error("Cannot find parent: " + notFound);
-                    throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
-                }
-                last.clear();
-                last.addId(unit.getId(), (float) 1);
 
+            final InsertToMongodb requestToMongodb =
+                (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
 
-                if (unit.getString(MetadataDocument.OG) != null && !unit.getString(MetadataDocument.OG).isEmpty()) {
-                    // find the unit that we just save, to take sps field, and save it in the object group
-                    String ogId = unit.getString(MetadataDocument.OG);
-                    String unitId = unit.getString(MetadataDocument.ID);
-                    String opi = unit.getString(MetadataDocument.OPI);
-                    final MetadataDocument newUnit =
-                        MongoDbMetadataHelper.findOne(MetadataCollections.UNIT, unitId);
-                    final List originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES, List.class);
+            final Unit unit = new Unit(requestToMongodb.getFinalData());
 
-                    final Bson updateSps =
-                        Updates.addEachToSet(MetadataDocument.ORIGINATING_AGENCIES, originatingAgencies);
-                    final Bson updateUp = Updates.addToSet(MetadataDocument.UP, unitId);
-                    final Bson updateOps =
-                        Updates.addToSet(MetadataDocument.OPS, VitamThreadUtils.getVitamSession().getRequestId());
-                    final Bson update = combine(updateSps, updateUp, updateOps);
-                    ObjectGroup object = null;
-                    try {
-                        object = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection()
-                            .findOneAndUpdate(eq(ID, ogId),
-                                update,
-                                new FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER));
-                    } catch (MongoException e) {
-                        LOGGER.error(e);
-                        throw new MetaDataExecutionException(e);
-                    }
-                    if (object == null) {
-                        LOGGER.error("Object associated with Unit not found: " + ogId +
-                            " from " + unitId);
-                        throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
-                            " from " + unitId);
-                    }
-                    String id = (String) object.remove(VitamDocument.ID);
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("DEBUG: OG {}", JsonHandler.toJsonNode(object));
-                    }
-                    MetadataCollections.OBJECTGROUP.getEsClient()
-                        .updateFullOneOG(MetadataCollections.OBJECTGROUP, tenantId, id,
-                            object);
+            String unitId = unit.getId();
+
+            Set<String> roots = requestParser.getRequest().getRoots();
+            unit.buildParentGraph(roots);
+
+            unit.insert();
+
+            final Integer tenantId = ParameterHelper.getTenantParameter();
+            MetadataCollections.UNIT.getEsClient()
+                .insertFullDocument(MetadataCollections.UNIT, tenantId, unitId,
+                    unit);
+
+            String ogId = unit.getString(MetadataDocument.OG);
+            if (StringUtils.isNotEmpty(ogId)) {
+
+                final ObjectGroup objectGroup =
+                    (ObjectGroup) MongoDbMetadataHelper.findOne(MetadataCollections.OBJECTGROUP, ogId);
+                if (objectGroup == null) {
+                    throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
+                        " from " + unitId);
                 }
-                last.setTotal(last.getNbResult());
-                insertBulk(requestToMongodb, last);
-                // FIXME P1 should handle micro update on parents in ES
-                return last;
+
+                objectGroup.buildParentGraph(unit);
+                MetadataCollections.OBJECTGROUP.getCollection().findOneAndReplace(
+                    eq(VitamDocument.ID, ogId), objectGroup);
+
+                MetadataCollections.OBJECTGROUP.getEsClient()
+                    .updateFullDocument(MetadataCollections.OBJECTGROUP, tenantId, ogId,
+                        objectGroup);
             }
-            // OBJECTGROUPS:
-            // TODO P1 add unit tests
-            final ObjectGroup og = new ObjectGroup(data);
-            og.remove(VitamDocument.SCORE);
-            if (MongoDbMetadataHelper.exists(MetadataCollections.OBJECTGROUP, og.getId())) {
-                // Should not exist
-                throw new MetaDataAlreadyExistException("ObjectGroup already exists: " + og.getId());
-            }
-            if (last.getCurrentIds().isEmpty() && og.getFathersUnitIds(false).isEmpty()) {
-                // Must not be
-                LOGGER.error("No Unit parent defined");
-                throw new MetaDataNotFoundException("No Unit parent defined");
-            }
-            og.save();
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                    in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_OBJECTGROUP_PROJECTION);
-            final Set<String> notFound = new HashSet<>(last.getCurrentIds());
-            // TODO P2 optimize by trying to update only once the og
-            try (MongoCursor<Unit> cursor = iterable.iterator()) {
-                while (cursor.hasNext()) {
-                    final Unit parentUnit = cursor.next();
-                    parentUnit.addObjectGroup(og);
-                    notFound.remove(parentUnit.getId());
-                }
-            }
-            if (!notFound.isEmpty()) {
-                LOGGER.error("Cannot find parent: " + notFound);
-                throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
-            }
-            last.clear();
-            last.addId(og.getId(), (float) 1);
-            last.setTotal(last.getNbResult());
-            insertBulk(requestToMongodb, last);
-            return last;
+
         } catch (final MongoWriteException e) {
             throw e;
         } catch (final MongoException e) {
@@ -1275,40 +1087,38 @@ public class DbRequest {
     }
 
     /**
-     * Bulk insert in ES
+     * Inserts an object group
      *
-     * @param requestToMongodb
-     * @param result
-     * @throws MetaDataExecutionException
+     * @param requestParser the InsertParserMultiple to execute
+     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws InvalidParseOperationException when json data exception occurred
+     * @throws MetaDataAlreadyExistException  when insert metadata exception
+     * @throws MetaDataNotFoundException      when metadata not found exception
      */
-    private void insertBulk(InsertToMongodb requestToMongodb, Result<MetadataDocument<?>> result)
-        throws MetaDataExecutionException {
-        // index Metadata
-        final Integer tenantId = ParameterHelper.getTenantParameter();
-        final List<String> ids = result.getCurrentIds();
-        final FILTERARGS model = requestToMongodb.model();
-        // index Unit
-        if (model == FILTERARGS.UNITS) {
-            final Bson finalQuery = in(MetadataDocument.ID, ids);
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper
-                    .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
-            // TODO maybe retry once if in error ?
-            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-                MetadataCollections.UNIT.getEsClient().insertBulkUnitsEntriesIndexes(cursor, tenantId);
-            }
-        } else if (model == FILTERARGS.OBJECTGROUPS) {
-            // index OG
-            final Bson finalQuery = in(MetadataDocument.ID, ids);
-            @SuppressWarnings("unchecked")
-            final FindIterable<ObjectGroup> iterable =
-                (FindIterable<ObjectGroup>) MongoDbMetadataHelper
-                    .select(MetadataCollections.OBJECTGROUP, finalQuery, null);
-            // TODO maybe retry once if in error ?
-            try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-                MetadataCollections.OBJECTGROUP.getEsClient().insertBulkOGEntriesIndexes(cursor, tenantId);
-            }
+    public void execInsertObjectGroupRequest(InsertParserMultiple requestParser)
+        throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
+
+        LOGGER.debug("Exec db insert object group request: %s", requestParser);
+
+        try {
+
+            final InsertToMongodb requestToMongodb =
+                (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
+
+            final ObjectGroup og = new ObjectGroup(requestToMongodb.getFinalData());
+
+            String odId = og.getId();
+
+            og.insert();
+
+            final Integer tenantId = ParameterHelper.getTenantParameter();
+            MetadataCollections.OBJECTGROUP.getEsClient()
+                .insertFullDocument(MetadataCollections.OBJECTGROUP, tenantId, odId, og);
+
+        } catch (final MongoWriteException e) {
+            throw e;
+        } catch (final MongoException e) {
+            throw new MetaDataExecutionException("Insert concern", e);
         }
     }
 
@@ -1360,5 +1170,4 @@ public class DbRequest {
             throw new MetaDataExecutionException("Delete concern", e);
         }
     }
-
 }

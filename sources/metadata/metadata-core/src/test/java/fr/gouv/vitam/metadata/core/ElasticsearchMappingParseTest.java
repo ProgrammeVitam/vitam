@@ -112,6 +112,13 @@ public class ElasticsearchMappingParseTest {
 
         assertThat(jsonNode).isNotNull();
 
+        JsonNode enabled = jsonNode.get("enabled");
+        if (enabled != null) {
+            assertThat(enabled.asText()).isEqualTo("false");
+            result.put(parentMappingPath, "notIndexed");
+            return;
+        }
+
         JsonNode type = jsonNode.get("type");
         if (type != null) {
             parseType(jsonNode, parentMappingPath, result, type);
@@ -151,15 +158,7 @@ public class ElasticsearchMappingParseTest {
                 typeStr = type.asText();
                 break;
             case "object":
-
-                JsonNode enabled = jsonNode.get("enabled");
-                if (enabled != null) {
-                    assertThat(enabled.asText()).isEqualTo("false");
-                    typeStr = "notIndexed";
-                } else {
-                    typeStr = "object";
-                }
-
+                typeStr = "object";
                 break;
             default:
                 throw new IllegalStateException("Unexpected type " + type.asText());

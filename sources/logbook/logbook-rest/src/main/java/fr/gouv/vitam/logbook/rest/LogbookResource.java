@@ -956,7 +956,7 @@ public class LogbookResource extends ApplicationStatusResource {
      *
      * @param idOp the operation id
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
-     * @return Response with a status of OK if updated aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq
+     * @return Response with a status of OK if updated
      */
     @PUT
     @Path("/operations/{id_op}/unitlifecycles")

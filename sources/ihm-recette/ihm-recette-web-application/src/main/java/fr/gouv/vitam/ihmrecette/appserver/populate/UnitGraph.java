@@ -28,15 +28,6 @@
 
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -51,6 +42,21 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
 
 /**
  * Unit Graph class
@@ -86,7 +92,7 @@ public class UnitGraph {
     /**
      * Create a graph
      *
-     * @param i used to generate dynamic metadata
+     * @param i             used to generate dynamic metadata
      * @param populateModel model of populate service
      * @return new UnitGotModel (unitModel, gotModel)
      */
@@ -144,9 +150,9 @@ public class UnitGraph {
      * Create a unitModel
      *
      * @param operationId
-     * @param uuid Guid
+     * @param uuid                     Guid
      * @param descriptiveMetadataModel MetadataModel
-     * @param populateModel populate Model
+     * @param populateModel            populate Model
      * @return a UnitModel
      */
     private UnitModel createUnitModel(String operationId, String uuid,
@@ -210,6 +216,25 @@ public class UnitGraph {
             }
 
             unitModel.getUds().put(rootId, 1);
+
+            // Min / Max
+            unitModel.setMin(1);
+            unitModel.setMax(rootUnit.getMax() + 1);
+
+            // Graph
+            Set<String> graph = new HashSet<>();
+            graph.addAll(rootUnit.getGraph());
+            graph.add(createGraphRelation(unitModel.getId(), rootUnit.getId()));
+            unitModel.setGraph(graph);
+
+            // Parent originating agencies
+            MultiValuedMap<String, String> parentOriginatingAgencies = new HashSetValuedHashMap<>();
+            rootUnit.getParentOriginatingAgencies()
+                .forEach(parentOriginatingAgencies::putAll);
+            if(rootUnit.getSp() != null) {
+                parentOriginatingAgencies.put(rootUnit.getSp(), rootUnit.getId());
+            }
+            unitModel.setParentOriginatingAgencies(parentOriginatingAgencies.asMap());
         }
 
         return unitModel;
@@ -218,11 +243,11 @@ public class UnitGraph {
     /**
      * Create a GotModel
      *
-     * @param guid GUID
+     * @param guid          GUID
      * @param operationId
-     * @param tenantId tenant identifier
+     * @param tenantId      tenant identifier
      * @param fileInfoModel fileInfo
-     * @param parentUnit unitModel of the parent AU
+     * @param parentUnit    unitModel of the parent AU
      * @return a ObjectGroupModel
      */
     private ObjectGroupModel createObjectGroupModel(String guid, String operationId, int tenantId,

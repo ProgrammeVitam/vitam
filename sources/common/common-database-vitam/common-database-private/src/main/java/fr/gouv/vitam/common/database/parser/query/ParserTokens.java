@@ -179,6 +179,7 @@ public class ParserTokens extends BuilderToken {
         "Writer.DeathPlace.PostalCode",
         "Writer.Function",
         "Writer.Identifier",
+        "_graph",
         "_max",
         "_mgt.AccessRule.Inheritance.PreventInheritance",
         "_mgt.AccessRule.Inheritance.PreventRulesId",
@@ -232,6 +233,7 @@ public class ParserTokens extends BuilderToken {
         "_unused",
         "_up",
         "_us",
+        "_us_sp",
         "_v",
         "_id",
         /* Object Groups */
@@ -547,7 +549,7 @@ public class ParserTokens extends BuilderToken {
         /**
          * parents arrays
          */
-        PARENTS("uds"),
+        UDS("uds"),
         /**
          * Unit or GOT's list of participating operations
          */
@@ -583,8 +585,15 @@ public class ParserTokens extends BuilderToken {
         /**
          * Last persisted date (logbook operation & lifecycle documents)
          */
-        LAST_PERSISTED_DATE("lastPersistedDate");
-
+        LAST_PERSISTED_DATE("lastPersistedDate"),
+        /**
+         * Parent unit graph
+         */
+        GRAPH("graph"),
+        /**
+         * Originating agency
+         */
+        PARENT_ORIGINATING_AGENCIES("parent_originating_agencies");
 
 
         private static final String NOT_FOUND = "Not found";
@@ -683,7 +692,7 @@ public class ParserTokens extends BuilderToken {
                     case "_unitType":
                         return UNITTYPE;
                     case "_uds":
-                        return PARENTS;
+                        return UDS;
                     case "_sp":
                         return ORIGINATING_AGENCY;
                     case "_sps":
@@ -708,6 +717,10 @@ public class ParserTokens extends BuilderToken {
                         return SCORE;
                     case "_lastPersistedDate":
                         return LAST_PERSISTED_DATE;
+                    case "_us_sp":
+                        return PARENT_ORIGINATING_AGENCIES;
+                    case "_graph":
+                        return GRAPH;
                     default:
                 }
             } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
@@ -775,6 +788,8 @@ public class ParserTokens extends BuilderToken {
                     case STORAGE:
                     case VERSION:
                     case LAST_PERSISTED_DATE:
+                    case UDS:
+                    case PARENT_ORIGINATING_AGENCIES:
                         return false;
                     default:
                         break;
@@ -833,6 +848,9 @@ public class ParserTokens extends BuilderToken {
                         case INITIAL_OPERATION:
                         case SCORE:
                         case LAST_PERSISTED_DATE:
+                        case GRAPH:
+                        case PARENT_ORIGINATING_AGENCIES:
+                            return true;
                         case STORAGE:
 
                             return true;

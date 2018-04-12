@@ -26,12 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.mongodb.DBObject;
+import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchFacetResultHelper;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.DocWriteRequest.OpType;
@@ -43,6 +55,7 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
 import org.elasticsearch.action.delete.DeleteResponse;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -62,26 +75,11 @@ import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.sort.SortBuilder;
 
-import com.mongodb.DBObject;
-import com.mongodb.client.MongoCursor;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchFacetResultHelper;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.FacetResult;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 /**
@@ -99,7 +97,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * @param clusterName cluster name
-     * @param nodes list of elasticsearch node
+     * @param nodes       list of elasticsearch node
      * @throws VitamException if nodes list is empty
      */
     public ElasticsearchAccessMetadata(final String clusterName, List<ElasticsearchNode> nodes)
@@ -111,7 +109,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Delete one index
      *
      * @param collection the working metadata collection
-     * @param tenantId the tenant for operation
+     * @param tenantId   the tenant for operation
      * @return True if ok
      */
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
@@ -134,7 +132,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Add a type to an index
      *
      * @param collection the working metadata collection
-     * @param tenantId the tenant for operation
+     * @param tenantId   the tenant for operation
      * @return True if ok
      */
     public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
@@ -152,7 +150,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * refresh an index
      *
      * @param collection the workking metadata collection
-     * @param tenantId the tenant for operation
+     * @param tenantId   the tenant for operation
      */
     public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
         String allIndexes = getAliasName(collection, tenantId);
@@ -229,7 +227,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     private static final Unit getFiltered(final Unit unit) {
         final Unit eunit = new Unit(unit);
-        eunit.remove(VitamLinks.UNIT_TO_UNIT.field1to2);
         eunit.remove(VitamDocument.SCORE);
         return eunit;
     }
@@ -262,7 +259,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     /**
      * Used for iterative reload in restore operation (using bulk).
      *
-     * @param indexes set of operation index
+     * @param indexes  set of operation index
      * @param tenantId the tenant for operation
      * @param document the {@link MetadataDocument} for indexing
      * @return the number of Unit incorporated (0 if none)
@@ -442,11 +439,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @param tenantId
      * @param type
-     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *        values" : [list of id] } }"
-     * @param filter the filter
-     * @param sorts the list of sort
-     * @param facets the list of facet
+     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *                   values" : [list of id] } }"
+     * @param filter     the filter
+     * @param sorts      the list of sort
+     * @param facets     the list of facet
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      * @throws BadRequestException
@@ -577,11 +574,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     /**
      * @param collections the working collection
-     * @param tenantId the tenant for operation
-     * @param type the type of document to delete
-     * @param id the id of document to delete
+     * @param tenantId    the tenant for operation
+     * @param type        the type of document to delete
+     * @param id          the id of document to delete
      * @throws MetaDataExecutionException if query operation exception occurred
-     * @throws MetaDataNotFoundException if item not found when deleting
+     * @throws MetaDataNotFoundException  if item not found when deleting
      */
     public final void deleteEntryIndex(final MetadataCollections collections, Integer tenantId, final String type,
         final String id)
@@ -596,75 +593,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
         if (response.status() == RestStatus.NOT_FOUND) {
             throw new MetaDataNotFoundException("Item not found when trying to delete");
-        }
-    }
-
-    /**
-     * create indexes during Object group insert
-     *
-     * @param cursor the {@link MongoCursor} of ObjectGroup
-     * @param tenantId the tenant for operation
-     * @throws MetaDataExecutionException when insert exception
-     */
-    public void insertBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId)
-        throws MetaDataExecutionException {
-        if (!cursor.hasNext()) {
-            LOGGER.error("ES insert in error since no results to insert");
-            throw new MetaDataExecutionException("No result to insert");
-        }
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
-        int max = VitamConfiguration.getMaxElasticsearchBulk();
-        while (cursor.hasNext()) {
-            max--;
-            final ObjectGroup og = cursor.next();
-            final String id = og.getId();
-            og.remove(VitamDocument.ID);
-            og.remove(VitamDocument.SCORE);
-
-            final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            // TODO Empty variable (null) might be ignore here
-            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
-            final String toInsert = dbObject.toString().trim();
-            if (toInsert.isEmpty()) {
-                LOGGER.error("ES insert in error since result to insert is empty");
-                throw new MetaDataExecutionException("Result to insert is empty");
-            }
-            bulkRequest.add(client
-                .prepareIndex(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
-                    VitamCollection.getTypeunique(), id)
-                .setSource(toInsert, XContentType.JSON));
-            if (max == 0) {
-                max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse =
-                    bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
-                if (bulkResponse.hasFailures()) {
-                    int duplicates = 0;
-                    for (final BulkItemResponse bulkItemResponse : bulkResponse) {
-                        if (bulkItemResponse.getVersion() > 1) {
-                            duplicates++;
-                        }
-                    }
-                    LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
-                        bulkResponse.buildFailureMessage());
-                    throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
-                }
-                bulkRequest = client.prepareBulk();
-            }
-        }
-        if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse =
-                bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
-            if (bulkResponse.hasFailures()) {
-                int duplicates = 0;
-                for (final BulkItemResponse bulkItemResponse : bulkResponse) {
-                    if (bulkItemResponse.getVersion() > 1) {
-                        duplicates++;
-                    }
-                }
-                LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
-                    bulkResponse.buildFailureMessage());
-                throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
-            }
         }
     }
 
@@ -724,27 +652,62 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     }
 
     /**
+     * Insert one element
+     *
+     * @param collection
+     * @param tenantId
+     * @param id
+     * @param doc        full document to insert
+     * @return True if updated
+     */
+    public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
+        throws MetaDataExecutionException {
+        try {
+            final String mongoJson = doc.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            dbObject.removeField(VitamDocument.ID);
+            final String document = dbObject.toString().trim();
+            IndexResponse indexResponse = client.prepareIndex(getAliasName(collection, tenantId),
+                VitamCollection.getTypeunique(), id)
+                .setSource(document, XContentType.JSON)
+                .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+            if (indexResponse.status() != RestStatus.CREATED && indexResponse.status() != RestStatus.OK) {
+                throw new MetaDataExecutionException(String
+                    .format("Could not index document on ES. Id=%s, collection=%s, status=%s", id, collection,
+                        indexResponse.status()));
+            }
+        } finally {
+            doc.put(VitamDocument.ID, id);
+        }
+    }
+
+    /**
      * Update one element fully
      *
      * @param collection
      * @param tenantId
      * @param id
-     * @param og full object
-     * @return True if updated
+     * @param doc        full document to update
      */
-    public boolean updateFullOneOG(MetadataCollections collection, Integer tenantId, String id, ObjectGroup og) {
-        og.remove(VitamDocument.ID);
-        og.remove(VitamDocument.SCORE);
-        final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
-        // TODO Empty variable (null) might be ignore here
-        final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
-        final String toUpdate = dbObject.toString().trim();
-        UpdateResponse response = client.prepareUpdate(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
-            VitamCollection.getTypeunique(), id)
-            .setDoc(toUpdate, XContentType.JSON)
-            .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
-
-        return response.getId().equals(id);
+    public void updateFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
+        throws MetaDataExecutionException {
+        try {
+            final String mongoJson = doc.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            dbObject.removeField(VitamDocument.ID);
+            final String toUpdate = dbObject.toString().trim();
+            UpdateResponse response = client.prepareUpdate(getAliasName(collection, tenantId),
+                VitamCollection.getTypeunique(), id)
+                .setDoc(toUpdate, XContentType.JSON)
+                .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+            if (response.status() != RestStatus.OK) {
+                throw new MetaDataExecutionException(String
+                    .format("Could not update document on ES. Id=%s, collection=%s, status=%s", id, collection,
+                        response.status()));
+            }
+        } finally {
+            doc.put(VitamDocument.ID, id);
+        }
     }
 
     /**
@@ -752,7 +715,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * <p>
      * Bulk to delete entry indexes
      *
-     * @param ids list of ids of OG
+     * @param ids      list of ids of OG
      * @param tenantId the tenant for operation
      * @return boolean true if delete ok
      * @throws MetaDataExecutionException when delete index exception occurred
@@ -796,7 +759,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * <p>
      * Bulk to delete entry indexes
      *
-     * @param ids containing all Unit to be delete
+     * @param ids      containing all Unit to be delete
      * @param tenantId the tenant of operation
      * @throws MetaDataExecutionException when delete exception occurred
      */

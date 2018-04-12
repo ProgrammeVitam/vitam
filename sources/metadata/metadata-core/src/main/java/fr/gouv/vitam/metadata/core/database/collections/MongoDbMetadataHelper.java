@@ -24,31 +24,21 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-/**
- *
- */
 package fr.gouv.vitam.metadata.core.database.collections;
-
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import org.bson.conversions.Bson;
+
+import java.util.Collection;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * MongoDb Helper for Metadata
@@ -59,61 +49,8 @@ public class MongoDbMetadataHelper {
      */
     public static final BasicDBObject ID_PROJECTION = new BasicDBObject(MetadataDocument.ID, 1);
 
-    protected static final String ADD_TO_SET = "$addToSet";
-
     private MongoDbMetadataHelper() {
         // Empty constructor
-    }
-
-    /**
-     * Does not call getAfterLoad
-     *
-     * @param metadataCollections (not results except if already hashed)
-     * @param ref the reference of MetadataDocument object
-     * @return a MetadataDocument generic object from ID = ref value
-     */
-    @SuppressWarnings("rawtypes")
-    public static final MetadataDocument findOneNoAfterLoad(final MetadataCollections metadataCollections,
-        final String ref) {
-        return (MetadataDocument<?>) metadataCollections.getCollection().find(eq(MetadataDocument.ID, ref)).first();
-    }
-
-    /**
-     * Load a Document into MetadataDocument<?>. Calls getAfterLoad
-     *
-     * @param coll the working collection
-     * @param obj the document
-     * @return the MetadataDocument<?> casted object
-     * @throws InstantiationException when collection class instantiation exception occurred
-     * @throws IllegalAccessException when illegal access exception occurred
-     */
-    @SuppressWarnings("rawtypes")
-    public static final MetadataDocument loadFromDocument(final MetadataCollections coll, final Document obj)
-        throws InstantiationException, IllegalAccessException {
-        final MetadataDocument<?> vt = (MetadataDocument<?>) coll.getClasz().newInstance();
-        vt.putAll(obj);
-        vt.getAfterLoad();
-        return vt;
-    }
-
-    /**
-     * Calls getAfterLoad
-     *
-     * @param col metadata collection (not Results except if already hashed)
-     * @param field of collection
-     * @param ref reference of collection field
-     * @return the MetadataDocument casted object using field = ref
-     */
-    @SuppressWarnings("rawtypes")
-    public static final MetadataDocument findOne(final MetadataCollections col, final String field, final String ref) {
-        final MetadataDocument<?> vitobj =
-            (MetadataDocument<?>) col.getCollection().find(eq(field, ref)).first();
-        if (vitobj == null) {
-            return null;
-        } else {
-            vitobj.getAfterLoad();
-        }
-        return vitobj;
     }
 
     /**
@@ -128,22 +65,9 @@ public class MongoDbMetadataHelper {
         if (id == null || id.length() == 0) {
             return null;
         }
-        return findOne(col, MetadataDocument.ID, id);
-    }
-
-    /**
-     * OK with native id for Results
-     *
-     * @param col the working collection
-     * @param id the id value for searching in collection field
-     * @return True if one MetadataDocument object exists with this id
-     */
-    public static final boolean exists(final MetadataCollections col, final String id) {
-        if (id == null || id.length() == 0) {
-            return false;
-        }
-        return col.getCollection().find(eq(MetadataDocument.ID, id)).projection(MongoDbMetadataHelper.ID_PROJECTION)
-            .first() != null;
+        final MetadataDocument<?> result =
+            (MetadataDocument<?>) col.getCollection().find(eq(VitamDocument.ID, id)).first();
+        return result;
     }
 
     /**
@@ -187,7 +111,7 @@ public class MongoDbMetadataHelper {
 
     /**
      * Aff orderBy and offset and limit if not null or not -1
-     * 
+     *
      * @param find
      * @param orderBy
      * @param offset
@@ -206,28 +130,6 @@ public class MongoDbMetadataHelper {
             find.limit(limit);
         }
         return find;
-    }
-
-    /**
-     * @param collection domain of request
-     * @param condition where condition
-     * @param data the update data
-     * @param nb number of item to update
-     * @return the UpdateResult on the update request based on the given collection
-     * @throws MetaDataExecutionException if a mongo operation exception occurred
-     */
-    public static final UpdateResult update(final MetadataCollections collection,
-        final Bson condition, final Bson data, int nb)
-        throws MetaDataExecutionException {
-        try {
-            if (nb > 1) {
-                return collection.getCollection().updateMany(condition, data);
-            } else {
-                return collection.getCollection().updateOne(condition, data);
-            }
-        } catch (final MongoException e) {
-            throw new MetaDataExecutionException(e);
-        }
     }
 
     /**
@@ -252,30 +154,6 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * Used to filter Units according to some OG and some Units ancestors
-     *
-     * @param targetIds set of target ids
-     * @param ancestorIds set of ancestor ids
-     * @return the Filter condition to find if ancestorIds are ancestors of ObjectGroup targetIds
-     */
-    public static final Bson queryObjectGroupForAncestors(Collection<String> targetIds,
-        Collection<String> ancestorIds) {
-        return Filters.and(Filters.in(MetadataDocument.OG, targetIds),
-            Filters.or(Filters.in(Unit.UNITUPS, ancestorIds), Filters.in(MetadataDocument.ID, ancestorIds)));
-    }
-
-    /**
-     * Used to filter Units/OG according to immediate Unit ancestors
-     *
-     * @param targetIds set of target id
-     * @param ancestorIds set of ancestor id
-     * @return the Filter condition to find if ancestorIds are ancestors of targetIds
-     */
-    public static final Bson queryForImmediateAncestors(Collection<String> targetIds, Collection<String> ancestorIds) {
-        return Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.UP, ancestorIds));
-    }
-
-    /**
      * Used to filter Units/OG according to some Units ancestors
      *
      * @param targetIds set of target ids
@@ -294,167 +172,6 @@ public class MongoDbMetadataHelper {
                 Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(Unit.UNITUPS, ancestorIds)));
         }
         return new BasicDBObject();
-    }
-
-    /**
-     * Add a Link according to relation defined, where the relation is defined in obj1->obj2 way by default (even if
-     * symmetric)
-     *
-     * @param obj1
-     * @param relation
-     * @param obj2
-     * @return a {@link BasicDBObject} that hold a possible update part (may be null) as { $addToSet : { field : value }
-     *         } or { field : value }
-     */
-    @SuppressWarnings("rawtypes")
-    protected static final BasicDBObject addLink(final MetadataDocument obj1,
-        final VitamLinks relation,
-        final MetadataDocument obj2) {
-        switch (relation.type) {
-            case SYM_LINK_N1:
-                setAsymmetricLink(obj1, relation.field1to2, obj2);
-                return addAsymmetricLinkset(obj2, relation.field2to1, obj1, true);
-            case SYM_LINK_N_N:
-                return addAsymmetricLinkset(obj2, relation.field2to1, obj1, true);
-            default:
-                break;
-        }
-        return null;
-    }
-
-    /**
-     * Update the link (1 link type)
-     *
-     * @param obj1
-     * @param vtReloaded
-     * @param relation
-     * @param src
-     * @return the update part as { field : value }
-     */
-    @SuppressWarnings("rawtypes")
-    protected static final BasicDBObject updateLink(final MetadataDocument obj1,
-        final MetadataDocument vtReloaded,
-        final VitamLinks relation, final boolean src) {
-        final String fieldname = src ? relation.field1to2 : relation.field2to1;
-        if (vtReloaded != null) {
-            String srcOid = (String) vtReloaded.remove(fieldname);
-            final String targetOid = (String) obj1.get(fieldname);
-            if (srcOid != null && targetOid != null) {
-                if (targetOid.equals(srcOid)) {
-                    srcOid = null;
-                } else {
-                    srcOid = targetOid;
-                }
-            } else if (targetOid != null) {
-                srcOid = targetOid;
-            } else if (srcOid != null) {
-                obj1.put(fieldname, srcOid);
-                srcOid = null;
-            }
-            if (srcOid != null) {
-                // need to add $set
-                return new BasicDBObject(fieldname, srcOid);
-            }
-        } else {
-            // nothing since save will be done just after
-        }
-        return null;
-    }
-
-    /**
-     * Update the linkset (N link type)
-     *
-     * @param obj1 MetadataDocument object
-     * @param vtReloaded the MetadataDocument object loaded
-     * @param relation
-     * @param src
-     * @return the update part as { field : {$each : [value] } }
-     */
-    @SuppressWarnings("rawtypes")
-    protected static final BasicDBObject updateLinkset(final MetadataDocument obj1,
-        final MetadataDocument vtReloaded,
-        final VitamLinks relation, final boolean src) {
-        final String fieldname = src ? relation.field1to2 : relation.field2to1;
-        if (vtReloaded != null) {
-            @SuppressWarnings("unchecked")
-            final List<String> srcList = (List<String>) vtReloaded.remove(fieldname);
-            @SuppressWarnings("unchecked")
-            final List<String> targetList = (List<String>) obj1.get(fieldname);
-            if (srcList != null && targetList != null) {
-                targetList.removeAll(srcList);
-            } else if (targetList != null) {
-                // srcList empty
-            } else {
-                // targetList empty
-                obj1.put(fieldname, srcList);
-            }
-            if (targetList != null && !targetList.isEmpty()) {
-                // need to add $addToSet
-                return new BasicDBObject(fieldname,
-                    new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), targetList));
-            }
-        } else {
-            // nothing since save will be done just after, except checking array exists
-            if (!obj1.containsKey(fieldname)) {
-                obj1.put(fieldname, new ArrayList<>());
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Add a single relation (1) from Obj1 to Obj2 (used in N-1 link)
-     *
-     * @param obj1 MetadataDocument object
-     * @param obj1ToObj2
-     * @param obj2 MetadataDocument object
-     * @return a {@link BasicDBObject} for update as { field : value }
-     */
-    @SuppressWarnings("rawtypes")
-    private static final BasicDBObject setAsymmetricLink(
-        final MetadataDocument obj1, final String obj1ToObj2,
-        final MetadataDocument obj2) {
-        final String refChild = obj2.getId();
-        if (obj1.containsKey(obj1ToObj2) && obj1.get(obj1ToObj2).equals(refChild)) {
-            return null;
-        }
-        obj1.put(obj1ToObj2, refChild);
-        return new BasicDBObject(UPDATEACTION.SET.exactToken(), new BasicDBObject(obj1ToObj2, refChild));
-    }
-
-    /**
-     * Add a one way relation (n) from Obj1 to Obj2 (used in N-(N) and N-1 links)
-     *
-     * @param obj1 MetadataDocument object
-     * @param obj1ToObj2
-     * @param obj2 MetadataDocument object
-     * @param toUpdate True if this element will be updated through $addToSet only
-     * @return a {@link BasicDBObject} for update as { $addToSet : { field : value } }
-     */
-    @SuppressWarnings("rawtypes")
-    private static final BasicDBObject addAsymmetricLinkset(final MetadataDocument obj1,
-        final String obj1ToObj2,
-        final MetadataDocument obj2, final boolean toUpdate) {
-        @SuppressWarnings("unchecked")
-        ArrayList<String> relation12 = (ArrayList<String>) obj1.get(obj1ToObj2);
-        final String oid2 = obj2.getId();
-        if (relation12 == null) {
-            if (toUpdate) {
-                return new BasicDBObject(ADD_TO_SET,
-                    new BasicDBObject(obj1ToObj2, oid2));
-            }
-            relation12 = new ArrayList<>();
-        }
-        if (relation12.contains(oid2)) {
-            return null;
-        }
-        if (toUpdate) {
-            return new BasicDBObject(ADD_TO_SET, new BasicDBObject(obj1ToObj2, oid2));
-        } else {
-            relation12.add(oid2);
-            obj1.put(obj1ToObj2, relation12);
-            return null;
-        }
     }
 
     /**

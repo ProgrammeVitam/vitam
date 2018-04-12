@@ -26,32 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -60,6 +37,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -74,6 +52,25 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.junit.Assume.assumeTrue;
 
 /**
  *
@@ -91,7 +88,6 @@ public class SelectObjectGroupResourceTest {
 
 
     private static final String OBJECT_GROUP_ID = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
-    private static final String QUERY_PATH = "{ \"$path\" :  [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\"]  }";
     private static final String DATA_URI = "/metadata/v1";
     private static final String OBJECT_GROUPS_URI = "/objectgroups";
     private static final String DATABASE_NAME = "vitam-test";
@@ -200,9 +196,12 @@ public class SelectObjectGroupResourceTest {
         MetadataCollections.UNIT.getCollection().drop();
     }
 
-    private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString("{ \"$roots\" : [ \"\" ], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
+    private static final JsonNode buildDSLWithOptions(String data) throws Exception {
+        return JsonHandler.getFromString("{ $roots : [], $query : [], $data : " + data + " }");
+    }
+
+    private static final JsonNode buildDSLWithOptionsRoot(String root, String data) throws Exception {
+        return JsonHandler.getFromString("{ $roots : [ \"" + root + "\"], $query : [], $data : " + data + " }");
     }
 
 
@@ -221,13 +220,13 @@ public class SelectObjectGroupResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .body(buildDSLWithOptions(DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
+            .body(buildDSLWithOptionsRoot("aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq", DATA2)).when()
             .post(OBJECT_GROUPS_URI).then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -279,7 +278,7 @@ public class SelectObjectGroupResourceTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
+            .body(buildDSLWithOptions(createJsonStringWithDepth(101)).asText()).when()
             .post("/units/").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
@@ -302,7 +301,7 @@ public class SelectObjectGroupResourceTest {
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
+            .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
             .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }

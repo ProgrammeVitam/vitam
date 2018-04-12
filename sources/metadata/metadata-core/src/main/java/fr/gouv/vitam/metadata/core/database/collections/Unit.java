@@ -26,55 +26,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.gt;
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Filters.lt;
-import static com.mongodb.client.model.Updates.addEachToSet;
-import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.min;
-import static com.mongodb.client.model.Updates.set;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.bson.BSONObject;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.UpdateOptions;
-
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
-import fr.gouv.vitam.common.guid.GUIDObjectType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.bson.Document;
+
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
 
 /**
  * Unit class:<br>
  *
  * @formatter:off { MD content, _id: UUID, _tenant: tenant, _profil: documentType,, _min: depthmin, _max: depthmax,
- *                _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
- *                be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
- *                limited to immediate parent _og: UUID, _nbc : immediateChildNb }
+ * _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
+ * be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
+ * limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
 public class Unit extends MetadataDocument<Unit> {
-    private static final String EXCEPTION_FOR = "Exception for ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Unit.class);
 
@@ -84,7 +70,6 @@ public class Unit extends MetadataDocument<Unit> {
      * UNITDEPTHS : { UUID1 : depth2, UUID2 : depth2 }
      */
     public static final String UNITDEPTHS = "_uds";
-    public static final String UNITDEPTHS_POINT = UNITDEPTHS + ".";
     /**
      * UNITUPS : [ UUID1, UUID2 ]
      */
@@ -105,24 +90,29 @@ public class Unit extends MetadataDocument<Unit> {
      * UnitType : normal or holding scheme
      */
     public static final String UNIT_TYPE = "_unitType";
+    public static final String GRAPH = "_graph";
+    public static final String PARENT_ORIGINATING_AGENCIES = "_us_sp";
 
     @Override
     public MetadataDocument<Unit> newInstance(JsonNode content) {
         return new Unit(content);
     }
 
-    // TODO P1 add Nested objects or Parent/child relationships
-
-    /**
-     * Quick projection for ID and ObjectGroup Only
-     */
-    public static final BasicDBObject UNIT_OBJECTGROUP_PROJECTION =
-        new BasicDBObject(MetadataDocument.ID, 1).append(MetadataDocument.OG, 1).append(TENANT_ID, 1);
-
     /**
      * Es projection (no UPS)
      */
     public static final BasicDBObject UNIT_ES_PROJECTION = new BasicDBObject(UNITDEPTHS, 0);
+
+    private static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
+        new BasicDBObject(UP, 1)
+            .append(UNITUPS, 1)
+            .append(GRAPH, 1)
+            .append(ORIGINATING_AGENCIES, 1)
+            .append(UNITDEPTHS, 1)
+            .append(ORIGINATING_AGENCY, 1)
+            .append(PARENT_ORIGINATING_AGENCIES, 1)
+            .append(ID, 1)
+            .append(OG, 1);
 
     /**
      * Unit Id, Vitam fields Only projection (no content nor management)
@@ -132,12 +122,6 @@ public class Unit extends MetadataDocument<Unit> {
             .append(MINDEPTH, 1).append(MAXDEPTH, 1)
             .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1)
             .append(ORIGINATING_AGENCIES, 1).append(MetadataDocument.OG, 1);
-    /**
-     * Unit Id, Vitam and Management fields Only projection (no content)
-     */
-    public static final BasicDBObject UNIT_VITAM_MANAGEMENT_PROJECTION =
-        new BasicDBObject(UNIT_VITAM_PROJECTION)
-            .append(MANAGEMENT + ".$", 1);
     /**
      * Storage Rule
      */
@@ -198,34 +182,6 @@ public class Unit extends MetadataDocument<Unit> {
     @SuppressWarnings("javadoc")
     public static final String CLASSIFICATIONEND = CLASSIFICATIONRULE + END;
 
-    private static final BasicDBObject[] indexes = {
-        new BasicDBObject(VitamLinks.UNIT_TO_UNIT.field2to1, 1),
-        new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2, 1),
-        new BasicDBObject(TENANT_ID, 1),
-        new BasicDBObject(UNITUPS, 1),
-        new BasicDBObject(MINDEPTH, 1),
-        new BasicDBObject(MAXDEPTH, 1),
-        new BasicDBObject(OPS, 1),
-        new BasicDBObject(OPI, 1),
-        new BasicDBObject(STORAGERULES, 1),
-        new BasicDBObject(STORAGEEND, 1),
-        new BasicDBObject(APPRAISALRULES, 1),
-        new BasicDBObject(APPRAISALEND, 1),
-        new BasicDBObject(ACCESSRULES, 1),
-        new BasicDBObject(ACCESSEND, 1),
-        new BasicDBObject(DISSEMINATIONRULES, 1),
-        new BasicDBObject(DISSEMINATIONEND, 1),
-        new BasicDBObject(REUSERULES, 1),
-        new BasicDBObject(REUSERULE, 1),
-        new BasicDBObject(CLASSIFICATIONRULES, 1),
-        new BasicDBObject(CLASSIFICATIONEND, 1),
-        new BasicDBObject(TYPE, 1)};
-
-    /**
-     * Number of Immediate child (Unit)
-     */
-    private long nb = 0;
-
     /**
      * Empty constructor
      */
@@ -260,13 +216,6 @@ public class Unit extends MetadataDocument<Unit> {
         super(content);
     }
 
-    /**
-     * @return the associated GUIDObjectType
-     */
-    public static final int getGUIDObjectTypeId() {
-        return GUIDObjectType.UNIT_TYPE;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<Unit> getCollection() {
@@ -276,228 +225,6 @@ public class Unit extends MetadataDocument<Unit> {
     @Override
     protected MetadataCollections getMetadataCollections() {
         return MetadataCollections.UNIT;
-    }
-
-    @Override
-    public Unit save() throws MetaDataExecutionException {
-        putBeforeSave();
-        getMaxDepth();
-        getMinDepth();
-        if (updated()) {
-            LOGGER.debug("Updated: {}", this);
-            return this;
-        }
-        LOGGER.debug("Save: {}", this);
-        insert();
-        return this;
-    }
-
-    @Override
-    protected boolean updated() throws MetaDataExecutionException {
-        // XXX TODO P1 only addition is taken into consideration there: removal shall be done elsewhere
-        final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
-        BasicDBObject update = null;
-        if (vt != null) {
-            LOGGER.debug("UpdateLinks: {}\n\t{}", this, vt);
-            final List<BasicDBObject> listAddToSet = new ArrayList<>();
-            final List<BasicDBObject> listset = new ArrayList<>();
-            /*
-             * Only parent link, not child link
-             */
-            BasicDBObject upd =
-                MongoDbMetadataHelper.updateLinkset(this, vt, VitamLinks.UNIT_TO_UNIT, false);
-            if (upd != null) {
-                listAddToSet.add(upd);
-            }
-            upd = MongoDbMetadataHelper.updateLink(this, vt, VitamLinks.UNIT_TO_OBJECTGROUP, true);
-            if (upd != null) {
-                listset.add(upd);
-            }
-            // UNITDEPTHS
-            final Map<String, Integer> vtDepths =
-                (Map<String, Integer>) vt.remove(UNITDEPTHS);
-            Map<String, Integer> depthLevels =
-                (Map<String, Integer>) get(UNITDEPTHS);
-            if (depthLevels == null) {
-                depthLevels = new HashMap<>();
-            }
-            final BasicDBObject vtDepthLevels = new BasicDBObject();
-            if (vtDepths != null) {
-                // remove all not in current but in vt as already updated, for
-                // the others compare vt with current
-                for (final String unit : vtDepths.keySet()) {
-                    final Integer pastval = vtDepths.get(unit);
-                    final Integer newval = depthLevels.get(unit);
-                    if (newval != null) {
-                        if (pastval > newval) {
-                            // to be remotely updated
-                            vtDepthLevels.append(unit, newval);
-                        } else {
-                            // to be remotely updated
-                            vtDepthLevels.append(unit, pastval);
-                            // update only locally
-                            depthLevels.put(unit, pastval);
-                        }
-                    } else {
-                        // to be remotely updated
-                        vtDepthLevels.append(unit, pastval);
-                        // update only locally
-                        depthLevels.put(unit, pastval);
-                    }
-                }
-                // now add into remote update from current, but only non
-                // existing in vt (already done)
-                for (final String unit : depthLevels.keySet()) {
-                    // remove by default
-                    final Integer srcobj = vtDepths.get(unit);
-                    final Integer obj = depthLevels.get(unit);
-                    if (srcobj == null) {
-                        // to be remotely updated
-                        vtDepthLevels.append(unit, obj);
-                    }
-                }
-                // Update locally
-                append(UNITDEPTHS, depthLevels);
-            }
-            if (!vtDepthLevels.isEmpty()) {
-                upd = new BasicDBObject(UNITDEPTHS, vtDepthLevels);
-                listset.add(upd);
-            }
-            // Compute UNITUPS
-            @SuppressWarnings("unchecked")
-            final List<String> vtUps = (List<String>) vt.remove(UNITUPS);
-            @SuppressWarnings("unchecked")
-            List<String> ups = (List<String>) get(UNITUPS);
-            if (ups == null) {
-                ups = new ArrayList<>();
-            }
-            if (vtUps != null) {
-                // remove all not in vt but in current as newly added
-                ups.removeAll(vtUps);
-            }
-            if (!ups.isEmpty()) {
-                final BasicDBObject vtDepthsBson = new BasicDBObject(UNITUPS,
-                    new BasicDBObject(UPDATEACTIONARGS.EACH.exactToken(), ups));
-                listAddToSet.add(vtDepthsBson);
-            }
-            try {
-                update = new BasicDBObject();
-                if (!listAddToSet.isEmpty()) {
-                    upd = new BasicDBObject();
-                    for (final BasicDBObject dbObject : listAddToSet) {
-                        upd.putAll((BSONObject) dbObject);
-                    }
-                    update = update.append(MongoDbMetadataHelper.ADD_TO_SET, upd);
-                }
-                if (!listset.isEmpty()) {
-                    upd = new BasicDBObject();
-                    for (final BasicDBObject dbObject : listset) {
-                        upd.putAll((BSONObject) dbObject);
-                    }
-                    update = update.append(UPDATEACTION.SET.exactToken(), upd);
-                }
-                update = update.append(UPDATEACTION.INC.exactToken(),
-                    new BasicDBObject(NBCHILD, nb));
-                nb = 0;
-                update(update);
-            } catch (final MongoException e) {
-                LOGGER.error(EXCEPTION_FOR + update, e);
-                throw e;
-            }
-            listAddToSet.clear();
-            listset.clear();
-            return true;
-        } else {
-            MongoDbMetadataHelper.updateLinkset(this, null, VitamLinks.UNIT_TO_UNIT, false);
-            append(NBCHILD, nb);
-            append(UNITUPS, new ArrayList<>());
-            append(UNITDEPTHS, new HashMap<>());
-            nb = 0;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean load() {
-        final Unit vt = (Unit) MongoDbMetadataHelper.findOneNoAfterLoad(getMetadataCollections(), getId());
-        if (vt == null) {
-            return false;
-        }
-        putAll(vt);
-        getAfterLoad();
-        return true;
-    }
-
-    @Override
-    public Unit getAfterLoad() {
-        return this;
-    }
-
-    @Override
-    public Unit putBeforeSave() {
-        return this;
-    }
-
-    /**
-     * Used in ingest (get the next uds including itself with depth +1 for all)
-     *
-     * @return a list of udpate query for new unitdepth for children
-     */
-    public List<Bson> getSubDepthList() {
-        final String id = getId();
-        // addAll to temporary ArrayList
-        final Map<String, Integer> vtDomaineLevels = getDepths();
-        final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
-
-        // must compute depth from parent
-        final List<Bson> list = new ArrayList<>(size);
-        if (vtDomaineLevels != null) {
-            for (final Map.Entry<String, Integer> bson : vtDomaineLevels.entrySet()) {
-                list.add(min(UNITDEPTHS_POINT + bson.getKey(), bson.getValue() + 1));
-            }
-        }
-        list.add(set(UNITDEPTHS_POINT + id, 1));
-        return list;
-    }
-
-    /**
-     * Used in ingest (get the next uds including itself with depth +1 for all)
-     *
-     * @param units the list of unit to add
-     * @return a list of udpate query for new unitdepth for children
-     */
-     public List<Bson> getSubDepthList(List<Unit> units) {
-        final List<Bson> list = new ArrayList<>();
-        list.addAll(getSubDepthList());
-
-        for (Unit unit : units) {
-            if (unit.get(UNITDEPTHS) != null) {
-                for (Map.Entry<String, Integer> entry : ((Map<String, Integer>) unit.get(UNITDEPTHS)).entrySet()) {
-                    list.add(min(UNITDEPTHS_POINT + entry.getKey(), entry.getValue()));
-                }
-
-            }
-        }
-        return list;
-    }
-
-    /**
-     * Used in ingest (get the next ups including itself)
-     *
-     * @return the new UNITUPS
-     */
-    public List<String> getSubUnitUps() {
-        @SuppressWarnings("unchecked")
-        final List<String> subids = (List<String>) get(UNITUPS);
-        List<String> subids2;
-        if (subids != null) {
-            subids2 = new ArrayList<>(subids.size() + 1);
-            subids2.addAll(subids);
-        } else {
-            subids2 = new ArrayList<>(1);
-        }
-        subids2.add(getId());
-        return subids2;
     }
 
     /**
@@ -530,290 +257,85 @@ public class Unit extends MetadataDocument<Unit> {
         return map;
     }
 
-    /**
-     * @return the max depth of this node from existing parents
-     */
-    public int getMaxDepth() {
-        final Map<String, Integer> map = getDepths();
-        int depth = 0;
-        if (map != null) {
-            for (final Integer integer : map.values()) {
-                if (depth < integer) {
-                    depth = integer;
+    public void buildParentGraph(Set<String> directParents) throws MetaDataNotFoundException {
+
+        String id = getId();
+        Set<String> allParents = new HashSet<>();
+        Set<String> graph = new HashSet<>();
+        Map<String, Integer> parentDepths = new HashMap<>();
+        Set<String> allOriginatingAgencies = new HashSet<>();
+        MultiValuedMap<String, String> allParentOriginatingAgencies = new HashSetValuedHashMap<>();
+        String originatingAgency = get(ORIGINATING_AGENCY, String.class);
+        if (originatingAgency != null) {
+            allOriginatingAgencies.add(originatingAgency);
+        }
+
+        if (!directParents.isEmpty()) {
+
+            allParents.addAll(directParents);
+
+            for (String directParent : directParents) {
+                graph.add(createGraphRelation(id, directParent));
+            }
+
+            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
+                    in(MetadataDocument.ID, directParents), Unit.UNIT_VITAM_GRAPH_PROJECTION);
+            final Set<String> notFound = new HashSet<>(directParents);
+            try (MongoCursor<Unit> cursor = iterable.iterator()) {
+                while (cursor.hasNext()) {
+                    final Unit parentUnit = cursor.next();
+
+                    allParents.addAll(parentUnit.getCollectionOrEmpty(UNITUPS));
+
+                    graph.addAll(parentUnit.getCollectionOrEmpty(GRAPH));
+
+                    allOriginatingAgencies.addAll(parentUnit.getCollectionOrEmpty(Unit.ORIGINATING_AGENCIES));
+
+                    Map<String, Collection<String>> parentUnitsByOriginatingAgencies =
+                        parentUnit.getMapOrEmpty(Unit.PARENT_ORIGINATING_AGENCIES);
+                    parentUnitsByOriginatingAgencies
+                        .forEach((key, ids) -> allParentOriginatingAgencies.putAll(key, ids));
+
+                    String parentOriginatingAgency = parentUnit.get(Unit.ORIGINATING_AGENCY, String.class);
+                    if (parentOriginatingAgency != null) {
+                        allParentOriginatingAgencies.put(parentOriginatingAgency, parentUnit.getId());
+                    }
+
+                    Map<String, Integer> parentParentDepths = parentUnit.getMapOrEmpty(UNITDEPTHS);
+                    for (Entry<String, Integer> entry : parentParentDepths.entrySet()) {
+                        parentDepths.put(entry.getKey(), entry.getValue() + 1);
+                    }
+
+                    notFound.remove(parentUnit.getId());
                 }
             }
-        }
-        depth++;
-        put(MAXDEPTH, depth);
-        return depth;
-    }
 
-    /**
-     * @return the min depth of this node from existing parents
-     */
-    public int getMinDepth() {
-        final Map<String, Integer> map = getDepths();
-        int depth = this.getInteger(MINDEPTH, GlobalDatas.MAXDEPTH);
-        if (map != null) {
-            for (final Integer integer : map.values()) {
-                if (depth > integer) {
-                    depth = integer;
-                }
+            // Set/override direct parents depth to 1
+            for (String directParent : directParents) {
+                parentDepths.put(directParent, 1);
+            }
+
+            if (!notFound.isEmpty()) {
+                LOGGER.error("Cannot find parent: " + notFound);
+                throw new MetaDataNotFoundException("Cannot find parents: " + notFound);
             }
         }
-        if (depth == GlobalDatas.MAXDEPTH) {
-            depth = 1;
-        }
-        put(MINDEPTH, depth);
-        return depth;
-    }
 
-    private void updateAfterAddingSubUnit() throws MetaDataExecutionException {
-        final BasicDBObject update = new BasicDBObject()
-            .append(UPDATEACTION.INC.exactToken(),
-                new BasicDBObject(NBCHILD, nb));
-        nb = 0;
-        update(update);
-    }
+        put(UP, directParents);
+        put(UNITUPS, allParents);
+        put(GRAPH, graph);
+        put(ORIGINATING_AGENCIES, allOriginatingAgencies);
+        put(UNITDEPTHS, parentDepths);
+        put(PARENT_ORIGINATING_AGENCIES, allParentOriginatingAgencies.asMap());
 
-    /**
-     * Add the link (N)-N between this Unit and sub Unit (update only subUnit)
-     *
-     * @param unit for adding the link
-     * @return Unit with link added
-     * @throws MetaDataExecutionException when adding exception occurred
-     */
-    public Unit addUnit(final Unit unit) throws MetaDataExecutionException {
-        Bson update = null;
-        final List<String> ids = new ArrayList<>();
+        put(MINDEPTH, 1);
+        int maxDepth = parentDepths.values().stream().max(Comparator.naturalOrder()).orElse(0) + 1;
+        put(MAXDEPTH, maxDepth);
+
+        // Debug
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(this + "->" + unit);
-        }
-        final BasicDBObject update2 =
-            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
-        if (update2 != null) {
-            ids.add(unit.getId());
-            update = update2;
-        }
-        if (!ids.isEmpty()) {
-            final List<Bson> updateSubDepth = getSubDepthList();
-            final List<String> subids = getSubUnitUps();
-            final Bson updateSubUnits = addEachToSet(UNITUPS, subids);
-            Integer val = this.getInteger(MINDEPTH);
-            int min = 1;
-            if (val != null) {
-                min += val;
-            }
-            val = this.getInteger(MAXDEPTH);
-            int max = 1;
-            if (val != null) {
-                max += val;
-            }
-            update = combine(update, combine(updateSubDepth), updateSubUnits);
-            if (min < unit.getInteger(MINDEPTH)) {
-                update = combine(update, set(MINDEPTH, min));
-            }
-            if (max > unit.getInteger(MAXDEPTH)) {
-                update = combine(update, set(MAXDEPTH, max));
-            }
-
-            final List<String> sps = (List<String>) get(ORIGINATING_AGENCIES);
-            if (sps != null) {
-                update = combine(update, addEachToSet(ORIGINATING_AGENCIES, sps));
-            }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(this + "->" + unit + "\n" +
-                    "\t" + MongoDbHelper.bsonToString(update, false) + "\n\t" + min + ":" + max);
-            }
-            try {
-                final long nbc = getCollection().updateOne(eq(ID, ids.get(0)),
-                    update,
-                    new UpdateOptions().upsert(false)).getMatchedCount();
-                nb += nbc;
-                updateSubDepth.clear();
-                subids.clear();
-                updateAfterAddingSubUnit();
-            } catch (final MongoException e) {
-                LOGGER.error(EXCEPTION_FOR + update, e);
-                throw new MetaDataExecutionException(e);
-            }
-        }
-        ids.clear();
-        return this;
-    }
-
-    /**
-     * Add the link (N)-N between Unit and List of sub Units (update only subUnits)
-     *
-     * @param units list of units for adding the link
-     * @return Unit with links added
-     * @throws MetaDataExecutionException when adding exception occurred
-     */
-    public Unit addUnits(final List<Unit> units) throws MetaDataExecutionException {
-        Bson update = null;
-        final List<String> ids = new ArrayList<>();
-        for (final Unit unit : units) {
-            final BasicDBObject update2 = MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_UNIT, unit);
-            if (update2 != null) {
-                ids.add(unit.getId());
-                update = update2;
-            }
-        }
-        if (!ids.isEmpty()) {
-            final List<Bson> updateSubDepth = getSubDepthList(units);
-            final List<String> subids = getSubUnitUps();
-            final Bson updateSubUnits = addEachToSet(UNITUPS, subids);
-            update = combine(update, combine(updateSubDepth), updateSubUnits);
-            Integer val = this.getInteger(MINDEPTH);
-            int min = 1;
-            if (val != null) {
-                min += val;
-            }
-            val = this.getInteger(MAXDEPTH);
-            int max = 1;
-            if (val != null) {
-                max += val;
-            }
-            try {
-                final long nbc = getCollection().updateMany(in(ID, ids),
-                    update,
-                    new UpdateOptions().upsert(false)).getMatchedCount();
-                nb += nbc;
-                updateSubDepth.clear();
-                subids.clear();
-                getCollection().updateMany(
-                    and(in(ID, ids), lt(MAXDEPTH, max)),
-                    new BasicDBObject(MAXDEPTH, max),
-                    new UpdateOptions().upsert(false));
-                getCollection().updateMany(
-                    and(in(ID, ids), gt(MINDEPTH, min)),
-                    new BasicDBObject(MINDEPTH, min),
-                    new UpdateOptions().upsert(false));
-                updateAfterAddingSubUnit();
-            } catch (final MongoException e) {
-                LOGGER.error(EXCEPTION_FOR + update, e);
-                throw new MetaDataExecutionException(e);
-            }
-        }
-        ids.clear();
-        return this;
-    }
-
-    /**
-     * @return the list of UUID of children (database access)
-     */
-    public List<String> getChildrenUnitIdsFromParent() {
-        final BasicDBObject condition = new BasicDBObject(
-            VitamLinks.UNIT_TO_UNIT.field2to1, getId());
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(getMetadataCollections(), condition, MongoDbMetadataHelper.ID_PROJECTION);
-        final List<String> ids = new ArrayList<>();
-        try (final MongoCursor<Unit> iterator = iterable.iterator()) {
-            while (iterator.hasNext()) {
-                final String mid = iterator.next().getId();
-                ids.add(mid);
-            }
-        }
-        return ids;
-    }
-
-    /**
-     * @param remove if remove the link between units
-     * @return the list of UUID of Unit parents (immediate)
-     */
-    @SuppressWarnings("unchecked")
-    public List<String> getFathersUnitIds(final boolean remove) {
-        List<String> list;
-        if (remove) {
-            list = (List<String>) remove(VitamLinks.UNIT_TO_UNIT.field2to1);
-        } else {
-            list = (List<String>) this.get(VitamLinks.UNIT_TO_UNIT.field2to1);
-        }
-        if (list == null) {
-            return SingletonUtils.singletonList();
-        }
-        return list;
-    }
-
-    /**
-     * Add the link 1-N between Unit and ObjectGroup (update both Unit and ObjectGroup)
-     *
-     * @param data the objectgroup for adding link
-     * @return Unit with link added
-     * @throws MetaDataExecutionException when adding exception occurred
-     */
-    public Unit addObjectGroup(final ObjectGroup data)
-        throws MetaDataExecutionException {
-        final String old = getObjectGroupId(false);
-        final String newGOT = data.getId();
-        // TODO P1 when update is ready: change Junit to reflect this case
-        if (old != null && !old.isEmpty() && !old.equals(newGOT)) {
-            throw new MetaDataExecutionException("Cannot change ObjectGroup of Unit without removing it first");
-        }
-        final BasicDBObject update =
-            MongoDbMetadataHelper.addLink(this, VitamLinks.UNIT_TO_OBJECTGROUP, data);
-        if (update != null) {
-            data.update(update);
-            updated();
-        }
-        return this;
-    }
-
-    /**
-     * @param remove if remove the link
-     * @return the ObjectGroup UUID (may return null)
-     */
-    public String getObjectGroupId(final boolean remove) {
-        if (remove) {
-            return (String) remove(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2);
-        } else {
-            return (String) this.get(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2);
+            LOGGER.debug("DEBUG: UNIT {}", JSON.serialize(this));
         }
     }
-
-    /**
-     * Check if the current Unit has other Unit as immediate parent
-     *
-     * @param other a unit that could be immediate parent of current unit
-     * @return True if immediate parent, else False (however could be a grand parent)
-     */
-    public boolean isImmediateParent(final String other) {
-        final Map<String, Integer> depth = getDepths();
-        return depth.get(other) == 1;
-    }
-
-    /**
-     * Used in loop operation to clean the object
-     *
-     * @param all If true, all items are cleaned
-     */
-    public final void cleanStructure(final boolean all) {
-        remove(VitamLinks.UNIT_TO_UNIT.field1to2);
-        remove(VitamLinks.UNIT_TO_UNIT.field2to1);
-        remove(VitamLinks.UNIT_TO_OBJECTGROUP.field1to2);
-        remove(ID);
-        if (all) {
-            remove(UNITDEPTHS);
-            remove(UNITUPS);
-            remove(MINDEPTH);
-            remove(MAXDEPTH);
-            remove(TYPE);
-            remove(NBCHILD);
-        }
-    }
-
-    protected static void addIndexes() {
-        // if not set, Unit and Tree are worst
-        for (final BasicDBObject index : indexes) {
-            MetadataCollections.UNIT.getCollection().createIndex(index);
-        }
-    }
-
-    protected static void dropIndexes() {
-        for (final BasicDBObject index : indexes) {
-            MetadataCollections.UNIT.getCollection().dropIndex(index);
-        }
-    }
-
 }

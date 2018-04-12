@@ -117,19 +117,17 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response insertUnit(JsonNode insertRequest) {
         Status status;
         try {
-            try {
-                metaDataImpl.insertUnit(insertRequest);
-            } catch (final VitamDBException ve) {
-                LOGGER.error(ve);
-                status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext(INGEST)
-                        .setState(CODE_VITAM)
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(ve.getMessage()))
-                    .build();
-            }
+            metaDataImpl.insertUnit(insertRequest);
+        } catch (final VitamDBException ve) {
+            LOGGER.error(ve);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(ve.getMessage()))
+                .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -569,29 +567,18 @@ public class MetadataResource extends ApplicationStatusResource {
      *
      * @param insertRequest the insert query
      * @return the Response
-     * @throws InvalidParseOperationException when json data exception occurred
      */
     @Path("objectgroups")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response insertObjectGroup(JsonNode insertRequest) throws InvalidParseOperationException {
+    public Response insertObjectGroup(JsonNode insertRequest) {
         Status status;
         try {
             metaDataImpl.insertObjectGroup(insertRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(INGEST)
-                    .setState(CODE_VITAM)
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e);
-            status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(INGEST)

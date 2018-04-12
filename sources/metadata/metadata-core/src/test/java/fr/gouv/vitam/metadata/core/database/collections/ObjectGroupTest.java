@@ -26,18 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -45,6 +34,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.junit.Rule;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ObjectGroupTest {
 
@@ -74,48 +70,8 @@ public class ObjectGroupTest {
     }
 
     @Test
-    @RunWithCustomExecutor
-    public void testloadDocument() {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        final ObjectGroup group = new ObjectGroup();
-        group.load(go);
-        assertNotNull(group);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenObjectGroupWhenGetGuid() {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        final ObjectGroup group = new ObjectGroup(go);
-        group.append(TENANT_ID, 0);
-        assertNotNull(group.newObjectGuid());
-        assertEquals(2, ObjectGroup.getGUIDObjectTypeId());
-    }
-
-    @Test
-    public void givenObjectGroupWhenGetFathersUnitIdThenReturnAList() {
-        final ObjectGroup group = new ObjectGroup();
-        assertNotNull(group.getFathersUnitIds(true));
-        assertNotNull(group.getFathersUnitIds(false));
-    }
-
-    @Test
-    public void givenObjectGroupWhenCleanStructureThenItemCleaned() {
-        final ObjectGroup group = new ObjectGroup();
-        group.cleanStructure(true);
-    }
-
-    @Test
     public void givenObjectGroupWhenGetCollection() {
         final ObjectGroup group = new ObjectGroup();
         group.getMetadataCollections();
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenObjectGroupWhenIsNotImmediateParentThenReturnFalse() {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        final ObjectGroup group = new ObjectGroup(go);
-        assertFalse(group.isImmediateParent(groupGUID));
     }
 }

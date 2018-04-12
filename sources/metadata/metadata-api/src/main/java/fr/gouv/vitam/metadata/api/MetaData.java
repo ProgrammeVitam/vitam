@@ -193,13 +193,12 @@ public interface MetaData {
      * @param objectRequest as JsonNode { $roots: roots, $query : query, $filter : multi, $data : data}
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
-     * @throws MetaDataNotFoundException Throw if parent of this unit is not found
      * @throws MetaDataAlreadyExistException Throw if Unit id already exists
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      */
     void insertObjectGroup(JsonNode objectRequest)
-        throws InvalidParseOperationException, MetaDataNotFoundException,
+        throws InvalidParseOperationException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException;
 
     /**
