@@ -39,18 +39,33 @@
             </select>
           </div>
         </div>
+        
+        <div class="ui-g-12"
+             *ngIf="update && category.rule === 'ClassificationRule'">
+          <div class="ui-g-6" >
+          	<label style="display: inline">Niveau de la classification : </label>
+          	<input pInputText [(ngModel)]="updatedFields[category.rule].ClassificationLevel"
+                           style="width: 100%"/>
+          </div>
+          <div class="ui-g-6" >
+			<label style="display: inline">Propriétaire de la classification : </label>                           
+          	<input pInputText [(ngModel)]="updatedFields[category.rule].ClassificationOwner"
+                           style="width: 100%"/>
+                           
+          </div>
+        </div>
 
         <div *ngIf="!update && (category.rule === 'StorageRule' || category.rule === 'AppraisalRule') && management[category.rule]">
           <span class="ui-g-8">Sort Final: </span>
           <span class="ui-g-4">{{finalActions[category.rule][management[category.rule].FinalAction].label}}</span>
         </div>
 
-        <div class="ui-g-12" *ngIf="(category.rule === 'ClassificationRule') && management['ClassificationRule']">
+        <div class="ui-g-12" *ngIf="!update && (category.rule === 'ClassificationRule') && management['ClassificationRule']">
           <div *ngIf="management['ClassificationRule'].ClassificationLevel">
             <span class="ui-g-7">Niveau de la classification : </span>
             <span class="ui-g-5">{{management['ClassificationRule'].ClassificationLevel}}</span>
           </div>
-          <div *ngIf="management['ClassificationRule'].ClassificationOwner">
+          <div *ngIf="!update && management['ClassificationRule'].ClassificationOwner">
             <span class="ui-g-7">Propriétaire de la classification : </span>
             <span class="ui-g-5">{{management['ClassificationRule'].ClassificationOwner}}</span>
           </div>

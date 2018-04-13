@@ -64,7 +64,8 @@
 						"ClassificationReassessingDate": "2016-05-02",
 						"NeedReassessingAuthorization": false
 					}
-				],
+				],"ClassificationLevel":"ClassificationLevel"
+				,"ClassificationOwner":"ClassificationOwner",
 				"Inheritance": {
 					"PreventRulesId": [
 						"ID1",

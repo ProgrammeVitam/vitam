@@ -231,13 +231,7 @@
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
                       }
                     ]
-                  },
-                  "ClassificationLevel": {
-                    "type": "string"
-                  },
-                  "ClassificationOwner": {
-                    "type": "string"
-                  },
+                  },                  
                   "ClassificationReassessingDate": {
                     "anyOf": [
                       {
@@ -256,6 +250,12 @@
                 }
               }
             },
+            "ClassificationLevel": {
+				"type": "string"
+			  },
+			  "ClassificationOwner": {
+				"type": "string"
+			  },
             "Inheritance": {
               "id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Inheritance",
               "type": "object",
@@ -292,7 +292,8 @@
                 }
               ]
             }
-          }
+          },            
+			"anyOf": [ {"required":["ClassificationLevel", "ClassificationOwner"]}]
         },
         "DisseminationRule": {
           "type": "object",

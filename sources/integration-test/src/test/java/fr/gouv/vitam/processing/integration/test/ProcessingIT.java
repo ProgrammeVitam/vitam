@@ -1136,6 +1136,8 @@ public class ProcessingIT {
         tryImportFile();
         final String containerName = createOperationContainer();
 
+        VitamThreadUtils.getVitamSession().setRequestId(containerName);
+        
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
