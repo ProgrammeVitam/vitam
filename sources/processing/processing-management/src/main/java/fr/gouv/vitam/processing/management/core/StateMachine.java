@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 
 import fr.gouv.vitam.common.SedaConstants;
@@ -42,6 +43,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -75,6 +77,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StateMachine.class);
 
+    private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
     private ProcessEngine processEngine;
     private ProcessWorkflow processWorkflow;
@@ -369,9 +372,9 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.state = ProcessState.RUNNING;
         this.targetState = targetState;
         stepByStep = ProcessState.PAUSE.equals(targetState);
-        
+
         // if pause after fatal, force replay last step (if resume or next)
-        replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover()) 
+        replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover())
                 && StatusCode.FATAL.equals(processWorkflow.getStatus()));
 
         executeSteps(workerParameters, processWorkflow.getPauseRecover(), replayAfterFatal);
@@ -462,7 +465,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         if (stepIndex <= stepTotal - 1) {
             currentStep = steps.get(stepIndex);
-            
+
             if(backwards){
                 currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_REPLAY);
             }
@@ -485,6 +488,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (null != currentStep) {
             engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+            Stopwatch stopwatch = Stopwatch.createStarted();
             try {
                 workerParameters.setPreviousStep(backwards ? currentStep.getStepName() : null);
                 this.processEngine.start(currentStep, workerParameters, engineParams, pauseRecover);
@@ -496,6 +500,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 } finally {
                     this.persistProcessWorkflow();
                 }
+            } finally {
+                PERFORMANCE_LOGGER.log(currentStep.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
             }
         }
     }
@@ -518,6 +524,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (null != currentStep) {
             engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+            Stopwatch stopWatch = Stopwatch.createStarted();
             try {
                 this.processEngine.start(currentStep, workerParameters, engineParams, PauseRecover.NO_RECOVER);
             } catch (ProcessingEngineException e) {
@@ -528,6 +535,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 } finally {
                     this.persistProcessWorkflow();
                 }
+            } finally {
+                PERFORMANCE_LOGGER.log(currentStep.getStepName(), stopWatch.elapsed(TimeUnit.MILLISECONDS));
             }
         }
     }
@@ -537,18 +546,18 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         StatusCode stepStatusCode = currentStep.getStepStatusCode();
         if (stepStatusCode != null) {
             // if replay after FATAL and Process in PauseFromAPI, accept newest statusCode otherwise increment status
-            stepStatusCode = (stepStatusCode.compareTo(statusCode) < 0 || replayAfterFatal) 
+            stepStatusCode = (stepStatusCode.compareTo(statusCode) < 0 || replayAfterFatal)
                     ? statusCode : stepStatusCode;
         }
         currentStep.setStepStatusCode(stepStatusCode);
-        
+
         // if replay after FATAL and Process in PauseFromAPI, compute newest statusCode otherwise increment status
         if (replayAfterFatal) {
             this.status = recomputeProcessWorkflowStatus(statusCode);
         } else if (this.status.compareTo(statusCode) < 0) {
             this.status = statusCode;
         }
-        
+
         // only force status update for replayed step
         if(replayAfterFatal){
             replayAfterFatal = false;
@@ -557,7 +566,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     /**
      * recompute processWorkflow statusCode
-     * 
+     *
      * @param statusCode initial statusCode
      * @return the computed statusCode
      */
@@ -569,7 +578,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 computedStatus = previousStatusCode;
             }
         }
-        
+
         return computedStatus;
     }
 
@@ -585,13 +594,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     synchronized public void onError(Throwable throwable, WorkerParameters workerParameters) {
         LOGGER.error("Error in Engine", throwable);
         status = StatusCode.FATAL;
-        
+
         state = ProcessState.PAUSE;
         targetState = ProcessState.PAUSE;
-        
+
         // To enable recover when replay after FATAL
         processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_API_PAUSE);
-        
+
         this.persistProcessWorkflow();
     }
 
@@ -636,7 +645,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
                     // To enable recover when replay after FATAL
                     processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_API_PAUSE);
-                    
+
                     this.persistProcessWorkflow();
                 } else {
                     this.executeFinallyStep(workerParameters);

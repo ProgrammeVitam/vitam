@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -60,7 +61,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
-import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -101,7 +101,10 @@ import fr.gouv.vitam.worker.core.plugin.PluginLoader;
  * manages and executes actions by step
  */
 public class WorkerImpl implements Worker {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
+
+    private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
@@ -284,7 +287,7 @@ public class WorkerImpl implements Worker {
 
                     long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
 
-                    LOGGER.info("{},{},{}", actionDefinition.getActionKey(), step.getStepName(), elapsed);
+                    PERFORMANCE_LOGGER.log(step.getStepName(), actionDefinition.getActionKey(), elapsed);
 
                     if (actionResponse.shallStop(ProcessBehavior.BLOCKING.equals(actionDefinition.getBehavior()))) {
                         break;
@@ -313,8 +316,7 @@ public class WorkerImpl implements Worker {
         return status;
     }
 
-    private LogbookLifeCycleParameters createStartLogbookLfc(Step step, String handlerName,
-        WorkerParameters workParams)
+    private LogbookLifeCycleParameters createStartLogbookLfc(Step step, String handlerName, WorkerParameters workParams)
         throws InvalidGuidOperationException {
         LogbookLifeCycleParameters lfcParam = null;
         switch (step.getDistribution().getType()) {
@@ -420,7 +422,7 @@ public class WorkerImpl implements Worker {
         }
     }
 
-    private ActionHandler getActionHandler(String actionId) throws PluginNotFoundException {
+    private ActionHandler getActionHandler(String actionId) {
         return actions.get(actionId);
     }
 

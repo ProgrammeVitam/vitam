@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -44,6 +46,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -67,6 +70,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
@@ -108,6 +112,7 @@ import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -166,6 +171,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
 
+    private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
+
     // OUT RANK
     private static final int GRAPH_WITH_LONGEST_PATH_IO_RANK = 0;
     private static final int DO_ID_TO_OG_ID_IO_RANK = 1;
@@ -197,16 +204,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String ARCHIVAL_AGENCY = "ArchivalAgency";
     public static final int BATCH_SIZE = 50;
     public static final String RULES = "Rules";
-    public static final String UPDATE_EXISTING_GOT_WHEN_LINK_AU = "UPDATE_EXISTING_GOT_WHEN_LINK_AU";
+
     private static String ORIGIN_ANGENCY_NAME = "originatingAgency";
     private static final String ORIGIN_ANGENCY_SUBMISSION = "submissionAgency";
     private static final String ARCHIVAl_AGREEMENT = "ArchivalAgreement";
     private static final String ARCHIVAl_PROFIL = "ArchivalProfile";
 
-
-
     private HandlerIO handlerIO;
-
 
     private static final String EV_DETAIL_REQ = "EvDetailReq";
     private static final String JSON_EXTENSION = ".json";
@@ -332,7 +336,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static String getId() {
         return HANDLER_ID;
     }
 
@@ -408,8 +412,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 LOGGER.debug("Find a submissionAgencyIdentifier: " + submissionAgencyIdentifier);
                 agIdExt.put(ORIGIN_ANGENCY_SUBMISSION, submissionAgencyIdentifier);
             }
-            /**
-             * setting agIdExt informations
+            /*
+             * setting agIdExt information
              */
             if (agIdExt.size() > 0) {
                 globalCompositeItemStatus.setMasterData(LogbookMongoDbName.agIdExt.getDbname(), agIdExt.toString());
@@ -427,8 +431,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 rightsStatementIdentifier.put(ARCHIVAl_PROFIL, archivalProfile);
             }
 
-            /**
-             * setting rightsStatementIdentifier informations
+            /*
+             * setting rightsStatementIdentifier information
              */
             if (rightsStatementIdentifier.size() > 0) {
                 globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
@@ -601,8 +605,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final QName physicalDataObjectName = new QName(SedaConstants.NAMESPACE_URI, PHYSICAL_DATA_OBJECT);
         final QName unitName = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT);
 
-        try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(
-            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);) {
+        try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(SEDA_FOLDER + "/" + SEDA_FILE)) {
             XMLStreamReader rawReader = xmlInputFactory.createXMLStreamReader(xmlFile);
             XMLStreamReader filteredReader = xmlInputFactory.createFilteredReader(rawReader,
                 r -> !r.isWhiteSpace());
@@ -622,6 +625,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final JsonNode storageInfo = JsonHandler.getFromFile((File) handlerIO.getInput(STORAGE_INFO_INPUT_RANK));
 
             ObjectNode evDetData = JsonHandler.createObjectNode();
+
+            Stopwatch xmlParserStopwatch = Stopwatch.createStarted();
 
             while (true) {
                 final XMLEvent event = reader.peek();
@@ -670,9 +675,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     event.asStartElement().getName().equals(physicalDataObjectName))) {
                     final StartElement element = event.asStartElement();
 
-                    final String objectGroupGuid =
-                        writeDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient,
-                            typeProcess);
+                    final String objectGroupGuid = writeDataObjectInLocal(reader, element);
                     continue;
                 }
 
@@ -784,13 +787,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
 
+            long elapsed = xmlParserStopwatch.elapsed(TimeUnit.MILLISECONDS);
+
+            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.xml.parse", elapsed);
+
             writer.add(eventFactory.createEndDocument());
             writer.close();
 
             // save maps
             saveGuidsMaps();
 
-            // Fill evDetData EvDetailReq,ArchivalAgreement,ArchivalProfile and ServiceLevel properties
+            // Fill evDetData EvDetailReq, ArchivalAgreement, ArchivalProfile and ServiceLevel properties
             try {
                 JsonNode metadataAsJson =
                     JsonHandler.getFromFile(globalSedaParametersFile).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
@@ -889,7 +896,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             // 2-detect cycle : if graph has a cycle throw CycleFoundException
             // Define Treatment DirectedCycle detection
+
+            Stopwatch checkCycle = Stopwatch.createStarted();
+
             checkCycle(logbookLifeCycleClient, containerId, evDetDataJson);
+
+            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.checkCycle",
+                checkCycle.elapsed(TimeUnit.MILLISECONDS));
 
             // 2- create graph and create level
             // Define Treatment Graph and Level Creation
@@ -897,14 +910,25 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 GRAPH_WITH_LONGEST_PATH_IO_RANK);
 
             checkArchiveUnitIdReference(evDetDataJson);
+
+            Stopwatch saveObjectGroupToWorkspaceStopWatch = Stopwatch.createStarted();
+
             saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
                 storageInfo);
 
+            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.saveObjectGroup",
+                saveObjectGroupToWorkspaceStopWatch.elapsed(TimeUnit.MILLISECONDS));
+
+
             // Add parents to archive units and save them into workspace
+
+            Stopwatch saveArchiveUnitStopWatch = Stopwatch.createStarted();
+
             finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, logbookLifeCycleClient, storageInfo);
 
-
+            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.saveArchiveUnit",
+                saveArchiveUnitStopWatch.elapsed(TimeUnit.MILLISECONDS));
 
             handlerIO.addOuputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false, asyncIO);
 
@@ -1089,7 +1113,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         String containerId, String path, LogbookLifeCyclesClient logbookLifeCycleClient,
         JsonNode storageInfo)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
-        XMLStreamException, IOException, ProcessingException, InvalidParseOperationException {
+        XMLStreamException, ProcessingException, InvalidParseOperationException {
 
         // Finalize Archive units extraction process
         if (unitIdToGuid == null) {
@@ -1162,14 +1186,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
         archiveUnitNode.set(SedaConstants.STORAGE, storageInfo);
     }
 
-    private void bulkLifeCycleUnit(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient,
-        List<String> strings)
+    private void bulkLifeCycleUnit(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient, List<String> uuids)
         throws LogbookClientBadRequestException, LogbookClientServerException {
         List<LogbookLifeCycleUnitModel> collect =
-            strings.stream()
+            uuids.stream()
                 .filter(value -> handlerIO.getHelper().containsUpdate(value))
                 .map(value -> {
-
                     Queue<? extends LogbookLifeCycleParameters> logbookLifeCycleParameters1 =
                         handlerIO.getHelper().removeUpdateDelegate(value);
                     Collection<LogbookLifeCycleUnitParameters> logbookLifeCycleParameters =
@@ -1184,14 +1206,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void bulkLifeCycleObjectGroup(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient,
-        List<String> strings)
+    private void bulkLifeCycleObjectGroup(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient, List<String> uuids)
         throws LogbookClientBadRequestException, LogbookClientServerException {
         List<LogbookLifeCycleObjectGroupModel> collect =
-            strings.stream()
+            uuids.stream()
                 .filter(value -> handlerIO.getHelper().containsCreate(value))
                 .map(value -> {
-
                     Queue<? extends LogbookLifeCycleParameters> logbookLifeCycleParameters1 =
                         handlerIO.getHelper().removeCreateDelegate(value);
                     Collection<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleParameters =
@@ -1569,8 +1589,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private String writeDataObjectInLocal(XMLEventReader reader, StartElement startElement, String containerId,
-        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess)
+    private String writeDataObjectInLocal(XMLEventReader reader, StartElement startElement)
         throws ProcessingException {
         final String elementGuid = GUIDFactory.newGUID().toString();
         final File tmpFile = handlerIO.getNewLocalFile(elementGuid + JSON_EXTENSION);
@@ -1905,7 +1924,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void createObjectGroupLifeCycle(String groupGuid, String containerId, LogbookTypeProcess typeProcess)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientAlreadyExistsException {
         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
                 groupGuid, false, true);
@@ -2201,9 +2220,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     continue;
                 }
 
-
                 uuids.add(gotGuid);
-
 
                 createObjectGroupLifeCycle(gotGuid, containerId, typeProcess);
 
@@ -2312,20 +2329,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     objectGuidToDataObject.get(guid).getAlgo().getName());
             }
         }
-    }
-
-    /**
-     * Create _storage objectNode for create objectGroup
-     *
-     * @return JsonObject _storage for objectGroup
-     */
-    private ObjectNode createStorageFieldInObjectGroup() {
-        ObjectNode storage = JsonHandler.createObjectNode();
-        // Was calling Storage for nothing since information is not known yet
-        storage.put(SedaConstants.TAG_NB, 0);
-        storage.set(SedaConstants.OFFER_IDS, JsonHandler.createArrayNode());
-        storage.put(SedaConstants.STRATEGY_ID, DEFAULT_STRATEGY);
-        return storage;
     }
 
     private void completeDataObjectToObjectGroupMap() {
