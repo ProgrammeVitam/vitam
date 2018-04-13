@@ -1140,6 +1140,8 @@ public class ProcessingIT {
         final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
+        VitamThreadUtils.getVitamSession().setRequestId(containerName);
+        
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
