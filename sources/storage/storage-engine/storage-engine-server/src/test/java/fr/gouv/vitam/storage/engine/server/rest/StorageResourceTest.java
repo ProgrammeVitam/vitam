@@ -127,6 +127,7 @@ public class StorageResourceTest {
     private static final String STORAGERULE = "/rules";
     private static final String STORAGELOG_ID_URI = "/{storagelogname}";
     private static final String STORAGERULE_ID_URI = "/{rulefile}";
+    private static final String GET_RULEID = "/{id_object}";
     private static final String MANIFEST_ID_URI = "/{id_manifest}";
     private static final String STORAGE_BACKUP = "/backup";
     private static final String STORAGE_BACKUP_ID_URI = "/{backupfile}";
@@ -479,6 +480,18 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void should_retrieve_rules_file() throws Exception {
+        // Given
+        // When
+        // Then
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().get(STORAGERULE + GET_RULEID, ID_O1).then()
+            .statusCode(Status.OK.getStatusCode());
+
     }
 
     @Test
@@ -1066,7 +1079,8 @@ public class StorageResourceTest {
             return null;
         }
 
-        @Override public List<String> getOfferIds(String strategyId) throws StorageException {
+        @Override
+        public List<String> getOfferIds(String strategyId) throws StorageException {
             return null;
         }
 

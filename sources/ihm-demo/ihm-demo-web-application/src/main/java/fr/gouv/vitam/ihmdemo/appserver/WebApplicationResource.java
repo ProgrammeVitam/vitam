@@ -170,7 +170,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ATTACHMENT_FILENAME_ERROR_REPORT_JSON = "attachment; filename=rapport.json";
     public static final String X_SIZE_TOTAL = "X-Size-Total";
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
-
+    private static final String CSV = ".csv";
+    private static final String JSON = ".json";
+    private static final String AGENCIES = "agencies";
+    private static final String RULES = "rules";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
 
     private static final String CODE_VITAM = "code_vitam";
@@ -199,7 +202,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Constructor
      *
      * @param webApplicationConfig the web server ihm-demo configuration
-     * @param permissions list of permissions
+     * @param permissions          list of permissions
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig, Set<String> permissions) {
         super(new BasicVitamStatusServiceImpl());
@@ -224,9 +227,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param request needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param request   needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param criteria criteria search for units
+     * @param criteria  criteria search for units
      * @return Reponse
      */
     @POST
@@ -310,7 +313,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param request needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
-     * @param unitId archive unit id
+     * @param unitId  archive unit id
      * @return archive unit details
      */
     @GET
@@ -347,9 +350,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
     /**
-     * @param request the http request
+     * @param request   the http request
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -427,10 +430,35 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+
+    @POST
+    @Path("/logbook/operations/last")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("logbook:operations:read")
+    public Response getLogbookResultLast(@Context HttpServletRequest request, JsonNode query) {
+        RequestResponse<LogbookOperation> result;
+        try {
+            SanityChecker.checkJsonAll(query);
+            result =
+                UserInterfaceTransactionManager.selectOperation(query,
+                    UserInterfaceTransactionManager.getVitamContext(request));
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final VitamClientException e) {
+            LOGGER.error("Vitam Client Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error("INTERNAL SERVER ERROR", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Status.OK).entity(result).build();
+    }
+
     /**
-     * @param request needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param request     needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param operationId id of operation
-     * @param options the queries for searching
+     * @param options     the queries for searching
      * @return Response
      */
     @POST
@@ -475,10 +503,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * <li>Flow-Total-Chunks => The number of chunks</li>
      * </ul>
      *
-     * @param request the http servlet request
+     * @param request  the http servlet request
      * @param response the http servlet response
-     * @param stream data input stream for the current chunk
-     * @param request HTTP request
+     * @param stream   data input stream for the current chunk
+     * @param request  HTTP request
      * @return Response
      */
     @Path("ingest/upload")
@@ -574,7 +602,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 final RequestResponse<Void> finalResponse =
                     client.ingest(new VitamContext(tenantId)
-                        .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
+                            .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
                         new FileInputStream(temporarSipFile), contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
@@ -750,9 +778,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update Archive Units
      *
-     * @param request HTTP request
+     * @param request   HTTP request
      * @param updateSet contains updated field
-     * @param unitId archive unit id
+     * @param unitId    archive unit id
      * @return archive unit details
      */
     @POST
@@ -815,9 +843,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param request HTTP request
+     * @param request   HTTP request
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -860,9 +888,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param request HTTP request
+     * @param request  HTTP request
      * @param formatId id of format
-     * @param options the queries for searching
+     * @param options  the queries for searching
      * @return Response
      */
     @POST
@@ -933,7 +961,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload the referential format in the base
      *
      * @param request HTTP request
-     * @param input the format file xml
+     * @param input   the format file xml
      * @return Response
      */
     @POST
@@ -968,7 +996,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *
-     * @param request HTTP request
+     * @param request       HTTP request
      * @param objectGroupId the object group Id
      * @return a response containing a json with informations about usages and versions for an object group
      */
@@ -1017,11 +1045,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an Object data as an input stream. Download by access.
      *
-     * @param unitId the unit Id
-     * @param usage additional mandatory parameters usage
-     * @param filename additional mandatory parameters filename
-     * @param tenantId the tenant id
-     * @param contractId the contract id
+     * @param unitId        the unit Id
+     * @param usage         additional mandatory parameters usage
+     * @param filename      additional mandatory parameters filename
+     * @param tenantId      the tenant id
+     * @param contractId    the contract id
      * @param asyncResponse will return the inputstream
      */
     @GET
@@ -1041,9 +1069,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an Object data stored by ingest operation as an input stream. Download by ingests.
      *
-     * @param request HTTP request
-     * @param objectId the object id to get
-     * @param type of collection
+     * @param request       HTTP request
+     * @param objectId      the object id to get
+     * @param type          of collection
      * @param asyncResponse request asynchronized response
      */
     @GET
@@ -1137,9 +1165,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /***** rules Management ************/
 
     /**
-     * @param request HTTP request
+     * @param request   HTTP request
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -1183,7 +1211,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param request HTTP request
-     * @param ruleId id of rule
+     * @param ruleId  id of rule
      * @param options the queries for searching
      * @return Response
      */
@@ -1229,7 +1257,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response downloadRulesReport(@Context HttpServletRequest request, @PathParam("id") String id) {
         try {
-            File file = downloadAndSaveFilesRulesReport(id, request);
+            File file = downloadReportOrCsv(id, request, JSON);
             if (file != null) {
                 return Response.ok().entity(new FileInputStream(file))
                     .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
@@ -1245,26 +1273,67 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private File downloadAndSaveFilesRulesReport(String guid, HttpServletRequest request)
+    @GET
+    @Path("/referential/download/{id}/{type}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response downloadCsvReferential(@Context HttpServletRequest request,
+        @PathParam("id") String id, @PathParam("type") String type) {
+        try {
+            File file = downloadReportOrCsv(id, request, type);
+            if (file != null) {
+                return Response.ok().entity(new FileInputStream(file))
+                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    .header(CONTENT_DISPOSITION,
+                        "attachment; filename=" + id + CSV)
+                    .build();
+            } else {
+                return Response.status(Status.NO_CONTENT).build();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+    private File downloadReportOrCsv(String guid, HttpServletRequest request,
+        String typeOfDownload)
         throws VitamClientException, IngestExternalException, IngestExternalClientServerException,
         IngestExternalClientNotFoundException, InvalidParseOperationException {
         File file = null;
         Response response = null;
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
-            response = adminExternalClient
-                .downloadRulesReport(
-                    UserInterfaceTransactionManager.getVitamContext(request), guid);
-            InputStream inputStream = response.readEntity(InputStream.class);
-            if (inputStream != null) {
-                file = PropertiesUtils.fileFromTmpFolder(guid + ".json");
-                try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                    StreamUtils.copy(inputStream, fileOutputStream);
-                } catch (IOException e) {
-                    throw new VitamClientException("Error during Report generation");
-                }
+            if (JSON.equals(typeOfDownload)) {
+                response = adminExternalClient
+                    .downloadRulesReport(
+                        UserInterfaceTransactionManager.getVitamContext(request), guid);
+                file = getFileFromResponse(response.readEntity(InputStream.class), guid, JSON);
+            } else if (AGENCIES.equals(typeOfDownload)) {
+                response = adminExternalClient
+                    .downloadAgenciesCsvAsStream(
+                        UserInterfaceTransactionManager.getVitamContext(request), guid);
+                file = getFileFromResponse(response.readEntity(InputStream.class), guid, CSV);
+            } else if (RULES.equals(typeOfDownload)) {
+                response = adminExternalClient
+                    .downloadRulesCsvAsStream(
+                        UserInterfaceTransactionManager.getVitamContext(request), guid);
+                file = getFileFromResponse(response.readEntity(InputStream.class), guid, CSV);
             }
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(response);
+        }
+        return file;
+    }
+
+    private File getFileFromResponse(InputStream inputStream, String guid, String fileExtension)
+        throws VitamClientException {
+        File file = null;
+        if (inputStream != null) {
+            file = PropertiesUtils.fileFromTmpFolder(guid + fileExtension);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                StreamUtils.copy(inputStream, fileOutputStream);
+            } catch (IOException e) {
+                throw new VitamClientException("Error during Report generation");
+            }
         }
         return file;
     }
@@ -1295,10 +1364,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * async Download Error Report
      *
-     * @param document the input stream to test
+     * @param document      the input stream to test
      * @param asyncResponse asyncResponse
-     * @param tenantId http request
-     * @param contractId http request
+     * @param tenantId      http request
+     * @param contractId    http request
      */
     private void asyncDownloadErrorReport(InputStream document, final AsyncResponse asyncResponse,
         Integer tenantId, String contractId, String personalCert) {
@@ -1329,7 +1398,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload the referential rules in the base
      *
      * @param request HTTP request
-     * @param input the format file CSV
+     * @param input   the format file CSV
      * @return Response
      */
     @POST
@@ -1360,9 +1429,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Get the action registers filtered with option query
      *
-     * @param request HTTP request
+     * @param request   HTTP request
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -1443,7 +1512,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Get the detail of an accessionregister matching options query
      *
      * @param request HTTP request
-     * @param id of accession response to get
+     * @param id      of accession response to get
      * @param options query criteria
      * @return accession register details
      */
@@ -1476,7 +1545,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * This resource returns all paths relative to a unit
      *
-     * @param request HTTP request
+     * @param request  HTTP request
      * @param dslQuery the dsl query
      * @return all paths relative to a unit
      */
@@ -1508,7 +1577,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param request HTTP request
-     * @param object user credentials
+     * @param object  user credentials
      * @return Response OK if login success
      */
     @POST
@@ -1565,7 +1634,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * returns the unit life cycle based on its id
      *
-     * @param request HTTP request
+     * @param request         HTTP request
      * @param unitLifeCycleId the unit id (== unit life cycle id)
      * @return the unit life cycle
      */
@@ -1593,7 +1662,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * returns the object group life cycle based on its id
      *
-     * @param request HTTP request
+     * @param request                HTTP request
      * @param objectGroupLifeCycleId the object group id (== object group life cycle id)
      * @return the object group life cycle
      */
@@ -1623,7 +1692,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Get the workflow operations list for step by step ingest
      *
      * @param request HTTP request
-     * @param query the query
+     * @param query   the query
      * @return the operations list
      */
     @POST
@@ -1647,7 +1716,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param request HTTP request
-     * @param id operation identifier
+     * @param id      operation identifier
      * @return http response
      */
     @Path("operations/{id}")
@@ -1757,7 +1826,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload contracts
      *
      * @param request HTTP request
-     * @param input the format file CSV
+     * @param input   the format file CSV
      * @return Response
      */
     @POST
@@ -1791,7 +1860,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Gets contracts
      *
      * @param request HTTP request
-     * @param select the query
+     * @param select  the query
      * @return Response
      */
     @POST
@@ -1829,7 +1898,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Gets contracts by name
      *
      * @param request HTTP request
-     * @param id if of the contract
+     * @param id      if of the contract
      * @return Response
      */
     @GET
@@ -1861,7 +1930,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Upload Access contracts
      *
-     * @param request HTTP request
+     * @param request    HTTP request
      * @param contractId the id of ingest contract
      * @return Response
      */
@@ -1911,7 +1980,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload Access contracts
      *
      * @param request HTTP request
-     * @param input the format file CSV
+     * @param input   the format file CSV
      * @return Response
      */
     @POST
@@ -1944,7 +2013,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get Access contracts
      *
      * @param request HTTP request
-     * @param select the query to find access contracts
+     * @param select  the query to find access contracts
      * @return Response
      */
     @POST
@@ -1983,7 +2052,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to Access contracts by id
      *
      * @param request HTTP request
-     * @param id of the requested access contract
+     * @param id      of the requested access contract
      * @return Response
      */
     @GET
@@ -2015,7 +2084,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update Access contracts
      *
-     * @param request HTTP request
+     * @param request    HTTP request
      * @param contractId the id of access contract
      * @return Response
      */
@@ -2062,7 +2131,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update context
      *
-     * @param request HTTP request
+     * @param request   HTTP request
      * @param contextId the id of context
      * @return Response
      */
@@ -2111,7 +2180,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * upload context
      *
      * @param request HTTP request
-     * @param input the file json
+     * @param input   the file json
      * @return Response
      */
     @POST
@@ -2212,7 +2281,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Create profiles metadata
      *
      * @param request HTTP request
-     * @param input the format file CSV
+     * @param input   the format file CSV
      * @return Response
      */
     @POST
@@ -2245,7 +2314,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload profile xsd or rng
      *
      * @param request HTTP request
-     * @param input the format file CSV
+     * @param input   the format file CSV
      * @return Response
      */
     @PUT
@@ -2276,7 +2345,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update the detail of the profile
      *
-     * @param request HTTP request
+     * @param request           HTTP request
      * @param profileMetadataId
      * @param updateOptions
      * @return Response
@@ -2366,7 +2435,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get profiles
      *
      * @param request HTTP request
-     * @param select the query to find access contracts
+     * @param select  the query to find access contracts
      * @return Response
      */
     @POST
@@ -2405,7 +2474,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to Access contracts by id
      *
      * @param request HTTP request
-     * @param id of the requested access contract
+     * @param id      of the requested access contract
      * @return Response
      */
     @GET
@@ -2463,7 +2532,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Starts a TRACEABILITY check process
      *
-     * @param request HTTP request
+     * @param request           HTTP request
      * @param operationCriteria a DSLQuery to find the TRACEABILITY operation to verify
      * @return TRACEABILITY check process : the logbookOperation created during this process
      */
@@ -2522,9 +2591,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Download the Traceability Operation file
      *
-     * @param request HTTP request
-     * @param operationId the TRACEABILITY operation identifier
-     * @param contractId the contractId
+     * @param request       HTTP request
+     * @param operationId   the TRACEABILITY operation identifier
+     * @param contractId    the contractId
      * @param tenantIdParam theTenantId
      * @param asyncResponse the async response
      */
@@ -2648,7 +2717,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload Service Agencies
      *
      * @param request HTTP request
-     * @param input the Service Agency file CSV
+     * @param input   the Service Agency file CSV
      * @return Response
      */
     @POST
@@ -2685,7 +2754,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Find Service Agencies by DSL
      *
      * @param request HTTP request
-     * @param select the query to find Service Agency
+     * @param select  the query to find Service Agency
      * @return Response
      */
     @POST
@@ -2724,7 +2793,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to Service Agency by identifier
      *
      * @param request HTTP request
-     * @param id of the requested Service Agency
+     * @param id      of the requested Service Agency
      * @return Response
      */
     @GET
@@ -2757,7 +2826,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Create archive unit profiles metadata
      *
      * @param request HTTP request
-     * @param input the format file CSV
+     * @param input   the format file CSV
      * @return Response
      */
     @POST
@@ -2789,7 +2858,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update the detail of the archive unit profile
      *
-     * @param request HTTP request
+     * @param request              HTTP request
      * @param archiveUnitprofileId
      * @param updateOptions
      * @return Response
@@ -2799,7 +2868,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("archiveunitprofiles:update")
-    public Response updateArchiveUnitProfile(@Context HttpServletRequest request, @PathParam("id") String archiveUnitprofileId,
+    public Response updateArchiveUnitProfile(@Context HttpServletRequest request,
+        @PathParam("id") String archiveUnitprofileId,
         JsonNode updateOptions) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Update updateRequest = new Update();
@@ -2830,7 +2900,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get archive unit profiles
      *
      * @param request HTTP request
-     * @param select the query to find archive unit profiles
+     * @param select  the query to find archive unit profiles
      * @return Response
      */
     @POST
@@ -2869,7 +2939,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to Access archive unit profile by id
      *
      * @param request HTTP request
-     * @param id of the requested archive unit profile
+     * @param id      of the requested archive unit profile
      * @return Response
      */
     @GET
@@ -2935,7 +3005,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Send a queryDSL request in order to select some units and create a matching DIP
      *
-     * @param request HTTP request
+     * @param request  HTTP request
      * @param criteria queryDSL for criteria
      */
     @POST
@@ -2946,7 +3016,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             JsonNode queryDSL = JsonHandler.getFromString(criteria);
             final RequestResponse response = UserInterfaceTransactionManager.evidenceAudit(
-                    queryDSL, UserInterfaceTransactionManager.getVitamContext(request));
+                queryDSL, UserInterfaceTransactionManager.getVitamContext(request));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
@@ -2960,7 +3030,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Send a queryDSL request in order to select some units and create a matching DIP
      *
-     * @param request HTTP request
+     * @param request  HTTP request
      * @param criteria queryDSL for criteria
      */
     @POST
@@ -2986,7 +3056,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Send a DIP id request in order to download the matching DIP
      *
-     * @param request HTTP request
+     * @param request       HTTP request
      * @param asyncResponse request asynchronized response
      */
     @GET

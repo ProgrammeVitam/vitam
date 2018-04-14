@@ -187,6 +187,22 @@ public class AccessExtAPI {
      */
     public static final String RULES_REPORT_API = "/" + RULES_REPORT;
     /**
+     * referential base uri
+     */
+    public static final String RULES_REFERENTIAL = "rulesreferential";
+    /**
+     * referential csv download uri
+     */
+    public static final String RULES_REFERENTIAL_CSV_DOWNLOAD = "/" + RULES_REFERENTIAL;
+    /**
+     * agencies referential base uri
+     */
+    public static final String AGENCIES_REFERENTIAL = "agenciesreferential";
+    /**
+     * agencies referential csv download uri
+     */
+    public static final String AGENCIES_REFERENTIAL_CSV_DOWNLOAD = "/" + AGENCIES_REFERENTIAL;
+    /**
      * Unit evidence audit uri
      */
     public static final String UNIT_EVIDENCE_AUDIT_API = "/evidenceaudit";

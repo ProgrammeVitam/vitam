@@ -45,15 +45,18 @@ public class AdminExternalClientMockTest {
             client.checkFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()));
         assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
         assertEquals(
-            client.createFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml").getHttpCode(),
+            client.createFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml")
+                .getHttpCode(),
             Status.CREATED.getStatusCode());
 
         assertEquals(
-            client.createRules(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml").getHttpCode(),
+            client.createRules(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml")
+                .getHttpCode(),
             Status.CREATED.getStatusCode());
 
         assertEquals(
-            client.createAgencies(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml").getHttpCode(),
+            client.createAgencies(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml")
+                .getHttpCode(),
             Status.CREATED.getStatusCode());
 
         assertEquals(
@@ -130,6 +133,12 @@ public class AdminExternalClientMockTest {
         assertEquals(
             client.listOperationsDetails(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
                 new ProcessQuery()).getHttpCode(),
+            Status.OK.getStatusCode());
+        assertEquals(client
+                .downloadRulesReport(new VitamContext(TENANT_ID), "ID").getStatus(),
+            Status.OK.getStatusCode());
+        assertEquals(client
+                .downloadAgenciesCsvAsStream(new VitamContext(TENANT_ID), "ID").getStatus(),
             Status.OK.getStatusCode());
     }
 }

@@ -1,13 +1,13 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { plainToClass } from 'class-transformer';
-import { Title } from '@angular/platform-browser';
+import {Component} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {plainToClass} from 'class-transformer';
+import {Title} from '@angular/platform-browser';
 
-import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
-import { ReferentialsService } from "../../referentials.service";
-import { PageComponent } from "../../../common/page/page-component";
-import { Agency } from './agency';
-import { ErrorService } from "../../../common/error.service";
+import {BreadcrumbService, BreadcrumbElement} from '../../../common/breadcrumb.service';
+import {ReferentialsService} from '../../referentials.service';
+import {PageComponent} from '../../../common/page/page-component';
+import {Agency} from './agency';
+import {ErrorService} from '../../../common/error.service';
 
 @Component({
   selector: 'vitam-agencies',
@@ -17,20 +17,20 @@ import { ErrorService } from "../../../common/error.service";
 export class AgenciesComponent extends PageComponent {
 
   newBreadcrumb: BreadcrumbElement[];
-  agency : Agency;
-  hasUnit : boolean;
+  agency: Agency;
+  hasUnit: boolean;
   id: string;
   panelHeader: string;
 
-  constructor(private activatedRoute: ActivatedRoute, public router : Router,
+  constructor(private activatedRoute: ActivatedRoute, public router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService, private errorService: ErrorService) {
+              private searchReferentialsService: ReferentialsService, private errorService: ErrorService) {
     super('Détail du service agent', [], titleService, breadcrumbService);
 
   }
 
   pageOnInit() {
-    this.activatedRoute.params.subscribe( params => {
+    this.activatedRoute.params.subscribe(params => {
       this.id = params['id'];
       this.getDetail();
       this.updateBreadcrumb(params['type']);

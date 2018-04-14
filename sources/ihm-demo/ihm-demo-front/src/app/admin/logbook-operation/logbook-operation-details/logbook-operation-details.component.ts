@@ -58,7 +58,9 @@ export class LogbookOperationDetailsComponent extends PageComponent {
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialIconColumn('Rapport', LogbookOperationComponent.handleReports,
       () => ({'width': '75px', 'overflow-wrap': 'break-word'}),
-      LogbookOperationComponent.downloadReports, this.logbookService, false)
+      LogbookOperationComponent.downloadReports, this.logbookService, false),
+    ColumnDefinition.makeSpecialIconColumn('Fichier d\'origine', LogbookOperationComponent.handleDownloadReferentialCSV,
+        () => ({ 'width': '50px', 'overflow-wrap': 'break-word' }), LogbookOperationComponent.downloadReferentialCSV, this.logbookService, false)
   ];
 
   constructor(private route: ActivatedRoute, public logbookService: LogbookService,

@@ -450,7 +450,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                     default:
                         LOGGER
                             .error(
-                            "checks operation tracebility is " + status.name() + ":" + vitamError.getDescription());
+                                "checks operation tracebility is " + status.name() + ":" + vitamError.getDescription());
                         return vitamError.setHttpCode(status.getStatusCode());
                 }
             }
@@ -473,7 +473,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             headers.putAll(vitamContext.getHeaders());
 
             response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId +
-                "/datafiles", headers,
+                    "/datafiles", headers,
                 null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
@@ -946,6 +946,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return internalCreateContracts(vitamContext, accessContracts, AdminCollections.ACCESS_CONTRACTS);
     }
 
+
+
     @Override
     public Response downloadRulesReport(VitamContext vitamContext, String opId)
         throws VitamClientException {
@@ -957,6 +959,47 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, AccessExtAPI.RULES_REPORT_API + "/" + opId,
+                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        }
+        return response;
+    }
+
+    @Override
+    public Response downloadAgenciesCsvAsStream(VitamContext vitamContext, String opId)
+        throws VitamClientException {
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
+
+        Response response;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.GET,
+                AccessExtAPI.AGENCIES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId,
+                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        }
+        return response;
+    }
+
+    @Override
+    public Response downloadRulesCsvAsStream(VitamContext vitamContext, String opId)
+        throws VitamClientException {
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
+
+
+        Response response;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.GET,
+                AccessExtAPI.RULES_REFERENTIAL_CSV_DOWNLOAD + "/" + opId,
                 headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         } catch (final VitamClientInternalException e) {
