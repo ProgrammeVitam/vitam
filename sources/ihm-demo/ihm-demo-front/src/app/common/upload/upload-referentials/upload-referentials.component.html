@@ -24,6 +24,7 @@
 <p-dialog [showHeader]="false" [(visible)]="displayUploadMessage" modal="modal" [responsive]="true">
   <p *ngIf="!importError" >{{importSucessMsg}}</p>
   <p *ngIf="importError">{{importErrorMsg}}</p>
+  <p *ngIf="importError && errorDetail">{{errorDetail}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayUploadMessage=false" label="OK"></button>
   </p-footer>

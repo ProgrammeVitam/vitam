@@ -33,8 +33,8 @@ import static com.mongodb.client.model.Filters.eq;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -86,8 +86,18 @@ public class ProfileManager {
     public static final String RNG_GRAMMAR = "rng:grammar";
     public static final String XSD_SCHEMA = "xsd:schema";
 
+    public static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_PROFILE_JSON.EMPTY_REQUIRED_FIELD.KO";
+    public static final String WRONG_FIELD_FORMAT = "STP_IMPORT_PROFILE_JSON.TO_BE_DEFINED.KO";
+    public static final String DUPLICATE_IN_DATABASE = "STP_IMPORT_PROFILE_JSON.IDENTIFIER_DUPLICATION.KO";
+    public static final String PROFILE_NOT_FOUND_IN_DATABASE = "STP_IMPORT_PROFILE_JSON.PROFILE_NOT_FOUND.KO";
+    public static final String IMPORT_KO = "STP_IMPORT_PROFILE_JSON.KO";
 
-    private List<ProfileValidator> validators;
+    public static final String UPDATE_PROFILE_NOT_FOUND = "STP_UPDATE_PROFILE_JSON.PROFILE_NOT_FOUND.KO";
+    public static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_PROFILE_JSON.NOT_IN_ENUM.KO";
+    public static final String UPDATE_DUPLICATE_IN_DATABASE = "STP_UPDATE_PROFILE_JSON.IDENTIFIER_DUPLICATION.KO";
+    public static final String UPDATE_KO = "STP_UPDATE_PROFILE_JSON.KO";
+
+    private Map<ProfileValidator, String> validators;
 
     private final GUID eip;
 
@@ -96,22 +106,23 @@ public class ProfileManager {
     public ProfileManager(LogbookOperationsClient logbookClient, GUID eip) {
         this.logbookClient = logbookClient;
         this.eip = eip;
-        validators = Arrays.asList(
-            createMandatoryParamsValidator(),
-            createWrongFieldFormatValidator(),
-            createCheckDuplicateInDatabaseValidator()
-        );
+        validators = new HashMap<ProfileValidator, String>() {{
+            put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+            put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
+            put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+        }};
     }
 
     public boolean validateProfile(ProfileModel profile,
         VitamError error) {
 
-        for (ProfileValidator validator : validators) {
+        for (ProfileValidator validator : validators.keySet()) {
             Optional<RejectionCause> result = validator.validate(profile);
             if (result.isPresent()) {
                 // there is a validation error on this profile
                     /* profile is valid, add it to the list to persist */
-                error.addToErrors(getVitamError(result.get().getReason()));
+                error.addToErrors(getVitamError(result.get().getReason()).setDescription(result.get().getReason())
+                .setMessage(validators.get(validator)));
                 // once a validation error is detected on a profile, jump to next profile
                 return false;
             }
@@ -222,16 +233,21 @@ public class ProfileManager {
     /**
      * Log validation error (business error)
      *
+     * @param eventType
+     * @param objectId
      * @param errorsDetails
+     * @param KOEventType
      */
-    public void logValidationError(String eventType, String objectId, String errorsDetails) throws VitamException {
+    public void logValidationError(String eventType, String objectId, String errorsDetails,
+                                   String KOEventType) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
-        logbookMessageError(objectId, errorsDetails, logbookParameters);
+                VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
+        logbookMessageError(objectId, errorsDetails, logbookParameters, KOEventType);
 
         logbookClient.update(logbookParameters);
 
@@ -243,6 +259,45 @@ public class ProfileManager {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
                 object.put("profileCheck", errorsDetails);
+
+                final String wellFormedJson = SanityChecker.sanitizeJson(object);
+                logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+            } catch (InvalidParseOperationException e) {
+                //Do nothing
+            }
+        }
+        if (null != objectId && !objectId.isEmpty()) {
+            logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
+        }
+    }
+
+    private void logbookMessageError(String objectId, String errorsDetails,
+                                     LogbookOperationParameters logbookParameters, String KOEventType) {
+        if (null != errorsDetails && !errorsDetails.isEmpty()) {
+            try {
+                final ObjectNode object = JsonHandler.createObjectNode();
+                String evDetDataKey = "profileCheck";
+                switch (KOEventType) {
+                    case EMPTY_REQUIRED_FIELD:
+                        evDetDataKey = "Mandatory Fields";
+                        break;
+                    case WRONG_FIELD_FORMAT:
+                        evDetDataKey = "Incorrect Field and value";
+                        break;
+                    case DUPLICATE_IN_DATABASE:
+                    case UPDATE_DUPLICATE_IN_DATABASE:
+                        evDetDataKey = "Duplicate Field";
+                        break;
+                    case PROFILE_NOT_FOUND_IN_DATABASE:
+                    case UPDATE_PROFILE_NOT_FOUND:
+                        evDetDataKey = "Profile not found";
+                        break;
+                    case UPDATE_VALUE_NOT_IN_ENUM:
+                        evDetDataKey = "Not in Enum";
+                        break;
+                }
+
+                object.put(evDetDataKey, errorsDetails);
 
                 final String wellFormedJson = SanityChecker.sanitizeJson(object);
                 logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);

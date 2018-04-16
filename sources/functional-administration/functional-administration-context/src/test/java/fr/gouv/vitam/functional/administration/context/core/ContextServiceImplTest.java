@@ -291,6 +291,26 @@ public class ContextServiceImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenContextImportedWithInvalidIngestContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        String INGEST_CONTRACT_ID = "NON-EXISTING-CONTRACT";
+        when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(null);
+
+        final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_contract.json");
+        final List<ContextModel> ModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+                });
+
+        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        assertThat(response.isOk()).isFalse();
+
+        verifyZeroInteractions(accessContractService);
+        verifyZeroInteractions(functionalBackupService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void givenTestImportExternalIdentifier() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);

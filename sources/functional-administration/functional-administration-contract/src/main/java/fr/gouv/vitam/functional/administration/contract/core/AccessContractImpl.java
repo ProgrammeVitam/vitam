@@ -30,7 +30,7 @@ import static com.mongodb.client.model.Filters.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -119,13 +119,24 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         "The Access contract EveryOriginatingAgency must be true or false but not ";
     private static final String THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The Access contract status must be ACTIVE or INACTIVE but not ";
-    private static final String ACCESS_CONTRACT_NOT_FIND = "Access contract not find";
+    private static final String ACCESS_CONTRACT_NOT_FOUND = "Access contract not found";
     private static final String ACCESS_CONTRACT_IS_MANDATORY_PATAMETER =
         "The collection of access contracts is mandatory";
     private static final String UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER = "access contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_ACCESS_CONTRACT";
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_ACCESS_CONTRACT";
+
+    private static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO";
+    private static final String WRONG_FIELD_FORMAT = "STP_IMPORT_ACCESS_CONTRACT.TO_BE_DEFINED.KO";
+    private static final String DUPLICATE_IN_DATABASE = "STP_IMPORT_ACCESS_CONTRACT.IDENTIFIER_DUPLICATION.KO";
+    private static final String AGENCY_NOT_FOUND_IN_DATABASE = "STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO";
+    private static final String CONTRACT_VALIDATION_ERROR = "STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO";
+
+    private static final String UPDATE_CONTRACT_NOT_FOUND = "STP_UPDATE_ACCESS_CONTRACT.CONTRACT_NOT_FOUND.KO";
+    private static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_ACCESS_CONTRACT.NOT_IN_ENUM.KO";
+    private static final String UPDATE_AGENCY_NOT_FOUND = "STP_UPDATE_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO";
+
     private static final String EVDETDATA_IDENTIFIER = "identifier";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
@@ -220,9 +231,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
                     result.ifPresent(genericRejectionCause -> error
                         .addToErrors(
-                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Access contract import error",
-                                StatusCode.KO)
-                                .setMessage(genericRejectionCause.getReason())));
+                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result.get().getReason(),
+                                StatusCode.KO).setMessage(DUPLICATE_IN_DATABASE)));
                 }
 
             }
@@ -230,8 +240,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT);
+                    error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
+                manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT, error.getErrors().get(0).getMessage());
                 return error;
             }
 
@@ -335,7 +345,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         private static final String ACCESS_CONTRACT = "AccessContract";
 
-        private List<AccessContractValidator> validators;
+        private Map<AccessContractValidator, String> validators;
 
         private final GUID eip;
 
@@ -345,26 +355,32 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             GUID eip) {
             this.logbookClient = logbookClient;
             //Init validator
-            validators = Arrays.asList(
-                createMandatoryParamsValidator(),
-                createWrongFieldFormatValidator(),
-                checkExistenceOriginatingAgenciesValidator(),
-                createCheckDuplicateInDatabaseValidator(),
-                validateExistsArchiveUnits(metaDataClient));
+            validators = new HashMap<AccessContractValidator, String>() {{
+                put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+                put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
+                put(checkExistenceOriginatingAgenciesValidator(), AGENCY_NOT_FOUND_IN_DATABASE);
+                put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+                put(validateExistsArchiveUnits(metaDataClient), CONTRACT_VALIDATION_ERROR);
+            }};
             this.eip = eip;
         }
 
         private boolean validateContract(AccessContractModel contract, String jsonFormat,
             VitamError error) {
 
-            for (final AccessContractValidator validator : validators) {
+            for (final AccessContractValidator validator : validators.keySet()) {
                 final Optional<GenericRejectionCause> result = validator.validate(contract, jsonFormat);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
                     /* contract is valid, add it to the list to persist */
-                    error
-                        .addToErrors(VitamErrorUtils.getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result
-                            .get().getReason(), "AccessContract", StatusCode.KO));
+                    error.addToErrors(
+                        VitamErrorUtils.getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            result.get().getReason(),
+                            "AccessContract",
+                            StatusCode.KO
+                        ).setMessage(validators.get(validator))
+                    );
                     // once a validation error is detected on a contract, jump to next contract
                     return false;
                 }
@@ -378,14 +394,15 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          *
          * @param errorsDetails
          */
-        private void logValidationError(String errorsDetails, String eventType) throws VitamException {
+        private void logValidationError(String errorsDetails, String eventType, String KOEventType) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
-            logbookMessageError(errorsDetails, logbookParameters);
+                    VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
+            logbookMessageError(errorsDetails, logbookParameters, KOEventType);
             logbookClient.update(logbookParameters);
         }
 
@@ -394,14 +411,15 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          *
          * @param errorsDetails
          */
-        private void logUpdateError(String errorsDetails) throws VitamException {
+        private void logUpdateError(String errorsDetails, String KOEventType) throws VitamException {
             LOGGER.error("Update document error {}", errorsDetails);
             final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eipUsage, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.KO), eip);
-            logbookMessageError(errorsDetails, logbookParameters);
+                    VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
+            logbookMessageError(errorsDetails, logbookParameters, KOEventType);
             logbookClient.update(logbookParameters);
         }
 
@@ -437,6 +455,48 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 }
             }
         }
+
+        private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters,
+                                         String KOEventType) {
+            if (null != errorsDetails && !errorsDetails.isEmpty()) {
+                try {
+                    final ObjectNode object = JsonHandler.createObjectNode();
+                    String evDetDataKey = "accessContractCheck";
+                    switch (KOEventType) {
+                        case EMPTY_REQUIRED_FIELD:
+                            evDetDataKey = "Mandatory Fields";
+                            break;
+                        case WRONG_FIELD_FORMAT:
+                            evDetDataKey = "Incorrect Field and value";
+                            break;
+                        case DUPLICATE_IN_DATABASE:
+                            evDetDataKey = "Duplicate Field";
+                            break;
+                        case AGENCY_NOT_FOUND_IN_DATABASE:
+                        case UPDATE_AGENCY_NOT_FOUND:
+                            evDetDataKey = "Agency not found";
+                            break;
+                        case CONTRACT_VALIDATION_ERROR:
+                            evDetDataKey = "Validation error";
+                            break;
+                        case UPDATE_CONTRACT_NOT_FOUND:
+                            evDetDataKey = "Contract not found";
+                            break;
+                        case UPDATE_VALUE_NOT_IN_ENUM:
+                            evDetDataKey = "Not in Enum";
+                            break;
+                    }
+
+                    object.put(evDetDataKey, errorsDetails);
+
+                    final String wellFormedJson = SanityChecker.sanitizeJson(object);
+                    logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+                } catch (final InvalidParseOperationException e) {
+                    // Do nothing
+                }
+            }
+        }
+
 
         /**
          * log start process
@@ -669,7 +729,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
                 if (!notFound.isEmpty()) {
                     return Optional.of(GenericRejectionCause
-                        .rejectRootUnitsNotFound(contract.getName(), String.join(",", notFound)));
+                        .rejectRootUnitsNotFound(contractName, String.join(",", notFound)));
                 }
                 return Optional.empty();
             };
@@ -761,7 +821,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         if (accContractModel == null) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                ACCESS_CONTRACT_NOT_FIND + identifier, StatusCode.KO));
+                ACCESS_CONTRACT_NOT_FOUND + identifier, StatusCode.KO).setMessage(UPDATE_CONTRACT_NOT_FOUND));
         }
 
         GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
@@ -789,8 +849,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
-                error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-            manager.logUpdateError(errorsDetails);
+                error.getErrors().stream().map(c -> c.getDescription()).collect(Collectors.joining(","));
+            manager.logUpdateError(errorsDetails, error.getErrors().get(0).getMessage());
 
             return error;
         }
@@ -833,7 +893,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
                 .name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                    THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText(), StatusCode.KO));
+                    THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText(), StatusCode.KO)
+                        .setMessage(UPDATE_VALUE_NOT_IN_ENUM));
             }
         }
 
@@ -841,7 +902,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             if (!(value instanceof BooleanNode)) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                        value.asText(), StatusCode.KO));
+                        value.asText(), StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
             }
         }
 
@@ -849,7 +910,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             if (!value.isArray()) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     ORIGINATING_AGENCIES_INVALID +
-                        value.asText(), StatusCode.KO));
+                        value.asText(), StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
             } else {
 
                 try {
@@ -864,7 +925,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         // Validation error
                         error.addToErrors(
                             getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), rejection
-                                .get().getReason(), StatusCode.KO));
+                                .get().getReason(), StatusCode.KO).setMessage(UPDATE_AGENCY_NOT_FOUND));
                     }
 
                 } catch (InvalidParseOperationException e) {
@@ -879,7 +940,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             if (!(value instanceof BooleanNode)) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                        value.asText(), StatusCode.KO));
+                        value.asText(), StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
             }
         }
 
@@ -887,7 +948,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             if (!validateObjectVersion(value)) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     DATA_OBJECT_VERSION_INVALID +
-                        value.asText(), StatusCode.KO));
+                        value.asText(), StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
             }
         }
 
@@ -896,7 +957,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             if (!value.isArray()) {
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     ROOT_UNIT_INVALID +
-                        value.asText(), StatusCode.KO));
+                        value.asText(), StatusCode.KO).setMessage(UPDATE_AGENCY_NOT_FOUND));
             } else {
 
                 try {
@@ -911,13 +972,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         // Validation error
                         error.addToErrors(
                             getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), rejection
-                                .get().getReason(), StatusCode.KO));
+                                .get().getReason(), StatusCode.KO).setMessage(UPDATE_AGENCY_NOT_FOUND));
                     }
 
                 } catch (InvalidParseOperationException e) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                         ROOT_UNIT_INVALID +
-                            value.asText(), StatusCode.KO));
+                            value.asText(), StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
                 }
             }
         }

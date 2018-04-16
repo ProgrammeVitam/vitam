@@ -93,6 +93,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
@@ -453,8 +454,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
+            VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
+                .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
+                .setState(StatusCode.KO.name())
+                .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
+                .setContext(ACCESS_EXTERNAL_MODULE)
+                .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(error).build();
         }
     }
 
@@ -493,8 +500,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
+            VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
+                .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
+                .setState(StatusCode.KO.name())
+                .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
+                .setContext(ACCESS_EXTERNAL_MODULE)
+                .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(error).build();
         }
     }
 
@@ -565,8 +578,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getItem())
+                    .setMessage(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setCode(VitamCodeHelper.getCode(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED))
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setDescription(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getMessage());
+                return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(error).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -642,8 +661,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
                 LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getItem())
+                    .setMessage(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setCode(VitamCodeHelper.getCode(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED))
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setDescription(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getMessage());
+                return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(error).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);

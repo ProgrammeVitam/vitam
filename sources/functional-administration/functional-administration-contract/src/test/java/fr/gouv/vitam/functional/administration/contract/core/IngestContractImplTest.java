@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -728,8 +729,9 @@ public class IngestContractImplTest {
         assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         List<VitamError> errors = ((VitamError) updateContractStatus).getErrors();
-        assertThat(errors.get(0).getMessage().equals(
-                "The Ingest contract status must be ACTIVE or INACTIVE but not INVALID_STATUS")).isTrue();
+        assertThat(VitamLogbookMessages.getFromFullCodeKey(errors.get(0).getMessage()).equals(
+            "Échec du processus de mise à jour du contrat d'entrée : une valeur ne correspond pas aux valeurs attendues")
+        ).isTrue();
         
         final UpdateParserSingle updateParser2 = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setCheckParentLinkStatusInactive = UpdateActionHelper.set("CheckParentLink", "INVALID_STATUS");

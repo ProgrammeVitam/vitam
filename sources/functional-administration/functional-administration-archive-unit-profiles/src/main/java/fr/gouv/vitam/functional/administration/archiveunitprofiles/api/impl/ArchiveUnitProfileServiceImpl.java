@@ -89,7 +89,6 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     private static final String ARCHIVE_UNIT_PROFILE_BACKUP_EVENT = "BACKUP_ARCHIVEUNITPROFILE";
     private static final String ARCHIVE_UNIT_PROFILES_UPDATE_EVENT = "UPDATE_ARCHIVEUNITPROFILE";
 
-    private static final String FUNCTIONAL_MODULE_ARCHIVE_UNIT_PROFILE = "FunctionalModule-ArchiveUnitProfile";
     private static final String UPDATED_DIFFS = "updatedDiffs";
 
     private static final String ARCHIVE_UNIT_PROFILE_IS_MANDATORY_PARAMETER = "archive unit profiles parameter is mandatory";
@@ -199,21 +198,34 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 final Optional<ArchiveUnitProfileValidator.RejectionCause> checkSchema =
                     manager.createJsonSchemaValidator().validate(aupm);
                 checkSchema.ifPresent(t -> error
-                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                        .setMessage(checkSchema.get().getReason())));
+                    .addToErrors(
+                        new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                            .setDescription(checkSchema.get().getReason())
+                            .setMessage(ArchiveUnitProfileManager.INVALID_JSON_SCHEMA)
+                    )
+                );
 
                 final Optional<ArchiveUnitProfileValidator.RejectionCause> resultName =
                     manager.createCheckDuplicateNamesInDatabaseValidator().validate(aupm);
                 resultName.ifPresent(t -> error
-                    .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                    .setMessage(resultName.get().getReason())));
+                    .addToErrors(
+                        new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                            .setDescription(resultName.get().getReason())
+                            .setMessage(ArchiveUnitProfileManager.DUPLICATE_IN_DATABASE)
+                    )
+                );
                 
                 if (slaveMode) {
                     final Optional<ArchiveUnitProfileValidator.RejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(aupm);
                     result.ifPresent(t -> error
-                        .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem()).setMessage(result
-                            .get().getReason())));
+                        .addToErrors(
+                            new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
+                                .setMessage(ArchiveUnitProfileManager.DUPLICATE_IN_DATABASE)
+                                .setDescription(result.get().getReason())
+                                .setState(StatusCode.KO.name())
+                        )
+                    );
                 }
             }
 
@@ -221,9 +233,10 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getMessage() + " : " + c.getDescription())
+                    error.getErrors().stream().map(c -> c.getDescription())
                     .collect(Collectors.joining(","));
-                manager.logValidationError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, errorsDetails);
+                manager.logValidationError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, errorsDetails,
+                        error.getErrors().get(0).getMessage());
                 return error;
             }
 
@@ -261,7 +274,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             final String err = "Import archive unit profile error > " + e.getMessage();
 
             // logbook error event 
-            manager.logValidationError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, err);
+            manager.logValidationError(ARCHIVE_UNIT_PROFILE_IMPORT_EVENT, null, err,
+                    ArchiveUnitProfileManager.IMPORT_KO);
 
             return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), e.getMessage(),
                 StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
@@ -293,8 +307,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         if (profileModel == null) {
             return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                 ARCHIVE_UNIT_PROFILE_NOT_FOUND, StatusCode.KO)
-                .setHttpCode(
-                    Response.Status.NOT_FOUND.getStatusCode());
+                    .setHttpCode(Response.Status.NOT_FOUND.getStatusCode())
+                    .setMessage(ArchiveUnitProfileManager.UPDATE_AUP_NOT_FOUND);
         }
 
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
@@ -304,11 +318,11 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
         if (queryDsl == null || !queryDsl.isObject()) {
             manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(),
-                "Update query dsl must be an object and not null");
+                "Update query dsl must be an object and not null", ArchiveUnitProfileManager.UPDATE_KO);
             return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                 "Update query dsl must be an object and not null : " + profileModel.getIdentifier(), StatusCode.KO)
-                .setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                    .setMessage(ArchiveUnitProfileManager.UPDATE_KO);
         }
 
         final VitamError error = getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
@@ -332,8 +346,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
-                error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-            manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), errorsDetails);
+                error.getErrors().stream().map(c -> c.getDescription()).collect(Collectors.joining(","));
+            manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), errorsDetails,
+                    error.getErrors().get(0).getMessage());
 
             return error;
         }
@@ -347,7 +362,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 final String err = "Update archive unit profile error > " + e.getMessage();
 
                 // logbook error event 
-                manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), err);
+                manager.logValidationError(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId(), err,
+                        ArchiveUnitProfileManager.UPDATE_KO);
 
                 return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(), e.getMessage(),
                     StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
@@ -429,8 +445,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 || ArchiveUnitProfileStatus.INACTIVE.name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                     ARCHIVE_UNIT_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE + value.asText(), StatusCode.KO)
-                    .setHttpCode(
-                        Response.Status.BAD_REQUEST.getStatusCode()));
+                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                        .setMessage(ArchiveUnitProfileManager.UPDATE_VALUE_NOT_IN_ENUM)
+                );
             }
         }
 
@@ -439,23 +456,28 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 manager.createJsonSchemaValidator().validate(new ArchiveUnitProfileModel().setControlSchema(value.asText()));
             checkSchema.ifPresent(t -> error
                 .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                    .setMessage(checkSchema.get().getReason())));
+                        .setDescription(checkSchema.get().getReason())
+                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO)
+                )
+            );
         }
         
         if (ArchiveUnitProfileModel.TAG_IDENTIFIER.equals(field)) {
             if (!value.isTextual()) {
                 error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                     ARCHIVE_UNIT_PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText(), StatusCode.KO)
-                    .setHttpCode(
-                        Response.Status.BAD_REQUEST.getStatusCode()));
+                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO)
+                );
             } else if (!profileModel.getIdentifier().equals(value.asText())) {
                 Optional<RejectionCause> validateIdentifier = manager.createCheckDuplicateInDatabaseValidator()
                     .validate(new ArchiveUnitProfileModel().setIdentifier(value.asText()));
                 if (validateIdentifier.isPresent()) {
                     error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                         ARCHIVE_UNIT_PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText(), StatusCode.KO)
-                        .setHttpCode(
-                            Response.Status.BAD_REQUEST.getStatusCode()));
+                            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                            .setMessage(ArchiveUnitProfileManager.UPDATE_DUPLICATE_IN_DATABASE)
+                    );
                 }
             }
         }
@@ -467,14 +489,20 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 manager.createJsonSchemaValidator().validate(profileModel);
             checkSchema.ifPresent(t -> error
                 .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                    .setMessage(checkSchema.get().getReason())));
+                        .setDescription(checkSchema.get().getReason())
+                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO)
+                )
+            );
 
             //check if the archiveUnitProfile is used by an archiveUnit
             final Optional<ArchiveUnitProfileValidator.RejectionCause> checkUsedJsonSchema =
                 manager.createCheckUsedJsonSchema().validate(profileModel);
             checkUsedJsonSchema.ifPresent(t -> error
                 .addToErrors(new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-                    .setMessage(checkUsedJsonSchema.get().getReason())));
+                        .setDescription(checkUsedJsonSchema.get().getReason())
+                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO)
+                )
+            );
         }
 
 

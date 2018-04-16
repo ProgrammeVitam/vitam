@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Rx';
 
 import { ResourcesService } from '../../resources.service';
 import { UploadService, IngestStatusElement } from '../upload.service';
+import { MessagesUtilsService } from '../../utils/messages-utils.service';
 
 
 @Component({
@@ -22,6 +23,7 @@ export class UploadReferentialsComponent implements OnInit {
   displayDialog = false;
   displayUploadMessage = false;
   importError = false;
+  errorDetail = '';
 
   @Input() uploadType: string;
   @Input() url: string;
@@ -30,7 +32,8 @@ export class UploadReferentialsComponent implements OnInit {
   @Input() uploadAPI: string;
   @Input() extensions: string[];
 
-  constructor(private uploadService: UploadService, private router: Router) {
+  constructor(private uploadService: UploadService, private router: Router,
+                private messagesUtilsService: MessagesUtilsService) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         delete this.fileName;
@@ -79,6 +82,9 @@ export class UploadReferentialsComponent implements OnInit {
     }, (error) => {
       this.importError = true;
       this.displayUploadMessage = true;
+      if (error.error && JSON.parse(error.error).httpCode != 500) {
+        this.errorDetail = this.messagesUtilsService.getMessage(error);
+      }
     });
   }
 

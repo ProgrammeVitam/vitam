@@ -47,6 +47,7 @@ export class ResourcesService {
             ' Please contact your administrator', 'System error');
           return Observable.throw(err);
         }
+        return Observable.throw(err);
       })
   }
 
