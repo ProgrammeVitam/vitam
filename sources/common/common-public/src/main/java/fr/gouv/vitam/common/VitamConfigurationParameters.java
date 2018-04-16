@@ -63,6 +63,12 @@ public class VitamConfigurationParameters {
      *
      */
     private Integer numberDbClientThread;
+    /*
+     * StoreGraphBatchSize
+     */
+    private Integer storeGraphBatchSize;
+
+
     /**
      *
      */
@@ -782,6 +788,23 @@ public class VitamConfigurationParameters {
      */
     public void setWorkerBulkSize(Integer workerBulkSize) {
         this.workerBulkSize = workerBulkSize;
+    }
+
+
+    /**
+     * Getter for storeGraphBatchSize
+     * @return storeGraphBatchSize
+     */
+    public Integer getStoreGraphBatchSize() {
+        return storeGraphBatchSize;
+    }
+
+    /**
+     * Setter for storeGraphBatchSize
+     * @param storeGraphBatchSize
+     */
+    public void setStoreGraphBatchSize(Integer storeGraphBatchSize) {
+        this.storeGraphBatchSize = storeGraphBatchSize;
     }
 
     /**

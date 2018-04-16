@@ -75,7 +75,7 @@ public class AdminMetadataApplication extends Application {
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccessMetadata);
 
-            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance(mongoDbAccessMetadata);
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
 
             final MetadataReconstructionResource metadataReconstructionResource =
                 new MetadataReconstructionResource(vitamRepositoryProvider, offsetRepository);

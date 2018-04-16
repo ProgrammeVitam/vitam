@@ -30,11 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.bson.Document;
-
 import com.mongodb.client.FindIterable;
-
 import fr.gouv.vitam.common.exception.DatabaseException;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 /**
  * This repository is a specification of vitam data management
@@ -168,4 +167,15 @@ public interface VitamRepository {
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findDocuments(int mongoBatchSize);
+
+
+
+    /**
+     * Return iterable over document for the given collection
+     *
+     * @param query the mongo query to be executed
+     * @param mongoBatchSize mongoBatchSize
+     * @return iterable over document for the given collection
+     */
+    FindIterable<Document> findDocuments(Bson query, int mongoBatchSize);
 }

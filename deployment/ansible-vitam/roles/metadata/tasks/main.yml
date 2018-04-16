@@ -5,7 +5,7 @@
     name: curl
     state: present
 
-- name: Copy the metadata reconstruction script
+- name: Copy the metadata reconstruction and log shipping script
   template:
     src: "{{ item }}.j2"
     dest: "{{ vitam_defaults.folder.root_path }}/script/metadata/{{ item }}"
@@ -14,6 +14,7 @@
     mode: "{{ vitam_defaults.folder.script_permission }}"
   with_items:
     - reconstruction.sh
+    - storegraph.sh
     - reconstruction_payload.json
 
 - name: Copy the metadata reconstruction conf
@@ -41,3 +42,23 @@
     state: "started"
   when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
         ( primary_site | lower == "false" )
+
+
+
+- name: Ensure vitam-metadata-store-graph timer is stopped
+  systemd:
+    name: "vitam-metadata-store-graph.timer"
+    daemon_reload: "yes"
+    enabled: "no"
+    state: "stopped"
+  when: ( primary_site | lower == "false" ) or
+        ( inventory_hostname != groups["hosts-metadata"] | last )
+
+- name: Ensure vitam-metadata-store-graph timer is started
+  systemd:
+    name: "vitam-metadata-store-graph.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
+  when: ( inventory_hostname == groups["hosts-metadata"] | last ) and
+        ( primary_site | lower == "true" )

@@ -4,6 +4,9 @@ filterActivation : {{ vitam_struct.secret_platform }}
 distributeurBatchSize: 800
 workerBulkSize: 16
 {% endif %}
+{% if inventory_hostname in groups['hosts-metadata'] %}
+storeGraphBatchSize: 10000
+{% endif %}
 intervalDelayCheckIdle : 5000
 maxDelayUnusedConnection : 5000
 delayValidationAfterInactivity : 2500

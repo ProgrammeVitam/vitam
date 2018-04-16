@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -26,6 +27,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
+import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.SedaConstants;
@@ -36,17 +42,11 @@ import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
 
 /**
  * StorageClientUtil class
