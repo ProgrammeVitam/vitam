@@ -123,7 +123,7 @@
     http_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: http_proxy_environnement is defined and http_proxy_environnement != ""
+  when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
 #    creates: /vitam/data/ihm-recette/test-data/system/data/
 # Et les droits sur les fichiers ???
 
@@ -132,7 +132,7 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: http_proxy_environnement is not defined or http_proxy_environnement == ""
+  when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "false"
 
 - name: check whether on branch or commit for {{ vitam_tests_branch }}
   shell: git status --branch --short
@@ -155,11 +155,11 @@
     http_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and http_proxy_environnement is defined and http_proxy_environnement != ""
+  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
 
 - name: rebase documents only when on branch
   shell: git rebase
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and http_proxy_environnement is not defined or http_proxy_environnement == ""
+  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "false"
