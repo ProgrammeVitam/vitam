@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 
-import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,11 +30,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -57,7 +58,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PrepareForTest({WorkspaceClientFactory.class, StorageClientFactory.class,
     LogbookOperationsClientFactory.class, LogbookLifeCyclesClientFactory.class, AdminManagementClientFactory.class})
 public class GenerateAuditReportActionHandlerTest {
-    
+
     GenerateAuditReportActionHandler handler = new GenerateAuditReportActionHandler();
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -69,18 +70,18 @@ public class GenerateAuditReportActionHandlerTest {
     private StorageClientFactory storageClientFactory;
     private AdminManagementClient adminManagementClient;
     private AdminManagementClientFactory adminManagementClientFactory;
-    
+
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
-    
+
     private static final String JOP_RESULTS = "GenerateAuditReportArctionHandler/jopResults.json";
     private static final String LFC_RESULTS = "GenerateAuditReportArctionHandler/lfcResults.json";
-    
+
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -92,7 +93,8 @@ public class GenerateAuditReportActionHandlerTest {
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE)
             .putParameterValue(WorkerParameterName.auditType, "tenant")
             .putParameterValue(WorkerParameterName.objectId, "0")
-            .putParameterValue(WorkerParameterName.auditActions, CheckExistenceObjectPlugin.getId() + ", " + CheckIntegrityObjectPlugin.getId());
+            .putParameterValue(WorkerParameterName.auditActions,
+                CheckExistenceObjectPlugin.getId() + ", " + CheckIntegrityObjectPlugin.getId());
 
     @Before
     public void setUp() throws Exception {
@@ -103,11 +105,11 @@ public class GenerateAuditReportActionHandlerTest {
         PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
-        
+
         PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
-        
+
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
@@ -115,7 +117,7 @@ public class GenerateAuditReportActionHandlerTest {
         PowerMockito.mockStatic(StorageClientFactory.class);
         storageClient = mock(StorageClient.class);
         storageClientFactory = mock(StorageClientFactory.class);
-        
+
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminManagementClient = mock(AdminManagementClient.class);
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
@@ -135,7 +137,7 @@ public class GenerateAuditReportActionHandlerTest {
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient())
             .thenReturn(adminManagementClient);
-        
+
         action = new HandlerIOImpl(guid.getId(), "workerId");
     }
 
@@ -154,13 +156,13 @@ public class GenerateAuditReportActionHandlerTest {
         Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
         Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
         Mockito.doNothing().when(workspaceClient).deleteObject(anyObject(), anyObject());
-        
+
         when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(null);
-        
+
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(jopResults);
         when(logbookOperationsClient.selectOperationById(anyObject(), anyObject())).thenReturn(jopResults);
         when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(lfcResults);
-        
+
         final RequestResponseOK<AccessionRegisterSummaryModel> requestResponseOK = new RequestResponseOK();
         requestResponseOK.addAllResults(Lists.newArrayList());
         when(adminManagementClient.getAccessionRegister(anyObject())).thenReturn(requestResponseOK);
@@ -168,4 +170,36 @@ public class GenerateAuditReportActionHandlerTest {
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+
+    @RunWithCustomExecutor
+    @Test
+    public void executeReferentialExceptionThenFatal() throws Exception {
+        final JsonNode jopResults =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(JOP_RESULTS));
+        final JsonNode lfcResults =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_RESULTS));
+        reset(workspaceClient);
+        reset(storageClient);
+        reset(logbookLifeCyclesClient);
+        reset(logbookOperationsClient);
+        reset(adminManagementClient);
+        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
+        Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
+        Mockito.doNothing().when(workspaceClient).deleteObject(anyObject(), anyObject());
+
+        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(null);
+
+        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(jopResults);
+        when(logbookOperationsClient.selectOperationById(anyObject(), anyObject())).thenReturn(jopResults);
+        when(logbookLifeCyclesClient.selectObjectGroupLifeCycle(anyObject())).thenReturn(lfcResults);
+
+        final RequestResponseOK<AccessionRegisterSummaryModel> requestResponseOK = new RequestResponseOK();
+        requestResponseOK.addAllResults(Lists.newArrayList());
+        when(adminManagementClient.getAccessionRegister(anyObject()))
+            .thenThrow(new ReferentialException("ReferentialException"));
+
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+    }
+
 }

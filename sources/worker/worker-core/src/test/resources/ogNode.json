@@ -1,61 +1,96 @@
 {
-    "_id" : "aebaaaaaaaesq6c3abnimak6qzrse6aaaaaq",
-    "_tenant" : 0,
-    "_profil" : "",
-    "FileInfo" : {
-        "Filename" : "jeux_test.ods",
-        "LastModified" : "2016-11-21T18:28:41.510+01:00"
-    },
-    "#qualifiers" : [ 
-        {
-            "qualifier" : "BinaryMaster",
-            "#nbc" : 1,
-            "versions" : [ 
-                {
-                    "#id" : "aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq",
-                    "DataObjectGroupId" : "aebaaaaaaaesq6c3abnimak6qzrse6aaaaaq",
-                    "DataObjectVersion" : "BinaryMaster_1",
-                    "FormatIdentification" : {
-                        "FormatLitteral" : "OpenDocument Spreadsheet",
-                        "MimeType" : "application/vnd.oasis.opendocument.spreadsheet",
-                        "FormatId" : "fmt/295"
-                    },
-                    "FileInfo" : {
-                        "Filename" : "jeux_test.ods",
-                        "LastModified" : "2016-11-21T18:28:41.510+01:00"
-                    },
-                    "Size" : 16532,
-                    "Uri" : "Content/ID7.ods",
-                    "MessageDigest" : "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e",
-                    "Algorithm" : "SHA-512",
-                    "#storage" : {
-                        "#nbc" : 1,
-                        "offerIds" : [ 
-                            "localhost"
-                        ],
-                        "strategyId" : "default"
-                    }
-                }
-            ]
-        }
-    ],
-    "_up" : [ 
-        "aeaqaaaaaaesq6c3abnimak6qzrsfziaaaaq"
-    ],
-    "_nbc" : 0,
-    "_ops" : [ 
-        "aedqaaaaacec22beabz5oak6qzrrgbiaaaaq"
-    ],
-    "_sp" : "Vitam",
-    "_sps" : [ 
-        "Vitam"
-    ],
-    "_v" : 1,
-    "#storage" : {
-        "#nbc" : 1,
-        "strategyId" : "default",
-        "offerIds" : [ 
-            "localhost"
-        ]
-    }
+	"_id": "aebaaaaaaaesq6c3abnimak6qzrse6aaaaaq",
+	"_tenant": 0,
+	"_profil": "",
+	"FileInfo": {
+		"Filename": "jeux_test.ods",
+		"LastModified": "2016-11-21T18:28:41.510+01:00"
+	},
+	"#qualifiers": [
+		{
+			"qualifier": "PhysicalMaster",
+			"#nbc": 1,
+			"versions": [
+				{
+					"#id": "aeaaaaaaaagesnmfaaglialcsywj2haaaaba",
+					"DataObjectGroupId": "aebaaaaaaagesnmfaaglialcsywj2byaaaaq",
+					"DataObjectVersion": "PhysicalMaster_1",
+					"PhysicalId": "1 Num 1/191-3",
+					"PhysicalDimensions": {
+						"Height": {
+							"unit": "centimetre",
+							"value": 10.5
+						},
+						"Length": {
+							"unit": "centimetre",
+							"value": 14.8
+						},
+						"Thickness": {
+							"unit": "micrometre",
+							"value": 350
+						},
+						"Weight": {
+							"unit": "gram",
+							"value": 3
+						}
+					},
+					"Extent": "1 carte imprimée",
+					"Dimensions": "10,5cm x 14,8cm",
+					"Color": "Noir et blanc",
+					"Framing": "Paysage",
+					"Technique": "Phototypie"
+				}
+			]
+		},
+		{
+			"qualifier": "BinaryMaster",
+			"#nbc": 1,
+			"versions": [
+				{
+					"#id": "aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq",
+					"DataObjectGroupId": "aebaaaaaaaesq6c3abnimak6qzrse6aaaaaq",
+					"DataObjectVersion": "BinaryMaster_1",
+					"FormatIdentification": {
+						"FormatLitteral": "OpenDocument Spreadsheet",
+						"MimeType": "application/vnd.oasis.opendocument.spreadsheet",
+						"FormatId": "fmt/295"
+					},
+					"FileInfo": {
+						"Filename": "jeux_test.ods",
+						"LastModified": "2016-11-21T18:28:41.510+01:00"
+					},
+					"Size": 16532,
+					"Uri": "Content/ID7.ods",
+					"MessageDigest": "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e",
+					"Algorithm": "SHA-512",
+					"#storage": {
+						"#nbc": 1,
+						"offerIds": [
+							"localhost"
+						],
+						"strategyId": "default"
+					}
+				}
+			]
+		}
+	],
+	"_up": [
+		"aeaqaaaaaaesq6c3abnimak6qzrsfziaaaaq"
+	],
+	"_nbc": 0,
+	"_ops": [
+		"aedqaaaaacec22beabz5oak6qzrrgbiaaaaq"
+	],
+	"_sp": "Vitam",
+	"_sps": [
+		"Vitam"
+	],
+	"_v": 1,
+	"#storage": {
+		"#nbc": 1,
+		"strategyId": "default",
+		"offerIds": [
+			"localhost"
+		]
+	}
 }

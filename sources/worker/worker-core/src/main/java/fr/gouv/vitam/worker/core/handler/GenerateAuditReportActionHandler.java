@@ -79,9 +79,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
     private static final String USAGE = "Usage";
 
-    private static final String _TENANT = "#tenant";
-
-    private static final String AUDIT = "AUDIT";
+    private static final String HASH_TENANT = "#tenant";
 
     private static final String ID_OBJ = "IdObj";
 
@@ -135,10 +133,9 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
         String actions = mapParameters.get(WorkerParameterName.auditActions);
         List<String> auditActions = Arrays.asList(actions.split("\\s*,\\s*"));
-
-        if (auditType.toLowerCase().equals(TENANT)) {
+        if (TENANT.equalsIgnoreCase(auditType)) {
             auditType = BuilderToken.PROJECTIONARGS.TENANT.exactToken();
-        } else if (auditType.toLowerCase().equals("originatingagency")) {
+        } else if ("originatingagency".equalsIgnoreCase(auditType)) {
             auditType = BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken();
         }
 
@@ -150,10 +147,10 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             String objectId = mapParameters.get(WorkerParameterName.objectId);
             String auditTypeString = "";
 
-            if (auditType.equals(BuilderToken.PROJECTIONARGS.TENANT.exactToken())) {
+            if (BuilderToken.PROJECTIONARGS.TENANT.exactToken().equals(auditType)) {
                 auditTypeString = "tenant";
                 originatingAgency = listOriginatingAgency(null);
-            } else if (auditType.equals(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken())) {
+            } else if (BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken().equals(auditType)) {
                 listOriginatingAgency(objectId);
                 originatingAgency.add(objectId);
                 auditTypeString = "originatingagency";
@@ -210,7 +207,6 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 (eventType.startsWith("LIST_OBJECTGROUP_ID") && outcome.equals("WARNING"))) {
                 report.put(STATUS, outcome);
                 report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
-
                 if (outcome.equals("KO")) {
                     break;
                 }
@@ -242,7 +238,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 if (res.get("agIdExt") != null) {
                     final String agIdExt = res.get("agIdExt").asText();
                     final JsonNode agIdExtNode = JsonHandler.getFromString(agIdExt);
-                    source.add(JsonHandler.createObjectNode().put(_TENANT, res.get(_TENANT).asText())
+                    source.add(JsonHandler.createObjectNode().put(HASH_TENANT, res.get(HASH_TENANT).asText())
                         .put(ORIGINATING_AGENCY, agIdExtNode.get("originatingAgency").asText())
                         .put(EV_ID_PROC, res.get(EV_ID_PROC).asText()));
                 }
@@ -281,13 +277,25 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                         event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
                         final String originatingAgency = evDetData.get(ORIGINATING_AGENCY).asText();
-                        for (JsonNode error : evDetData.get("errors")) {
-                            reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
-                                .put(ID_GOT, event.get("obId").asText())
-                                .put(ID_OBJ, error.get(ID_OBJ).asText())
-                                .put(USAGE, error.get(USAGE).asText())
-                                .put(ORIGINATING_AGENCY, originatingAgency)
-                                .put(OUT_DETAIL, event.get("outDetail").asText()));
+                        if (evDetData.get("errors") != null) {
+                            for (JsonNode error : evDetData.get("errors")) {
+                                reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
+                                    .put(ID_GOT, event.get("obId").asText())
+                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                    .put(USAGE, error.get(USAGE).asText())
+                                    .put(ORIGINATING_AGENCY, originatingAgency)
+                                    .put(OUT_DETAIL, event.get("outDetail").asText()));
+                            }
+                        }
+                        if (evDetData.get("errorsPhysical") != null) {
+                            for (JsonNode error : evDetData.get("errorsPhysical")) {
+                                reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
+                                    .put(ID_GOT, event.get("obId").asText())
+                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                    .put(USAGE, error.get(USAGE).asText())
+                                    .put(ORIGINATING_AGENCY, originatingAgency)
+                                    .put(OUT_DETAIL, event.get("outDetail").asText()));
+                            }
                         }
 
                         int nb = evDetData.get("nbKO").asInt();
@@ -303,6 +311,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             }
         } catch (LogbookClientNotFoundException e) {
             // no Audit KO
+            LOGGER.error("LogbookClientNotFoundException ", e);
             return reportKO;
         }
         return reportKO;
@@ -336,7 +345,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 }
             }
         } catch (ReferentialNotFoundException e) {
-            LOGGER.error("No Accession Register found ");
+            LOGGER.error("No Accession Register found ", e);
         }
 
         return originatingAgency;
