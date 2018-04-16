@@ -1,5 +1,5 @@
 Recherche et Consultation
-###########################
+#########################
 
 Cette partie décrit les fonctionnalités de recherche et de consultation d'une unité archivistique ou d'un fonds d'archives dans la solution logicielle Vitam.
 
@@ -20,7 +20,7 @@ Chacun de ces modes est accessible par un onglet spécifique. Par défaut, le mo
 
 
 Recherche globale
--------------------
+-----------------
 
 Pour effectuer une recherche globale, l'utilisateur saisit un ou plusieurs mots dans le champ "Intitulé ou description" puis presse la touche "Entrée" de son clavier ou clique sur le bouton "Rechercher".
 
@@ -73,6 +73,24 @@ Dans le cas contraire, un message d'erreur est affiché.
 *Recherche par identifiant d'une Unité Archivistique* 
 
 La recherche par identifiant est spécifique. L'identifiant étant unique, il n'est pas possible d'effectuer une recherche croisée par identifiant et tout autre champ. L'identifiant est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification de la demande de transfert (ATR).
+
+Affiner la recherche 
+--------------------
+Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents champs (FACET). Pour accèder à ces filtres, l'utilisateur doit déplier le bloc "Affiner la recherche" en cliquant sur le pictogramme "plus" situé à droite de l'écran. 
+
+L'utilisateur peut filtrer ces résultats de recherche en sélectionnant un ou plusieurs des 5 filtres proposés à ce jour :
+- Niveau de description 
+- Service producteur
+- Langue
+- Date de début
+- Date de fin
+-(Mots clés / indisponible pour le moment) 
+
+Pour lancer cette opération, les facets concernées doivent être cochées et l'utilisateur doit cliquer sur "rechercher". Au clic, l'utilisateur dispose, en fonction de ces résultats et de la facet selectionnée, d'une liste mentionnant le nombre d'unités archivistiques correspondant à demande.  
+En cliquant sur une des occurences, l'utilisateur visualise la liste spécifique d'unités archivistiques. 
+
+
+.. image:: images/facet.png
 
 
 Résultats de recherche
