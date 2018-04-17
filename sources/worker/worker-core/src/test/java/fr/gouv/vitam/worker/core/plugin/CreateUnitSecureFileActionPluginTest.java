@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -216,7 +217,7 @@ public class CreateUnitSecureFileActionPluginTest {
         ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_MD));
         unit.remove(Arrays
             .asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.ORIGINATING_AGENCIES, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
-                Unit.PARENT_ORIGINATING_AGENCIES));
+                Unit.PARENT_ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE));
         final String unitMDHash = generateExpectedDigest(unit);
 
         JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_LFC_1));

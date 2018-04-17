@@ -144,6 +144,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.UNITDEPTHS;
                     case GRAPH:
                         return Unit.GRAPH;
+                    case GRAPH_LAST_PERISTED_DATE:
+                        return MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
                     case PARENT_ORIGINATING_AGENCIES:
                         return Unit.PARENT_ORIGINATING_AGENCIES;
                     case ALL:

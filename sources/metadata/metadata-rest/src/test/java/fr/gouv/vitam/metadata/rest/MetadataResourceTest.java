@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.rest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
@@ -40,6 +41,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -55,6 +57,7 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -75,6 +78,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.MarshalException;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -83,6 +87,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
@@ -352,9 +357,19 @@ public class MetadataResourceTest {
             .statusCode(Status.OK.getStatusCode())
             .extract().body().asString();
 
-        JsonNode actualUnitJson = JsonHandler.getFromString(responseJson).get("$results").get(0);
-        JsonNode expectedUnitJson =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(expectedContentFileName));
+        ObjectNode actualUnitJson = (ObjectNode) JsonHandler.getFromString(responseJson).get("$results").get(0);
+        ObjectNode expectedUnitJson = (ObjectNode) JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile(expectedContentFileName));
+
+        // Check last persisted date
+        LocalDateTime graphLastPersistedDate = LocalDateUtil.parseMongoFormattedDate(
+            actualUnitJson.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE).asText());
+        assertThat(graphLastPersistedDate)
+            .isAfter(LocalDateUtil.now().minusMinutes(1)).isBefore(LocalDateUtil.now().plusSeconds(1));
+
+        // Compare jsons (excluding graph last persisted date)
+        actualUnitJson.remove(MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
+        expectedUnitJson.remove(MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
 
         JsonAssert.assertJsonEquals(expectedUnitJson.toString(), actualUnitJson.toString(),
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER));

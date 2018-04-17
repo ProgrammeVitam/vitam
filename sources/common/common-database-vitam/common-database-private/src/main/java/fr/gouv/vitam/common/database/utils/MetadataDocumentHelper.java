@@ -43,6 +43,7 @@ public class MetadataDocumentHelper {
         US("_us"),
         SPS("_sps"),
         GRAPH("_graph"),
+        GRAPH_LAST_PERSISTED_DATE("_glpd"),
         US_SP("_us_sp"),
         MIN("_min"),
         MAX("_max"),
@@ -62,7 +63,8 @@ public class MetadataDocumentHelper {
 
     private enum ComputedGraphObjectGroupFields {
 
-        SPS("_sps");
+        SPS("_sps"),
+        GRAPH_LAST_PERSISTED_DATE("_glpd");
 
         private final String fieldName;
 

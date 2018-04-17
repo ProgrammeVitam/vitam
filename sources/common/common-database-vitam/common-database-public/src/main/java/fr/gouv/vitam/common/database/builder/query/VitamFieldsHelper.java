@@ -38,6 +38,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.DUA;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.FORMAT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.GRAPH;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.GRAPH_LAST_PERSISTED_DATE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.INITIAL_OPERATION;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.LAST_PERSISTED_DATE;
@@ -228,6 +229,12 @@ public class VitamFieldsHelper {
      */
     public static final String graph() {
         return GRAPH.exactToken();
+    }
+    /**
+     * @return #graph_last_persisted_date
+     */
+    public static final String graph_last_persisted_date() {
+        return GRAPH_LAST_PERSISTED_DATE.exactToken();
     }
 
     /**

@@ -49,7 +49,8 @@ public class ComputedFieldsTest {
 
     private static List<String> expectedUnitComputedFields =
         Arrays.asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
-            Unit.PARENT_ORIGINATING_AGENCIES, MetadataDocument.ORIGINATING_AGENCIES);
+            Unit.PARENT_ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
+            MetadataDocument.ORIGINATING_AGENCIES);
 
     private static List<String> expectedUnitMainFields = Arrays
         .asList(Unit.MANAGEMENT, Unit.UNIT_TYPE, Unit.STORAGERULE, Unit.APPRAISALRULE, Unit.ACCESSRULE,
@@ -62,7 +63,7 @@ public class ComputedFieldsTest {
             VitamDocument.SCORE);
 
     private static List<String> expectedGotComputedFields =
-        Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES);
+        Arrays.asList(MetadataDocument.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
 
     private static List<String> expectedGotMainFields =
         Arrays.asList(ObjectGroup.USAGES, ObjectGroup.STORAGE, ObjectGroup.VERSIONS, ObjectGroup.DATAOBJECTVERSION,

@@ -691,6 +691,10 @@ public abstract class BuilderToken {
          */
         GRAPH("graph"),
         /**
+         * Graph last persisted date
+         */
+        GRAPH_LAST_PERSISTED_DATE("graph_last_persisted_date"),
+        /**
          * Unit or GOT's list of participating operations
          */
         OPERATIONS("operations"),
