@@ -10,7 +10,7 @@
 // - fix the partial build
 
 pipeline {
-    agent { 
+    agent {
         label 'slaves'
     }
 
@@ -33,8 +33,8 @@ pipeline {
                // Maven : nothing to do, the settings.xml file is passed to maven by command arg & configured by env variables
                // Npm : we could have chosen "npm config" command, but, using a file, we keep the same principle as for maven
                // KWA Note : Awful outside docker...
-               sh "cp -f .ci/.npmrc ~/"
-               //sh "rm -f ~/.m2/settings.xml"
+               // sh "cp -f .ci/.npmrc ~/"
+               // sh "rm -f ~/.m2/settings.xml"
                echo "Workspace location : ${env.WORKSPACE}"
                echo "Branch : ${env.GIT_BRANCH}"
            }
@@ -85,7 +85,7 @@ pipeline {
                     // overwrite file content with one more goal
                     writeFile file: 'deploy_goal.txt', text: "${env.DEPLOY_GOAL}"
                     writeFile file: 'master_branch.txt', text: "${env.MASTER_BRANCH}"
-                }
+                 }
                 echo "We are on master branch (${env.GIT_BRANCH}) ; deploy goal is \"${env.DEPLOY_GOAL}\""
             }
         }
@@ -93,8 +93,8 @@ pipeline {
         stage ("Execute unit tests") {
          // when {
         //     //     environment(name: 'CHANGED_VITAM', value: 'true')
-        //     // } 
-            steps {       
+        //     // }
+            steps {
                 dir('sources') {
                     sh '$MVN_COMMAND -f pom.xml clean test sonar:sonar -Dsonar.branch=$GIT_BRANCH'
                 }
@@ -128,7 +128,7 @@ pipeline {
         //                 }
         //             }
         //         }
-        
+
         stage("Build packages") {
             // Separated for the -T 1C option (possible here, but not while executing the tests)
             // Caution : it force us to recompile and rebuild the jar packages, but it doesn't cost that much (KWA TODO: To be verified)
@@ -169,7 +169,7 @@ pipeline {
             steps {
                 dir('doc') {
                     sh '$MVN_COMMAND -f pom.xml -T 1C clean package rpm:attached-rpm jdeb:jdeb $DEPLOY_GOAL'
-                }      
+                }
             }
             post {
                 always {
@@ -232,27 +232,27 @@ pipeline {
             steps {
                 parallel(
                     "Upload vitam-product packages": {
-                        sshagent (credentials: ['jenkins_sftp_to_repository']) { 
+                        sshagent (credentials: ['jenkins_sftp_to_repository']) {
                             sh 'vitam-build.git/push_product_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
                     },
                     "Upload vitam-external  packages": {
-                        sshagent (credentials: ['jenkins_sftp_to_repository']) { 
+                        sshagent (credentials: ['jenkins_sftp_to_repository']) {
                             sh 'vitam-build.git/push_external_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
                     },
                     "Upload documentation": {
-                        sshagent (credentials: ['jenkins_sftp_to_repository']) { 
+                        sshagent (credentials: ['jenkins_sftp_to_repository']) {
                             sh 'vitam-build.git/push_doc_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
                     },
                     "Upload sources packages": {
-                        sshagent (credentials: ['jenkins_sftp_to_repository']) { 
+                        sshagent (credentials: ['jenkins_sftp_to_repository']) {
                             sh 'vitam-build.git/push_sources_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
                     },
                     "Upload deployment": {
-                        sshagent (credentials: ['jenkins_sftp_to_repository']) { 
+                        sshagent (credentials: ['jenkins_sftp_to_repository']) {
                             sh 'vitam-build.git/push_deployment_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
                     }
