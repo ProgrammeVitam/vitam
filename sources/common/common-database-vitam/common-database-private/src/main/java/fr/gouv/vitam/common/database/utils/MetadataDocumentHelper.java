@@ -34,6 +34,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Helper class for metadata documents fields (units & object groups).
+ */
 public class MetadataDocumentHelper {
 
     private enum ComputedGraphUnitFields {
@@ -55,6 +58,7 @@ public class MetadataDocumentHelper {
             return fieldName;
         }
     }
+
 
     private enum ComputedGraphObjectGroupFields {
 
@@ -85,37 +89,45 @@ public class MetadataDocumentHelper {
                 .collect(Collectors.toList()));
     }
 
+    /**
+     * @return the list of computed graph unit fields
+     */
     public static List<String> getComputedGraphUnitFields() {
         return computedGraphUnitFields;
     }
 
+    /**
+     * @return the list of computed graph object group fields
+     */
     public static List<String> getComputedGraphObjectGroupFields() {
         return computedGraphObjectGroupFields;
     }
 
     /**
      * Removes computed graph fields from unit json
+     *
      * @param unitJson
      */
     public static void removeComputedGraphFieldsFromUnit(JsonNode unitJson) {
-        if(!unitJson.isObject()) {
+        if (!unitJson.isObject()) {
             throw new IllegalArgumentException("Expected unit object json");
         }
 
-        ObjectNode unit = (ObjectNode)unitJson;
+        ObjectNode unit = (ObjectNode) unitJson;
         unit.remove(getComputedGraphUnitFields());
     }
 
     /**
      * Removes computed graph fields from got json
+     *
      * @param objectGroupJson
      */
     public static void removeComputedGraphFieldsFromObjectGroup(JsonNode objectGroupJson) {
-        if(!objectGroupJson.isObject()) {
+        if (!objectGroupJson.isObject()) {
             throw new IllegalArgumentException("Expected object group object json");
         }
 
-        ObjectNode objectGroup = (ObjectNode)objectGroupJson;
+        ObjectNode objectGroup = (ObjectNode) objectGroupJson;
         objectGroup.remove(getComputedGraphUnitFields());
     }
 }

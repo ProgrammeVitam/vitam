@@ -119,8 +119,8 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private LocalDateTime traceabilityEndDate;
 
     /**
-     * @param logbookOperations     used to search the operation to secure
-     * @param operationID           guid of the traceability operation
+     * @param logbookOperations used to search the operation to secure
+     * @param operationID guid of the traceability operation
      * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
     public LogbookOperationTraceabilityHelper(LogbookOperations logbookOperations,

@@ -532,7 +532,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             return isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
-        // TODO to return the number of Units immediately below
+
         final Iterator<SearchHit> iterator = hits.iterator();
         while (iterator.hasNext()) {
             final SearchHit hit = iterator.next();

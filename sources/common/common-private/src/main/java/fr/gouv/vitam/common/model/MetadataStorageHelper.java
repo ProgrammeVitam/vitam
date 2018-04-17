@@ -30,6 +30,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+/**
+ * Helper class for metadata documentation storage.
+ */
 public class MetadataStorageHelper {
 
     private static final String UNIT_KEY = "unit";
