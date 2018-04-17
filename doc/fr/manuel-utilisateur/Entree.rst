@@ -9,7 +9,7 @@ Le SIP est un fichier compressé comportant le bordereau de versement SEDA au fo
 
 Avertissement : Le bordereau doit être conforme au SEDA et respecter les consignes de formalisation des SIP décrites dans le document "Structuration des submissions information Package (SIP)".
 
-Transfert d'un SIP 
+Transfert d'un SIP
 ===================
 
 Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran de "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis en sélectionnant le sous-menu "Transfert de SIP et plan de classement".
@@ -62,7 +62,7 @@ Si l'utilisateur tente d'importer un SIP dans un format non conforme, alors la s
 
 Toute opération d'entrée fait l'objet d'une écriture dans le journal des opérations. Les entrées abouties (succès, avertissement et échec technique ou métier) génèrent un accusé de réception qui est proposé en téléchargement à l'utilisateur.
 
-Cet accusé de réception ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
+Cet accusé de réception ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.1.
 
 Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend les informations suivantes :
 
@@ -70,7 +70,7 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 - MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
 - ArchivalAgreement : Identifiant ou nom du contrat d'entrée
 - CodeListVersion : la liste des référentiels utilisés
-- La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId) 
+- La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - La liste des groupes d'objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du SIP
@@ -85,7 +85,7 @@ Les blocs <event> sont composés des balises suivantes :
 
 - EventTypeCode : code de l'étape ou de la tâche en erreur
 - EventType : l'intitulé de l'étape ou de la tâche
-- EventDateTime : date de l'évènement. 
+- EventDateTime : date de l'évènement.
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
@@ -136,7 +136,7 @@ Si l'utilisateur tente d'importer un plan dans un format non conforme, alors le 
 
 Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
-Cette notification ou ArchiveTransferReply (ATR) est un document au format XML conforme au schéma SEDA 2.0.
+Cette notification ou ArchiveTransferReply (ATR) est un document au format XML conforme au schéma SEDA 2.1.
 Lors d'une entrée en succès dans la solution logicielle VITAM, l'ATR comprend les informations suivantes :
 
 - Date : date d'émission de l'ATR
@@ -149,7 +149,7 @@ Lors d'une entrée en succès dans la solution logicielle VITAM, l'ATR comprend 
 - ArchivalAgency : service d'archives
 - TransferringAgency : l'identifiant du service de transfert d'archives
 
-Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING" ainsi que les détails de l'avertissement. 
+Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING" ainsi que les détails de l'avertissement.
 
 En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès, mais le ReplyCode est KO. La notification comprend ensuite la liste des erreurs rencontrées sous la forme de blocs <event>, tout d'abord au niveau des blocs <Operation>, puis au niveau des unités archivistiques comme au niveau des groupes d'objets.
 
@@ -157,7 +157,7 @@ Les blocs <event> sont composés des balises suivantes :
 
 - EventTypeCode : code de l'étape ou de la tâche en erreur
 - EventType : l'intitulé de l'étape ou de la tâche
-- EventDateTime : date de l'évènement. 
+- EventDateTime : date de l'évènement.
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
@@ -222,7 +222,7 @@ Les informations supplémentaires disponibles sont :
 - Profil d'archivage
 - Date
 - Niveau de service
-- Signature 
+- Signature
 
 
 Consultation du détail
@@ -231,7 +231,7 @@ Consultation du détail
 Suite à la recherche d'une opération d'entrée ou depuis la page par défaut du journal des opérations d'entrée, l'utilisateur peut choisir de consulter le détail des événements intervenus durant le processus d'entrée.
 Pour accéder au détail d'une opération d'entrée, l'utilisateur clique sur la ligne souhaitée.
 
-Le détail d'une opération d'entrée est composé de deux parties : 
+Le détail d'une opération d'entrée est composé de deux parties :
 
 Le descriptif de l'opération qui récapitule les informations de l'opérations avec la possibilité d'afficher les informations supplémentaires.
 
@@ -249,4 +249,3 @@ Un clic sur la flèche située à côté du message permet d'afficher les tâche
 
 
 .. image:: images/detail_jdoe.png
-

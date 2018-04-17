@@ -41,7 +41,7 @@ La recherche par intitulé peut être approximative : chaîne de caractères ave
 
 *PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
 
-NB : Il est impossible d'effectuer une recherche croisée par PUID et intitulé. 
+NB : Il est impossible d'effectuer une recherche croisée par PUID et intitulé.
 
 
 .. image:: images/rechch_formats.png
@@ -107,13 +107,13 @@ L'utilisateur doit au préalable créer le référentiel des règles de gestion 
 
 Un fichier valide est un fichier respectant toutes les conditions suivantes :
 
-- Format CSV 
+- Format CSV
 - Valeurs dont le format est correct
 - Tous les champs obligatoires ont des valeurs
 - Valeurs cohérentes avec les besoins métier
 
 
-Pour importer une règle de gestion, l'administration : 
+Pour importer une règle de gestion, l'administration :
 
 - Accède à l'interface d'import du référentiel des règles de gestion et clique sur le bouton "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement
 - Sélectionne le fichier CSV précédemment décrit
@@ -196,7 +196,7 @@ Il est ensuite possible de modifier ou mettre à jour ce référentiel, en impor
 • échec de la mise à jour si celle-ci a demandé la suppression d’une règle déjà utilisée ;
 • succès avec avertissement de la mise à jour si celle-ci a demandé la modification d’une règle déjà utilisée.
 
-NOTE: le dernier fichier enregistré est disponible à l'export via le bouton " Exporter le référentiel " 
+NOTE: le dernier fichier enregistré est disponible à l'export via le bouton " Exporter le référentiel "
 
 .. image:: images/reglesgestion_export.png
 
@@ -211,7 +211,7 @@ Ce référentiel interne à la solution logicielle Vitam, décrit les services (
 Import du référentiel des services agents
 -----------------------------------------
 
-L’import des services agents est une fonctionnalité réservée à un utilisateur ayant des droits d’administration. 
+L’import des services agents est une fonctionnalité réservée à un utilisateur ayant des droits d’administration.
 Pour accéder à la page d'import, l’utilisateur survole le menu « Administration », puis le sous-menu « Import des référentiels » et sélectionne « Import des services agents ».
 
 
@@ -284,7 +284,7 @@ Cette page de détail permet également d’accéder le cas échéant au registr
 Pour plus de détail sur le registre des fonds, se référer à la partie 5.4.4  Consultation du registre des fonds
 
 
-NOTE: le dernier fichier enregistré est disponible à l'export via le bouton " Exporter le référentiel " 
+NOTE: le dernier fichier enregistré est disponible à l'export via le bouton " Exporter le référentiel "
 
 .. image:: images/serviceagent_export.png
 
@@ -321,7 +321,7 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 
 - Que les contrats ont bien été importés
 - Un échec de l'import du fichier, pouvant être causé par :
-	- Le fait que les contrats mentionnés existent déjà pour le tenant 
+	- Le fait que les contrats mentionnés existent déjà pour le tenant
 	- Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
@@ -372,7 +372,7 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 - Date de dernière modification
 - Profils d'archivage
 - Nœud de rattachement
-- Contrôle sur noeud de rattachement 
+- Contrôle sur noeud de rattachement
 - Tenant
 
 |
@@ -392,7 +392,7 @@ Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modi
 
 * Statut
 
-L'administrateur a la possibilité d'activer / désactiver un contrat en cliquant sur le bouton du statut pour le rendre actif ou inactif. 
+L'administrateur a la possibilité d'activer / désactiver un contrat en cliquant sur le bouton du statut pour le rendre actif ou inactif.
 
 * Restriction d'entrée par Profil d'archivage
 
@@ -402,9 +402,9 @@ Il est possible d'ajouter dans ce champ un ou plusieurs identifiants de profils 
 
 Il est possible d'ajouter dans ce champ l'identifiant (GUID) d'une unité archivistique de plan de classement ou d'arbre de positionnement ans le champs réservé, puis ensuite appuyer sur entrée après l'ajout de l'identifiant. Les SIP qui utiliseront ce contrat d'entrée seront automatiquement rattachés à l'unité archivistique déclarée dans le nœud de rattachement.
 
-* Contrôle sur noeud de rattachement 
+* Contrôle sur noeud de rattachement
 
-En activant cette option un contrôle est effectué sur la cohérence du rattachement parent / enfant du SIP.  
+En activant cette option un contrôle est effectué sur la cohérence du rattachement parent / enfant du SIP.
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
@@ -514,7 +514,7 @@ Il est possible de modifier un contrat d'accès en cliquant sur le bouton "Modif
 
  * Changer son statut (actif/inactif).
 
- * Ajouter ou de supprimer des services producteurs (identifiant) 
+ * Ajouter ou de supprimer des services producteurs (identifiant)
 
  * Ajouter des noeuds de consultation (identifiant) ainsi que des usages à sélectionner via une liste.
 
@@ -531,14 +531,14 @@ L'administrateur a la possibilité d'activer / désactiver un contraten cliquant
 Un contrat peut autoriser l'accès à tous ou certains services producteurs inclus dans une liste blanche. Deux options sont disponibles :
 
  - accès à "Tous les services producteurs" en cliquant afin de changer sa valeur à "oui"
- - accès à une sélection de services producteurs en cliquant sur le bouton "Tous les services producteurs" afin de changer sa valeur à "non", puis en saisissant l'identifiant du producteur souhaité dans la liste blanche des services producteurs ( système de tag, appuyer sur entrée ) 
+ - accès à une sélection de services producteurs en cliquant sur le bouton "Tous les services producteurs" afin de changer sa valeur à "non", puis en saisissant l'identifiant du producteur souhaité dans la liste blanche des services producteurs ( système de tag, appuyer sur entrée )
 
 * Restriction d'accès par usage de l'objet
 
 Un contrat peut autoriser l'accès à tous ou certains usages d'objets inclus dans une liste blanche. (Ex. : l'utilisateur peut accéder aux usages de diffusion mais pas à l'original). Deux options sont disponibles:
 
  - accès à "Tous les usages" en cliquant afin de changer sa valeur à "oui"
- - accès à une sélection d'usages en cliquant sur le bouton "Tous les usages" afin de porter sa valeur à "non" puis en sélectionnant les usages voulus dans la liste blanche des usages. 
+ - accès à une sélection d'usages en cliquant sur le bouton "Tous les usages" afin de porter sa valeur à "non" puis en sélectionnant les usages voulus dans la liste blanche des usages.
 
 *Restriction par nœud de consultation*
 
@@ -604,9 +604,9 @@ Pour accéder au détail d'un contexte applicatif, l'utilisateur clique sur la l
 - Intitulé
 - Date de création
 - Dernière modification
-- Statut (Actif ou Inactif) 
-- Profil de sécurité (permet de définir les accès d'une application) 
-- Activation des permissions accordées dans le profil de sécurité (Actif ou Inactif) 
+- Statut (Actif ou Inactif)
+- Profil de sécurité (permet de définir les accès d'une application)
+- Activation des permissions accordées dans le profil de sécurité (Actif ou Inactif)
 
 Les tenants sont affichés par bloc. Chaque bloc contenant les informations suivantes :
 
@@ -624,7 +624,7 @@ Point d'attention : la modification des contextes applicatifs est une opération
 Profils d'archivage
 ===================
 
-Un profil d’archivage est un fichier XSD ou RNG qui permet de définir précisément la manière dont les archives destinées à être transférées à la solution logicielle Vitam doivent être structurées et décrites. 
+Un profil d’archivage est un fichier XSD ou RNG qui permet de définir précisément la manière dont les archives destinées à être transférées à la solution logicielle Vitam doivent être structurées et décrites.
 
 Il constitue une déclinaison du modèle de description propre au Standard d’échanges de données pour l’archivage (SEDA).
 
@@ -636,7 +636,7 @@ Pour plus d'information se référer à la documentation "Profil d'archivage"
 Importer une notice descriptive de profil d'archivage
 -----------------------------------------------------
 
-L'import de notice détaillant les profils d'archivage est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. 
+L'import de notice détaillant les profils d'archivage est une fonctionnalité réservée à un utilisateur ayant des droits d'administration.
 
 L'utilisateur construit au prélable la notice descriptive du profil d'archivage au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
 
@@ -695,7 +695,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 - Intitulé
 - Identifiant
-- Statut (Actif / Inactif) 
+- Statut (Actif / Inactif)
 - Date de de création
 - Dernière modification
 - Profil : bouton d'import d'un profil d'archivage SEDA au format XSD ou RNG à lier à cette notice
@@ -744,7 +744,7 @@ L'opération est journalisée et disponible depuis l'écran de consultation du j
 En cas de succès de l'import du profil XSD ou RNG, la date de mise à jour de la notice descriptive de profil est ajustée en conséquence. Si l'utilisateur importe un nouveau profil SEDA au format XSD ou RNG alors qu'un autre profil SEDA a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 
-Documents types 
+Documents types
 ===============
 
 Un document type est un fichier JSON schéma qui permet de définir précisément et d'effectuer des contrôles sur la structure des métadonnées attendues des archives destinées à être transférées à la solution logicielle Vitam.
@@ -757,17 +757,17 @@ Pour plus d'information se référer à la documentation "Document Type"
 Importer une notice de document type
 ------------------------------------
 
-L'import de notice détaillant les documents types est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. 
+L'import de notice détaillant les documents types est une fonctionnalité réservée à un utilisateur ayant des droits d'administration.
 
 L'utilisateur construit au prélable la notice descriptive du document type au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
 
     - Nom : intitulé du document type (obligatoire)
     - Description : description du document type (Facultative)
-    - Date de Création ( Facultative ) 
-    - Date d'Activation: Date au format JJ/MM/AA ( Facultative ) 
-    - Date de désactivation: Date au format JJ/MM/AA ( Facultative ) 
-    - Statut : Date au format JJ/MM/AA (Facultatif) 
-    - ControlSchema: bloc au format JSON ( obligatoire , même vide ) 
+    - Date de Création ( Facultative )
+    - Date d'Activation: Date au format JJ/MM/AA ( Facultative )
+    - Date de désactivation: Date au format JJ/MM/AA ( Facultative )
+    - Statut : Date au format JJ/MM/AA (Facultatif)
+    - ControlSchema: bloc au format JSON ( obligatoire , même vide )
 
       NOTE : si aucun statut n'est défini, le profil sera inactif par défaut
 
@@ -783,7 +783,7 @@ L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant su
 
 
 .. image:: images/import_doctype.png
- 
+
 
 Une fenêtre modale indique alors soit :
 
@@ -798,17 +798,17 @@ Cette opération est journalisée et disponible dans le Journal des opérations.
 Ajout d'un Schéma de contrôle
 -----------------------------
 
-- L'utilisateur peut ajouter des schémas de contrôles de 2 façons: 
+- L'utilisateur peut ajouter des schémas de contrôles de 2 façons:
 
-	- Soit via le référentiel JSON directement, en rajoutant le bloc de métadonnées à contrôler à l'INGEST des fichiers directement dans le détail du Champ " Controlschema " 
+	- Soit via le référentiel JSON directement, en rajoutant le bloc de métadonnées à contrôler à l'INGEST des fichiers directement dans le détail du Champ " Controlschema "
 
-	- Soit via l' IHM, dans le détail de la notice de document type importée précédemment. 
+	- Soit via l' IHM, dans le détail de la notice de document type importée précédemment.
 
 
 .. image:: images/ref_json.png
 
 
-Note: Pour que le contrôle supplémentaire sur les données soit pris en compte, l' intitulé du référentiel devra être présent dans le bordeau d'envoi. 
+Note: Pour que le contrôle supplémentaire sur les données soit pris en compte, l' intitulé du référentiel devra être présent dans le bordeau d'envoi.
 
 
 Recherche d' un document type
@@ -833,7 +833,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 - Intitulé
 - Identifiant
-- Statut (Actif / Inactif) 
+- Statut (Actif / Inactif)
 - Date de de création
 - Dernière modification
 - Document
@@ -870,7 +870,7 @@ Les arbres de positionnement correspondent à des ensembles logiques hiérarchis
 Import d'un arbre de positionnement
 -----------------------------------
 
-L'administrateur aura préalablement constitué son fichier d'arbre de positionnement au format CSV comportant les informations suivantes :  
+L'administrateur aura préalablement constitué son fichier d'arbre de positionnement au format CSV comportant les informations suivantes :
 
 - id : numéro de l’enregistrement ;
 - nom : intitulés présents dans l'arbre de positionnement, tous niveaux confondus
@@ -918,7 +918,7 @@ Si l'utilisateur tente d'importer un arbre dans un format non conforme, alors le
 
 Toute opération d'entrée (succès, avertissement et erreur technique ou métier) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
-Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
+Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.1.
 Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend les informations suivantes :
 
 - Date : date d'émission de l'ATR
@@ -1061,7 +1061,7 @@ Par défaut, les opérations d’entrée sont classées par ordre ante chronolog
 La page affiche un formulaire de recherche composé des champs suivants :
 
 - Identifiant : identifiant unique de l’opération d’entrée
-- Catégorie : indique le type d’opération ( process ) 
+- Catégorie : indique le type d’opération ( process )
 - Statut : statut actuel de l'opération
 - Etats : état actuel de l'opération
 - Dernière étape : dernière étape à laquelle le workflow s'est arrêté
@@ -1119,7 +1119,7 @@ Opérations de sécurisation
 ===========================
 
 La sécurisation des journaux permet de garantir la valeur probante des archives prises en charge dans la solution logicielle Vitam.
-Les éléments de valeur probante apportés par la solution Vitam sont détaillés dans la documentation liée à la valeur probante. 
+Les éléments de valeur probante apportés par la solution Vitam sont détaillés dans la documentation liée à la valeur probante.
 
 Le fichier produit par une opération de sécurisation des journaux est appelé un "journal sécurisé".
 
@@ -1193,7 +1193,7 @@ En cliquant sur le bouton "Lancer la vérification", la solution logicielle Vita
 
 Une fois l'opération terminée, son détail est affiché. Il est également disponible dans le Journal des opérations.
 Le téléchargement du fichier lié à la sécurisation peut être realisé via le détail de l'opération.
- 
+
 
 
 Fonctionnalités présentes sur le tenant d'administration uniquement
@@ -1216,7 +1216,7 @@ L'import du référentiel ne peut être effectué sans le fichier PRONOM. Pour c
 
 Pour importer un référentiel des formats, l'administration:
 
-- Accède à l'écran d'import du référentiel des formats 
+- Accède à l'écran d'import du référentiel des formats
 - Clique sur le bouton "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement
 - Sélectionne le fichier .xml PRONOM récupéré précédemment
 - Clique sur le bouton "Importer"
@@ -1298,7 +1298,7 @@ L'administrateur a la possibilité d'activer / désactiver un contexte en cliqua
 
 *Activation / désactivation du contrôle des permissions*
 
-L'administrateur a la possibilité d'activer / désactiver le contrôle du contexte en cliquant sur le bouton 'Actif" ou " Inactif". 
+L'administrateur a la possibilité d'activer / désactiver le contrôle du contexte en cliquant sur le bouton 'Actif" ou " Inactif".
 
 *Tenants*
 

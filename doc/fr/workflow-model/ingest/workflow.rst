@@ -84,18 +84,18 @@ Vérification globale du SIP (CHECK_SEDA - CheckSedaActionHandler.java)
 
 + **Règle** : Vérification de la cohérence physique du SIP reçu par rapport au modèle de SIP accepté
 
-+ **Type de SIP accepté** : le bordereau de transfert, obligatoire dans le SIP, doit être nommé manifest.xml, doit être conforme au schéma xsd par défaut fourni avec le standard SEDA v. 2.0, doit satisfaire les exigences du document "Structuration des SIP" et doit posséder un répertoire unique nommé "Content"
++ **Type de SIP accepté** : le bordereau de transfert, obligatoire dans le SIP, doit être nommé manifest.xml, doit être conforme au schéma xsd par défaut fourni avec le standard SEDA v. 2.1, doit satisfaire les exigences du document "Structuration des SIP" et doit posséder un répertoire unique nommé "Content"
 
 + **Type** : bloquant
 
 + **Statuts** :
 
-  - OK : le SIP est présent, nommé manifest.xml et conforme au schéma xsd par défaut fourni avec le standard SEDA v.2.0. (CHECK_SEDA.OK = Succès de la vérification globale du SIP)
+  - OK : le SIP est présent, nommé manifest.xml et conforme au schéma xsd par défaut fourni avec le standard SEDA v.2.1. (CHECK_SEDA.OK = Succès de la vérification globale du SIP)
   - KO :
 
     - Cas 1 : le bordereau de transfert est introuvable dans le SIP ou n'est pas au format XML (CHECK_SEDA.NO_FILE.KO = Échec de la vérification globale du SIP : absence du bordereau de transfert ou bordereau de transfert au mauvais format)
     - Cas 2 : le bordereau de transfert n'est pas au format XML (CHECK_SEDA.NOT_XML_FILE.KO = Échec de la vérification globale du SIP : bordereau de transfert non conforme aux caractéristiques d'un fichier xml)
-    - Cas 3 : le bordereau de transfert ne respecte pas le schéma par défaut fourni avec le standard SEDA 2.0 (CHECK_SEDA.NOT_XSD_VALID.KO = Échec de la vérification globale du SIP : bordereau de transfert non conforme au schéma SEDA 2.0)
+    - Cas 3 : le bordereau de transfert ne respecte pas le schéma par défaut fourni avec le standard SEDA 2.1 (CHECK_SEDA.NOT_XSD_VALID.KO = Échec de la vérification globale du SIP : bordereau de transfert non conforme au schéma SEDA 2.1)
     - Cas 4 : le SIP contient plus d'un dossier "Content" (CHECK_SEDA.CONTAINER_FORMAT.DIRECTORY.KO = Le SIP contient plus d'un dossier ou un dossier dont le nommage est invalide)
     - Cas 5 : le SIP contient plus d'un seul fichier à la racine (CHECK_SEDA.CONTAINER_FORMAT.FILE.KO = Le SIP contient plus d'un fichier à sa racine)
   - FATAL : une erreur technique est survenue lors de du contrôle de cohérence (CHECK_SEDA.FATAL = Erreur fatale lors de la vérification globale du SIP)
@@ -325,7 +325,7 @@ Processus de contrôle et traitement des unités archivistiques (STP_UNIT_CHECK_
 Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA - CheckArchiveUnitSchemaActionPlugin.java)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** :  Contrôle additionnel sur la validité des champs de l'unité archivistique par rapport au schéma prédéfini dans la solution logicielle Vitam. Par exemple, les champs obligatoires, comme les titres des unités archivistiques, ne doivent pas être vides. En plus du contrôle par le schéma, cette tâche vérifie pour les dates extrêmes que la date de fin est bien supérieure ou égale à la date de début de l'unité archivistique.
++ **Règle** :  Contrôle additionnel sur la validité des champs de l'unité archivistique par rapport au schéma prédéfini dans la solution logicielle Vitam. Par exemple, les champs obligatoires, comme les titres des unités archivistiques, ne doivent pas être vides.  Lorsque le manifeste déclare une personne (Person) et non une société (Entity), alors au moins un champ entre "Firstname" et "Birthname" est obligatoire. En plus du contrôle par le schéma, cette tâche vérifie pour les dates extrêmes que la date de fin est bien supérieure ou égale à la date de début de l'unité archivistique.
 
 + **Type** : bloquant
 
@@ -335,31 +335,31 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA - CheckArchiv
 
   - KO :
 
-    - Cas 1 : au moins un champ d'une unité archivistique dont le schéma n'est pas conforme par rapport au schéma prédéfini du référentiel Vitam (CHECK_UNIT_SCHEMA.INVALID_UNIT.KO=Échec lors de la vérification globale de l'unité archivistique : champs non conformes)
+    - Cas 1 : au moins un champ d'une unité archivistique dont le schéma n'est pas conforme par rapport au schéma prédéfini du référentiel Vitam. (CHECK_UNIT_SCHEMA.INVALID_UNIT.KO=Échec lors de la vérification globale de l'unité archivistique : champs non conformes)
     - Cas 2 : au moins un champ obligatoire d'une unité archivistique est vide(CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD.KO=Échec lors de la vérification globale de l'unité archivistique : champs obligatoires vides)
     - Cas 3 : au moins un champ date d'une unité archivistique est supérieur à 9000 (titre vide, date incorrecte...) ou la date de fin des dates extrêmes est strictement inférieure à la date de début (CHECK_UNIT_SCHEMA.RULE_DATE_THRESHOLD.KO=Échec du calcul des dates d'échéance, la date ne peut être gérée)
 
   - FATAL : une erreur technique est survenue lors de la vérification de l'unité archivistique (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale lors de la vérification globale de l'unité archivistique)
 
 
-Vérification de l' Archive Unit profile - si celle ci est déclarée (CHECK_ARCHIVE_UNIT_PROFILE ) 
+Vérification de l' Archive Unit profile - si celle ci est déclarée (CHECK_ARCHIVE_UNIT_PROFILE )
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Vérification de la conformité au niveau des unités archivistiques: si celles ci font référence à un document type, présent dans la balise "ArchiveUnitProfile" 
++ **Règle** : Vérification de la conformité au niveau des unités archivistiques: si celles ci font référence à un document type, présent dans la balise "ArchiveUnitProfile"
 
 + **Type** : non bloquant
 
 + **Statuts** :
 
   - OK : les unités archivistiques versées et ayant un document type de référence sont bien conformes au schéma décrit dans ces documents types, et ceux ci existent bien dans le système ( CHECK_ARCHIVE_UNIT_PROFILE.OK = Succès de la vérification de la conformité aux documents types )
- 
-  - KO : au moins une unité archivistique n'est pas conforme au schéma décrit dans le document type relié ( CHECK_ARCHIVE_UNIT_PROFILE.KO = Echec de la vérification de la conformité aux documents types ) 
+
+  - KO : au moins une unité archivistique n'est pas conforme au schéma décrit dans le document type relié ( CHECK_ARCHIVE_UNIT_PROFILE.KO = Echec de la vérification de la conformité aux documents types )
 
   - PROFILE NOT FOUND : au moins une unité archivistique est déclarée en lien avec un document type via la balise ArchiveUnitProfile , et ce référentiel n'existe pas dans le système ( CHECK_ARCHIVE_UNIT_PROFILE.PROFILE_NOT_FOUND.KO=Échec de la vérification de la conformité aux documents type : document type non trouvé )
 
-  - INVALID UNIT : au moins une unité archivistique n'est pas conforme au schéma décrit dans le document type relié ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_UNIT.KO = Échec de la vérification de la conformité aux documents type : champs non conformes) 
+  - INVALID UNIT : au moins une unité archivistique n'est pas conforme au schéma décrit dans le document type relié ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_UNIT.KO = Échec de la vérification de la conformité aux documents type : champs non conformes)
 
-  - INVALID AU: le document type cité dans le référentiel est mal formaté ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_AU_PROFILE.KO=Échec de la vérification de la conformité aux documents type : document type non conforme) 
+  - INVALID AU: le document type cité dans le référentiel est mal formaté ( CHECK_ARCHIVE_UNIT_PROFILE.INVALID_AU_PROFILE.KO=Échec de la vérification de la conformité aux documents type : document type non conforme)
 
 
 
