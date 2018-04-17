@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -78,7 +79,6 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -766,7 +766,7 @@ public class EvidenceService {
 
     private String generateDigest(JsonNode jsonNode, DigestType digestType) {
         final Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
     }
 }

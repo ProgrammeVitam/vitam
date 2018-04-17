@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -78,7 +79,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
@@ -205,7 +205,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             ObjectNode fileInfo = JsonHandler.createObjectNode();
             fileInfo.put("FileName", fileName);
             fileInfo.put("Hash", hash);
-            byte[] bytes = JsonHandler.unprettyPrint(fileInfo).getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = CanonicalJsonFormatter.serializeToByteArray(fileInfo);
 
             file.storeLog(bytes);
             algo.addLeaf(bytes);

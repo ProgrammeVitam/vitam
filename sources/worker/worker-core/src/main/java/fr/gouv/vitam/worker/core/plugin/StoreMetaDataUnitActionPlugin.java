@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -51,10 +51,8 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Stores MetaData Unit plugin.
@@ -130,8 +128,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
 
             // transfer json to workspace
             try {
-                String str = JsonHandler.unprettyPrint(docWithLfc);
-                InputStream is = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
+                InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
                         null, asyncIO);

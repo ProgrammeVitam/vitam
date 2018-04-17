@@ -26,10 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -82,6 +80,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -670,8 +669,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             final String fileName = idUnit + JSON;
             JsonNode unit = getUnitRawWithLfc(idUnit);
             workspaceClient.createContainer(requestId);
-            InputStream inputStream =
-                new ByteArrayInputStream(JsonHandler.unprettyPrint(unit).getBytes(StandardCharsets.UTF_8));
+            InputStream inputStream = CanonicalJsonFormatter.serialize(unit);
             workspaceClient.putObject(requestId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName,
                 inputStream);

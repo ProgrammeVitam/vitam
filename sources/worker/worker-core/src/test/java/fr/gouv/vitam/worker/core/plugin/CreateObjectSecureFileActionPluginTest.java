@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -177,7 +178,9 @@ public class CreateObjectSecureFileActionPluginTest {
         saveWorkspacePutObject(SedaConstants.LFC_OBJECTS_FOLDER + "/" + guidOg + ".json");
 
         final String[] offerIds = new String[] {"vitam-iaas-app-02.int", "vitam-iaas-app-03.int"};
-        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(LFC_GOT_MD_FILE);
+        JsonNode mdWithLfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_GOT_MD_FILE));
+        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(
+            mdWithLfc);
 
         final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidOg, "",
             expectedMDLFCGlobalHashFromStorage, 17011, "file_owner",
@@ -214,8 +217,12 @@ public class CreateObjectSecureFileActionPluginTest {
         assertEquals(13, StringUtils.countMatches(fileAsString, ","));
 
         // check hash for LFC and for MD
-        final String gotMDHash = generateExpectedDigest(OBJECT_GROUP_MD);
-        final String gotLFCHash = generateExpectedDigest(OBJECT_LFC_1);
+        ObjectNode got =
+            (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_MD));
+        final String gotMDHash = generateExpectedDigest(got);
+
+        JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_LFC_1));
+        final String gotLFCHash = generateExpectedDigest(lfc);
 
 
         final LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLineExpected =
@@ -242,16 +249,17 @@ public class CreateObjectSecureFileActionPluginTest {
 
         lfcTraceSecFileDataLineExpected.setObjectGroupDocumentHashList(objectGroupDocumentHashToList);
 
-        String expected = JsonHandler.unprettyPrint(lfcTraceSecFileDataLineExpected);
+        String expected = new String(
+            CanonicalJsonFormatter.serializeToByteArray(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected)),
+            StandardCharsets.UTF_8);
         assertEquals(expected,
             fileAsString);
 
     }
 
-    private String generateExpectedDigest(String resource) throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
+    private String generateExpectedDigest(JsonNode jsonNode) throws Exception {
         Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
     }
 

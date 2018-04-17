@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -58,9 +59,8 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.StorageClientUtil;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 
@@ -149,13 +149,12 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
 
             JsonNode jsonDataToWrite = JsonHandler.toJsonNode(lfcTraceSecFileDataLine);
 
-            InputStream inputStream =
-                new ByteArrayInputStream(JsonHandler.unprettyPrint(jsonDataToWrite).getBytes(StandardCharsets.UTF_8));
+            InputStream inputStream = CanonicalJsonFormatter.serialize(jsonDataToWrite);
 
             handlerIO.transferInputStreamToWorkspace(
                 folder + "/" + lfGuid + JSON_EXTENSION, inputStream, null, false);
 
-        } catch (InvalidParseOperationException e) {
+        } catch (IOException | InvalidParseOperationException e) {
             throw new ProcessingException("Could not serialize json object or could not write to file", e);
         }
     }
@@ -197,9 +196,9 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
      * @param jsonNode the jsonNode to compute digest for
      * @return hash of the jsonNode
      */
-    private String generateDigest(JsonNode jsonNode) {
+    private String generateDigest(JsonNode jsonNode) throws IOException {
         final Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serialize(jsonNode));
         return digest.digest64();
     }
 }

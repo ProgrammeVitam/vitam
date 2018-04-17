@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
@@ -173,7 +174,8 @@ public class CreateUnitSecureFileActionPluginTest {
         saveWorkspacePutObject(SedaConstants.LFC_UNITS_FOLDER + "/" + guidUnit + ".json");
 
         final String[] offerIds = new String[] {"vitam-iaas-app-02.int", "vitam-iaas-app-03.int"};
-        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(LFC_UNIT_MD_FILE);
+        JsonNode mdWithLfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNIT_MD_FILE));
+        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(mdWithLfc);
 
         final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidUnit, "",
             expectedMDLFCGlobalHashFromStorage, 7082, "file_owner",
@@ -210,8 +212,11 @@ public class CreateUnitSecureFileActionPluginTest {
         //units data.txt file have only 9 separators, objects 10
         assertEquals(9, StringUtils.countMatches(fileAsString, ","));
         // check hash for LFC and for MD and global lfc+md from storage
-        final String unitMDHash = generateExpectedDigest(UNIT_MD);
-        final String unitLFCHash = generateExpectedDigest(UNIT_LFC_1);
+        ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_MD));
+        final String unitMDHash = generateExpectedDigest(unit);
+
+        JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_LFC_1));
+        final String unitLFCHash = generateExpectedDigest(lfc);
 
         final LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLineExpected =
             new LifeCycleTraceabilitySecureFileObject(
@@ -228,14 +233,15 @@ public class CreateUnitSecureFileActionPluginTest {
                 null
             );
 
-        String expected = JsonHandler.unprettyPrint(lfcTraceSecFileDataLineExpected);
+        String expected = new String(
+            CanonicalJsonFormatter.serializeToByteArray(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected)),
+            StandardCharsets.UTF_8);
         assertEquals(expected, fileAsString);
     }
 
-    private String generateExpectedDigest(String resource) throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
+    private String generateExpectedDigest(JsonNode jsonNode) {
         Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
     }
 
