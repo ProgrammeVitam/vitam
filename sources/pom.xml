@@ -170,11 +170,11 @@
             <distributionManagement>
                 <repository>
                     <id>releases</id>
-                    <url>${env.SERVICE_NEXUS_URL}releases/</url>
+                    <url>${env.SERVICE_NEXUS_URL}/repository/maven-releases/</url>
                 </repository>
                 <snapshotRepository>
                     <id>snapshots</id>
-                    <url>${env.SERVICE_NEXUS_URL}snapshots/</url>
+                    <url>${env.SERVICE_NEXUS_URL}/repository/maven-snapshots/</url>
                 </snapshotRepository>
             </distributionManagement>
 
@@ -182,7 +182,7 @@
             <repositories>
                 <repository>
                     <id>vitam</id>
-                    <url>https://nexus.dev.programmevitam.fr/nexus/content/groups/public/</url>
+                    <url>${env.SERVICE_NEXUS_URL}/repository/maven-public/</url>
                 </repository>
             </repositories>
 
@@ -190,7 +190,7 @@
             <pluginRepositories>
                 <pluginRepository>
                     <id>vitam</id>
-                    <url>https://nexus.dev.programmevitam.fr/nexus/content/groups/public/</url>
+                    <url>${env.SERVICE_NEXUS_URL}/repository/maven-public/</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
@@ -201,7 +201,7 @@
             </pluginRepositories>
 
             <properties>
-                <nodeDownloadRoot>https://dev.preprod.programmevitam.fr/nexus/repository/node-distrib/
+                <nodeDownloadRoot>${env.SERVICE_NEXUS_URL}/repository/node-distrib/
                 </nodeDownloadRoot>
             </properties>
 
