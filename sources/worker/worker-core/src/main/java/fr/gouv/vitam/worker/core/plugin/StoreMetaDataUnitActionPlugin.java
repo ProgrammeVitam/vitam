@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -125,7 +126,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
-            JsonNode docWithLfc = DataCategory.getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
+            JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
 
             // transfer json to workspace
             try {

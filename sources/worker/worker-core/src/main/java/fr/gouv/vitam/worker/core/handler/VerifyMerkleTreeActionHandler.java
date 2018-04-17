@@ -41,11 +41,12 @@ import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 
 /**
  * Using Merkle trees to detect inconsistencies in data
@@ -67,6 +68,8 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
     private static final String HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH = "COMPARE_MERKLE_HASH_WITH_INDEXED_HASH";
 
     private static final int TRACEABILITY_EVENT_DETAIL_RANK = 0;
+    private static final int END_OF_STREAM = -1;
+    private static final char NEW_LINE_SEPARATOR = '\n';
 
     private static TraceabilityEvent traceabilityEvent = null;
 
@@ -178,14 +181,26 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
 
         final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
-        try (InputStreamReader isr = new InputStreamReader(inputStream);
-            BufferedReader reader = new BufferedReader(isr)) {
-            String str;
-            while ((str = reader.readLine()) != null) {
-                merkleTreeAlgo.addLeaf(str);
+        // Process
+        try (BufferedInputStream bis = new BufferedInputStream(inputStream);
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+
+            int c;
+            while (END_OF_STREAM != (c = bis.read())) {
+                if (c != NEW_LINE_SEPARATOR) {
+                    buffer.write(c);
+                } else {
+                    merkleTreeAlgo.addLeaf(buffer.toByteArray());
+                    buffer.reset();
+                }
             }
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+
+            if (buffer.size() > 0) {
+                // Add any remaining
+                merkleTreeAlgo.addLeaf(buffer.toByteArray());
+            }
+
+        } catch (IOException e) {
             throw new ProcessingException(e);
         }
 

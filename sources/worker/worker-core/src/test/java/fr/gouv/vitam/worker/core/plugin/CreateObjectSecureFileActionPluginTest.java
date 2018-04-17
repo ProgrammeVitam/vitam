@@ -62,14 +62,11 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -143,7 +140,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
-        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory,storageClientFactory);
+        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory, storageClientFactory);
         handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId");
     }
 
@@ -236,14 +233,18 @@ public class CreateObjectSecureFileActionPluginTest {
                 null
             );
         //add object documents (qualifiers->version)
-        List<ObjectGroupDocumentHash> objectGroupDocumentHashToList=  new ArrayList<>() ;
+        List<ObjectGroupDocumentHash> objectGroupDocumentHashToList = new ArrayList<>();
 
-        objectGroupDocumentHashToList.add(new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzzqaaaaq", expectedMDLFCGlobalHashFromStorage)       );
-        objectGroupDocumentHashToList.add(new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzyiaaabq", expectedMDLFCGlobalHashFromStorage)       );
+        objectGroupDocumentHashToList.add(
+            new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzzqaaaaq", expectedMDLFCGlobalHashFromStorage));
+        objectGroupDocumentHashToList.add(
+            new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzyiaaabq", expectedMDLFCGlobalHashFromStorage));
 
         lfcTraceSecFileDataLineExpected.setObjectGroupDocumentHashList(objectGroupDocumentHashToList);
 
-        assertEquals(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected).toString(), fileAsString);
+        String expected = JsonHandler.unprettyPrint(lfcTraceSecFileDataLineExpected);
+        assertEquals(expected,
+            fileAsString);
 
     }
 

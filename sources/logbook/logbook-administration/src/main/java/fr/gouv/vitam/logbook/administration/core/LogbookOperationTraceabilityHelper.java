@@ -27,37 +27,10 @@
 
 package fr.gouv.vitam.logbook.administration.core;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.common.model.StatusCode.STARTED;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookOperationParameters;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.TRACEABILITY;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENTS;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import org.bson.Document;
-
-import com.google.common.collect.Iterables;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -92,6 +65,24 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookOperationParameters;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.TRACEABILITY;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHelper {
 
@@ -128,8 +119,8 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private LocalDateTime traceabilityEndDate;
 
     /**
-     * @param logbookOperations used to search the operation to secure
-     * @param operationID guid of the traceability operation
+     * @param logbookOperations     used to search the operation to secure
+     * @param operationID           guid of the traceability operation
      * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
     public LogbookOperationTraceabilityHelper(LogbookOperations logbookOperations,
@@ -183,14 +174,19 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
         file.initStoreLog();
 
-        while (traceabilityIterator.hasNext()) {
+        try {
+            while (traceabilityIterator.hasNext()) {
 
-            final LogbookOperation logbookOperation = traceabilityIterator.next();
-            logbookOperation.remove(VitamDocument.SCORE);
-            final String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
+                final LogbookOperation logbookOperation = traceabilityIterator.next();
+                JsonNode logbookOperationJsonNode = JsonHandler.toJsonNode(logbookOperation);
+                byte[] logbookOperationJsonBytes =
+                    JsonHandler.unprettyPrint(logbookOperationJsonNode).getBytes(StandardCharsets.UTF_8);
 
-            file.storeLog(logbookOperationStr.getBytes(StandardCharsets.UTF_8));
-            algo.addLeaf(logbookOperationStr);
+                file.storeLog(logbookOperationJsonBytes);
+                algo.addLeaf(logbookOperationJsonBytes);
+            }
+        } catch (InvalidParseOperationException e) {
+            throw new TraceabilityException("Could not convert document to json", e);
         }
 
         file.closeStoreLog();
@@ -285,7 +281,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     public void saveEvent(TraceabilityEvent event) {
         // Nothing to do, event is saved in logbook after with 'createLogbookOperationEvent'
     }
-    
+
     @Override
     public void saveEmpty(Integer tenantId) throws TraceabilityException {
         createLogbookOperationEvent(tenantId, STP_OP_SECURISATION, StatusCode.WARNING, null);

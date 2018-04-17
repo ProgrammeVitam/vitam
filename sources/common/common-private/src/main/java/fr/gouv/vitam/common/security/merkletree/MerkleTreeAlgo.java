@@ -54,13 +54,23 @@ public class MerkleTreeAlgo {
     }
 
     /**
-     * adds sheet to the MerkleTree
+     * adds leaf to the MerkleTree
      *
      * @param str
      */
-    public void addLeaf(String str) {
+    @VisibleForTesting
+    void addLeaf(String str) {
+        addLeaf(str.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * adds leaf to the MerkleTree
+     *
+     * @param data
+     */
+    public void addLeaf(byte[] data) {
         Digest digest = new Digest(digestType);
-        MerkleTree tree = new MerkleTree(digest.update(str.getBytes(StandardCharsets.UTF_8)).digest(), null, null);
+        MerkleTree tree = new MerkleTree(digest.update(data).digest(), null, null);
         leaves.add(tree);
     }
 
@@ -84,7 +94,7 @@ public class MerkleTreeAlgo {
     }
 
     /**
-     * adds padding when sheet number isn't 2^n
+     * adds padding when leaf number isn't 2^n
      */
     @VisibleForTesting
     void addPadding() {

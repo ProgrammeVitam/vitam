@@ -27,15 +27,10 @@
 
 package fr.gouv.vitam.storage.engine.common.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.json.JsonHandler;
-
 /**
  * Define the differents type of "object" than can be stored, retrieve or deleted from different storage offer
  */
 public enum DataCategory {
-
 
     /**
      * Container TODO is this right ?
@@ -209,32 +204,5 @@ public enum DataCategory {
             }
         }
         throw new IllegalArgumentException(collectionName + " is not a collectionName in DataCategory entry");
-    }
-    private static final String UNIT_KEY = "unit";
-    private static final String GOT_KEY = "got";
-    private static final String LFC_KEY = "lfc";
-    /**
-     * getDocumentWithLFC, create a jsonNode with the document and its lfc
-     *
-     * @param document the document node
-     * @param lfc the lfc node
-     * @param dataCategory unit or got
-     * @return a new JsonNode with document and lfc inside
-     */
-    public static  JsonNode getDocumentWithLFC(JsonNode document, JsonNode lfc, DataCategory dataCategory) {
-        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-        switch (dataCategory) {
-            case UNIT:
-            case OBJECTGROUP:
-                // get the document
-                docWithLFC.set(dataCategory.equals(DataCategory.UNIT) ? UNIT_KEY : GOT_KEY, document);
-                // get the lfc
-                docWithLFC.set(LFC_KEY, lfc);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported category " + dataCategory);
-        }
-
-        return docWithLFC;
     }
 }

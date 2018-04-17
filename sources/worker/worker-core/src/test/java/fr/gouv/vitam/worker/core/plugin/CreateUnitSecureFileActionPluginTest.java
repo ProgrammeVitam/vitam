@@ -62,7 +62,6 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -228,7 +227,9 @@ public class CreateUnitSecureFileActionPluginTest {
                 expectedMDLFCGlobalHashFromStorage,
                 null
             );
-        assertEquals(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected).toString(), fileAsString);
+
+        String expected = JsonHandler.unprettyPrint(lfcTraceSecFileDataLineExpected);
+        assertEquals(expected, fileAsString);
     }
 
     private String generateExpectedDigest(String resource) throws Exception {
