@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -126,6 +127,8 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 folder = SedaConstants.LFC_UNITS_FOLDER;
                 JsonNode unit = selectArchiveUnitById(objectGroupId);
                 metadataType = MetadataType.UNIT;
+                MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+
                 hashMetaData = generateDigest(unit);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(unit,
                     DataCategory.UNIT, lfGuid + JSON_EXTENSION, storageClient);
@@ -133,6 +136,8 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 folder = SedaConstants.LFC_OBJECTS_FOLDER;
                 JsonNode og = selectObjectGroupById(objectGroupId);
                 metadataType = MetadataType.OBJECTGROUP;
+                MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(og);
+
                 hashMetaData = generateDigest(og);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(og,
                     DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient);

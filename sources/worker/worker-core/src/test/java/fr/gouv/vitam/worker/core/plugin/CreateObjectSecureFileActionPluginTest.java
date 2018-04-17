@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -217,8 +218,8 @@ public class CreateObjectSecureFileActionPluginTest {
         assertEquals(13, StringUtils.countMatches(fileAsString, ","));
 
         // check hash for LFC and for MD
-        ObjectNode got =
-            (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_MD));
+        ObjectNode got = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_MD));
+        got.remove(ObjectGroup.ORIGINATING_AGENCIES);
         final String gotMDHash = generateExpectedDigest(got);
 
         JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_LFC_1));
@@ -257,7 +258,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
     }
 
-    private String generateExpectedDigest(JsonNode jsonNode) throws Exception {
+    private String generateExpectedDigest(JsonNode jsonNode) {
         Digest digest = new Digest(digestType);
         digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();

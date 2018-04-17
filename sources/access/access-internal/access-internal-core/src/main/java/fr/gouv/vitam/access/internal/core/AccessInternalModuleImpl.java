@@ -71,6 +71,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -697,6 +698,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // get metadata
             JsonNode jsonResponse = selectMetadataRawDocumentById(idUnit, DataCategory.UNIT);
             JsonNode unit = extractNodeFromResponse(jsonResponse, ARCHIVE_UNIT_NOT_FOUND);
+            MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
 
             // get lfc
             Select query = new Select();

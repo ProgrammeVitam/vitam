@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -502,6 +503,16 @@ public class EvidenceService {
             }
 
             // calculate and store digests
+            switch (metadataType) {
+                case UNIT:
+                    MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(metadata);
+                    break;
+                case OBJECTGROUP:
+                    MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(metadata);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unknown metadata type " + metadataType);
+            }
             final String hashMdFromDatabase = generateDigest(metadata, auditParameters.getDigestType());
             final String hashLfcFromDatabase = generateDigest(lifecycle, auditParameters.getDigestType());
 

@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
@@ -120,6 +121,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
             //// get metadata
             JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECTGROUP, metaDataClient);
+            MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(got);
 
             //// get lfc
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
