@@ -29,40 +29,56 @@ package fr.gouv.vitam.worker.core.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.utils.LifecyclesSpliterator;
+import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
+import fr.gouv.vitam.common.exception.VitamKoRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookEventType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.bson.Document;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
@@ -83,6 +99,10 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
 
     private static final int LAST_OPERATION_LIFECYCLES_RANK = 0;
     private static final int TRACEABILITY_INFORMATION_RANK = 1;
+    
+    
+    private static final String EV_DATE_TIME = "evDateTime";
+    private static final String ITEM_ID = "_id";
 
     /**
      * Empty constructor ListLifecycleTraceabilityActionPlugin
@@ -104,10 +124,11 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
         try {
             selectAndExportLifecycles(lifecycleTraceabilityOverlapDelayInSeconds);
             itemStatus.increment(StatusCode.OK);
-        } catch (LogbookClientException e) {
+        } catch (LogbookClientException | VitamFatalRuntimeException e) {
             LOGGER.error("Logbook exception", e);
             itemStatus.increment(StatusCode.FATAL);
-        } catch (ProcessingException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (ProcessingException | InvalidParseOperationException | InvalidCreateOperationException 
+                | VitamKoRuntimeException e) {
             LOGGER.error("Processing exception", e);
             itemStatus.increment(StatusCode.KO);
         }
@@ -132,84 +153,100 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
         }
         LocalDateTime traceabilityEndDate = LocalDateUtil.now();
 
-        long numberUnitLifecycles = 0;
-        long numberObjectLifecycles = 0;
+        final AtomicLong numberUnitLifecycles = new AtomicLong();
+        final AtomicLong numberObjectLifecycles = new AtomicLong();
         try (LogbookLifeCyclesClient logbookLifeCyclesClient =
             LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            List<JsonNode> unitLifecycles =
-                selectUnitLifeCycleAfterDate(traceabilityStartDate, logbookLifeCyclesClient);
-            for (JsonNode unit : unitLifecycles) {
-                String unitGuid = unit.get("_id").asText();
-                final File unitLifecycleTmpFile = handlerIO.getNewLocalFile(unitGuid);
-                JsonHandler.writeAsFile(unit, unitLifecycleTmpFile);
-                handlerIO
-                    .transferFileToWorkspace(
-                        UpdateWorkflowConstants.UNITS_FOLDER + "/" + unitGuid + JSON_EXTENSION,
-                        unitLifecycleTmpFile, true, asyncIO);
-                numberUnitLifecycles++;
-            }
 
-            List<JsonNode> objectGroupLifecycles =
-                selectObjectGroupLifeCycleAfterDate(traceabilityStartDate, logbookLifeCyclesClient);
-            for (JsonNode objectGroup : objectGroupLifecycles) {
-                String objectGroupGuid = objectGroup.get("_id").asText();
-                final File oGLifecycleTmpFile = handlerIO.getNewLocalFile(objectGroupGuid);
-                JsonHandler.writeAsFile(objectGroup, oGLifecycleTmpFile);
-                handlerIO
-                    .transferFileToWorkspace(
-                        IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectGroupGuid + JSON_EXTENSION,
-                        oGLifecycleTmpFile, true, asyncIO);
-                numberObjectLifecycles++;
-            }
+            // deal with unit lfc
+            listUnitLifeCycleAfterDate(traceabilityStartDate, logbookLifeCyclesClient, numberUnitLifecycles);
+            
+            // deal with got lfc
+            listObjectGroupCycleAfterDate(traceabilityStartDate, logbookLifeCyclesClient, numberObjectLifecycles);
         }
 
         ObjectNode traceabilityInformation = JsonHandler.createObjectNode();
         traceabilityInformation.put("startDate", getFormattedDateForMongo(traceabilityStartDate));
         traceabilityInformation.put("endDate", getFormattedDateForMongo(traceabilityEndDate));
-        traceabilityInformation.put("numberUnitLifecycles", numberUnitLifecycles);
-        traceabilityInformation.put("numberObjectLifecycles", numberObjectLifecycles);
+        traceabilityInformation.put("numberUnitLifecycles", numberUnitLifecycles.longValue());
+        traceabilityInformation.put("numberObjectLifecycles", numberObjectLifecycles.longValue());
         // export in workspace
         exportTraceabilityInformation(traceabilityInformation);
     }
-
-    private List<JsonNode> selectUnitLifeCycleAfterDate(LocalDateTime startDate,
-        LogbookLifeCyclesClient logbookLifeCyclesClient)
-        throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
+    
+    private void listUnitLifeCycleAfterDate(LocalDateTime startDate, 
+        LogbookLifeCyclesClient logbookLifeCyclesClient, AtomicLong numberUnitLifecycles)
+            throws InvalidCreateOperationException, InvalidParseOperationException {
+        
         final Select select = new Select();
-        select.setQuery(
-            QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)));
-        select.addOrderByAscFilter("evDateTime");
-        try {
-            RequestResponseOK requestResponseOK =
-                RequestResponseOK
-                    .getFromJsonNode(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(select.getFinalSelect()));
-            List<JsonNode> foundUnitLifecycles = requestResponseOK.getResults();
-            return foundUnitLifecycles;
-        } catch (LogbookClientNotFoundException e) {
-            LOGGER.warn("No LFC to be handled");
-        }
-        return new ArrayList<>();
+        select.setQuery(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(),
+            LocalDateUtil.getFormattedDateForMongo(startDate)));
+        select.addOrderByAscFilter(EV_DATE_TIME);
+            
+        LifecyclesSpliterator<JsonNode> scrollSplitator = new LifecyclesSpliterator<>(select,
+            query -> {
+                try {
+                    JsonNode jsonNode = logbookLifeCyclesClient.selectUnitLifeCyclesRaw(query.getFinalSelect());
+                    return RequestResponseOK.getFromJsonNode(jsonNode);
+                } catch (LogbookClientNotFoundException e) {
+                    return new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode());
+                } catch (LogbookClientException | InvalidParseOperationException e) {
+                    throw new VitamFatalRuntimeException(e);
+                }
+            }, VitamConfiguration.getDefaultOffset(), VitamConfiguration.getBatchSize());
+        
+        StreamSupport.stream(scrollSplitator, false).forEach(
+            item -> {
+                String unitGuid = item.get(ITEM_ID).asText();
+                final File unitLifecycleTmpFile = handlerIO.getNewLocalFile(unitGuid);
+                try {
+                    JsonHandler.writeAsFile(item, unitLifecycleTmpFile);
+                    handlerIO.transferFileToWorkspace(
+                            UpdateWorkflowConstants.UNITS_FOLDER + "/" + unitGuid + JSON_EXTENSION,
+                            unitLifecycleTmpFile, true, asyncIO);
+                    numberUnitLifecycles.getAndIncrement();
+                } catch (ProcessingException | InvalidParseOperationException e) {
+                    throw new VitamKoRuntimeException(e);
+                }
+            });
     }
 
-    private List<JsonNode> selectObjectGroupLifeCycleAfterDate(LocalDateTime startDate,
-        LogbookLifeCyclesClient logbookLifeCyclesClient)
-        throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        final Select select = new Select();
-        select.setQuery(
-            QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)));
-        select.addOrderByAscFilter("evDateTime");
-        try {
-            RequestResponseOK requestResponseOK =
-                RequestResponseOK
-                    .getFromJsonNode(logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect()));
-            List<JsonNode> foundObjectGroupLifecycles = requestResponseOK.getResults();
-            return foundObjectGroupLifecycles;
-        } catch (LogbookClientNotFoundException e) {
-            LOGGER.warn("No LFC to be handled");
-        }
-        return new ArrayList<>();
-    }
+    private void listObjectGroupCycleAfterDate(LocalDateTime startDate,
+        LogbookLifeCyclesClient logbookLifeCyclesClient, AtomicLong numberObjectLifecycles)
+            throws InvalidCreateOperationException, InvalidParseOperationException {
 
+        final Select select = new Select();
+        select.setQuery(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), 
+                LocalDateUtil.getFormattedDateForMongo(startDate)));
+        select.addOrderByAscFilter(EV_DATE_TIME);
+        
+        LifecyclesSpliterator<JsonNode> scrollSplitator = new LifecyclesSpliterator<>(select,
+            query -> {
+                try {
+                    JsonNode jsonNode = logbookLifeCyclesClient.selectObjectGroupLifeCycle(query.getFinalSelect());
+                    return RequestResponseOK.getFromJsonNode(jsonNode);
+                } catch (LogbookClientNotFoundException e) {
+                    return new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode());
+                } catch (LogbookClientException | InvalidParseOperationException e) {
+                    throw new VitamFatalRuntimeException(e);
+                }
+            }, VitamConfiguration.getDefaultOffset(), VitamConfiguration.getBatchSize());
+
+        StreamSupport.stream(scrollSplitator, false).forEach(
+            item -> {
+                String objectGroupGuid = item.get(ITEM_ID).asText();
+                final File oGLifecycleTmpFile = handlerIO.getNewLocalFile(objectGroupGuid);
+                try {
+                    JsonHandler.writeAsFile(item, oGLifecycleTmpFile);
+                    handlerIO.transferFileToWorkspace(
+                            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectGroupGuid + JSON_EXTENSION,
+                            oGLifecycleTmpFile, true, asyncIO);
+                    numberObjectLifecycles.getAndIncrement();
+                } catch (ProcessingException | InvalidParseOperationException e) {
+                    throw new VitamKoRuntimeException(e);
+                }
+            });
+    }
 
     private LogbookOperation findLastOperationTraceabilityLifecycle()
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {

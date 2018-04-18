@@ -150,6 +150,7 @@ public class CreateManifest extends ActionHandler {
                         JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
                         return RequestResponseOK.getFromJsonNode(jsonNode);
                     } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
+                        // TODO : throw VitamRuntimeException and set item status according to
                         throw new IllegalStateException(e);
                     }
                 }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
