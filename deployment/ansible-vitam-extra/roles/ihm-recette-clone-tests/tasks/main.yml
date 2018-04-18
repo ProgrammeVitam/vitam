@@ -99,6 +99,7 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
+    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -112,6 +113,7 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
+    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -121,6 +123,7 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
+    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
   when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
@@ -153,6 +156,7 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
+    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
   when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
