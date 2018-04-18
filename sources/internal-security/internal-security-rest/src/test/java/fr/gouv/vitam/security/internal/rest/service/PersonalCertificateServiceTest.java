@@ -1,26 +1,6 @@
 package fr.gouv.vitam.security.internal.rest.service;
 
 
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
-import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
-import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import java.io.InputStream;
-import java.util.Optional;
-
 import static com.google.common.io.ByteStreams.toByteArray;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
@@ -34,6 +14,27 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import java.io.InputStream;
+import java.util.Optional;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
+import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 
 public class PersonalCertificateServiceTest {
 

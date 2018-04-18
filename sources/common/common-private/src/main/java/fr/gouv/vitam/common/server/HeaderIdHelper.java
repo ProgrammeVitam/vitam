@@ -32,7 +32,6 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
@@ -101,6 +100,7 @@ public class HeaderIdHelper {
             extractRequestIdFromHeaders(requestHeaders, ctx);
             extractTenantIdFromHeaders(requestHeaders, ctx);
             extractApplicationSessionIdFromHeaders(requestHeaders, ctx);
+            extractPersonalCertificateFromHeaders(requestHeaders, ctx);
 
         } catch (final VitamThreadAccessException e) {
             LOGGER.debug(
@@ -174,6 +174,31 @@ public class HeaderIdHelper {
                 ctx);
         } else {
             LOGGER.debug("No contextId found in {} ; setting it as empty in the current VitamSession", ctx);
+        }
+    }
+
+    private static void extractPersonalCertificateFromHeaders(MultivaluedMap<String, String> requestHeaders,
+        Context ctx) {
+        String personalCertificate = getHeaderString(requestHeaders, GlobalDataRest.X_PERSONAL_CERTIFICATE);
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        if (vitamSession.getPersonalCertificate() != null &&
+            !vitamSession.getPersonalCertificate().equals(personalCertificate)) {
+            LOGGER.info(
+                "Note : the personalCertificate stored in session was not empty and different from the received " +
+                    "personalCertificate before {} handling ! Some cleanup must have failed... " +
+                    "Old personalCertificate will be discarded in session.",
+                ctx);
+        }
+
+        vitamSession.setPersonalCertificate(personalCertificate);
+
+        if (personalCertificate != null) {
+            LOGGER.debug("Got personalCertificate {} from {} headers ; setting it in the current VitamSession",
+                personalCertificate,
+                ctx);
+        } else {
+            LOGGER.debug("No personalCertificate found in {} ; setting it as empty in the current VitamSession", ctx);
         }
     }
 
@@ -300,6 +325,7 @@ public class HeaderIdHelper {
             final Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final String contractId = VitamThreadUtils.getVitamSession().getContractId();
             final String contextId = VitamThreadUtils.getVitamSession().getContextId();
+            final String personalCertificate = VitamThreadUtils.getVitamSession().getPersonalCertificate();
             final String applicationSessionId = VitamThreadUtils.getVitamSession().getApplicationSessionId();
 
             if (requestId != null) {
@@ -366,6 +392,24 @@ public class HeaderIdHelper {
                 } else {
                     headers.add(GlobalDataRest.X_SECURITY_CONTEXT_ID, contextId);
                     LOGGER.debug("contextId {} found in session and set in the {} header.", contextId, ctx);
+                }
+            } else {
+                // Not everywhere useful
+                LOGGER.debug(
+                    "No contextId found in session (somebody should have set it) ! " +
+                        "{} header will not be set in the http {}.",
+                    GlobalDataRest.X_SECURITY_CONTEXT_ID, ctx);
+            }
+
+            if (personalCertificate != null) {
+                if (headers.containsKey(GlobalDataRest.X_PERSONAL_CERTIFICATE)) {
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
+                        GlobalDataRest.X_PERSONAL_CERTIFICATE, ctx);
+                    // TODO: is it really the best way to react to this situation ?
+                } else {
+                    headers.add(GlobalDataRest.X_PERSONAL_CERTIFICATE, personalCertificate);
+                    LOGGER.debug("personalCertificate {} found in session and set in the {} header.",
+                        personalCertificate, ctx);
                 }
             } else {
                 // Not everywhere useful

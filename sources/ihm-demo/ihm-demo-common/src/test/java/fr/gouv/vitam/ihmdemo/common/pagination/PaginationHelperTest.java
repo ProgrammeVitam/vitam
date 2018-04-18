@@ -39,6 +39,7 @@ public class PaginationHelperTest {
             "    \"outMessg\": \"SIP entry : SIP.zip\"," +
             "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
             "    \"agIdApp\": null," +
+            "    \"agIdPers\": null," +
             "    \"evIdAppSession\": null," +
             "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
             "    \"agIdExt\": null," +

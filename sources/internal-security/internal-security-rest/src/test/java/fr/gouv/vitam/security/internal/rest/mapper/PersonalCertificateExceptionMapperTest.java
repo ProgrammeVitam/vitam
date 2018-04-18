@@ -1,14 +1,14 @@
 package fr.gouv.vitam.security.internal.rest.mapper;
 
 
-import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
-import org.junit.Test;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.ws.rs.core.Response;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+
+import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 
 public class PersonalCertificateExceptionMapperTest {
 

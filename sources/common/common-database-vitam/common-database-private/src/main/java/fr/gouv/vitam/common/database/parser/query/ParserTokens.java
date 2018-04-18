@@ -992,6 +992,7 @@ public class ParserTokens extends BuilderToken {
             case "events.obId":
             case "events.evDetData":
             case "agIdApp":
+            case "agIdPers":
             case "evIdAppSession":
             case "evIdReq":
             case "agIdExt":

@@ -26,10 +26,15 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import fr.gouv.vitam.security.internal.common.model.IdentityModel;
-import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
-import fr.gouv.vitam.security.internal.rest.service.IdentityService;
-import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
+import static java.util.Optional.of;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+
+import java.util.Optional;
+
+import javax.ws.rs.NotFoundException;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -37,16 +42,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.NotFoundException;
-import java.security.cert.CertificateException;
-import java.util.Optional;
-
-import static java.util.Optional.of;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import fr.gouv.vitam.security.internal.common.model.IdentityModel;
+import fr.gouv.vitam.security.internal.rest.service.IdentityService;
+import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 
 public class IdentityResourceTest {
 

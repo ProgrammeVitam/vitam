@@ -130,6 +130,7 @@ public class ClientMockResultHelper {
             "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
             "\"agIdApp\": null," +
             "\"evIdAppSession\": null," +
+            "\"agIdPers\": null," +            
             "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
             "\"agIdExt\": null," +
             "\"obId\": null," +

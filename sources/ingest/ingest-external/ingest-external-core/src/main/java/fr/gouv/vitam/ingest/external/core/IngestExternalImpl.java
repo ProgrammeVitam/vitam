@@ -170,6 +170,7 @@ public class IngestExternalImpl implements IngestExternal {
             // TODO P1 should be the file name from a header
             startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome,
                 objectName.getId());
+
             helper.createDelegate(startedParameters);
 
             String eventTypeStarted = VitamLogbookMessages.getEventTypeStarted(INGEST_EXT);
@@ -301,7 +302,7 @@ public class IngestExternalImpl implements IngestExternal {
                     isFileInfected = true;
                     break;
                 case STATUS_ANTIVIRUS_NOT_PERFORMED:
-                case STATUS_ANTIVIRUS_NOT_PERFORMED_2:                    
+                case STATUS_ANTIVIRUS_NOT_PERFORMED_2:
                     LOGGER.error(IngestExternalOutcomeMessage.FATAL_VIRUS.toString());
                     antivirusParameters.setStatus(StatusCode.FATAL);
                     antivirusParameters.putParameterValue(LogbookParameterName.outcomeDetail,

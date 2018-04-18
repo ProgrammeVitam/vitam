@@ -26,8 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.security.internal.filter;
 
+import java.io.IOException;
+
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -38,17 +46,14 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
+import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
+import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
 import fr.gouv.vitam.security.internal.exception.VitamSecurityException;
-
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 /**
  * Handles personal certificate access authorization for REST endpoints.
@@ -98,19 +103,23 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
 
             byte[] certificate = extractPersonalCertificate(requestContext);
 
+            if (certificate != null) {
+                VitamThreadUtils.getVitamSession()
+                    .setPersonalCertificate(ParsedCertificate.parseCertificate(certificate).getCertificateHash());
+            }
+
             boolean isPersonalCertificateRequired = getIsPersonalCertificateRequired();
 
             if (!isPersonalCertificateRequired) {
                 LOGGER.debug("Personal certificate check skipped for permission {0}", permission);
                 return;
             }
-
             LOGGER.debug("Personal certificate check required for permission {0}", permission);
             internalSecurityClient.checkPersonalCertificate(certificate, permission);
 
         } catch (InternalSecurityException |
             VitamClientInternalException |
-            VitamSecurityException e) {
+            VitamSecurityException | PersonalCertificateException e) {
             LOGGER.error("An error occured during authorization filter check", e);
             final VitamError vitamError = generateVitamError(e);
 
@@ -129,7 +138,7 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
     private boolean getIsPersonalCertificateRequired()
         throws VitamClientInternalException, InternalSecurityException {
 
-        // A cache may be used  (later) for this call
+        // A cache may be used (later) for this call
         IsPersonalCertificateRequiredModel isPersonalCertificateRequired =
             internalSecurityClient.isPersonalCertificateRequiredByPermission(permission);
 

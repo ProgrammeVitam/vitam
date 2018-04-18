@@ -26,7 +26,11 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
+import java.security.cert.CertificateException;
+import java.util.Optional;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -44,12 +48,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
-import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
+import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
-
-import java.security.cert.CertificateException;
-import java.util.Optional;
 
 /**
  * Manages personal certificates

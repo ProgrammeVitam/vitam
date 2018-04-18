@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.common.model;
 
+import javax.validation.constraints.NotNull;
+
+import org.slf4j.MDC;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
@@ -33,9 +37,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import org.slf4j.MDC;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * <p>
@@ -63,6 +64,7 @@ public class VitamSession {
     private String securityProfileIdentifier = null;
     private AccessContractModel contract = null;
     private Object other = null;
+    private String personalCertificate = null;
 
     /**
      * @param owningThread the owning thread
@@ -88,6 +90,7 @@ public class VitamSession {
         newSession.contextId = origin.getContextId();
         newSession.applicationSessionId = origin.getApplicationSessionId();
         newSession.securityProfileIdentifier = origin.getSecurityProfileIdentifier();
+        newSession.personalCertificate = origin.getPersonalCertificate();
         return newSession;
     }
 
@@ -157,7 +160,8 @@ public class VitamSession {
 
     /**
      * Get the server request id
-     *
+     * 
+     * @return internalRequestId
      */
     public String getInternalRequestId() {
         return internalRequestId;
@@ -203,24 +207,25 @@ public class VitamSession {
     public void setContractId(String contractId) {
         this.contractId = contractId;
     }
-    
-	/**
-	 * @return AccessContractModel
-	 */
-	public AccessContractModel getContract() {
-		return contract;
-	}
 
-	/**
-	 * @param contract
-	 */
-	public void setContract(AccessContractModel contract) {
-		this.contract = contract;
-	}
+    /**
+     * @return AccessContractModel
+     */
+    public AccessContractModel getContract() {
+        return contract;
+    }
+
+    /**
+     * @param contract
+     */
+    public void setContract(AccessContractModel contract) {
+        this.contract = contract;
+    }
 
     /**
      * Get vitam security context id
-     * @return
+     * 
+     * @return contextId
      */
     public String getContextId() {
         return contextId;
@@ -228,6 +233,7 @@ public class VitamSession {
 
     /**
      * Set vitam security context id
+     * 
      * @param contextId
      */
     public void setContextId(String contextId) {
@@ -235,17 +241,28 @@ public class VitamSession {
         this.contextId = contextId;
     }
 
+    /**
+     * Get securityProfileIdentifier
+     * 
+     * @return securityProfileIdentifier
+     */
     public String getSecurityProfileIdentifier() {
         return securityProfileIdentifier;
     }
 
+    /**
+     * Set securityProfileIdentifier
+     * 
+     * @param securityProfileIdentifier
+     */
     public void setSecurityProfileIdentifier(String securityProfileIdentifier) {
         this.securityProfileIdentifier = securityProfileIdentifier;
     }
 
     /**
      * Get vitam application session id
-     * @return
+     * 
+     * @return applicationSessionId
      */
     public String getApplicationSessionId() {
         return applicationSessionId;
@@ -253,11 +270,30 @@ public class VitamSession {
 
     /**
      * Set vitam application session id
+     * 
      * @param applicationSessionId
      */
     public void setApplicationSessionId(String applicationSessionId) {
         checkCallingThread();
         this.applicationSessionId = applicationSessionId;
+    }
+
+    /**
+     * Get personalCertificate
+     * 
+     * @return personalCertificate
+     */
+    public String getPersonalCertificate() {
+        return personalCertificate;
+    }
+
+    /**
+     * Set personalCertificate
+     * 
+     * @param personalCertificate
+     */
+    public void setPersonalCertificate(String personalCertificate) {
+        this.personalCertificate = personalCertificate;
     }
 
     /**
@@ -279,6 +315,8 @@ public class VitamSession {
         setContextId(newSession.getContextId());
         setApplicationSessionId(newSession.getApplicationSessionId());
         setSecurityProfileIdentifier(newSession.getSecurityProfileIdentifier());
+        setPersonalCertificate(newSession.getPersonalCertificate());
+
     }
 
     /**
@@ -300,6 +338,9 @@ public class VitamSession {
 
     @Override
     public String toString() {
-        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" + applicationSessionId + "'}";
+        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId +
+            "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" +
+            applicationSessionId + "', personalCertificate:'" +
+            personalCertificate + "'}";
     }
 }

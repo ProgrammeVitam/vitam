@@ -24,12 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.security.internal.rest.service;
-
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
-import org.apache.commons.codec.binary.Hex;
+package fr.gouv.vitam.security.internal.common.service;
 
 import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
@@ -37,10 +32,16 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
+import org.apache.commons.codec.binary.Hex;
+
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+
 /**
  * Helper class for certificate parsing X509 certificates.
  */
-class ParsedCertificate {
+public class ParsedCertificate {
 
     private static final int MAX_CERTIFICATE_LOG_LENGTH = 10240;
     private static DigestType digestType = DigestType.SHA256;
@@ -49,28 +50,51 @@ class ParsedCertificate {
     private final byte[] rawCertificate;
     private final String certificateHash;
 
+    /**
+     * Constructor
+     * 
+     * @param x509Certificate
+     * @param rawCertificate
+     * @param certificateHash
+     */
     public ParsedCertificate(X509Certificate x509Certificate, byte[] rawCertificate, String certificateHash) {
         this.x509Certificate = x509Certificate;
         this.rawCertificate = rawCertificate;
         this.certificateHash = certificateHash;
     }
 
+    /**
+     * Get x509Certificate
+     * 
+     * @return x509Certificate
+     */
     public X509Certificate getX509Certificate() {
         return x509Certificate;
     }
 
+    /**
+     * Get rawCertificate
+     * 
+     * @return rawCertificate
+     */
     public byte[] getRawCertificate() {
         return rawCertificate;
     }
 
+    /**
+     * Get certificateHash
+     * 
+     * @return certificateHash
+     */
     public String getCertificateHash() {
         return certificateHash;
     }
 
     /**
      * Parses a certificate
+     * 
      * @param certificate
-     * @return
+     * @return the ParsedCertificate
      * @throws PersonalCertificateException
      */
     public static ParsedCertificate parseCertificate(byte[] certificate) throws PersonalCertificateException {
@@ -87,8 +111,8 @@ class ParsedCertificate {
             return new ParsedCertificate(x509certificate, rawCertificate, certificateHash);
 
         } catch (CertificateException ex) {
-            throw new PersonalCertificateException("Could not parse certificate. "
-                + toCertificateHexString(certificate), ex);
+            throw new PersonalCertificateException(
+                "Could not parse certificate. " + toCertificateHexString(certificate), ex);
         }
     }
 
@@ -99,6 +123,7 @@ class ParsedCertificate {
 
     /**
      * Converts a certificate to Hex for logging (Truncated to MAX_CERTIFICATE_LOG_LENGTH)
+     * 
      * @param certificate
      * @return
      */
