@@ -36,13 +36,12 @@ Par défaut, les formats sont affichés sous le formulaire de recherche et sont 
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
-* Intitulé  : permet d'effectuer une recherche approchante sur les intitulés des formats disponibles dans la solution logicielle Vitam.
+*Intitulé  : permet d'effectuer une recherche approchante sur les intitulés des formats disponibles dans la solution logicielle Vitam
+La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
-  La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+*PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
 
-* PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
-
-.. note:: Il est impossible d'effectuer une recherche croisée par PUID et intitulé. 
+NB : Il est impossible d'effectuer une recherche croisée par PUID et intitulé. 
 
 
 .. image:: images/rechch_formats.png
@@ -363,11 +362,13 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 - Date de dernière modification
 - Profils d'archivage
 - Nœud de rattachement
+- Contrôle sur noeud de rattachement 
 - Tenant
 
 |
 
     .. image:: images/detail_ce.png
+
 
 Modifier un contrat d'entrée
 -----------------------------
@@ -376,7 +377,8 @@ Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modi
 
 |
 
-    .. image:: images/ce_update.png
+     .. image:: images/detail_ce.png
+
 
 * Statut
 
@@ -389,6 +391,10 @@ Il est possible d'ajouter dans ce champ un ou plusieurs identifiants de profils 
 * Nœud de rattachement
 
 Il est possible d'ajouter dans ce champ l'identifiant (GUID) d'une unité archivistique de plan de classement ou d'arbre de positionnement ans le champs réservé, puis ensuite appuyer sur entrée après l'ajout de l'identifiant. Les SIP qui utiliseront ce contrat d'entrée seront automatiquement rattachés à l'unité archivistique déclarée dans le nœud de rattachement.
+
+* Contrôle sur noeud de rattachement 
+
+En activant cette option un contrôle est effectué sur la cohérence du rattachement parent / enfant du SIP.  
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
