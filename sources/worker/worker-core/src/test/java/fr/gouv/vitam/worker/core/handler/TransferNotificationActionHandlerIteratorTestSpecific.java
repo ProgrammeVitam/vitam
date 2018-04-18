@@ -30,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -182,13 +183,12 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
                 .selectOperationById(anyObject(), anyObject());
-            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT()))
-                .when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-                anyObject(), anyObject());
-            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult((getLogbookLifecycleAU())))
-                .when(lifeCyclesClient)
-                .unitLifeCyclesByOperationIterator(anyObject(),
-                    anyObject(), anyObject());
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
+                .thenReturn(new RequestResponseOK<JsonNode>());
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
+                .thenReturn(new RequestResponseOK<JsonNode>());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();
@@ -215,12 +215,12 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
                 .selectOperationById(anyObject(), anyObject());
-            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT()))
-                .when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-                anyObject(), anyObject());
-            Mockito.doReturn(new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU()))
-                .when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-                anyObject(), anyObject());
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
+                .thenReturn(new RequestResponseOK<JsonNode>());
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
+                .thenReturn(new RequestResponseOK<JsonNode>());
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();
