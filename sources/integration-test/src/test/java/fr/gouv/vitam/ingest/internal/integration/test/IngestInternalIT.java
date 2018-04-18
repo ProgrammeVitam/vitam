@@ -90,6 +90,7 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -506,8 +507,7 @@ public class IngestInternalIT {
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {
-                    });
+                    new TypeReference<List<IngestContractModel>>() {});
 
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importIngestContracts(IngestContractModelList);
@@ -516,8 +516,7 @@ public class IngestInternalIT {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                    });
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importAccessContracts(accessContractModelList);
 
@@ -526,22 +525,21 @@ public class IngestInternalIT {
                 client.importSecurityProfiles(JsonHandler
                     .getFromFileAsTypeRefence(
                         PropertiesUtils.getResourceFile("integration-ingest-internal/security_profile_ok.json"),
-                        new TypeReference<List<SecurityProfileModel>>() {
-                        }));
+                        new TypeReference<List<SecurityProfileModel>>() {}));
 
                 // Import Context
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importContexts(JsonHandler
-                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/contexts.json"),
-                        new TypeReference<List<ContextModel>>() {
-                        }));
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-ingest-internal/contexts.json"),
+                        new TypeReference<List<ContextModel>>() {}));
 
                 // Import Archive Unit Profile
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.createArchiveUnitProfiles(JsonHandler
-                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/archive-unit-profile.json"),
-                        new TypeReference<List<ArchiveUnitProfileModel>>() {
-                        }));
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-ingest-internal/archive-unit-profile.json"),
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -584,11 +582,11 @@ public class IngestInternalIT {
     /**
      * To check unit tree (ancestors _up, _us and _uds)
      *
-     * @param unit           the unit to check
+     * @param unit the unit to check
      * @param metadataClient the metadataclient
-     * @param upIds          the wanted up ids list
-     * @param usIds          the wanted us ids list
-     * @param udsIds         the wanted uds ids / depth map
+     * @param upIds the wanted up ids list
+     * @param usIds the wanted us ids list
+     * @param udsIds the wanted uds ids / depth map
      * @throws Exception
      */
     private void checkUnitTree(JsonNode unit, MetaDataClient metadataClient, List<String> upIds, List<String> usIds,
@@ -753,7 +751,7 @@ public class IngestInternalIT {
             updateQuery.addRoots(unitId);
             RequestResponse response = accessClient
                 .updateUnitbyId(updateQuery.getFinalUpdate(), unitId);
-            assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
+            assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);            
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =
@@ -762,7 +760,18 @@ public class IngestInternalIT {
             assertNull(responseUnitAfterUpdate.getFirstResult().get("#management").get("AccessRule"));
             // check version incremented in lfc
             assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
-            assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"), responseUnitAfterUpdate.getFirstResult().get("#opi"));
+            assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"),
+                responseUnitAfterUpdate.getFirstResult().get("#opi"));
+            
+            // execute update -> classification rules without classification owner
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+                        
+            UpdateMultiQuery updateQueryClassification = new UpdateMultiQuery().addActions(new UnsetAction("#management.ClassificationRule.ClassificationOwner"));
+            updateQueryClassification.addRoots(unitId);
+            RequestResponse responseClassification = accessClient
+                .updateUnitbyId(updateQueryClassification.getFinalUpdate(), unitId);
+            assertTrue(!responseClassification.isOk());
+            assertEquals(responseClassification.getHttpCode(), Status.BAD_REQUEST.getStatusCode());
 
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
@@ -2053,8 +2062,7 @@ public class IngestInternalIT {
         // import contrat
         File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
         List<AccessContractModel> accessContractModelList = JsonHandler
-            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-            });
+            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
         client.importAccessContracts(accessContractModelList);
 
         status = client.importAgenciesFile(stream, FILE_AGENCIES_AU_update);
@@ -2149,7 +2157,7 @@ public class IngestInternalIT {
     /**
      * Check error report
      *
-     * @param fileInputStreamToImport   the given FileInputStream
+     * @param fileInputStreamToImport the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,

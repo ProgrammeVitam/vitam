@@ -26,11 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,10 +39,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.FileUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
@@ -55,6 +59,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -138,7 +143,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.FileUtils;
 
 
 
@@ -212,6 +216,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     /**
      * AccessModuleImpl constructor
+     * 
      * @param configuration of mongoDB access
      */
     // constructor
@@ -1070,6 +1075,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 if (updatedCategories.contains(category)) {
                     ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                     JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
+                    JsonNode classificationLevel = updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);                    
+                    JsonNode classificationOwner = updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
                     updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
                     // Check for update (and delete) rules (rules at least present in DB)
                     ArrayNode updatedRules =
@@ -1083,7 +1090,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     Map<String, JsonNode> action = new HashMap<>();
                     updatedRules.addAll(createdRules);
 
-                    // size = 0 and updatedPreventInheritanceNode==null  means this category is empty -> lets unset rules
+                    // size = 0 and updatedPreventInheritanceNode==null means this category is empty -> lets unset rules
                     if (updatedRules.size() != 0 || updatedPreventInheritanceNode != null) {
                         if (updatedRules.size() != 0) {
                             action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
@@ -1092,7 +1099,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             }
                         }
                         if (updatedPreventInheritanceNode != null) {
-                            action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
+                            action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX,
+                                updatedPreventInheritanceNode);
+                        }
+                        if (classificationLevel != null) {
+                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL, classificationLevel);
+                        }
+                        if (classificationOwner != null) {
+                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER, classificationOwner);
                         }
                     } else {
                         try {
@@ -1114,6 +1128,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // Check for new rules (rules only present in request)
                 ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                 JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
+                JsonNode classificationLevel = updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+                JsonNode classificationOwner =
+                    updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
                 updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
                 ArrayNode createdRules =
                     checkAddedRules(category, null, rulesForUpdatedCategory, finalAction);
@@ -1125,7 +1142,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 }
 
                 if (updatedPreventInheritanceNode != null) {
-                    action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
+                    action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX,
+                        updatedPreventInheritanceNode);
+                }
+                if (classificationLevel != null) {
+                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL, classificationLevel);
+                }
+                if (classificationOwner != null) {
+                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER, classificationOwner);
                 }
                 try {
                     request.addActions(new SetAction(action));

@@ -108,6 +108,22 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
     return this.updatedFields[category].FinalAction !== this.management[category].FinalAction;
   }
+    
+  checkClassificationLevelUpdated(category): boolean {
+    if (!this.management || !this.management[category]) {
+      return !!this.updatedFields[category].ClassificationLevel;
+    }
+
+    return this.updatedFields[category].ClassificationLevel !== this.management[category].ClassificationLevel;
+  }
+    
+  checkClassificationOwnerUpdated(category): boolean {
+    if (!this.management || !this.management[category]) {
+      return !!this.updatedFields[category].ClassificationOwner;
+    }
+
+    return this.updatedFields[category].ClassificationOwner !== this.management[category].ClassificationOwner;
+  }
 
   getUpdatedRules() {
     // ruleCategory ~= this.updatedFields
@@ -176,6 +192,12 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
         updateInfo.updated++;
       } else if (category === 'StorageRule' || category === 'AppraisalRule') {
         newCategory.FinalAction = this.updatedFields[category].FinalAction;
+      }
+      if (this.checkClassificationLevelUpdated(category) || this.checkClassificationOwnerUpdated(category)){
+        newCategory.ClassificationLevel = this.updatedFields[category].ClassificationLevel;
+        newCategory.ClassificationOwner = this.updatedFields[category].ClassificationOwner;
+        isCategoryUpdated = true;
+        updateInfo.updated++;
       }
 
       if (isCategoryUpdated) {
@@ -347,6 +369,9 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
               };
               if (category.rule === 'StorageRule' || category.rule === 'AppraisalRule') {
                 rule.FinalAction = inheritedRule.FinalAction;
+              } else if (category.rule === 'ClassificationRule') {
+                rule.ClassificationLevel = inheritedRule.ClassificationLevel;
+                rule.ClassificationOwner = inheritedRule.ClassificationOwner;
               }
               rules.push(rule);
               break;
@@ -356,7 +381,9 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
         const inheritance = this.management[category.rule].Inheritance;
         const finalAction = this.management[category.rule].FinalAction;
-
+        const classificationLevel = this.management[category.rule].ClassificationLevel;
+        const classificationOwner = this.management[category.rule].ClassificationOwner;
+          
         this.updatedFields[category.rule] = {
           Rules: rules
         };
@@ -369,6 +396,12 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
         if (finalAction) {
           this.updatedFields[category.rule].FinalAction = finalAction;
+        }
+        if (classificationLevel){
+          this.updatedFields[category.rule].ClassificationLevel = classificationLevel;  
+        }
+        if (classificationOwner){
+          this.updatedFields[category.rule].ClassificationOwner = classificationOwner;  
         }
 
       } else {
@@ -390,6 +423,10 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
                   };
                   if (category.rule === 'StorageRule' || category.rule === 'AppraisalRule') {
                     rule.FinalAction = inheritedRule.FinalAction;
+                  }
+                  if (category.rule === 'ClassificationRule') {
+                    rule.ClassificationLevel = inheritedRule.ClassificationLevel;
+                    rule.ClassificationOwner = inheritedRule.ClassificationOwner;
                   }
                   rules.push(rule);
                   break;
