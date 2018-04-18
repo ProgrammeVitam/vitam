@@ -66,12 +66,12 @@ public class LifecyclesSpliterator<T> extends AbstractSpliterator<T> {
             applyAndIncrementSize(action);
             return true;
         }
-        if (size < requestResponse.getHits().getTotal()) {
-            executeQuery();
-            if (results.hasNext()) {
-                applyAndIncrementSize(action);
-                return true;
-            }
+
+        // TODO : check if size < requestResponse.getHits().getTotal() after fixing total value in LogbookMongoDbAccessImpl.selectExecute
+        executeQuery();
+        if (results.hasNext()) {
+            applyAndIncrementSize(action);
+            return true;
         }
 
         return false;
