@@ -1,10 +1,10 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import {RouterTestingModule} from '@angular/router/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 import { NO_ERRORS_SCHEMA } from "@angular/core";
-import { Observable } from "rxjs/Rx";
 
 import { UploadReferentialsComponent } from './upload-referentials.component';
 import { UploadService } from '../upload.service';
+import { MessagesUtilsService } from '../../utils/messages-utils.service';
 
 const UploadServiceStub = {
   clearIngest: () => null,
@@ -12,7 +12,10 @@ const UploadServiceStub = {
   checkIngestStatus: () => null,
   getUploadState: () => null,
   uploadFile: () => null,
+};
 
+const MessagesUtilsServiceStub = {
+  getMessage: () => ''
 };
 
 describe('UploadReferentialsComponent', () => {
@@ -22,7 +25,8 @@ describe('UploadReferentialsComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       providers: [
-        { provide: UploadService, useValue: UploadServiceStub }
+        { provide: UploadService, useValue: UploadServiceStub },
+        { provide: MessagesUtilsService, useValue: MessagesUtilsServiceStub }
       ],
       declarations: [ UploadReferentialsComponent ],
       imports: [ RouterTestingModule ],

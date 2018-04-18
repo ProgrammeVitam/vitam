@@ -32,8 +32,9 @@ import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarName
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -114,6 +115,15 @@ public class ContextServiceImpl implements ContextService {
     private static final String CONTEXTS_IMPORT_EVENT = "STP_IMPORT_CONTEXT";
     private static final String CONTEXTS_UPDATE_EVENT = "STP_UPDATE_CONTEXT";
     public static final String CONTEXTS_BACKUP_EVENT = "STP_BACKUP_CONTEXT";
+
+    private static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_CONTEXT.EMPTY_REQUIRED_FIELD.KO";
+    private static final String SECURITY_PROFILE_NOT_FOUND = "STP_IMPORT_CONTEXT.SECURITY_PROFILE_NOT_FOUND.KO";
+    private static final String DUPLICATE_IN_DATABASE = "STP_IMPORT_CONTEXT.IDENTIFIER_DUPLICATION.KO";
+    private static final String UNKNOWN_VALUE = "STP_IMPORT_CONTEXT.UNKNOWN_VALUE.KO";
+
+    private static final String UPDATE_UNKNOWN_VALUE = "STP_UPDATE_CONTEXT.UNKNOWN_VALUE.KO";
+    private static final String UPDATE_KO = "STP_UPDATE_CONTEXT.KO";
+
     private static final String UPDATE_CONTEXT_MANDATORY_PARAMETER = "context is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -228,7 +238,8 @@ public class ContextServiceImpl implements ContextService {
                     Optional<ContextRejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(cm);
                     result.ifPresent(t -> error.addToErrors(
-                        new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(t.getReason())));
+                        new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(DUPLICATE_IN_DATABASE)
+                            .setDescription(result.get().getReason()).setState(StatusCode.KO.name())));
                 }
             }
 
@@ -236,8 +247,8 @@ public class ContextServiceImpl implements ContextService {
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails, CONTEXTS_IMPORT_EVENT);
+                    error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
+                manager.logValidationError(errorsDetails, CONTEXTS_IMPORT_EVENT, error.getErrors().get(0).getMessage());
                 return error;
             }
 
@@ -316,7 +327,9 @@ public class ContextServiceImpl implements ContextService {
                     if (!manager.checkIdentifierOfAccessContract(accessContractId, tenantId)) {
                         error.addToErrors(
                             new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                .setMessage(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + accessContractId));
+                                .setDescription(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + accessContractId)
+                                .setMessage(UPDATE_UNKNOWN_VALUE)
+                        );
                     }
                 }
 
@@ -324,7 +337,9 @@ public class ContextServiceImpl implements ContextService {
                     if (!manager.checkIdentifierOfIngestContract(ingestContractId, tenantId)) {
                         error.addToErrors(
                             new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                                .setMessage(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + ingestContractId));
+                                .setDescription(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + ingestContractId)
+                                .setMessage(UPDATE_UNKNOWN_VALUE)
+                        );
                     }
                 }
             }
@@ -333,8 +348,8 @@ public class ContextServiceImpl implements ContextService {
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
             final String errorsDetails =
-                error.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
-            manager.logValidationError(errorsDetails, CONTEXTS_UPDATE_EVENT);
+                error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
+            manager.logValidationError(errorsDetails, CONTEXTS_UPDATE_EVENT, error.getErrors().get(0).getMessage());
 
             return error.setState(StatusCode.KO.name());
         }
@@ -375,10 +390,12 @@ public class ContextServiceImpl implements ContextService {
             final String err = "Update context error > " + e.getMessage();
 
             // logbook error event 
-            manager.logValidationError(err, CONTEXTS_UPDATE_EVENT);
+            manager.logValidationError(err, CONTEXTS_UPDATE_EVENT, UPDATE_KO);
 
             return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage(),
-                StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+                StatusCode.KO)
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                    .setMessage(UPDATE_KO);
         } catch (final Exception e) {
             LOGGER.error(e);
             final String err = "Update context error > " + e.getMessage();
@@ -410,7 +427,7 @@ public class ContextServiceImpl implements ContextService {
         private ContractService<AccessContractModel> accessContract;
         private ContractService<IngestContractModel> ingestContract;
         private SecurityProfileService securityProfileService;
-        private List<ContextValidator> validators;
+        private Map<ContextValidator, String> validators;
 
         public ContextManager(LogbookOperationsClient logbookClient,
             ContractService<AccessContractModel> accessContract,
@@ -422,22 +439,25 @@ public class ContextServiceImpl implements ContextService {
             this.ingestContract = ingestContract;
             this.securityProfileService = securityProfileService;
             // Init validator
-            validators = Arrays.asList(
-                createMandatoryParamsValidator(),
-                securityProfileIdentifierValidator(),
-                createCheckDuplicateInDatabaseValidator(),
-                checkContract());
+            validators = new HashMap<ContextValidator, String>() {{
+                put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+                put(securityProfileIdentifierValidator(),SECURITY_PROFILE_NOT_FOUND);
+                put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+                put(checkContract(), UNKNOWN_VALUE);
+            }};
         }
 
         public boolean validateContext(ContextModel context, VitamError error)
             throws ReferentialException, InvalidParseOperationException {
-            for (final ContextValidator validator : validators) {
+            for (final ContextValidator validator : validators.keySet()) {
                 final Optional<ContextRejectionCause> result = validator.validate(context);
                 if (result.isPresent()) {
                     // there is a validation error on this context
                     /* context is valid, add it to the list to persist */
                     error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
-                        .setMessage(result.get().getReason()));
+                        .setMessage(validators.get(validator))
+                        .setDescription(result.get().getReason())
+                        .setState(StatusCode.KO.name()));
                     // once a validation error is detected on a context, jump to next context
                     return false;
                 }
@@ -536,14 +556,15 @@ public class ContextServiceImpl implements ContextService {
             logbookClient.update(logbookParameters);
         }
 
-        private void logValidationError(String errorsDetails, String action) throws VitamException {
+        private void logValidationError(String errorsDetails, String action, String KOEventType) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eipUsage, action, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(action, StatusCode.KO), eip);
-            logbookMessageError(errorsDetails, logbookParameters);
+                    VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
+            logbookMessageError(errorsDetails, logbookParameters, KOEventType);
             logbookClient.update(logbookParameters);
         }
 
@@ -552,6 +573,37 @@ public class ContextServiceImpl implements ContextService {
                 try {
                     final ObjectNode object = JsonHandler.createObjectNode();
                     object.put("contextCheck", errorsDetails);
+
+                    final String wellFormedJson = SanityChecker.sanitizeJson(object);
+                    logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+                } catch (final InvalidParseOperationException e) {
+                    // Do nothing
+                }
+            }
+        }
+
+        private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters,
+                                         String KOEventType) {
+            if (null != errorsDetails && !errorsDetails.isEmpty()) {
+                try {
+                    final ObjectNode object = JsonHandler.createObjectNode();
+                    String evDetDataKey = "contextCheck";
+                    switch (KOEventType) {
+                        case EMPTY_REQUIRED_FIELD:
+                            evDetDataKey = "Mandatory fields";
+                            break;
+                        case SECURITY_PROFILE_NOT_FOUND:
+                            evDetDataKey = "Security profile not found";
+                            break;
+                        case DUPLICATE_IN_DATABASE:
+                            evDetDataKey = "Duplicate field";
+                            break;
+                        case UNKNOWN_VALUE:
+                            evDetDataKey = "Incorrect field";
+                            break;
+                    }
+
+                    object.put(evDetDataKey, errorsDetails);
 
                     final String wellFormedJson = SanityChecker.sanitizeJson(object);
                     logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);

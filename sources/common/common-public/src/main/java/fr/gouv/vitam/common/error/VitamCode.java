@@ -293,6 +293,9 @@ public enum VitamCode {
     ACCESS_EXTERNAL_OBJECT_GROUP_TRACREABILITY_AUDIT(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "34",
         Status.BAD_REQUEST, "Access external client error. Object group traceability audit service "),
 
+    ACCESS_EXTERNAL_INVALID_JSON(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "35",
+        Status.BAD_REQUEST, "Access external client error. JSON is invalid"),
+
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),

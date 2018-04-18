@@ -31,7 +31,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +112,18 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_INGEST_CONTRACT";
+
+    private static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO";
+    private static final String WRONG_FIELD_FORMAT = "STP_IMPORT_INGEST_CONTRACT.TO_BE_DEFINED.KO";
+    private static final String DUPLICATE_IN_DATABASE = "STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO";
+    private static final String PROFILE_NOT_FOUND_IN_DATABASE = "STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO";
+
+    private static final String UPDATE_CONTRACT_NOT_FOUND = "STP_UPDATE_INGEST_CONTRACT.CONTRACT_NOT_FOUND.KO";
+    private static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_INGEST_CONTRACT.NOT_IN_ENUM.KO";
+    private static final String UPDATE_DUPLICATE_IN_DATABASE = "STP_UPDATE_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO";
+    private static final String UPDATE_PROFILE_NOT_FOUND = "STP_UPDATE_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO";
+    private static final String UPDATE_KO = "STP_UPDATE_INGEST_CONTRACT.KO";
+
     private static final String EVDETDATA_IDENTIFIER = "identifier";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -215,8 +227,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     final Optional<GenericRejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
                     result.ifPresent(t -> error
-                        .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result
-                            .get().getReason(), StatusCode.KO)));
+                        .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            result.get().getReason(), StatusCode.KO).setMessage(EMPTY_REQUIRED_FIELD)
+                        )
+                    );
                 }
 
             }
@@ -225,8 +239,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT);
+                    error.getErrors().stream().map(c -> c.getDescription()).distinct().collect(Collectors.joining(","));
+
+                manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT, error.getErrors().get(0).getMessage());
                 return error;
             }
             contractsToPersist = JsonHandler.createArrayNode();
@@ -327,12 +342,13 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private static final String UPDATED_DIFFS = "updatedDiffs";
         private static final String INGEST_CONTRACT = "IngestContract";
 
-        private List<IngestContractValidator> validators;
+        private Map<IngestContractValidator, String> validators;
 
         private final GUID eip;
 
         private final LogbookOperationsClient logbookClient;
         private final MetaDataClient metaDataClient;
+
 
         public IngestContractManager(LogbookOperationsClient logbookClient, MetaDataClient metaDataClient,
             GUID eip) {
@@ -340,24 +356,25 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             this.metaDataClient = metaDataClient;
             this.eip = eip;
             // Init validator
-            validators = Arrays.asList(
-                createMandatoryParamsValidator(),
-                createWrongFieldFormatValidator(),
-                createCheckDuplicateInDatabaseValidator(),
-                createCheckProfilesExistsInDatabaseValidator());
+            validators = new HashMap<IngestContractValidator, String>() {{
+                put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+                put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
+                put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+                put(createCheckProfilesExistsInDatabaseValidator(), PROFILE_NOT_FOUND_IN_DATABASE);
+            }};
         }
 
         private boolean validateContract(IngestContractModel contract, String jsonFormat,
             VitamError error) {
 
-            for (final IngestContractValidator validator : validators) {
+            for (final IngestContractValidator validator : validators.keySet()) {
                 final Optional<GenericRejectionCause> result =
                     validator.validate(contract, jsonFormat);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
                     /* contract is valid, add it to the list to persist */
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result
-                        .get().getReason(), StatusCode.KO));
+                        .get().getReason(), StatusCode.KO).setMessage(validators.get(validator)));
                     // once a validation error is detected on a contract, jump to next contract
                     return false;
                 }
@@ -371,14 +388,15 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @param errorsDetails
          */
-        private void logValidationError(final String errorsDetails, final String eventType) throws VitamException {
+        private void logValidationError(final String errorsDetails, final String eventType, final String KOEventType) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
-            logbookMessageError(errorsDetails, logbookParameters);
+                    VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
+            logbookMessageError(errorsDetails, logbookParameters, KOEventType);
             logbookClient.update(logbookParameters);
         }
 
@@ -407,6 +425,44 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 try {
                     final ObjectNode object = JsonHandler.createObjectNode();
                     object.put("ingestContractCheck", errorsDetails);
+
+                    final String wellFormedJson = SanityChecker.sanitizeJson(object);
+                    logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+                } catch (final InvalidParseOperationException e) {
+                    // Do nothing
+                }
+            }
+        }
+
+        private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters,
+                                         String KOEventType) {
+            if (null != errorsDetails && !errorsDetails.isEmpty()) {
+                try {
+                    final ObjectNode object = JsonHandler.createObjectNode();
+                    String evDetDataKey = "ingestContractCheck";
+                    switch (KOEventType) {
+                        case EMPTY_REQUIRED_FIELD:
+                            evDetDataKey = "Mandatory Fields";
+                            break;
+                        case WRONG_FIELD_FORMAT:
+                            evDetDataKey = "Incorrect Field and value";
+                            break;
+                        case DUPLICATE_IN_DATABASE:
+                        case UPDATE_DUPLICATE_IN_DATABASE:
+                            evDetDataKey = "Duplicate Field";
+                            break;
+                        case PROFILE_NOT_FOUND_IN_DATABASE:
+                            evDetDataKey = "Profile not found";
+                            break;
+                        case UPDATE_CONTRACT_NOT_FOUND:
+                            evDetDataKey = "Contract not found";
+                            break;
+                        case UPDATE_VALUE_NOT_IN_ENUM:
+                            evDetDataKey = "Not in Enum";
+                            break;
+                    }
+
+                    object.put(evDetDataKey, errorsDetails);
 
                     final String wellFormedJson = SanityChecker.sanitizeJson(object);
                     logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
@@ -695,9 +751,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         if (ingestContractModel == null) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(
-                getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Ingest contract update error",
-                    StatusCode.KO).setMessage(
-                    INGEST_CONTRACT_NOT_FOUND + identifier));
+                getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),INGEST_CONTRACT_NOT_FOUND + identifier,
+                    StatusCode.KO).setMessage(UPDATE_CONTRACT_NOT_FOUND));
         }
 
         GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
@@ -718,9 +773,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
                             .name().equals(value.asText()))) {
                             error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                "Ingest contract update error", StatusCode.KO)
-                                .setMessage(THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT +
-                                    value.asText()));
+                                THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText(),
+                                StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
                         }
                     }
                 }
@@ -736,10 +790,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
                         error
                             .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                "Ingest contract update error", StatusCode.KO).setMessage(
-                                GenericRejectionCause
-                                    .rejectWrongLinkParentId(linkParentId)
-                                    .getReason()));
+                                GenericRejectionCause.rejectWrongLinkParentId(linkParentId).getReason(), StatusCode.KO)
+                                    .setMessage(UPDATE_KO));
                     }
                 }
             }
@@ -752,21 +804,20 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     manager.createCheckProfilesExistsInDatabaseValidator();
                 final Optional<GenericRejectionCause> result =
                     validator.validate(new IngestContractModel().setArchiveProfiles(archiveProfiles),
-                        "update contract ..");
+                        identifier);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
                     /* contract is valid, add it to the list to persist */
                     error.addToErrors(
-                        getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Ingest contract update error",
-                            StatusCode.KO).setMessage(result
-                            .get().getReason()));
+                        getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result.get().getReason(),
+                            StatusCode.KO).setMessage(UPDATE_PROFILE_NOT_FOUND));
                 }
             }
 
             if (error.getErrors() != null && error.getErrors().size() > 0) {
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT);
+                    error.getErrors().stream().map(c -> c.getDescription()).collect(Collectors.joining(","));
+                manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT, error.getErrors().get(0).getMessage());
 
                 return error;
             }

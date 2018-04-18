@@ -94,6 +94,7 @@ import {MySelectionService} from './my-selection/my-selection.service';
 import { ArchiveUnitSelectionComponent } from './archive-unit/archive-unit-details/archive-unit-selection/archive-unit-selection.component';
 import { ArchiveUnitFacetComponent } from './archive-unit/archive-unit-facet/archive-unit-facet.component';
 import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { MessagesUtilsService } from './common/utils/messages-utils.service';
 
 const appRoutes: Routes = [
   {
@@ -341,7 +342,8 @@ const appRoutes: Routes = [
     TraceabilityOperationService,
     WorkflowService,
     ErrorService,
-    MySelectionService
+    MySelectionService,
+    MessagesUtilsService
   ],
   bootstrap: [AppComponent]
 })

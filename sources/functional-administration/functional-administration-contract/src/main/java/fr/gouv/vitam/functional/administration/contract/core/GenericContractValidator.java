@@ -83,9 +83,9 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
         private static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT =
             "One or multiple archive profiles or the contract %s not found in db";
-        private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validate contract (%s), %s : %s";
+        private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validating contract (%s), %s : %s";
         private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
-            "Error while validate contract (%s), RootUnits (%s) not found in database";
+            "Error while validating contract (%s), RootUnits (%s) not found in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_WRONG_LINK_PARENT_ID =
             "the id of the AU %s is not in filing nor holding schema";

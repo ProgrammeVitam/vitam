@@ -1778,7 +1778,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -1929,7 +1929,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -2129,7 +2129,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -2232,7 +2232,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -2264,7 +2264,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -2303,7 +2303,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 
@@ -2777,7 +2777,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -2816,7 +2816,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                return Response.status(response.getStatus()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 

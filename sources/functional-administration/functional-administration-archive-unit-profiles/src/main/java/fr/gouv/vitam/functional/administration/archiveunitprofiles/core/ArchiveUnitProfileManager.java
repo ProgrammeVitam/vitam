@@ -22,8 +22,7 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,11 +70,21 @@ import org.bson.conversions.Bson;
  */
 public class ArchiveUnitProfileManager {
 
-    private static final String ARCHIVE_UNIT_PROFILE_SERVICE_ERROR = "Archive unit profile service Error";
     private static final String FUNCTIONAL_MODULE_ARCHIVE_UNIT_PROFILE = "FunctionalModule-ArchiveUnitProfile";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ArchiveUnitProfileManager.class);
 
-    private List<ArchiveUnitProfileValidator> validators;
+    public static final String EMPTY_REQUIRED_FIELD = "IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO";
+    public static final String WRONG_FIELD_FORMAT = "IMPORT_ARCHIVEUNITPROFILE.TO_BE_DEFINED.KO";
+    public static final String DUPLICATE_IN_DATABASE = "IMPORT_ARCHIVEUNITPROFILE.IDENTIFIER_DUPLICATION.KO";
+    public static final String INVALID_JSON_SCHEMA = "IMPORT_ARCHIVEUNITPROFILE.INVALID_JSON_SCHEMA.KO";
+    public static final String IMPORT_KO = "IMPORT_ARCHIVEUNITPROFILE.KO";
+
+    public static final String UPDATE_AUP_NOT_FOUND = "UPDATE_ARCHIVEUNITPROFILE.AUP_NOT_FOUND.KO";
+    public static final String UPDATE_VALUE_NOT_IN_ENUM = "UPDATE_ARCHIVEUNITPROFILE.NOT_IN_ENUM.KO";
+    public static final String UPDATE_DUPLICATE_IN_DATABASE = "UPDATE_ARCHIVEUNITPROFILE.IDENTIFIER_DUPLICATION.KO";
+    public static final String UPDATE_KO = "UPDATE_ARCHIVEUNITPROFILE.KO";
+
+    private HashMap<ArchiveUnitProfileValidator, String> validators;
 
     private final GUID eip;
 
@@ -86,21 +95,22 @@ public class ArchiveUnitProfileManager {
         this.logbookClient = logbookClient;
         this.metaDataClient = metaDataClient;
         this.eip = eip;
-        validators = Arrays.asList(
-            createMandatoryParamsValidator(),
-            createWrongFieldFormatValidator(),
-            createCheckDuplicateInDatabaseValidator());
+        validators = new HashMap<ArchiveUnitProfileValidator, String>() {{
+            put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+            put(createWrongFieldFormatValidator(), WRONG_FIELD_FORMAT);
+            put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+        }};
     }
 
     public boolean validateArchiveUnitProfile(ArchiveUnitProfileModel profile,
         VitamError error) {
 
-        for (ArchiveUnitProfileValidator validator : validators) {
+        for (ArchiveUnitProfileValidator validator : validators.keySet()) {
             Optional<RejectionCause> result = validator.validate(profile);
             if (result.isPresent()) {
                 // there is a validation error on this profile
                 /* profile is valid, add it to the list to persist */
-                error.addToErrors(getVitamError(result.get().getReason()));
+                error.addToErrors(getVitamError(validators.get(validator), result.get().getReason()));
                 // once a validation error is detected on a profile, jump to next profile
                 return false;
             }
@@ -109,10 +119,12 @@ public class ArchiveUnitProfileManager {
     }
 
 
-    private VitamError getVitamError(String error) {
+    private VitamError getVitamError(String message, String description) {
         return new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
-            .setMessage(ARCHIVE_UNIT_PROFILE_SERVICE_ERROR)
-            .setState("ko").setContext(FUNCTIONAL_MODULE_ARCHIVE_UNIT_PROFILE).setDescription(error);
+            .setMessage(message)
+            .setContext(FUNCTIONAL_MODULE_ARCHIVE_UNIT_PROFILE)
+            .setDescription(description)
+            .setState(StatusCode.KO.name());
     }
 
     /**
@@ -120,15 +132,17 @@ public class ArchiveUnitProfileManager {
      *
      * @param errorsDetails
      */
-    public void logValidationError(String eventType, String objectId, String errorsDetails) throws VitamException {
+    public void logValidationError(String eventType, String objectId, String errorsDetails,
+                                   String KOEventType) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
-        logbookMessageError(objectId, errorsDetails, logbookParameters);
+                VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
 
+        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
+        logbookMessageError(objectId, errorsDetails, logbookParameters, KOEventType);
         logbookClient.update(logbookParameters);
     }
 
@@ -138,6 +152,47 @@ public class ArchiveUnitProfileManager {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
                 object.put("archiveUnitProfileCheck", errorsDetails);
+
+                final String wellFormedJson = SanityChecker.sanitizeJson(object);
+                logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+            } catch (InvalidParseOperationException e) {
+                // Do nothing
+            }
+        }
+        if (null != objectId && !objectId.isEmpty()) {
+            logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
+        }
+    }
+
+    private void logbookMessageError(String objectId, String errorsDetails,
+                                     LogbookOperationParameters logbookParameters, String KOEventType) {
+        if (null != errorsDetails && !errorsDetails.isEmpty()) {
+            try {
+                final ObjectNode object = JsonHandler.createObjectNode();
+                String evDetDataKey = "archiveUnitProfileCheck";
+                switch (KOEventType) {
+                    case EMPTY_REQUIRED_FIELD:
+                        evDetDataKey = "Mandatory Fields";
+                        break;
+                    case WRONG_FIELD_FORMAT:
+                        evDetDataKey = "Incorrect Field and value";
+                        break;
+                    case DUPLICATE_IN_DATABASE:
+                    case UPDATE_DUPLICATE_IN_DATABASE:
+                        evDetDataKey = "Duplicate Field";
+                        break;
+                    case INVALID_JSON_SCHEMA:
+                        evDetDataKey = "Invalid JSON schema";
+                        break;
+                    case UPDATE_AUP_NOT_FOUND:
+                        evDetDataKey = "Archive unit profile not found";
+                        break;
+                    case UPDATE_VALUE_NOT_IN_ENUM:
+                        evDetDataKey = "Not in Enum";
+                        break;
+                }
+
+                object.put(evDetDataKey, errorsDetails);
 
                 final String wellFormedJson = SanityChecker.sanitizeJson(object);
                 logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
