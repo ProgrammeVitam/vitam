@@ -26,16 +26,38 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api.impl;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.collect.Lists;
+import com.mongodb.MongoBulkWriteException;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -44,20 +66,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import com.google.common.collect.Lists;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Filters;
-
-import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.mongo.MongoRule;
 
 /**
  */
@@ -207,6 +215,86 @@ public class VitamMongoRepositoryTest {
         assertThat(collection.find(Filters.eq(VitamDocument.ID, 1000 + 1)).first().get("Title"))
             .isEqualTo("Test save updated");
     }
+
+
+
+    @Test
+    public void testBulkUpdateMultipleDocumentsOK() throws IOException, DatabaseException {
+        MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
+        String date = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
+
+        // inserts
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 2; i++) {
+
+            if (i == 1) {
+                date = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
+            }
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, 1000 + i)
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save " + i)
+                .field("Description", "Description _ " + i)
+                .field("_glpd", date)
+                .endObject();
+            documents.add(Document.parse(builder.string()));
+        }
+
+        repository.saveOrUpdate(documents);
+
+        long count = collection.count();
+        assertThat(count).isEqualTo(2);
+
+        // updates
+
+        List<WriteModel<Document>> updates = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            String doc = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, 1000 + i)
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save update")
+                .endObject().string();
+            Document data = new Document("$set", Document.parse(doc));
+            updates.add(new UpdateOneModel<>(and(eq(ID, 1000 + i)), data,
+                new UpdateOptions().upsert(true).bypassDocumentValidation(true)));
+        }
+
+        repository.update(updates);
+
+        count = collection.count();
+
+        assertThat(count).isEqualTo(3);
+
+        MongoCursor<Document> cursor = collection.find().iterator();
+        while (cursor.hasNext()) {
+            System.err.println(cursor.next().toJson());
+        }
+
+        updates = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            String doc = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, 1000 + i)
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save update")
+                .endObject().string();
+            Document data = new Document("$set", Document.parse(doc));
+            updates.add(new UpdateOneModel<>(and(eq(ID, 1000 + i), eq("_glpd", date)), data,
+                new UpdateOptions().upsert(true)));
+        }
+
+        try {
+            repository.update(updates);
+            fail("should throw duplicate key MongoBulkWriteException");
+        } catch (DatabaseException e) {
+            assertThat(e.getCause()).isInstanceOf(MongoBulkWriteException.class);
+            MongoBulkWriteException err = (MongoBulkWriteException)e.getCause();
+            assertThat(err.getMessage()).contains("duplicate key");
+        }
+    }
+
 
 
     @Test

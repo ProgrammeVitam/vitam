@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -67,6 +69,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -89,11 +92,8 @@ public class StoreGraphService {
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS");
     private static final String STRATEGY_ID = "default";
 
-    public static final int ADMIN_TENANT = 1;
     private static final String DEFAULT_STRATEGY = "default";
     public static final String GRAPH = "graph";
-    public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";
-    public int MONGO_BATCH_SIZE = 10000;
     public static final String UNDERSCORE = "_";
     public static final String ZIP_EXTENTION = ".zip";
     public static final String ZIP_PREFIX_NAME = "store_graph_";
@@ -106,7 +106,7 @@ public class StoreGraphService {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
 
-    private static AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+    private static AtomicBoolean alreadyRunningLock = new AtomicBoolean(false);
 
 
     /**
@@ -135,8 +135,6 @@ public class StoreGraphService {
         this.restoreBackupService = new RestoreBackupService();
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         this.storageClientFactory = StorageClientFactory.getInstance();
-
-        MONGO_BATCH_SIZE = VitamConfiguration.getStoreGraphBatchSize();
     }
 
     /**
@@ -154,11 +152,11 @@ public class StoreGraphService {
      */
     public LocalDateTime getLastGraphStoreDate(MetadataCollections metadataCollections) throws StoreGraphException {
         try {
-            VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
 
             DataCategory dataCategory = getDataCategory(metadataCollections);
             List<OfferLog> res =
-                restoreBackupService.getLatestLogs(STRATEGY_ID, dataCategory, 1);
+                restoreBackupService.getListing(STRATEGY_ID, dataCategory, null, 1, Order.DESC);
             // Case where no offer log found. Means that no timestamp zip file saved yet in the offer
             if (res.size() == 0) {
                 return INITIAL_START_DATE;
@@ -192,7 +190,7 @@ public class StoreGraphService {
      * @return the map of collection:number of treated documents
      */
     public Map<MetadataCollections, Integer> tryStoreGraph() throws StoreGraphException {
-        boolean tryStore = atomicBoolean.compareAndSet(false, true);
+        boolean tryStore = alreadyRunningLock.compareAndSet(false, true);
         final Map<MetadataCollections, Integer> map = new HashMap<>();
         map.put(MetadataCollections.UNIT, 0);
         map.put(MetadataCollections.OBJECTGROUP, 0);
@@ -228,7 +226,7 @@ public class StoreGraphService {
             } catch (InterruptedException | ExecutionException e) {
                 throw new StoreGraphException(e);
             } finally {
-                atomicBoolean.set(false);
+                alreadyRunningLock.set(false);
             }
             LOGGER.warn("Graph store GOT and UNIT total : " + totalTreatedDocuments + " : (" + map.toString() + ")");
 
@@ -250,11 +248,11 @@ public class StoreGraphService {
     private Integer storeGraph(MetadataCollections metadataCollections) {
 
         final GUID storeOperation = GUIDFactory.newGUID();
-        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         VitamThreadUtils.getVitamSession().setRequestId(storeOperation);
         final String containerName = storeOperation.getId();
 
-        if (atomicBoolean.get()) {
+        if (alreadyRunningLock.get()) {
             LOGGER.warn("Start graph shipping ...");
 
             LocalDateTime lastStoreDate;
@@ -266,7 +264,9 @@ public class StoreGraphService {
                 return 0;
             }
 
-            final LocalDateTime currentStoreDate = LocalDateTime.now();
+            final LocalDateTime currentStoreDate =
+                LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(),
+                    ChronoUnit.SECONDS);
             if (currentStoreDate.isBefore(lastStoreDate)) {
                 LOGGER.error(
                     "[Consistency ERROR] : The last store date should not be newer than the current date. " +
@@ -294,7 +294,7 @@ public class StoreGraphService {
                 final Bson projection = getProjection(metadataCollections);
                 final MongoCursor<Document> cursor = vitamRepositoryProvider
                     .getVitamMongoRepository(metadataCollections)
-                    .findDocuments(query, MONGO_BATCH_SIZE)
+                    .findDocuments(query, VitamConfiguration.getStoreGraphBatchSize())
                     .projection(projection)
                     .iterator();
 
@@ -306,7 +306,7 @@ public class StoreGraphService {
                 int totalTreatedDocuments = 0;
                 while (cursor.hasNext()) {
                     documents.add(cursor.next());
-                    if (!cursor.hasNext() || documents.size() >= MONGO_BATCH_SIZE) {
+                    if (!cursor.hasNext() || documents.size() >= VitamConfiguration.getStoreGraphBatchSize()) {
                         totalTreatedDocuments = totalTreatedDocuments + documents.size();
                         storeInWorkspace(containerName, graphFolder, documents);
                         is_graph_updated = true;
@@ -365,7 +365,7 @@ public class StoreGraphService {
      * @return BasicDBObject GRAPH_LAST_PERSISTED_DATE between startDate and endDate
      */
     private BasicDBObject getMongoQuery(String startDate, String endDate) {
-        return new BasicDBObject(GRAPH_LAST_PERSISTED_DATE,
+        return new BasicDBObject(Unit.GRAPH_LAST_PERSISTED_DATE,
             new BasicDBObject($_GTE, startDate)
                 .append($_LT, endDate));
     }
@@ -473,11 +473,5 @@ public class StoreGraphService {
                 }
             }
         }
-    }
-
-
-    @VisibleForTesting
-    public void setMONGO_BATCH_SIZE(int MONGO_BATCH_SIZE) {
-        this.MONGO_BATCH_SIZE = MONGO_BATCH_SIZE;
     }
 }

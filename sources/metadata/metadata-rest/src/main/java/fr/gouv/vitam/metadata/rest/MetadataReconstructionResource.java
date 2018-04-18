@@ -52,9 +52,6 @@ import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
-import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Metadata reconstruction resource.
@@ -96,19 +93,14 @@ public class MetadataReconstructionResource {
         OffsetRepository offsetRepository) {
         this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository);
 
-        RestoreBackupService restoreBackupService = new RestoreBackupService();
-
-        this.storeGraphService = new StoreGraphService(
-            vitamRepositoryProvider,
-            restoreBackupService,
-            WorkspaceClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+        this.storeGraphService = new StoreGraphService(vitamRepositoryProvider);
     }
 
     /**
      * Constructor for tests
      *
-     * @param reconstructionService reconstructionService
+     * @param reconstructionService
+     * @param storeGraphService
      */
     @VisibleForTesting
     public MetadataReconstructionResource(
@@ -166,8 +158,7 @@ public class MetadataReconstructionResource {
     public Response storeGraph() {
 
         try {
-            Map<MetadataCollections, Integer> map =
-                this.storeGraphService.tryStoreGraph();
+            Map<MetadataCollections, Integer> map = this.storeGraphService.tryStoreGraph();
             return Response.ok().entity(map).build();
         } catch (Exception e) {
             LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);

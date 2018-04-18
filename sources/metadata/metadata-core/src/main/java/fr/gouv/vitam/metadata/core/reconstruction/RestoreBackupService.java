@@ -33,9 +33,6 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -86,64 +83,22 @@ public class RestoreBackupService {
     /**
      * Retrieve list of offer log defining objects to reconstruct from offer log
      *
-     * @param strategy   storage strategy
-     * @param collection collection
-     * @param offset     offset
-     * @param limit      limit
+     * @param strategy storage strategy
+     * @param category collection
+     * @param offset   offset
+     * @param limit    limit
      * @return list of offer log by bulk
      * @throws VitamRuntimeException    storage error
      * @throws IllegalArgumentException input error
      */
-    public List<List<OfferLog>> getListing(String strategy, MetadataCollections collection, long offset, int limit) {
+    public List<OfferLog> getListing(String strategy, DataCategory category, Long offset, int limit, Order order) {
         LOGGER.info(String.format(
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
-            collection.name(), strategy, offset, limit));
+            category, strategy, offset, limit));
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            DataCategory type = null;
-            switch (collection) {
-                case UNIT:
-                    type = DataCategory.UNIT;
-                    break;
-                case OBJECTGROUP:
-                    type = DataCategory.OBJECTGROUP;
-                    break;
-                default:
-                    throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
-            }
-
-            RequestResponse<OfferLog> result = storageClient.getOfferLogs(strategy, type, offset, limit, Order.ASC);
-            if (result.isOk()) {
-                if (!((RequestResponseOK<OfferLog>) result).getResults().isEmpty()) {
-                    List<OfferLog> results = ((RequestResponseOK<OfferLog>) result).getResults();
-                    return Lists.partition(results, VitamConfiguration.getRestoreBulkSize());
-                }
-            } else {
-                throw new VitamRuntimeException(
-                    String.format("ERROR: VitamError has been returned when using storage service: {%s}",
-                        ((VitamError) result).toString()));
-            }
-        } catch (StorageServerClientException e) {
-            throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
-        }
-        return new ArrayList<>();
-    }
 
 
-
-    /**
-     * Find the latest logs of saved files for the given data category in the offer
-     * @param strategy by default "default"
-     * @param dataCategory (UNIT, OBJECT_GROUP, ...)
-     * @param limit if we want only one file, set limit to 1
-     * @return the list of the latest files of the given dataCategory
-     */
-    public List<OfferLog> getLatestLogs(String strategy, DataCategory dataCategory, int limit) {
-        LOGGER.info(String.format(
-            "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
-            dataCategory.getCollectionName(), strategy, null, limit));
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
-            RequestResponse<OfferLog> result =
-                storageClient.getOfferLogs(strategy, dataCategory, null, limit, Order.DESC);
+            RequestResponse<OfferLog> result = storageClient.getOfferLogs(strategy, category, offset, limit, order);
             if (result.isOk()) {
                 if (!((RequestResponseOK<OfferLog>) result).getResults().isEmpty()) {
                     return ((RequestResponseOK<OfferLog>) result).getResults();
@@ -207,5 +162,26 @@ public class RestoreBackupService {
 
         return null;
     }
+
+
+    public InputStream loadData(String strategy, DataCategory category, String filename) {
+        LOGGER
+            .info(String.format(
+                "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
+                filename, category.name(), strategy));
+
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+
+            Response response = storageClient.getContainerAsync(strategy, filename, category);
+            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
+                return storageClient.getContainerAsync(strategy, filename, category).readEntity(InputStream.class);
+            } else {
+                return null;
+            }
+        } catch (StorageServerClientException | StorageNotFoundException e) {
+            throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
+        }
+    }
+
 
 }

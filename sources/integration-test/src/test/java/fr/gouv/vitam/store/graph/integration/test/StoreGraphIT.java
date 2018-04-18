@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,7 @@ import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -282,15 +284,17 @@ public class StoreGraphIT {
 
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
+        VitamConfiguration.setStoreGraphBatchSize(10000);
     }
 
 
     @Test
     @RunWithCustomExecutor
     public void testStoreUnitGraphThenStoreOccurs() throws DatabaseException, StoreGraphException {
-        storeGraphService.setMONGO_BATCH_SIZE(5);
+        VitamConfiguration.setStoreGraphBatchSize(5);
 
-        LocalDateTime dateTime = LocalDateTime.now();
+        LocalDateTime dateTime =
+            LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
 
         String dateInMongo = LocalDateUtil.getFormattedDateForMongo(dateTime);
         List<Document> documents = new ArrayList<>();
@@ -308,7 +312,7 @@ public class StoreGraphIT {
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(10);
 
 
-        dateTime = LocalDateTime.now();
+        dateTime = LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
         dateInMongo = LocalDateUtil.getFormattedDateForMongo(dateTime);
         documents = new ArrayList<>();
         for (int i = 10; i < 15; i++) {

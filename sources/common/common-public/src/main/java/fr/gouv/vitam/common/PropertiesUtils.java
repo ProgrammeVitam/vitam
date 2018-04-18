@@ -35,7 +35,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Properties;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -44,6 +46,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Property Utility class

@@ -34,6 +34,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.WriteModel;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.api.VitamRepository;
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
@@ -53,22 +68,6 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.DBObject;
-import com.mongodb.client.FindIterable;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.api.VitamRepository;
-import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 /**
  * Implementation for Elasticsearch
@@ -323,6 +322,17 @@ public class VitamElasticsearchRepository implements VitamRepository {
         save(documents);
     }
 
+    @Override
+    public void update(List<WriteModel<Document>> updates) throws DatabaseException {
+        // Not implement yet
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public FindIterable<Document> findDocuments(List<String> ids, Bson projection) {
+        // Not implement yet
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
     @Override
     public void remove(String id, Integer tenant) throws DatabaseException {

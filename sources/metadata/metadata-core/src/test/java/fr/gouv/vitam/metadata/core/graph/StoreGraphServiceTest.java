@@ -23,6 +23,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
@@ -106,8 +107,9 @@ public class StoreGraphServiceTest {
     @RunWithCustomExecutor
     public void whenNoGraphInOfferThengetLastShippingReturnInitialDate() throws StoreGraphException {
         // given
-        when(restoreBackupService.getLatestLogs(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, 1)).thenReturn(
-            Lists.newArrayList());
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
+            .thenReturn(
+                Lists.newArrayList());
 
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(StoreGraphService.INITIAL_START_DATE);
@@ -120,10 +122,11 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getLatestLogs(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, 1)).thenReturn(
-            Lists.newArrayList(
-                new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                    "write")));
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
+            .thenReturn(
+                Lists.newArrayList(
+                    new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
+                        "write")));
 
 
         LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
@@ -136,7 +139,7 @@ public class StoreGraphServiceTest {
     @RunWithCustomExecutor
     public void whenGetLastShippingThenExceptionOccurs() throws StoreGraphException {
         // given
-        when(restoreBackupService.getLatestLogs(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, 1))
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
             .thenThrow(new RuntimeException(""));
         storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
     }
@@ -147,10 +150,11 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getLatestLogs(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, 1)).thenReturn(
-            Lists.newArrayList(
-                new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                    "write")));
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
+            .thenReturn(
+                Lists.newArrayList(
+                    new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
+                        "write")));
 
         final int[] cpt = {0};
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
@@ -178,10 +182,11 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getLatestLogs(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, 1)).thenReturn(
-            Lists.newArrayList(
-                new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                    "write")));
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
+            .thenReturn(
+                Lists.newArrayList(
+                    new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
+                        "write")));
 
 
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);

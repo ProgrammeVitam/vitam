@@ -38,6 +38,8 @@ import java.util.stream.LongStream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -89,7 +91,10 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, MetadataCollections.UNIT, 100L, 2);
+        List<OfferLog> res = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC);
+
+        List<List<OfferLog>> listing = Lists.partition(res, VitamConfiguration.getRestoreBulkSize());
+
         // then
         assertThat(listing).isNotNull().isNotEmpty();
         assertThat(listing.size()).isEqualTo(1);
@@ -109,7 +114,7 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(0L, 1L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<OfferLog> listing = restoreBackupService.getLatestLogs(STRATEGY_ID, DataCategory.UNIT, 1);
+        List<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, null, 1, Order.DESC);
         // then
         assertThat(listing).isNotNull().isNotEmpty();
         assertThat(listing.size()).isEqualTo(1);
@@ -127,8 +132,12 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<List<OfferLog>> listing =
-            restoreBackupService.getListing(STRATEGY_ID, MetadataCollections.OBJECTGROUP, 100L, 2);
+        List<OfferLog> res =
+            restoreBackupService.getListing(STRATEGY_ID, DataCategory.OBJECTGROUP, 100L, 2, Order.ASC);
+
+        List<List<OfferLog>> listing = Lists.partition(res, VitamConfiguration.getRestoreBulkSize());
+
+
         // then
         assertThat(listing).isNotNull().isNotEmpty();
         assertThat(listing.size()).isEqualTo(1);
@@ -147,7 +156,8 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, -1L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, MetadataCollections.UNIT, 100L, 2);
+        List<OfferLog> res = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC);
+        List<List<OfferLog>> listing = Lists.partition(res, VitamConfiguration.getRestoreBulkSize());
         // then
         assertThat(listing).isNotNull().isEmpty();
     }
@@ -161,7 +171,7 @@ public class RestoreBackupServiceTest {
             .thenReturn(new VitamError("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, MetadataCollections.UNIT, 100L, 2))
+        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
@@ -174,7 +184,7 @@ public class RestoreBackupServiceTest {
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, MetadataCollections.UNIT, 100L, 2))
+        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
             .isInstanceOf(VitamRuntimeException.class);
     }
 

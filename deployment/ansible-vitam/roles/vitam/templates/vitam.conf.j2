@@ -6,6 +6,8 @@ workerBulkSize: 16
 {% endif %}
 {% if inventory_hostname in groups['hosts-metadata'] %}
 storeGraphBatchSize: 10000
+storeGraphOverlapDelay: 300
+deleteIncompleteReconstructedUnitDelay: 2592000
 {% endif %}
 intervalDelayCheckIdle : 5000
 maxDelayUnusedConnection : 5000
