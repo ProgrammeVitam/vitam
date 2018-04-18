@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 
 public class ObjectGroupModel {
@@ -60,6 +61,8 @@ public class ObjectGroupModel {
     @JsonProperty("_opi")
     private String operationOriginId;
 
+    @JsonProperty("_glpd")
+    private String graphLastPersistedDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
     @JsonProperty("_tenant")
     private int tenant;
@@ -139,4 +142,11 @@ public class ObjectGroupModel {
         this.operationOriginId = operationOriginId;
     }
 
+    public String getGraphLastPersistedDate() {
+        return graphLastPersistedDate;
+    }
+
+    public void setGraphLastPersistedDate(String graphLastPersistedDate) {
+        this.graphLastPersistedDate = graphLastPersistedDate;
+    }
 }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.ihmrecette.appserver.populate;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
@@ -98,6 +99,9 @@ public class UnitModel {
 
     @JsonProperty("_graph")
     private Set<String> graph = new HashSet<>();
+
+    @JsonProperty("_glpd")
+    private String graphLastPersistedDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
     @JsonProperty("_us_sp")
     private Map<String, Collection<String>> parentOriginatingAgencies = new HashMap<>();
@@ -259,5 +263,13 @@ public class UnitModel {
 
     public void setParentOriginatingAgencies(Map<String, Collection<String>> parentOriginatingAgencies) {
         this.parentOriginatingAgencies = parentOriginatingAgencies;
+    }
+
+    public String getGraphLastPersistedDate() {
+        return graphLastPersistedDate;
+    }
+
+    public void setGraphLastPersistedDate(String graphLastPersistedDate) {
+        this.graphLastPersistedDate = graphLastPersistedDate;
     }
 }

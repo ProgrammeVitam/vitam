@@ -532,26 +532,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             return isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
-        // TODO to return the number of Units immediately below
-        long nb = 0;
+
         final Iterator<SearchHit> iterator = hits.iterator();
         while (iterator.hasNext()) {
             final SearchHit hit = iterator.next();
             final String id = hit.getId();
-            final Map<String, Object> src = hit.getSource();
-            if (src != null && isUnit) {
-                final Object val = src.get(Unit.NBCHILD);
-                if (val == null) {
-                    LOGGER.debug("Not found " + Unit.NBCHILD);
-                } else if (val instanceof Integer) {
-                    nb += (Integer) val;
-                    if (GlobalDatasDb.PRINT_REQUEST) {
-                        LOGGER.debug("Result: {} : {}", id, val);
-                    }
-                } else {
-                    LOGGER.error("Not Integer: " + val.getClass().getName());
-                }
-            }
             resultRequest.addId(id, hit.getScore());
         }
         if (GlobalDatasDb.PRINT_REQUEST) {

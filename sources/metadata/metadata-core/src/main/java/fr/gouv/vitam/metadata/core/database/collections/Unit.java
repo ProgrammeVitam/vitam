@@ -32,6 +32,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -332,6 +333,8 @@ public class Unit extends MetadataDocument<Unit> {
         put(MINDEPTH, 1);
         int maxDepth = parentDepths.values().stream().max(Comparator.naturalOrder()).orElse(0) + 1;
         put(MAXDEPTH, maxDepth);
+
+        put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
         // Debug
         if (LOGGER.isDebugEnabled()) {

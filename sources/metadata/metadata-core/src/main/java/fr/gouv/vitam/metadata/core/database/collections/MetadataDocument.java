@@ -95,6 +95,10 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      * ORIGINATING_AGENCIES : list of all originating agencies for unit
      */
     public static final String ORIGINATING_AGENCIES = "_sps";
+    /**
+     * Last persisted date of Unit / Object Group
+     */
+    public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";
 
     /**
      * Quick projection for ID and ObjectGroup Only

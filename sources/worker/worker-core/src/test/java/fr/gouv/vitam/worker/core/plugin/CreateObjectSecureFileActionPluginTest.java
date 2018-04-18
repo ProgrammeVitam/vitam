@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -52,6 +53,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -62,14 +65,11 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -143,7 +143,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
-        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory,storageClientFactory);
+        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory, storageClientFactory);
         handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId");
     }
 
@@ -180,7 +180,9 @@ public class CreateObjectSecureFileActionPluginTest {
         saveWorkspacePutObject(SedaConstants.LFC_OBJECTS_FOLDER + "/" + guidOg + ".json");
 
         final String[] offerIds = new String[] {"vitam-iaas-app-02.int", "vitam-iaas-app-03.int"};
-        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(LFC_GOT_MD_FILE);
+        JsonNode mdWithLfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_GOT_MD_FILE));
+        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(
+            mdWithLfc);
 
         final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidOg, "",
             expectedMDLFCGlobalHashFromStorage, 17011, "file_owner",
@@ -217,8 +219,13 @@ public class CreateObjectSecureFileActionPluginTest {
         assertEquals(13, StringUtils.countMatches(fileAsString, ","));
 
         // check hash for LFC and for MD
-        final String gotMDHash = generateExpectedDigest(OBJECT_GROUP_MD);
-        final String gotLFCHash = generateExpectedDigest(OBJECT_LFC_1);
+        ObjectNode got = (ObjectNode) JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(OBJECT_GROUP_MD));
+        got.remove(Arrays.asList(ObjectGroup.ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE));
+        final String gotMDHash = generateExpectedDigest(got);
+
+        JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_LFC_1));
+        final String gotLFCHash = generateExpectedDigest(lfc);
 
 
         final LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLineExpected =
@@ -236,21 +243,26 @@ public class CreateObjectSecureFileActionPluginTest {
                 null
             );
         //add object documents (qualifiers->version)
-        List<ObjectGroupDocumentHash> objectGroupDocumentHashToList=  new ArrayList<>() ;
+        List<ObjectGroupDocumentHash> objectGroupDocumentHashToList = new ArrayList<>();
 
-        objectGroupDocumentHashToList.add(new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzzqaaaaq", expectedMDLFCGlobalHashFromStorage)       );
-        objectGroupDocumentHashToList.add(new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzyiaaabq", expectedMDLFCGlobalHashFromStorage)       );
+        objectGroupDocumentHashToList.add(
+            new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzzqaaaaq", expectedMDLFCGlobalHashFromStorage));
+        objectGroupDocumentHashToList.add(
+            new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzyiaaabq", expectedMDLFCGlobalHashFromStorage));
 
         lfcTraceSecFileDataLineExpected.setObjectGroupDocumentHashList(objectGroupDocumentHashToList);
 
-        assertEquals(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected).toString(), fileAsString);
+        String expected = new String(
+            CanonicalJsonFormatter.serializeToByteArray(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected)),
+            StandardCharsets.UTF_8);
+        assertEquals(expected,
+            fileAsString);
 
     }
 
-    private String generateExpectedDigest(String resource) throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
+    private String generateExpectedDigest(JsonNode jsonNode) {
         Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
     }
 

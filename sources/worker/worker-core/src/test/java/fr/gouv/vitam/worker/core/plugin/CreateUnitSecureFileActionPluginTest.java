@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
@@ -51,6 +52,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -62,7 +65,6 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -174,7 +176,8 @@ public class CreateUnitSecureFileActionPluginTest {
         saveWorkspacePutObject(SedaConstants.LFC_UNITS_FOLDER + "/" + guidUnit + ".json");
 
         final String[] offerIds = new String[] {"vitam-iaas-app-02.int", "vitam-iaas-app-03.int"};
-        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(LFC_UNIT_MD_FILE);
+        JsonNode mdWithLfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNIT_MD_FILE));
+        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(mdWithLfc);
 
         final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidUnit, "",
             expectedMDLFCGlobalHashFromStorage, 7082, "file_owner",
@@ -211,8 +214,14 @@ public class CreateUnitSecureFileActionPluginTest {
         //units data.txt file have only 9 separators, objects 10
         assertEquals(9, StringUtils.countMatches(fileAsString, ","));
         // check hash for LFC and for MD and global lfc+md from storage
-        final String unitMDHash = generateExpectedDigest(UNIT_MD);
-        final String unitLFCHash = generateExpectedDigest(UNIT_LFC_1);
+        ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_MD));
+        unit.remove(Arrays
+            .asList(Unit.UNITDEPTHS, Unit.UNITUPS, Unit.ORIGINATING_AGENCIES, Unit.MINDEPTH, Unit.MAXDEPTH, Unit.GRAPH,
+                Unit.PARENT_ORIGINATING_AGENCIES, MetadataDocument.GRAPH_LAST_PERSISTED_DATE));
+        final String unitMDHash = generateExpectedDigest(unit);
+
+        JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_LFC_1));
+        final String unitLFCHash = generateExpectedDigest(lfc);
 
         final LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLineExpected =
             new LifeCycleTraceabilitySecureFileObject(
@@ -228,13 +237,16 @@ public class CreateUnitSecureFileActionPluginTest {
                 expectedMDLFCGlobalHashFromStorage,
                 null
             );
-        assertEquals(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected).toString(), fileAsString);
+
+        String expected = new String(
+            CanonicalJsonFormatter.serializeToByteArray(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected)),
+            StandardCharsets.UTF_8);
+        assertEquals(expected, fileAsString);
     }
 
-    private String generateExpectedDigest(String resource) throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
+    private String generateExpectedDigest(JsonNode jsonNode) {
         Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
     }
 

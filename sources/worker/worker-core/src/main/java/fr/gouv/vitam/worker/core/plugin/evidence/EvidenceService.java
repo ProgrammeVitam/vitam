@@ -29,19 +29,18 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -53,7 +52,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -62,7 +60,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -74,8 +71,8 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
-import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
+import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject;
 import org.apache.commons.lang.StringUtils;
 
@@ -83,23 +80,19 @@ import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.lte;
-import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult.fromMetadataJson;
 
@@ -139,7 +132,6 @@ public class EvidenceService {
         logbookLifeCyclesClientFactory = LogbookLifeCyclesClientFactory.getInstance();
         metaDataClientFactory = MetaDataClientFactory.getInstance();
         logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
-
     }
 
     @VisibleForTesting EvidenceService(MetaDataClientFactory metaDataClientFactory,
@@ -510,19 +502,19 @@ public class EvidenceService {
                 extractObjectStorageMetadataResultMap(metadata, auditParameters);
             }
 
-            final DigestType digestType = auditParameters.getDigestType();
-            Digest metadataDigest = new Digest(digestType);
-
             // calculate and store digests
-            final String hashMdFromDatabase =
-                metadataDigest
-                    .update(unprettyPrint(metadata).getBytes(StandardCharsets.UTF_8))
-                    .digest64();
-            final Digest LfcDigest = new Digest(digestType);
-            final String hashLfcFromDatabase =
-                LfcDigest
-                    .update(unprettyPrint(lifecycle).getBytes(StandardCharsets.UTF_8))
-                    .digest64();
+            switch (metadataType) {
+                case UNIT:
+                    MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(metadata);
+                    break;
+                case OBJECTGROUP:
+                    MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(metadata);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unknown metadata type " + metadataType);
+            }
+            final String hashMdFromDatabase = generateDigest(metadata, auditParameters.getDigestType());
+            final String hashLfcFromDatabase = generateDigest(lifecycle, auditParameters.getDigestType());
 
             auditParameters.setHashMdFromDatabase(hashMdFromDatabase);
             auditParameters.setHashLfcFromDatabase(hashLfcFromDatabase);
@@ -543,10 +535,7 @@ public class EvidenceService {
             auditParameters.setAuditMessage(e.getMessage());
         }
         return auditParameters;
-
     }
-
-
 
     private JsonNode getLifeCycle(String id, MetadataType metadataType)
         throws EvidenceAuditException {
@@ -786,6 +775,9 @@ public class EvidenceService {
         }
     }
 
-
-
+    private String generateDigest(JsonNode jsonNode, DigestType digestType) {
+        final Digest digest = new Digest(digestType);
+        digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
+        return digest.digest64();
+    }
 }

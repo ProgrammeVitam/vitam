@@ -41,6 +41,7 @@ import java.util.Arrays;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -254,7 +255,7 @@ public class StoreMetaDataUnitActionPluginTest {
         assertEquals(lfc.get("_id").asText(), UNIT_GUID);
 
         // aggregate unit with lfc
-        JsonNode docWithLfc = DataCategory.getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
+        JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
         assertNotNull(docWithLfc);
         assertNotNull(docWithLfc.get("unit"));
         assertNotNull(docWithLfc.get("lfc"));

@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -78,7 +79,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
@@ -154,7 +154,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
         try (
             InputStream stream = response.readEntity(InputStream.class);
-            ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory().createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
+            ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+                .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
 
             ArchiveEntry entry = null;
             while (entry == null || !"token.tsp".equals(entry.getName())) {
@@ -165,10 +166,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             }
 
             LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
-            if (date == null) {
-                throw new TraceabilityException("Unable to read date on traceability file");
-            }
-            lastTraceabilityData = new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
+            lastTraceabilityData =
+                new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
             this.traceabilityStartDate = lastTraceabilityData.startDate;
         } catch (IOException e) {
             throw new TraceabilityException("Unable to read ZIP", e);
@@ -182,7 +181,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         throws IOException, TraceabilityException {
 
         try {
-            traceabilityIterator = traceabilityLogbookService.getLastSavedStorageLogs(STRATEGY_ID, this.traceabilityStartDate);
+            traceabilityIterator =
+                traceabilityLogbookService.getLastSavedStorageLogs(STRATEGY_ID, this.traceabilityStartDate);
         } catch (StorageException e) {
             throw new TraceabilityException("Unable to get last backup in database", e);
         }
@@ -205,10 +205,10 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             ObjectNode fileInfo = JsonHandler.createObjectNode();
             fileInfo.put("FileName", fileName);
             fileInfo.put("Hash", hash);
-            String line = JsonHandler.unprettyPrint(fileInfo);
+            byte[] bytes = CanonicalJsonFormatter.serializeToByteArray(fileInfo);
 
-            file.storeLog(line.getBytes(StandardCharsets.UTF_8));
-            algo.addLeaf(line);
+            file.storeLog(bytes);
+            algo.addLeaf(bytes);
         }
 
         file.closeStoreLog();

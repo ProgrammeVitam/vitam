@@ -32,10 +32,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -58,10 +60,8 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.StorageClientUtil;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.util.List;
 
 
@@ -89,10 +89,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
 
     void storeLifecycle(JsonNode lifecycle, String lfGuid, HandlerIO handlerIO, String lifecycleType)
         throws ProcessingException {
-        String folder = "";
-        final File lifecycleGlobalTmpFile = handlerIO.getNewLocalFile(lfGuid);
         try (
-            FileWriter fw = new FileWriter(lifecycleGlobalTmpFile);
             StorageClient storageClient = storageClientFactory.getClient()) {
 
             LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLine;
@@ -106,10 +103,6 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             String finalEvDateTime = lastEvent.get(LogbookMongoDbName.eventDateTime.getDbname()).asText();
 
             final String hashLFC = generateDigest(lifecycle);
-
-            String lfcAndMetadataGlobalHashFromStorage = null;
-            String hashMetaData = null;
-            MetadataType metadataType = null;
 
             lfcTraceSecFileDataLine = new LifeCycleTraceabilitySecureFileObject(
                 finalEventIdProc,
@@ -125,10 +118,17 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 null
             );
 
+            String lfcAndMetadataGlobalHashFromStorage;
+            String hashMetaData;
+            MetadataType metadataType;
+            String folder;
+
             if (LogbookLifeCycleUnit.class.getName().equals(lifecycleType)) {
                 folder = SedaConstants.LFC_UNITS_FOLDER;
                 JsonNode unit = selectArchiveUnitById(objectGroupId);
                 metadataType = MetadataType.UNIT;
+                MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+
                 hashMetaData = generateDigest(unit);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(unit,
                     DataCategory.UNIT, lfGuid + JSON_EXTENSION, storageClient);
@@ -136,12 +136,16 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 folder = SedaConstants.LFC_OBJECTS_FOLDER;
                 JsonNode og = selectObjectGroupById(objectGroupId);
                 metadataType = MetadataType.OBJECTGROUP;
+                MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(og);
+
                 hashMetaData = generateDigest(og);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(og,
                     DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient);
                 List<ObjectGroupDocumentHash> list = StorageClientUtil.extractListObjectsFromJson(og, storageClient);
 
                 lfcTraceSecFileDataLine.setObjectGroupDocumentHashList(list);
+            } else {
+                throw new IllegalStateException("Unknown lifecycleType " + lifecycleType);
             }
 
             lfcTraceSecFileDataLine.setMetadataType(metadataType);
@@ -150,13 +154,11 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
 
             JsonNode jsonDataToWrite = JsonHandler.toJsonNode(lfcTraceSecFileDataLine);
 
-            fw.write(jsonDataToWrite.toString());
-            fw.flush();
-            fw.close();
-            // TODO : this is not a json file
-            handlerIO
-                .transferFileToWorkspace(folder + "/" + lfGuid + JSON_EXTENSION,
-                    lifecycleGlobalTmpFile, true, false);
+            InputStream inputStream = CanonicalJsonFormatter.serialize(jsonDataToWrite);
+
+            handlerIO.transferInputStreamToWorkspace(
+                folder + "/" + lfGuid + JSON_EXTENSION, inputStream, null, false);
+
         } catch (IOException | InvalidParseOperationException e) {
             throw new ProcessingException("Could not serialize json object or could not write to file", e);
         }
@@ -193,17 +195,15 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
         }
     }
 
-
     /**
      * Generate a hash for a JsonNode using VITAM Digest Algorithm
      *
      * @param jsonNode the jsonNode to compute digest for
      * @return hash of the jsonNode
      */
-    private String generateDigest(JsonNode jsonNode) {
+    private String generateDigest(JsonNode jsonNode) throws IOException {
         final Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serialize(jsonNode));
         return digest.digest64();
     }
-
 }

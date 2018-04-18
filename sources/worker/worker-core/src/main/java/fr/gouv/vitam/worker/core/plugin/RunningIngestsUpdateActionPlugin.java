@@ -304,12 +304,12 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
      */
     private void saveMetadataWithLfcInTheStorage(WorkerParameters workerParameters) throws ProcessingException {
         try {
-            ItemStatus itemStaus =
+            ItemStatus itemStatus =
                 storeMetadataObjectActionHandler.execute(workerParameters, handlerIO);
 
-            if (itemStaus.getGlobalStatus().isGreaterOrEqualToKo()) {
+            if (itemStatus.getGlobalStatus().isGreaterOrEqualToKo()) {
                 throw new ProcessingException(
-                    String.format("The ArchiveUnit %s with LifeCyle isn't saved in the storage",
+                    String.format("The ArchiveUnit %s with LifeCycle isn't saved in the storage",
                         workerParameters.getObjectName()));
             }
         } catch (ContentAddressableStorageServerException e) {

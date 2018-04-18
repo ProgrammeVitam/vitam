@@ -28,13 +28,15 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -50,10 +52,8 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Stores MetaData Unit plugin.
@@ -121,16 +121,17 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
 
             //// get metadata
             JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, metaDataClient);
+            MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+
             //// get lfc
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
-            JsonNode docWithLfc = DataCategory.getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
+            JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
 
             // transfer json to workspace
             try {
-                String str = JsonHandler.unprettyPrint(docWithLfc);
-                InputStream is = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
+                InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
                         null, asyncIO);

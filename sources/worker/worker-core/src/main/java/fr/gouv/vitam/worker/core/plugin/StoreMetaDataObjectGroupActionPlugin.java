@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -26,25 +26,17 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -56,9 +48,11 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+
+import java.io.File;
+import java.io.InputStream;
 
 /**
  * Stores MetaData object group plugin.
@@ -76,7 +70,8 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
     /**
      * StoreMetaDataObjectGroupActionPlugin constructor
      */
-    public StoreMetaDataObjectGroupActionPlugin() {}
+    public StoreMetaDataObjectGroupActionPlugin() {
+    }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition)
@@ -110,7 +105,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
     /**
      * saveDocumentWithLfcInStorage
-     * 
+     *
      * @param params
      * @param guid
      * @param fileName
@@ -126,16 +121,16 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
             //// get metadata
             JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECTGROUP, metaDataClient);
+            MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(got);
 
             //// get lfc
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
-            JsonNode docWithLfc = DataCategory.getDocumentWithLFC(got, lfc, DataCategory.OBJECTGROUP);
+            JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(got, lfc);
             // transfer json to workspace
             try {
-                String str = JsonHandler.unprettyPrint(docWithLfc);
-                InputStream is = new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
+                InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName, is,
                         null, asyncIO);

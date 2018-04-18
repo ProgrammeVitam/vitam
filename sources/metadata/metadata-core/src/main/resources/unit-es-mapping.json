@@ -878,6 +878,9 @@
           }
         }
       },
+      "_glpd": {
+        "enabled": false
+      },
       "_graph": {
         "enabled": false
       },

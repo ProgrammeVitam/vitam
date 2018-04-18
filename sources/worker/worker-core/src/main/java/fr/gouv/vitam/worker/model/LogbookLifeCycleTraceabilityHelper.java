@@ -44,10 +44,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.bouncycastle.util.Strings;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -348,9 +347,6 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
      * @param algo
      * @param rootFolder
      * @return
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
-     * @throws IOException
      * @throws TraceabilityException
      */
     private void extractAppendToFinalFile(List<URI> listOfFiles, TraceabilityFile traceabilityFile, MerkleTreeAlgo algo,
@@ -359,15 +355,12 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
         try {
             for (final URI uriWorkspace : listOfFiles) {
                 try (InputStream lifecycleIn =
-                    handlerIO.getInputStreamFromWorkspace(rootFolder + "/" + uriWorkspace.getPath());) {
+                    handlerIO.getInputStreamFromWorkspace(rootFolder + "/" + uriWorkspace.getPath())) {
 
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    org.apache.commons.io.IOUtils.copy(lifecycleIn, baos);
-                    byte[] bytes = baos.toByteArray();
-                    String lifecycleDataStr = Strings.fromByteArray(bytes);
+                    byte[] bytes = IOUtils.toByteArray(lifecycleIn);
 
                     traceabilityFile.storeLog(bytes);
-                    algo.addLeaf(lifecycleDataStr);
+                    algo.addLeaf(bytes);
                 }
             }
 

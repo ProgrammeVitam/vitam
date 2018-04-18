@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -37,8 +38,6 @@ import org.bson.Document;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static java.util.Collections.singleton;
 
 /**
  * ObjectGroup:<br>
@@ -207,6 +206,9 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
         Set<String> ops = new HashSet<>(unit.getCollectionOrEmpty(OPS));
         ops.add(VitamThreadUtils.getVitamSession().getRequestId());
         this.put(OPS, ops);
+
+        // Last graph update date
+        put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
         // Debug
         if (LOGGER.isDebugEnabled()) {

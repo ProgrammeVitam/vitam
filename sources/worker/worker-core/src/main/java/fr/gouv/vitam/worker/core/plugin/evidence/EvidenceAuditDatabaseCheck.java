@@ -53,7 +53,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     private static final String EVIDENCE_AUDIT_CHECK_DATABASE = "EVIDENCE_AUDIT_CHECK_DATABASE";
     private static final String METADA_TYPE = "metadaType";
     private static final String DATA = "data";
-    private EvidenceService evidenceService = new EvidenceService();
+    private EvidenceService evidenceService;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditDatabaseCheck.class);
     private static final String REPORTS = "reports";
 
@@ -63,7 +63,9 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
         this.evidenceService = evidenceService;
     }
 
-    public EvidenceAuditDatabaseCheck() { /*nothing to do*/ }
+    public EvidenceAuditDatabaseCheck() {
+        this(new EvidenceService());
+    }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
@@ -80,7 +82,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
 
             EvidenceAuditParameters parameters = evidenceService.evidenceAuditsChecks(objectToAuditId, metadataType);
 
-            File newLocalFile = handlerIO.getNewLocalFile(objectToAuditId+".tmp");
+            File newLocalFile = handlerIO.getNewLocalFile(objectToAuditId + ".tmp");
             JsonHandler.writeAsFile(parameters, newLocalFile);
 
             handlerIO.transferFileToWorkspace(DATA + "/" + objectToAuditId,
@@ -105,5 +107,6 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+    }
 }

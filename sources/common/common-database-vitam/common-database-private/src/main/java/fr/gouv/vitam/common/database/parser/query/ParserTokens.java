@@ -179,6 +179,7 @@ public class ParserTokens extends BuilderToken {
         "Writer.DeathPlace.PostalCode",
         "Writer.Function",
         "Writer.Identifier",
+        "_glpd",
         "_graph",
         "_max",
         "_mgt.AccessRule.Inheritance.PreventInheritance",
@@ -591,6 +592,10 @@ public class ParserTokens extends BuilderToken {
          */
         GRAPH("graph"),
         /**
+         * Graph last peristed date
+         */
+        GRAPH_LAST_PERISTED_DATE("graph_last_persisted_date"),
+        /**
          * Originating agency
          */
         PARENT_ORIGINATING_AGENCIES("parent_originating_agencies");
@@ -721,6 +726,8 @@ public class ParserTokens extends BuilderToken {
                         return PARENT_ORIGINATING_AGENCIES;
                     case "_graph":
                         return GRAPH;
+                    case "_glpd":
+                        return GRAPH_LAST_PERISTED_DATE;
                     default:
                 }
             } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
@@ -849,6 +856,7 @@ public class ParserTokens extends BuilderToken {
                         case SCORE:
                         case LAST_PERSISTED_DATE:
                         case GRAPH:
+                        case GRAPH_LAST_PERISTED_DATE:
                         case PARENT_ORIGINATING_AGENCIES:
                             return true;
                         case STORAGE:

@@ -27,9 +27,7 @@
 package fr.gouv.vitam.access.internal.core;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -44,8 +42,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.FileUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -75,6 +71,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -84,11 +81,13 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
@@ -137,7 +136,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -658,14 +656,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * @param idUnit
      * @param requestId
-     * @return updated storedInfo for the unit
-     * @throws InvalidParseOperationException
      * @throws StorageClientException
      * @throws AccessInternalException
      * @throws ContentAddressableStorageServerException
      */
-    private StoredInfoResult replaceStoredUnitMetadata(String idUnit, String requestId)
-        throws InvalidParseOperationException, ContentAddressableStorageException,
+    private void replaceStoredUnitMetadata(String idUnit, String requestId)
+        throws ContentAddressableStorageException,
         StorageClientException, AccessInternalException {
 
         final WorkspaceClient workspaceClient =
@@ -673,36 +669,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try {
             final String fileName = idUnit + JSON;
             JsonNode unit = getUnitRawWithLfc(idUnit);
-            if (unit != null && unit.size() > 0) {
-                workspaceClient.createContainer(requestId);
-                File file = null;
-                try {
-                    file = File.createTempFile(idUnit, JSON);
-                    FileUtils
-                        .writeByteArrayToFile(file, JsonHandler.unprettyPrint(unit).getBytes(StandardCharsets.UTF_8));
-                } catch (IOException e1) {
-                    throw new AccessInternalExecutionException(CANNOT_CREATE_A_FILE + file, e1);
-                }
+            workspaceClient.createContainer(requestId);
+            InputStream inputStream = CanonicalJsonFormatter.serialize(unit);
+            workspaceClient.putObject(requestId,
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName,
+                inputStream);
+            // updates (replaces) stored object
+            storeMetaDataUnit(new ObjectDescription(DataCategory.UNIT, requestId, fileName,
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
 
-                try (FileInputStream inputStream = new FileInputStream(file)) {
-                    workspaceClient.putObject(requestId,
-                        IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName,
-                        inputStream);
-                } catch (final IOException e) {
-                    throw new AccessInternalExecutionException(CANNOT_FOUND_OR_READ_SOURCE_FILE + file, e);
-                } finally {
-                    if (file != null) {
-                        file.delete();
-                    }
-                }
-                // updates (replaces) stored object
-                return storeMetaDataUnit(new ObjectDescription(DataCategory.UNIT, requestId, fileName,
-                    IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
-
-            } else {
-                LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
-                throw new AccessInternalException(ARCHIVE_UNIT_NOT_FOUND);
-            }
         } finally {
             cleanWorkspace(workspaceClient, requestId);
             if (workspaceClientMock == null) {
@@ -716,14 +691,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      *
      * @param idUnit the unit id
      * @return a new JsonNode with unit and lfc inside
-     * @throws InvalidParseOperationException
      * @throws AccessInternalException if unable to find the unit or it's lfc
      */
-    private JsonNode getUnitRawWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
+    private JsonNode getUnitRawWithLfc(String idUnit) throws AccessInternalException {
         try {
             // get metadata
             JsonNode jsonResponse = selectMetadataRawDocumentById(idUnit, DataCategory.UNIT);
             JsonNode unit = extractNodeFromResponse(jsonResponse, ARCHIVE_UNIT_NOT_FOUND);
+            MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
 
             // get lfc
             Select query = new Select();
@@ -733,11 +708,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             JsonNode lfc = extractNodeFromResponse(jsonResponse, LIFE_CYCLE_NOT_FOUND);
 
             // get doc with lfc
-            final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-            docWithLFC.set(UNIT_KEY, unit);
-            docWithLFC.set(LFC_KEY, lfc);
-
-            return docWithLFC;
+            return MetadataStorageHelper.getUnitWithLFC(unit, lfc);
         } catch (final InvalidCreateOperationException e) {
             LOGGER.error(e);
             throw new AccessInternalException(e);
@@ -808,18 +779,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
      * @param description
-     * @return updated storedInfo for the unit
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
      * @throws ProcessingException when error in execution
      */
-    private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
+    private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             // store binary data object
-            return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
                 description.getObjectName(),
                 description);
         } finally {
@@ -1075,8 +1045,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 if (updatedCategories.contains(category)) {
                     ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                     JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
-                    JsonNode classificationLevel = updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);                    
-                    JsonNode classificationOwner = updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
+                    JsonNode classificationLevel =
+                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+                    JsonNode classificationOwner =
+                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
                     updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
                     // Check for update (and delete) rules (rules at least present in DB)
                     ArrayNode updatedRules =
@@ -1103,10 +1075,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                                 updatedPreventInheritanceNode);
                         }
                         if (classificationLevel != null) {
-                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL, classificationLevel);
+                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
+                                classificationLevel);
                         }
                         if (classificationOwner != null) {
-                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER, classificationOwner);
+                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER,
+                                classificationOwner);
                         }
                     } else {
                         try {
@@ -1128,7 +1102,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // Check for new rules (rules only present in request)
                 ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                 JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
-                JsonNode classificationLevel = updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+                JsonNode classificationLevel =
+                    updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
                 JsonNode classificationOwner =
                     updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
                 updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
@@ -1146,10 +1121,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         updatedPreventInheritanceNode);
                 }
                 if (classificationLevel != null) {
-                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL, classificationLevel);
+                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
+                        classificationLevel);
                 }
                 if (classificationOwner != null) {
-                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER, classificationOwner);
+                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER,
+                        classificationOwner);
                 }
                 try {
                     request.addActions(new SetAction(action));

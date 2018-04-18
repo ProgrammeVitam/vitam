@@ -1,5 +1,6 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -60,6 +61,8 @@ public class UnitGraphTest {
             .containsExactlyInAnyOrder(createGraphRelation(unitModel.getId(), "1234"));
         assertThat(unitModel.getParentOriginatingAgencies()).containsOnlyKeys("saphir");
         assertThat(unitModel.getParentOriginatingAgencies().get("saphir")).containsExactly("1234");
+        assertThat(LocalDateUtil.parseMongoFormattedDate(unitModel.getGraphLastPersistedDate()))
+            .isAfter(LocalDateUtil.now().minusMinutes(1)).isBefore(LocalDateUtil.now().plusSeconds(1));
         // and 
         assertNull(unitGotModel.getGot());
     }
@@ -100,12 +103,16 @@ public class UnitGraphTest {
             .containsExactlyInAnyOrder("1234/123", createGraphRelation(unitModel.getId(), "1234"));
         assertThat(unitModel.getParentOriginatingAgencies()).containsOnlyKeys("saphir");
         assertThat(unitModel.getParentOriginatingAgencies().get("saphir")).containsExactly("1234", "123");
+        assertThat(LocalDateUtil.parseMongoFormattedDate(unitModel.getGraphLastPersistedDate()))
+            .isAfter(LocalDateUtil.now().minusMinutes(1)).isBefore(LocalDateUtil.now().plusSeconds(1));
         // and
         assertNotNull(gotModel);
         assertThat(gotModel.getTenant()).isEqualTo(1);
         assertThat(gotModel.getSp()).isEqualTo(populateModel.getSp());
         assertThat(gotModel.getSps()).contains(populateModel.getSp());
         assertThat(gotModel.getUp()).contains(unitModel.getId());
+        assertThat(LocalDateUtil.parseMongoFormattedDate(gotModel.getGraphLastPersistedDate()))
+            .isAfter(LocalDateUtil.now().minusMinutes(1)).isBefore(LocalDateUtil.now().plusSeconds(1));
     }
 
     @Test
