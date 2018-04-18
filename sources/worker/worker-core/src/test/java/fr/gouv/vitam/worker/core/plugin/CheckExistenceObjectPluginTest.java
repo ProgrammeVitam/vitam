@@ -3,6 +3,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -56,11 +57,11 @@ public class CheckExistenceObjectPluginTest {
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
-    
+
     private static final String OG_NODE = "ogNode.json";
     private InputStream og;
     private JsonNode ogNode;
-    
+
 
     private static final String SEARCH_RESULTS = "PrepareAuditHandler/searchResults.json";
 
@@ -74,7 +75,7 @@ public class CheckExistenceObjectPluginTest {
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE)
             .putParameterValue(WorkerParameterName.auditType, "tenant")
             .putParameterValue(WorkerParameterName.objectId, "0");
-    
+
     public CheckExistenceObjectPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         og = PropertiesUtils.getResourceAsStream(OG_NODE);
         ogNode = JsonHandler.getFromInputStream(og);
@@ -105,10 +106,14 @@ public class CheckExistenceObjectPluginTest {
     @Test
     public void executeOK() throws Exception {
         action.addOutIOParameters(out);
-        final JsonNode searchResults =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
+
         reset(storageClient);
-        when(storageClient.exists(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(true);
+        // binary master -> binary exists on offers
+        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), anyObject()))
+            .thenReturn(true);
+        // physical master -> binary exists on offers
+        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), anyObject()))
+            .thenReturn(false);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -118,13 +123,38 @@ public class CheckExistenceObjectPluginTest {
     @Test
     public void executeKO() throws Exception {
         action.addOutIOParameters(out);
-        final JsonNode searchResults =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
         reset(storageClient);
-        when(storageClient.exists(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(false);
+        // binary master -> binary does not exist on offers
+        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), anyObject()))
+            .thenReturn(false);
+        // physical master -> binary does not exists on offers
+        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), anyObject()))
+            .thenReturn(false);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+    @Test
+    public void executeWithBinaryForPhysicalThenKO() throws Exception {
+        action.addOutIOParameters(out);
+
+        final JsonNode searchResults =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
+
+        reset(storageClient);
+        // binary master -> binary exists on offers
+        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), anyObject()))
+            .thenReturn(true);
+        // physical master -> binary exists on offers
+        when(storageClient.exists(anyObject(), anyObject(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), anyObject()))
+            .thenReturn(true);
+
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertTrue(((String) response.getData("eventDetailData")).contains("\"errors\":[]"));
+        assertTrue(((String) response.getData("eventDetailData")).contains(
+            "\"errorsPhysical\":[{\"IdObj\":\"aeaaaaaaaagesnmfaaglialcsywj2haaaaba\",\"Usage\":\"PhysicalMaster_1\"}]"));
     }
 
 }

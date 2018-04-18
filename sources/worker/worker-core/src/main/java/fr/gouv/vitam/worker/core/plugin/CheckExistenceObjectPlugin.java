@@ -57,8 +57,10 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckExistenceObjectPlugin.class);
 
     private static final String CHECK_EXISTENCE_ID = "AUDIT_FILE_EXISTING";
+    private static final String CHECK_PHYSICAL_EXISTING = "AUDIT_FILE_EXISTING.PHYSICAL_OBJECT";
     private static final int OG_NODE_RANK = 0;
-    public static final String QUALIFIERS = "#qualifiers";
+    private static final String QUALIFIERS = "#qualifiers";
+    private static final String PHYSICAL_MASTER = "PhysicalMaster";
 
     /**
      * Empty constructor CheckExistenceObjectPlugin
@@ -73,8 +75,10 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
         ObjectNode evDetData = JsonHandler.createObjectNode();
 
         final ItemStatus itemStatus = new ItemStatus(CHECK_EXISTENCE_ID);
+        final ItemStatus itemStatusCheckPhysical = new ItemStatus(CHECK_PHYSICAL_EXISTING);
         int nbObjectOK = 0;
         int nbObjectKO = 0;
+        int nbObjectPhysicalKO = 0;
         try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             JsonNode ogNode = (JsonNode) handler.getInput(OG_NODE_RANK);
             JsonNode qualifiersList = ogNode.get(QUALIFIERS);
@@ -86,8 +90,27 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                 JsonNode versions = qualifier.get("versions");
                 ArrayNode errors = JsonHandler.createArrayNode();
                 for (JsonNode version : versions) {
-                    if (usageName.equals("PhysicalMaster")) {
+                    if (PHYSICAL_MASTER.equals(usageName)) {
+                        // Get global information for physical master
+                        JsonNode storageInformation = ogNode.get("#storage");
+                        final String strategy = storageInformation.get("strategyId").textValue();
+                        final List<String> offerIds = new ArrayList<>();
+                        for (JsonNode offerId : storageInformation.get("offerIds")) {
+                            offerIds.add(offerId.textValue());
+                        }
+                        if (storageClient.exists(strategy, DataCategory.OBJECT,
+                            version.get("#id").asText(), offerIds)) {
+                            nbObjectPhysicalKO += 1;
+                            ObjectNode objectError = JsonHandler.createObjectNode();
+                            objectError.put("IdObj", version.get("#id").textValue());
+                            objectError.put("Usage", version.get("DataObjectVersion").textValue());
+                            errors.add(objectError);
+                            evDetData.set("errorsPhysical", errors);
+                        } else {
+                            nbObjectOK += 1;
+                        }
                         continue;
+
                     }
                     JsonNode storageInformation = version.get("#storage");
                     final String strategy = storageInformation.get("strategyId").textValue();
@@ -102,7 +125,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                         ObjectNode objectError = JsonHandler.createObjectNode();
                         objectError.put("IdObj", version.get("#id").textValue());
                         objectError.put("Usage", version.get("DataObjectVersion").textValue());
-                        errors.add(objectError);
+                        errors.add(objectError);                        
                     } else {
                         nbObjectOK += 1;
                     }
@@ -120,20 +143,28 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
         if (nbObjectKO > 0) {
             itemStatus.increment(StatusCode.KO);
         }
-        
+        if (nbObjectPhysicalKO > 0) {
+            itemStatusCheckPhysical.increment(StatusCode.KO);
+        }
         if (itemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
             itemStatus.increment(StatusCode.OK);
         }
 
-        itemStatus.setData("Detail", "Detail = OK : "+ nbObjectOK + " KO : " + nbObjectKO);
+        itemStatus.setData("Detail", "Detail = OK : " + nbObjectOK + " KO : " + (nbObjectKO + nbObjectPhysicalKO));
         try {
             evDetData.set("nbKO", JsonHandler.getFromString(String.valueOf(nbObjectKO)));
-            itemStatus.setEvDetailData( JsonHandler.unprettyPrint( evDetData ) );
+            evDetData.set("nbPhysicalKO", JsonHandler.getFromString(String.valueOf(nbObjectPhysicalKO)));
+            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
+            itemStatusCheckPhysical.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
         }
         
-        return new ItemStatus(CHECK_EXISTENCE_ID).setItemsStatus(CHECK_EXISTENCE_ID, itemStatus);
+        if (nbObjectPhysicalKO > 0 && nbObjectKO <= 0) {
+            return new ItemStatus(CHECK_PHYSICAL_EXISTING).setItemsStatus(CHECK_PHYSICAL_EXISTING, itemStatusCheckPhysical);
+        } else {
+            return new ItemStatus(CHECK_EXISTENCE_ID).setItemsStatus(CHECK_EXISTENCE_ID, itemStatus);
+        }
     }
 
     @Override
