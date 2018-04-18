@@ -45,7 +45,14 @@
                 <LastModified>2016-05-05T20:45:20</LastModified>
             </FileInfo>
             <Metadata>
-                <Document><!--  --></Document>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
             </Metadata>
             <OtherMetadata><!--  --></OtherMetadata>
         </BinaryDataObject>

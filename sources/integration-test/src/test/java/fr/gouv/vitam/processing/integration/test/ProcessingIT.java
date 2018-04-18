@@ -3508,6 +3508,22 @@ public class ProcessingIT {
         assertThat(functions).isNotNull().isNotEmpty();
         assertThat(functions.get(0)).isEqualTo("Service de transmission");
 
+        //Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf
+        MongoIterable<Document> gots = db.getCollection("ObjectGroup").find(Filters.eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
+        final Document bdoWithMetadataJson = gots.first();
+
+        List<Object> qualifiers  = (List<Object>)bdoWithMetadataJson.get("_qualifiers");
+        assertThat(qualifiers).isNotNull().isNotEmpty();
+
+        List<Object> versions = (List<Object>)((Document)qualifiers.get(0)).get("versions");
+        assertThat(versions).isNotNull().isNotEmpty();
+        Document version = (Document) versions.get(0);
+        assertThat(version).isNotNull().isNotEmpty();
+        Document fileInfo = (Document)version.get("FileInfo");
+        assertNotNull(fileInfo);
+        assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00.000+02:00");
+        assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");
+
     }
 
 }
