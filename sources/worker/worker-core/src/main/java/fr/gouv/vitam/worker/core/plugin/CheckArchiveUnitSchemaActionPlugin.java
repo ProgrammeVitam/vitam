@@ -89,13 +89,20 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         SchemaValidationStatus schemaValidationStatus;
         try {
             schemaValidationStatus = checkAUJsonAgainstSchema(params, itemStatus);
-            switch (schemaValidationStatus.getValidationStatus()) {
+            SchemaValidationStatusEnum status = schemaValidationStatus.getValidationStatus();
+            switch (status) {
                 case VALID:
                     itemStatus.increment(StatusCode.OK);
                     return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
                         itemStatus);
                 case NOT_AU_JSON_VALID:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.INVALID_UNIT.name());
+                    itemStatus.increment(StatusCode.KO);
+                    itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
+                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
+                        itemStatus);
+                case EMPTY_REQUIRED_FIELD: case RULE_DATE_FORMAT:
+                    itemStatus.setGlobalOutcomeDetailSubcode(status.name());
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
@@ -108,19 +115,19 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     itemStatus.setEvDetailData( JsonHandler.unprettyPrint( object ) );
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
-                case EMPTY_REQUIRED_FIELD:
-                    itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.EMPTY_REQUIRED_FIELD.name());
+                case RULE_BAD_START_END_DATE:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.CONSISTENCY.name());
                     itemStatus.increment(StatusCode.KO);
-                    itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
-                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
-                        itemStatus);
-                case RULE_DATE_FORMAT:
-                    itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.RULE_DATE_FORMAT.name());
-                    itemStatus.increment(StatusCode.KO);
-                    itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
+
+                    ItemStatus is = new ItemStatus(CheckUnitSchemaStatus.CONSISTENCY.name());
+                    is.setEvDetailData(schemaValidationStatus.getValidationMessage());
+                    is.increment(StatusCode.KO);
+
+                    itemStatus.setSubTaskStatus(schemaValidationStatus.getObjectId(), is);
+                    itemStatus.setItemId(CheckUnitSchemaStatus.CONSISTENCY.name());
+
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                             itemStatus);
-
             }
         } catch (final ArchiveUnitContainSpecialCharactersException e) {
             itemStatus.setItemId(UNIT_SANITIZE);
@@ -194,6 +201,10 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         /**
          * Rule's date in bad format
          */
-        RULE_DATE_FORMAT;
+        RULE_DATE_FORMAT,
+        /**
+         * StartDate is after EndDate
+         */
+        CONSISTENCY;
     }
 }

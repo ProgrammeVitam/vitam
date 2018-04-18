@@ -171,7 +171,7 @@ public class SchemaValidationUtilsTest {
         SchemaValidationStatus status = schemaValidation
             .validateUnit(
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_DATE_JSON_FILE)));
-        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.RULE_BAD_START_END_DATE));
         assertTrue(status.getValidationMessage().contains("EndDate is before StartDate"));
     }
 

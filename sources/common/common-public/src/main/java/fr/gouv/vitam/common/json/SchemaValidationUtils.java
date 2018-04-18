@@ -323,10 +323,10 @@ public class SchemaValidationUtils {
                     ObjectNode error = JsonHandler.createObjectNode();
                     error.put("Error", errorMessage);
                     ObjectNode errorNode = JsonHandler.createObjectNode();
-                    errorNode.set("validateUnitReport", error);
+                    errorNode.set(SedaConstants.EV_DET_TECH_DATA, error);
                     LOGGER.error(errorMessage);
                     return new SchemaValidationStatus(errorNode.toString(),
-                        SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
+                        SchemaValidationStatusEnum.RULE_BAD_START_END_DATE, archiveUnit.get(SedaConstants.PREFIX_ID).asText());
                 }
             }
         } catch (ProcessingException | ParseException e) {

@@ -306,7 +306,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
-            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name()));
+            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.CONSISTENCY.name()));
     }
 
 }

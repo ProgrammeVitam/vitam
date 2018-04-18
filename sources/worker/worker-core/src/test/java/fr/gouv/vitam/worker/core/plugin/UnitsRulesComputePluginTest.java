@@ -30,7 +30,6 @@ package fr.gouv.vitam.worker.core.plugin;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -110,6 +109,7 @@ public class UnitsRulesComputePluginTest {
     private static final String AU_SIP_MGT_MD_OK1 = "unitsRulesComputePlugin/AU_SIP_MGT_MD_OK1.json";
     private final static String FAKE_URL = "http://localhost:1111";
     private static final String CHECK_RULES_TASK_ID = "UNITS_RULES_COMPUTE";
+    private static final String CHECK_UNKNOWN_TASK = "UNKNOWN";
     private InputStream input;
     private JsonNode archiveUnit;
     private List<IOParameter> in;
@@ -303,7 +303,12 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get(CHECK_RULES_TASK_ID).getGlobalOutcomeDetailSubcode(), "UNKNOWN");
+        ItemStatus task = response.getItemsStatus().get(CHECK_UNKNOWN_TASK);
+        assertEquals(task.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
+        assertEquals(task.getSubTaskStatus().entrySet().size(), 1);
+        assertEquals(task.getSubTaskStatus().entrySet().iterator().next().getValue().getData("eventDetailData"),
+            "{\"evDetTechData\":\"Rule RULE-THAT-DOES-NOT-EXIST does not exist\"}");
+
     }
 
 

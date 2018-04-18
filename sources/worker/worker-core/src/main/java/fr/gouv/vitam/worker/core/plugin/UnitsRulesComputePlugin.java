@@ -95,6 +95,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
     private static final String UNLIMITED_RULE_DURATION = "unlimited";
     private static final String NON_EXISTING_RULE = "Rule %s does not exist";
+    private static final String BAD_CATEGORY_RULE = "Rule %s don't match expected category %s but was %s";
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
@@ -115,26 +116,42 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         final long time = System.currentTimeMillis();
         handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_TASK_ID);
-        
+
         try {
             calculateMaturityDate(params, itemStatus);
             itemStatus.increment(StatusCode.OK);
         } catch (InvalidRuleException e) {
             itemStatus.increment(StatusCode.KO);
-            switch (e.getUnitRulesComputeStatus()) {
-                case UNKNOWN:
-                    itemStatus.setGlobalOutcomeDetailSubcode(UnitRulesComputeStatus.UNKNOWN.toString());
-                    break;
+            UnitRulesComputeStatus status = e.getUnitRulesComputeStatus();
+            switch (status) {
                 case REF_INCONSISTENCY:
-                    itemStatus.setGlobalOutcomeDetailSubcode(UnitRulesComputeStatus.REF_INCONSISTENCY.toString());
+                    itemStatus.setGlobalOutcomeDetailSubcode(status.name());
+                    itemStatus.setEvDetailData(e.getMessage());
+                    itemStatus.increment(StatusCode.KO);
                     break;
+
+                case UNKNOWN:
+                case CONSISTENCY:
+                    itemStatus.setGlobalOutcomeDetailSubcode(status.name());
+                    itemStatus.increment(StatusCode.KO);
+
+                    ItemStatus is = new ItemStatus(status.name());
+                    is.setEvDetailData(e.getMessage());
+                    is.increment(StatusCode.KO);
+
+                    itemStatus.setSubTaskStatus(e.getObjectId(), is);
+                    itemStatus.setItemId(status.name());
+
+                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
+                        itemStatus);
+
             }
 
         } catch (final ProcessingException e) {
             LOGGER.debug(e);
             final ObjectNode object = JsonHandler.createObjectNode();
             object.put("UnitRuleCompute", e.getMessage());
-            itemStatus.setEvDetailData( object.toString() );
+            itemStatus.setEvDetailData(object.toString());
             itemStatus.increment(StatusCode.KO);
         }
 
@@ -159,11 +176,12 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 archiveUnit = (JsonNode) handlerIO.getInput(UNIT_INPUT_RANK);
             } else {
                 try (InputStream inputStream =
-                    handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
+                    handlerIO
+                        .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
                     archiveUnit = JsonHandler.getFromInputStream(inputStream);
                 }
             }
-            
+
             parseRulesAndUpdateEndDate(archiveUnit, objectName, containerId);
         } catch (IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | InvalidParseOperationException e) {
             LOGGER.error(WORKSPACE_SERVER_ERROR, e);
@@ -204,7 +222,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     /**
      * Check archiveUnit json file and add end date for rules.
      *
-     * @param input         archiveUnit json file
+     * @param archiveUnit   archiveUnit json file
      * @param objectName    json file name
      * @param containerName
      * @throws IOException
@@ -223,9 +241,14 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
 
             JsonNode unitTileNode = archiveUnitNode.get("Title");
+            JsonNode unitIdNode = archiveUnitNode.get(SedaConstants.PREFIX_ID);
             String unitTile = "";
             if (null != unitTileNode) {
                 unitTile = archiveUnitNode.asText();
+            }
+            String unitId = "";
+            if (null != unitIdNode) {
+                unitId = unitIdNode.asText();
             }
 
             validatePreventRuleCategory(unitTile, managementNode);
@@ -273,7 +296,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 if (ruleTypeNode.get(SedaConstants.TAG_RULES).isArray()) {
                     ArrayNode ruleNodes = (ArrayNode) ruleTypeNode.get(SedaConstants.TAG_RULES);
                     for (JsonNode ruleNode : ruleNodes) {
-                        computeRuleNode((ObjectNode) ruleNode, rulesResults, ruleType);
+                        computeRuleNode((ObjectNode) ruleNode, rulesResults, ruleType, unitId);
                     }
                 } else {
                     LOGGER.debug(
@@ -291,7 +314,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
         // Write to workspace
         try {
-            handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + 
+            handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
                 File.separator + objectName, fileWithEndDate, true, asyncIO);
         } catch (final ProcessingException e) {
             LOGGER.error("Can not write to workspace ", e);
@@ -303,7 +326,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     }
 
     private void validatePreventRuleCategory(String unit, JsonNode managementNode)
-        throws InvalidParseOperationException, ProcessingException, IOException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, ProcessingException {
 
 
         if (null == managementNode || !managementNode.elements().hasNext()) {
@@ -368,7 +391,9 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
         final String errors = report.toString();
         if (ParametersChecker.isNotEmpty(errors)) {
-            throw new InvalidRuleException(UnitRulesComputeStatus.REF_INCONSISTENCY, errors);
+            ObjectNode json = JsonHandler.createObjectNode();
+            json.put("evDetTechData", errors);
+            throw new InvalidRuleException(UnitRulesComputeStatus.REF_INCONSISTENCY, JsonHandler.unprettyPrint(json));
         }
     }
 
@@ -428,43 +453,58 @@ public class UnitsRulesComputePlugin extends ActionHandler {
      * @throws ProcessingException
      * @throws ParseException
      */
-    private void computeRuleNode(ObjectNode ruleNode, JsonNode rulesResults, String ruleType)
-        throws FileRulesException, InvalidParseOperationException, InvalidRuleException, ParseException, ProcessingException {
+    private void computeRuleNode(ObjectNode ruleNode, JsonNode rulesResults, String ruleType, String unitId)
+        throws FileRulesException, InvalidParseOperationException, InvalidRuleException, ParseException,
+        ProcessingException {
         String ruleId = ruleNode.get(SedaConstants.TAG_RULE_RULE).asText();
         String startDate = "";
 
-        if (getRuleNodeByID(ruleId, ruleType, rulesResults) == null) {
-            String errorMessage = String.format(NON_EXISTING_RULE, ruleId);
-            throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, errorMessage);            
-        }
+        checkRuleNodeByID(ruleId, ruleType, rulesResults, unitId);
 
         if (ruleNode.get(SedaConstants.TAG_RULE_START_DATE) != null) {
             startDate = ruleNode.get(SedaConstants.TAG_RULE_START_DATE).asText();
         }
-        LocalDate endDate = getEndDate(startDate, ruleId, rulesResults, ruleType);
+        LocalDate endDate = getEndDate(startDate, ruleId, rulesResults, ruleType, unitId);
         if (endDate != null) {
             ruleNode.put(SedaConstants.TAG_RULE_END_DATE, endDate.format(DATE_TIME_FORMATTER));
         }
     }
 
 
-    private JsonNode getRuleNodeByID(String ruleId, String ruleType, JsonNode jsonResult) {
+    private JsonNode checkRuleNodeByID(String ruleId, String ruleType, JsonNode jsonResult, String unitId)
+        throws InvalidRuleException {
+        String ruleTypeWithWrongCategory = null;
         if (jsonResult != null && ParametersChecker.isNotEmpty(ruleId, ruleType)) {
             final ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
             for (final JsonNode rule : rulesResult) {
                 if (rule.get(FileRules.RULEID) != null && rule.get(FileRules.RULETYPE) != null) {
                     final String ruleIdFromList = rule.get(FileRules.RULEID).asText();
                     final String ruleTypeFromList = rule.get(FileRules.RULETYPE).asText();
-                    if (ruleId.equals(ruleIdFromList) && ruleType.equals(ruleTypeFromList)) {
-                        return rule;
+                    if (ruleId.equals(ruleIdFromList)) {
+                        if (ruleType.equals(ruleTypeFromList)) {
+                            // Find a good Rule
+                            return rule;
+                        } else {
+                            ruleTypeWithWrongCategory = ruleTypeFromList;
+                        }
                     }
                 }
             }
         }
-        return null;
+        if (ruleTypeWithWrongCategory != null) {
+            String errorMessage = String.format(BAD_CATEGORY_RULE, ruleId, ruleType, ruleTypeWithWrongCategory);
+            ObjectNode json = JsonHandler.createObjectNode();
+            json.put("evDetTechData", errorMessage);
+            throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, JsonHandler.unprettyPrint(json), unitId);
+        }
+        // Don't find any matching Rule
+        String errorMessage = String.format(NON_EXISTING_RULE, ruleId);
+        ObjectNode json = JsonHandler.createObjectNode();
+        json.put("evDetTechData", errorMessage);
+        throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, JsonHandler.unprettyPrint(json), unitId);
     }
 
-    private LocalDate getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)
+    private LocalDate getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType, String unitId)
         throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
 
         if (!ParametersChecker.isNotEmpty(startDateString)) {
@@ -474,7 +514,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
             LocalDate startDate = LocalDate.parse(startDateString, DATE_TIME_FORMATTER);
 
-            final JsonNode ruleNode = getRuleNodeByID(ruleId, currentRuleType, rulesResults);
+            final JsonNode ruleNode = checkRuleNodeByID(ruleId, currentRuleType, rulesResults, unitId);
 
             if (checkRulesParameters(ruleNode)) {
                 final String duration = ruleNode.get(FileRules.RULEDURATION).asText();
@@ -506,10 +546,14 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         /**
          * Unknow management rules
          */
-        UNKNOWN, 
+        UNKNOWN,
         /**
          * Inconsistency rules
          */
-        REF_INCONSISTENCY
+        REF_INCONSISTENCY,
+        /**
+         * Consistency
+         */
+        CONSISTENCY
     }
 }
