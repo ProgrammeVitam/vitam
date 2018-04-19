@@ -85,6 +85,10 @@ public enum LogbookMongoDbName {
      */
     agentIdentifierApplication("agIdApp", LogbookParameterName.agentIdentifierApplication),
     /**
+     * agentIdentifierApplication
+     */
+    agentIdentifierPersonae("agIdPers", LogbookParameterName.agentIdentifierPersonae),
+    /**
      * agentIdentifierApplicationSession
      */
     agentIdentifierApplicationSession("evIdAppSession", LogbookParameterName.agentIdentifierApplicationSession),
@@ -195,6 +199,8 @@ public enum LogbookMongoDbName {
                 return LogbookMongoDbName.outcomeDetailMessage;
             case "outcome":
                 return LogbookMongoDbName.outcome;
+            case "agIdPers":
+                return LogbookMongoDbName.agentIdentifierPersonae;                
             default:
                 throw new IllegalArgumentException("Unknown name: " + name);
         }

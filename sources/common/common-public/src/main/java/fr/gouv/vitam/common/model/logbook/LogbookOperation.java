@@ -35,17 +35,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class LogbookOperation extends LogbookEventOperation {
 
+    /**
+     * ID Tag
+     */
     public static final String TAG_ID = "id";
+    /**
+     * Tenant Tag
+     */
     public static final String TAG_TENANT = "tenant";
 
+    /**
+     * Hash Tag
+     */
     public static final String HASH = "#";
+    /**
+     * Underscore tag
+     */
     public static final String UNDERSCORE = "_";
 
     @JsonProperty(HASH + TAG_ID)
     private String id;
     @JsonProperty(HASH + TAG_TENANT)
     private Integer tenant;
-    
+
     @JsonProperty("agIdApp")
     private String agIdApp;
 
@@ -67,7 +79,6 @@ public class LogbookOperation extends LogbookEventOperation {
     /**
      * @param id the id to set
      *
-     * @return this
      */
     public void setId(String id) {
         this.id = id;
@@ -84,7 +95,6 @@ public class LogbookOperation extends LogbookEventOperation {
     /**
      * @param tenant the tenant to set
      *
-     * @return this
      */
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
@@ -100,12 +110,11 @@ public class LogbookOperation extends LogbookEventOperation {
     /**
      * @param events the events to set
      *
-     * @return this
      */
     public void setEvents(List<LogbookEventOperation> events) {
         this.events = events;
     }
-    
+
     /**
      * @return the agIdApp
      */
@@ -116,7 +125,6 @@ public class LogbookOperation extends LogbookEventOperation {
     /**
      * @param agIdApp the agIdApp to set
      *
-     * @return this
      */
     public void setAgIdApp(String agIdApp) {
         this.agIdApp = agIdApp;
@@ -132,7 +140,6 @@ public class LogbookOperation extends LogbookEventOperation {
     /**
      * @param evIdAppSession the evIdAppSession to set
      *
-     * @return this
      */
     public void setEvIdAppSession(String evIdAppSession) {
         this.evIdAppSession = evIdAppSession;

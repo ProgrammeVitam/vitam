@@ -97,6 +97,12 @@ public enum LogbookParameterName {
      */
     agentIdentifierApplication,
     /**
+     * Hash of the personae certificate<br>
+     * <br>
+     * Can be null
+     */
+    agentIdentifierPersonae,
+    /**
      * Session (X-Application-Id) from the remote application <br>
      * <br>
      * Can be null

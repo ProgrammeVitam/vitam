@@ -24,33 +24,20 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.security.internal.rest.mapper;
+package fr.gouv.vitam.security.internal.common.exception;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Mapper for PersonalCertificateException
+ * Personal certificate exception
  */
-public class PersonalCertificateExceptionMapper implements ExceptionMapper<PersonalCertificateException> {
+public class PersonalCertificateException extends VitamException {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateExceptionMapper.class);
-    /**
-     * Map an exception to a {@link Response}. Returning
-     * {@code null} results in a {@link Response.Status#NO_CONTENT}
-     * response. Throwing a runtime exception results in a
-     * {@link Response.Status#INTERNAL_SERVER_ERROR} response.
-     *
-     * @param exception the exception to map to a response.
-     * @return a response mapped from the supplied exception.
-     */
-    @Override
-    public Response toResponse(PersonalCertificateException exception) {
-        LOGGER.error(exception);
-        return Response.status(Response.Status.UNAUTHORIZED).build();
+    public PersonalCertificateException(String message) {
+        super(message);
+    }
+
+    public PersonalCertificateException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

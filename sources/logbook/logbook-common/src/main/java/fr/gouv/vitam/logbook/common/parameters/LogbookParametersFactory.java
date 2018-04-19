@@ -191,6 +191,7 @@ public class LogbookParametersFactory {
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         String applicationSessionId = vitamSession.getApplicationSessionId();
         String contextId = vitamSession.getContextId();
+        String personalCertificate = vitamSession.getPersonalCertificate();
 
         return (LogbookOperationParameters) parameters
                 .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
@@ -203,7 +204,8 @@ public class LogbookParametersFactory {
                 .putParameterValue(LogbookParameterName.outcomeDetail, getOutcomeDetail(eventType, outcome))
                 .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess.getId())
                 .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
-                .putParameterValue(LogbookParameterName.agentIdentifierApplicationSession, applicationSessionId);
+                .putParameterValue(LogbookParameterName.agentIdentifierApplicationSession, applicationSessionId)
+                .putParameterValue(LogbookParameterName.agentIdentifierPersonae, personalCertificate);        
     }
 
     /**
