@@ -27,8 +27,8 @@
 
 package fr.gouv.vitam.metadata.client;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -48,7 +48,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.exception.VitamDBException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -60,6 +59,7 @@ import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -470,7 +470,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_InvalidRequest_When_UpdateBYiD_ThenReturn_BadRequest() throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).entity(JsonHandler.createObjectNode()).build());
         client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId");
     }
 
@@ -590,7 +590,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             // Then
         }).isInstanceOf(IllegalArgumentException.class);
     }
-    
+
 
     @Test
     @RunWithCustomExecutor

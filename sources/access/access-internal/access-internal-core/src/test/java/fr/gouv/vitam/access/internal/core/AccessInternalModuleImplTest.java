@@ -126,125 +126,86 @@ public class AccessInternalModuleImplTest {
     private static final String QUERY_UPDATE =
         "{\"$root\": { },\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$action\": {}}";
     private static final String SELECT_AU_RESPONSE =
-        "{\"#id\": \"aeaqaaaaaagbcaacaa3woak5by7by4yaaaba\",\"#sps\": [\"RATP\"],"
-            + "\"#sp\": \"RATP\",\"#management\": {"
-            + "\"StorageRule\": {"
-            + "\"Rules\": [{"
-            + "\"Rule\": \"STO-00001\","
-            + "\"StartDate\": \"2000-01-01\","
-            + "\"EndDate\": \"2001-01-01\"}],"
-            + "\"FinalAction\": \"Copy\""
-            + "},"
-            + "\"AppraisalRule\": {"
-            + "\"Rules\": [{"
-            + "\"Rule\": \"APP-00002\","
-            + "\"StartDate\": \"2000-01-01\","
-            + "\"EndDate\": \"2005-01-01\""
-            + "}],"
-            + "\"FinalAction\": \"Destroy\","
-            + "\"Inheritance\": {"
-            + "\"PreventInheritance\":true"
-            + "}},"
-            + "\"AccessRule\": {"
-            + "\"Inheritance\": {"
-            + "\"PreventRulesId\":\"ID-NoRule\""
-            + "}},"
-            + "\"DisseminationRule\": {"
-            + "\"Rules\": [{"
-            + "\"Rule\": \"DIS-00001\","
-            + "\"StartDate\": \"2000-01-01\","
-            + "\"EndDate\": \"2025-01-01\"}]"
-            + "},"
-            + "\"ClassificationRule\": {"
-            + "\"Rules\": [{"
-            + "\"Rule\": \"CLASS-00001\","
-            + "\"StartDate\": \"2000-01-01\","
-            + "\"ClassificationLevel\": \"Secret Défense\","
-            + "\"ClassificationOwner\": \"RATP\","
-            + "\"EndDate\": \"2010-01-01\"}]"
-            + "},"
-            + "\"OriginatingAgency\": \"RATP\"},\"DescriptionLevel\": \"RecordGrp\","
-            + "\"Title\": \"Eglise de Pantin\",\"Titles\": {\"fr\": \"Eglise de Pantin\"},"
-            + "\"Description\": \"Desc\",\"Descriptions\": {\"fr\": \"Desc\"},"
-            + "\"StartDate\": \"2017-04-04T08:07:06\",\"EndDate\": \"2017-04-04T08:07:06\","
-            + "\"_ops\": [\"aedqaaaaacgbcaacabfkuak5by7buaiaaaaq\"],\"_unitType\": \"INGEST\",\"_v\": 0,\"_tenant\": 0,"
-            + "\"_max\": 2,\"_min\": 1,\"_up\": [\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\"],\"_nbc\": 1,"
-            + "\"_us\": [\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\"],\"_uds\": [{\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\": 1}]}";
+        "{\"#id\": \"aeaqaaaaaagbcaacaa3woak5by7by4yaaaba\",\"#sps\": [\"RATP\"]," +
+            "\"#sp\": \"RATP\",\"#management\": {" + "\"StorageRule\": {" + "\"Rules\": [{" +
+            "\"Rule\": \"STO-00001\"," + "\"StartDate\": \"2000-01-01\"," + "\"EndDate\": \"2001-01-01\"}]," +
+            "\"FinalAction\": \"Copy\"" + "}," + "\"AppraisalRule\": {" + "\"Rules\": [{" + "\"Rule\": \"APP-00002\"," +
+            "\"StartDate\": \"2000-01-01\"," + "\"EndDate\": \"2005-01-01\"" + "}]," + "\"FinalAction\": \"Destroy\"," +
+            "\"Inheritance\": {" + "\"PreventInheritance\":true" + "}}," + "\"AccessRule\": {" + "\"Inheritance\": {" +
+            "\"PreventRulesId\":\"ID-NoRule\"" + "}}," + "\"DisseminationRule\": {" + "\"Rules\": [{" +
+            "\"Rule\": \"DIS-00001\"," + "\"StartDate\": \"2000-01-01\"," + "\"EndDate\": \"2025-01-01\"}]" + "}," +
+            "\"ClassificationRule\": {" + "\"Rules\": [{" + "\"Rule\": \"CLASS-00001\"," +
+            "\"StartDate\": \"2000-01-01\"," + "\"ClassificationLevel\": \"Secret Défense\"," +
+            "\"ClassificationOwner\": \"RATP\"," + "\"EndDate\": \"2010-01-01\"}]" + "}," +
+            "\"OriginatingAgency\": \"RATP\"},\"DescriptionLevel\": \"RecordGrp\"," +
+            "\"Title\": \"Eglise de Pantin\",\"Titles\": {\"fr\": \"Eglise de Pantin\"}," +
+            "\"Description\": \"Desc\",\"Descriptions\": {\"fr\": \"Desc\"}," +
+            "\"StartDate\": \"2017-04-04T08:07:06\",\"EndDate\": \"2017-04-04T08:07:06\"," +
+            "\"_ops\": [\"aedqaaaaacgbcaacabfkuak5by7buaiaaaaq\"],\"_unitType\": \"INGEST\",\"_v\": 0,\"_tenant\": 0," +
+            "\"_max\": 2,\"_min\": 1,\"_up\": [\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\"],\"_nbc\": 1," +
+            "\"_us\": [\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\"],\"_uds\": [{\"aeaqaaaaaagbcaacaa3woak5by7by4aaaaba\": 1}]}";
     // Note: this is an incorrect response since missing Qualifiers but _id is correct but within
     private static final String FAKE_METADATA_RESULT = "{$results:[{'_id':123}]}";
     private static final String FAKE_METADATA_MULTIPLE_RESULT =
-        "{$results:[ {"
-            + "\"qualifier\" : \"BinaryMaster\","
-            + "\"versions\" : [ {"
-            + "  \"_id\" : \"aeaaaaaaaagbcaacabg7sak4p3tku6yaaaaq\","
-            + " \"DataObjectVersion\" : \"BinaryMaster_1\","
-            + " \"FormatIdentification\" : {"
-            + " \"FormatLitteral\" : \"Acrobat PDF 1.4 - Portable Document Format\","
-            + " \"MimeType\" : \"application/pdf\","
-            + " \"FormatId\" : \"fmt/18\""
-            + " },"
-            + "\"FileInfo\" : {"
-            + "\"Filename\" : \"Suivi des op\u00E9rations d\'entr\u00E9es vs. recherche via registre des fonds.pdf\","
-            + "\"LastModified\" : \"2016-08-05T09:28:15.000+02:00\""
-            + "}"
-            + "} ]"
-            + "} ]}";
+        "{$results:[ {" + "\"qualifier\" : \"BinaryMaster\"," + "\"versions\" : [ {" +
+            "  \"_id\" : \"aeaaaaaaaagbcaacabg7sak4p3tku6yaaaaq\"," + " \"DataObjectVersion\" : \"BinaryMaster_1\"," +
+            " \"FormatIdentification\" : {" + " \"FormatLitteral\" : \"Acrobat PDF 1.4 - Portable Document Format\"," +
+            " \"MimeType\" : \"application/pdf\"," + " \"FormatId\" : \"fmt/18\"" + " }," + "\"FileInfo\" : {" +
+            "\"Filename\" : \"Suivi des op\u00E9rations d\'entr\u00E9es vs. recherche via registre des fonds.pdf\"," +
+            "\"LastModified\" : \"2016-08-05T09:28:15.000+02:00\"" + "}" + "} ]" + "} ]}";
 
-    private static final String QUERY_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-        + "\"$action\":["
-        + "{\"$set\":{\"Title\":\"Eglise de Pantin Modfii\u00E9\"}},"
-        + "{\"$set\":{\"SubmissionAgency.Identifier\":\"ServiceversantID\"}},"
-        + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\"}],\"FinalAction\":\"RestrictAccess\"}}},"
-        + "{\"$unset\":[\"#management.DisseminationRule\"]},"
-        + "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
+    private static final String QUERY_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," +
+        "\"$action\":[" + "{\"$set\":{\"Title\":\"Eglise de Pantin Modfii\u00E9\"}}," +
+        "{\"$set\":{\"SubmissionAgency.Identifier\":\"ServiceversantID\"}}," +
+        "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\"}],\"FinalAction\":\"RestrictAccess\"}}}," +
+        "{\"$unset\":[\"#management.DisseminationRule\"]}," +
+        "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
 
-    private static final String QUERY_MULTIPLE_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-        + "\"$action\":["
-        + "{\"$set\":{\"#management.ClassificationRule\":{Rules:["
-        +   "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"},"
-        +   "{\"Rule\":\"CLASS-00003\",\"StartDate\":\"2017-07-01\"}"
-        + "]}}}]}";
+    private static final String QUERY_MULTIPLE_STRING =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.ClassificationRule\":{Rules:[" +
+            "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}," +
+            "{\"Rule\":\"CLASS-00003\",\"StartDate\":\"2017-07-01\"}" + "]}}}]}";
 
-    private static final String QUERY_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-            + "\"$action\":["
-            + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Copy\"}}}]}";
+    private static final String QUERY_FINAL_ACTION =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Copy\"}}}]}";
 
-    private static final String QUERY_CREATE_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-            + "\"$action\":["
-            + "{\"$set\":{\"#management.ReuseRule\":{Rules:["
-            +   "{\"Rule\":\"REU-00001\",\"StartDate\":\"2017-07-01\"}"
-            + "]}}}]}";
+    private static final String QUERY_CREATE_STRING =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.ReuseRule\":{Rules:[" + "{\"Rule\":\"REU-00001\",\"StartDate\":\"2017-07-01\"}" +
+            "]}}}]}";
 
-    private static final String QUERY_STRING_WITH_END = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-        + "\"$action\":["
-        + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\"}],\"FinalAction\":\"RestrictAccess\"}}},"
-        + "{\"$unset\":[\"#management.DisseminationRule\"]},"
-        + "{\"$set\":{\"#management.ClassificationRule\":{Rules:["
-        + "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\",\"EndDate\":\"2017-08-02\"}]}}}]}";
+    private static final String QUERY_STRING_WITH_END =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\"}],\"FinalAction\":\"RestrictAccess\"}}}," +
+            "{\"$unset\":[\"#management.DisseminationRule\"]}," +
+            "{\"$set\":{\"#management.ClassificationRule\":{Rules:[" +
+            "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\",\"EndDate\":\"2017-08-02\"}]}}}]}";
 
-    private static final String QUERY_STRING_WITH_PI_DELETED = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-        + "\"$action\":["
-        + "{\"$unset\":[\"#management.AppraisalRule\"]}]}";
+    private static final String QUERY_STRING_WITH_PI_DELETED =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$unset\":[\"#management.AppraisalRule\"]}]}";
 
-    private static final String QUERY_STRING_WITH_RNRI_DELETED = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-            + "\"$action\":["
-            + "{\"$unset\":[\"#management.AccessRule\"]}]}";
+    private static final String QUERY_STRING_WITH_RNRI_DELETED =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$unset\":[\"#management.AccessRule\"]}]}";
 
-    private static final String QUERY_STRING_WITH_WRONG_CATEGORY_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-            + "\"$action\":["
-            + "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Keep\"}}}]}";
+    private static final String QUERY_STRING_WITH_WRONG_CATEGORY_FINAL_ACTION =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Keep\"}}}]}";
 
-    private static final String QUERY_STRING_WITH_WRONG_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-            + "\"$action\":["
-            + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Keep\"}}}]}";
+    private static final String QUERY_STRING_WITH_WRONG_FINAL_ACTION =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Keep\"}}}]}";
 
-    private static final String QUERY_STRING_WITH_WRONG_CATEGORY = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-            + "\"$action\":["
-            + "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
+    private static final String QUERY_STRING_WITH_WRONG_CATEGORY =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
 
-    private static final String QUERY_PREVENT_INHERITANCE = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
-        + "\"$action\":["
-        + "{\"$set\":{\"#management.AccessRule.Inheritance.PreventInheritance\":\"false\"}}]}}";
+    private static final String QUERY_PREVENT_INHERITANCE =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.AccessRule.Inheritance.PreventInheritance\":\"false\"}}]}}";
 
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
@@ -468,20 +429,23 @@ public class AccessInternalModuleImplTest {
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(), anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
+            anyObject());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
         RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
-            .addResult(JsonHandler.getFromString("{\"$hits" +
-                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-                "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
-                "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
-                "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
-                "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}"))
+            .addResult(jsonResult)
             .setHttpCode(Status.OK.getStatusCode());
 
         // Mock select unit response
         when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
         // mock get lifecyle
         when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
@@ -509,6 +473,84 @@ public class AccessInternalModuleImplTest {
 
     }
 
+    // update by id - start
+    @Test(expected = MetaDataNotFoundException.class)
+    @RunWithCustomExecutor
+    public void given_notfound_guid_When_updateUnitById_thenKO()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setIdentifier("FakeIdentifier");
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
+            ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
+
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
+            anyObject());
+
+        final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":0,\"size\":0,\"limit\":0,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[]}");
+        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
+            .addResult(jsonResult)
+            .setHttpCode(Status.OK.getStatusCode());
+
+        // Mock select unit response
+        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+
+        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
+
+    }
+
+    @Test(expected = InvalidParseOperationException.class)
+    @RunWithCustomExecutor
+    public void given_error_schema_When_updateUnitById_thenKO()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setIdentifier("FakeIdentifier");
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+        final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
+            ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
+
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
+            anyObject());
+
+        final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
+        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
+            .addResult(jsonResult)
+            .setHttpCode(Status.OK.getStatusCode());
+        // Mock select unit response
+        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        // mock get lifecyle
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+            .thenReturn(JsonHandler.getFromString("{\"$hits" +
+                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
+                "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
+                "\"evTypeProc\":\"INGEST\",\"evDateTime\":\"2016-09-28T11:44:28.548\"," +
+                "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+                "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
+        // Mock update unit response
+        when(metaDataClient.updateUnitbyId(anyObject(), anyObject()))
+            .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
+
+        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
+
+    }
+
     @Test
     @RunWithCustomExecutor
     public void given_dsl_nodiff_When_updateUnitById_thenOK()
@@ -521,19 +563,22 @@ public class AccessInternalModuleImplTest {
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(), anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
+            anyObject());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
         RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
-            .addResult(JsonHandler.getFromString("{\"$hits" +
-                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
-                "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
-                "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
-                "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
-                "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}"))
+            .addResult(jsonResult)
             .setHttpCode(Status.OK.getStatusCode());
         // Mock select unit response
         when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
         // mock get lifecyle
         when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
@@ -607,6 +652,13 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenThrow(new MetaDataDocumentSizeException(""));
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
     }
@@ -622,6 +674,13 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
         Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient)
             .updateUnitbyId(anyObject(), anyObject());
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
@@ -663,6 +722,13 @@ public class AccessInternalModuleImplTest {
                 "\"evTypeProc\":\"INGEST\",\"evDateTime\":\"2016-09-28T11:44:28.548\"," +
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+            "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+            "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+            "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
         // Mock update unit response
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +

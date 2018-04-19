@@ -272,20 +272,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
-
-                try {
-                    // FIXME: use response.hasEntity() instead of try catch. the origin of the problem is VitamApacheHttpClientEngine make response.hasEntity() return always true.
-                    JsonNode resp = response.readEntity(JsonNode.class);
-                    if (null != resp) {
-                        JsonNode errNode = resp.get(DESCRIPTION);
-                        if (null != errNode) {
-                            throw new InvalidParseOperationException(errNode.asText());
-                        }
+                JsonNode resp = response.readEntity(JsonNode.class);
+                if (null != resp) {
+                    JsonNode errNode = resp.get(DESCRIPTION);
+                    if (null != errNode) {
+                        throw new InvalidParseOperationException(JsonHandler.unprettyPrint(errNode));
                     }
-                } catch (Exception e) {
-                    throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
                 }
-
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
