@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.functional.administration.common.Ontology;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -77,6 +78,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
     public static final String MAPPING_SECURITY_PROFILE_FILE = "/securityprofile-es-mapping.json";
     public static final String MAPPING_ARCHIVE_UNIT_PROFILE_FILE = "/archiveunitprofile-es-mapping.json";
+    public static final String MAPPING_ONTOLOGY_FILE = "/ontology-es-mapping.json";
 
     public static final String MAPPING_ACCESSION_REGISTER_SUMMARY_FILE = "/accessionregistersummary-es-mapping.json";
     public static final String MAPPING_ACCESSION_REGISTER_DETAIL_FILE = "/accessionregisterdetail-es-mapping.json";
@@ -223,6 +225,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         } else if(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.equals(collection)) {
             return ElasticsearchUtil.transferJsonToMapping(
                 ArchiveUnitProfile.class.getResourceAsStream(MAPPING_ARCHIVE_UNIT_PROFILE_FILE));
+        } else if (FunctionalAdminCollections.ONTOLOGY.equals(collection)) {
+            return ElasticsearchUtil.transferJsonToMapping(
+                Ontology.class.getResourceAsStream(MAPPING_ONTOLOGY_FILE));
         }
         return "";
     }

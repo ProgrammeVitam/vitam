@@ -158,6 +158,11 @@ export class ReferentialsService {
     return this.resourceService.put('archiveunitprofiles/' + id, header, file, 'text');
   }
 
+  uploadOntology(id : string, file : File) {
+    let header = new HttpHeaders().set('Content-Type', 'application/octet-stream');
+    return this.resourceService.put('ontologies/' + id, header, file, 'text');
+  }
+
   getFormatById(id : string) : Observable<VitamResponse> {
     return this.resourceService.post('admin/formats/' + decodeURIComponent(id), null, {});
   }
@@ -176,6 +181,10 @@ export class ReferentialsService {
   }
   getArchiveUnitProfileById(id : string) : Observable<VitamResponse> {
     return this.resourceService.get('archiveunitprofiles/' + id);
+  }
+
+  getOntologyById(id : string) : Observable<VitamResponse> {
+    return this.resourceService.get('ontologies/' + id);
   }
 
   getFundRegisterById(id : string) : Observable<VitamResponse> {

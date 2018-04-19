@@ -87,6 +87,8 @@ public class BusinessApplication extends Application {
             singletons.add(resource);
             singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService,
                 functionalBackupService));
+            singletons.add(new OntologyResource(mongoDbAccess, vitamCounterService,
+                functionalBackupService));
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));

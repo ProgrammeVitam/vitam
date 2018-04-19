@@ -84,7 +84,12 @@ public enum AdminCollections {
     /**
      * Security profile collection
      */
-    SECURITY_PROFILES(AccessExtAPI.SECURITY_PROFILES, null);
+    SECURITY_PROFILES(AccessExtAPI.SECURITY_PROFILES, null),
+
+    /**
+     * Ontology collection
+     */
+    ONTOLOGY(AccessExtAPI.ONTOLOGY, null);
 
     private String name;
 

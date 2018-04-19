@@ -113,6 +113,11 @@ public class SchemaValidationUtils {
     public static final String SECURITY_PROFILE_SCHEMA_FILENAME = "json-schema/security-profile.schema.json";
 
     /**
+     * ontology.schema
+     */
+    public static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
+
+    /**
      * Constructor with a default schema filename
      * 
      * @throws FileNotFoundException
@@ -243,6 +248,8 @@ public class SchemaValidationUtils {
             setSchema(PROFILE_SCHEMA_FILENAME);
         } else if ("SecurityProfile".equals(collectionName)) {
             setSchema(SECURITY_PROFILE_SCHEMA_FILENAME);
+        } else if ("Ontology".equals(collectionName)) {
+            setSchema(ONTOLOGY_SCHEMA_FILENAME);
         } else if ("ArchiveUnitProfileSchema".equals(collectionName)) {
             // Archive Unit Profile Schema is set before and used for validation
             // no need to set it again here

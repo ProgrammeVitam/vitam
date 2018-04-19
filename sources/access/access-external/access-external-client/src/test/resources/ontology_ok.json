@@ -1,0 +1,24 @@
+[
+  {
+    "Identifier": "_sps",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "OriginatingAgencyIdentifier",
+    "Origin": "INTERNAL",
+    "Type": "KEYWORD",
+    "Description": "Internal ontology sample",
+    "LastUpdate": "10/12/2017",
+    "CreationDate": "10/12/2017"
+  },
+  {
+    "Identifier": "_mgt",
+    "_tenant": 1,
+    "ApiField": "#management",
+    "SedaField": "Management",
+    "Origin": "INTERNAL",
+    "Type": "KEYWORD",
+    "Description": "Internal ontology sample",
+    "LastUpdate": "10/04/2018",
+    "CreationDate": "10/04/2018"
+  }
+]

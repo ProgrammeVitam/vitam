@@ -1,0 +1,13 @@
+[
+  {
+    "Identifier": "OriginatingAgencyIdentifier",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "test",
+    "Origin": "INTERNAL",
+    "Type": "KEYWORD",
+    "Description": "test sedafield=identifier in db",
+    "CreationDate": "2016-12-10T00:00:00.000",
+    "LastUpdate": "2018-02-16T18:36:33.444"
+  }
+]

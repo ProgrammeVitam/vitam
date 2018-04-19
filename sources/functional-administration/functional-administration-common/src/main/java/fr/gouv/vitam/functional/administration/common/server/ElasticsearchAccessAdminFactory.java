@@ -80,6 +80,7 @@ public final class ElasticsearchAccessAdminFactory {
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.initialize(elasticsearchAccess);
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.initialize(elasticsearchAccess);
             FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.initialize(elasticsearchAccess);
+            FunctionalAdminCollections.ONTOLOGY.initialize(elasticsearchAccess);
             return elasticsearchAccess;
         } catch (VitamException | IOException e) {
             throw new IllegalArgumentException(e);

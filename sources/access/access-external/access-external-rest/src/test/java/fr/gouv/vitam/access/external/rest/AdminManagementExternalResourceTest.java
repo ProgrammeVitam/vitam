@@ -111,6 +111,7 @@ public class AdminManagementExternalResourceTest {
     private static final String CONTEXT_URI = "/contexts";
     private static final String PROFILE_URI = "/profiles";
     private static final String ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles";
+    private static final String ONTOLOGIES_URI = "/ontologies";
     private static final String AGENCY_URI = "/agencies";
     private static final String CONTRACT_ID = "NAME";
 
@@ -2210,6 +2211,45 @@ public class AdminManagementExternalResourceTest {
             .get("/status")
             .then()
             .statusCode(Status.NO_CONTENT.getStatusCode());
+    }
+
+
+    @Test
+    public void testImportValidOntologyReturnCreated() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
+            .importOntologies(anyObject());
+
+        File fileOntologies = PropertiesUtils.getResourceFile("ontologies_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileOntologies);
+
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ONTOLOGIES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode()).contentType("application/json");
+    }
+
+    @Test
+    public void testImportOntologyWithInvalidFileBadRequest() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
+            .importOntologies(anyObject());
+
+        File fileOntologies = PropertiesUtils.getResourceFile("ontologies_missing_identifier.json");
+        JsonNode json = JsonHandler.getFromFile(fileOntologies);
+
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ONTOLOGIES_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
     }
 
 }

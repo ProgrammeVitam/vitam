@@ -27,6 +27,8 @@ db.Profile.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } 
 
 db.ArchiveUnitProfile.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
+db.Ontology.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
+
 db.Context.createIndex ( { "Identifier" : 1 } , { unique: true } )
 
 db.SecurityProfile.createIndex ( { "Name" : 1  } , { unique: true } )

@@ -56,6 +56,9 @@ import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyOrigin;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.administration.PermissionModel;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
@@ -384,6 +387,23 @@ public class ClientMockResultHelper {
         return profile;
     }
 
+
+    private static OntologyModel getOntologyItem() {
+        OntologyModel ontology = new OntologyModel();
+        ontology.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        ontology.setTenant(1);
+        ontology.setIdentifier("_sps");
+        ontology.setApiField("#originating_agencies");
+        ontology.setSedaField("OriginatingAgencyIdentifier");
+        ontology.setDescription("Internal ontology sample");
+        ontology.setOrigin(OntologyOrigin.INTERNAL);
+        ontology.setType(OntologyType.KEYWORD);
+        ontology.setVersion(0);
+        ontology.setCreationdate("2017-04-09");
+        ontology.setLastupdate("2017-04-09");
+        return ontology;
+    }
+
     private static AccessionRegisterSummaryModel getAccessionRegisterSummaryItem() {
         AccessionRegisterSummaryModel accessionRegister = new AccessionRegisterSummaryModel();
         accessionRegister.setId("aedqaaaaacaam7mxabsakakygeje2uyaaaaq");
@@ -637,6 +657,16 @@ public class ClientMockResultHelper {
 
     public static RequestResponse<ProfileModel> getProfiles(int statusCode) {
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
+    }
+
+
+    
+    /**
+     * @param statusCode
+     * @return a RequestResponse containing Ontology json
+     */
+    public static RequestResponse<OntologyModel> getOntologies(int statusCode) {
+        return new RequestResponseOK<OntologyModel>().addResult(getOntologyItem()).setHttpCode(statusCode);
     }
 
     /**

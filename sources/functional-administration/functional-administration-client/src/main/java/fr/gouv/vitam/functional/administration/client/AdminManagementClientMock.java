@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -555,5 +556,33 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         return new RequestResponseOK();
     }
 
+    @Override public RequestResponse importOntologies(List<OntologyModel> ontologyModelList) throws InvalidParseOperationException, AdminManagementClientServerException {
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+    }
 
+    @Override public RequestResponse<OntologyModel> findOntologies(JsonNode query) throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("find Ontologies");
+        return ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
+    }
+
+    @Override public RequestResponse<OntologyModel> findOntologyByID(String requestedId)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        LOGGER.debug("find Ontology by id: " + requestedId);
+        RequestResponse responses = ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
+        RequestResponseOK<ObjectNode> responsesIterator = (RequestResponseOK<ObjectNode>) responses;
+
+        ObjectNode firstObject = responsesIterator.getResults().iterator().next();
+        JsonNode idFirst = firstObject.get("_id");
+        if (null == idFirst || !idFirst.asText().equals(requestedId)) {
+            throw new ReferentialNotFoundException("No ontology found with id " + requestedId);
+        }
+        return responses;
+    }
+
+    @Override public RequestResponse<OntologyModel> updateOntology(String id, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        OntologyModel model =
+            JsonHandler.getFromString(ClientMockResultHelper.ONTOLOGIES, OntologyModel.class);
+        return ClientMockResultHelper.createReponse(model).setHttpCode(200);
+    }
 }

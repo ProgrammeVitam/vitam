@@ -1,0 +1,10 @@
+[
+  {
+    "Identifier": "_sps",
+    "_tenant": 1,
+    "ApiField": "#originating_agencies",
+    "SedaField": "OriginatingAgencyIdentifier",
+    "Type": "DATE",
+    "Description": "Internal ontology sample"
+  }
+]

@@ -361,6 +361,20 @@ public class ClientMockResultHelper {
             "]" +
             "}";
 
+
+    public static final String ONTOLOGIES = "{" +
+        "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+        "\"_tenant\":1, " +
+        "\"Identifier\":\"_sps\", " +
+        "\"ApiField\":\"#originating_agencies\", " +
+        "\"SedaField\":\"OriginatingAgencyIdentifier\", " +
+        "\"Description\":\"Internal ontology sample\", " +
+        "\"Origin\":\"INTERNAL\", " +
+        "\"Type\":\"KEYWORD\", " +
+        "\"CreationDate\":\"2018-02-02\", " +
+        "\"LastUpdate\":\"2018-02-02\"" +
+        "}";
+
     private static final String DIP_RESULTS = "{}";
     
     private static final String REINDEXATION_INFO = "{}";
@@ -723,5 +737,16 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getArchiveUnitProfiles(int statusCode) throws InvalidParseOperationException {
         return createReponse(ARCHIVE_UNIT_PROFILES);
+    }
+
+    /**
+     * method to get mocked ontologies with the given status code
+     *
+     * @param statusCode
+     * @return a mock of response for Ontologies
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getOntologies(int statusCode) throws InvalidParseOperationException {
+        return createReponse(ONTOLOGIES);
     }
 }

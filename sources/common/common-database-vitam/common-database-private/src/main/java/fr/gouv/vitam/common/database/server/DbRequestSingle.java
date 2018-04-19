@@ -224,7 +224,7 @@ public class DbRequestSingle {
      */
     @SuppressWarnings("unchecked")
     private DbRequestResult insertDocuments(ArrayNode arrayNode, Integer version)
-        throws InvalidParseOperationException, DatabaseException {
+        throws InvalidParseOperationException, SchemaValidationException, DatabaseException {
         final List<VitamDocument<?>> vitamDocumentList = new ArrayList<>();
         for (final JsonNode objNode : arrayNode) {
 
@@ -234,6 +234,22 @@ public class DbRequestSingle {
             if (vitamCollection.isMultiTenant()) {
                 obj.append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
             }
+            //Validate the document against the collection's json schema
+            //TODO extends json schema validation to other collections
+            if ("Ontology".equals(vitamCollection.getName())) {
+                try {
+                    SchemaValidationUtils validator = new SchemaValidationUtils();
+                    JsonNode jsonDocument = JsonHandler.toJsonNode(obj);
+                    SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getName());
+                    if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                        throw new SchemaValidationException(status.getValidationMessage());
+                    }
+                } catch (FileNotFoundException | ProcessingException e) {
+                    LOGGER.debug("Unable to initialize Json Validator : " + e.getMessage());
+                    throw new InvalidParseOperationException(e);
+                }
+            }
+
             vitamDocumentList.add(obj);
         }
         MongoCollection<VitamDocument<?>> collection =
@@ -255,7 +271,7 @@ public class DbRequestSingle {
      */
     @SuppressWarnings("unchecked")
     private DbRequestResult insertDocuments(ArrayNode arrayNode)
-        throws InvalidParseOperationException, DatabaseException {
+        throws InvalidParseOperationException, SchemaValidationException, DatabaseException {
         return insertDocuments(arrayNode, 0);
     }
 
@@ -279,6 +295,7 @@ public class DbRequestSingle {
             document.remove(VitamDocument.ID);
             document.remove(VitamDocument.SCORE);
             final String mongoJson = document.toJson(new JsonWriterSettings(JsonMode.STRICT));
+
             document.clear();
             final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
             mapIdJson.put(id, esJson);

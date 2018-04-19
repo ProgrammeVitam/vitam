@@ -92,7 +92,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
         final SortedMap<String, AliasOrIndex> aliasAndIndexLookup =
             client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
                 .getAliasAndIndexLookup();
-        assertThat(aliasAndIndexLookup.size()).isEqualTo(22);
+        assertThat(aliasAndIndexLookup.size()).isEqualTo(24);
     }
 
     @Test
@@ -106,7 +106,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
             client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
                 .getAliasAndIndexLookup();
         //TODO: Refactor when switch alias is implement.
-        assertThat(aliasAndIndexLookup.size()).isEqualTo(22);
+        assertThat(aliasAndIndexLookup.size()).isEqualTo(24);
     }
 
 
