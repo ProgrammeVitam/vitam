@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -159,8 +160,7 @@ public class MetadataReconstructionResource {
      * @return the response
      */
     @Path(STORE_GRAPH_URI)
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraph() {

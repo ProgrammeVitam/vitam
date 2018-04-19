@@ -38,15 +38,16 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
  */
 public class MetaDataConfiguration extends DbConfigurationImpl {
 
+    private String workspaceUrl;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
 
     /**
      * MetaDataConfiguration constructor
      *
-     * @param mongoDbNodes database server IP addresses and ports
-     * @param dbName database name
-     * @param clusterName cluster name 
+     * @param mongoDbNodes       database server IP addresses and ports
+     * @param dbName             database name
+     * @param clusterName        cluster name
      * @param elasticsearchNodes elasticsearch nodes
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
@@ -61,13 +62,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     /**
      * MetaDataConfiguration constructor with authentication
      *
-     * @param mongoDbNodes database server IP addresses and ports
-     * @param dbName database name
-     * @param clusterName cluster name
+     * @param mongoDbNodes       database server IP addresses and ports
+     * @param dbName             database name
+     * @param clusterName        cluster name
      * @param elasticsearchNodes elasticsearch nodes
-     * @param dbAuthentication if authentication mode 
-     * @param dbUserName db user name
-     * @param dbPassword db password
+     * @param dbAuthentication   if authentication mode
+     * @param dbUserName         db user name
+     * @param dbPassword         db password
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword) {
@@ -81,7 +82,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     /**
      * MetaDataConfiguration empty constructor for YAMLFactory
      */
-    public MetaDataConfiguration() {}
+    public MetaDataConfiguration() {
+    }
 
 
     /**
@@ -116,4 +118,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         return this;
     }
 
+
+    public String getWorkspaceUrl() {
+        return workspaceUrl;
+    }
+
+    public MetaDataConfiguration setWorkspaceUrl(String workspaceUrl) {
+        this.workspaceUrl = workspaceUrl;
+        return this;
+    }
 }

@@ -729,7 +729,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 description.append("UNIT_GRAPH ");
                 break;
             case OBJECTGROUP_GRAPH:
-                description.append("UNIT_GRAPH ");
+                description.append("OBJECTGROUP_GRAPH ");
                 break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);

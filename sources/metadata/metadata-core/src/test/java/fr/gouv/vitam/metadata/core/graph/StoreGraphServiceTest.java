@@ -26,7 +26,6 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -101,10 +100,6 @@ public class StoreGraphServiceTest {
         given(findIterableGot.projection(anyObject())).willReturn(findIterableGot);
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
-    }
-
-    @After
-    public void tearDown() {
     }
 
     @Test
