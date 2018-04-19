@@ -60,6 +60,7 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
+    https_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
     creates: /vitam/data/ihm-recette/test-data/system/.git/
