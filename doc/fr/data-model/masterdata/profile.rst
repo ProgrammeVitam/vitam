@@ -78,7 +78,7 @@ Détail des champs
 "Description": Description du profil d'archivage.
 
   * Il s'agit d'une chaîne de caractères.
-  * Cardinalité : 1-1
+  * Cardinalité : 0-1
 
 "Status": statut du profil d'archivage.
 

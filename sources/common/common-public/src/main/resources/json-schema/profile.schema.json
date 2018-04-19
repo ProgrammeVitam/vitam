@@ -108,5 +108,5 @@
       ]
     }
   },
-  "required": ["_id", "_tenant", "_v", "Identifier", "Status", "Format", "CreationDate", "LastUpdate"]
+  "required": ["_id", "_tenant", "_v", "Identifier", "Status", "Format", "CreationDate", "LastUpdate", "Name"]
 }

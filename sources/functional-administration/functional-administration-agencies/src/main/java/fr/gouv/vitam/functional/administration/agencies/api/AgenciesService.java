@@ -51,9 +51,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -79,7 +76,9 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -89,6 +88,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
@@ -103,6 +103,7 @@ import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
 import fr.gouv.vitam.functional.administration.common.FileAgenciesErrorCode;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
+import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.AgencyImportDeletionException;
@@ -615,19 +616,16 @@ public class AgenciesService implements VitamAutoCloseable {
 
             return generateVitamBadRequestError(errorMessage.toString(), AGENCIES_IMPORT_DELETION_ERROR);
 
-        } 
-        catch (SchemaValidationException e) {
-            LOGGER.error(MESSAGE_ERROR, e);
-            
+        } catch (SchemaValidationException | BadRequestException e) {
+
             InputStream errorStream = generateErrorReport();
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
-                    eip + ".json");
+                eip + ".json");
             errorStream.close();
-            
+
             return getVitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem(), e.getMessage(),
-                    StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
-        }
-        catch (final Exception e) {
+                StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        } catch (final Exception e) {
             LOGGER.error(MESSAGE_ERROR, e);
             InputStream errorStream = generateErrorReport();
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
@@ -702,7 +700,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
     private void commitAgencies()
         throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
-        SchemaValidationException {
+        SchemaValidationException, BadRequestException {
 
         Integer sequence = vitamCounterService
             .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE);
@@ -725,11 +723,12 @@ public class AgenciesService implements VitamAutoCloseable {
      * @throws InvalidCreateOperationException InvalidCreateOperationException
      * @throws ReferentialException ReferentialException
      * @throws InvalidParseOperationException InvalidParseOperationException
+     * @throws BadRequestException BadRequestException
      */
     private void updateAgency(AgenciesModel fileAgenciesModel, Integer sequence)
         throws InvalidCreateOperationException,
         ReferentialException,
-        InvalidParseOperationException, SchemaValidationException {
+        InvalidParseOperationException, SchemaValidationException, BadRequestException {
 
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateFileAgencies = new Update();

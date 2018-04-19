@@ -57,8 +57,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -91,7 +89,9 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -635,7 +635,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelToUpdate, fileRulesModelToDelete, fileRulesModelToInsert);
 
             return secureRules;
-        } catch (ReferentialException | InvalidCreateOperationException | InvalidParseOperationException | SchemaValidationException e) {
+        } catch (ReferentialException | InvalidCreateOperationException | InvalidParseOperationException |
+            SchemaValidationException | BadRequestException e) {
             LOGGER.error(e);
             updateCommitFileRulesLogbookOperationOkOrKo(COMMIT_RULES, StatusCode.KO, eipMaster,
                 fileRulesModelToUpdate, fileRulesModelToDelete, fileRulesModelToInsert);
@@ -1100,7 +1101,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      */
     private void updateFileRules(FileRulesModel fileRulesModel, Integer sequence)
         throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException,
-        SchemaValidationException {
+        SchemaValidationException, BadRequestException {
         // FIXME use bulk create instead like LogbookMongoDbAccessImpl.
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateFileRules = new Update();
@@ -1484,7 +1485,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             final JsonNode unitsResultNode = metaDataClient.selectUnits(select);
             resultUnitsArray = (ArrayNode) unitsResultNode.get(RESULTS);
 
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | VitamDBException |
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
+            VitamDBException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
         }

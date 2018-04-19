@@ -817,7 +817,7 @@ public class ProcessingIT {
                 "{\n  \"Vitam\" : {\n    \"OK\" : 1,\n    \"KO\" : 0,\n    \"WARNING\" : 0\n  }\n}");
         }
     }
-
+    
     @RunWithCustomExecutor
     @Test
     public void testWorkflowIngestContractUnknow() throws Exception {
@@ -1141,7 +1141,7 @@ public class ProcessingIT {
         createLogbookOperation(operationGuid, objectGuid);
 
         VitamThreadUtils.getVitamSession().setRequestId(containerName);
-        
+ 
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;

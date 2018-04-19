@@ -23,5 +23,5 @@
       "type": "integer"
     }
   },
-  "required": ["_id", "_tenant", "_v", "Identifier"]
+  "required": ["_id", "_tenant", "_v", "Identifier", "Name"]
 }

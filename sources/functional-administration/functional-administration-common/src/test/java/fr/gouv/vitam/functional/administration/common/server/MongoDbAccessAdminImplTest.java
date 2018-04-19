@@ -31,6 +31,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
@@ -38,11 +39,24 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -59,6 +73,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -86,16 +101,6 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class MongoDbAccessAdminImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImplTest.class);
@@ -126,6 +131,8 @@ public class MongoDbAccessAdminImplTest {
     private static final String FILEFORMAT_PUID_3 = "x-fmt/55";
     private static final String AGENCY = "Agency";
     private static final Integer TENANT_ID = 0;
+    
+    private static final String DEFAULT_DATE = "2018-04-05T13:34:40.234";
 
     static int port;
     static MongoDbAccessAdminImpl mongoAccess;
@@ -299,7 +306,7 @@ public class MongoDbAccessAdminImplTest {
         formatCollection.getEsClient().refreshIndex(formatCollection);
         assertEquals(1, fileList.getCount());
         fileList.close();
-        
+
         // Test select by query with order on name
         final Select selectWithSortName = new Select();
         selectWithSortName.setQuery(and().add(match(FileFormat.NAME, "acrobat")));
@@ -422,7 +429,8 @@ public class MongoDbAccessAdminImplTest {
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
         contract.setId(id);
-        final JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        ((ObjectNode) jsonContract).put("Identifier", contract.getName());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
@@ -430,6 +438,26 @@ public class MongoDbAccessAdminImplTest {
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.count());
+        
+        try {
+            JsonNode update = JsonHandler.getFromString(
+                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
+                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"ACTIVE\"}}]}");
+            mongoAccess.updateData(update, FunctionalAdminCollections.INGEST_CONTRACT);
+            fail("This should fail, as no changes is made");
+        } catch (BadRequestException e) {
+            // do nothing
+        }
+        
+        try {
+            JsonNode update = JsonHandler.getFromString(
+                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
+                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"BLOP\"}}]}");
+            mongoAccess.updateData(update, FunctionalAdminCollections.INGEST_CONTRACT);
+            fail("This should fail, as schema validation is not ok");
+        } catch (SchemaValidationException e) {
+            // do nothing
+        }
         mongoAccess.deleteCollection(contractCollection).close();
         assertEquals(0, collection.count());
         client.close();
@@ -442,8 +470,12 @@ public class MongoDbAccessAdminImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
-        contract.setId(id);
-        final JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        accessContract.setId(id);
+        final JsonNode jsonContract = JsonHandler.toJsonNode(accessContract);
+        ((ObjectNode) jsonContract).put("Identifier", accessContract.getName());
+        ((ObjectNode) jsonContract).put("EveryDataObjectVersion", false);
+        ((ObjectNode) jsonContract).put("EveryOriginatingAgency", false);
+        ((ObjectNode) jsonContract).put("WritingPermission", true);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
@@ -451,6 +483,27 @@ public class MongoDbAccessAdminImplTest {
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.count());
+        
+        try {
+            JsonNode update = JsonHandler.getFromString(
+                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
+                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"ACTIVE\"}}]}");
+            mongoAccess.updateData(update, FunctionalAdminCollections.ACCESS_CONTRACT);
+            fail("This should fail, as no changes is made");
+        } catch (BadRequestException e) {
+            // do nothing
+        }
+        
+        try {
+            JsonNode update = JsonHandler.getFromString(
+                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
+                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"BLOP\"}}]}");
+            mongoAccess.updateData(update, FunctionalAdminCollections.ACCESS_CONTRACT);
+            fail("This should fail, as schema validation is not ok");
+        } catch (SchemaValidationException e) {
+            // do nothing
+        }
+
         mongoAccess.deleteCollection(contractCollection).close();
         assertEquals(0, collection.count());
         client.close();
@@ -497,7 +550,7 @@ public class MongoDbAccessAdminImplTest {
         select.setQuery(and()
             .add(eq(IngestContract.NAME, "aName"))
             .add(or()
-                .add(eq(IngestContract.CREATIONDATE, "10/12/2016"))));
+                .add(eq(IngestContract.CREATIONDATE, DEFAULT_DATE))));
         final DbRequestResult contracts =
             mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
         final IngestContract foundContract = (IngestContract) contracts.getDocuments(IngestContract.class).get(0);
@@ -527,7 +580,7 @@ public class MongoDbAccessAdminImplTest {
         select.setQuery(and()
             .add(eq(AccessContract.NAME, "aName"))
             .add(or()
-                .add(eq(AccessContract.CREATIONDATE, "10/12/2016"))));
+                .add(eq(AccessContract.CREATIONDATE, DEFAULT_DATE))));
         final DbRequestResult contracts =
             mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
         final AccessContract foundContract = (AccessContract) contracts.getDocuments(AccessContract.class).get(0);
@@ -556,7 +609,7 @@ public class MongoDbAccessAdminImplTest {
         select.setQuery(and()
             .add(eq(Profile.IDENTIFIER, "FakeId"))
             .add(or()
-                .add(eq(Profile.CREATIONDATE, "10/12/2016"))));
+                .add(eq(Profile.CREATIONDATE, DEFAULT_DATE))));
         final DbRequestResult profiles =
             mongoAccess.findDocuments(select.getFinalSelect(), profileCollection);
         final Profile foundProfile = (Profile) profiles.getDocuments(Profile.class).get(0);
@@ -571,7 +624,7 @@ public class MongoDbAccessAdminImplTest {
         final IngestContract contract = new IngestContract(TENANT_ID);
         final String name = "aName";
         final String description = "aDescription of the contract";
-        final String lastupdate = "10/12/2016";
+        final String lastupdate = DEFAULT_DATE;
         contract
             .setName(name)
             .setDescription(description).setStatus(ContractStatus.ACTIVE)
@@ -585,7 +638,7 @@ public class MongoDbAccessAdminImplTest {
         final AccessContract contract = new AccessContract(TENANT_ID);
         final String name = "aName";
         final String description = "aDescription of the access contract";
-        final String lastupdate = "10/12/2016";
+        final String lastupdate = DEFAULT_DATE;
         final Set<String> originatingAgencies = new HashSet<>();
         originatingAgencies.add("Fake");
 
@@ -595,7 +648,7 @@ public class MongoDbAccessAdminImplTest {
             .setOriginatingAgencies(originatingAgencies)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
+            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);            
         return contract;
     }
 
@@ -603,7 +656,7 @@ public class MongoDbAccessAdminImplTest {
         final Profile profile = new Profile(TENANT_ID);
         final String name = "aName";
         final String description = "aDescription of the profile";
-        final String lastupdate = "10/12/2016";
+        final String lastupdate = DEFAULT_DATE;
         profile
             .setIdentifier("FakeId")
             .setName(name)

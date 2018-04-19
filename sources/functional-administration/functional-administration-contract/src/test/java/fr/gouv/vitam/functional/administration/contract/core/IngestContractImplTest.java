@@ -18,6 +18,7 @@
 package fr.gouv.vitam.functional.administration.contract.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
@@ -88,6 +89,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.openstack4j.api.exceptions.StatusCode;
 
 import javax.ws.rs.core.Response;
 
@@ -593,6 +595,13 @@ public class IngestContractImplTest {
             assertThat(ingestContractModel.getLastupdate()).isNotEmpty();
             assertThat(ingestContractModel.getLinkParentId()).isEqualTo("");
         }
+        
+        // we try to update ingest contract with same value -> Bad Request
+        RequestResponse responseUpdate =
+            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
+        assertThat(!responseUpdate.isOk());
+        assertEquals(responseUpdate.getStatus(), StatusCode.BAD_REQUEST.getCode());
+        
     }
 
 
