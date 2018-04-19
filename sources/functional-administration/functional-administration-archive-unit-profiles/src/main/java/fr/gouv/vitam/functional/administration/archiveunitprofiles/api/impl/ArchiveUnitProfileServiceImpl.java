@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -357,7 +358,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         try {
             try (DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE)) {
                 updateDiffs = result.getDiffs();
-            } catch (SchemaValidationException e) {
+            } catch (SchemaValidationException | BadRequestException e) {
                 LOGGER.error(e);
                 final String err = "Update archive unit profile error > " + e.getMessage();
 

@@ -837,7 +837,7 @@ public class ProcessingIT {
                 "{\n  \"Vitam\" : {\n    \"OK\" : 1,\n    \"KO\" : 0,\n    \"WARNING\" : 0\n  }\n}");
         }
     }
-
+    
     @RunWithCustomExecutor
     @Test
     public void testWorkflowIngestContractUnknow() throws Exception {
@@ -1136,8 +1136,6 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         final String containerName = createOperationContainer();
-
-        VitamThreadUtils.getVitamSession().setRequestId(containerName);
         
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;

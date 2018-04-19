@@ -57,10 +57,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.guid.GUIDReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -92,11 +88,15 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamErrorMessages;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -355,7 +355,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
-            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES, eip.toString());
+            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES,
+                eip.toString());
 
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.OK, filename);
         } catch (final FileRulesException e) {
@@ -413,7 +414,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             backupService.saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV,
                 DataCategory.RULES, (eip != null ? eip.getId() : "default") + CSV);
 
-            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES, eip.toString());
+            backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES,
+                eip.toString());
 
             if (!usedUpdateRulesForReport.isEmpty()) {
                 // #2201 - we now launch the process that will update units
@@ -561,8 +563,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     LogbookTypeProcess.UPDATE,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(UPDATE_RULES_ARCHIVE_UNITS, StatusCode.STARTED),
-                    reqId
-                );
+                    reqId);
             createLogBookEntry(logbookUpdateParametersStart);
             try {
                 copyFilesOnWorkspaceUpdateWorkflow(
@@ -641,7 +642,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 fileRulesModelToUpdate, fileRulesModelToDelete, fileRulesModelToInsert);
 
             return secureRules;
-        } catch (ReferentialException | InvalidCreateOperationException | InvalidParseOperationException | SchemaValidationException e) {
+        } catch (ReferentialException | InvalidCreateOperationException | InvalidParseOperationException |
+            SchemaValidationException | BadRequestException e) {
             LOGGER.error(e);
             updateCommitFileRulesLogbookOperationOkOrKo(COMMIT_RULES, StatusCode.KO, eipMaster,
                 fileRulesModelToUpdate, fileRulesModelToDelete, fileRulesModelToInsert);
@@ -1112,7 +1114,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      */
     private void updateFileRules(FileRulesModel fileRulesModel, Integer sequence)
         throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException,
-        SchemaValidationException {
+        SchemaValidationException, BadRequestException {
         // FIXME use bulk create instead like LogbookMongoDbAccessImpl.
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateFileRules = new Update();
@@ -1496,7 +1498,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             final JsonNode unitsResultNode = metaDataClient.selectUnits(select);
             resultUnitsArray = (ArrayNode) unitsResultNode.get(RESULTS);
 
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | VitamDBException |
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
+            VitamDBException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
         }

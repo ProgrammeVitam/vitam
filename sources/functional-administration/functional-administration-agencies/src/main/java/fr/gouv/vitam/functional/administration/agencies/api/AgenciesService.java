@@ -76,6 +76,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -622,7 +623,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
             return generateVitamBadRequestError(errorMessage.toString(), AGENCIES_IMPORT_DELETION_ERROR);
 
-        } catch (SchemaValidationException e) {
+        } catch (SchemaValidationException | BadRequestException e) {
             LOGGER.error(MESSAGE_ERROR, e);
 
             InputStream errorStream = generateErrorReport();
@@ -707,7 +708,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
     private void commitAgencies()
         throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
-        SchemaValidationException {
+        SchemaValidationException, BadRequestException {
 
         Integer sequence = vitamCounterService
             .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE);
@@ -730,11 +731,12 @@ public class AgenciesService implements VitamAutoCloseable {
      * @throws InvalidCreateOperationException InvalidCreateOperationException
      * @throws ReferentialException ReferentialException
      * @throws InvalidParseOperationException InvalidParseOperationException
+     * @throws BadRequestException BadRequestException
      */
     private void updateAgency(AgenciesModel fileAgenciesModel, Integer sequence)
         throws InvalidCreateOperationException,
         ReferentialException,
-        InvalidParseOperationException, SchemaValidationException {
+        InvalidParseOperationException, SchemaValidationException, BadRequestException {
 
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateFileAgencies = new Update();

@@ -83,7 +83,7 @@ Détail des champs de la collection IngestContract
 **"Description":** description du contrat d'entrée.
   
   * Il s'agit d'une chaîne de caractères.
-  * Cardinalité : 1-1
+  * Cardinalité : 0-1
 
 **"Status":** statut du contrat.
 
