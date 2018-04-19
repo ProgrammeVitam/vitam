@@ -6,4 +6,4 @@ elasticsearchNodes:
 - hostName: {{hostvars[server]['ip_service']}}
   tcpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
-whitelist : ["tenant", "all", "mgt", "min", "max", "nbc", "og", "ops", "opi", "sp", "sps", "uds", "up", "us", "storage", "unitType", "v"]
+whitelist : ["tenant", "all", "mgt", "min", "max", "nbc", "og", "ops", "opi", "sp", "sps", "uds", "up", "us", "storage", "unitType", "v", "qualifiers"]
