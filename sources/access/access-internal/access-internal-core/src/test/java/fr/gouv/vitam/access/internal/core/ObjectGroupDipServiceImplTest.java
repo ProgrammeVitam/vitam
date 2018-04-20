@@ -62,28 +62,28 @@ public class ObjectGroupDipServiceImplTest {
 
         // Then
         String entity = (String) response.getEntity();
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:Filename",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:FileInfo/vitam:Filename",
             equalTo("Filename0"))
             .withNamespaceContext(prefix2Uri));
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingApplicationName",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingApplicationName",
             equalTo("CreatingApplicationName0"))
             .withNamespaceContext(prefix2Uri));
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingApplicationVersion",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingApplicationVersion",
             equalTo("CreatingApplicationVersion0"))
             .withNamespaceContext(prefix2Uri));
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:DateCreatedByApplication",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:FileInfo/vitam:DateCreatedByApplication",
             equalTo("2006-05-04T18:13:51.0"))
             .withNamespaceContext(prefix2Uri));
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingOs",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingOs",
             equalTo("CreatingOs0"))
             .withNamespaceContext(prefix2Uri));
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingOsVersion",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:FileInfo/vitam:CreatingOsVersion",
             equalTo("CreatingOsVersion0"))
             .withNamespaceContext(prefix2Uri));
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:LastModified",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:FileInfo/vitam:LastModified",
             equalTo("2006-05-04T18:13:51.0"))
             .withNamespaceContext(prefix2Uri));
-        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:OtherMetadata/vitam:testMD",
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:OtherMetadata/vitam:testMD",
                 equalTo("test value"))
                 .withNamespaceContext(prefix2Uri));
     }
