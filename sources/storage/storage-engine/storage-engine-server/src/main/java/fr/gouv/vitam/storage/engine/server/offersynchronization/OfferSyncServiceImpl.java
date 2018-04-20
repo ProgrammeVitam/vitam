@@ -29,9 +29,9 @@ package fr.gouv.vitam.storage.engine.server.offersynchronization;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -43,7 +43,6 @@ import fr.gouv.vitam.storage.engine.common.model.response.OfferSyncResponseItem;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -219,6 +218,7 @@ public class OfferSyncServiceImpl implements OfferSyncService {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         LOGGER.warn("The offers' synchronization is completed.");
+        response.setStatus(StatusCode.OK);
 
         return response;
     }
