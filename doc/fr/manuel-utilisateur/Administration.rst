@@ -135,6 +135,7 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
 
+
 Recherche d'une règle de gestion
 --------------------------------
 
@@ -195,6 +196,10 @@ Il est ensuite possible de modifier ou mettre à jour ce référentiel, en impor
 
 • échec de la mise à jour si celle-ci a demandé la suppression d’une règle déjà utilisée ;
 • succès avec avertissement de la mise à jour si celle-ci a demandé la modification d’une règle déjà utilisée.
+
+NOTE: le dernier fichier enregistré est disponible à l'export via le bouton " Exporter le référentiel " 
+
+.. image:: images/reglesgestion_export.png
 
 
 Référentiel des services agents
@@ -278,6 +283,11 @@ Le détail d’un service agent est composé des informations suivantes :
 Cette page de détail permet également d’accéder le cas échéant au registre des fonds transféré par cet agent.
 
 Pour plus de détail sur le registre des fonds, se référer à la partie 5.4.4  Consultation du registre des fonds
+
+
+NOTE: le dernier fichier enregistré est disponible à l'export via le bouton " Exporter le référentiel " 
+
+.. image:: images/serviceagent_export.png
 
 
 Contrats d'entrée

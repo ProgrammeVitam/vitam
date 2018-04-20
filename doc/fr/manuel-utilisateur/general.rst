@@ -319,10 +319,11 @@ Note: un click sur chaque ligne, excepté sur la 1ere colonne, et celle destiné
 Appliquer une action sur la sélection
 -------------------------------------
 
-- Actuellement, 2 actions sont possibles : Exporter le panier sous la forme d'un DIP, ainsi que supprimer la sélection 
+- Actuellement, plusieurs actions sont possibles : Exporter le panier sous la forme d'un DIP, supprimer le panier, ou bien effectuer un audit de cohérence.
 
 
 .. image:: images/panier_totalite.png
+
 
 - Ces actions peuvent soit être effectuées sur la totalité des unités archivistiques du panier, soit seulement sur celles que l'on va sélectionner en utilisant les côches de sélection dans la dernière colonne. 
 
@@ -332,8 +333,6 @@ Appliquer une action sur la sélection
 
 Note: si aucune unité archivistique n'est sélectionnée, les boutons correspondants aux actions relatives seulement à la sélection seront grisés, et les actions seront seulement disponibles pour la totalité du panier. 
 
-
-.. image:: images/panier_grise.png
 
 
 Supprimer une unité archivistique de la sélection: 
