@@ -39,6 +39,20 @@
 		</encoder>
 	</appender>
 
+    {% if vitam_struct.vitam_component == 'storage' %}
+	<appender name="OFFERSYNC" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>{{vitam_folder_log}}/{{ vitam_struct.vitam_component }}_offer_sync.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxFileSize>10MB</maxFileSize>
+			<maxHistory>30</maxHistory>
+			<totalSizeCap>5GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder>
+			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+			</pattern>
+		</encoder>
+	</appender>
+    {% endif %}
 
 	<appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
 		<syslogHost>localhost</syslogHost>
@@ -59,5 +73,10 @@
   <logger name="fr.gouv.vitam.common.alert.AlertServiceImpl" level="INFO">
 	  <appender-ref ref="SECURITY" />
   </logger>
+  {% if vitam_struct.vitam_component == 'storage' %}
+  <logger name="fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncServiceImpl">
+       <appender-ref ref="OFFERSYNC" />
+  </logger>
+  {% endif %}
 
 </configuration>
