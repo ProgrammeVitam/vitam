@@ -250,8 +250,9 @@ La tâche CHECK_DATAOBJECTPACKAGE contient plusieurs traitements.
 
         - Cas 1 : une ou plusieurs balises de rattachement vers un GOT existant déclarent autre chose que le GUID d'un GOT existant (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.EXISTING_OG_NOT_DECLARED.KO=Une unité archivistique déclare un objet à la place du groupe d'objet correspondant)
         - Cas 2 : une ou plusieurs balises de rattachement vers une AU existant déclarent autre chose que le GUID d'une AU existante (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.CHECK_MANIFEST_WRONG_ATTACHMENT.KO=Le bordereau de transfert procède à un rattachement en utilisant des éléments inexistants dans le système)
-        - Cas 3 : Une récursivité a été détectée dans l'arborescence des unités archivistiques (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.CHECK_MANIFEST_LOOP.KO=Le bordereau de transfert présente une récursivité dans l'arborescence de ses unités archivistiques)
-        - Cas 4 : il y a un problème d'encodage ou des objets référencent directement des unités archivistiques (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.KO = Échec du contrôle de cohérence du bordereau de transfert)
+	- Cas 3 : il y a un problème lors du contrôle à un noeud de  rattachement  CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.CHECK_MANIFEST_WRONG_ATTACHMENT_LINK.KO=Le bordereau de transfert procède à un rattachement en utilisant des éléments hors périmètre.
+        - Cas 4 : Une récursivité a été détectée dans l'arborescence des unités archivistiques (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.CHECK_MANIFEST_LOOP.KO=Le bordereau de transfert présente une récursivité dans l'arborescence de ses unités archivistiques)
+        - Cas 5 : il y a un problème d'encodage ou des objets référencent directement des unités archivistiques (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.KO = Échec du contrôle de cohérence du bordereau de transfert)
 
       - FATAL : une erreur technique est survenue lors de la vérification de la cohérence du bordereau, par exemple les journaux du cycle de vie n'ont pu être créés (CHECK_MANIFEST.FATAL = Erreur fatale lors du contrôle de cohérence du bordereau de transfert)
 
