@@ -61,7 +61,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -368,7 +367,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     @Path(
         "/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|STORAGETRACEABILITY|RULES|DIP|AGENCIES|BACKUP" +
-            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS}")
+            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS|OBJECTGROUP_GRAPH|UNIT_GRAPH}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -405,7 +404,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     @Path(
         "/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|STORAGETRACEABILITY|RULES|DIP|AGENCIES|BACKUP" +
-            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS}/logs")
+            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS|OBJECTGROUP_GRAPH|UNIT_GRAPH}/logs")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -907,8 +906,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get a unit
      *
-     * @param headers    http header
-     * @param metadataId the id of the object
+     * @param headers  http header
+     * @param metadataId the id of the unit
      * @return the stream
      */
     @Path("/units/{id_md}")
@@ -1605,6 +1604,127 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
         return buildErrorResponse(vitamCode);
     }
+
+
+    /**
+     * Create a new graph zip file
+     *
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param graph_file_name         the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    @Path("/unitgraph/{graph_file_name}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createUnitGraphFile(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("graph_file_name") String graph_file_name, ObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, graph_file_name, createObjectDescription,
+                DataCategory.UNIT_GRAPH,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, graph_file_name);
+        }
+    }
+
+    /**
+     * Get graph zip file
+     *
+     * @param headers
+     * @param graph_file_name
+     * @return
+     * @throws IOException
+     */
+    @Path("/unitgraph/{graph_file_name}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
+    public Response getUnitGraphFile(@Context HttpHeaders headers,
+        @PathParam("graph_file_name") String graph_file_name) {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(graph_file_name, DataCategory.UNIT_GRAPH, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
+    }
+
+
+    /**
+     * Create a new graph zip file
+     *
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param graph_file_name         the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    @Path("/objectgroupgraph/{graph_file_name}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createObjectGroupGraphFile(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("graph_file_name") String graph_file_name, ObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, graph_file_name, createObjectDescription,
+                DataCategory.OBJECTGROUP_GRAPH,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, graph_file_name);
+        }
+    }
+
+    /**
+     * Get graph zip file
+     *
+     * @param headers
+     * @param graph_file_name
+     * @return
+     * @throws IOException
+     */
+    @Path("/objectgroupgraph/{graph_file_name}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
+    public Response getObjectGroupGraphFile(@Context HttpHeaders headers,
+        @PathParam("graph_file_name") String graph_file_name) {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(graph_file_name, DataCategory.OBJECTGROUP_GRAPH, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
+    }
+
 
     /**
      * Post a new object

@@ -32,11 +32,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.IOUtils;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -54,6 +51,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Service used to recover a Backup copy of the given metadata Vitam collection.<br/>
@@ -77,7 +75,7 @@ public class RestoreBackupService {
 
     /**
      * Constructor for tests
-     * 
+     *
      * @param storageClientFactory storage client factory
      */
     @VisibleForTesting
@@ -87,13 +85,13 @@ public class RestoreBackupService {
 
     /**
      * Retrieve list of offer log defining objects to reconstruct from offer log
-     * 
-     * @param strategy storage strategy
+     *
+     * @param strategy   storage strategy
      * @param collection collection
-     * @param offset offset
-     * @param limit limit
+     * @param offset     offset
+     * @param limit      limit
      * @return list of offer log by bulk
-     * @throws VitamRuntimeException storage error
+     * @throws VitamRuntimeException    storage error
      * @throws IllegalArgumentException input error
      */
     public List<List<OfferLog>> getListing(String strategy, MetadataCollections collection, long offset, int limit) {
@@ -130,15 +128,46 @@ public class RestoreBackupService {
         return new ArrayList<>();
     }
 
+
+
+    /**
+     * Find the latest logs of saved files for the given data category in the offer
+     * @param strategy by default "default"
+     * @param dataCategory (UNIT, OBJECT_GROUP, ...)
+     * @param limit if we want only one file, set limit to 1
+     * @return the list of the latest files of the given dataCategory
+     */
+    public List<OfferLog> getLatestLogs(String strategy, DataCategory dataCategory, int limit) {
+        LOGGER.info(String.format(
+            "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
+            dataCategory.getCollectionName(), strategy, null, limit));
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            RequestResponse<OfferLog> result =
+                storageClient.getOfferLogs(strategy, dataCategory, null, limit, Order.DESC);
+            if (result.isOk()) {
+                if (!((RequestResponseOK<OfferLog>) result).getResults().isEmpty()) {
+                    return ((RequestResponseOK<OfferLog>) result).getResults();
+                }
+            } else {
+                throw new VitamRuntimeException(
+                    String.format("ERROR: VitamError has been returned when using storage service: {%s}",
+                        result.toString()));
+            }
+        } catch (StorageServerClientException e) {
+            throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
+        }
+        return new ArrayList<>();
+    }
+
     /**
      * Load data from storage
-     * 
-     * @param strategy storage strategy
+     *
+     * @param strategy   storage strategy
      * @param collection collection
-     * @param filename name of file to load
-     * @param offset offset
+     * @param filename   name of file to load
+     * @param offset     offset
      * @return data
-     * @throws VitamRuntimeException storage error
+     * @throws VitamRuntimeException    storage error
      * @throws IllegalArgumentException input error
      */
     public MetadataBackupModel loadData(String strategy, MetadataCollections collection, String filename,

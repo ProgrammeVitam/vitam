@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.database.offset;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
@@ -40,7 +39,6 @@ import org.bson.conversions.Bson;
 
 /**
  * Offset collection repository (use for logbook and metadata database)
- *
  */
 public class OffsetRepository {
 
@@ -50,7 +48,8 @@ public class OffsetRepository {
 
     /**
      * Constructor
-	 * @param mongoDbAccess mongoDbAccess
+     *
+     * @param mongoDbAccess mongoDbAccess
      */
     public OffsetRepository(MongoDbAccess mongoDbAccess) {
         offerCollection = mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME);
@@ -59,7 +58,7 @@ public class OffsetRepository {
     /**
      * Create or update offset
      *
-     * @param tenant the tenant
+     * @param tenant     the tenant
      * @param collection the collection name
      */
     public void createOrUpdateOffset(int tenant, String collection, long offset) {
@@ -80,8 +79,8 @@ public class OffsetRepository {
     /**
      * Get current offset
      *
-     * @param tenant the tenant
-     * @param collection the collection name
+     * @param tenant     the tenant
+     * @param collection the collection name we want to reconstruct, bat can be any other unique name (graph)
      * @return the offset value for collection/tenant, 0L if not found
      */
     public long findOffsetBy(int tenant, String collection) {
@@ -91,7 +90,7 @@ public class OffsetRepository {
         );
         FindIterable<Document> documents = offerCollection.find(offsetFilter);
 
-        Document first = Iterables.getFirst(documents, null);
+        Document first = documents.first();
         if (first == null) {
             return 0L;
         }

@@ -101,7 +101,17 @@ public enum DataCategory {
     /**
      * checklogbook_reports files
      */
-    CHECKLOGBOOKREPORTS("checklogbookreports", "check_logbookreports", false, false);
+    CHECKLOGBOOKREPORTS("checklogbookreports", "check_logbookreports", false, false),
+
+    /**
+     * Unit graph
+     */
+    UNIT_GRAPH("unitgraph", "unitgraph", false, true),
+
+    /**
+     * Object group graph
+     */
+    OBJECTGROUP_GRAPH("objectgroupgraph", "objectgroupgraph", false, true);
 
     /**
      * Collection name

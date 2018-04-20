@@ -35,9 +35,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
@@ -47,7 +44,6 @@ import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepository;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
@@ -55,6 +51,8 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 /**
  * Implementation for MongoDB
@@ -284,5 +282,10 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public FindIterable<Document> findDocuments(int mongoBatchSize) {
         return collection.find().batchSize(mongoBatchSize);
+    }
+
+    @Override
+    public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
+        return collection.find(query).batchSize(mongoBatchSize);
     }
 }

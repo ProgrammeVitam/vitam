@@ -34,13 +34,10 @@ import java.util.Optional;
 
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -124,6 +121,7 @@ public class RestoreBackupService {
         }
         return new ArrayList<>();
     }
+
 
     /**
      * Load data from storage

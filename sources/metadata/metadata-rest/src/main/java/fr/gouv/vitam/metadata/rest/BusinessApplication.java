@@ -75,7 +75,7 @@ public class BusinessApplication extends Application {
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
-            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance(mongoAccessMetadata);
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
 
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
 

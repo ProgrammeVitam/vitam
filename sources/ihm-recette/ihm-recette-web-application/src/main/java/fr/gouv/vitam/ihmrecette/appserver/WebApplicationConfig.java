@@ -53,7 +53,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String testSystemSipDirectory;
     private String testSystemReportDirectory;
     private int ingestMaxThread;
-    private String workspaceUrl;
+
     /**
      * Constructor for tests
      */
@@ -64,9 +64,9 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     /**
      * Default constructor (keep it ?)
      *
-     * @param mongoDbNodes nodes mongoDb
-     * @param dbName mongoDb name
-     * @param clusterName elastic search cluster name
+     * @param mongoDbNodes       nodes mongoDb
+     * @param dbName             mongoDb name
+     * @param clusterName        elastic search cluster name
      * @param elasticsearchNodes nodes elastic search
      */
     public WebApplicationConfig(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
@@ -275,19 +275,5 @@ public class WebApplicationConfig extends MetaDataConfiguration {
 
     public void setIngestMaxThread(int ingestMaxThread) {
         this.ingestMaxThread = ingestMaxThread;
-    }
-
-    /**
-     * getter for workspaceUrl
-     **/
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
-    }
-
-    /**
-     * setter for workspaceUrl
-     **/
-    public void setWorkspaceUrl(String workspaceUrl) {
-        this.workspaceUrl = workspaceUrl;
     }
 }

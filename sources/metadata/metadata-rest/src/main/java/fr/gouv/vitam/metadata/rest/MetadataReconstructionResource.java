@@ -28,8 +28,10 @@ package fr.gouv.vitam.metadata.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -37,7 +39,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -45,10 +46,15 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
+import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
+import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Metadata reconstruction resource.
@@ -62,6 +68,7 @@ public class MetadataReconstructionResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataReconstructionResource.class);
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
+    private final String STORE_GRAPH_URI = "/storegraph";
 
     /**
      * Error/Exceptions messages.
@@ -70,11 +77,14 @@ public class MetadataReconstructionResource {
         "the Json input of reconstruction's parameters is mondatory.";
     private static final String RECONSTRUCTION_EXCEPTION_MSG =
         "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
+    private static final String STORE_GRAPH_EXCEPTION_MSG =
+        "ERROR: Exception has been thrown when sotre graph: ";
 
     /**
      * Reconstruction service.
      */
     private ReconstructionService reconstructionService;
+    private StoreGraphService storeGraphService;
 
     /**
      * Constructor
@@ -85,16 +95,27 @@ public class MetadataReconstructionResource {
     public MetadataReconstructionResource(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository) {
         this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository);
+
+        RestoreBackupService restoreBackupService = new RestoreBackupService();
+
+        this.storeGraphService = new StoreGraphService(
+            vitamRepositoryProvider,
+            restoreBackupService,
+            WorkspaceClientFactory.getInstance(),
+            StorageClientFactory.getInstance());
     }
 
     /**
      * Constructor for tests
-     * 
+     *
      * @param reconstructionService reconstructionService
      */
     @VisibleForTesting
-    public MetadataReconstructionResource(ReconstructionService reconstructionService) {
+    public MetadataReconstructionResource(
+        ReconstructionService reconstructionService,
+        StoreGraphService storeGraphService) {
         this.reconstructionService = reconstructionService;
+        this.storeGraphService = storeGraphService;
     }
 
     /**
@@ -130,5 +151,27 @@ public class MetadataReconstructionResource {
         }
 
         return Response.ok().entity(responses).build();
+    }
+
+
+    /**
+     * API to access and launch the Vitam store graph service for metadatas.<br/>
+     *
+     * @return the response
+     */
+    @Path(STORE_GRAPH_URI)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response storeGraph() {
+
+        try {
+            Map<MetadataCollections, Integer> map =
+                this.storeGraphService.tryStoreGraph();
+            return Response.ok().entity(map).build();
+        } catch (Exception e) {
+            LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);
+            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+        }
     }
 }

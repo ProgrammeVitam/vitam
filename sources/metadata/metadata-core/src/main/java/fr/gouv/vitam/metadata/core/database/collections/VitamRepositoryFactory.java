@@ -20,6 +20,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
@@ -35,7 +36,7 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
     private Map<MetadataCollections, VitamMongoRepository> mongoRepository;
     private Map<MetadataCollections, VitamElasticsearchRepository> esRepository;
 
-    private void initialize(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
+    private void initialize() {
         MongoCollection<Document> units = MetadataCollections.UNIT.getCollection();
         MongoCollection<Document> objectGroups = MetadataCollections.OBJECTGROUP.getCollection();
 
@@ -53,24 +54,39 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
     /**
      * private constructor for instance initialization. <br />
-     *
-     * @param mongoDbAccessMetadata
      */
-    private VitamRepositoryFactory(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
+    private VitamRepositoryFactory() {
         mongoRepository = new HashMap<>();
         esRepository = new HashMap<>();
-        initialize(mongoDbAccessMetadata);
     }
 
     /**
      * get Thread-Safe instance instance. <br/>
      *
-     * @param mongoDbAccessMetadata
      * @return current instance of VitamRepositoryFactory, create if null
      */
-    public static synchronized VitamRepositoryFactory getInstance(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
+    public static synchronized VitamRepositoryFactory getInstance() {
         if (instance == null) {
-            instance = new VitamRepositoryFactory(mongoDbAccessMetadata);
+            instance = new VitamRepositoryFactory();
+            instance.initialize();
+        }
+        return instance;
+    }
+
+    /**
+     * Used only for tests
+     * @param mongoRepository
+     * @param esRepository
+     * @return
+     */
+    @VisibleForTesting
+    public static synchronized VitamRepositoryFactory getInstance(
+        Map<MetadataCollections, VitamMongoRepository> mongoRepository,
+        Map<MetadataCollections, VitamElasticsearchRepository> esRepository) {
+        if (instance == null) {
+            instance = new VitamRepositoryFactory();
+            instance.mongoRepository = mongoRepository;
+            instance.esRepository = esRepository;
         }
         return instance;
     }

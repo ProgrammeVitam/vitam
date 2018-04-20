@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -82,9 +83,9 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     /**
      * VitamElasticsearchRepository Constructor
-     * 
-     * @param client the es client
-     * @param indexName the name of the index
+     *
+     * @param client        the es client
+     * @param indexName     the name of the index
      * @param indexByTenant specifies if the index is for a specific tenant or not
      */
     public VitamElasticsearchRepository(Client client, String indexName, boolean indexByTenant) {
@@ -165,6 +166,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
     }
 
     // TODO : This should be generic, but for now, we have a specific code to handle unit
+
     /**
      * Reindex Unit documents
      *
@@ -206,6 +208,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
     }
 
     // TODO : This should be generic, but for now, we have a specific code to handle logbook
+
     /**
      * Reindex Logbook documents
      *
@@ -522,4 +525,9 @@ public class VitamElasticsearchRepository implements VitamRepository {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
+    @Override
+    public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
+        // Not implement yet
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 }

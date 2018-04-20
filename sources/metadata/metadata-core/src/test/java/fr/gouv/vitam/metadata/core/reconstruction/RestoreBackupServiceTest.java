@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.core.reconstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -76,7 +77,7 @@ public class RestoreBackupServiceTest {
     public void setup() {
         storageClientFactory = Mockito.mock(StorageClientFactory.class);
         StorageClient storageClient = Mockito.mock(StorageClient.class);
-        Mockito.when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
     }
 
     @RunWithCustomExecutor
@@ -84,7 +85,7 @@ public class RestoreBackupServiceTest {
     public void should_get_listing_when_listing_units_and_storage_returns_response_ok()
         throws StorageServerClientException {
         // given
-        Mockito.when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
+        when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
@@ -98,13 +99,30 @@ public class RestoreBackupServiceTest {
         assertThat(listing.get(0).get(1).getFileName()).isEqualTo("101");
     }
 
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_get_latest_listing_when_listing_units_and_storage_returns_response_ok()
+        throws StorageServerClientException {
+        // given
+        when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, null, 1, Order.DESC))
+            .thenReturn(getListingOk(0L, 1L));
+        RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
+        // when
+        List<OfferLog> listing = restoreBackupService.getLatestLogs(STRATEGY_ID, DataCategory.UNIT, 1);
+        // then
+        assertThat(listing).isNotNull().isNotEmpty();
+        assertThat(listing.size()).isEqualTo(1);
+        assertThat(listing.get(0)).isNotNull();
+        assertThat(listing.get(0).getFileName()).isEqualTo("0");
+    }
+
     @RunWithCustomExecutor
     @Test
     public void should_get_listing_when_listing_gots_and_storage_returns_response_ok()
         throws StorageServerClientException {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.OBJECTGROUP, 100L, 2,
+        when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.OBJECTGROUP, 100L, 2,
                 Order.ASC))
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
@@ -125,7 +143,7 @@ public class RestoreBackupServiceTest {
     public void should_get_empty_listing_when_listing_units_and_storage_returns_empty_response_ok()
         throws StorageServerClientException {
         // given
-        Mockito.when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
+        when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
             .thenReturn(getListingOk(100L, -1L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
@@ -139,7 +157,7 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_listing_and_storage_returns_VitamError()
         throws StorageServerClientException {
         // given
-        Mockito.when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
+        when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
             .thenReturn(new VitamError("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
@@ -152,7 +170,7 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_listing_and_storage_throws_StorageServerClientException()
         throws StorageServerClientException {
         // given
-        Mockito.when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
+        when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
@@ -165,7 +183,7 @@ public class RestoreBackupServiceTest {
     public void should_get_unit_model_when_loading_unit_and_storage_returns_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        Mockito.when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_unit.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -187,8 +205,7 @@ public class RestoreBackupServiceTest {
     public void should_get_got_model_when_loading_got_and_storage_returns_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        Mockito
-            .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.OBJECTGROUP))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.OBJECTGROUP))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream("reconstruction_got.json"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
@@ -210,7 +227,7 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_metadata()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        Mockito.when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
             .thenReturn(
                 new FakeInboundResponse(Status.OK,
                     PropertiesUtils.getResourceAsStream("reconstruction_unit_no_metadata.json"),
@@ -228,7 +245,7 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_returns_file_unit_without_lfc()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        Mockito.when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
             .thenReturn(
                 new FakeInboundResponse(Status.OK,
                     PropertiesUtils.getResourceAsStream("reconstruction_unit_no_lfc.json"),
@@ -246,7 +263,7 @@ public class RestoreBackupServiceTest {
     public void should_get_null_when_loading_and_storage_not_ok()
         throws StorageServerClientException, StorageNotFoundException {
         // given
-        Mockito.when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
             .thenReturn(
                 new FakeInboundResponse(Status.INTERNAL_SERVER_ERROR, null, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                     null));
@@ -263,7 +280,7 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
         throws StorageServerClientException, StorageNotFoundException {
         // given
-        Mockito.when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
@@ -276,7 +293,7 @@ public class RestoreBackupServiceTest {
     public void should_throw_VitamRuntimeException_when_loading_and_storage_returns_invalid_file()
         throws StorageServerClientException, StorageNotFoundException, FileNotFoundException {
         // given
-        Mockito.when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
+        when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json", DataCategory.UNIT))
             .thenReturn(
                 new FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));

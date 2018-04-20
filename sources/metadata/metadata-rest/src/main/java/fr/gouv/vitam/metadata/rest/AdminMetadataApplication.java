@@ -47,6 +47,7 @@ import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Admin application.
@@ -73,9 +74,14 @@ public class AdminMetadataApplication extends Application {
             MongoDbAccessMetadataImpl mongoDbAccessMetadata =
                 MongoDbAccessMetadataFactory.create(metaDataConfiguration);
 
+            // TODO: Ugly fix as we have to change all unit test
+            if (null != metaDataConfiguration.getWorkspaceUrl() && !metaDataConfiguration.getWorkspaceUrl().isEmpty()) {
+                WorkspaceClientFactory.changeMode(metaDataConfiguration.getWorkspaceUrl());
+            }
+
             OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccessMetadata);
 
-            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance(mongoDbAccessMetadata);
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
 
             final MetadataReconstructionResource metadataReconstructionResource =
                 new MetadataReconstructionResource(vitamRepositoryProvider, offsetRepository);

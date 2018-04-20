@@ -53,7 +53,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -725,6 +724,12 @@ public class StorageDistributionImpl implements StorageDistribution {
                 description.append("Backup Operation ");
             case CHECKLOGBOOKREPORTS:
                 description.append("CHECKLOGBOOKREPORTS ");
+                break;
+            case UNIT_GRAPH:
+                description.append("UNIT_GRAPH ");
+                break;
+            case OBJECTGROUP_GRAPH:
+                description.append("OBJECTGROUP_GRAPH ");
                 break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
