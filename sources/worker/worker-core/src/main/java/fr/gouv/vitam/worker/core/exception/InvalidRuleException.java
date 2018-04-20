@@ -36,16 +36,28 @@ import fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin.UnitRulesCompute
 public class InvalidRuleException extends ProcessingException {
     
     private final UnitRulesComputeStatus unitRulesComputeStatus;
+    private final String objectId;
+
+
+    /**
+     * @param status the UnitRuleComputeStatus of the error
+     * @param cause the exception cause
+     * @param objectId the object in error
+     */
+    public InvalidRuleException(UnitRulesComputeStatus status, String cause, String objectId) {
+        super(cause);
+        this.unitRulesComputeStatus = status;
+        this.objectId = objectId;
+    }
 
     /**
      * InvalidRuleException constructor
-     * 
+     *
      * @param unitRulesComputeStatus
      * @param cause
      */
     public InvalidRuleException(UnitRulesComputeStatus unitRulesComputeStatus, String cause) {
-        super(cause);
-        this.unitRulesComputeStatus = unitRulesComputeStatus;
+        this(unitRulesComputeStatus, cause, "");
     }
 
     /**
@@ -55,4 +67,7 @@ public class InvalidRuleException extends ProcessingException {
         return unitRulesComputeStatus;
     }
 
+    public String getObjectId() {
+        return objectId;
+    }
 }

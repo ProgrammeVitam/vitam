@@ -34,6 +34,7 @@ public class SchemaValidationStatus {
 
     private String validationMessage;
     private SchemaValidationStatusEnum validationStatus;
+    private String objectId;
 
 
 
@@ -46,7 +47,16 @@ public class SchemaValidationStatus {
         this.validationStatus = validationStatus;
     }
 
-
+    /**
+     * Constructor used for error whith a linked objectId
+     * @param validationMessage message of the validation result
+     * @param validationStatus status of the validation
+     * @param objectId if od the object in error
+     */
+    public SchemaValidationStatus(String validationMessage, SchemaValidationStatusEnum validationStatus, String objectId) {
+        this(validationMessage, validationStatus);
+        this.objectId = objectId;
+    }
 
     /**
      * @return the validationMessage
@@ -88,7 +98,19 @@ public class SchemaValidationStatus {
         return this;
     }
 
+    /**
+     * @return the id of the object in error
+     */
+    public String getObjectId() {
+        return objectId;
+    }
 
+    /**
+     * @param objectId id of the object in error, used to fill LFC KO
+     */
+    public void setObjectId(String objectId) {
+        this.objectId = objectId;
+    }
 
     /**
      * Check AU Validation status values
@@ -125,8 +147,11 @@ public class SchemaValidationStatus {
         /**
          * Rule's date in bad format
          */
-        RULE_DATE_FORMAT;
-
+        RULE_DATE_FORMAT,
+        /**
+         * Rule's endDate is before rule's startDate
+         */
+        RULE_BAD_START_END_DATE;
     }
 
 }
