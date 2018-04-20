@@ -7,7 +7,7 @@
       "English title"
     ],
     "FilePlanPosition": ["Valeur de filePlanPosition"],
-    "SystemId": "abc",
+    "SystemId": ["abc"],
     "OriginatingSystemId": ["Valeur de OriginatingSystemId"],
     "ArchivalAgencyArchiveUnitIdentifier": [1231321354],
     "OriginatingAgencyArchiveUnitIdentifier": ["Valeur de\n                        originatingAgencyArchiveUnitIdentifier"],
@@ -18,7 +18,7 @@
     ],
     "Type": "Valeur du type",
     "DocumentType": "Documents de pr\u00e9sentation et de synth\u00e8se",
-    "Language": "FR",
+    "Language": ["FR"],
     "DescriptionLanguage": "FR",
     "Status": "Valeur de Status",
     "Version": "Valeur de version",
