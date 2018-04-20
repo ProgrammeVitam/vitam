@@ -649,6 +649,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName, objectName);
 
             Response response = workspace.getObject(containerName, objectName);
+
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(),

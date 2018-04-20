@@ -45,6 +45,7 @@ public class PopulateResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void populateVitam(PopulateModel populateModel) {
+
         populateService.populateVitam(populateModel);
     }
 

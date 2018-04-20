@@ -82,11 +82,11 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String LOGBOOK_CHECK = "/traceability/check";
 
     private static final String CHECKS_OPERATION_TRACEABILITY_OK = "Checks operation traceability is OK";
-    public static final String OBJECTS = "objects/";
-    public static final String DIPEXPORT = "dipexport/";
-    public static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
+    private static final String OBJECTS = "objects/";
+    private static final String DIPEXPORT = "dipexport/";
+    private static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
         "[Consistency ERROR] : An internal data consistency error has been detected !";
-    public static final String UNITS = "units";
+    private static final String UNITS = "units";
 
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);

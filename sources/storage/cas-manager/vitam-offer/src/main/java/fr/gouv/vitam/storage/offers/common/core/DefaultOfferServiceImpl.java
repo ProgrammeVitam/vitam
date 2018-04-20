@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,6 +53,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
@@ -117,8 +120,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public Response getObject(String containerName, String objectId)
         throws ContentAddressableStorageException {
+
         final Response response = defaultStorage.getObjectAsync(containerName, objectId);
-        return new VitamAsyncInputStreamResponse(response);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+            response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+
+        return new VitamAsyncInputStreamResponse(response, Response.Status.fromStatusCode(response.getStatus()), headers);
     }
 
     @Override

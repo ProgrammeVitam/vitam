@@ -319,7 +319,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getObject(@PathParam("type") DataCategory type, @NotNull @PathParam("id_object") String objectId,
-        @Context HttpHeaders headers) throws IOException {
+        @Context HttpHeaders headers) throws ContentAddressableStorageNotFoundException {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
             SanityChecker.checkParameter(objectId);

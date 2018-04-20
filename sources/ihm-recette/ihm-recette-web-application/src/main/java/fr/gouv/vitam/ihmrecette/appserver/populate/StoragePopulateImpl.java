@@ -72,12 +72,16 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DeleteThread;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.ThreadResponseData;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TransferThread;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TryAndRetryData;
@@ -94,6 +98,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoragePopulateImpl.class);
     private static final StorageStrategyProvider STRATEGY_PROVIDER =
         StorageStrategyProviderFactory.getDefaultProvider();
+    private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
 
@@ -122,6 +127,16 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         WorkspaceClientFactory.changeMode(urlWorkspace);
         millisecondsPerKB = configuration.getTimeoutMsPerKB();
         digestType = VitamConfiguration.getDefaultDigestType();
+    }
+
+    private static StorageOffer apply(OfferReference offerReference) {
+        StorageOffer storageOffer = null;
+        try {
+            storageOffer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
+        } catch (StorageException e) {
+           LOGGER.error(e);
+        }
+        return storageOffer;
     }
 
     /**
@@ -154,7 +169,12 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             }
 
             TryAndRetryData datas = new TryAndRetryData();
-            datas.populateFromOfferReferences(offerReferences);
+
+            List<StorageOffer> storageOffers = offerReferences.stream()
+                .map(StoragePopulateImpl::apply)
+                .collect(Collectors.toList());
+
+            datas.populateFromOffers(storageOffers);
 
             tryAndRetry(objectId, category, file, tenantId, datas, 1);
 
@@ -496,7 +516,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         } catch (StorageTechnicalException e) {
             LOGGER.error(e);
         }
-        
+
         return new ArrayList<>();
     }
 }

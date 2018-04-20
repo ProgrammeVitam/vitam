@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -58,6 +58,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 public class OfferLogDatabaseServiceTest {
 
     private static final String DATABASE_NAME = "Vitam-test";
+    private static final String CONTAINER_OBJECT_0 = "object_0";
+    private static final String CONTAINER_OBJECT_1 = "object_1";
 
     @Rule
     public MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
@@ -85,8 +87,8 @@ public class OfferLogDatabaseServiceTest {
             .thenReturn(1L)
             .thenReturn(2L);
         // when
-        offerLogDatabaseService.save("object_0", "object_name_0.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
         // then
         verify(offerSequenceDatabaseService, Mockito.times(2))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -96,13 +98,13 @@ public class OfferLogDatabaseServiceTest {
             .first();
         assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
         assertThat(firstOfferLog.get("Sequence")).isEqualTo(1);
-        assertThat(firstOfferLog.get("Container")).isEqualTo("object_0");
+        assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
         Document secondOfferLog = mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
             .find(Filters.and(Filters.eq("FileName", "object_name_0.json"), Filters.eq("Sequence", 2L)))
             .first();
         assertThat(secondOfferLog.get("FileName")).isEqualTo("object_name_0.json");
         assertThat(secondOfferLog.get("Sequence")).isEqualTo(2);
-        assertThat(secondOfferLog.get("Container")).isEqualTo("object_0");
+        assertThat(secondOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
     }
 
     @Test
@@ -113,8 +115,8 @@ public class OfferLogDatabaseServiceTest {
             .thenReturn(1L)
             .thenReturn(2L);
         // when
-        offerLogDatabaseService.save("object_0", "object_name_0.json", "write");
-        offerLogDatabaseService.save("object_1", "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", "write");
         // then
         verify(offerSequenceDatabaseService, Mockito.times(2))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -124,14 +126,14 @@ public class OfferLogDatabaseServiceTest {
             .first();
         assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
         assertThat(firstOfferLog.get("Sequence")).isEqualTo(1);
-        assertThat(firstOfferLog.get("Container")).isEqualTo("object_0");
+        assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
 
         Document secondOfferLog = mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
             .find(Filters.and(Filters.eq("FileName", "object_name_1.json"), Filters.eq("Sequence", 2L)))
             .first();
         assertThat(secondOfferLog.get("FileName")).isEqualTo("object_name_1.json");
         assertThat(secondOfferLog.get("Sequence")).isEqualTo(2);
-        assertThat(secondOfferLog.get("Container")).isEqualTo("object_1");
+        assertThat(secondOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_1);
     }
 
     @Test
@@ -142,7 +144,7 @@ public class OfferLogDatabaseServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(longSequence);
         // when
-        offerLogDatabaseService.save("object_0", "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
         // then
         verify(offerSequenceDatabaseService, Mockito.times(1))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -151,7 +153,7 @@ public class OfferLogDatabaseServiceTest {
             .find(Filters.and(Filters.eq("FileName", "object_name_0.json"))).first();
         assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
         assertThat(firstOfferLog.get("Sequence")).isEqualTo(longSequence);
-        assertThat(firstOfferLog.get("Container")).isEqualTo("object_0");
+        assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
     }
 
 
@@ -167,7 +169,7 @@ public class OfferLogDatabaseServiceTest {
 
         // when + then
         assertThatCode(() -> {
-            offerLogDatabaseService.save("object_0", "object_name_0.json", "write");
+            offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
         }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
     }
 
@@ -178,13 +180,13 @@ public class OfferLogDatabaseServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(1L)
             .thenReturn(2L).thenReturn(3L).thenReturn(4L).thenReturn(5L);
-        offerLogDatabaseService.save("object_0", "object_name_0.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_1.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_2.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_3.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_4.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", "write");
         // when
-        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog("object_0", 1L, 2, Order.ASC);
+        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 1L, 2, Order.ASC);
         // then
         verify(offerSequenceDatabaseService, Mockito.times(5))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -202,13 +204,13 @@ public class OfferLogDatabaseServiceTest {
         when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
             .thenReturn(1L)
             .thenReturn(2L).thenReturn(3L).thenReturn(4L).thenReturn(5L);
-        offerLogDatabaseService.save("object_0", "object_name_0.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_1.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_2.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_3.json", "write");
-        offerLogDatabaseService.save("object_0", "object_name_4.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_4.json", "write");
         // when
-        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog("object_0", 2L, 2, Order.DESC);
+        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 2L, 2, Order.DESC);
         // then
         verify(offerSequenceDatabaseService, Mockito.times(5))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
@@ -220,19 +222,98 @@ public class OfferLogDatabaseServiceTest {
     }
 
     @Test
+    public void get_documents_when_get_offer_log_from_0_limit_N_ASC_DESC()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        // given
+        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
+            .thenReturn(1L)
+            .thenReturn(2L)
+            .thenReturn(3L)
+            .thenReturn(4L)
+            .thenReturn(5L);
+
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", "write");
+
+        // then
+        verify(offerSequenceDatabaseService, Mockito.times(5))
+            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+
+        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 0L, 1, Order.DESC);
+        assertThat(offerLogs.size()).isEqualTo(0);
+
+        offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_1, 0L, 1, Order.ASC);
+        assertThat(offerLogs.size()).isEqualTo(1);
+        assertThat(offerLogs.get(0)).isNotNull();
+        assertThat(offerLogs.get(0).getSequence()).isEqualTo(4L);
+        assertThat(offerLogs.get(0).getFileName()).isEqualTo("object_name_1.json");
+    }
+
+    @Test
+    public void should_get_document_with_the_last_sequence_by_container_when_get_offer_log_from_null_limit_1_DESC()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+
+        // given
+        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
+            .thenReturn(1L)
+            .thenReturn(2L)
+            .thenReturn(3L)
+            .thenReturn(4L)
+            .thenReturn(5L)
+            .thenReturn(6L)
+            .thenReturn(7L);
+
+        // saving offerLog objects
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_0.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_2.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_0, "object_name_3.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_1.json", "write");
+        offerLogDatabaseService.save(CONTAINER_OBJECT_1, "object_name_2.json", "write");
+
+        // when
+        List<OfferLog> offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, null, 1, Order.DESC);
+
+        // then
+        verify(offerSequenceDatabaseService, Mockito.times(7))
+            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        assertThat(offerLogs.size()).isEqualTo(1);
+        assertThat(offerLogs.get(0)).isNotNull();
+        assertThat(offerLogs.get(0).getSequence()).isEqualTo(5L);
+        assertThat(offerLogs.get(0).getContainer()).isEqualTo(CONTAINER_OBJECT_0);
+        assertThat(offerLogs.get(0).getFileName()).isEqualTo("object_name_3.json");
+
+        // when
+        offerLogs = offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_1, null, 1, Order.DESC);
+
+        // then
+        verify(offerSequenceDatabaseService, Mockito.times(7))
+            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        assertThat(offerLogs.size()).isEqualTo(1);
+        assertThat(offerLogs.get(0)).isNotNull();
+        assertThat(offerLogs.get(0).getSequence()).isEqualTo(7L);
+        assertThat(offerLogs.get(0).getContainer()).isEqualTo(CONTAINER_OBJECT_1);
+        assertThat(offerLogs.get(0).getFileName()).isEqualTo("object_name_2.json");
+    }
+
+    @Test
     public void should_have_parse_error_when_document_invalid_time()
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // given
         Document documentInvalid = new Document();
         documentInvalid.put("Sequence", 1L);
         documentInvalid.put("FileName", "object_name_0.json");
-        documentInvalid.put("Container", "object_0");
-        documentInvalid.put("Time", "object_0");
+        documentInvalid.put("Container", CONTAINER_OBJECT_0);
+        documentInvalid.put("Time", CONTAINER_OBJECT_0);
         mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME).insertOne(documentInvalid);
 
         // when + then
         assertThatCode(() -> {
-            offerLogDatabaseService.searchOfferLog("object_0", 0L, 1, Order.ASC);
+            offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 0L, 1, Order.ASC);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
@@ -248,7 +329,7 @@ public class OfferLogDatabaseServiceTest {
 
         // when + then
         assertThatCode(() -> {
-            offerLogDatabaseService.searchOfferLog("object_0", 0L, 1, Order.ASC);
+            offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 0L, 1, Order.ASC);
         }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
     }
 }

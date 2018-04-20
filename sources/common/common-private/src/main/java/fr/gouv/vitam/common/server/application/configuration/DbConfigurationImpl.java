@@ -45,11 +45,6 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     private String dbPassword;
 
     /**
-     * Vitam Basic authentication -> username & password
-     */
-    private List<BasicAuthModel> adminBasicAuth;
-
-    /**
      * DbConfiguration empty constructor for YAMLFactory
      */
     public DbConfigurationImpl() {
@@ -59,8 +54,8 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     /**
      * DbConfiguration constructor with authentication
      *
-     * @param mongoDbNodes database server IP address and port
-     * @param dbName database name
+     * @param mongoDbNodes     database server IP address and port
+     * @param dbName           database name
      * @param dbAuthentication
      * @param dbUserName
      * @param dbPassword
@@ -87,7 +82,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * DbConfiguration constructor
      *
      * @param mongoDbNodes database server IP address and port
-     * @param dbName database name
+     * @param dbName       database name
      * @throws IllegalArgumentException if host or dbName null or empty, or if port <= 0
      */
     public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName) {
@@ -184,11 +179,4 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         return this;
     }
 
-    public List<BasicAuthModel> getAdminBasicAuth() {
-        return adminBasicAuth;
-    }
-
-    public void setAdminBasicAuth(List<BasicAuthModel> adminBasicAuth) {
-        this.adminBasicAuth = adminBasicAuth;
-    }
 }

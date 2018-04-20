@@ -63,9 +63,6 @@ public enum VitamCode {
         "missing"),
     STORAGE_BAD_REQUEST(ServiceName.STORAGE, DomainName.ILLEGAL, "01", Status.PRECONDITION_FAILED,
         "Storage Engine received a bad request "),
-    STORAGE_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "00", Status.NOT_FOUND, "Storage not found"),
-    STORAGE_TECHNICAL_INTERNAL_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "01", Status.INTERNAL_SERVER_ERROR,
-        "Storage technical error"),
     STORAGE_STRATEGY_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "02", Status.NOT_FOUND, "No suitable strategy" +
         " found to be able to store data"),
     STORAGE_OFFER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "03", Status.NOT_FOUND, "No suitable offer found" +
@@ -91,11 +88,16 @@ public enum VitamCode {
         " initialize FileDriverMapper, error on configuration file, please check it"),
     STORAGE_DRIVER_OBJECT_ALREADY_EXISTS(ServiceName.STORAGE, DomainName.ILLEGAL, "13", Status.METHOD_NOT_ALLOWED,
         "Cannot override an existing object (%s)"),
-    STORAGE_CONTAINER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "13", Status.NOT_FOUND,
+    STORAGE_CONTAINER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "14", Status.NOT_FOUND,
         "Container with name %s not " +
             "found in all strategy"),
-    STORAGE_GET_OFFER_LOG_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "14", Status.INTERNAL_SERVER_ERROR,
+    STORAGE_GET_OFFER_LOG_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "15", Status.INTERNAL_SERVER_ERROR,
         "Cannot retrieve objects stored on container"),
+    STORAGE_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "16", Status.NOT_FOUND, "Storage not found"),
+    STORAGE_TECHNICAL_INTERNAL_ERROR(ServiceName.STORAGE, DomainName.STORAGE, "17", Status.INTERNAL_SERVER_ERROR,
+        "Storage technical error"),
+    STORAG_EMPTY_PARAMTER(ServiceName.STORAGE, DomainName.STORAGE, "18", Status.PRECONDITION_FAILED,
+        "No offer identifier specified, this is mandatory"),
 
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),
