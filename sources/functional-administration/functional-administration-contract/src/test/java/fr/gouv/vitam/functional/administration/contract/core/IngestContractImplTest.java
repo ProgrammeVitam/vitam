@@ -17,6 +17,7 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -86,6 +87,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -166,6 +168,11 @@ public class IngestContractImplTest {
         ingestContractService.close();
     }
 
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+
+    }
     @After
     public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
@@ -586,7 +593,7 @@ public class IngestContractImplTest {
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
         ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
-        
+
         final RequestResponseOK<IngestContractModel> ingestContractModelListForassert2 =
             ingestContractService.findContracts(queryDsl2);
         assertThat(ingestContractModelListForassert2.getResults()).isNotEmpty();
@@ -597,13 +604,13 @@ public class IngestContractImplTest {
             assertThat(ingestContractModel.getLinkParentId()).isEqualTo("");
             assertThat(ActivationStatus.INACTIVE.equals(ingestContractModel.getCheckParentLink()));
         }
-        
+
         // we try to update ingest contract with same value -> Bad Request
         RequestResponse responseUpdate =
             ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
         assertThat(!responseUpdate.isOk());
         assertEquals(responseUpdate.getStatus(), StatusCode.BAD_REQUEST.getCode());
-        
+
     }
 
 
@@ -660,7 +667,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-        });
+            });
         final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(response).isInstanceOf(VitamError.class);
@@ -681,7 +688,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-        });
+            });
         final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -701,8 +708,8 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
         final List<IngestContractModel> ingestModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            });
         final RequestResponse response = ingestContractService.createContracts(ingestModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -734,14 +741,14 @@ public class IngestContractImplTest {
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
         RequestResponse<IngestContractModel> updateContractStatus =
-                ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
+            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
         assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         List<VitamError> errors = ((VitamError) updateContractStatus).getErrors();
         assertThat(VitamLogbookMessages.getFromFullCodeKey(errors.get(0).getMessage()).equals(
             "Échec du processus de mise à jour du contrat d'entrée : une valeur ne correspond pas aux valeurs attendues")
         ).isTrue();
-        
+
         final UpdateParserSingle updateParser2 = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setCheckParentLinkStatusInactive = UpdateActionHelper.set("CheckParentLink", "INVALID_STATUS");
         final Update update2 = new Update();
@@ -751,7 +758,7 @@ public class IngestContractImplTest {
         JsonNode queryDslForUpdate2 = updateParser2.getRequest().getFinalUpdate();
 
         RequestResponse<IngestContractModel> updateCheckParentLinkStatus =
-                ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate2);
+            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate2);
         assertTrue(updateCheckParentLinkStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateCheckParentLinkStatus).isInstanceOf(VitamError.class);
     }

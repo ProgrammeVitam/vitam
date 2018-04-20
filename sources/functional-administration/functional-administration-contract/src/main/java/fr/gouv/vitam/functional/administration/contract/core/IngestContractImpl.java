@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -77,6 +78,7 @@ import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
@@ -178,8 +180,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.INGEST_CONTRACT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
 
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
         IngestContractManager manager = new IngestContractManager(logbookClient, metaDataClient, eip);
         manager.logStarted();
@@ -757,7 +760,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     StatusCode.KO).setMessage(UPDATE_CONTRACT_NOT_FOUND));
         }
 
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
 
         IngestContractManager manager = new IngestContractManager(logbookClient, metaDataClient, eip);
 

@@ -3,6 +3,7 @@ package fr.gouv.vitam.functional.administration.rest;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -192,6 +193,7 @@ public class SecurityProfileResourceTest {
     @RunWithCustomExecutor
     public void givenAWellFormedContextJsonThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         File fileContexts = PropertiesUtils.getResourceFile("security_profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileContexts);
@@ -201,6 +203,7 @@ public class SecurityProfileResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -209,12 +212,14 @@ public class SecurityProfileResourceTest {
         JsonNode updateSecurityProfileJson = JsonHandler.getFromFile(updateSecurityProfile);
         given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().put(SecurityProfileResource.SECURITY_PROFILE_URI + "/SEC_PROFILE-000001")
             .then().statusCode(Status.OK.getStatusCode());
 
         // we update an unexisting security profile -> 404
         given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().put(SecurityProfileResource.SECURITY_PROFILE_URI + "/wrongId")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }

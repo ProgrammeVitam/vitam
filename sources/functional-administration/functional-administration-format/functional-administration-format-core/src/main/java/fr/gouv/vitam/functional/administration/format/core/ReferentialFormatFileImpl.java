@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -46,6 +47,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
@@ -184,18 +186,18 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
     private GUID createLogbook() throws ReferentialException {
 
-        final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-
-        final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-                LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip;
         try {
-
+           eip = GUIDReader.getGUID(operationId);
+            final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
             logbookOperationsClient.create(logbookParametersStart);
 
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
+            LogbookClientServerException| InvalidGuidOperationException e) {
             LOGGER.error(e);
             throw new ReferentialException(e);
         }

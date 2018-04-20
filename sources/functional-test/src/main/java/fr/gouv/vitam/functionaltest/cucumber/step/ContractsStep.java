@@ -55,6 +55,7 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -174,6 +175,9 @@ public class ContractsStep {
                         new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                         inputStream);
 
+                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                world.setOperationId(operationId);
+
                 if (!withoutFailure) {
                     assertThat(response.isOk()).isTrue();
                 }
@@ -212,6 +216,8 @@ public class ContractsStep {
                 if (!withoutFailure) {
                     assertThat(response.isOk()).isTrue();
                 }
+                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                world.setOperationId(operationId);
 
 
                 final List<IngestContractModel> ingestContractModelList =
@@ -289,6 +295,11 @@ public class ContractsStep {
                     world.getAdminClient().createAccessContracts(
                         new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                         inputStream);
+
+                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                world.setOperationId(operationId);
+
+
                 // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
                 assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
             } else if (AdminCollections.INGEST_CONTRACTS.equals(collection)) {
@@ -296,6 +307,9 @@ public class ContractsStep {
                     world.getAdminClient().createIngestContracts(
                         new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                         inputStream);
+
+                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                world.setOperationId(operationId);
                 // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
                 assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
             }
@@ -388,5 +402,8 @@ public class ContractsStep {
             default:
                 throw new VitamClientException("Contract type not valid");
         }
+
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
     }
 }

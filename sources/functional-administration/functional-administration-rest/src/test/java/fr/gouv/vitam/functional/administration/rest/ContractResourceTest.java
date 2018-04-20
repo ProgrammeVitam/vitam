@@ -32,6 +32,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -75,6 +76,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -100,6 +102,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -154,6 +157,11 @@ public class ContractResourceTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchAccessFunctionalAdmin esClient;
+
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -287,6 +295,7 @@ public class ContractResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ContractResource.INGEST_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -298,6 +307,7 @@ public class ContractResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         List<String> result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().get(ContractResource.INGEST_CONTRACTS_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Name");
 
@@ -313,6 +323,7 @@ public class ContractResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ContractResource.INGEST_CONTRACTS_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -326,6 +337,7 @@ public class ContractResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ContractResource.INGEST_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -340,6 +352,7 @@ public class ContractResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ContractResource.ACCESS_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -351,6 +364,7 @@ public class ContractResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ContractResource.ACCESS_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -362,6 +376,7 @@ public class ContractResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ContractResource.INGEST_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -390,10 +405,13 @@ public class ContractResourceTest {
         List<String> ids = selectContractByName("aName", ContractResource.ACCESS_CONTRACTS_URI);
 
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/" + ids.get(0)).then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
             .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/wrongId").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -409,6 +427,8 @@ public class ContractResourceTest {
         // find accessContract with the id1 should return Status.OK
         JsonPath body = given().contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
+
             .body(queryDsl)
             .when()
             .get(resource)
@@ -447,10 +467,14 @@ public class ContractResourceTest {
 
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/" + ids.get(0)).then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/wrongId").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
@@ -468,6 +492,8 @@ public class ContractResourceTest {
         // first succefull create
         JsonPath body = given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(ContractResource.ACCESS_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode()).extract().body().jsonPath();
 
@@ -489,6 +515,8 @@ public class ContractResourceTest {
         // find accessContract with the id1 should return Status.OK
         body = given().contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
+
             .body(queryDsl)
             .when()
             .get(ContractResource.ACCESS_CONTRACTS_URI)

@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -185,7 +186,9 @@ public class ContextServiceImpl implements ContextService {
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.CONTEXT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
 
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
+
 
         ContextManager manager = new ContextManager(logbookClient, accessContract, ingestContract,
             securityProfileService, eip);
@@ -313,7 +316,9 @@ public class ContextServiceImpl implements ContextService {
 
         final ContextModel contextModel = findOneContextById(id);
 
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
 
         ContextManager manager = new ContextManager(logbookClient, accessContract, ingestContract,
             securityProfileService, eip);

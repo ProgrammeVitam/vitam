@@ -45,6 +45,7 @@ import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -120,7 +121,8 @@ public class ContextStep {
 
         final RequestResponse response = world.getAdminClient()
             .createContexts(vitamContext, Files.newInputStream(context, StandardOpenOption.READ));
-
+        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
         assertThat(response.isOk()).isTrue();
     }
 
@@ -137,6 +139,8 @@ public class ContextStep {
             world.getAdminClient().createContexts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 Files.newInputStream(context, StandardOpenOption.READ));
+        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
         assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
     }
 
@@ -161,6 +165,8 @@ public class ContextStep {
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient().updateContext(context, contextIdentifier, queryDsl);
         assertThat(requestResponse.getHttpCode()).isEqualTo(status);
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
 
     }
 
@@ -182,7 +188,8 @@ public class ContextStep {
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient().updateContext(context, contextIdentifier, queryDsl);
         assertThat(requestResponse.getHttpCode()).isEqualTo(status);
-
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
     }
 
 

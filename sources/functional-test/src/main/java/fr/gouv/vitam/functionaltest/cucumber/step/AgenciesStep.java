@@ -34,6 +34,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -116,6 +117,9 @@ public class AgenciesStep {
                     .createAgencies(new VitamContext(world.getTenantId()), inputStream,
                         fileName);
             assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
+
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            world.setOperationId(operationId);
         } catch (Exception e) {
             fail("should not produce this exception", e);
         }

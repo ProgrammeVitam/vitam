@@ -28,6 +28,7 @@ package fr.gouv.vitam.reconstruction.integration.test;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -334,6 +335,7 @@ public class BackupAndReconstructionFunctionalAdminIT {
     public void testReconstructionAgenciesOk() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
         // Import 1 document agencies
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -394,6 +396,7 @@ public class BackupAndReconstructionFunctionalAdminIT {
         assertThat(inEs11).isEqualTo(inEs11Reconstructed);
 
         // Import 2 documents agencies
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
         // Create and save some backup files for reconstruction.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -479,6 +482,7 @@ public class BackupAndReconstructionFunctionalAdminIT {
     public void testReconstructionSecurityProfileOk() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
         // Import 1 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -539,6 +543,7 @@ public class BackupAndReconstructionFunctionalAdminIT {
 
         assertThat(inMogo11).isEqualTo(inMogo11Reconstructed);
         assertThat(inEs11).isEqualTo(inEs11Reconstructed);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
         // Import 2 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {

@@ -4,9 +4,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,12 +18,14 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -75,7 +79,6 @@ public class ContextResourceTest {
     private static final String STATUS_URI = "/status";
 
     private static final int TENANT_ID = 0;
-
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoDbAccessReferential mongoDbAccess;
@@ -166,9 +169,7 @@ public class ContextResourceTest {
                 "Cannot start the AdminManagement Application Server", e);
         }
 
-        // Create initial security context
-        File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
-        JsonNode secProfileJson = JsonHandler.getFromFile(securityProfileFile);
+
 
         // Mock workspace API
         workspaceWireMock.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
@@ -179,11 +180,25 @@ public class ContextResourceTest {
                 aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
 
         // Create security profile
-        given().contentType(ContentType.JSON).body(secProfileJson)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
     }
+
+    private static void createSecurityProfile() throws Exception {
+        // Create initial security context
+            File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
+            JsonNode secProfileJson = JsonHandler.getFromFile(securityProfileFile);
+            given().contentType(ContentType.JSON).body(secProfileJson)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
+                .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+    }
+
+
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
@@ -221,6 +236,7 @@ public class ContextResourceTest {
     @RunWithCustomExecutor
     public void givenAWellFormedContextJsonThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        createSecurityProfile();
 
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileContexts);
@@ -230,12 +246,16 @@ public class ContextResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(ContextResource.CONTEXTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         // we try to update an unexisting id
         given().contentType(ContentType.JSON).body(JsonHandler.createArrayNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().put(ContextResource.UPDATE_CONTEXT_URI + "/wrongId")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -253,6 +273,8 @@ public class ContextResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(ContextResource.CONTEXTS_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
