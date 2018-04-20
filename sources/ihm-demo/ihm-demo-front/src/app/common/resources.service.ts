@@ -11,7 +11,6 @@ const TENANT_COOKIE = 'tenant';
 const CONTRACT_COOKIE = 'accessContract';
 const BASE_URL = '/ihm-demo/v1/api/';
 const TENANTS = 'tenants';
-const LANGUAGE_URL = '../../assets/languages.json';
 
 @Injectable()
 export class ResourcesService {
@@ -89,10 +88,6 @@ export class ResourcesService {
   removeSessionInfo() {
     localStorage.removeItem(TENANT_COOKIE);
     localStorage.removeItem(CONTRACT_COOKIE);
-  }
-
-  getLanguagesFile(): Observable<any> {
-    return this.http.get(LANGUAGE_URL);
   }
 
   private setDefaultHeader(header?: HttpHeaders) {

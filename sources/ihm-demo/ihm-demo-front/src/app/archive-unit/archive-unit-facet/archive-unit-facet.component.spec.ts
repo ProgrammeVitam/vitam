@@ -1,7 +1,6 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA, ChangeDetectorRef } from '@angular/core';
 import { ArchiveUnitFacetComponent } from './archive-unit-facet.component';
-import { ResourcesService } from '../../common/resources.service';
 import { CookieService } from 'angular2-cookie/core';
 import { HttpClient, HttpHandler } from '@angular/common/http';
 import { DialogService } from '../../common/dialog/dialog.service';
@@ -12,7 +11,6 @@ import { RouterTestingModule } from '@angular/router/testing';
 describe('ArchiveUnitFacetComponent', () => {
   let component: ArchiveUnitFacetComponent;
   let fixture: ComponentFixture<ArchiveUnitFacetComponent>;
-  let resourcesService: ResourcesService;
 
   const mapFacetField = new Map()
     .set('DescriptionLevelFacet', 'DescriptionLevel')
@@ -25,7 +23,6 @@ describe('ArchiveUnitFacetComponent', () => {
       imports: [RouterTestingModule],
       declarations: [ArchiveUnitFacetComponent],
       providers: [
-        ResourcesService,
         ChangeDetectorRef,
         CookieService,
         HttpClient,
@@ -55,25 +52,13 @@ describe('ArchiveUnitFacetComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should use resourcesService', () => {
-    const stubLanguages = ['fr', 'en'];
-    resourcesService = TestBed.get(ResourcesService);
-    const resourcesServiceSpy = spyOn(resourcesService, 'getLanguagesFile').and.returnValue(
-      Observable.of(stubLanguages)
-    );
+  it('should initialize facets', () => {
     component.ngOnInit();
+    expect(component.mapFacetField.size).toEqual(41);
+    expect(component.titleLangFacets.length).toEqual(35);
+    expect(component.titleLangFacets[0]).toEqual('Title_ar');
+    expect(component.titleLangFacets[1]).toEqual('Title_bn');
 
-    expect(resourcesServiceSpy).toHaveBeenCalled();
-    expect(resourcesServiceSpy.calls.count())
-      .toBe(1, 'spy getLanguagesFile method was called once');
-
-    expect(component.mapFacetField.size).toEqual(9);
-    expect(component.titleLangFacets.length).toEqual(2);
-    expect(component.titleLangFacets[0]).toEqual('Title_fr');
-    expect(component.titleLangFacets[1]).toEqual('Title_en');
-    expect(component.descriptionLangFacets.length).toEqual(2);
-    expect(component.descriptionLangFacets[0]).toEqual('Description_fr');
-    expect(component.descriptionLangFacets[1]).toEqual('Description_en');
   });
 
   it('should construct an array of facets with different types', () => {
@@ -94,30 +79,30 @@ describe('ArchiveUnitFacetComponent', () => {
   });
 
   it('should use filters query', () => {
-    component.descriptionLangFacets = ['Description_fr', 'Description_en'];
-    component.selectedFacets = ['LanguageDescFacet'];
-    component.mapFacetField.set('Description_fr', 'Description_.fr');
-    component.mapFacetField.set('Description_en', 'Description_.en');
+    component.descriptionLangFacets = ['Title_ar', 'Title__bn'];
+    component.selectedFacets = ['LanguageTitleFacet'];
+    component.mapFacetField.set('Title_ar', 'Title_.ar');
+    component.mapFacetField.set('Title_bn', 'Title_.bn');
 
     const expectedFilters = [{
-      '$name': 'Description_fr',
+      '$name': 'Title_ar',
       '$query':
         {
-          '$exists': 'Description_.fr'
+          '$exists': 'Title_.ar'
         }
     }, {
-      '$name': 'Description_en',
+      '$name': 'Title_bn',
       '$query':
         {
-          '$exists': 'Description_.en'
+          '$exists': 'Title_.bn'
         }
     }];
     component.searchFacets();
 
     expect(component.facets.length).toEqual(1);
-    expect(component.facets[0].name).toEqual('LanguageDescFacet');
+    expect(component.facets[0].name).toEqual('LanguageTitleFacet');
     expect(component.facets[0].facetType).toEqual('FILTERS');
-    expect(component.facets[0].filters.length).toEqual(2);
+    expect(component.facets[0].filters.length).toEqual(35);
     expect(component.facets[0].filters[0]).toEqual(expectedFilters[0]);
     expect(component.facets[0].filters[1]).toEqual(expectedFilters[1])
 

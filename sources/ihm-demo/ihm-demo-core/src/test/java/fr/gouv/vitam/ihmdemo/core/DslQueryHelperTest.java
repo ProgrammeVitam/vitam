@@ -216,11 +216,15 @@ public class DslQueryHelperTest {
             new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges, null),
 
             new FacetItem("LanguageTitleFacet", FacetType.FILTERS, null, null, null, null, null, titlesfilters),
+
+            new FacetItem("LanguageFacet", FacetType.TERMS, "Language", 100, FacetOrder.ASC, null,
+                null, null),
+
             new FacetItem("LanguageDescFacet", FacetType.FILTERS, null, null, null, null, null, descriptionfilters),
 
             new FacetItem("ObjectFacet", FacetType.FILTERS, null, null, null, null, null, objectfilters)
 
-            );
+        );
 
         queryMap.put("facets", facetItems);
 
@@ -241,7 +245,7 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getFilter().get("$orderby") != null);
         assertTrue(selectParser.getRequest().getProjection().size() == 1);
 
-        assertTrue(selectParser.getRequest().getFacets().size() == 7);
+        assertTrue(selectParser.getRequest().getFacets().size() == 8);
 
         assertTrue(selectParser.getRequest().getFacets().get(0).toString().contains(
             "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
@@ -259,9 +263,12 @@ public class DslQueryHelperTest {
             "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(5).toString().contains(
-            "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
+            "{\"$name\":\"LanguageFacet\",\"$terms\":{\"$field\":\"Language\",\"$size\":100,\"$order\":\"ASC\"}}"));
 
         assertTrue(selectParser.getRequest().getFacets().get(6).toString().contains(
+            "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
+
+        assertTrue(selectParser.getRequest().getFacets().get(7).toString().contains(
             "{\"$name\":\"ObjectFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"ExistsObject\",\"$query\":{\"$exists\":\"#object\"}},{\"$name\":\"MissingObject\",\"$query\":{\"$missing\":\"#object\"}}]}}"));
 
     }

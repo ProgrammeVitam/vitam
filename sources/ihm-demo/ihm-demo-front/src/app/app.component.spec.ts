@@ -6,7 +6,7 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
 import {AuthenticationService} from './authentication/authentication.service';
-import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
+import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 
 
 const AuthenticationServiceStub = {
