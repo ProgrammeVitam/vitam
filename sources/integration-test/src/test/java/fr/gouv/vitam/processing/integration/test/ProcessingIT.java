@@ -1325,7 +1325,9 @@ public class ProcessingIT {
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        //N.B : The old status StatusCode.KO is do to Invalid content in manifest (validation ko against old SEDA 2.0 of no FormatIdentification tag)
+        //In Seda 2.1 this is authorize and test pass to warning result status
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
     }
 
 
