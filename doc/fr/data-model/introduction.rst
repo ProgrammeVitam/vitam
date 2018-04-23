@@ -5,14 +5,14 @@ Avertissement
 =============
 
 Ce document fait état du travail en cours. Il est susceptible de changer de manière conséquente au fur et à mesure de l'avancée des développements.
-   
+
 Objectif du document
 ====================
 
 Ce document a pour objectif de présenter la structure générale des collections utilisées dans la solution logicielle Vitam.
 Il est destiné principalement aux développeurs, afin de leur présenter l'organisation des données dans la solution logicielle Vitam, ainsi qu'à tous les autres acteurs du programme pour leur permettre de connaître ce qui existe en l'état actuel.
 
-Il explicite chaque champ, précise la relation avec les sources (par exemple bordereau de transfert conforme au standard SEDA v.2.0, référentiel Pronom, etc...) et la structuration JSON stockée dans la base de données MongoDB. Ce document est structuré de façon à suivre l'ordre des bases et collections dans Mongo.
+Il explicite chaque champ, précise la relation avec les sources (par exemple bordereau de transfert conforme au standard SEDA v.2.1, référentiel Pronom, etc...) et la structuration JSON stockée dans la base de données MongoDB. Ce document est structuré de façon à suivre l'ordre des bases et collections dans Mongo.
 
 Pour chacun des champs, cette documentation apporte :
 
@@ -46,7 +46,7 @@ Les champs des fichiers JSON présents dans les collections peuvent être nommé
 
 * "champ" : un champ sans underscore est modifiable via les API.
 * "_champ" : un champ ayant avec un underscore n'est pas modifiable via les API. Une fois renseigné dans la solution logicielle Vitam par le bordereau de transfert ou la solution logicielle Vitam, il ne pourra plus être modifié depuis l’extérieur.
-  
+
 Collections et bases
 --------------------
 
@@ -63,7 +63,7 @@ Il existe plusieurs types d'identifiant :
 	* PUID : identifiant des formats dans le référentiel Pronom
 	* PID : identifiant de processus Unix
 
-Dates 
+Dates
 -----
 
 Toutes les dates décrites dans ce document sont au format ISO 8601.
