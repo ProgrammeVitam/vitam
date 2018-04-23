@@ -67,7 +67,7 @@ describe('ArchiveUnitFacetComponent', () => {
     expect(resourcesServiceSpy.calls.count())
       .toBe(1, 'spy getLanguagesFile method was called once');
 
-    expect(component.mapFacetField.size).toEqual(8);
+    expect(component.mapFacetField.size).toEqual(9);
     expect(component.titleLangFacets.length).toEqual(2);
     expect(component.titleLangFacets[0]).toEqual('Title_fr');
     expect(component.titleLangFacets[1]).toEqual('Title_en');

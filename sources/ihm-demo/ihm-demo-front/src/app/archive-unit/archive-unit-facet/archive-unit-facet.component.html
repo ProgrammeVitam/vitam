@@ -84,6 +84,24 @@
         </div>
       </p-scrollPanel>
     </div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
+        <div style="padding:1em;line-height:1.5">
+          <p-checkbox value="ObjectFacet" label="Unités archivistiques avec et sans objets" [(ngModel)]="selectedFacets" inputId="of" #oFacet></p-checkbox>
+          <div *ngIf="objectFacets" style="padding:1em;line-height:1">
+            <div *ngFor="let item of objectFacets" style="margin-right:10px">
+              <a (click)="research(item.value, oFacet.value)" *ngIf="(item.value === 'FacetWithObject')">
+                  Unités archivistiques avec objets ({{item.count}})
+              </a>
+              <a (click)="research(item.value, oFacet.value)" *ngIf="(item.value === 'FacetWithoutObject')">
+                  Unités archivistiques sans objet ({{item.count}})
+                </a>
+            </div>
+          </div>
+        </div>
+      </p-scrollPanel>
+    </div>
+
     <div class="ui-g-12">
       <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer" (click)="clearFacets()" [disabled]="disabledFacet"></button>
       <button pButton type="button" (click)="searchFacets()" label="Rechercher" icon="fa-search" [disabled]="disabledFacet"></button>

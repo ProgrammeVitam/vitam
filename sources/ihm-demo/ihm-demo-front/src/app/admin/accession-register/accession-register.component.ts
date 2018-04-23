@@ -28,17 +28,17 @@ export class AccessionRegisterSearchComponent extends PageComponent {
   public extraColumns: ColumnDefinition[] = [];
 
 
-  constructor(private activatedRoute: ActivatedRoute, private router : Router,
+  constructor(private activatedRoute: ActivatedRoute, private router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService) {
+              private searchReferentialsService: ReferentialsService) {
     super('Recherche par service producteur', [], titleService, breadcrumbService);
 
 
-    this.breadcrumbName = "Recherche par service producteur";
+    this.breadcrumbName = 'Recherche par service producteur';
     this.referentialData = [
-      new FieldDefinition('AgencyName', "Intitulé", 4, 10),
-      FieldDefinition.createIdField('AgencyID', "Identifiant", 4, 10),
-      new FieldDefinition('Description', "Description", 4, 10)
+      new FieldDefinition('AgencyName', 'Intitulé', 4, 10),
+      FieldDefinition.createIdField('AgencyID', 'Identifiant', 4, 10),
+      new FieldDefinition('Description', 'Description', 4, 10)
     ];
 
     this.columns = [
@@ -56,13 +56,15 @@ export class AccessionRegisterSearchComponent extends PageComponent {
     ]);
 
     this.searchReferentialsService.setSearchAPI('admin/accession-register');
-    this.searchReferentialsService.getResults({"ACCESSIONREGISTER":"ACCESSIONREGISTER","orderby":{"field":"OriginatingAgency","sortType":"ASC"}}).subscribe(
+    this.searchReferentialsService
+    .getResults({'ACCESSIONREGISTER':'ACCESSIONREGISTER','orderby':{'field':'OriginatingAgency','sortType':'ASC'}})
+    .subscribe(
         data => {
-        for ( let register of data.$results) {
+        for ( const register of data.$results) {
           this.fundRegisters.push(register.OriginatingAgency);
         }
         this.searchReferentialsService.setSearchAPI('agencies');
-        this.searchForm = {"AgencyID":"all","AgencyName":"all","orderby":{"field":"Name","sortType":"ASC"}};
+        this.searchForm = {'AgencyID': 'all', 'AgencyName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
 
         this.searchReferentialsService.getResults(this.searchForm).subscribe(
             data => {

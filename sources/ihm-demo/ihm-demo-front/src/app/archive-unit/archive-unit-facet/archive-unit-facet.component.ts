@@ -44,6 +44,7 @@ export class ArchiveUnitFacetComponent implements OnInit {
   mapFacetField: Map<String, String>;
   titleLangFacets: string[] = [];
   descriptionLangFacets: string[] = [];
+  objectFacets: string[] = [];
 
   @Input() service: any;
   @Input() preSearch: (request: any, advancedMode?: boolean) => Preresult = (x) => x;
@@ -57,7 +58,8 @@ export class ArchiveUnitFacetComponent implements OnInit {
       .set('DescriptionLevelFacet', 'DescriptionLevel')
       .set('OriginatingAgencyFacet', '#originating_agency')
       .set('StartDateFacet', 'StartDate')
-      .set('endDateFacet', 'EndDate');
+      .set('endDateFacet', 'EndDate')
+      .set('ObjectFacet', '#object');
 
     this.resourceService.getLanguagesFile()
       .subscribe(
@@ -102,6 +104,10 @@ export class ArchiveUnitFacetComponent implements OnInit {
           }
           case 'endDateFacet': {
             this.facetEDResults = facetResult.buckets;
+            break;
+          }
+          case 'ObjectFacet': {
+            this.objectFacets = facetResult.buckets;
             break;
           }
           default: {
@@ -163,7 +169,7 @@ export class ArchiveUnitFacetComponent implements OnInit {
           facetCriteria.name = 'endDateFacet';
           facetCriteria.field = 'EndDate';
           facetCriteria.format = 'yyyy',
-          dateRangeCriteria.dateMin = this.rangeEndDate[0];
+            dateRangeCriteria.dateMin = this.rangeEndDate[0];
           dateRangeCriteria.dateMax = this.rangeEndDate[1];
           facetCriteria.ranges = new Array(dateRangeCriteria);
           facetCriteria.facetType = 'DATE_RANGE';
@@ -184,13 +190,34 @@ export class ArchiveUnitFacetComponent implements OnInit {
           facets.push(facetCriteria);
           break;
         }
+        case 'ObjectFacet': {
+          facetCriteria.name = 'ObjectFacet';
+          facetCriteria.facetType = 'FILTERS';
+          const filtersQuery: any = [];
+          filtersQuery.push({
+            '$name': 'FacetWithObject',
+            '$query':
+              {
+                '$exists': '#object'
+              }
+          });
+          filtersQuery.push({
+            '$name': 'FacetWithoutObject',
+            '$query':
+              {
+                '$missing': '#object'
+              }
+          });
+          facetCriteria.filters = filtersQuery;
+          facets.push(facetCriteria);
+          break;
+        }
         default: {
           console.log('No matchs');
           break;
         }
       }
     }
-
     this.searchRequest.facets = this.facets;
     delete this.searchRequest.requestFacet;
 

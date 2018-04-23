@@ -103,6 +103,7 @@
         "max": 1
       },
       "$exists": "string",
+      "$missing": "string",
       "$ne": {
         "format": "anykey",
         "itemtype": "anyvalue",
