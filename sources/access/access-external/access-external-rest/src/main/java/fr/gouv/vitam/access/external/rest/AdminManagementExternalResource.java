@@ -142,6 +142,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Deprecated
     private static final String CODE_VITAM = "code_vitam";
     private static final String HTML_CONTENT_MSG_ERROR = "document has toxic HTML content";
+    private static final String AGENCIES = "agencies";
+    private static final String RULES = "rules";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private static final AlertService alertService = new AlertServiceImpl();
@@ -338,7 +340,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a rules document
      *
-     * @param headers http headers
+     * @param headers  http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -652,7 +654,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {
+                        }));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -698,7 +701,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {}));
+                    new TypeReference<List<ArchiveUnitProfileModel>>() {
+                    }));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -716,9 +720,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a Profile file document (xsd or rng, ...)
      *
-     * @param uriInfo used to construct the created resource and send it back as location in the response
+     * @param uriInfo           used to construct the created resource and send it back as location in the response
      * @param profileMetadataId id of the profile metadata
-     * @param profileFile inputStream representing the data to import
+     * @param profileFile       inputStream representing the data to import
      * @return The jaxRs Response
      */
     @Path("/profiles/{id:.+}")
@@ -1073,7 +1077,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a agencies document
      *
-     * @param headers http headers
+     * @param headers  http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      * @throws InvalidParseOperationException
@@ -1447,7 +1451,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("Archive unit profile ID is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse<ArchiveUnitProfileModel> requestResponse = client.findArchiveUnitProfilesByID(documentId);
+                RequestResponse<ArchiveUnitProfileModel> requestResponse =
+                    client.findArchiveUnitProfilesByID(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
                 return Response.status(st).entity(requestResponse).build();
             } catch (ReferentialNotFoundException e) {
@@ -1731,7 +1736,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * findAccessionRegisterDetail
      *
      * @param documentId the document id of accession register to get
-     * @param select the query to get document
+     * @param select     the query to get document
      * @return Response
      */
     @GET
@@ -1948,7 +1953,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update a security profile
      *
      * @param identifier the identifier of the security profile to update
-     * @param queryDsl query to execute
+     * @param queryDsl   query to execute
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
@@ -1990,9 +1995,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
-     * @param status Http error status
+     * @param status  Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
+     * @param code    The functional error code, if absent the http code will be used instead
      * @return
      */
     @Deprecated
@@ -2006,8 +2011,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     /**
-    * @deprecated Use CODE_VITAM
-    */
+     * @deprecated Use CODE_VITAM
+     */
     @Deprecated
     private InputStream getErrorStream(Status status, String message, String code) {
         String aMessage =
@@ -2038,7 +2043,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header of request
-     * @param query the filter query
+     * @param query   the filter query
      * @return the list of Operations details
      */
     @GET
@@ -2164,7 +2169,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param id      operation identifier
      * @return http response
      */
     @Path("operations/{id}")
@@ -2290,6 +2295,24 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         return downloadObjectAsync(opId, IngestCollection.RULES);
     }
 
+    @GET
+    @Path("/rulesreferential/{opId}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "rulesreferential:id:read",
+        description = "Récupérer le référentiel pour une opération d'import de règles de gestion")
+    public Response downloadAgenciesCsvAsStream(@PathParam("opId") String opId) {
+        return downloadObjectAsync(opId, IngestCollection.REFERENTIAL_RULES_CSV);
+    }
+
+    @GET
+    @Path("/agenciesreferential/{opId}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "agenciesreferential:id:read",
+        description = "Récupérer le référentiel pour une opération d'import des service agents")
+    public Response downloadRulesCsvAsStream(@PathParam("opId") String opId) {
+        return downloadObjectAsync(opId, IngestCollection.REFERENTIAL_AGENCIES_CSV);
+    }
+
     private Response downloadObjectAsync(String objectId, IngestCollection collection) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
@@ -2343,7 +2366,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "evidenceaudit:check", description = "Audit de traçabilité d'unités archivistiques")
-    public Response checkEvidenceAudit(@Dsl(value = DslSchema.SELECT_MULTIPLE)JsonNode select) {
+    public Response checkEvidenceAudit(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode select) {
         ParametersChecker.checkParameter("mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> result = client.evidenceAudit(select);

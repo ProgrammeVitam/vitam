@@ -138,6 +138,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String EXECUTION_CONTEXT = "executionContext";
     private static final String WORKFLOW_ID = "workFlowId";
     private static final String LOGBOOK_TYPE_PROCESS = "logbookTypeProcess";
+    private static final String CSV = ".csv";
 
     private final WorkspaceClient workspaceClientMock;
     private final ProcessingManagementClient processingManagementClientMock;
@@ -157,7 +158,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * IngestInternalResource constructor for tests
      *
-     * @param workspaceClient workspace client instance
+     * @param workspaceClient            workspace client instance
      * @param processingManagementClient processing management client instance
      */
     IngestInternalResource(WorkspaceClient workspaceClient, ProcessingManagementClient processingManagementClient) {
@@ -229,12 +230,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Will return {@link Response} containing an InputStream for the ArchiveTransferReply (OK or KO) except in
      * INTERNAL_ERROR (no body)
      *
-     * @param contentType the header Content-Type (zip, tar, ...)
-     * @param contextId the header X-Context-Id (steptoStep or not)
-     * @param actionId the header X-ACTION (next,resume,..)
+     * @param contentType         the header Content-Type (zip, tar, ...)
+     * @param contextId           the header X-Context-Id (steptoStep or not)
+     * @param actionId            the header X-ACTION (next,resume,..)
      * @param uploadedInputStream the stream to upload
      * @throws InternalServerException if request resources server exception occurred
-     * @throws VitamClientException if the server is unreachable
+     * @throws VitamClientException    if the server is unreachable
      */
     @POST
     @Path("/ingests")
@@ -256,7 +257,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param id      operation identifier
      * @return http response
      */
     @Path("/operations/{id}")
@@ -286,15 +287,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Execute the process of an operation related to the id.
      *
-     * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param headers             contain X-Action and X-Context-ID
+     * @param id                  operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
-     * @throws InternalServerException if request resources server exception
-     * @throws VitamClientException if the server is unreachable
-     * @throws IngestInternalException if error when request to ingest internal server
+     * @throws InternalServerException       if request resources server exception
+     * @throws VitamClientException          if the server is unreachable
+     * @throws IngestInternalException       if error when request to ingest internal server
      * @throws InvalidGuidOperationException if error when create guid
-     * @throws ProcessingException if error in workflow execution
+     * @throws ProcessingException           if error in workflow execution
      */
     @Path("/operations/{id}")
     @POST
@@ -630,7 +631,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Return the object as stream asynchronously
      *
      * @param objectId the object id
-     * @param type the collection type
+     * @param type     the collection type
      * @response the response
      */
     @GET
@@ -642,7 +643,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * @param guid the object guid
-     * @param atr the inputstream ATR
+     * @param atr  the inputstream ATR
      * @return the status of the request (OK)
      */
     @POST
@@ -685,6 +686,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 // #2940 Ugly hack for use the same point of API for all report
                 objectId += JSON;
                 documentType = DataCategory.REPORT;
+            } else if (documentType == DataCategory.REFERENTIAL_RULES_CSV) {
+                objectId += CSV;
+                documentType = DataCategory.RULES;
+            } else if (documentType == DataCategory.REFERENTIAL_AGENCIES_CSV) {
+                objectId += CSV;
+                documentType = DataCategory.REPORT;
             } else {
                 return Response.status(Status.METHOD_NOT_ALLOWED).build();
             }
@@ -713,8 +720,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
         MediaType mediaType;
         String archiveMimeType = null;
         boolean isCompletedProcess = false;
-        final String containerId = VitamThreadUtils.getVitamSession().getRequestId(); 
-            
+        final String containerId = VitamThreadUtils.getVitamSession().getRequestId();
+
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient();
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
@@ -798,7 +805,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 if (parameters != null) {
                     try {
 
-                        parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
+                        parameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                            GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, INGEST_INT_UPLOAD,
                             VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
@@ -812,7 +820,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
             } catch (final ContentAddressableStorageException | VitamApplicationServerException e) {
                 if (parameters != null) {
                     try {
-                        parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
+                        parameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                            GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.FATAL, INGEST_INT_UPLOAD,
                             "error workspace");
@@ -829,7 +838,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 LogbookClientException | StorageClientException | InvalidGuidOperationException e) {
                 if (parameters != null) {
                     try {
-                        parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
+                        parameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                            GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
                             INGEST_WORKFLOW, VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.KO));
@@ -885,7 +895,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
 
             if (isCompletedProcess(ProcessState.valueOf(globalExecutionState))) {
-                parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(containerGUID).getId());
+                parameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                    GUIDFactory.newEventGUID(containerGUID).getId());
                 callLogbookUpdate(client, parameters, fromStatusToStatusCode(response.getStatus()),
                     INGEST_WORKFLOW,
                     messageLogbookEngineHelper.getLabelOp(logbookTypeProcess.name(), fromStatusToStatusCode(response
@@ -963,7 +974,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Executes an action on the given process
      *
-     * @param actionId the action to start
+     * @param actionId      the action to start
      * @param containerGUID
      * @return response
      * @throws LogbookClientAlreadyExistsException
@@ -1035,7 +1046,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(response, Status.fromStatusCode(stepExecutionStatus),
                 response.getMediaType());
         } catch (final
-            LogbookClientNotFoundException | LogbookClientServerException |
+        LogbookClientNotFoundException | LogbookClientServerException |
             LogbookClientBadRequestException | LogbookClientAlreadyExistsException | StorageClientException |
             StorageNotFoundException e) {
 
@@ -1115,9 +1126,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Pushes the inputStream to Workspace
      *
-     * @param containerName the containerName
+     * @param containerName       the containerName
      * @param uploadedInputStream the inputStream to store in workspace
-     * @param archiveMimeType inputStream mimeType
+     * @param archiveMimeType     inputStream mimeType
      * @throws ContentAddressableStorageException
      */
     private void pushSipStreamToWorkspace(final String containerName,
@@ -1183,7 +1194,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param contextId the context id
      * @return ProcessContext's object
      * @throws WorkflowNotFoundException if there is no workflow found
-     * @throws ContextNotFoundException if context not found from file data
+     * @throws ContextNotFoundException  if context not found from file data
      */
     private ProcessContext createProcessContextObject(String contextId)
         throws WorkflowNotFoundException, ContextNotFoundException {
@@ -1209,8 +1220,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param contextId the contextId
      * @return ProcessContext's object
      * @throws InvalidParseOperationException if unable to parse workflow file
-     * @throws IOException if there is no workflow found
-     * @throws ContextNotFoundException if context not found from file data
+     * @throws IOException                    if there is no workflow found
+     * @throws ContextNotFoundException       if context not found from file data
      */
     private ProcessContext getProcessContext(String contextId)
         throws InvalidParseOperationException, IOException, ContextNotFoundException {
@@ -1262,7 +1273,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header for request
-     * @param query the filter query
+     * @param query   the filter query
      * @return Response
      */
     @GET
@@ -1304,9 +1315,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
-     * @param status Http error status
+     * @param status  Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
+     * @param code    The functional error code, if absent the http code will be used instead
      * @return VitamError
      */
     // FIXME 2905 : refacto as a common code

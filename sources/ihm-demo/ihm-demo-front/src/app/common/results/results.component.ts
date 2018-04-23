@@ -20,6 +20,9 @@ export class ResultsComponent implements OnInit {
   @Input() service: any;
   @Input() searchForm: any;
   @Input() specificRowCss: (item, index) => string;
+  @Input() actionLabel: string;
+  @Input() enableExport: boolean;
+  @Input() action: () => any = () => {};
   @ViewChild('infoSupp') infoSuppElem;
   @ViewChild('infoList') infoListElem;
   errorOnResults = false;

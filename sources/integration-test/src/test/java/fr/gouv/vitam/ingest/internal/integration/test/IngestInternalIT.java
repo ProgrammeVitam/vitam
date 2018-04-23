@@ -37,7 +37,10 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +53,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.IngestCollection;
+import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -941,6 +946,62 @@ public class IngestInternalIT {
             }
             throw e;
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_download_csv_referential() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
+        FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_OK));
+        String operationId = null;
+        AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        Status status = client.importAgenciesFile(stream, FILE_AGENCIES_OK);
+        ResponseBuilder ResponseBuilder = Response.status(status);
+        Response response = ResponseBuilder.build();
+        assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+
+
+        Select select = new Select();
+        LogbookOperationsClient operationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
+        select.setQuery(eq(LogbookMongoDbName.eventType.getDbname(),
+            "IMPORT_AGENCIES"));
+
+        JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
+        assertThat(logbookResult).isNotNull();
+        operationId = logbookResult.get("$results").get(0).get("evId").asText();
+
+
+        // When
+        IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient();
+        Response responseInputStream =
+            ingestInternalClient.downloadObjectAsync(operationId, IngestCollection.REFERENTIAL_AGENCIES_CSV);
+        // Then
+        assertThat(responseInputStream.getStatus()).isEqualTo(Status.OK.getStatusCode());
+        InputStream inputStream = responseInputStream.readEntity(InputStream.class);
+        File fileResponse = getFile(operationId, inputStream);
+        HashSet<String> f2 = new HashSet<>(FileUtils.readLines(fileResponse, StandardCharsets.UTF_8));
+        // Can't assert that the result it's the same that the input because storage is mock.
+        assertThat(fileResponse).isNotNull();
+        // test mock result
+        assertThat(f2.size()).isEqualTo(1);
+
+    }
+
+    private File getFile(String operationId, InputStream inputStream) throws VitamClientException {
+        File file = null;
+        if (inputStream != null) {
+            file = PropertiesUtils.fileFromTmpFolder(operationId + ".csv");
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                StreamUtils.copy(inputStream, fileOutputStream);
+            } catch (IOException e) {
+                throw new VitamClientException("Error during Report generation");
+            }
+        }
+        return file;
     }
 
     @RunWithCustomExecutor

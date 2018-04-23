@@ -1,4 +1,11 @@
-<p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits && items">
+<p-panel *ngIf="data && hits && items">
+    <p-header>
+        <span class="ui-g-4 ui-g-offset-4">Résultats ({{hits.total}})</span>
+        <div class="ui-g-2 ui-g-offset-2" style="padding: 0; text-align: right" *ngIf="actionLabel">
+            <button pButton class="ui-button secondaryButton" (click)="action()" label="{{actionLabel}}"
+                    icon="fa-download" iconPos="left" [disabled]="!enableExport"></button>
+        </div>
+    </p-header>
     <div style="float: left; padding: 5px;" *ngIf="!!extraCols && extraCols.length > 0" #infoSupp>
         <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-chevron-up' : 'fa-chevron-down'" iconPos="right"                
         (click)="clickOutside($event)" [label]="'Informations supplémentaires'"></button>

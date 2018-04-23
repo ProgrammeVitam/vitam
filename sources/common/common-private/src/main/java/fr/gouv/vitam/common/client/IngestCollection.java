@@ -46,7 +46,17 @@ public enum IngestCollection {
     /**
      * Ugly hack for homogeneity download Reports
      */
-    RULES("rules");
+    RULES("rules"),
+    /**
+     * Ugly hack for homogeneity download rules imported
+     */
+    REFERENTIAL_RULES_CSV("referential_rules_csv"),
+
+    /**
+     * Ugly hack for homogeneity download agencies imported
+     */
+    REFERENTIAL_AGENCIES_CSV("referential_agencies_csv");
+
 
     /**
      * Name
@@ -58,7 +68,6 @@ public enum IngestCollection {
     }
 
     /**
-     *
      * @return the Collection name
      */
     public String getCollectionName() {

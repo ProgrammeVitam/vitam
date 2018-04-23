@@ -1,4 +1,4 @@
-import { Component, EventEmitter } from '@angular/core';
+import {Component, EventEmitter} from '@angular/core';
 import {FieldDefinition} from '../../common/search/field-definition';
 import {VitamResponse} from '../../common/utils/response';
 import {PageComponent} from '../../common/page/page-component';
@@ -23,17 +23,17 @@ export class LogbookOperationComponent extends PageComponent {
   public response: VitamResponse;
   public searchForm: any = {};
   public options = [
-    {label : '--', value : ''},
-    {label : 'Audit', value : 'audit'},
-    {label : 'Données de base', value : 'masterdata'},
-    {label : 'Elimination', value : 'elimination'},
-    {label : 'Entrée', value : 'ingest'},
-    {label : 'Export DIP', value : 'export_dip'},
-    {label : 'Mise à jour', value : 'update'},
-    {label : 'Préservation', value : 'preservation'},
-    {label : 'Sécurisation', value : 'traceability'},
-    {label : 'Vérification', value : 'check'},
-    {label : 'Sauvegarde écritures', value : 'storage_backup'}
+    {label: '--', value: ''},
+    {label: 'Audit', value: 'audit'},
+    {label: 'Données de base', value: 'masterdata'},
+    {label: 'Elimination', value: 'elimination'},
+    {label: 'Entrée', value: 'ingest'},
+    {label: 'Export DIP', value: 'export_dip'},
+    {label: 'Mise à jour', value: 'update'},
+    {label: 'Préservation', value: 'preservation'},
+    {label: 'Sécurisation', value: 'traceability'},
+    {label: 'Vérification', value: 'check'},
+    {label: 'Sauvegarde écritures', value: 'storage_backup'}
   ];
   public logbookData = [
     FieldDefinition.createIdField('evId', 'Identifiant', 6, 8),
@@ -42,10 +42,10 @@ export class LogbookOperationComponent extends PageComponent {
 
   public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any, offset) {
     service.getResults(form, offset).subscribe(
-        (response) => {
-          responseEvent.emit({response: response, form: form});
-        },
-        (error) => console.error('Error: ', error)
+      (response) => {
+        responseEvent.emit({response: response, form: form});
+      },
+      (error) => console.error('Error: ', error)
     );
   }
 
@@ -55,44 +55,52 @@ export class LogbookOperationComponent extends PageComponent {
 
   public columns = [
     ColumnDefinition.makeStaticColumn('evTypeProc', 'Catégorie d\'opération', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evType', 'Opération', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date', DateService.handleDateWithTime,
-        () => ({'width': '100px'}), false),
+      () => ({'width': '100px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Statut',
-        LogbookOperationComponent.getOperationStatus, LogbookOperationComponent.handleStatus,
-        () => ({'width': '125px'}), false),
+      LogbookOperationComponent.getOperationStatus, LogbookOperationComponent.handleStatus,
+      () => ({'width': '125px'}), false),
     ColumnDefinition.makeStaticColumn('outMessg', 'Message', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false)
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false)
   ];
   public extraColumns = [
     ColumnDefinition.makeStaticColumn('evId', 'Identifiant de l\'opération', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('outDetail', 'Code technique', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('agId', 'Identifiant de l\'agent interne', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('obId', 'Identifiant interne de l\'objet', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evDetData', 'Informations complémentaires sur le résultat', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('rightsStatementIdentifier', 'Règles utilisées', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evIdReq', 'Identifiant de la requête', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('agIdExt', 'Identifiants des agents externes', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('obIdIn', 'Identifiant externe du lot d\'objet', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('#tenant', 'Identifiant du tenant', undefined,
-        () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('agIdApp', 'Identifiant application', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evIdAppSession', 'Identifiant transaction', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialIconColumn('Rapport', LogbookOperationComponent.handleReports,
-        () => ({'width': '50px', 'overflow-wrap': 'break-word'}), LogbookOperationComponent.downloadReports, this.logbookService, false),
+      () => ({
+        'width': '50px',
+        'overflow-wrap': 'break-word'
+      }), LogbookOperationComponent.downloadReports, this.logbookService, false),
+    ColumnDefinition.makeSpecialIconColumn('Fichier d\'origine', LogbookOperationComponent.handleDownloadReferentialCSV,
+      () => ({
+        'width': '50px',
+        'overflow-wrap': 'break-word'
+      }), LogbookOperationComponent.downloadReferentialCSV, this.logbookService, false)
   ];
 
   constructor(public logbookService: LogbookService, public titleService: Title, public breadcrumbService: BreadcrumbService) {
@@ -102,8 +110,17 @@ export class LogbookOperationComponent extends PageComponent {
   pageOnInit() {
     this.searchForm = this.preSearchFunction({}).request;
     this.logbookService.getResults(this.searchForm, 0).subscribe(
-        data => this.response = data,
-        error => console.log('Error - ', this.response));
+      data => this.response = data,
+      error => console.log('Error - ', this.response));
+  }
+
+  static handleDownloadReferentialCSV(item): string[] {
+    if ((item.evType.toUpperCase() == 'IMPORT_AGENCIES' || item.evType.toUpperCase() == 'STP_IMPORT_RULES')
+      && LogbookOperationComponent.getOperationStatus(item) === 'OK') {
+      return ['fa-download']
+    } else {
+      return [];
+    }
   }
 
   static handleReports(item): string[] {
@@ -111,32 +128,38 @@ export class LogbookOperationComponent extends PageComponent {
     if (['AUDIT', 'EXPORT_DIP', 'INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
       || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME') {
 
-      const status = LogbookOperationComponent.getOperationStatus(item);
-      switch (status) {
-        case 'STARTED': case 'En cours':
-          return ['fa-clock-o'];
-        default:
-          return ['fa-download'];
+      if (LogbookOperationComponent.isOperationInProgress(item)) {
+        return ['fa-clock-o'];
+      } else {
+        return ['fa-download'];
       }
-
-    }else {
+    } else {
       return [];
     }
   }
 
+
   static handleStatus(status): string {
     switch (status) {
-      case 'OK': return 'Succès';
-      case 'STARTED': return 'En cours';
-      case 'En cours': return 'En cours';
-      case 'KO': case 'FATAL': return 'Erreur';
-      default: return 'Avertissement';
+      case 'OK':
+        return 'Succès';
+      case 'STARTED':
+        return 'En cours';
+      case 'En cours':
+        return 'En cours';
+      case 'KO':
+      case 'FATAL':
+        return 'Erreur';
+      default:
+        return 'Avertissement';
     }
   }
 
   static handleValue(item): string {
-    if (!item.events) { return '' }
-    const lastItem = item.events.length -1;
+    if (!item.events) {
+      return ''
+    }
+    const lastItem = item.events.length - 1;
     return item.events[lastItem] ? item.events[lastItem].outcome.toUpperCase() : ''
   }
 
@@ -186,10 +209,8 @@ export class LogbookOperationComponent extends PageComponent {
 
   static downloadReports(item, logbookService) {
 
-    const status = LogbookOperationComponent.getOperationStatus(item);
-    switch (status) {
-      case 'STARTED': case 'En cours':
-        return;
+    if (LogbookOperationComponent.isOperationInProgress(item)) {
+      return;
     }
 
     switch (item.evTypeProc.toUpperCase()) {
@@ -203,15 +224,35 @@ export class LogbookOperationComponent extends PageComponent {
         logbookService.downloadDIP(item.evIdProc);
         break;
       case 'MASTERDATA':
-        if(item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES') {
-            logbookService.downloadReport(item.evIdProc);
-            break;
+        if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES') {
+          logbookService.downloadReport(item.evIdProc);
+          break;
         } else if (item.evType.toUpperCase() === 'HOLDINGSCHEME') {
-            logbookService.downloadObject(item.evIdProc);
-            break;
+          logbookService.downloadObject(item.evIdProc);
+          break;
         }
     }
 
   }
+
+  static isOperationInProgress(item): boolean {
+    const status = LogbookOperationComponent.getOperationStatus(item);
+    switch (status) {
+      case 'STARTED':
+      case 'En cours':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static downloadReferentialCSV(item, logbookService) {
+    if (item.evType.toUpperCase() === 'STP_IMPORT_RULES') {
+      logbookService.downloadReferentialCSV(item.evIdProc, 'rules');
+    } else if (item.evType.toUpperCase() === 'IMPORT_AGENCIES') {
+      logbookService.downloadReferentialCSV(item.evIdProc, 'agencies');
+    }
+  }
+
 
 }

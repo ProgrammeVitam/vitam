@@ -11,7 +11,9 @@ import {DateService} from '../../common/utils/date.service';
 import {ColumnDefinition} from '../../common/generic-table/column-definition';
 import {ReferentialsService} from './../referentials.service';
 import {ArchiveUnitHelper} from '../../archive-unit/archive-unit.helper';
-import { AuthenticationService } from '../../authentication/authentication.service';
+import {AuthenticationService} from '../../authentication/authentication.service';
+import {AgenciesComponent} from '../details/agencies/agencies.component';
+import {LogbookService} from '../../ingest/logbook.service';
 
 @Component({
   selector: 'vitam-search-referentials',
@@ -29,16 +31,20 @@ export class SearchReferentialsComponent extends PageComponent {
   public searchForm: any = {};
   initialSortKey: string;
   searchButtonLabel: string;
-  isImportable :boolean;
+  isImportable: boolean;
   specificTitle: string;
-
   referentialData = [];
   public columns = [];
   public extraColumns = [];
+  actionLabel: string = null;
+  enableExport: boolean = false;
+
+  action: () => any = () => {
+  };
 
 
-  constructor(private activatedRoute: ActivatedRoute, private router: Router, private authenticationService : AuthenticationService,
-              public titleService: Title, public breadcrumbService: BreadcrumbService,
+  constructor(private activatedRoute: ActivatedRoute, private router: Router, private authenticationService: AuthenticationService,
+              public titleService: Title, public breadcrumbService: BreadcrumbService, public logbookService: LogbookService,
               private searchReferentialsService: ReferentialsService, private archiveUnitHelper: ArchiveUnitHelper) {
     super('Recherche du référentiel', [], titleService, breadcrumbService);
 
@@ -48,21 +54,22 @@ export class SearchReferentialsComponent extends PageComponent {
       this.isImportable = true;
       this.searchButtonLabel = '';
       this.specificTitle = 'Recherche du référentiel';
+      delete this.actionLabel;
       switch (this.referentialType) {
-        case "accessContract":
+        case 'accessContract':
           this.searchReferentialsService.setSearchAPI('accesscontracts');
-          this.breadcrumbName = "Contrats d'accès";
+          this.breadcrumbName = 'Contrats d\'accès';
           this.specificTitle = 'Contrats d\'accès';
           this.referentialData = [
-            new FieldDefinition('ContractName', "Intitulé", 6, 8),
-            FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8)
+            new FieldDefinition('ContractName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('ContractID', 'Identifiant', 6, 8)
           ];
           this.searchForm = {
-            "ContractID": "all",
-            "ContractName": "all",
-            "orderby": {"field": "Name", "sortType": "ASC"}
+            'ContractID': 'all',
+            'ContractName': 'all',
+            'orderby': {'field': 'Name', 'sortType': 'ASC'}
           };
-          this.initialSortKey = "Name";
+          this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -81,20 +88,20 @@ export class SearchReferentialsComponent extends PageComponent {
           this.referentialPath = 'admin/accessContract';
           this.referentialIdentifier = 'Identifier';
           break;
-        case "ingestContract":
+        case 'ingestContract':
           this.searchReferentialsService.setSearchAPI('contracts');
-          this.breadcrumbName = "Contrats d'entrée";
+          this.breadcrumbName = 'Contrats d\'entrée';
           this.specificTitle = 'Contrats d\'entrée';
           this.referentialData = [
-            new FieldDefinition('ContractName', "Intitulé", 6, 8),
-            FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8)
+            new FieldDefinition('ContractName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('ContractID', 'Identifiant', 6, 8)
           ];
           this.searchForm = {
-            "ContractID": "all",
-            "ContractName": "all",
-            "orderby": {"field": "Name", "sortType": "ASC"}
+            'ContractID': 'all',
+            'ContractName': 'all',
+            'orderby': {'field': 'Name', 'sortType': 'ASC'}
           };
-          this.initialSortKey = "Name";
+          this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -113,21 +120,21 @@ export class SearchReferentialsComponent extends PageComponent {
           this.referentialPath = 'admin/ingestContract';
           this.referentialIdentifier = 'Identifier';
           break;
-        case "format":
+        case 'format':
           this.searchReferentialsService.setSearchAPI('admin/formats');
-          this.breadcrumbName = "Formats";
+          this.breadcrumbName = 'Formats';
           this.specificTitle = 'Formats';
           this.referentialData = [
-            new FieldDefinition('FormatName', "Intitulé", 6, 8),
-            FieldDefinition.createIdField('PUID', "PUID", 6, 8)
+            new FieldDefinition('FormatName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('PUID', 'PUID', 6, 8)
           ];
           this.searchForm = {
-            "FormatName": "",
-            "PUID": "",
-            "orderby": {"field": "Name", "sortType": "ASC"},
-            "FORMAT": "all"
+            'FormatName': '',
+            'PUID': '',
+            'orderby': {'field': 'Name', 'sortType': 'ASC'},
+            'FORMAT': 'all'
           };
-          this.initialSortKey = "Name";
+          this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('PUID', 'PUID', undefined,
               () => ({'width': '125px'})),
@@ -147,25 +154,25 @@ export class SearchReferentialsComponent extends PageComponent {
             this.isImportable = false;
           }
           break;
-        case "rule":
+        case 'rule':
           this.searchReferentialsService.setSearchAPI('admin/rules');
-          this.breadcrumbName = "Règles de gestion";
+          this.breadcrumbName = 'Règles de gestion';
           this.specificTitle = 'Règles de gestion';
           let options = [
-            {label: "Tous", value: "All"},
-            {label: "Durée d'utilité administrative", value: "AppraisalRule"},
-            {label: "Délai de communicabilité", value: "AccessRule"},
-            {label: "Durée d'utilité courante", value: "StorageRule"},
-            {label: "Délai de diffusion", value: "DisseminationRule"},
-            {label: "Durée de réutilisation", value: "ReuseRule"},
-            {label: "Durée de classification", value: "ClassificationRule"}
+            {label: 'Tous', value: 'All'},
+            {label: 'Durée d\'utilité administrative', value: 'AppraisalRule'},
+            {label: 'Délai de communicabilité', value: 'AccessRule'},
+            {label: 'Durée d\'utilité courante', value: 'StorageRule'},
+            {label: 'Délai de diffusion', value: 'DisseminationRule'},
+            {label: 'Durée de réutilisation', value: 'ReuseRule'},
+            {label: 'Durée de classification', value: 'ClassificationRule'}
           ];
           this.referentialData = [
-            new FieldDefinition('RuleValue', "Intitulé", 6, 8),
-            FieldDefinition.createSelectMultipleField('RuleType', "Type", options, 6, 8)
+            new FieldDefinition('RuleValue', 'Intitulé', 6, 8),
+            FieldDefinition.createSelectMultipleField('RuleType', 'Type', options, 6, 8)
           ];
-          this.searchForm = {"RuleValue": "", "RuleType": "All", "RULES": "all"};
-          this.initialSortKey = "RuleValue";
+          this.searchForm = {'RuleValue': '', 'RuleType': 'All', 'RULES': 'all'};
+          this.initialSortKey = 'RuleValue';
           this.columns = [
             ColumnDefinition.makeStaticColumn('RuleValue', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -181,17 +188,19 @@ export class SearchReferentialsComponent extends PageComponent {
           this.extraColumns = [];
           this.referentialPath = 'admin/rule';
           this.referentialIdentifier = 'RuleId';
+          this.getLastImportOkOperation('rules', 'STP_IMPORT_RULES.OK');
+          this.actionLabel = 'Exporter le référentiel';
           break;
-        case "profil":
+        case 'profil':
           this.searchReferentialsService.setSearchAPI('profiles');
-          this.breadcrumbName = "Profils d'archivage";
+          this.breadcrumbName = 'Profils d\'archivage';
           this.specificTitle = 'Profils d\'archivage';
           this.referentialData = [
-            new FieldDefinition('ProfileName', "Intitulé", 6, 8),
-            FieldDefinition.createIdField('ProfileID', "Identifiant", 6, 8)
+            new FieldDefinition('ProfileName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('ProfileID', 'Identifiant', 6, 8)
           ];
-          this.searchForm = {"ProfileID": "all", "ProfileName": "all", "orderby": {"field": "Name", "sortType": "ASC"}};
-          this.initialSortKey = "Name";
+          this.searchForm = {'ProfileID': 'all', 'ProfileName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
+          this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -211,17 +220,19 @@ export class SearchReferentialsComponent extends PageComponent {
           this.referentialPath = 'admin/profil';
           this.referentialIdentifier = 'Identifier';
           break;
-        case "archiveUnitProfile":
+        case 'archiveUnitProfile':
           this.searchReferentialsService.setSearchAPI('archiveunitprofiles');
-          this.breadcrumbName = "Documents type";
+          this.breadcrumbName = 'Documents type';
           this.specificTitle = 'Documents type';
           this.referentialData = [
-            new FieldDefinition('ArchiveUnitProfileName', "Intitulé", 6, 8),
-            FieldDefinition.createIdField('ArchiveUnitProfileID', "Identifiant", 6, 8)
+            new FieldDefinition('ArchiveUnitProfileName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('ArchiveUnitProfileID', 'Identifiant', 6, 8)
           ];
-          this.searchForm = {"ArchiveUnitProfileID": "all", "ArchiveUnitProfileName": "all",
-            "orderby": {"field": "Name", "sortType": "ASC"}};
-          this.initialSortKey = "Name";
+          this.searchForm = {
+            'ArchiveUnitProfileID': 'all', 'ArchiveUnitProfileName': 'all',
+            'orderby': {'field': 'Name', 'sortType': 'ASC'}
+          };
+          this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -241,16 +252,16 @@ export class SearchReferentialsComponent extends PageComponent {
           this.referentialPath = 'admin/archiveUnitProfile';
           this.referentialIdentifier = 'Identifier';
           break;
-        case "context":
+        case 'context':
           this.searchReferentialsService.setSearchAPI('contexts');
-          this.breadcrumbName = "Contextes applicatifs";
+          this.breadcrumbName = 'Contextes applicatifs';
           this.specificTitle = 'Contextes applicatifs';
           this.referentialData = [
-            new FieldDefinition('ContextName', "Intitulé", 6, 8),
-            FieldDefinition.createIdField('ContextID', "Identifiant", 6, 8)
+            new FieldDefinition('ContextName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('ContextID', 'Identifiant', 6, 8)
           ];
-          this.searchForm = {"ContextID": "all", "ContextName": "all", "orderby": {"field": "Name", "sortType": "ASC"}};
-          this.initialSortKey = "Name";
+          this.searchForm = {'ContextID': 'all', 'ContextName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
+          this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -258,15 +269,15 @@ export class SearchReferentialsComponent extends PageComponent {
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeSpecialIconColumn("Contrat d'accès",
+            ColumnDefinition.makeSpecialIconColumn('Contrat d\'accès',
               SearchReferentialsComponent.checkAccessContract, undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeSpecialIconColumn("Contrat d'entrée",
+            ColumnDefinition.makeSpecialIconColumn('Contrat d\'entrée',
               SearchReferentialsComponent.checkIngestContract, undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('CreationDate', "Date de création", DateService.handleDate,
+            ColumnDefinition.makeStaticColumn('CreationDate', 'Date de création', DateService.handleDate,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('LastUpdate', "Dernière modification", DateService.handleDate,
+            ColumnDefinition.makeStaticColumn('LastUpdate', 'Dernière modification', DateService.handleDate,
               () => ({'width': '125px'}))
           ];
           this.extraColumns = [
@@ -280,17 +291,17 @@ export class SearchReferentialsComponent extends PageComponent {
           }
           break;
 
-        case "agencies":
+        case 'agencies':
           this.searchReferentialsService.setSearchAPI('agencies');
-          this.breadcrumbName = "Services agents";
+          this.breadcrumbName = 'Services agents';
           this.specificTitle = 'Services agents';
           this.referentialData = [
-            new FieldDefinition('AgencyName', "Intitulé", 4, 10),
-            FieldDefinition.createIdField('AgencyID', "Identifiant", 4, 10),
-            new FieldDefinition('Description', "Description", 4, 10)
+            new FieldDefinition('AgencyName', 'Intitulé', 4, 10),
+            FieldDefinition.createIdField('AgencyID', 'Identifiant', 4, 10),
+            new FieldDefinition('Description', 'Description', 4, 10)
           ];
-          this.searchForm = {"AgencyID": "all", "AgencyName": "all", "orderby": {"field": "Name", "sortType": "ASC"}};
-          this.initialSortKey = "Name";
+          this.searchForm = {'AgencyID': 'all', 'AgencyName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
+          this.initialSortKey = 'Name';
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '125px'})),
@@ -301,21 +312,22 @@ export class SearchReferentialsComponent extends PageComponent {
           ];
           this.referentialPath = 'admin/agencies/all';
           this.referentialIdentifier = 'Identifier';
+          this.getLastImportOkOperation('agencies', 'IMPORT_AGENCIES.OK');
+          this.actionLabel = 'Exporter le référentiel';
           break;
 
-
-        case "accession-register":
+        case 'accession-register':
           this.searchReferentialsService.setSearchAPI('admin/accession-register');
-          this.breadcrumbName = "Recherche par service producteur";
+          this.breadcrumbName = 'Recherche par service producteur';
           this.specificTitle = 'Services producteurs';
           this.referentialData = [
-            new FieldDefinition('OriginatingAgency', "Service producteur", 12, 4),
+            new FieldDefinition('OriginatingAgency', 'Service producteur', 12, 4),
           ];
           this.searchForm = {
-            "ACCESSIONREGISTER": "ACCESSIONREGISTER",
-            "orderby": {"field": "OriginatingAgency", "sortType": "ASC"}
+            'ACCESSIONREGISTER': 'ACCESSIONREGISTER',
+            'orderby': {'field': 'OriginatingAgency', 'sortType': 'ASC'}
           };
-          this.initialSortKey = "OriginatingAgency";
+          this.initialSortKey = 'OriginatingAgency';
           this.columns = [
             ColumnDefinition.makeStaticColumn('OriginatingAgency', 'Service producteur', undefined,
               () => ({'width': '125px'})),
@@ -333,7 +345,7 @@ export class SearchReferentialsComponent extends PageComponent {
           this.router.navigate(['ingest/sip']);
       }
       if (this.isImportable) {
-        this.searchButtonLabel =  'Accèder à l\'import des référentiels';
+        this.searchButtonLabel = 'Accèder à l\'import des référentiels';
       }
 
       if (newBreadcrumb.length == 0) {
@@ -348,11 +360,10 @@ export class SearchReferentialsComponent extends PageComponent {
 
       this.searchReferentialsService.getResults(this.searchForm).subscribe(
         data => {
-            if (!!data && !!data.$results && this.initialSortKey != null) 
-            {
-                SearchReferentialsComponent.doInitialSort(data.$results, this.initialSortKey);
-            }
-            this.response = data;
+          if (!!data && !!data.$results && this.initialSortKey != null) {
+            SearchReferentialsComponent.doInitialSort(data.$results, this.initialSortKey);
+          }
+          this.response = data;
         },
         error => console.log('Error - ', this.response)
       );
@@ -369,10 +380,10 @@ export class SearchReferentialsComponent extends PageComponent {
 
   static getValue(item): number {
     switch (item.RuleMeasurement.toUpperCase()) {
-      case "YEAR":
+      case 'YEAR':
         return item.RuleDuration * 365;
 
-      case "MONTH":
+      case 'MONTH':
         return item.RuleDuration * 31;
       default:
         return item.RuleDuration;
@@ -448,11 +459,11 @@ export class SearchReferentialsComponent extends PageComponent {
   static appendUnitToRuleDuration(item): string {
     if (item.RuleMeasurement) {
       switch (item.RuleMeasurement.toUpperCase()) {
-        case "YEAR":
+        case 'YEAR':
           return item.RuleDuration <= 1 ? item.RuleDuration + ' année' : item.RuleDuration + ' années';
-        case "MONTH":
+        case 'MONTH':
           return item.RuleDuration + ' mois';
-        case "DAY":
+        case 'DAY':
           return item.RuleDuration <= 1 ? item.RuleDuration + ' jour' : item.RuleDuration + ' jours';
         default :
           return item.RuleDuration;
@@ -490,5 +501,48 @@ export class SearchReferentialsComponent extends PageComponent {
 
   public paginationSearch(service: any, offset) {
     return service.getResults(this.searchForm, offset);
+  }
+
+
+  getLastImportOkOperation(type: string, outDetail: string) {
+    const dslRequest = {
+      '$query': {
+        '$and': [
+          {
+            '$in': {
+              'events.outDetail': [
+                outDetail
+              ]
+            }
+          }
+        ]
+      },
+      '$filter': {
+        '$limit': 1,
+        '$orderby': {
+          'evDateTime': -1
+        }
+      },
+      '$projection': {}
+    };
+    this.logbookService.getLastImportAgenciesOkOrStpImportRulesOperation(dslRequest).subscribe(
+      (response) => {
+        let lastImportId = null;
+        if (response && response.$results && response.$results.length === 1) {
+          lastImportId = response.$results[0].evId;
+        } else {
+          this.enableExport = false;
+
+        }
+        if (lastImportId) {
+          this.action = () => {
+            this.logbookService.downloadReferentialCSV(lastImportId, type)
+          };
+          this.enableExport = true;
+        }
+      }, (error) => {
+        this.enableExport = false;
+      }
+    );
   }
 }
