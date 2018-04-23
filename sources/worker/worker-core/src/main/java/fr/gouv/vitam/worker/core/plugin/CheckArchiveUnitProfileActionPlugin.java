@@ -59,8 +59,10 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 /**
  * CheckArchiveUnitProfile Plugin.<br>
@@ -78,6 +80,8 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
     private static final String CHECK_UNIT_PROFILE_TASK_ID = "CHECK_ARCHIVE_UNIT_PROFILE";
 
     private static final String ARCHIVE_UNIT_PROFILE_SCHEMA = "ArchiveUnitProfileSchema";
+
+    private static final int GUID_MAP_RANK = 0;
 
     private final AdminManagementClientFactory adminManagementClientFactory;
 
@@ -113,6 +117,20 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
 
             JsonNode archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
             if (archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT).has(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE)) {
+                Map<String, Object> guidSystemArchiveUnit = null;
+                InputStream guidMapTmpFile = null;
+                final File file = (File) handlerIO.getInput(GUID_MAP_RANK);
+                if (file != null) {
+                    guidMapTmpFile = new FileInputStream(file);
+                }
+
+                String unitId = "";
+                if (guidMapTmpFile != null) {
+                    guidSystemArchiveUnit = JsonHandler.getMapFromInputStream(guidMapTmpFile);
+                     unitId = (String) guidSystemArchiveUnit.get(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT)
+                             .get(SedaConstants.PREFIX_ID).asText());
+                }
+
                 archiveUnitProfileIdentifier =
                         archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT).get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE).asText();
 
@@ -127,21 +145,15 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                             itemStatus);
                     case NOT_JSON_FILE:
                         itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_AU_PROFILE.name());
-                        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
-                        itemStatus.increment(StatusCode.KO);
-                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId, schemaValidationStatus);
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
                     case NOT_AU_JSON_VALID:
                         itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
-                        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
-                        itemStatus.increment(StatusCode.KO);
-                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId, schemaValidationStatus);
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
                     case NOT_FOUND:
                         itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.PROFILE_NOT_FOUND.name());
-                        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
-                        itemStatus.increment(StatusCode.KO);
-                        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
+                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId, schemaValidationStatus);
                         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
                 }
             } else {
@@ -166,6 +178,15 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         }
         return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, itemStatus);
+    }
+
+    private void fillItemStatus(ItemStatus itemStatus, ObjectNode infoNode, String archiveUnitProfileIdentifier,
+                                String unitId, SchemaValidationStatus schemaValidationStatus) {
+        infoNode.put(SedaConstants.TAG_ARCHIVE_UNIT, unitId);
+        infoNode.put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, archiveUnitProfileIdentifier);
+        infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
+        itemStatus.increment(StatusCode.KO);
+        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
     }
 
     private SchemaValidationStatus checkAUAgainstAUProfileSchema(ItemStatus itemStatus, ObjectNode infoNode,

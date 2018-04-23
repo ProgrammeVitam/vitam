@@ -71,7 +71,7 @@ public class ArchiveUnitListenerTest {
         JAXBElement parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null
             );
 
@@ -109,7 +109,7 @@ public class ArchiveUnitListenerTest {
         JAXBElement parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null,null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null
             );
 
@@ -150,7 +150,7 @@ public class ArchiveUnitListenerTest {
         JAXBElement parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.FILING_UNIT,
                 null,
                 null);
@@ -198,7 +198,7 @@ public class ArchiveUnitListenerTest {
         JAXBElement parent = mock(JAXBElement.class);
 
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
+            new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null, null,
                 null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.HOLDING_UNIT,
                 null,
                 null);
@@ -241,10 +241,11 @@ public class ArchiveUnitListenerTest {
 
         List<String> agenciesList = new ArrayList<>();
         Map<String, String> unitIdToGuid = new HashMap<>();
+        Map<String, String> guidToUnitId = new HashMap<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
         Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, null, null, null,
+            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
                 agenciesList, null);
@@ -294,10 +295,11 @@ public class ArchiveUnitListenerTest {
 
         List<String> agenciesList = new ArrayList<>();
         Map<String, String> unitIdToGuid = new HashMap<>();
+        Map<String, String> guidToUnitId = new HashMap<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
         Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, null, null, null,
+            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
                 agenciesList, null);
@@ -347,10 +349,11 @@ public class ArchiveUnitListenerTest {
 
         List<String> agenciesList = new ArrayList<>();
         Map<String, String> unitIdToGuid = new HashMap<>();
+        Map<String, String> guidToUnitId = new HashMap<>();
         HandlerIO handlerIO = mock(HandlerIO.class);
         Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
         ArchiveUnitListener archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, null, null, null,
+            new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, guidToUnitId, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
                 metaDataClientFactory, null, null, null, UnitType.INGEST,
                 agenciesList, null);

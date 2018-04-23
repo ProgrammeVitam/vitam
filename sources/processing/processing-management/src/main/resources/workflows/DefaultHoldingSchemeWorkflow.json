@@ -110,6 +110,10 @@
               {
                 "name": "existingObjectGroup.file",
                 "uri": "WORKSPACE:UpdateObjectGroup/existing_object_group.json"
+              },
+              {
+                "name": "mapsGuid.file",
+                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
               }
             ]
           }

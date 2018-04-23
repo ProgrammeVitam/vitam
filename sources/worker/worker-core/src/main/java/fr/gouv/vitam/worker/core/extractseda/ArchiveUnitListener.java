@@ -136,6 +136,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private ObjectNode archiveUnitTree;
 
     private final Map<String, String> unitIdToGuid;
+    private final Map<String, String> guidToUnitId;
 
     private ObjectMapper objectMapper;
 
@@ -158,6 +159,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private String ingestContract;
 
     public ArchiveUnitListener(HandlerIO handlerIO, ObjectNode archiveUnitTree, Map<String, String> unitIdToGuid,
+        Map<String, String> guidToUnitId,
         Map<String, String> unitIdToGroupId,
         Map<String, List<String>> objectGroupIdToUnitId,
         Map<String, String> dataObjectIdToObjectGroupId,
@@ -183,6 +185,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.handlerIO = handlerIO;
         this.archiveUnitTree = archiveUnitTree;
         this.unitIdToGuid = unitIdToGuid;
+        this.guidToUnitId = guidToUnitId;
         this.workflowUnitType = workflowUnitType;
         this.originatingAgencies = originatingAgencies;
         this.existingGOTs = existingGOTs;
@@ -259,6 +262,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             archiveUnitTree.set(archiveUnitId, archiveUnitNode);
 
             unitIdToGuid.put(archiveUnitId, elementGUID);
+            guidToUnitId.put(elementGUID, archiveUnitId);
+
 
             ArchiveUnitRoot archiveUnitRoot;
             try {

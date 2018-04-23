@@ -183,7 +183,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
-    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 10;
+    private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 11;
 
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
@@ -248,6 +249,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final Map<String, String> objectGroupIdToGuid;
     private final Map<String, String> objectGroupIdToGuidTmp;
     private final Map<String, String> unitIdToGuid;
+    private final Map<String, String> guidToUnitId;
     private final Set<String> existingUnitGuids;
     private final Set<String> physicalDataObjetsGuids;
 
@@ -315,6 +317,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         objectGroupIdToGuid = new HashMap<>();
         objectGroupIdToGuidTmp = new HashMap<>();
         unitIdToGuid = new HashMap<>();
+        guidToUnitId = new HashMap<>();
         dataObjectIdToObjectGroupId = new HashMap<>();
         objectGroupIdToDataObjectId = new HashMap<>();
         unitIdToGroupId = new HashMap<>();
@@ -367,7 +370,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK).getPath());
 
             unmarshaller = jaxbContext.createUnmarshaller();
-            listener = new ArchiveUnitListener(handlerIO, archiveUnitTree, unitIdToGuid, unitIdToGroupId,
+            listener = new ArchiveUnitListener(handlerIO, archiveUnitTree, unitIdToGuid, guidToUnitId, unitIdToGroupId,
                 objectGroupIdToUnitId, dataObjectIdToObjectGroupId, dataObjectIdWithoutObjectGroupId,
                 guidToLifeCycleParameters, existingUnitGuids, params.getLogbookTypeProcess(),
                 params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
@@ -516,6 +519,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // Empty all maps
             objectGroupIdToGuidTmp.clear();
             unitIdToGuid.clear();
+            guidToUnitId.clear();
             dataObjectIdWithoutObjectGroupId.clear();
             objectGroupIdToDataObjectId.clear();
             guidToLifeCycleParameters.clear();
@@ -645,6 +649,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         if (e.getCause() instanceof ProcessingUnitNotFoundException) {
                             ProcessingUnitNotFoundException exception = (ProcessingUnitNotFoundException) e.getCause();
                             unitIdToGuid.put(exception.getUnitId(), exception.getUnitGuid());
+                            guidToUnitId.put(exception.getUnitGuid(), exception.getUnitId());
                             saveGuidsMaps();
                             if (exception.isValidGuid()) {
                                 createLifeCycleForError(SUBTASK_ATTACHEMENT,
@@ -1031,6 +1036,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             asyncIO);
         // Save unitIdToGuid Map post unmarshalling
         HandlerUtils.saveMap(handlerIO, unitIdToGuid, UNIT_ID_TO_GUID_IO_RANK, true, asyncIO);
+        // Save guidToUnitId Map post unmarshalling
+        HandlerUtils.saveMap(handlerIO, guidToUnitId, GUID_TO_UNIT_ID_IO_RANK, true, asyncIO);
     }
 
     /**
