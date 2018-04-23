@@ -209,7 +209,7 @@ public class ProfileServiceImpl implements ProfileService {
 
                 if (slaveMode) {
                     final Optional<ProfileValidator.RejectionCause> result =
-                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(pm);
+                        manager.checkEmptyIdentifierSlaveModeValidator().validate(pm);
                     result.ifPresent(t -> error
                         .addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setDescription(result
                             .get().getReason()).setMessage(ProfileManager.DUPLICATE_IN_DATABASE)));

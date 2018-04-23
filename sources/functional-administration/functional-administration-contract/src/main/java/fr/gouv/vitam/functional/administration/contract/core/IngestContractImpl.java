@@ -227,7 +227,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 if (slaveMode) {
                     final Optional<GenericRejectionCause> result =
-                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
+                        manager.checkEmptyIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
                     result.ifPresent(t -> error
                         .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                             result.get().getReason(), StatusCode.KO).setMessage(EMPTY_REQUIRED_FIELD)
@@ -649,7 +649,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                     if (exist) {
                         return Optional
-                            .of(GenericRejectionCause.rejectDuplicatedInDatabase(contractName));
+                            .of(GenericRejectionCause.rejectDuplicatedInDatabase(contract.getIdentifier()));
                     }
                 }
                 return Optional.empty();
@@ -658,32 +658,23 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
         /**
-         * Check if the Id of the contract already exists in database
+         * Check if the Id of the contract is empty
          *
          * @return
          */
-        private IngestContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private IngestContractValidator checkEmptyIdentifierSlaveModeValidator() {
             return (contract, contractIdentifier) -> {
                 if (contractIdentifier == null || contractIdentifier.isEmpty()) {
                     return Optional
                         .of(GenericRejectionCause
                             .rejectMandatoryMissing(IngestContract.IDENTIFIER));
                 }
-                GenericRejectionCause rejection = null;
-                final int tenant = ParameterHelper.getTenantParameter();
-                final Bson clause =
-                    and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.IDENTIFIER, contract.getIdentifier()));
-                final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
-                if (exist) {
-                    rejection =
-                        GenericRejectionCause.rejectDuplicatedInDatabase(contractIdentifier);
-                }
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
+                return Optional.empty();
             };
         }
 
         /**
-         * Check if the profiles exists bien dans la base de données
+         * Check if the profiles exist in database
          *
          * @return IngestContractValidator
          */

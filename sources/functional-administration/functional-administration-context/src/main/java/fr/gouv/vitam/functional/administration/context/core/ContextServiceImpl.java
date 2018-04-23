@@ -76,10 +76,8 @@ import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -237,7 +235,7 @@ public class ContextServiceImpl implements ContextService {
                 }
                 if (slaveMode) {
                     Optional<ContextRejectionCause> result =
-                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(cm);
+                        manager.checkEmptyIdentifierSlaveModeValidator().validate(cm);
                     result.ifPresent(t -> error.addToErrors(
                         new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(DUPLICATE_IN_DATABASE)
                             .setDescription(result.get().getReason()).setState(StatusCode.KO.name())));
@@ -671,11 +669,11 @@ public class ContextServiceImpl implements ContextService {
         private ContextValidator createCheckDuplicateInDatabaseValidator() {
             return (context) -> {
                 if (ParametersChecker.isNotEmpty(context.getIdentifier())) {
-                    final Bson clause = eq(IngestContract.IDENTIFIER, context.getIdentifier());
+                    final Bson clause = eq(Context.IDENTIFIER, context.getIdentifier());
                     final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
                     if (exist) {
                         return Optional
-                            .of(ContextValidator.ContextRejectionCause.rejectDuplicatedInDatabase(context.getName()));
+                            .of(ContextValidator.ContextRejectionCause.rejectDuplicatedInDatabase(context.getIdentifier()));
                     }
                 }
                 return Optional.empty();
@@ -746,22 +744,13 @@ public class ContextServiceImpl implements ContextService {
          *
          * @return
          */
-        private ContextValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private ContextValidator checkEmptyIdentifierSlaveModeValidator() {
             return (context) -> {
                 if (context.getIdentifier() == null || context.getIdentifier().isEmpty()) {
                     return Optional.of(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(
-                        AccessContract.IDENTIFIER));
+                        Context.IDENTIFIER));
                 }
-                ContextValidator.ContextRejectionCause rejection = null;
-                final int tenant = ParameterHelper.getTenantParameter();
-                final Bson clause =
-                    and(eq(TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, context.getIdentifier()));
-                final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
-                if (exist) {
-                    rejection =
-                        ContextValidator.ContextRejectionCause.rejectDuplicatedInDatabase(context.getIdentifier());
-                }
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
+                return Optional.empty();
             };
         }
     }
