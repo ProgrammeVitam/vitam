@@ -59,6 +59,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -213,7 +214,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     /**
      * AccessModuleImpl constructor
-     *
+     * 
      * @param configuration of mongoDB access
      */
     // constructor
@@ -229,7 +230,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient           a StorageClient instance
+     * @param storageClient a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -245,7 +246,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException   Throw if json format is not correct
+     * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -287,8 +288,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit    as String
-     * @throws IllegalArgumentException         Throw if json format is not correct
+     * @param idUnit as String
+     * @throws IllegalArgumentException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -714,7 +715,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @param idUnit the unit id
      * @return a new JsonNode with unit and lfc inside
      * @throws InvalidParseOperationException
-     * @throws AccessInternalException        if unable to find the unit or it's lfc
+     * @throws AccessInternalException if unable to find the unit or it's lfc
      */
     private JsonNode getUnitRawWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
         try {
@@ -744,7 +745,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
-     * @param idDocument   document uuid
+     * @param idDocument document uuid
      * @param dataCategory accepts UNIT or OBJECTGROUP
      * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
@@ -777,7 +778,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error        message to throw if response is null or no result could be found
+     * @param error message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -809,7 +810,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException                 when error in execution
+     * @throws ProcessingException when error in execution
      */
     private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
@@ -1070,7 +1071,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 if (updatedCategories.contains(category)) {
                     ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                     JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
-
+                    JsonNode classificationLevel =
+                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+                    JsonNode classificationOwner =
+                        updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
                     // Check for update (and delete) rules (rules at least present in DB)
                     ArrayNode updatedRules =
                         checkUpdatedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
@@ -1088,6 +1092,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
                         if (finalAction != null) {
                             action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                        }
+                        if (classificationLevel != null) {
+                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
+                                classificationLevel);
+                        }
+                        if (classificationOwner != null) {
+                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER,
+                                classificationOwner);
                         }
                     } else {
                         try {
@@ -1109,7 +1121,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // Check for new rules (rules only present in request)
                 ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                 JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
-
+                JsonNode classificationLevel =
+                    updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
+                JsonNode classificationOwner =
+                    updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
                 ArrayNode createdRules =
                     checkAddedRules(category, null, rulesForUpdatedCategory, finalAction);
 
@@ -1117,6 +1132,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, createdRules);
                 if (finalAction != null) {
                     action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                }
+                if (classificationLevel != null) {
+                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
+                        classificationLevel);
+                }
+                if (classificationOwner != null) {
+                    action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER,
+                        classificationOwner);
                 }
                 try {
                     request.addActions(new SetAction(action));
@@ -1131,7 +1154,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
      * for the request because they will be computed for endDate and reinserted later
      *
-     * @param request              The initial request
+     * @param request The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
