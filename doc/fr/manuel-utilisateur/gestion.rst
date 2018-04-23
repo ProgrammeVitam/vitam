@@ -5,7 +5,7 @@ Cette partie décrit les fonctionnalités permettant de gérer les archives cons
 
 
 Audit 
-=======
+=====
 
 L'audit est une action d'évaluation, de vérification, contrôle et correction permettant de s'assurer que l'état de la plateforme est toujours conforme à ses exigences de qualité et de sécurité.
 
@@ -48,6 +48,25 @@ L'audit de l'existence des objets se lance depuis le menu "Gestion des archives"
 .. image:: images/detail_audit_int.png
 
 Une fois l'audit lancé, une fenêtre modale s'ouvre pour en informer l'utilisateur, l'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.
+
+
+Lancement d'un audit de cohérence
+---------------------------------
+
+L'audit de cohérence des objets est un contrôle de sécurité des objets.
+Il permet de vérifier que, pour une sélection d'objets appartenant à un ou plusieurs services producteurs, ces objets n'ont pas été altérés à l'insu de la solution logicielle Vitam.
+
+L'opération consiste à vérifier que pour chaque objet audité, l'empreinte contenue dans le fichier sécurisé créé au moment de l'import, est identique à l'empreinte de cet objet enregistrée dans la base de données et à l'empreinte calculée par l'offre de stockage.
+
+L'empreinte d'un objet est une représentation mathématique considérée comme unique par objet. Si l'objet est modifié d'une quelconque manière que ce soit, son empreinte change de manière radicale.
+
+L'audit de cohérence des objets se lance via la fonctionnalité du panier, et peut se lancer sur une sélection précise du panier ou bien sur la totalité de la sélection. 
+
+.. image:: images/detail_audit_coherence.png
+
+
+Une fois l'audit lancé, une fenêtre modale s'ouvre pour en informer l'utilisateur, l'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.
+
 
 Résultat et rapport d'audit
 ============================
