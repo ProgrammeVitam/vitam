@@ -758,6 +758,13 @@ public class AccessStep {
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     inputStream, filename);
             status = response.getHttpCode();
+        } else if (AGENCIES.equals(adminCollection)) {
+            RequestResponse response =
+                    world.getAdminClient().createAgencies(
+                            new VitamContext(world.getTenantId())
+                                    .setApplicationSessionId(world.getApplicationSessionId()),
+                            inputStream, filename);
+            status = response.getHttpCode();
         }
         return status;
     }
