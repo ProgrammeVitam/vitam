@@ -6,19 +6,19 @@
       "Versement des synth\u00e8ses du plan national de formation au\n                        SIAM et des livrables des ateliers du groupe de travail minist\u00e9riel sur\n                        l'archivage \u00e9lectronique.",
       "English title"
     ],
-    "FilePlanPosition": "Valeur de filePlanPosition",
-    "SystemId": "abc",
-    "OriginatingSystemId": "Valeur de OriginatingSystemId",
-    "ArchivalAgencyArchiveUnitIdentifier": 1231321354,
-    "OriginatingAgencyArchiveUnitIdentifier": "Valeur de\n                        originatingAgencyArchiveUnitIdentifier",
-    "TransferringAgencyArchiveUnitIdentifier": "Valeur de\n                        transferringAgencyArchiveUnitIdentifier",
+    "FilePlanPosition": ["Valeur de filePlanPosition"],
+    "SystemId": ["abc"],
+    "OriginatingSystemId": ["Valeur de OriginatingSystemId"],
+    "ArchivalAgencyArchiveUnitIdentifier": [1231321354],
+    "OriginatingAgencyArchiveUnitIdentifier": ["Valeur de\n                        originatingAgencyArchiveUnitIdentifier"],
+    "TransferringAgencyArchiveUnitIdentifier": ["Valeur de\n                        transferringAgencyArchiveUnitIdentifier"],
     "Description": [
       "Dossiers vers\u00e9s par la Mission des archives publiques\n                        pour l'ann\u00e9e 2015 : Un ensemble de documents relatifs aux actions nationales\n                        de formation \u00e0 l'outil SIAM et un ensemble de documents relatif aux ateliers\n                        du groupe de travail minist\u00e9riel archivage \u00e9lectronique pilot\u00e9 par la\n                        MAP.",
       "English Description"
     ],
     "Type": "Valeur du type",
     "DocumentType": "Documents de pr\u00e9sentation et de synth\u00e8se",
-    "Language": "FR",
+    "Language": ["FR"],
     "DescriptionLanguage": "FR",
     "Status": "Valeur de Status",
     "Version": "Valeur de version",
@@ -42,13 +42,13 @@
     "SubmissionAgency": {
       "Identifier": "Identifiant de l'OriginatingAgency"
     },
-    "Writer": {
+    "Writer": [{
       "FirstName": "Valeur de FirstName",
       "BirthName": "Valeur de BirthName",
       "GivenName": "Valeur de GivenName",
       "BirthDate": "2016-09-26Z",
       "DeathDate": "2016-09-26Z"
-    },
+    }],
     "Source": "Valeur de Source",
     "CreatedDate": "2016-09-26T15:34:08.284+02:00",
     "TransactedDate": "2016-09-26T15:34:08.284+02:00",

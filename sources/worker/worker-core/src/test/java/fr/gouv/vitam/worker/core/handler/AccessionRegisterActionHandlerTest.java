@@ -173,6 +173,8 @@ public class AccessionRegisterActionHandlerTest {
         assertEquals(0, register.get("TotalUnits").get("ingested").asInt());
         assertEquals(3, register.get("TotalUnits").get("attached").asInt());
         assertEquals(3, register.get("TotalUnits").get("symbolicRemained").asInt());
+        assertEquals("AcquisitionInformation0", register.get("AcquisitionInformation").asText());
+        assertEquals("Public and Private Archive", register.get("LegalStatus").asText());
     }
 
     @Test

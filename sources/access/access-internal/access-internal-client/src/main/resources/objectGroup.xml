@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DataObjectPackageType xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:ns2="http://www.w3.org/1999/xlink">
+<DataObjectPackageType xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:ns2="http://www.w3.org/1999/xlink">
     <PhysicalDataObject id="aeaaaaaaaafh4xklaacvcak6julzchyaaaba">
         <DataObjectGroupId>aebaaaaaaafh4xklaacvcak6julzajiaaaaq</DataObjectGroupId>
         <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>

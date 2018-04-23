@@ -1,40 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
-    elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+<xsd:schema targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
+    attributeFormDefault="unqualified" version="1.0">
 
-	<xsd:annotation>
-		<xsd:documentation>Cette version est en mode lax, remplaçant les Abstract par des xsd:any</xsd:documentation>
-	    <!-- Ajouter ici la liste des messages modifiés par extension du SEDA -->
-	    <xsd:documentation>Cette version inclue les extensions utilisées par Vitam : ArchiveTransferReply</xsd:documentation>
-	</xsd:annotation>
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/xml.xsd"/>
-    <xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"
+        schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+    <xsd:import namespace="http://www.w3.org/1999/xlink"
+        schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
 
     <!--
                 *****************************
                 ***   Types de base
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam/seda-vitam-2.0-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
     <!--
                 *****************************
                 ***   Base technique
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam/seda-vitam-2.0-technical.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-technical.xsd"/>
     <!--
                 *****************************
                 ***   Base de gestion
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam/seda-vitam-2.0-management.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-management.xsd"/>
     <!--
                 *****************************
                 ***   Base descriptive
                 *****************************
         -->
-    <xsd:include schemaLocation="seda-vitam/seda-vitam-2.0-descriptive.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-descriptive.xsd"/>
 
     <!--
                 *****************************
@@ -45,7 +43,8 @@
     <!-- Liste des versions des référentiels issue de MEDONA -->
     <xsd:group name="TransportCodeListsGroup">
         <xsd:annotation>
-            <xsd:documentation>Liste des codes de réponses souhaitée par l'expéditeur.</xsd:documentation>
+            <xsd:documentation>Liste des codes de réponses souhaitée par
+                l'expéditeur.</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="ReplyCodeListGroup"/>
@@ -54,7 +53,7 @@
     <!-- Reply Code list -->
     <xsd:group name="ReplyCodeListGroup">
         <xsd:sequence>
-            <xsd:element name="ReplyCodeListVersion" type="CodeType">
+            <xsd:element name="ReplyCodeListVersion" type="CodeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Liste des codes de réponses à utiliser.</xsd:documentation>
                 </xsd:annotation>
@@ -63,7 +62,8 @@
     </xsd:group>
     <xsd:simpleType name="ReplyCodeType">
         <xsd:annotation>
-            <xsd:documentation>Code de réponses spécifié dans la liste de réponses.</xsd:documentation>
+            <xsd:documentation>Code de réponses spécifié dans la liste de
+                réponses.</xsd:documentation>
         </xsd:annotation>
         <xsd:restriction base="NonEmptyTokenType"/>
     </xsd:simpleType>
@@ -75,6 +75,11 @@
             <xsd:group ref="TransportCodeListsGroup"/>
             <xsd:group ref="TechnicalCodeListsGroup"/>
             <xsd:group ref="ManagementCodeListsGroup"/>
+            <xsd:element name="AcquisitionInformationCodeListVersion" type="CodeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Version de la liste de codes des modalités d'entrée.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="AuthorizationReasonCodeListVersion" type="CodeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Version de la liste de codes d'autorisation.</xsd:documentation>
@@ -85,12 +90,13 @@
                     <xsd:documentation>Version de la liste de codes des relations.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- <xsd:element ref="OtherCodeListAbstract" minOccurs="0" maxOccurs="unbounded">
+            <!-- Redefined by VITAM -->
+                <xsd:element ref="OtherCodeListAbstract" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xsd:documentation>
                 </xsd:annotation>
-            </xsd:element> -->
+            </xsd:element>
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute ref="xml:id" use="optional"/>
     </xsd:complexType>
@@ -102,8 +108,8 @@
  
         -->
 
-    <!-- Paquet d'Objets-données -->
-    <xsd:complexType name="DataObjectPackageType">
+    <!-- Groupe d'objets-données SEDA 2.1 -->
+    <xsd:complexType name="DataObjectGroupType">
         <xsd:sequence>
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
                 <xsd:element name="BinaryDataObject" type="BinaryDataObjectType">
@@ -116,6 +122,58 @@
                         <xsd:documentation>Bloc de métadonnées techniques des objets-données physiques.</xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+            </xsd:choice>
+            <xsd:element name="LogBook" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Event" minOccurs="0" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:complexContent>
+                                    <xsd:extension base="EventType">
+                                        <xsd:sequence>
+                                            <xsd:element name="DataObjectReference" minOccurs="0">
+                                                <xsd:annotation>
+                                                    <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
+                                                </xsd:annotation>
+                                                <xsd:complexType>
+                                                    <xsd:sequence>
+                                                        <xsd:element name="DataObjectReferenceId" type="DataObjectRefIdType">
+                                                            <xsd:annotation>
+                                                                <xsd:documentation>Référence à un objet-données listé dans les métadonnées de transport.</xsd:documentation>
+                                                            </xsd:annotation>
+                                                        </xsd:element>
+                                                    </xsd:sequence>
+                                                </xsd:complexType>
+                                            </xsd:element> 
+                                        </xsd:sequence>
+                                    </xsd:extension>
+                                </xsd:complexContent>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="GroupIdType" use="required"/>
+    </xsd:complexType>
+
+    <!-- Paquet d'Objets-données -->
+    <xsd:complexType name="DataObjectPackageType">
+        <xsd:sequence>
+            <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                <xsd:element name="DataObjectGroup" type="DataObjectGroupType"/>
+                <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="BinaryDataObject" type="BinaryDataObjectType">
+                        <xsd:annotation>
+                            <xsd:documentation>Bloc de métadonnées techniques des objets-données numériques. Le caractère facultatif est requis afin de permettre le transfert d'un plan de classement sans DataObject joint.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="PhysicalDataObject" type="PhysicalDataObjectType">
+                        <xsd:annotation>
+                            <xsd:documentation>Bloc de métadonnées techniques des objets-données physiques.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:choice>
             </xsd:choice>
             <xsd:element name="DescriptiveMetadata" type="DescriptiveMetadataType">
                 <xsd:annotation>
@@ -130,34 +188,7 @@
         </xsd:sequence>
         <xsd:attribute ref="xml:id" use="optional"/>
     </xsd:complexType>
-    <xsd:complexType name="ArchiveTransferReplyDataObjectPackageType">
-        <xsd:sequence>
-            <xsd:choice minOccurs="0" maxOccurs="unbounded">
-                <xsd:element name="BinaryDataObject" type="BinaryDataObjectType">
-                    <xsd:annotation>
-                        <xsd:documentation>Bloc de métadonnées techniques des objets-données numériques. Le caractère facultatif est requis afin de permettre le transfert d'un plan de classement sans DataObject joint.</xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-                <xsd:element name="PhysicalDataObject" type="PhysicalDataObjectType">
-                    <xsd:annotation>
-                        <xsd:documentation>Bloc de métadonnées techniques des objets-données physiques.</xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:choice>
-            <xsd:element name="DescriptiveMetadata" type="DescriptiveMetadataType">
-                <xsd:annotation>
-                    <xsd:documentation>Bloc de métadonnées descriptives des objets-données.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="ManagementMetadata" type="ArchiveTransferReplyManagementMetadataType">
-                <xsd:annotation>
-                    <xsd:documentation>Bloc des métadonnées de gestion par défaut des objets-données.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute ref="xml:id" use="optional"/>
-    </xsd:complexType>
-    
+
     <!-- Métadonnées de gestion -->
     <xsd:complexType name="ManagementMetadataType">
         <xsd:sequence>
@@ -171,27 +202,27 @@
                     <xsd:documentation>Niveau de service applicable aux unités d’archives.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:group ref="ManagementGroup" minOccurs="0" >
+            <xsd:element name="AcquisitionInformation" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Métadonnées de gestion associées à l'ensemble des unités d'archives.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:group>            
-        </xsd:sequence>
-        <xsd:attribute ref="xml:id" use="optional"/>
-    </xsd:complexType>
-    <xsd:complexType name="ArchiveTransferReplyManagementMetadataType">
-        <xsd:sequence>
-            <xsd:element name="ArchivalProfile" type="IdentifierType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>Profil d’archivage applicable aux ArchiveUnit.</xsd:documentation>
+                    <xsd:documentation>Modalités d'entrée des archives.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="ServiceLevel" type="IdentifierType" minOccurs="0">
+            <xsd:element name="LegalStatus" type="LegalStatusType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Niveau de service applicable aux unités d’archives.</xsd:documentation>
+                    <xsd:documentation>Statut des archives échangées.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:group ref="ArchiveTransferReplyManagementGroup" minOccurs="1" >
+            <xsd:element name="OriginatingAgencyIdentifier" type="IdentifierType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiant du service producteur - information de gestion à  ne pas confondre avec OriginatingAgency dans les métadonnées de description.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SubmissionAgencyIdentifier" type="IdentifierType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiant du service versant - information de gestion à ne pas confondre avec SubmissionAgency dans les métadonnées de description.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:group ref="ManagementGroup" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Métadonnées de gestion associées à l'ensemble des unités d'archives.</xsd:documentation>
                 </xsd:annotation>
@@ -199,7 +230,22 @@
         </xsd:sequence>
         <xsd:attribute ref="xml:id" use="optional"/>
     </xsd:complexType>
-    
+
+
+    <!-- ========================================================= -->
+    <!-- ===== Code List LegalStatusType: LegalStatus Code ======= -->
+    <!-- ========================================================= -->
+    <xsd:simpleType name="LegalStatusType">
+        <xsd:annotation>
+            <xsd:documentation>Valeurs de LegalStatus.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value="Public Archive"/>
+            <xsd:enumeration value="Private Archive"/>
+            <xsd:enumeration value="Public and Private Archive"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <!-- Demande d'autorisation -->
     <xsd:complexType name="AuthorizationRequestContentType">
         <xsd:sequence>
@@ -248,10 +294,13 @@
     <!-- Métadonnées descriptives pour un paquet d'Objets-données -->
     <xsd:complexType name="DescriptiveMetadataType">
         <xsd:sequence>
-            <xsd:element name="ArchiveUnit" type="ArchiveUnitType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="ArchiveUnit" type="ArchiveUnitType" minOccurs="0"
+                maxOccurs="unbounded">
                 <xsd:annotation>
-                    <xsd:documentation>Correspond à la notion de composant en ISAD(G). ArchiveUnit permet à la fois de gérer la hiérarchie intellectuelle, 
-                        tout en contenant les métadonnées de description et de gestion propres à chaque niveau de description archivistique.</xsd:documentation>
+                    <xsd:documentation>Correspond à la notion de composant en ISAD(G). ArchiveUnit
+                        permet à la fois de gérer la hiérarchie intellectuelle, tout en contenant
+                        les métadonnées de description et de gestion propres à chaque niveau de
+                        description archivistique.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -315,30 +364,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:complexType name="ArchiveTransferReplyBusinessMessageType" abstract="true">
-        <xsd:complexContent>
-            <xsd:extension base="MessageType">
-                <xsd:sequence>
-                    <xsd:element name="ArchivalAgreement" type="IdentifierType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>Accord de service.</xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="CodeListVersions" type="CodeListVersionsType">
-                        <xsd:annotation>
-                            <xsd:documentation>Listes de codes de références utilisés dans le message.</xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="DataObjectPackage" type="ArchiveTransferReplyDataObjectPackageType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>Objets-données échangés dans le message.</xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    
+
     <!-- Message de demande -->
     <xsd:complexType name="BusinessRequestMessageType" abstract="true">
         <xsd:complexContent>
@@ -372,22 +398,10 @@
                             <xsd:documentation>Code de la réponse.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="MessageRequestIdentifier" type="IdentifierType">
+                    <xsd:element name="Operation" type="OperationType" minOccurs="0">
                         <xsd:annotation>
-                            <xsd:documentation>Identifiant de la demande.</xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:complexType name="ArchiveTransferReplyBusinessReplyMessageType" abstract="true">
-        <xsd:complexContent>
-            <xsd:extension base="ArchiveTransferReplyBusinessMessageType">
-                <xsd:sequence>
-                    <xsd:element name="ReplyCode" type="NonEmptyTokenType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>Code de la réponse.</xsd:documentation>
+                            <xsd:documentation>Liste des événements dans les messages de
+                                réponse</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="MessageRequestIdentifier" type="IdentifierType">
@@ -399,7 +413,14 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
+    <!-- Liste des opérations dans les messages de réponse  -->
+    <xsd:complexType name="OperationType">
+        <xsd:sequence>
+            <xsd:element name="Event" type="EventType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <!-- Message de demande d'autorisation -->
     <xsd:complexType name="BusinessAuthorizationRequestReplyMessageType" abstract="true">
         <xsd:complexContent>
@@ -475,12 +496,12 @@
                 <xsd:sequence>
                     <xsd:element name="Derogation" type="xsd:boolean">
                         <xsd:annotation>
-                            <xsd:documentation>Indique si une procédure de dérogation est nécessaire avant de communiquer l’unité documentaire ArchiveUnit.</xsd:documentation>
+                            <xsd:documentation>Indique si une procédure de dérogation est nécessaire avant de communiquer l’unité d'archive.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>Identifiant de l'unité documentaire.</xsd:documentation>
+                            <xsd:documentation>Identifiant de l'unité d'archive.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ArchivalAgency" type="OrganizationWithIdType">
@@ -509,7 +530,7 @@
                 <xsd:sequence>
                     <xsd:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>Identifiant de l'unité documentaire.</xsd:documentation>
+                            <xsd:documentation>Identifiant de l'unité d'archives.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ArchivalAgency" type="OrganizationWithIdType">
@@ -585,7 +606,8 @@
                     </xsd:element>
                     <xsd:element name="ArchivalAgency" type="OrganizationWithIdType">
                         <xsd:annotation>
-                            <xsd:documentation>Service d'archives responsable du transfert.</xsd:documentation>
+                            <xsd:documentation>Service d'archives responsable du
+                                transfert.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="TransferringAgency" type="OrganizationWithIdType">
@@ -677,7 +699,7 @@
                     </xsd:element>
                     <xsd:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>Identifiant de l'unité documentaire.</xsd:documentation>
+                            <xsd:documentation>Identifiant de l'unité d'archive.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ArchivalAgency" type="OrganizationWithIdType">
@@ -706,7 +728,7 @@
                 <xsd:sequence>
                     <xsd:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>Identifiant de l'unité documentaire.</xsd:documentation>
+                            <xsd:documentation>Identifiant de l'unité d'archive.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ArchivalAgency" type="OrganizationWithIdType">
@@ -726,12 +748,12 @@
     <!-- Message de réponse à un transfert -->
     <xsd:element name="ArchiveTransferReply" type="ArchiveTransferReplyType">
         <xsd:annotation>
-            <xsd:documentation>Réponse à un transfert d'archives (acceptation, rejet, anomalie..).</xsd:documentation>
+            <xsd:documentation>Réponse à un transfert d'archives (acceptation, rejet, anomalie...).</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:complexType name="ArchiveTransferReplyType">
         <xsd:complexContent>
-            <xsd:extension base="ArchiveTransferReplyBusinessReplyMessageType">
+            <xsd:extension base="BusinessReplyMessageType">
                 <xsd:sequence>
                     <xsd:element name="GrantDate" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
@@ -752,7 +774,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
     <!-- Message de réponse à une demande de transfert -->
     <xsd:element name="ArchiveTransferRequestReply" type="ArchiveTransferRequestReplyType">
         <xsd:annotation>
@@ -860,7 +881,7 @@
                     </xsd:element>
                     <xsd:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>Identifiant de l'unité documentaire.</xsd:documentation>
+                            <xsd:documentation>Identifiant de l'unité d'archive.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ArchivalAgency" type="OrganizationWithIdType">
@@ -890,7 +911,7 @@
                 <xsd:sequence>
                     <xsd:element name="UnitIdentifier" type="IdentifierType" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>Identifiant de l'unité documentaire.</xsd:documentation>
+                            <xsd:documentation>Identifiant de l'unité d'archives.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="ArchivalAgency" type="OrganizationWithIdType">

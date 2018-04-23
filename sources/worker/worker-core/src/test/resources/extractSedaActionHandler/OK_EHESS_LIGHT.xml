@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.0-main.xsd"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xlink="http://www.w3.org/1999/xlink"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.1-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xlink="http://www.w3.org/1999/xlink"
  xmlns:pr="info:lc/xmlns/premis-v2" xml:id="ID1">
     <Comment>2eme SIP</Comment>
     <Date>2016-10-11T17:38:40</Date>

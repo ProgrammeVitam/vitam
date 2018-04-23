@@ -26,7 +26,7 @@
   ~  accept its terms.
   -->
 
-<archiveUnitType id="aeaqaaaaaaggo2kdaamz6ak5xvovt3qaaabq" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0">
+<archiveUnitType id="aeaqaaaaaaggo2kdaamz6ak5xvovt3qaaabq" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1">
     <Management>
         <StorageRule>
             <Rule>R4</Rule>

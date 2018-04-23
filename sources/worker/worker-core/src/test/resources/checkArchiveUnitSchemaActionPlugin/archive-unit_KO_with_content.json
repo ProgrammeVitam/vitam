@@ -94,14 +94,16 @@
 			"DescriptionLevel": "Item",
 			"Title": "My title",
 			"AuthorizedAgent":
-				{
-					"FirstName": "Ludovic",
-					"GivenName": "BLANCHET",
-					"BirthName": "1990-10-01",
-					"BirthPlace": {
-						"City":"Lagny sur Marne"
+				[
+					{
+						"FirstName": "Ludovic",
+						"GivenName": "BLANCHET",
+						"BirthName": "1990-10-01",
+						"BirthPlace": {
+							"City":"Lagny sur Marne"
+						}
 					}
-				}
+				]
 		}
 	}
 }

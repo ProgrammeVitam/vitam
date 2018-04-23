@@ -4,18 +4,18 @@
   "Titles": {
     "fr-FR": "Title0"
   },
-  "FilePlanPosition": "FilePlanPosition0",
-  "OriginatingSystemId": "OriginatingSystemId0",
-  "ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
-  "OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
-  "TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+  "FilePlanPosition": ["FilePlanPosition0"],
+  "OriginatingSystemId": ["OriginatingSystemId0"],
+  "ArchivalAgencyArchiveUnitIdentifier": ["ArchivalAgencyArchiveUnitIdentifier0"],
+  "OriginatingAgencyArchiveUnitIdentifier": ["OriginatingAgencyArchiveUnitIdentifier0"],
+  "TransferringAgencyArchiveUnitIdentifier": ["TransferringAgencyArchiveUnitIdentifier0"],
   "Description": "Description1",
   "Descriptions": {
     "fr-FR": "Description0",
     "en-US": "Description1"
   },
   "DocumentType": "DocumentType0",
-  "Language": "fr-FR",
+  "Language": ["fr-FR"],
   "Tag": [
     "Tag0",
     "Tag1"
@@ -30,7 +30,8 @@
     {
       "FirstName": "FirstName0",
       "BirthName": "BirthName0"
-    },
+    }
+    ,
     {
       "FirstName": "FirstName1",
       "BirthName": "BirthName1"

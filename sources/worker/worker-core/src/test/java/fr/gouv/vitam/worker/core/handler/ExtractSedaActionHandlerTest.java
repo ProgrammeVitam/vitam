@@ -116,6 +116,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_REFNONRULEID_MULT_PREVENTINHERITANCE =
         "extractSedaActionHandler/refnonruleid_multiple_and_preventinheritence.xml";
     private static final String SIP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_PHYSICAL_DATA_OBJECT.xml";
+    private static final String SIP_GROUP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_WRAPPED_PHYSICAL_DATA_OBJECT.xml";
     private static final String SIP_WITH_SPECIAL_CHARACTERS =
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
@@ -703,6 +704,10 @@ public class ExtractSedaActionHandlerTest {
         JsonNode node = JsonHandler.getFromString(response.getData("agIdExt").toString());
         assertEquals("Identifier1", node.get("TransferringAgency").asText());
         assertEquals("2016-06-23T09:45:51.0", evDetData.get("EvDateTimeReq").asText());
+
+        //check ManagementMetaData
+        assertEquals("AcquisitionInformation0", masterEvDetData.get("AcquisitionInformation").asText());
+        assertEquals("Public and Private Archive", masterEvDetData.get("LegalStatus").asText());
     }
 
     @Test
@@ -765,6 +770,22 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_PHYSICAL_DATA_OBJECT);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithGroupAndPhysicalDataObjectExtractSedaThenReadSuccess() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_GROUP_PHYSICAL_DATA_OBJECT);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         handlerIO.addOutIOParameters(out);

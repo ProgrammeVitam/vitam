@@ -7,7 +7,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 /**
  * Common rule Interface
  */
-public interface CommonRule extends CommonRuleBase{
+public interface CommonRule extends CommonRuleBase {
 
     /**
      * Gets the value of the refNonRuleId property.

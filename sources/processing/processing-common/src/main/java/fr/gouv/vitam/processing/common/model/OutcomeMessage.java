@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
+import fr.gouv.vitam.common.model.VitamConstants;
+
 /**
  * Enum StatusCode
  *
@@ -86,7 +88,7 @@ public enum OutcomeMessage {
     /**
      * KO : fail message, manifest is not a valid SEDA file
      */
-    CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA 2.0"),
+    CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA "+ VitamConstants.SEDA_CURRENT_VERSION),
 
     /**
      * OK : success message
@@ -284,6 +286,7 @@ public enum OutcomeMessage {
      * ART OK : succes message
      */
     ATR_OK("Notification envoyée");
+
 
     private String value;
 

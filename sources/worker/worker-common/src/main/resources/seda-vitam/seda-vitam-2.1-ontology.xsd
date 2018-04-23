@@ -2,7 +2,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" elementFormDefault="qualified"
     attributeFormDefault="unqualified" version="1.0">
-    <xsd:include schemaLocation="seda-2.1-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
     
     <xsd:group name="ObjectGroup">
         <xsd:annotation>
@@ -14,7 +14,9 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:group ref="BaseObjectGroup"/>
-            <xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Redefined by VITAM -->
+            <!--<xsd:element ref="ObjectGroupExtenstionAbstract" minOccurs="0" maxOccurs="unbounded"/>-->
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:group>
     
@@ -50,7 +52,9 @@
     <!-- Level description -->
     <xsd:group name="LevelGroup">
         <xsd:sequence>
-            <xsd:element name="DescriptionLevel" type="LevelType" minOccurs="0" maxOccurs="1">
+            <!-- Redefined by VITAM -->
+            <!-- xsd:element name="DescriptionLevel" type="LevelType" minOccurs="0" maxOccurs="1"-->
+            <xsd:element name="DescriptionLevel" type="LevelType" minOccurs="1" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>Niveau de description au sens de la norme ISAD (G). Indique si l’ArchiveUnit correspond à un fonds, 
                         à un sous-fonds, à une classe, à une série organique, à une sous-série organique, à un dossier, à un sous-dossier ou à une pièce.</xsd:documentation>
@@ -81,7 +85,9 @@
     <!-- Title description -->
     <xsd:group name="TitleGroup">
         <xsd:sequence>
-            <xsd:element name="Title" type="TextType" minOccurs="0" maxOccurs="unbounded">
+            <!-- Redefined by VITAM -->
+            <!-- xsd:element name="Title" type="TextType" minOccurs="0" maxOccurs="unbounded"-->
+            <xsd:element name="Title" type="TextType" minOccurs="1" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Intitulé de l'ArchiveUnit.</xsd:documentation>
                     <xsd:documentation>Références : DC.Title ead.unittitle</xsd:documentation>
@@ -869,6 +875,7 @@
                             <xsd:documentation>Nationalité d'une personne.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+
                     <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>Dans le PersonGroup, Identifiant de type numéro matricule.</xsd:documentation>
@@ -886,6 +893,7 @@
                             <xsd:documentation>Identifiant de l'entité.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+
                 </xsd:sequence>
             </xsd:choice>
         </xsd:sequence>

@@ -1,7 +1,7 @@
 <ArchiveUnit xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
-             xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" id="ID3">
-    <Content restrictionValue="Valeur de restrictionValue" restrictionEndDate="2016-09-26Z">
+             xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" id="ID3">
+    <Content>
         <DescriptionLevel>RecordGrp</DescriptionLevel>
         <Title xml:lang="fr">Versement des synthèses du plan national de formation au
             SIAM et des livrables des ateliers du groupe de travail ministériel sur

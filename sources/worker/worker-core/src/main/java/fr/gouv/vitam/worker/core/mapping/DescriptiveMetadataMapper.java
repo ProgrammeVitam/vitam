@@ -98,8 +98,6 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setEvent(metadataContentType.getEvent());
         descriptiveMetadataModel.setFilePlanPosition(metadataContentType.getFilePlanPosition());
         descriptiveMetadataModel.setGps(metadataContentType.getGps());
-        descriptiveMetadataModel.setHref(metadataContentType.getHref());
-        descriptiveMetadataModel.setId(metadataContentType.getId());
         descriptiveMetadataModel.setKeyword(metadataContentType.getKeyword());
         descriptiveMetadataModel.setLanguage(metadataContentType.getLanguage());
         descriptiveMetadataModel.setOriginatingAgency(metadataContentType.getOriginatingAgency());
@@ -110,9 +108,6 @@ public class DescriptiveMetadataMapper {
 
         descriptiveMetadataModel.setRegisteredDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getRegisteredDate()));
         descriptiveMetadataModel.setRelatedObjectReference(metadataContentType.getRelatedObjectReference());
-        descriptiveMetadataModel.setRestrictionEndDate(metadataContentType.getRestrictionEndDate());
-        descriptiveMetadataModel.setRestrictionRuleIdRef(metadataContentType.getRestrictionRuleIdRef());
-        descriptiveMetadataModel.setRestrictionValue(metadataContentType.getRestrictionValue());
         descriptiveMetadataModel.setReceivedDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getReceivedDate()));
         descriptiveMetadataModel.setSentDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getSentDate()));
 
@@ -137,6 +132,8 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setType(metadataContentType.getType());
         descriptiveMetadataModel.setVersion(metadataContentType.getVersion());
         descriptiveMetadataModel.setWriter(metadataContentType.getWriter());
+        descriptiveMetadataModel.setTransmitter(metadataContentType.getTransmitter());
+        descriptiveMetadataModel.setSender(metadataContentType.getSender());
 
         return descriptiveMetadataModel;
     }

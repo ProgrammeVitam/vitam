@@ -2,8 +2,8 @@
 
 
 <ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 ../../Bureau/BA/Formation/Exercices/Schemas/seda-2.0-main.xsd"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0">
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 ../../Bureau/BA/Formation/Exercices/Schemas/seda-2.1-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1">
     <Comment>Cartes postales (Grande Collecte)</Comment>
     <Date>2016-10-12T16:28:40</Date>
     <MessageIdentifier>20161012002</MessageIdentifier>

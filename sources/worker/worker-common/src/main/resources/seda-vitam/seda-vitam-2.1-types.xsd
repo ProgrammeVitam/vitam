@@ -7,7 +7,7 @@
         elementFormDefault="qualified"
         attributeFormDefault="unqualified"
         version="1.0">
-    <xsd:include schemaLocation="seda-2.1-ontology.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-ontology.xsd"/>
     
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/xml.xsd"/>
     <xsd:import namespace="http://www.w3.org/1999/xlink" schemaLocation="http://www.w3.org/1999/xlink.xsd"/>
@@ -65,7 +65,9 @@
     </xsd:attributeGroup>
     <xsd:complexType name="OpenType" abstract="true">
         <xsd:sequence>
-            <xsd:any namespace="##other" processContents="lax" minOccurs="0"/>
+            <!-- Redefined by VITAM-->
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            <!--<xsd:any namespace="##other" processContents="lax" minOccurs="0"/>-->
         </xsd:sequence>
         <xsd:attributeGroup ref="OpenTypeAttributeGroup"/>
     </xsd:complexType> 
@@ -247,7 +249,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <!-- In CoreMetadataType from seda-2.1-technical.xsd: Technical Metadata Content -->
+    <!-- In CoreMetadataType fseda-vitam-2.1-technical.xsd.xsd: Technical Metadata Content -->
     <xsd:complexType name="TextTechnicalMetadataType">
         <xsd:annotation>
             <xsd:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type texte(XML, JSON, CSV, ...).</xsd:documentation>
@@ -310,21 +312,21 @@
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In PhysicalTechnicalDescriptionGroup from seda-2.1-technical.xsd: extra dimension techncal description for PhysicalDataObject -->
+    <!-- In PhysicalTechnicalDescriptionGroup fseda-vitam-2.1-technical.xsd.xsd: extra dimension techncal description for PhysicalDataObject -->
     <xsd:element name="OtherDimensionsAbstract" abstract="true">
         <xsd:annotation>
             <xsd:documentation>Permet d'étendre &lt;OtherDimensions&gt; avec d'autres métadonnées de description des objets-données physiques.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In CoreMetadataType from seda-2.1-technical.xsd: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
+    <!-- In CoreMetadataType fseda-vitam-2.1-technical.xsd.xsd: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
     <xsd:element name="OtherCoreTechnicalMetadataAbstract" abstract="true" type="OpenType">
         <xsd:annotation>
             <xsd:documentation>Contient toutes les métadonnées techniques de base pour d'autres types.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In ArchiveUnitType from seda-2.1-descriptive.xsd: Abstract for ArchiveUnit reference from within EAS -->
+    <!-- In ArchiveUnitType fseda-vitam-2.1-descriptive.xsd.xsd: Abstract for ArchiveUnit reference from within EAS -->
     <xsd:element name="ArchiveUnitReferenceAbstract" abstract="true">
         <xsd:annotation>
             <xsd:documentation>Contient les requêtes nécessaires pour trouver un ArchiveUnit et pointer sur lui dans un prochain ArchiveUnit.
@@ -332,28 +334,28 @@
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In ManagementGroup from seda-2.1-management.xsd: for Management extension -->
+    <!-- In ManagementGroup fseda-vitam-2.1-management.xsd.xsd: for Management extension -->
     <xsd:element name="OtherManagementAbstract" abstract="true">
         <xsd:annotation>
             <xsd:documentation>Utilisé par exemple pour manipuler un ArchiveUnit déjà existant dans le système d'archivage électronique.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In CodeListVersionsType from seda-2.1-main.xsd: If needed, extra CodeList could be added -->
+    <!-- In CodeListVersionsType fseda-vitam-2.1-main.xsd.xsd: If needed, extra CodeList could be added -->
     <xsd:element name="OtherCodeListAbstract" abstract="true" type="CodeType">
         <xsd:annotation>
             <xsd:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In AgentGroup from seda-2.1-ontology.xsd: If needed, extra agent could be added -->
+    <!-- In AgentGroup fseda-vitam-2.1-ontology.xsd.xsd: If needed, extra agent could be added -->
     <xsd:element name="AgentAbstract" abstract="true" type="AgentType">
         <xsd:annotation>
             <xsd:documentation>Permet d'ajouter de nouveau types d'agents dans l'ontologie.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In EventGroup from seda-2.1-ontology.xsd: If needed, extra event could be added -->
+    <!-- In EventGroup fseda-vitam-2.1-ontology.xsd.xsd: If needed, extra event could be added -->
     <xsd:element name="EventAbstract" abstract="true">
         <xsd:annotation>
             <xsd:documentation>Permet d'ajouter de nouveau types d'événements dans l'ontologie.</xsd:documentation>

@@ -1,59 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransferReply xmlns:xlink="http://www.w3.org/1999/xlink"
- xmlns:pr="info:lc/xmlns/premis-v2"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/home/ldubois/Bureau/Vitam/BA/SEDA/formation/seda-2.0-main.xsd">
+                      xmlns:pr="info:lc/xmlns/premis-v2"
+                      xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/home/ldubois/Bureau/Vitam/BA/SEDA/formation/seda-2.1-main.xsd">
     <Comment>Comment0</Comment>
     <Date>2016-10-03T18:41:11.019+02:00</Date>
     <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
     <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
-    
+
     <CodeListVersions>
         <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
-        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0
+        </MessageDigestAlgorithmCodeListVersion>
         <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
-    </CodeListVersions>  
-    
+    </CodeListVersions>
+
     <DataObjectPackage>
-        <DescriptiveMetadata></DescriptiveMetadata>
-        <ManagementMetadata>
-           <ReplyOutcome>
-               <ArchiveUnitList>
-                   <ArchiveUnit id="ID028">
-                       <SystemId>aeaaaaaaazaam7mxaae2eakwunt2f4iaaaaq</SystemId>
-                   </ArchiveUnit>
-                   <ArchiveUnit id="ID014">
-                       <SystemId>aeaaaaaaaaaam3bxaae2eakwunt2f4iaaaaq</SystemId>
-                   </ArchiveUnit>
-                   <ArchiveUnit id="ID027">
-                       <SystemId>aeaaaaaaaaaam7mxaae2eaowunt2f4iaaaaq</SystemId>
-                   </ArchiveUnit>
-                   <ArchiveUnit id="ID026">
-                       <SystemId>aeaaaaaaaaaam3bxaae2ealpunt2f4iaaaaq</SystemId>
-                   </ArchiveUnit>    
-               </ArchiveUnitList>      
-               <DataObjectList>
-                   <BinaryDataObject id="ID101">
-                       <DataObjectGroupId>ID219</DataObjectGroupId>
-                       <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
-                       <DataObjectGroupSystemId>aeaaaaaaaaaam8mxaae2eakwunt3j7iaaaaq</DataObjectGroupSystemId>
-                   </BinaryDataObject>
-                   <BinaryDataObject id="ID102">
-                           <DataObjectGroupId>ID220</DataObjectGroupId>
-                           <DataObjectVersion>Dissemination_1</DataObjectVersion>
-                           <DataObjectGroupSystemId>aeaaaaaaaaaam9mxaae2eakwunt3j7iaaaaq</DataObjectGroupSystemId>         
-                   </BinaryDataObject>
-                   <PhysicalDataObject id="ID203">
-                       <DataObjectGroupId>ID220</DataObjectGroupId>
-                       <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>
-                       <DataObjectGroupSystemId>aeaaaaaaaaaan1mxaae2eakwunt3j7iaaaaq</DataObjectGroupSystemId>         
-                   </PhysicalDataObject>                   
-               </DataObjectList>
-           </ReplyOutcome>         
-        </ManagementMetadata>
+        <DataObjectGroup id="ID219">
+            <BinaryDataObject id="ID101">
+                <DataObjectGroupSystemId>aeaaaaaaaaaam8mxaae2eakwunt3j7iaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID220">
+            <BinaryDataObject id="ID102">
+                <DataObjectGroupSystemId>aeaaaaaaaaaam9mxaae2eakwunt3j7iaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>Dissemination_1</DataObjectVersion>
+            </BinaryDataObject>
+            <PhysicalDataObject id="ID203">
+                <DataObjectGroupSystemId>aeaaaaaaaaaan1mxaae2eakwunt3j7iaaaaq</DataObjectGroupSystemId>
+                <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>
+            </PhysicalDataObject>
+        </DataObjectGroup>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID028">
+                <Content>
+                    <SystemId>aeaaaaaaazaam7mxaae2eakwunt2f4iaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID014">
+                <Content>
+                    <SystemId>aeaaaaaaaaaam3bxaae2eakwunt2f4iaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID027">
+                <Content>
+                    <SystemId>aeaaaaaaaaaam7mxaae2eaowunt2f4iaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID026">
+                <Content>
+                    <SystemId>aeaaaaaaaaaam3bxaae2ealpunt2f4iaaaaq</SystemId>
+                </Content>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata/>
     </DataObjectPackage>
-    
+
     <ReplyCode>ReplyCode0</ReplyCode>
     <MessageRequestIdentifier>MessageRequestIdentifier0</MessageRequestIdentifier>
     <GrantDate>2016-10-03T18:41:11.019+02:00</GrantDate>

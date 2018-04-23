@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ListProcessingReport;
+import com.github.fge.jsonschema.core.report.LogLevel;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.library.DraftV4Library;
 import com.github.fge.jsonschema.library.Library;
@@ -111,7 +112,7 @@ public class SchemaValidationUtils {
      * security-profile.schema
      */
     public static final String SECURITY_PROFILE_SCHEMA_FILENAME = "json-schema/security-profile.schema.json";
-    
+
     /**
      * schemaValidation
      */
@@ -307,11 +308,12 @@ public class SchemaValidationUtils {
         try {
             ProcessingReport report = jsonSchema.validate(archiveUnit);
             if (!report.isSuccess()) {
-                JsonNode error = ((ListProcessingReport) report).asJson();
+                JsonNode error = (( ListProcessingReport ) report).asJson();
                 ObjectNode errorNode = JsonHandler.createObjectNode();
                 errorNode.set("validateUnitReport", error);
                 LOGGER.error("Archive unit is not valid : \n" + errorNode.toString());
-                String instancePointer = error.get(0).get("instance").get("pointer").asText();
+                int errorIndex = getIndexForErrorLevelObjectNode(error);
+                String instancePointer = error.get(errorIndex).get("instance").get("pointer").asText();
                 if (instancePointer.contains("StartDate") || instancePointer.contains("EndDate")) {
                     return new SchemaValidationStatus(errorNode.toString(),
                         SchemaValidationStatusEnum.RULE_DATE_FORMAT);
@@ -347,6 +349,21 @@ public class SchemaValidationUtils {
                 SchemaValidationStatusEnum.NOT_JSON_FILE);
         }
         return new SchemaValidationStatus("Correct file", SchemaValidationStatusEnum.VALID);
+    }
+
+    private int getIndexForErrorLevelObjectNode(JsonNode error) {
+        int errorIndex = 0;
+        for (int index = 0; index <= LogLevel.values().length; index++) {
+            if (error.get(index) != null) {
+                if (error.get(index).get("level") != null &&
+                    error.get(index).get("level").asText().equalsIgnoreCase(LogLevel.ERROR.toString()) ) {
+                    errorIndex = index;
+                    break;
+                }
+
+            }
+        }
+        return errorIndex;
     }
 
     /**

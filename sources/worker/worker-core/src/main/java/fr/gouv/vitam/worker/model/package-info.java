@@ -28,6 +28,6 @@
  * Provides POJO used for XML serialization within the Worker Core module
  */
 // Beware, do not remove this annotation for the Schema
-@javax.xml.bind.annotation.XmlSchema(namespace = "fr:gouv:culture:archivesdefrance:seda:v2.0",
+@javax.xml.bind.annotation.XmlSchema(namespace = "fr:gouv:culture:archivesdefrance:seda:v2.1",
     elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED)
 package fr.gouv.vitam.worker.model;

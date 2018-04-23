@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsd:schema
-    targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    targetNamespace="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xlink="http://www.w3.org/1999/xlink"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified"
     version="1.0">
-    <xsd:include schemaLocation="seda-2.0-types.xsd"/>
+    <xsd:include schemaLocation="seda-vitam-2.1-types.xsd"/>
     
     <!--
                 *****************************
@@ -138,52 +138,52 @@
                     <xsd:documentation>Gestion de la classification.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="LogBook" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion des traces.</xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="Event" maxOccurs="unbounded">
+                            <xsd:complexType>
+                                <xsd:complexContent>
+                                    <xsd:extension base="EventType">
+                                        <xsd:sequence>
+                                            <xsd:element name="DataObjectReference" type="DataObjectRefType" minOccurs="0">
+                                                <xsd:annotation>
+                                                    <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
+                                                </xsd:annotation>
+                                            </xsd:element> 
+                                        </xsd:sequence>
+                                    </xsd:extension>
+                                </xsd:complexContent>
+                            </xsd:complexType>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
             <xsd:element name="NeedAuthorization" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+
+            <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
             <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-            <!-- <xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
+
+<!--            <xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation>
                 </xsd:annotation>
-            </xsd:element> -->
+            </xsd:element>-->
         </xsd:sequence>
     </xsd:group>
-    
-    <!-- Example of codification of one Rule Code oustide SEDA in an external referential -->
-    <xsd:complexType name="DurationRuleType">
-        <xsd:annotation>
-            <xsd:documentation>Permet d'exprimer pour une règle de gestion quelles informations doivent en découler.</xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="RuleId" type="RuleIdType">
-                <xsd:annotation>
-                    <xsd:documentation>Identifiant de la règle</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="Value" type="MeasurementDurationType"/>
-            <xsd:element name="Description" type="xsd:string"/>
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:simpleType name="MeasurementDurationUnitsType">
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="day"/>
-            <xsd:enumeration value="DAY"/>
-            <xsd:enumeration value="month"/>
-            <xsd:enumeration value="MON"/>
-            <xsd:enumeration value="year"/>
-            <xsd:enumeration value="ANN"/>
-        </xsd:restriction>
-    </xsd:simpleType>
-    <xsd:complexType name="MeasurementDurationType">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:nonNegativeInteger">
-                <xsd:attribute name="unit" type="MeasurementDurationUnitsType" use="required"/>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
         
     <!-- Global inheritance control -->
     <xsd:group name="PreventInheritanceGroup">
@@ -317,6 +317,11 @@
                     </xsd:annotation>
                 </xsd:element>
             </xsd:sequence>
+            <xsd:element name="ClassificationAudience" type="NonEmptyTokenType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de gérer les questions de "diffusion restreinte", de "spécial France" et de "Confidentiel Industrie".</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:choice minOccurs="0">
                 <xsd:group ref="PreventInheritanceGroup"/>
                 <xsd:element name="RefNonRuleId" type="RuleIdType" maxOccurs="unbounded">
@@ -440,6 +445,101 @@
             <xsd:element name="FinalAction" type="FinalActionAppraisalCodeType">
                 <xsd:annotation>
                     <xsd:documentation>Action à mettre en œuvre au terme de la durée de gestion.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+<!-- extension VITAM pour la gestion des rattachement d'AUs via le Manifest -->
+    <xsd:complexType name="UpdateOperationType">
+        <xsd:sequence>
+            <xsd:annotation>
+                <xsd:documentation>Exemple d'extension de OtherManagementAbstract
+                    pour la gestion des opérations sur un ArchiveUnit.
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:choice >
+                <xsd:element name="SystemId" type="NonEmptyTokenType">
+                    <xsd:annotation>
+                        <xsd:documentation>Identifiant attribué à l'ArchiveUnit. Il est
+                            attribué par le SAE et correspond à un identifiant interne.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="ArchiveUnitIdentifierKey" type="ArchiveUnitIdentifierKeyType">
+                    <xsd:annotation>
+                        <xsd:documentation>Identifiant attribué à l'ArchiveUnit. Il est attribué par le SAE
+                            et correspond à un nom et une valeur d'une métadonnée qui identifié
+                            d'une manière unique une ArchiveUnit existante.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
+            </xsd:choice>
+            <xsd:element name="ToDelete" type="ToDeleteType" minOccurs="0" />
+            <xsd:element name="FullUpdate" type="xsd:boolean" minOccurs="0"  default="false">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de distinguer une mise à jour complète
+                        d'une mise à jour partielle
+                    </xsd:documentation>
+                    <xsd:documentation>Pour une mise à jour partielle (FullUpdate =
+                        false) seules les balises indiquées dans la partie Content +
+                        Management seront mises à jour.
+                    </xsd:documentation>
+                    <xsd:documentation>Pour une mise à jour complète (FullUpdate =
+                        true) la mise à jour appliquée est la suivante : annule et
+                        remplace.
+                    </xsd:documentation>
+                    <xsd:documentation>Point d'attention : dans le cas d'une Règle de
+                        gestion dans Management, le retrait d'une date de début (et donc
+                        de la date de fin) se fait en positionnant une valeur vide à
+                        StartDate.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ArchiveUnitIdentifierKeyType">
+        <xsd:sequence>
+            <xsd:annotation>
+                <xsd:documentation>Identifier une archiveUnit existante avec le nom et la valeur d'une métadonnée.
+                    Permet le rattachement d'une ArchiveUnit vers une ArchiveUnit existante
+                    identifiée par  le nom et la valeur d'une métadonnée
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:element name="MetadataName" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Nom d'une métadonnée d'une ArchiveUnit. Il est
+                        attribué par le SAE et correspond à un identifiant interne.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="MetadataValue" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>Valeur d'une métadonnée d'une ArchiveUnit. Il est
+                        attribué par le SAE et correspond à la valeur de la MetadataName dans une ArchiveUnit.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ToDeleteType">
+        <xsd:sequence  maxOccurs="unbounded">
+            <xsd:annotation>
+                <xsd:documentation>Permet la suppression de liens entre un
+                    ArchiveUnit père et une liste définie de ses fils.
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
+                <xsd:annotation>
+                    <xsd:documentation>Permet de faire une référence à d'autres
+                        ArchiveUnit dans la même transaction.
+                    </xsd:documentation>
+                    <xsd:documentation>La balise permet de supprimer le lien entre
+                        l'ArchiveUnit fils référencé et l'ArchiveUnit courant (père).
+                    </xsd:documentation>
+                    <xsd:documentation>Le type de cette balise est le même que celui
+                        utilisé pour référencer un fils dans ArchiveUnit/ArchiveUnitRefId.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

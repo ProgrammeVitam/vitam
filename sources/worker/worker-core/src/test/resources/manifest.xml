@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
                  xmlns:pr="info:lc/xmlns/premis-v2"
-                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/mehdi.afnai/Documents/SEDA_Vitam/seda-2.0-main.xsd">
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/C:/Users/mehdi.afnai/Documents/SEDA_Vitam/seda-2.1-main.xsd">
     <Date>2006-05-04T18:13:51.0</Date>
     <MessageIdentifier>Entrée SIP ok arborescence complexe</MessageIdentifier>
     <!-- SIP avezc arboresecnce complexe n'ayant qu'une seule racine et ArchiveUnit ayant deux parents -->
@@ -105,6 +105,8 @@
         <ManagementMetadata>
             <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
             <ServiceLevel>ServiceLevel0</ServiceLevel>
+<OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
+<SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
             <StorageRule>
                 <Rule>STO-00001</Rule>
                 <StartDate>2006-05-04</StartDate>
@@ -142,8 +144,6 @@
                 <NeedReassessingAuthorization>false</NeedReassessingAuthorization>
             </ClassificationRule>
             <NeedAuthorization>false</NeedAuthorization>
-            <OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
-            <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
         </ManagementMetadata>
     </DataObjectPackage>
     <RelatedTransferReference>RelatedTransferReference0</RelatedTransferReference>

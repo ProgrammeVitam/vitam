@@ -94,13 +94,13 @@
 		"DescriptionLevel": "Item",
 		"Title": "2016",
 		"AuthorizedAgent":
-			{
+			[{
 				"FirstName": "John",
 				"GivenName": "Doe",
 				"BirthName": "1990-01-01",
 				"BirthPlace": {
 					"City":"Lagny sur Marne"
 				}
-			}
+			}]
 	}
 }

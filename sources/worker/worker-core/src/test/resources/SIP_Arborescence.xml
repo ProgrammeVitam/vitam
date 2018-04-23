@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:pr="info:lc/xmlns/premis-v2"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID002">
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID002">
     <Date>2016-06-23T09:45:51.0</Date>
     <MessageIdentifier>OK SIP v2</MessageIdentifier>
     <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
@@ -159,7 +159,7 @@
                     </ClassificationRule>
                     <NeedAuthorization>false</NeedAuthorization>
                 </Management>
-                <Content xml:id="ID029">
+                <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
                     <Title>Sensibilisation API</Title>
                     <FilePlanPosition>FilePlanPosition0</FilePlanPosition>

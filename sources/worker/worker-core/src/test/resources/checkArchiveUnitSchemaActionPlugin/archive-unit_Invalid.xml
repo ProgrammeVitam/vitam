@@ -20,7 +20,7 @@
 		&lt;StartDate&gt;2016-01-01&lt;/StartDate&gt;
                 &lt;FinalAction&gt;Keep&lt;/FinalAction&gt;
             &lt;/AppraisalRule&gt;</Management>
-                <Content xml:id="ID029">
+                <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
                     <Title>Sensibilisation API</Title>
                     <FilePlanPosition>FilePlanPosition0</FilePlanPosition>

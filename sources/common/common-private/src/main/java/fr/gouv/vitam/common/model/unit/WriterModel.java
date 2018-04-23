@@ -24,22 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.unit.v2_1;
-
-import fr.gouv.culture.archivesdefrance.seda.v2_1.RuleIdType;
-import fr.gouv.vitam.common.model.unit.CommonRuleBase;
-
-import java.util.List;
+package fr.gouv.vitam.common.model.unit;
 
 /**
- * Common rule Interface
+ * Custom Class for DescriptiveMetadataContentType.Writer (Seda 2.1)
+ * Problem (with merge of two choice elements) :  getting JAXB "catch-all" property (one content property generated of type List<JAXBElement<?>>)
+ *   because of the following reason :
+ * The field name "Identifier" is used by two different parts of a schema in choice element.
+ * N.B : xjc:simple resolve the problem but impact lot of class properties names
+ * @author afraoucene
  */
-public interface CommonRuleV21 extends CommonRuleBase {
 
-    /**
-     * Gets the value of the refNonRuleId property.
-     * 
-     * @return refNonRuleId for SEDA V21 rules
-     */
-    List<RuleIdType> getRefNonRuleId();
+public class WriterModel extends AgentTypeModel {
+
 }

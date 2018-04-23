@@ -20,12 +20,12 @@
       "fre" : "Chemin des dames - Le ch\u00E2teau de la Motte",
       "en" : "Chemin des dames - The Castle of La Motte"
     },
-    "FilePlanPosition" : "/content",
-    "SystemId" : "ID01",
-    "OriginatingSystemId" : "ID01",
-    "ArchivalAgencyArchiveUnitIdentifier" : "1 Num 1/204-3",
-    "OriginatingAgencyArchiveUnitIdentifier" : "CP1",
-    "TransferringAgencyArchiveUnitIdentifier" : "CP1",
+    "FilePlanPosition" : ["/content"],
+    "SystemId" : ["ID01"],
+    "OriginatingSystemId" : ["ID01"],
+    "ArchivalAgencyArchiveUnitIdentifier" : ["1 Num 1/204-3"],
+    "OriginatingAgencyArchiveUnitIdentifier" : ["CP1"],
+    "TransferringAgencyArchiveUnitIdentifier" : ["CP1"],
     "Description" : "Allemant. - Au chemin des Dames : le ch\u00E2teau et la ferme de la Motte totalement d\u00E9truits.",
     "Descriptions" : {
       "fr" : "L\u00E9gendes traduites en anglais."
@@ -35,7 +35,7 @@
     },
     "Type" : "Information de repr\u00E9sentation",
     "DocumentType" : "Carte postale",
-    "Language" : "french",
+    "Language" : ["french"],
     "DescriptionLanguage" : "french",
     "Status" : "Pr\u00EAt",
     "Version" : "Copie num\u00E9ris\u00E9e",
@@ -104,24 +104,34 @@
       "EventDateTime" : "1915-06-12T09:31:00",
       "EventDetail" : "Envoi d'une carte postale depuis le front."
     } ],
-    "Signature" : {
-      "DateSignature" : "2017-08-24T14:56:31.000+02:00",
-      "Signer" : {
-        "Corpname" : "Service d'archives 2",
-        "SigningTime" : "2017-11-13T19:28:40"
-      },
-      "Validator" : {
-        "FirstName" : "Laurent",
-        "BirthName" : "Dupois",
-        "ValidationTime" : "2016-10-12T16:28:40"
-      },
-      "ReferencedObject" : {
-        "SignedObjectDigest" : {
-          "Value" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
-          "Algorithm" : "SHA-512"
+    "Signature" :
+    [
+      {
+        "DateSignature" : "2017-08-24T14:56:31.000+02:00",
+        "Signer" :
+        [
+          {
+            "Corpname" : "Service d'archives 2",
+            "SigningTime" : "2017-11-13T19:28:40"
+          },
+          {
+            "FirstName"  : "FirstName just test for AFE SEDA 2.1",
+            "SigningTime" : "2017-11-13T19:28:40"
+          }
+        ],
+        "Validator" : {
+          "FirstName" : "Laurent",
+          "BirthName" : "Dupois",
+          "ValidationTime" : "2016-10-12T16:28:40"
+        },
+        "ReferencedObject" : {
+          "SignedObjectDigest" : {
+            "Value" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+            "Algorithm" : "SHA-512"
+          }
         }
       }
-    },
+    ],
     "Gps" : {
       "GpsLatitude" : "49.4769199",
       "GpsLongitude" : "3.4417368"

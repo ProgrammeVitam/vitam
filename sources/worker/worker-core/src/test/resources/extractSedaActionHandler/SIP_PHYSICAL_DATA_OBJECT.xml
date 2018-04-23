@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.0-main.xsd"
-    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xlink="http://www.w3.org/1999/xlink"
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.1-main.xsd"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xlink="http://www.w3.org/1999/xlink"
     xmlns:pr="info:lc/xmlns/premis-v2">
     <Comment>Jeu de test OK comprenant un objet binaire et un objet physique</Comment>
     <Date>2006-05-04T18:13:51.0</Date>

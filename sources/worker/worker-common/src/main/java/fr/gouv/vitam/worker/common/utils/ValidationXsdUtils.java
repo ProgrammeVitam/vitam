@@ -63,12 +63,6 @@ public class ValidationXsdUtils {
     public static final String CATALOG_FILENAME = "seda-vitam/catalog.xml";
 
     /**
-     * Filename of the catalog file for SEDA 2.1; should be found in the classpath. (@TODO all seda resources must be shared in one module)
-     */
-    public static final String CATALOG_SEDA_2_1_FILENAME = "seda-2.1/catalog.xml";
-
-
-    /**
      * @param xmlFile the file to validate
      * @param xsdFile the xsd schema to validate with the file
      * @return true(if XSD validate the file XML)
@@ -116,7 +110,7 @@ public class ValidationXsdUtils {
             StreamUtils.closeSilently(xmlFile);
         }
     }
-    
+
     /**
      * @param xmlFile
      * @param xsdFile
@@ -137,15 +131,12 @@ public class ValidationXsdUtils {
     }
 
     private static Schema getSchema(String xsdFile) throws SAXException, FileNotFoundException, MalformedURLException {
-        // Was XMLConstants.W3C_XML_SCHEMA_NS_URI        
+        // Was XMLConstants.W3C_XML_SCHEMA_NS_URI
         final SchemaFactory factory =
             SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
 
         // Load catalog to resolve external schemas even offline.
-        final URL seda2CatalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
-        final URL seda21CatalogUrl =  ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_SEDA_2_1_FILENAME);
-        final URL catalogUrl = xsdFile.equals(SedaUtils.SEDA_XSD_VERSION) ? seda21CatalogUrl : seda2CatalogUrl;
-
+        final URL catalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
         factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
 
         return factory.newSchema(ValidationXsdUtils.class.getClassLoader().getResource(xsdFile));
@@ -154,18 +145,15 @@ public class ValidationXsdUtils {
     private static Schema getSchema(File file) throws SAXException, MalformedURLException, FileNotFoundException {
         SchemaFactory factory = null;
         if (file.getName().endsWith(RNG_SUFFIX)) {
-            System.setProperty(RNG_PROPERTY_KEY, 
-                RNG_FACTORY); 
+            System.setProperty(RNG_PROPERTY_KEY,
+                RNG_FACTORY);
             factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI);
         } else {
             factory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
         }
 
         // Load catalog to resolve external schemas even offline.
-        final URL seda2CatalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
-        final URL seda21CatalogUrl =  ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_SEDA_2_1_FILENAME);
-        final URL catalogUrl = file.getName().equals(SedaUtils.SEDA_XSD_VERSION) ? seda21CatalogUrl : seda2CatalogUrl;
-
+        final URL catalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
         factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
 
         return factory.newSchema(file);

@@ -214,6 +214,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private static final String EV_DETAIL_REQ = "EvDetailReq";
     private static final String JSON_EXTENSION = ".json";
+    private static final String DATA_OBJECT_GROUP = "DataObjectGroup";
     private static final String BINARY_DATA_OBJECT = "BinaryDataObject";
     private static final String PHYSICAL_DATA_OBJECT = "PhysicalDataObject";
     private static final String DATA_OBJECT_GROUPID = "DataObjectGroupId";
@@ -283,7 +284,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     static {
         try {
             jaxbContext =
-                JAXBContext.newInstance("fr.gouv.culture.archivesdefrance.seda.v2:fr.gouv.vitam.common.model.unit");
+                JAXBContext.newInstance(ArchiveUnitType.class.getPackage().getName()+":fr.gouv.vitam.common.model.unit");
         } catch (JAXBException e) {
             LOGGER.error("unable to create jaxb context", e);
         }
@@ -601,9 +602,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLEventReader reader = null;
+
+        final QName dataObjectGroupName = new QName(SedaConstants.NAMESPACE_URI, DATA_OBJECT_GROUP);
         final QName dataObjectName = new QName(SedaConstants.NAMESPACE_URI, BINARY_DATA_OBJECT);
         final QName physicalDataObjectName = new QName(SedaConstants.NAMESPACE_URI, PHYSICAL_DATA_OBJECT);
         final QName unitName = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT);
+        final QName idQName = new QName(SedaConstants.ATTRIBUTE_ID);
 
         try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(SEDA_FOLDER + "/" + SEDA_FILE)) {
             XMLStreamReader rawReader = xmlInputFactory.createXMLStreamReader(xmlFile);
@@ -627,6 +631,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             ObjectNode evDetData = JsonHandler.createObjectNode();
 
             Stopwatch xmlParserStopwatch = Stopwatch.createStarted();
+            String currentGroupId = null;
 
             while (true) {
                 final XMLEvent event = reader.peek();
@@ -671,12 +676,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 reader.nextEvent();
 
+                if (event.isStartElement() && event.asStartElement().getName().equals(dataObjectGroupName)) {
+                    final StartElement element = event.asStartElement();
+                   // if(!element.getAttributes().hasNext())
+                    currentGroupId = element.getAttributeByName(idQName).getValue();
+                    continue;
+                }
+
                 if (event.isStartElement() && (event.asStartElement().getName().equals(dataObjectName) ||
                     event.asStartElement().getName().equals(physicalDataObjectName))) {
                     final StartElement element = event.asStartElement();
-
-                    final String objectGroupGuid = writeDataObjectInLocal(reader, element);
+                    writeDataObjectInLocal(reader, element, currentGroupId);
                     continue;
+                }
+
+                if (event.isEndElement() && event.asEndElement().getName().equals(dataObjectGroupName)) {
+                    currentGroupId  = null;
                 }
 
 
@@ -747,6 +762,28 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createCharacters(serviceLevel));
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_SERVICE_LEVEL));
+                    globalMetadata = false;
+                }
+
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_ACQUISITIONINFORMATION)) {
+                    final String acquisitionInformation = reader.getElementText();
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_ACQUISITIONINFORMATION));
+                    writer.add(eventFactory.createCharacters(acquisitionInformation));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_ACQUISITIONINFORMATION));
+                    globalMetadata = false;
+                }
+
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_LEGALSTATUS)) {
+                    final String legalStatus = reader.getElementText();
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_LEGALSTATUS));
+                    writer.add(eventFactory.createCharacters(legalStatus));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_LEGALSTATUS));
                     globalMetadata = false;
                 }
 
@@ -882,6 +919,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         LOGGER.debug("Put a null ServiceLevel (No service Level)");
                         evDetData.set("ServiceLevel", (ObjectNode) null);
                     }
+                    JsonNode acquisitionInformation = dataObjPack.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+                    if (acquisitionInformation != null) {
+                        LOGGER.debug("Find AcquisitionInformation : " + acquisitionInformation);
+                        evDetData.put(SedaConstants.TAG_ACQUISITIONINFORMATION, acquisitionInformation.asText());
+                    }
+
+                    JsonNode legalStatus = dataObjPack.get(SedaConstants.TAG_LEGALSTATUS);
+                    if (legalStatus != null) {
+                        LOGGER.debug("Find legalStatus : " + legalStatus);
+                        evDetData.put(SedaConstants.TAG_LEGALSTATUS, legalStatus.asText());
+                    }
+
+
                 } else {
                     LOGGER.debug("Put a null ServiceLevel (No Data Object Package)");
                     evDetData.set("ServiceLevel", (ObjectNode) null);
@@ -1589,7 +1639,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private String writeDataObjectInLocal(XMLEventReader reader, StartElement startElement)
+    private String writeDataObjectInLocal(XMLEventReader reader, StartElement startElement, String currentGroupId)
         throws ProcessingException {
         final String elementGuid = GUIDFactory.newGUID().toString();
         final File tmpFile = handlerIO.getNewLocalFile(elementGuid + JSON_EXTENSION);
@@ -1597,26 +1647,53 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final JsonXMLConfig config = new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
             .namespaceDeclarations(false).build();
         String groupGuid = null;
+        boolean isTraversingNestedGroupTags = false;
         try {
+
             final FileWriter tmpFileWriter = new FileWriter(tmpFile);
 
-            final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
+            final XMLEventWriter jsonWriter = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
 
             final Iterator<?> it = startElement.getAttributes();
             String dataObjectId = "";
             final DataObjectInfo bo = new DataObjectInfo();
             final DataObjectDetail detail = new DataObjectDetail();
 
-            if (it.hasNext()) {
+            if (it.hasNext()) { //id is always required
                 dataObjectId = ((Attribute) it.next()).getValue();
                 dataObjectIdToGuid.put(dataObjectId, elementGuid);
-                dataObjectIdToObjectGroupId.put(dataObjectId, "");
-                writer.add(eventFactory.createStartDocument());
-                writer.add(eventFactory.createStartElement("", "", startElement.getName().getLocalPart()));
-                writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_ID));
-                writer.add(eventFactory.createCharacters(dataObjectId));
-                writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_ID));
+                dataObjectIdToObjectGroupId.put(dataObjectId, currentGroupId != null ? currentGroupId : "");
+
+                jsonWriter.add(eventFactory.createStartDocument());
+                jsonWriter.add(eventFactory.createStartElement("", "", startElement.getName().getLocalPart()));
+                jsonWriter.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_ID));
+                jsonWriter.add(eventFactory.createCharacters(dataObjectId));
+                jsonWriter.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_ID));
+
+                //ObjectGroup Wrapping mode (seda version >= 2.1)
+                if (currentGroupId != null ) {
+                    if (objectGroupIdToDataObjectId.get(currentGroupId) == null) {
+                        final List<String> dataOjectList = new ArrayList<>();
+                        dataOjectList.add(dataObjectId);
+                        objectGroupIdToDataObjectId.put(currentGroupId, dataOjectList);
+                    } else {
+                        objectGroupIdToDataObjectId.get(currentGroupId).add(dataObjectId);
+                    }
+
+                    groupGuid = GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter())
+                        .toString();
+
+                    objectGroupIdToGuid.put(currentGroupId, groupGuid);
+
+                    // Create new startElement for group with new guid
+                    jsonWriter.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
+                    jsonWriter.add(eventFactory.createCharacters(currentGroupId));
+                    jsonWriter.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
+
+                    isTraversingNestedGroupTags = true;
+                }
             }
+
             while (true) {
                 boolean writable = true;
                 final XMLEvent event = reader.nextEvent();
@@ -1624,8 +1701,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     final EndElement end = event.asEndElement();
                     if (BINARY_DATA_OBJECT.equals(end.getName().getLocalPart()) ||
                         PHYSICAL_DATA_OBJECT.equals(end.getName().getLocalPart())) {
-                        writer.add(event);
-                        writer.add(eventFactory.createEndDocument());
+                        jsonWriter.add(event);
+                        jsonWriter.add(eventFactory.createEndDocument());
                         objectGuidToDataObject.put(elementGuid, bo);
                         if (PHYSICAL_DATA_OBJECT.equals(end.getName().getLocalPart())) {
                             physicalDataObjetsGuids.add(elementGuid);
@@ -1646,63 +1723,73 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             final String version = reader.getElementText();
                             detail.setVersion(version);
                             bo.setVersion(version);
-                            writer.add(eventFactory.createStartElement("", "", localPart));
-                            writer.add(eventFactory.createCharacters(version));
-                            writer.add(eventFactory.createEndElement("", "", localPart));
+                            jsonWriter.add(eventFactory.createStartElement("", "", localPart));
+                            jsonWriter.add(eventFactory.createCharacters(version));
+                            jsonWriter.add(eventFactory.createEndElement("", "", localPart));
                             break;
                         }
                         case DATA_OBJECT_GROUPID: {
-                            groupGuid = GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter())
-                                .toString();
-                            final String groupId = reader.getElementText();
-                            // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow.
-                            // We get the GUID defined earlier during the DataObjectGroupReferenceID analysis
-                            if (objectGroupIdToGuidTmp.get(groupId) != null) {
-                                groupGuid = objectGroupIdToGuidTmp.get(groupId);
-                                objectGroupIdToGuidTmp.remove(groupId);
-                            }
-                            dataObjectIdToObjectGroupId.put(dataObjectId, groupId);
-                            objectGroupIdToGuid.put(groupId, groupGuid);
+                            if (currentGroupId == null) { //ignore if ObjectGroup wrapping mode
 
-                            // Create OG lifeCycle
+                                groupGuid = GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter())
+                                    .toString();
+                                final String groupId = reader.getElementText();
+                                // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow.
+                                // We get the GUID defined earlier during the DataObjectGroupReferenceID analysis
+                                if (objectGroupIdToGuidTmp.get(groupId) != null) {
+                                    groupGuid = objectGroupIdToGuidTmp.get(groupId);
+                                    objectGroupIdToGuidTmp.remove(groupId);
+                                }
+                                dataObjectIdToObjectGroupId.put(dataObjectId, groupId);
+                                objectGroupIdToGuid.put(groupId, groupGuid);
 
-                            // FIXME : probably a bad idea
-                            // createObjectGroupLifeCycle(groupGuid, containerId, typeProcess);
-                            if (objectGroupIdToDataObjectId.get(groupId) == null) {
-                                final List<String> dataOjectList = new ArrayList<>();
-                                dataOjectList.add(dataObjectId);
-                                objectGroupIdToDataObjectId.put(groupId, dataOjectList);
+                                // Create OG lifeCycle
+
+                                // FIXME : probably a bad idea
+                                // createObjectGroupLifeCycle(groupGuid, containerId, typeProcess);
+                                if (objectGroupIdToDataObjectId.get(groupId) == null) {
+                                    final List<String> dataOjectList = new ArrayList<>();
+                                    dataOjectList.add(dataObjectId);
+                                    objectGroupIdToDataObjectId.put(groupId, dataOjectList);
+                                } else {
+                                    objectGroupIdToDataObjectId.get(groupId).add(dataObjectId);
+                                }
+
+                                // Create new startElement for group with new guid
+                                jsonWriter.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
+                                jsonWriter.add(eventFactory.createCharacters(groupGuid));
+                                jsonWriter.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
                             } else {
-                                objectGroupIdToDataObjectId.get(groupId).add(dataObjectId);
+                                isTraversingNestedGroupTags = true;
                             }
 
-                            // Create new startElement for group with new guid
-                            writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
-                            writer.add(eventFactory.createCharacters(groupGuid));
-                            writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
                             break;
                         }
                         case SedaConstants.TAG_DATA_OBJECT_GROUP_REFERENCEID: {
-                            final String groupId = reader.getElementText();
-                            String groupGuidTmp = GUIDFactory.newGUID().toString();
-                            dataObjectIdToObjectGroupId.put(dataObjectId, groupId);
-                            // The DataObjectGroupReferenceID is after
-                            // DataObjectGroupID in the XML flow
-                            if (objectGroupIdToDataObjectId.get(groupId) != null) {
-                                objectGroupIdToDataObjectId.get(groupId).add(dataObjectId);
-                                groupGuidTmp = objectGroupIdToGuid.get(groupId);
-                            } else {
-                                // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow
-                                final List<String> dataOjectList = new ArrayList<>();
-                                dataOjectList.add(dataObjectId);
-                                objectGroupIdToDataObjectId.put(groupId, dataOjectList);
-                                objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
-                            }
+                            if (currentGroupId == null) {  //ignore if ObjectGroup wrapping mode
+                                final String groupId = reader.getElementText();
+                                String groupGuidTmp = GUIDFactory.newGUID().toString();
+                                dataObjectIdToObjectGroupId.put(dataObjectId, groupId);
+                                // The DataObjectGroupReferenceID is after
+                                // DataObjectGroupID in the XML flow
+                                if (objectGroupIdToDataObjectId.get(groupId) != null) {
+                                    objectGroupIdToDataObjectId.get(groupId).add(dataObjectId);
+                                    groupGuidTmp = objectGroupIdToGuid.get(groupId);
+                                } else {
+                                    // The DataObjectGroupReferenceID is before DataObjectGroupID in the XML flow
+                                    final List<String> dataOjectList = new ArrayList<>();
+                                    dataOjectList.add(dataObjectId);
+                                    objectGroupIdToDataObjectId.put(groupId, dataOjectList);
+                                    objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
+                                }
 
-                            // Create new startElement for group with new guid
-                            writer.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
-                            writer.add(eventFactory.createCharacters(groupGuidTmp));
-                            writer.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
+                                // Create new startElement for group with new guid
+                                jsonWriter.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
+                                jsonWriter.add(eventFactory.createCharacters(groupGuidTmp));
+                                jsonWriter.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
+                            } else {
+                                isTraversingNestedGroupTags = true;
+                            }
                             break;
                         }
                         case SedaConstants.TAG_URI: {
@@ -1728,24 +1815,26 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             break;
                         }
                         case "PhysicalDimensions": {
-                            extractPhysicalDimensions(reader, writer, eventFactory, event.asStartElement());
+                            extractPhysicalDimensions(reader, jsonWriter, eventFactory, event.asStartElement());
                             break;
                         }
 
-                        default:
-                            writer.add(eventFactory.createStartElement("", "", localPart));
+                        default: {
+                            jsonWriter.add(eventFactory.createStartElement("", "", localPart));
+                            isTraversingNestedGroupTags = false;
+                        }
 
                     }
 
                     writable = false;
                 }
 
-                if (writable) {
-                    writer.add(event);
+                if (writable && !isTraversingNestedGroupTags) {
+                    jsonWriter.add(event);
                 }
             }
             reader.close();
-            writer.close();
+            jsonWriter.close();
             tmpFileWriter.close();
 
             if (Strings.isNullOrEmpty(dataObjectIdToObjectGroupId.get(dataObjectId))) {

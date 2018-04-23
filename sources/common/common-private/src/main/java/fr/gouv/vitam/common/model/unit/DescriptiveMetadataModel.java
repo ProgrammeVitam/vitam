@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,17 +55,17 @@ public class DescriptiveMetadataModel {
 
     private TextByLang title_;
 
-    private String filePlanPosition;
+    private List<String> filePlanPosition;
 
-    private String systemId;
+    private List<String> systemId;
 
-    private String originatingSystemId;
+    private List<String> originatingSystemId;
 
-    private String archivalAgencyArchiveUnitIdentifier;
+    private List<String> archivalAgencyArchiveUnitIdentifier;
 
-    private String originatingAgencyArchiveUnitIdentifier;
+    private List<String> originatingAgencyArchiveUnitIdentifier;
 
-    private String transferringAgencyArchiveUnitIdentifier;
+    private List<String> transferringAgencyArchiveUnitIdentifier;
 
     private String description;
 
@@ -79,7 +77,7 @@ public class DescriptiveMetadataModel {
 
     private TextType documentType;
 
-    private String language;
+    private List<String> language;
 
     private String descriptionLanguage;
 
@@ -97,13 +95,17 @@ public class DescriptiveMetadataModel {
 
     private OrganizationType submissionAgency;
 
-    private AgentTypeModel authorizedAgent;
+    private List<AgentTypeModel> authorizedAgent;
 
-    private List<DescriptiveMetadataContentType.Writer> writer;
+    private List<WriterModel> writer;
 
     private List<AgentTypeModel> addressee;
 
     private List<AgentTypeModel> recipient;
+
+    private List<AgentTypeModel> transmitter;
+
+    private List<AgentTypeModel> sender;
 
     private String source;
 
@@ -127,22 +129,12 @@ public class DescriptiveMetadataModel {
 
     private List<EventType> event;
 
-    private DescriptiveMetadataContentType.Signature signature;
+    private List<DescriptiveMetadataContentType.Signature> signature;
 
     private GpsType gps;
 
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
-
-    private Object restrictionRuleIdRef;
-
-    private String restrictionValue;
-
-    private XMLGregorianCalendar restrictionEndDate;
-
-    private String id;
-
-    private String href;
 
     /**
      * @return
@@ -191,84 +183,84 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public String getFilePlanPosition() {
+    public List<String> getFilePlanPosition() {
         return filePlanPosition;
     }
 
     /**
      * @param filePlanPosition
      */
-    public void setFilePlanPosition(String filePlanPosition) {
+    public void setFilePlanPosition(List<String> filePlanPosition) {
         this.filePlanPosition = filePlanPosition;
     }
 
     /**
      * @return
      */
-    public String getSystemId() {
+    public List<String> getSystemId() {
         return systemId;
     }
 
     /**
      * @param systemId
      */
-    public void setSystemId(String systemId) {
+    public void setSystemId(List<String> systemId) {
         this.systemId = systemId;
     }
 
     /**
      * @return
      */
-    public String getOriginatingSystemId() {
+    public List<String> getOriginatingSystemId() {
         return originatingSystemId;
     }
 
     /**
      * @param originatingSystemId
      */
-    public void setOriginatingSystemId(String originatingSystemId) {
+    public void setOriginatingSystemId(List<String> originatingSystemId) {
         this.originatingSystemId = originatingSystemId;
     }
 
     /**
      * @return
      */
-    public String getArchivalAgencyArchiveUnitIdentifier() {
+    public List<String> getArchivalAgencyArchiveUnitIdentifier() {
         return archivalAgencyArchiveUnitIdentifier;
     }
 
     /**
      * @param archivalAgencyArchiveUnitIdentifier
      */
-    public void setArchivalAgencyArchiveUnitIdentifier(String archivalAgencyArchiveUnitIdentifier) {
+    public void setArchivalAgencyArchiveUnitIdentifier(List<String> archivalAgencyArchiveUnitIdentifier) {
         this.archivalAgencyArchiveUnitIdentifier = archivalAgencyArchiveUnitIdentifier;
     }
 
     /**
      * @return
      */
-    public String getOriginatingAgencyArchiveUnitIdentifier() {
+    public List<String> getOriginatingAgencyArchiveUnitIdentifier() {
         return originatingAgencyArchiveUnitIdentifier;
     }
 
     /**
      * @param originatingAgencyArchiveUnitIdentifier
      */
-    public void setOriginatingAgencyArchiveUnitIdentifier(String originatingAgencyArchiveUnitIdentifier) {
+    public void setOriginatingAgencyArchiveUnitIdentifier(List<String> originatingAgencyArchiveUnitIdentifier) {
         this.originatingAgencyArchiveUnitIdentifier = originatingAgencyArchiveUnitIdentifier;
     }
 
     /**
      * @return
      */
-    public String getTransferringAgencyArchiveUnitIdentifier() {
+    public List<String> getTransferringAgencyArchiveUnitIdentifier() {
         return transferringAgencyArchiveUnitIdentifier;
     }
 
     /**
      * @param transferringAgencyArchiveUnitIdentifier
      */
-    public void setTransferringAgencyArchiveUnitIdentifier(String transferringAgencyArchiveUnitIdentifier) {
+    public void setTransferringAgencyArchiveUnitIdentifier(List<String> transferringAgencyArchiveUnitIdentifier) {
         this.transferringAgencyArchiveUnitIdentifier = transferringAgencyArchiveUnitIdentifier;
     }
 
@@ -347,14 +339,14 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public String getLanguage() {
+    public List<String> getLanguage() {
         return language;
     }
 
     /**
      * @param language
      */
-    public void setLanguage(String language) {
+    public void setLanguage(List<String> language) {
         this.language = language;
     }
 
@@ -479,21 +471,21 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public AgentTypeModel getAuthorizedAgent() {
+    public List<AgentTypeModel> getAuthorizedAgent() {
         return authorizedAgent;
     }
 
     /**
      * @param authorizedAgent
      */
-    public void setAuthorizedAgent(AgentTypeModel authorizedAgent) {
+    public void setAuthorizedAgent(List<AgentTypeModel> authorizedAgent) {
         this.authorizedAgent = authorizedAgent;
     }
 
     /**
      * @return
      */
-    public List<DescriptiveMetadataContentType.Writer> getWriter() {
+    public List<WriterModel> getWriter() {
         if (writer == null) {
             writer = new ArrayList<>();
         }
@@ -503,7 +495,7 @@ public class DescriptiveMetadataModel {
     /**
      * @param writer
      */
-    public void setWriter(List<DescriptiveMetadataContentType.Writer> writer) {
+    public void setWriter(List<WriterModel> writer) {
         this.writer = writer;
     }
 
@@ -515,6 +507,44 @@ public class DescriptiveMetadataModel {
             addressee = new ArrayList<>();
         }
         return addressee;
+    }
+
+    /**
+     * getter for transmitter
+     *
+     * @return transmitter value
+     */
+    public List<AgentTypeModel> getTransmitter() {
+        if(transmitter == null){
+            transmitter = new ArrayList<>();
+        }
+        return transmitter;
+    }
+
+    /**
+     * set transmitter
+     */
+    public void setTransmitter(List<AgentTypeModel> transmitter) {
+        this.transmitter = transmitter;
+    }
+
+    /**
+     * getter for sender
+     *
+     * @return sender value
+     */
+    public List<AgentTypeModel> getSender() {
+        if(sender == null){
+            sender = new ArrayList<>();
+        }
+        return sender;
+    }
+
+    /**
+     * set sender
+     */
+    public void setSender(List<AgentTypeModel> sender) {
+        this.sender = sender;
     }
 
     /**
@@ -702,14 +732,14 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public DescriptiveMetadataContentType.Signature getSignature() {
+    public List<DescriptiveMetadataContentType.Signature> getSignature() {
         return signature;
     }
 
     /**
      * @param signature
      */
-    public void setSignature(DescriptiveMetadataContentType.Signature signature) {
+    public void setSignature(List<DescriptiveMetadataContentType.Signature> signature) {
         this.signature = signature;
     }
 
@@ -756,73 +786,4 @@ public class DescriptiveMetadataModel {
     }
 
 
-    /**
-     * @return
-     */
-    public Object getRestrictionRuleIdRef() {
-        return restrictionRuleIdRef;
-    }
-
-    /**
-     * @param restrictionRuleIdRef
-     */
-    public void setRestrictionRuleIdRef(Object restrictionRuleIdRef) {
-        this.restrictionRuleIdRef = restrictionRuleIdRef;
-    }
-
-    /**
-     * @return
-     */
-    public String getRestrictionValue() {
-        return restrictionValue;
-    }
-
-    /**
-     * @param restrictionValue
-     */
-    public void setRestrictionValue(String restrictionValue) {
-        this.restrictionValue = restrictionValue;
-    }
-
-    /**
-     * @return
-     */
-    public XMLGregorianCalendar getRestrictionEndDate() {
-        return restrictionEndDate;
-    }
-
-    /**
-     * @param restrictionEndDate
-     */
-    public void setRestrictionEndDate(XMLGregorianCalendar restrictionEndDate) {
-        this.restrictionEndDate = restrictionEndDate;
-    }
-
-    /**
-     * @return
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * @param id
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * @return
-     */
-    public String getHref() {
-        return href;
-    }
-
-    /**
-     * @param href
-     */
-    public void setHref(String href) {
-        this.href = href;
-    }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 ../../Bureau/BA/Sch%D0%92mas/seda-2.0-main.xsd"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:pr="info:lc/xmlns/premis-v2"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 ../../Bureau/BA/Sch%D0%92mas/seda-2.1-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:pr="info:lc/xmlns/premis-v2"
  xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="ID1">
     <Comment>SIP avec règles de gestion et ManagementMD pour la story #2237</Comment>
 

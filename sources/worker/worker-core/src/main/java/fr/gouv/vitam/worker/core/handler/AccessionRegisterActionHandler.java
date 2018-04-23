@@ -235,6 +235,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             String originalAgency = agency.getId();
             String submissionAgency;
             String archivalAgreement = "ArchivalAgreementUnknow";
+            String acquisitionInformation = null, legalStatus = null;
 
             boolean symbolic;
 
@@ -256,6 +257,16 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                         throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
                     }
 
+                    final JsonNode nodeAcquisitionInformation = dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+                    if(nodeAcquisitionInformation != null && !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())){
+                        acquisitionInformation = nodeAcquisitionInformation.asText();
+                    }
+
+                    final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
+                    if(nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())){
+                        legalStatus = nodeLegalStatus.asText();
+                    }
+
 
                 } else {
                     throw new ProcessingException("No DataObjectPackage found");
@@ -272,7 +283,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
             return mapParamsToAccessionRegisterDetailModel(params,
-                originalAgency, submissionAgency, archivalAgreement, agency,
+                originalAgency, submissionAgency, archivalAgreement, acquisitionInformation, legalStatus, agency,
                 objectGroupPerOriginatingAgency, tenantId, symbolic);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
@@ -281,7 +292,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
-        String originalAgency, String submissionAgency, String archivalAgreement, UnitPerOriginatingAgency agency,
+        String originalAgency, String submissionAgency, String archivalAgreement, String acquisitionInformation, String legalStatus, UnitPerOriginatingAgency agency,
         ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId, boolean symbolic) {
 
         RegisterValueDetailModel totalObjectsGroups, totalUnits, totalObjects, objectSize;
@@ -320,6 +331,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setOriginatingAgency(originalAgency)
             .setSubmissionAgency(submissionAgency)
             .setArchivalAgreement(archivalAgreement)
+            .setAcquisitionInformation(acquisitionInformation)
+            .setLegalStatus(legalStatus)
             .setEndDate(updateDate)
             .setLastUpdate(updateDate)
             .setStartDate(updateDate)

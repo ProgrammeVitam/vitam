@@ -88,11 +88,10 @@ public class ArchiveUnitMapper {
         if (archiveUnitProfile != null) {
             archiveUnit.setArchiveUnitProfile(archiveUnitProfile.getValue());
         }
-        DescriptiveMetadataContentType metadataContentType = Iterables.getLast(archiveUnitType.getContent(), null);
+        DescriptiveMetadataContentType metadataContentType = archiveUnitType.getContent();
         if (metadataContentType != null) {
             DescriptiveMetadataModel metadataModel = descriptiveMetadataMapper.map(metadataContentType);
             archiveUnit.setDescriptiveMetadataModel(metadataModel);
-            archiveUnit.getDescriptiveMetadataModel().setId(null);
         } else {
             archiveUnit.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
         }
@@ -122,6 +121,7 @@ public class ArchiveUnitMapper {
                 .map(item -> {
                     DataObjectReference dataObjectReference = new DataObjectReference();
                     dataObjectReference.setDataObjectGroupReferenceId(item.getDataObjectGroupReferenceId());
+
                     return dataObjectReference;
                 })
                 .collect(Collectors.toList());

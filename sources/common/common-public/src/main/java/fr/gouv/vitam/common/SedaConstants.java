@@ -37,7 +37,7 @@ public class SedaConstants {
     /**
      * SEDA Namespace
      */
-    public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
+    public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.1";
 
     /**
      * versions element
@@ -352,6 +352,16 @@ public class SedaConstants {
      * tag of OriginatingAgency
      */
     public static final String TAG_ORIGINATINGAGENCY = "OriginatingAgency";
+
+    /**
+     *tag of AcquisitionInformation
+     */
+    public static final String TAG_ACQUISITIONINFORMATION = "AcquisitionInformation";
+
+    /**
+     *tag of LegalStatus
+     */
+    public static final String TAG_LEGALSTATUS = "LegalStatus";
 
     /**
      * tag of OriginatingAgencyIdentifier
