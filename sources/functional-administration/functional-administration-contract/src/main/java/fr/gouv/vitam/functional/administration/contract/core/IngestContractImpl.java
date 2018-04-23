@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -122,6 +123,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_INGEST_CONTRACT.NOT_IN_ENUM.KO";
     private static final String UPDATE_DUPLICATE_IN_DATABASE = "STP_UPDATE_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO";
     private static final String UPDATE_PROFILE_NOT_FOUND = "STP_UPDATE_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO";
+    private static final String UPDATE_CONTRACT_BAD_REQUEST = "STP_UPDATE_INGEST_CONTRACT.BAD_REQUEST.KO";
     private static final String UPDATE_KO = "STP_UPDATE_INGEST_CONTRACT.KO";
 
     private static final String EVDETDATA_IDENTIFIER = "identifier";
@@ -832,11 +834,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 ingestContractModel.getId()
             );
 
-        } catch (SchemaValidationException e) {
-            LOGGER.error(e);
-            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), e.getMessage(),
+        } catch (SchemaValidationException | BadRequestException exp) {
+            LOGGER.error(exp);
+            final String err =
+                new StringBuilder("Import ingest contracts error > ").append(exp.getMessage()).toString();
+            manager.logValidationError(err, CONTRACT_UPDATE_EVENT, UPDATE_CONTRACT_BAD_REQUEST);
+            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage(),
                 StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
-        } catch (Exception e) {
+        }  catch (Exception e) {
             LOGGER.error(e);
             final String err = new StringBuilder("Update ingest contracts error > ").append(e.getMessage()).toString();
             manager.logFatalError(err);

@@ -125,5 +125,5 @@
       }
     }
   },
-  "required": ["_id", "_tenant", "_v", "Identifier", "Status", "CreationDate", "LastUpdate"]
+  "required": ["_id", "_tenant", "Name", "_v", "Identifier", "Status", "CreationDate", "LastUpdate", "EveryDataObjectVersion", "EveryOriginatingAgency", "WritingPermission"]
 }

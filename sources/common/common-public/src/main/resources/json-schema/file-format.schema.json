@@ -64,5 +64,5 @@
       "type": "string"
     }
   },
-  "required": ["_id", "_v", "PUID", "Name", "MIMEType", "CreatedDate"]
+  "required": ["_id", "_v", "PUID", "Name", "CreatedDate", "VersionPronom"]
 }

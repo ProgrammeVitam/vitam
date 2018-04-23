@@ -45,7 +45,7 @@ Les champs à renseigner obligatoirement à la création d'un contrat sont :
 Un fichier d'import peut décrire plusieurs contrats.
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection AccesContract
-===================================================================================================
+==================================================================================================
 
 ::
 
@@ -105,7 +105,7 @@ Détail des champs
 **"Description":** Description du contrat d'accès.
 
   * Il s'agit d'une chaîne de caractères.
-  * Cardinalité : 1-1
+  * Cardinalité : 0-1
 
 **"Status":** statut du contrat.
 

@@ -118,5 +118,5 @@
       ]
     }
   },
-  "required": ["_id", "_v", "Identifier", "SecurityProfile", "Status", "CreationDate", "LastUpdate"]
+  "required": ["_id", "_v", "Identifier", "SecurityProfile", "Status", "CreationDate", "LastUpdate", "Name", "Permissions", "EnableControl"]
 }
