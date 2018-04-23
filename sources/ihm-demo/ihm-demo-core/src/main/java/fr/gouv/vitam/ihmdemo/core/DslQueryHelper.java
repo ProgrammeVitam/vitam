@@ -34,6 +34,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.util.HashMap;
@@ -145,7 +146,10 @@ public final class DslQueryHelper {
     private static final String SORT_FIELD_ENTRY = "field";
     private static final String REQUEST_FACET_PREFIX = "requestFacet";
     private static final String EXISTS = "$exists";
+    private static final String MISSING = "$missing";
 
+    private static final String FACET_WITH_OBJECT = "FacetWithObject";
+    private static final String FACET_WITHOUT_OBJECT = "FacetWithoutObject";
 
 
     // empty constructor
@@ -521,9 +525,17 @@ public final class DslQueryHelper {
                                             filters.put(filter.getName(),
                                                 QueryHelper.exists(filter.getQuery().get(EXISTS).asText()));
                                         } catch (InvalidCreateOperationException e) {
-                                            e.printStackTrace();
+                                            LOGGER.error(e);
+                                        }
+                                    } else if (filter.getQuery().get(MISSING) != null) {
+                                        try {
+                                            filters.put(filter.getName(),
+                                                QueryHelper.missing(filter.getQuery().get(MISSING).asText()));
+                                        } catch (InvalidCreateOperationException e) {
+                                            LOGGER.error(e);
                                         }
                                     }
+
                                 });
                                 select.addFacets(new FiltersFacet(facetItem.getName(), filters));
                                 break;
@@ -633,6 +645,11 @@ public final class DslQueryHelper {
                             if (requestFacetItem.getField().startsWith(TITLE) ||
                                 requestFacetItem.getField().startsWith(DESCRIPTION)) {
                                 andQuery.add(exists(requestFacetItem.getValue()));
+                            }
+                            if (requestFacetItem.getValue().equalsIgnoreCase(FACET_WITH_OBJECT)) {
+                                andQuery.add(exists(requestFacetItem.getField()));
+                            } else if (requestFacetItem.getValue().equalsIgnoreCase(FACET_WITHOUT_OBJECT)) {
+                                andQuery.add(missing(requestFacetItem.getField()));
                             }
                             advancedFacetQuery = true;
                             break;
