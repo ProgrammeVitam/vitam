@@ -39,18 +39,6 @@
     <div class="ui-g-4 textAlignLeft">
       <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
         <div style="padding:1em;line-height:1.5">
-          <p-checkbox value="LanguageDescFacet" label="Descriptions par langue" [(ngModel)]="selectedFacets" inputId="ldf" #ldFacet></p-checkbox>
-          <div *ngIf="facetLangDescResults" style="padding:1em;line-height:1">
-            <div *ngFor="let item of facetLangDescResults" style="margin-right:10px">
-              <a (click)="research(item.value, ldFacet.value)">{{item.value}} ({{item.count}})</a>
-            </div>
-          </div>
-        </div>
-      </p-scrollPanel>
-    </div>
-    <div class="ui-g-4 textAlignLeft">
-      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
-        <div style="padding:1em;line-height:1.5">
           <p-checkbox value="StartDateFacet" label="Date de début : [{{rangeStartDate[0] + ' - ' + rangeStartDate[1]}}]" [(ngModel)]="selectedFacets"
             inputId="sdf" #sdFacet></p-checkbox>
           <div class="ui-g-12" style="padding:1em;line-height:1.5">
@@ -79,6 +67,18 @@
           <div *ngIf="facetEDResults" style="padding:1em;line-height:1">
             <div *ngFor="let item of facetEDResults" style="margin-right:10px">
               <a (click)="research(item.value, edFacet.value)">{{item.value}} ({{item.count}})</a>
+            </div>
+          </div>
+        </div>
+      </p-scrollPanel>
+    </div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-scrollPanel [style]="{width: '100%', height: '150px'}" styleClass="custombar1">
+        <div style="padding:1em;line-height:1.5">
+          <p-checkbox value="LanguageFacet" label="Langues" [(ngModel)]="selectedFacets" inputId="lf" #lFacet></p-checkbox>
+          <div *ngIf="facetLangResults" style="padding:1em;line-height:1">
+            <div *ngFor="let item of facetLangResults" style="margin-right:10px">
+              <a (click)="research(item.value, lFacet.value)">{{item.value}} ({{item.count}})</a>
             </div>
           </div>
         </div>
