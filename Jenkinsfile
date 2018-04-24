@@ -15,7 +15,7 @@ pipeline {
     }
 
     environment {
-        MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
+        MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/vitam.git/.ci/settings.xml"
         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
         DEPLOY_GOAL = " " // Deploy goal used by maven ; typically "deploy" for master* branches & "" (nothing) for everything else (we don't deploy) ; keep a space so can work in other branches than develop
         CI = credentials("app-jenkins")
