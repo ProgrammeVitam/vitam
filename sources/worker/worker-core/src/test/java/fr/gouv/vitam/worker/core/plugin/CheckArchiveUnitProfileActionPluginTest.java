@@ -109,6 +109,8 @@ public class CheckArchiveUnitProfileActionPluginTest {
                 "checkArchiveUnitProfileActionPlugin/archive-unit-schema-description-level.json";
     private static final String ARCHIVE_UNIT_SCHEMA_CUSTOM_START_DATE =
             "checkArchiveUnitProfileActionPlugin/archive-unit-schema-startdate-format.json";
+    private static final String GUID_MAP_JSON = "GUID_TO_ARCHIVE_ID_MAP.json";
+
 
     private final InputStream archiveUnit;
     private final InputStream archiveUnitFinal;
@@ -124,6 +126,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
     private final InputStream archiveUnitSchemaCustomStartDate;
 
     private List<IOParameter> out;
+    private List<IOParameter> in;
 
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
@@ -175,6 +178,14 @@ public class CheckArchiveUnitProfileActionPluginTest {
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId.json")));
         action.addOutIOParameters(out);
+
+        in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/GUID_TO_ARCHIVE_ID_MAP.json")));
+        final InputStream guidMapInfo =
+                PropertiesUtils.getResourceAsStream(GUID_MAP_JSON);
+        when(workspaceClient.getObject(anyObject(), eq("Maps/GUID_TO_ARCHIVE_ID_MAP.json")))
+                .thenReturn(Response.status(Status.OK).entity(guidMapInfo).build());
+        action.addInIOParameters(in);
 
         File tempFolder = temporaryFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", tempFolder.getAbsolutePath());
