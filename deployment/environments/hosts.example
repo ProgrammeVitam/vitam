@@ -138,7 +138,7 @@ hosts-security-internal
 
 [zone-storage:children] # DO NOT MODIFY
 hosts-storage-offer-default
-
+hosts-mongodb-offer
 
 [hosts-storage-offer-default]
 # TODO: Put here servers where this service will be deployed : storage-offer-default
