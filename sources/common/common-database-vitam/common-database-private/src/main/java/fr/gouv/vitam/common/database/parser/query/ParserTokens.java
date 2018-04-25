@@ -1014,6 +1014,7 @@ public class ParserTokens extends BuilderToken {
             case "events.obIdIn":
                 // Unit
             case "DescriptionLevel":
+            case "ArchiveUnitProfile":
             case "LevelType":
             case "Title":
             case "FilePlanPosition":

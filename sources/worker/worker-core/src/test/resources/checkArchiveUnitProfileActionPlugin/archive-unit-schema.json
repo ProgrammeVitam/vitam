@@ -5,10 +5,10 @@
   "additionalProperties": true,
   "anyOf": [
     {
-      "required": ["_id", "Management", "DescriptionLevel", "Title"]
+      "required": ["Management", "DescriptionLevel", "Title"]
     },
     {
-      "required": ["_id", "Management", "DescriptionLevel", "Title_"]
+      "required": ["Management", "DescriptionLevel", "Title_"]
     }
   ],
   "properties": {
