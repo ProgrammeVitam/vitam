@@ -101,3 +101,31 @@ Tous les contrats d'accès sont supprimés de la solution logicielle Vitam. L'IH
 **Contrats d'entrée**
 
 Tous les contrats d'entrée sont supprimés de la solution logicielle Vitam. L'IHM "Contrats d'entrée" est vide de contenu.
+
+
+Recherche et Modification d'un fichier 
+======================================
+
+**Recherche d'un fichier**
+
+Il est possible de rechercher un fichier, en sélectionnant au préalable la catégorie de Recherche : au niveau de l'unité archivistique, de l'objet, ou du groupe d'objet. 
+
+Il faut également sélectionner un tenant au préalable. 
+
+En cliquant sur le bouton "Récupérer le fichier", le fichier est exporté, et disponible dans le but d' être modifié. 
+
+
+**Modification d'un fichier**
+
+Un fois le fichier téléchargé, il est possible de le modifier, et l'importer à nouveau, en sachant que la version importée, sera enregistrée à la place de la dernière version exportée. 
+
+
+.. image:: images/administration_modification_fichier.png
+
+
+
+
+
+
+
+
