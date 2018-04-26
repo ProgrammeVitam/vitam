@@ -5,7 +5,6 @@ import { FieldDefinition } from '../../common/search/field-definition';
 declare var require: NodeRequire;
 
 const LANGUAGES = require('../../data/languages.json');
-const TITLE = 'Title_';
 const TITLE_QUERY_FIELD = 'Title_.';
 
 @Component({
@@ -62,8 +61,8 @@ export class ArchiveUnitFacetComponent implements OnInit {
         .set('ObjectFacet', '#object');
 
       for (const item of LANGUAGES) {
-        this.mapFacetField.set(TITLE + item.id, TITLE_QUERY_FIELD + item.id);
-        this.titleLangFacets.push(TITLE + item.id);
+        this.mapFacetField.set(item.id, TITLE_QUERY_FIELD + item.id);
+        this.titleLangFacets.push(item.id);
       }
     }
   }

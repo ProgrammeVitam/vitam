@@ -56,8 +56,8 @@ describe('ArchiveUnitFacetComponent', () => {
     component.ngOnInit();
     expect(component.mapFacetField.size).toEqual(41);
     expect(component.titleLangFacets.length).toEqual(35);
-    expect(component.titleLangFacets[0]).toEqual('Title_ar');
-    expect(component.titleLangFacets[1]).toEqual('Title_bn');
+    expect(component.titleLangFacets[0]).toEqual('ar');
+    expect(component.titleLangFacets[1]).toEqual('bn');
 
   });
 
@@ -79,19 +79,18 @@ describe('ArchiveUnitFacetComponent', () => {
   });
 
   it('should use filters query', () => {
-    component.descriptionLangFacets = ['Title_ar', 'Title__bn'];
     component.selectedFacets = ['LanguageTitleFacet'];
-    component.mapFacetField.set('Title_ar', 'Title_.ar');
-    component.mapFacetField.set('Title_bn', 'Title_.bn');
+    component.mapFacetField.set('ar', 'Title_.ar');
+    component.mapFacetField.set('bn', 'Title_.bn');
 
     const expectedFilters = [{
-      '$name': 'Title_ar',
+      '$name': 'ar',
       '$query':
         {
           '$exists': 'Title_.ar'
         }
     }, {
-      '$name': 'Title_bn',
+      '$name': 'bn',
       '$query':
         {
           '$exists': 'Title_.bn'

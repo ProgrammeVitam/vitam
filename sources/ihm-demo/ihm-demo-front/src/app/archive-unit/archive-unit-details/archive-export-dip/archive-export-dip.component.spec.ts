@@ -1,14 +1,14 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from "@angular/core";
-import { Observable } from "rxjs/Rx";
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/observable/of';
 
 import { ArchiveExportDIPComponent } from './archive-export-dip.component';
-import { ArchiveUnitHelper } from "../../archive-unit.helper";
-import { ArchiveUnitService } from "../../archive-unit.service";
-import { VitamResponse } from "../../../common/utils/response";
+import { ArchiveUnitHelper } from '../../archive-unit.helper';
+import { ArchiveUnitService } from '../../archive-unit.service';
+import { VitamResponse } from '../../../common/utils/response';
 
-let ArchiveUnitServiceStub = {
+const ArchiveUnitServiceStub = {
   exportDIP: (body) => Observable.of(new VitamResponse()),
   downloadDIP: (id) => Observable.of(new VitamResponse())
 };
