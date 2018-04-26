@@ -232,11 +232,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
                 if (slaveMode) {
                     final Optional<GenericRejectionCause> result =
-                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
+                        manager.checkEmptyIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
                     result.ifPresent(genericRejectionCause -> error
                         .addToErrors(
                             getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result.get().getReason(),
-                                StatusCode.KO).setMessage(DUPLICATE_IN_DATABASE)));
+                                StatusCode.KO).setMessage(EMPTY_REQUIRED_FIELD)));
                 }
 
             }
@@ -657,26 +657,17 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         }
 
         /**
-         * Check if the Id of the contract already exists in database
+         * Check if the Id of the contract is empty
          *
          * @return
          */
-        private AccessContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private AccessContractValidator checkEmptyIdentifierSlaveModeValidator() {
             return (contract, contractName) -> {
                 if (contract.getIdentifier() == null || contract.getIdentifier().isEmpty()) {
                     return Optional.of(GenericRejectionCause
                         .rejectMandatoryMissing(AccessContract.IDENTIFIER));
                 }
-                GenericRejectionCause rejection = null;
-                final int tenant = ParameterHelper.getTenantParameter();
-                final Bson clause =
-                    and(Filters.eq(VitamDocument.TENANT_ID, tenant),
-                        Filters.eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
-                final boolean exist = FunctionalAdminCollections.ACCESS_CONTRACT.getCollection().count(clause) > 0;
-                if (exist) {
-                    rejection = GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
-                }
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
+                return Optional.empty();
             };
         }
 
@@ -694,7 +685,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                             Filters.eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
                     final boolean exist = FunctionalAdminCollections.ACCESS_CONTRACT.getCollection().count(clause) > 0;
                     if (exist) {
-                        return Optional.of(GenericRejectionCause.rejectDuplicatedInDatabase(contractName));
+                        return Optional.of(GenericRejectionCause.rejectDuplicatedInDatabase(contract.getIdentifier()));
                     }
                 }
                 return Optional.empty();

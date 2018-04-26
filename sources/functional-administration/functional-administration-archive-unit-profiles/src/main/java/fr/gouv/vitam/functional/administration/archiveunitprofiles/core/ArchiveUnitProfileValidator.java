@@ -68,7 +68,8 @@ public interface ArchiveUnitProfileValidator {
     public class RejectionCause {
 
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating archive unit profile (%s)";
-        private static final String ERR_DUPLICATE_ARCHIVE_PROFILE = "The archive unit profile %s already exists in database";
+        private static final String ERR_DUPLICATE_IDENTIFIER_ARCHIVE_PROFILE = "The archive unit profile identifier %s already exists in database";
+        private static final String ERR_DUPLICATE_NAME_ARCHIVE_PROFILE = "The archive unit profile name %s already exists in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_JSON_SHEMA = "The field %s is not a json schema";
         private static final String ERR_JSON_SCHEMA_IN_USE = "The field %s is used by an archiveUnit";
@@ -101,8 +102,19 @@ public interface ArchiveUnitProfileValidator {
          * @param identifier
          * @return RejectionCause
          */
-        public static RejectionCause rejectDuplicatedInDatabase(String identifier) {
-            return new RejectionCause(String.format(ERR_DUPLICATE_ARCHIVE_PROFILE, identifier));
+        public static RejectionCause rejectDuplicateIdentifierInDatabase(String identifier) {
+            return new RejectionCause(String.format(ERR_DUPLICATE_IDENTIFIER_ARCHIVE_PROFILE, identifier));
+        }
+
+        /**
+         * Verify for each archive unit profile if already exists one in database that have the same identifier and/or name. The
+         * database my manage this kind of constraint (by creating an unique index on the field or column)
+         *
+         * @param identifier
+         * @return RejectionCause
+         */
+        public static RejectionCause rejectDuplicateNameInDatabase(String identifier) {
+            return new RejectionCause(String.format(ERR_DUPLICATE_NAME_ARCHIVE_PROFILE, identifier));
         }
 
         /**

@@ -457,21 +457,13 @@ public class ProfileManager {
      *
      * @return
      */
-    public ProfileValidator checkDuplicateInIdentifierSlaveModeValidator() {
+    public ProfileValidator checkEmptyIdentifierSlaveModeValidator() {
         return (profileModel) -> {
             if (profileModel.getIdentifier() == null || profileModel.getIdentifier().isEmpty()) {
                 return Optional.of(ProfileValidator.RejectionCause.rejectMandatoryMissing(
                     AccessContract.IDENTIFIER));
             }
-            RejectionCause rejection = null;
-            final int tenant = ParameterHelper.getTenantParameter();
-            final Bson clause =
-                and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, profileModel.getIdentifier()));
-            final boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
-            if (exist) {
-                rejection = ProfileValidator.RejectionCause.rejectDuplicatedInDatabase(profileModel.getIdentifier());
-            }
-            return rejection == null ? Optional.empty() : Optional.of(rejection);
+            return Optional.empty();
         };
     }
 
@@ -488,7 +480,7 @@ public class ProfileManager {
                 Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier()));
                 boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
                 if (exist) {
-                    return Optional.of(RejectionCause.rejectDuplicatedInDatabase(profile.getName()));
+                    return Optional.of(RejectionCause.rejectDuplicatedInDatabase(profile.getIdentifier()));
                 }
             }
             return Optional.empty();

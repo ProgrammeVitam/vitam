@@ -349,27 +349,17 @@ public class ArchiveUnitProfileManager {
     }
 
     /**
-     * Check if the Id of the archive unit profile already exists in database
+     * Check if the Id of the archive unit profile is empty
      *
      * @return
      */
-    public ArchiveUnitProfileValidator checkDuplicateInIdentifierSlaveModeValidator() {
+    public ArchiveUnitProfileValidator checkEmptyIdentifierSlaveModeValidator() {
         return (archiveUnitProfile) -> {
             if (archiveUnitProfile.getIdentifier() == null || archiveUnitProfile.getIdentifier().isEmpty()) {
                 return Optional.of(ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(
                     ArchiveUnitProfile.IDENTIFIER));
             }
-            RejectionCause rejection = null;
-            final int tenant = ParameterHelper.getTenantParameter();
-            final Bson clause =
-                and(eq(VitamDocument.TENANT_ID, tenant),
-                    eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfile.getIdentifier()));
-            final boolean exist = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().count(clause) > 0;
-            if (exist) {
-                rejection = ArchiveUnitProfileValidator.RejectionCause
-                    .rejectDuplicatedInDatabase(archiveUnitProfile.getIdentifier());
-            }
-            return rejection == null ? Optional.empty() : Optional.of(rejection);
+            return Optional.empty();
         };
     }
 
@@ -386,7 +376,7 @@ public class ArchiveUnitProfileManager {
                     eq(ArchiveUnitProfile.IDENTIFIER, profile.getIdentifier()));
                 boolean exist = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().count(clause) > 0;
                 if (exist) {
-                    return Optional.of(RejectionCause.rejectDuplicatedInDatabase(profile.getName()));
+                    return Optional.of(RejectionCause.rejectDuplicateIdentifierInDatabase(profile.getIdentifier()));
                 }
             }
             return Optional.empty();
@@ -406,7 +396,7 @@ public class ArchiveUnitProfileManager {
                 Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(ArchiveUnitProfile.NAME, profile.getName()));
                 boolean exist = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().count(clause) > 0;
                 if (exist) {
-                    return Optional.of(RejectionCause.rejectDuplicatedInDatabase(profile.getName()));
+                    return Optional.of(RejectionCause.rejectDuplicateNameInDatabase(profile.getName()));
                 }
             }
             return Optional.empty();

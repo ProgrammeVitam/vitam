@@ -223,7 +223,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 
                 if (slaveMode) {
                     final Optional<ArchiveUnitProfileValidator.RejectionCause> result =
-                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(aupm);
+                        manager.checkEmptyIdentifierSlaveModeValidator().validate(aupm);
                     result.ifPresent(t -> error
                         .addToErrors(
                             new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
