@@ -43,6 +43,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -85,6 +86,9 @@ public class SecurityProfileStep {
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 Files.newInputStream(securityProfile, StandardOpenOption.READ),
                 fileName);
+
+        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
     }
 
@@ -97,6 +101,8 @@ public class SecurityProfileStep {
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 Files.newInputStream(securityProfile, StandardOpenOption.READ),
                 fileName);
+        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -123,6 +129,9 @@ public class SecurityProfileStep {
             world.getAdminClient().updateSecurityProfile(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 securityProfileIdentifier, queryDsl);
+
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
         assertThat(statusCode).isEqualTo(requestResponse.getStatus());
     }
 

@@ -20,6 +20,7 @@ package fr.gouv.vitam.functional.administration.context.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -90,6 +91,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -209,6 +211,12 @@ public class ContextServiceImplTest {
         collection.deleteMany(new Document());
         reset(ingestContractService);
         reset(functionalBackupService);
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+
     }
 
     @Test

@@ -17,6 +17,7 @@
  */
 package fr.gouv.vitam.functional.administration.profile.api.impl;
 
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl.OP_PROFILE_STORAGE;
 import static fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl.PROFILE_BACKUP_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +40,7 @@ import java.util.Map;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -150,13 +152,18 @@ public class ProfileServiceImplTest {
         profileService.close();
     }
 
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+
+    }
+
     @After
     public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
         reset(functionalBackupService);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -191,7 +198,7 @@ public class ProfileServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE), any());
+            eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -205,9 +212,9 @@ public class ProfileServiceImplTest {
         assertThat(requestResponse.isOk()).isTrue();
 
         verify(functionalBackupService).saveFile(any(), any(), eq(OP_PROFILE_STORAGE),
-                eq(DataCategory.PROFILE), anyString());
+            eq(DataCategory.PROFILE), anyString());
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE), any());
+            eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
     }
 
@@ -553,7 +560,7 @@ public class ProfileServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE), any());
+            eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -571,7 +578,7 @@ public class ProfileServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(PROFILE_BACKUP_EVENT),
-                eq(FunctionalAdminCollections.PROFILE), any());
+            eq(FunctionalAdminCollections.PROFILE), any());
         verifyNoMoreInteractions(functionalBackupService);
 
     }

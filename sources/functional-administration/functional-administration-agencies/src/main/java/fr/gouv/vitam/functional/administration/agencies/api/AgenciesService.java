@@ -32,7 +32,7 @@ import static fr.gouv.vitam.functional.administration.common.Agencies.DESCRIPTIO
 import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
-
+import  fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,6 +51,8 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -169,7 +171,7 @@ public class AgenciesService implements VitamAutoCloseable {
      * @param backupService the FunctionalBackupService
      */
     public AgenciesService(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService backupService) {
+        VitamCounterService vitamCounterService, FunctionalBackupService backupService) throws InvalidGuidOperationException{
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.backupService = backupService;
@@ -184,7 +186,10 @@ public class AgenciesService implements VitamAutoCloseable {
         agenciesToImport = new ArrayList<>();
         agenciesInDb = new ArrayList<>();
         finder = new ContractsFinder(mongoAccess, vitamCounterService);
-        eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+        eip = GUIDReader.getGUID(operationId);
+
         manager = new AgenciesManager(logBookclient, eip);
 
     }

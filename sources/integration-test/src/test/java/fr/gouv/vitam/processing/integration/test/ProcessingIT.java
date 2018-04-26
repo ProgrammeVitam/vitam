@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -62,6 +63,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -423,6 +425,7 @@ public class ProcessingIT {
 
     }
 
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.getConfiguration().setData(defautDataFolder);
@@ -476,6 +479,7 @@ public class ProcessingIT {
             .addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testServersStatus() throws Exception {
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -527,6 +531,7 @@ public class ProcessingIT {
                 assertNotNull(logbookResult.get("$results").get(0).get("evDetData"));
                 assertTrue(JsonHandler.writeAsString(logbookResult.get("$results").get(0).get("evDetData"))
                     .contains("jeu_donnees_OK_regles_CSV_regles"));
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
@@ -608,6 +613,7 @@ public class ProcessingIT {
      *
      * @throws Exception
      */
+    @RunWithCustomExecutor
     @Test
     public void testTryWithSiegfried() throws Exception {
         final String CONFIG_SIEGFRIED_PATH_REAL =
@@ -1385,6 +1391,7 @@ public class ProcessingIT {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -1687,7 +1694,8 @@ public class ProcessingIT {
         zipPath2 = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
             "/" + zipName2;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath2);
-        
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
+
         // 5. we now update the ingest contract, we set the check to ACTIVE and the link parent id takes id1 value
         updateIngestContractLinkParentId("ArchivalAgreement0", idUnit, "ACTIVE");
 
@@ -3038,6 +3046,7 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
@@ -3048,6 +3057,7 @@ public class ProcessingIT {
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
 
         wait(containerName);
@@ -3258,6 +3268,7 @@ public class ProcessingIT {
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
             WORFKLOW_NAME);
         // wait a little bit
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
             LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());

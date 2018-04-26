@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.archiveunitprofiles.api.ArchiveUnitProfileService;
 import fr.gouv.vitam.functional.administration.archiveunitprofiles.core.ArchiveUnitProfileManager;
 import fr.gouv.vitam.functional.administration.archiveunitprofiles.core.ArchiveUnitProfileValidator;
@@ -137,7 +139,10 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             return new RequestResponseOK<>();
         }
 
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
+
 
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.PROFILE_SEQUENCE.getCollection(),
@@ -312,7 +317,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     .setMessage(ArchiveUnitProfileManager.UPDATE_AUP_NOT_FOUND);
         }
 
-        final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
         final ArchiveUnitProfileManager manager = new ArchiveUnitProfileManager(logbookClient, metaDataClient,eip);
         Map<String, List<String>> updateDiffs;
         manager.logStarted(ARCHIVE_UNIT_PROFILES_UPDATE_EVENT, profileModel.getId());

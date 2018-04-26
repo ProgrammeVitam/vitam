@@ -22,6 +22,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -238,12 +240,17 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenAWellFormedProfileJsonThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -255,6 +262,8 @@ public class ProfileResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         List<String> result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Identifier");
 
@@ -266,12 +275,16 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenProfileJsonWithAmissingIdentifierReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
+
+
         given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -280,12 +293,15 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenProfilesWithDuplicateName() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_duplicate_name.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -296,18 +312,21 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenTestImportXSDProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         Select select = new Select().addOrderByAscFilter("Identifier");
         JsonPath result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
@@ -332,6 +351,7 @@ public class ProfileResourceTest {
         // transform to json
         given().contentType(ContentType.BINARY).body(xsdProfile)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -340,11 +360,13 @@ public class ProfileResourceTest {
         JsonNode updateSecurityProfileJson = JsonHandler.getFromFile(updateProfile);
         given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
             .then().statusCode(Status.OK.getStatusCode());
         
         given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().put(ProfileResource.PROFILE_URI + "/wrongId")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -355,12 +377,14 @@ public class ProfileResourceTest {
     @RunWithCustomExecutor
     public void givenTestImportRNGProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.PROFILE).close();
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
         Select select = new Select().addOrderByAscFilter("Identifier");
@@ -411,7 +435,8 @@ public class ProfileResourceTest {
         update.addActions(setDescription);
         update.setQuery(QueryHelper.eq("Name", "aName"));
 
-        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
+        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
             .statusCode(Status.OK.getStatusCode());
 

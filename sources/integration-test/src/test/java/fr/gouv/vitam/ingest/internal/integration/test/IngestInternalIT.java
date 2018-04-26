@@ -28,6 +28,7 @@ package fr.gouv.vitam.ingest.internal.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -61,6 +62,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -462,6 +464,11 @@ public class IngestInternalIT {
         }
     }
 
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
+    }
+
     private void flush() {
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
@@ -556,7 +563,7 @@ public class IngestInternalIT {
         }
     }
 
-
+    @RunWithCustomExecutor
     @Test
     public void testServersStatus() throws Exception {
         RestAssured.port = PORT_SERVICE_PROCESSING;
@@ -1013,9 +1020,11 @@ public class IngestInternalIT {
         linkParentId = doIngestOfTreeAndGetOneParentAU();
         assertNotNull(linkParentId);
 
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
         // find and update ingestContract
         updateIngestContractLinkParentId("ContractWithAttachment", linkParentId);
 
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
         // do the ingest
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         try {
@@ -2139,6 +2148,7 @@ public class IngestInternalIT {
         List<AccessContractModel> accessContractModelList = JsonHandler
             .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
         client.importAccessContracts(accessContractModelList);
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         status = client.importAgenciesFile(stream, FILE_AGENCIES_AU_update);
         ResponseBuilder = Response.status(status);

@@ -361,7 +361,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode())
+                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
             } else {
                 return RequestResponse.parseFromResponse(response);
             }
@@ -832,7 +833,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 stream, type, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+                return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode())
+                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             } else if (response.getStatus() == Response.Status.FORBIDDEN.getStatusCode()) {
@@ -922,7 +924,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             // FIXME quick fix for response OK, adapt response for all response types
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode())
+                    .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
             } else {
                 return RequestResponse.parseFromResponse(response);
             }
@@ -1087,7 +1090,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    @Override public RequestResponse createOntologies(VitamContext vitamContext, InputStream ontologies) throws InvalidParseOperationException, AccessExternalClientException {
+    @Override public RequestResponse createOntologies(VitamContext vitamContext, InputStream ontologies)
+        throws InvalidParseOperationException, AccessExternalClientException {
         ParametersChecker.checkParameter("The input ontologies json is mandatory", ontologies,
             AdminCollections.ONTOLOGY);
         Response response = null;
@@ -1131,13 +1135,15 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id) throws VitamClientException {
+    @Override public RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id)
+        throws VitamClientException {
         return internalFindDocumentById(vitamContext, AdminCollections.ONTOLOGY, id,
             OntologyModel.class);
     }
 
 
-    @Override public RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query) throws VitamClientException {
+    @Override public RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query)
+        throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.ONTOLOGY, query,
             OntologyModel.class);
     }

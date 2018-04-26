@@ -46,6 +46,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -111,6 +112,8 @@ public class ArchiveUnitProfileStep {
         } else {
             fail("Fail to import archive unit profile :" + response.toString());
         }
+        final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
     }
 
     @When("^je cherche un document type nommé (.*)")

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
 import static fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl.CONTRACT_BACKUP_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -107,6 +108,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -145,6 +147,11 @@ public class AccessContractImplTest {
     static ContractService<AccessContractModel> accessContractService;
     static int mongoPort;
 
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -427,7 +434,7 @@ public class AccessContractImplTest {
             assertThat(accessContractModel.getActivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
-                
+
         // we try to update access contract with same value -> Bad Request
         RequestResponse responseUpdate =
             accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);

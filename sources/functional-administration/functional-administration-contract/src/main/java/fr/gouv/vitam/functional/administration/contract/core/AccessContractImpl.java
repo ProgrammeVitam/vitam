@@ -73,6 +73,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -84,6 +85,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
@@ -192,8 +194,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
-
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
 
         AccessContractManager manager = new AccessContractManager(logbookClient, metaDataClient, eip);
 
@@ -827,8 +829,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 ACCESS_CONTRACT_NOT_FOUND + identifier, StatusCode.KO).setMessage(UPDATE_CONTRACT_NOT_FOUND));
         }
 
-        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID eip = GUIDReader.getGUID(operationId);
         AccessContractManager manager = new AccessContractManager(logbookClient, metaDataClient, eip);
 
         manager.logUpdateStarted(accContractModel.getId());
@@ -847,7 +849,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     final JsonNode value = fieldName.findValue(field);
                     validateUpdateAction(manager, accContractModel.getName(), error, field, value);
                 }
-            }
+             }
         }
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {

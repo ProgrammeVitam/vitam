@@ -744,28 +744,31 @@ public class AccessStep {
     private int actionImport(String filename, InputStream inputStream, AdminCollections adminCollection)
         throws AccessExternalClientException, InvalidParseOperationException {
         int status = 0;
+        RequestResponse response;
         if (FORMATS.equals(adminCollection)) {
-            RequestResponse response =
-                world.getAdminClient().createFormats(
-                    new VitamContext(world.getTenantId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, filename);
+
+            response = world.getAdminClient().createFormats(
+                new VitamContext(world.getTenantId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                inputStream, filename);
             status = response.getHttpCode();
         } else if (RULES.equals(adminCollection)) {
-            RequestResponse response =
+            response =
                 world.getAdminClient().createRules(
                     new VitamContext(world.getTenantId())
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     inputStream, filename);
             status = response.getHttpCode();
         } else if (AGENCIES.equals(adminCollection)) {
-            RequestResponse response =
+             response =
                     world.getAdminClient().createAgencies(
                             new VitamContext(world.getTenantId())
                                     .setApplicationSessionId(world.getApplicationSessionId()),
                             inputStream, filename);
             status = response.getHttpCode();
         }
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
         return status;
     }
 
@@ -842,9 +845,11 @@ public class AccessStep {
         world.setQuery(query);
 
         JsonNode queryDsl = JsonHandler.getFromString(world.getQuery());
-        world.getAdminClient().updateAccessContract(
+        RequestResponse requestResponse = world.getAdminClient().updateAccessContract(
             new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
             get_contract_id_by_name(name), queryDsl);
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
     }
 
     private String get_contract_id_by_name(String name)

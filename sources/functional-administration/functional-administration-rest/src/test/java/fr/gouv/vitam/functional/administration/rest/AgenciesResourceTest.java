@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -197,6 +198,7 @@ public class AgenciesResourceTest {
 
     @Before
     public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
             .willReturn(
                 aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
@@ -226,6 +228,8 @@ public class AgenciesResourceTest {
 
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID,VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(AGENCIES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
@@ -240,6 +244,8 @@ public class AgenciesResourceTest {
 
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(AGENCIES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -254,6 +260,8 @@ public class AgenciesResourceTest {
         // first succefull create
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(AGENCIES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -264,6 +272,7 @@ public class AgenciesResourceTest {
 
         JsonPath body = given().contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .body(select.getFinalSelect())
             .when()
             .get(AgenciesResource.AGENCIES)
@@ -277,6 +286,7 @@ public class AgenciesResourceTest {
         select.setQuery(QueryHelper.eq("Name", name));
         body = given().contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .body(select.getFinalSelect())
             .when()
             .post(AgenciesResource.AGENCIES)
@@ -287,6 +297,8 @@ public class AgenciesResourceTest {
         fileAgencies = PropertiesUtils.getResourceFile("agencies_remove.csv");
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+
             .when().post(AGENCIES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
