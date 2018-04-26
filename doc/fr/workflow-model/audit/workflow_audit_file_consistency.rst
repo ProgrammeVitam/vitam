@@ -30,6 +30,7 @@ EVIDENCE_AUDIT_PREPARE
 	* FATAL : Une erreur technique est survenue lors de la création de la liste 
 
 
+
 Récupération des données de la base (STP_EVIDENCE_AUDIT_CHECK_DATABASE)
 =======================================================================
 
@@ -42,6 +43,9 @@ EVIDENCE_AUDIT_CHECK_DATABASE
 	* OK : Succès de la récupération des données dans la base de donnée (EVIDENCE_AUDIT_CHECK_DATABASE.OK=Succès de la récupération des données dans la base de donnée)
 	* KO : Echecde la récupération des données dans la base de donnée (EVIDENCE_AUDIT_CHECK_DATABASE.KO=Echec de la récupération des données dans la base de donnée)
 	* FATAL : une erreur technique est survenue dans la récupération des données dans la base de donnée (EVIDENCE_AUDIT_CHECK_DATABASE.FATAL=Erreur technique lors de la récupération des données dans la base de donnée)
+        * STARTED :Début de la récupération des données dans la base de donnée (EVIDENCE_AUDIT_CHECK_DATABASE.STARTED=Début de la récupération des données dans la base de donnée)
+        * WARNING : Avertissement lors de la récupération des données dans la base de donnée (EEVIDENCE_AUDIT_CHECK_DATABASE.WARNING=Avertissement lors la récupération des données dans la base de donnée)
+
 
 
 Préparation des signatures à partir des fichiers sécurisés (STP_EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD)
@@ -55,6 +59,9 @@ EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD
 * **Statuts** :
 	* OK : Succès de la préparation de la liste des signatures dans les fichiers sécurisés (EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD.OK=Succès de la préparation de la liste des signatures dans les fichiers sécurisés)
 	* KO : Echec de la préparation de la liste des signatures dans les fichiers sécurisés (EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD.KO=Echec de la préparation de la liste des signatures dans les fichiers sécurisés)
+        * STARTED :Début de la préparation de la liste des signatures dans les fichiers sécurisés (EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD.STARTED=Début de la préparation de la liste des signatures dans les fichiers sécurisés)
+        * WARNING : Avertissement lors de la préparation de la liste des signatures (EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD.WARNING=Avertissement lors de la préparation de la liste des signatures dans les fichiers sécurisés)
+
 	* FATAL : une erreur technique est survenue lors de la préparation de la liste des signatures dans les fichiers sécurisés (EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD.FATAL=Echec de la préparation de la liste des signatures dans les fichiers sécurisés)
 
 
@@ -70,7 +77,10 @@ EVIDENCE_AUDIT_EXTRACT_ZIP_FILE
 * **Statuts** :
 	* OK : Succès de l'extraction des signatures à partir des fichiers sécurisés (EVIDENCE_AUDIT_EXTRACT_ZIP_FILE.OK=Succès de l'extraction des signatures à partir des fichiers sécurisés )
 	* KO : Echec de l'extraction des signatures à partir des fichiers sécurisés (EVIDENCE_AUDIT_EXTRACT_ZIP_FILE.KO=Echec de l'extraction des signatures à partir des fichiers sécurisés )
+        * WARNING : Avertissement lors de l'extraction des signatures à partir des fichiers sécurisés (STP_EVIDENCE_AUDIT_EXTRACT_ZIP_FILE.WARNING=Avertissement lors de l'extraction des signatures à partir des fichiers sécurisés ) 
+        * STARTED : Début de l'extraction des signatures à partir des fichiers sécurisés ( STP_EVIDENCE_AUDIT_EXTRACT_ZIP_FILE.STARTED=Début de l'extraction des signatures à partir des fichiers sécurisés ) 
 	* FATAL : une erreur technique est survenue de l'extraction des signatures à partir des fichiers sécurisés  (EVIDENCE_AUDIT_EXTRACT_ZIP_FILE.FATAL=une erreur technique est survenue de l'extraction des signatures à partir des fichiers sécurisés)
+
 
 
 Préparation des rapports pour chaque objet, groupe d'objet ou unité audité (STP_EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS)
@@ -85,10 +95,14 @@ EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS
 	* OK : Succès de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS.OK=Succès de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet)
 	* KO : Echec de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS.KO=Echec de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet)
 	* FATAL : une erreur technique est survenue de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet (EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS.FATAL=une erreur technique est survenue de l'extraction des signatures à partir des fichiers sécurisés)
+	* STARTED : Début de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS.STARTED=Début de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet)
+	* WARNING : Avertissement lors de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet (EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS.WARNING=avertissement lors de la création du rapport pour chaque unité archivistique ou objet ou groupe d'objet)
 
 
 Finalisation du rapport - Comparaison des signatures et des données (STP_EVIDENCE_AUDIT_FINALIZE)
 =================================================================================================
+
+
 
 EVIDENCE_AUDIT_FINALIZE
 -----------------------
@@ -100,6 +114,9 @@ EVIDENCE_AUDIT_FINALIZE
 	* KO : Echec de la création du rapport d'audit de cohérence (EVIDENCE_AUDIT_FINALIZE.KO=Echec de la création du rapport de l'audit de cohérence)
 	* FATAL : une erreur technique est survenue lors de la création du rapport d'audit de cohérence) (EVIDENCE_AUDIT_FINALIZE.FATAL=une erreur technique est survenue lors de la création du rapport d'audit de cohérence)
 
+* **Statuts de l'étape** :
+	* OK : Succès de la finalisation du rapport de l''audit de cohérence (aucun objet en erreur)
+	* KO : Echec de quelques qcréation du rapport de l''audit de cohérence (des audits des objets sont en erreurs )
 
 
 .. figure:: images/workflow_audit_file_consistency.png
