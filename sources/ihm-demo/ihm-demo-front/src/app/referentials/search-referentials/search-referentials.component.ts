@@ -341,6 +341,32 @@ export class SearchReferentialsComponent extends PageComponent {
             {label: 'Recherche par service producteur', routerLink: ''}
           ];
           break;
+        case 'ontology':
+          this.searchReferentialsService.setSearchAPI('ontologies');
+          this.breadcrumbName = 'Ontologies';
+          this.specificTitle = 'Ontologies';
+          this.referentialData = [
+            new FieldDefinition('OntologyName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('OntologyID', 'Identifiant', 6, 8)
+          ];
+          this.searchForm = {
+            'OntologyID': 'all', 'OntologyName': 'all', 'orderby': {'field': 'OntologyName', 'sortType': 'ASC'}
+          };
+          this.initialSortKey = 'ApiField';
+
+          this.columns = [
+            ColumnDefinition.makeSpecialValueColumn('Intitulé', (item) => item.SedaField ? item.SedaField : item.ApiField,
+              undefined, () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
+              () => ({'width': '225px'})),
+            ColumnDefinition.makeStaticColumn('Type', 'Type d\'indexation', undefined,
+              () => ({'width': '125px'}))
+          ];
+          this.referentialPath = 'admin/ontologies';
+          this.referentialIdentifier = 'Identifier';
+          break;
         default:
           this.router.navigate(['ingest/sip']);
       }
@@ -373,7 +399,9 @@ export class SearchReferentialsComponent extends PageComponent {
 
   static doInitialSort(items, sortKey) {
     let comparer = (a, b) => {
-      return a[sortKey].trim().toLowerCase().localeCompare(b[sortKey].trim().toLowerCase());
+      const computedA: string = a[sortKey] ? a[sortKey].trim().toLowerCase() : '';
+      const computedB: string = b[sortKey] ? b[sortKey].trim().toLowerCase() : '';
+      return computedA.localeCompare(computedB);
     };
     items.sort(comparer);
   }

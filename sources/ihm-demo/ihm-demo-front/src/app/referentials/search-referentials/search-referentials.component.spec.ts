@@ -101,4 +101,14 @@ describe('SearchReferentialsComponent', () => {
     }
   });
 
+  it('should correctly handle empty Names while in initial sort', () => {
+    const data = [{id: 0}, {id: 4, 'Name': ' ba'}, {id: 1, 'Name': ''}, {id: 2, 'Name': null}, {id: 3, 'Name': 'Ab'}];
+
+    SearchReferentialsComponent.doInitialSort(data, 'Name');
+
+    for (let i = 0, len = data.length; i < len; i++) {
+      expect(data[i].id).toEqual(i);
+    }
+  });
+
 });

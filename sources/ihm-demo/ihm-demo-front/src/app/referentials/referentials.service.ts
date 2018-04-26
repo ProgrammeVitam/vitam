@@ -107,6 +107,16 @@ export class ReferentialsService {
       body.orderby = {"field":"OriginatingAgency","sortType":"ASC"};
     }
 
+    if (this.searchAPI === 'ontologies') {
+      if (!body.OntologyName) {
+        body.OntologyName = 'all';
+      }
+      if (!body.OntologyID) {
+        body.OntologyID = 'all';
+      }
+      body.orderby = {'field': 'ApiField', 'sortType': 'ASC'};
+    }
+
     return this.resourceService.post(this.searchAPI, headers, body);
   }
 

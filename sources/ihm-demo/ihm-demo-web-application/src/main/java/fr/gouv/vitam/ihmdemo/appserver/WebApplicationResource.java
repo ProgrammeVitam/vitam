@@ -129,6 +129,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -2994,6 +2995,78 @@ public class WebApplicationResource extends ApplicationStatusResource {
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Query to find all ontologies matching given criteria
+     *
+     * @param request HTTP request context
+     * @param select  given criteria in order to select ontologies
+     * @return Response
+     */
+    @POST
+    @Path("/ontologies")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("ontologies:read")
+    public Response findOntologies(@Context HttpServletRequest request, String select) {
+        try {
+
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, select);
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+                RequestResponse<OntologyModel> response =
+                    adminClient.findOntologies(UserInterfaceTransactionManager.getVitamContext(request),
+                        query);
+                if (response != null && response instanceof RequestResponseOK) {
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Query to get Ontology by identifier
+     *
+     * @param request HTTP request
+     * @param id      of the requested Service Agency
+     * @return Response
+     */
+    @GET
+    @Path("/ontologies/{id:.+}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("ontologies:read")
+    public Response findOntologyById(@Context HttpServletRequest request, @PathParam("id") String id) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, id);
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse<OntologyModel> response =
+                adminClient.findOntologyById(UserInterfaceTransactionManager.getVitamContext(request),
+                    id);
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(response.getHttpCode()).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
