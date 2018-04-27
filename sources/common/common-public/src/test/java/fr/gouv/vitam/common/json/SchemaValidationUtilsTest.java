@@ -107,6 +107,13 @@ public class SchemaValidationUtilsTest {
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE))
                 .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
+
+        // When
+        SchemaValidationStatus status2 = schemaValidation
+            .validateInsertOrUpdateUnit(
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE)));
+        // Then
+        assertTrue(status2.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
 
     @Test

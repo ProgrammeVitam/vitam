@@ -30,6 +30,7 @@ import java.io.FileNotFoundException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
  * SchemaValidationUtils
@@ -61,6 +63,7 @@ public class SchemaValidationUtils {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchemaValidationUtils.class);
 
     private JsonSchema jsonSchema;
+    private boolean isExternal = false;
 
     /**
      * archive-unit-schema
@@ -161,6 +164,7 @@ public class SchemaValidationUtils {
         throws FileNotFoundException, ProcessingException, InvalidParseOperationException {
         if (external) {
             setSchemaAsString(schema);
+            isExternal = true;
         } else {
             setSchema(schema);
         }
@@ -189,7 +193,7 @@ public class SchemaValidationUtils {
     }
 
     private void setSchemaAsString(String schemaJsonAsString)
-        throws  ProcessingException, InvalidParseOperationException {
+        throws ProcessingException, InvalidParseOperationException {
 
         JsonNode schemaAsJson = null;
         try {
@@ -308,7 +312,7 @@ public class SchemaValidationUtils {
         try {
             ProcessingReport report = jsonSchema.validate(archiveUnit);
             if (!report.isSuccess()) {
-                JsonNode error = (( ListProcessingReport ) report).asJson();
+                JsonNode error = ((ListProcessingReport) report).asJson();
                 ObjectNode errorNode = JsonHandler.createObjectNode();
                 errorNode.set("validateUnitReport", error);
                 LOGGER.error("Archive unit is not valid : \n" + errorNode.toString());
@@ -340,7 +344,8 @@ public class SchemaValidationUtils {
                     errorNode.set(SedaConstants.EV_DET_TECH_DATA, error);
                     LOGGER.error(errorMessage);
                     return new SchemaValidationStatus(errorNode.toString(),
-                        SchemaValidationStatusEnum.RULE_BAD_START_END_DATE, archiveUnit.get(SedaConstants.PREFIX_ID).asText());
+                        SchemaValidationStatusEnum.RULE_BAD_START_END_DATE,
+                        archiveUnit.get(SedaConstants.PREFIX_ID).asText());
                 }
             }
         } catch (ProcessingException | ParseException e) {
@@ -356,7 +361,7 @@ public class SchemaValidationUtils {
         for (int index = 0; index <= LogLevel.values().length; index++) {
             if (error.get(index) != null) {
                 if (error.get(index).get("level") != null &&
-                    error.get(index).get("level").asText().equalsIgnoreCase(LogLevel.ERROR.toString()) ) {
+                    error.get(index).get("level").asText().equalsIgnoreCase(LogLevel.ERROR.toString())) {
                     errorIndex = index;
                     break;
                 }
@@ -367,20 +372,22 @@ public class SchemaValidationUtils {
     }
 
     /**
-     * Validate a json for update with a schema
+     * Validate a json for insert or update with a schema
      * 
      * @param archiveUnit the json to be validated
      * @return a status ({@link SchemaValidationStatus})
      */
-    public SchemaValidationStatus validateUpdateUnit(JsonNode archiveUnit) {
+    public SchemaValidationStatus validateInsertOrUpdateUnit(JsonNode archiveUnit) {
         ObjectNode unitCopy = ((ObjectNode) archiveUnit).deepCopy();
-        final Iterator<String> names = unitCopy.fieldNames();
+        ObjectNode unitCopy2 = ((ObjectNode) archiveUnit).deepCopy();
+        final Iterator<String> names = unitCopy2.fieldNames();
         while (names.hasNext()) {
             String name = names.next();
-            if ("_mgt".equals(name)) {
+            if ("_mgt".equals(name) || "#management".equals(name)) {
                 final JsonNode value = unitCopy.remove(name);
                 unitCopy.set("Management", value);
-                break;
+            } else if (isExternal && name != null && name.startsWith(ModelConstants.UNDERSCORE)) {
+                unitCopy.remove(name);
             }
         }
         return validateUnit(unitCopy);

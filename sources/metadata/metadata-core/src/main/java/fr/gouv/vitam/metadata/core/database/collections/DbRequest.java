@@ -132,22 +132,20 @@ public class DbRequest {
     private static final String DEPTH_ARRAY = "deptharray";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-    private static final String
-        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
+    private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     /**
      * Constructor
      */
-    public DbRequest() {
-    }
+    public DbRequest() {}
 
     /**
      * The request should be already analyzed.
      *
      * @param requestParser the RequestParserMultiple to execute
      * @return the Result
-     * @throws MetaDataExecutionException     when select/update/delete on metadata collection exception occurred
+     * @throws MetaDataExecutionException when select/update/delete on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws BadRequestException
      */
@@ -288,7 +286,7 @@ public class DbRequest {
     /**
      * Check Unit parents against Roots
      *
-     * @param current         set of result id
+     * @param current set of result id
      * @param defaultStartSet
      * @return the valid root ids set
      */
@@ -300,7 +298,8 @@ public class DbRequest {
             return current;
         }
         // TODO P1 add unit tests
-        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
+        @SuppressWarnings("unchecked")
+        final FindIterable<Unit> iterable =
             (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
                 MongoDbMetadataHelper.ID_PROJECTION);
@@ -318,8 +317,8 @@ public class DbRequest {
      * Execute one request
      *
      * @param requestToMongodb
-     * @param rank             current rank query
-     * @param previous         previous Result from previous level (except in level == 0 where it is the subset of valid roots)
+     * @param rank current rank query
+     * @param previous previous Result from previous level (except in level == 0 where it is the subset of valid roots)
      * @return the new Result from this request
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
@@ -537,7 +536,8 @@ public class DbRequest {
         if (!previous.getCurrentIds().isEmpty() && relativeDepth > 1) {
             result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
             final Bson newRoots = QueryToMongodb.getRoots(MetadataDocument.ID, resultPreviousFilter.getCurrentIds());
-            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
+            @SuppressWarnings("unchecked")
+            final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT, newRoots,
                     Unit.UNIT_VITAM_PROJECTION);
             final List<String> finalList = new ArrayList<>();
@@ -597,12 +597,14 @@ public class DbRequest {
                 MongoDbHelper.bsonToString(group, false));
         }
         final List<Bson> pipeline = Arrays.asList(match, group);
-        @SuppressWarnings("unchecked") final AggregateIterable<Unit> aggregateIterable =
+        @SuppressWarnings("unchecked")
+        final AggregateIterable<Unit> aggregateIterable =
             MetadataCollections.UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
-            @SuppressWarnings("unchecked") final List<Map<String, Integer>> array =
+            @SuppressWarnings("unchecked")
+            final List<Map<String, Integer>> array =
                 (List<Map<String, Integer>>) aggregate.get(DEPTH_ARRAY);
             relativeDepth = Math.abs(relativeDepth);
             for (final Map<String, Integer> map : array) {
@@ -662,7 +664,7 @@ public class DbRequest {
      * Execute one relative Depth ObjectGroup Query
      *
      * @param realQuery
-     * @param previous  units, Note: only immediate Unit parents are allowed
+     * @param previous units, Note: only immediate Unit parents are allowed
      * @param tenantId
      * @param sorts
      * @param offset
@@ -723,7 +725,8 @@ public class DbRequest {
         }
         if (model == FILTERARGS.UNITS) {
             final Map<String, Unit> units = new HashMap<>();
-            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
+            @SuppressWarnings("unchecked")
+            final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                     roots, projection, null, -1, -1);
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -775,7 +778,8 @@ public class DbRequest {
         }
         // OBJECTGROUPS:
         final Map<String, ObjectGroup> obMap = new HashMap<>();
-        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
+        @SuppressWarnings("unchecked")
+        final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
                 MetadataCollections.OBJECTGROUP,
                 roots, projection, null, -1, -1);
@@ -890,19 +894,21 @@ public class DbRequest {
                 final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
                 requestToMongodb.getFinalUpdateActions();
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
-                documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);                
+                documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
                 if (documentId.equals(document.get(MetadataDocument.ID))) {
                     modified = true;
                     documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
 
                     if (model == FILTERARGS.UNITS) {
-                        SchemaValidationStatus status = validator.validateUpdateUnit(updatedJsonDocument);
+                        JsonNode externalSchema =
+                            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
+                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                             throw new MetaDataExecutionException(
                                 "Unable to validate updated Unit " + status.getValidationMessage());
                         }
-                        if (updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION) != null) {
-                            validateOtherExternalSchema(updatedJsonDocument);
+                        if (externalSchema != null && externalSchema.size() > 0) {
+                            validateOtherExternalSchema(updatedJsonDocument, externalSchema);
                             documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
                         }
 
@@ -944,19 +950,18 @@ public class DbRequest {
         return last;
     }
 
-    private void validateOtherExternalSchema(ObjectNode updatedJsonDocument)
+    private void validateOtherExternalSchema(ObjectNode updatedJsonDocument, JsonNode schema)
         throws InvalidParseOperationException, MetaDataExecutionException {
         try {
             SchemaValidationUtils validatorSecond =
                 new SchemaValidationUtils(
-                    updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION).isArray()
-                        ? updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION)
-                            .get(0).asText()
-                        : updatedJsonDocument.get(SchemaValidationUtils.TAG_SCHEMA_VALIDATION)
-                            .asText(),
+                    schema.isArray()
+                        ? schema.get(0).asText()
+                        : schema.asText(),
                     true);
+            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
             SchemaValidationStatus secondstatus =
-                validatorSecond.validateUpdateUnit(updatedJsonDocument);
+                validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument);
             if (!SchemaValidationStatusEnum.VALID.equals(secondstatus.getValidationStatus())) {
                 throw new MetaDataExecutionException(
                     "Unable to validate updated Unit " + secondstatus.getValidationMessage());
@@ -985,7 +990,8 @@ public class DbRequest {
             finalQuery = and(in(MetadataDocument.ID, last.getCurrentIds()),
                 eq(MetadataDocument.TENANT_ID, tenantId));
         }
-        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+        @SuppressWarnings("unchecked")
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
             .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -1012,7 +1018,8 @@ public class DbRequest {
         } else {
             finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
         }
-        @SuppressWarnings("unchecked") final FindIterable<ObjectGroup> iterable =
+        @SuppressWarnings("unchecked")
+        final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper
                 .select(MetadataCollections.OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
@@ -1059,10 +1066,10 @@ public class DbRequest {
      * Inserts a unit
      *
      * @param requestParser the InsertParserMultiple to execute
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
-     * @throws MetaDataNotFoundException      when metadata not found exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertUnitRequest(InsertParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
@@ -1119,10 +1126,10 @@ public class DbRequest {
      * Inserts an object group
      *
      * @param requestParser the InsertParserMultiple to execute
-     * @throws MetaDataExecutionException     when insert on metadata collection exception occurred
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
-     * @throws MetaDataAlreadyExistException  when insert metadata exception
-     * @throws MetaDataNotFoundException      when metadata not found exception
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertObjectGroupRequest(InsertParserMultiple requestParser)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
