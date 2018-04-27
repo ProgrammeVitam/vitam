@@ -24,7 +24,7 @@
 
 - name: Connection to ihm-recette before uploading
   uri:
-    url: "{{ vitam.ihm_recette| client_url }}/{{ vitam.ihm_recette.baseuri }}/v1/api/login"
+    url: "https://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}/v1/api/login"
     validate_certs: no
     method: POST
     body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}' # First account is used
@@ -43,13 +43,14 @@
 # KWA comment : better with a template... and a loop !
 - name: launch perf test
   uri:
-    url: "{{ vitam.ihm_recette| client_url }}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
+    url: "https://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
     validate_certs: no
     return_content: yes
     method: POST
     headers:
       Connection: "keep-alive"
       X-Tenant-Id: "{{item}}"
+      X-CSRF-Token: "{{ connected.json.tokenCSRF }}"
 #      Content-Type: "application/octet-stream"
       Cookie: "{{connected.set_cookie}}"
       Host: "{{ip_service}}"
@@ -65,7 +66,7 @@
   register: launched
 
 - name: Wait until ingest is finished
-  command: "curl -I --silent -k -H \"Cookie: {{ connected.set_cookie }}\" -H \"Host: {{ ip_service }}\" {{ vitam.ihm_recette| client_url }}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
+  command: "curl -I --silent -k -H \"Cookie: {{ connected.set_cookie }}\" -H \"Host: {{ ip_service }}\" -H \"X-CSRF-Token: {{ connected.json.tokenCSRF }}\" https://{{ ip_service }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
   register: result
   until: result.stdout.find("200 OK") != -1
   retries: "{{ nb_retries }}"
