@@ -10,6 +10,7 @@ import { PageComponent } from "../../../common/page/page-component";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import { IngestContract } from './ingest-contract';
 import {ErrorService} from "../../../common/error.service";
+import {ReferentialHelper} from '../../referential.helper';
 
 @Component({
   selector: 'vitam-ingest-contract',
@@ -24,6 +25,7 @@ export class IngestContractComponent extends PageComponent {
   id: string;
   isActif :boolean;
   isCheckParent :boolean;
+  isMasterMandatory: boolean;
   update : boolean;
   updatedFields: any = {};
   saveRunning = false;
@@ -66,6 +68,22 @@ export class IngestContractComponent extends PageComponent {
     }
   }
 
+  changeMasterMandatory() {
+    this.updatedFields.MasterMandatory = this.modifiedContract.MasterMandatory;
+  }
+
+  changeBooleanValue(key : string) {
+    this.updatedFields[key] = this.modifiedContract[key];
+    if (key === 'EveryDataObjectVersion') {
+      if (this.updatedFields[key] === true) {
+        ObjectsService.pushAllWithoutDuplication(this.modifiedContract.DataObjectVersion, ReferentialHelper.optionLists.DataObjectVersion);
+        this.updatedFields.DataObjectVersion = this.modifiedContract.DataObjectVersion;
+      } else {
+        ObjectsService.pushAllWithoutDuplication(this.modifiedContract.DataObjectVersion, this.contract.DataObjectVersion);
+        delete this.updatedFields.DataObjectVersion;
+      }
+    }
+  }
     
   changeCheckControl() {
     if (this.isCheckParent) {
@@ -87,7 +105,7 @@ export class IngestContractComponent extends PageComponent {
     }
 
     this.saveRunning = true;
-    this.updatedFields['LastUpdate'] = new Date();
+    this.updatedFields.LastUpdate = new Date();
     this.searchReferentialsService.updateDocumentById('contracts', this.id, this.updatedFields)
       .subscribe((data) => {
         this.searchReferentialsService.getIngestContractById(this.id).subscribe((value) => {
@@ -121,6 +139,9 @@ export class IngestContractComponent extends PageComponent {
 
   initData(value) {
     this.contract = plainToClass(IngestContract, value.$results)[0];
+    if (this.contract.DataObjectVersion === undefined ) {
+      this.contract.DataObjectVersion = [];
+    }
     this.modifiedContract =  ObjectsService.clone(this.contract);
     this.isActif = this.modifiedContract.Status === 'ACTIVE';
     this.isCheckParent = this.modifiedContract.CheckParentLink === 'ACTIVE';

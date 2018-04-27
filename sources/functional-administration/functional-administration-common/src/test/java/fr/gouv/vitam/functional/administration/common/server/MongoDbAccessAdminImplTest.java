@@ -631,7 +631,10 @@ public class MongoDbAccessAdminImplTest {
             .setCheckParentLink(ActivationStatus.INACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
+            .setActivationdate(lastupdate)
+            .setDeactivationdate(lastupdate)
+            .setMasterMandatory(true)
+            .setEveryDataObjectVersion(false);
         return contract;
     }
 

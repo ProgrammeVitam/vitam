@@ -9,6 +9,9 @@ export class IngestContract {
   CheckParentLink: string;
   isActive : boolean;
   CreationDate: string;
+  MasterMandatory: boolean;
+  EveryDataObjectVersion: boolean;
+  DataObjectVersion: string[];
   LastUpdate: string;
   ActivationDate: string;
   DeactivationDate: string;

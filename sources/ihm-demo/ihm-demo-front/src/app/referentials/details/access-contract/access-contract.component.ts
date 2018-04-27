@@ -1,42 +1,42 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { plainToClass } from 'class-transformer';
-import { Title } from '@angular/platform-browser';
+import {Component} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {plainToClass} from 'class-transformer';
+import {Title} from '@angular/platform-browser';
 
-import { BreadcrumbService } from "../../../common/breadcrumb.service";
-import { ReferentialsService } from "../../referentials.service";
-import { ObjectsService } from '../../../common/utils/objects.service';
-import { PageComponent } from "../../../common/page/page-component";
-import { AccessContract } from "./access-contract";
-import {ReferentialHelper} from "../../referential.helper";
-import {DialogService} from "../../../common/dialog/dialog.service";
-import {ErrorService} from "../../../common/error.service";
+import {BreadcrumbService} from '../../../common/breadcrumb.service';
+import {ReferentialsService} from '../../referentials.service';
+import {ObjectsService} from '../../../common/utils/objects.service';
+import {PageComponent} from '../../../common/page/page-component';
+import {AccessContract} from './access-contract';
+import {ReferentialHelper} from '../../referential.helper';
+import {DialogService} from '../../../common/dialog/dialog.service';
+import {ErrorService} from '../../../common/error.service';
 
 @Component({
   selector: 'vitam-access-contract',
   templateUrl: './access-contract.component.html',
   styleUrls: ['./access-contract.component.css']
 })
-export class AccessContractComponent  extends PageComponent {
+export class AccessContractComponent extends PageComponent {
 
-  contract : AccessContract;
-  modifiedContract : AccessContract;
+  contract: AccessContract;
+  modifiedContract: AccessContract;
   id: string;
-  update : boolean;
-  isActif : boolean;
+  update: boolean;
+  isActif: boolean;
   updatedFields: any = {};
   saveRunning = false;
 
-  constructor(private activatedRoute: ActivatedRoute, private router : Router,
+  constructor(private activatedRoute: ActivatedRoute, private router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService, private dialogService : DialogService,
+              private searchReferentialsService: ReferentialsService, private dialogService: DialogService,
               private errorService: ErrorService) {
     super('Détail du contrat d\'accès', [], titleService, breadcrumbService);
 
   }
 
   pageOnInit() {
-    this.activatedRoute.params.subscribe( params => {
+    this.activatedRoute.params.subscribe(params => {
       this.id = params['id'];
       this.getDetail();
       let newBreadcrumb = [
@@ -53,7 +53,7 @@ export class AccessContractComponent  extends PageComponent {
     this.update = !this.update;
     this.updatedFields = {};
     if (!this.update) {
-      this.modifiedContract =  ObjectsService.clone(this.contract);
+      this.modifiedContract = ObjectsService.clone(this.contract);
       this.isActif = this.modifiedContract.Status === 'ACTIVE';
     }
   }
@@ -66,7 +66,7 @@ export class AccessContractComponent  extends PageComponent {
     }
   }
 
-  changeBooleanValue(key : string) {
+  changeBooleanValue(key: string) {
     this.updatedFields[key] = this.modifiedContract[key];
     if (key === 'EveryDataObjectVersion') {
       if (this.updatedFields[key] === true) {
@@ -87,7 +87,8 @@ export class AccessContractComponent  extends PageComponent {
     }
 
     this.saveRunning = true;
-    this.updatedFields['LastUpdate'] = new Date();
+
+    this.updatedFields.LastUpdate = new Date();
     this.searchReferentialsService.updateDocumentById('accesscontracts', this.id, this.updatedFields)
       .subscribe((data) => {
         this.searchReferentialsService.getAccessContractById(this.id).subscribe((value) => {
@@ -121,7 +122,10 @@ export class AccessContractComponent  extends PageComponent {
 
   initData(value) {
     this.contract = plainToClass(AccessContract, value.$results)[0];
-    this.modifiedContract =  ObjectsService.clone(this.contract);
+    if (this.contract.DataObjectVersion === undefined) {
+      this.contract.DataObjectVersion = [];
+    }
+    this.modifiedContract = ObjectsService.clone(this.contract);
     this.isActif = this.modifiedContract.Status === 'ACTIVE';
   }
 }

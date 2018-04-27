@@ -38,6 +38,15 @@
     "LinkParentId": {
       "type": "keyword"
     },
+    "MasterMandatory": {
+      "type": "boolean"
+    },
+    "EveryDataObjectVersion": {
+      "type": "boolean"
+    },
+    "DataObjectVersion": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },
