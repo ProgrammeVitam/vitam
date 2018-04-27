@@ -40,6 +40,18 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
 
+    - STARTED : Début du processus d'import du contrat d'entrée ( STP_IMPORT_INGEST_CONTRACT.STARTED=Début du processus d'import du contrat d'entrée ) 
+
+    - WARNING : Avertissement lors du processus d'import du contrat d''entrée ( STP_IMPORT_INGEST_CONTRACT.WARNING=Avertissement lors du processus d'import du contrat d'entrée ) 
+
+    - DUPLICATION : L'identifiant utilisé existe déjà ( STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé ) 
+
+    - EMPTY REQUIRED FIELD : un champ obligatoire n'est pas renseigné ( STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné ) 
+
+    - PROFILE NOT FOUND : Le profil d'archivage mentionné n' existe pas ( STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO=Échec de l'import : profil d'archivage non trouvé ) 
+
+  
+
 Mise à jour d'un contrat d'entrée (STP_UPDATE_INGEST_CONTRACT)
 ---------------------------------------------------------------
 

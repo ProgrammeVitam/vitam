@@ -41,6 +41,15 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors du processus d'import du profil d'archivage)
 
+    - STARTED : Début du processus d'import du profil d'archivage ( STP_IMPORT_PROFILE_JSON.STARTED=Début du processus d'import du profil d''archivage ) 
+
+    - WARNING : Avertissement lors du processus d'import du profil d''archivage ( STP_IMPORT_PROFILE_JSON.WARNING=Avertissement lors du processus d'import du profil )  d''archivage
+
+    - IDENTIFIER DUPLICATION : L'identifiant est déjà utilisé ( STP_IMPORT_PROFILE_JSON.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé ) 
+
+    - EMPTY REQUIRED FIELD : Au moins un des champs obligatoires n'est pas renseigné ( STP_IMPORT_PROFILE_JSON.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné ) 
+
+
 
 Import du profil d'archivage (STP_IMPORT_PROFILE_FILE)
 -------------------------------------------------------

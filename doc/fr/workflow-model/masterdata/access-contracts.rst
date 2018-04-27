@@ -47,6 +47,20 @@ Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_ACCESS_CONTRACT.FATAL=Erreur fatale lors du processus d'import du contrat d'accès)
 
+    - STARTED: Début du processus d'import du contrat d'accès ( STP_IMPORT_ACCESS_CONTRACT.STARTED=Début du processus d'import du contrat d'accès ) 
+
+    - WARNING: Avertissement lors du processus d'import du contrat d'accès ( STP_IMPORT_ACCESS_CONTRACT.WARNING=Avertissement lors du processus d'import du contrat d''accès )
+
+    - DUPLICATION: l'identifiant du contrat est déjà utilisé ( STP_IMPORT_ACCESS_CONTRACT.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé )
+
+    - EMPTY REQUIRED FIELD : au moins un des champs obligatoires n'est pas renseigné ( STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné ) 
+
+    - AGENCY NOT FOUND : Service producteur inconnu ( STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO=Échec de l'import : au moins un service producteur est inconnu ) 
+
+    - VALIDATION ERROR : Erreur de validation du contrat ( STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO=Échec de l'import : erreur de validation du contrat ) 
+
+
+
 Mise à jour d'un contrat d'accès (STP_UPDATE_ACCESS_CONTRACT)
 ---------------------------------------------------------------
 

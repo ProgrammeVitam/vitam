@@ -338,6 +338,9 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA - CheckArchiv
     - Cas 1 : au moins un champ d'une unité archivistique dont le schéma n'est pas conforme par rapport au schéma prédéfini du référentiel Vitam. (CHECK_UNIT_SCHEMA.INVALID_UNIT.KO=Échec lors de la vérification globale de l'unité archivistique : champs non conformes)
     - Cas 2 : au moins un champ obligatoire d'une unité archivistique est vide(CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD.KO=Échec lors de la vérification globale de l'unité archivistique : champs obligatoires vides)
     - Cas 3 : au moins un champ date d'une unité archivistique est supérieur à 9000 (titre vide, date incorrecte...) ou la date de fin des dates extrêmes est strictement inférieure à la date de début (CHECK_UNIT_SCHEMA.RULE_DATE_THRESHOLD.KO=Échec du calcul des dates d'échéance, la date ne peut être gérée)
+    - Cas 4 : Echec du calcul des dates : au moins un champ date d'une unité archivistique possède un format non conforme ( CHECK_UNIT_SCHEMA.RULE_DATE_FORMAT.KO=Échec du calcul des dates d''échéance, la date ne peut être gérée ) 
+    - Cas 5 : Au moins une Archive Unit n'est pas conforme à son schéma en raison d'un problème de cohérence entre champs. Par exemple, la velur contenue dans le champs "StartDate" est postérieure à la date définie dans la "End Date"  ( CHECK_UNIT_SCHEMA.CONSISTENCY.KO=Au moins une ArchiveUnit n''est pas conforme à son schéma en raison d''un problème de cohérence entre champs ) 
+
 
   - FATAL : une erreur technique est survenue lors de la vérification de l'unité archivistique (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale lors de la vérification globale de l'unité archivistique)
 

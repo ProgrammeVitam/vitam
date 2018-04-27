@@ -29,13 +29,25 @@ Import d'un référentiel des contextes (STP_IMPORT_CONTEXT)
     * Le champ "SecurityProfile" et "doit être peuplé avec une chaîne de caractères
     * Le champ "Identifier" doit être unique
 
-  + **Statuts** :
 
     - OK : Les règles ci-dessus sont respectées (STP_IMPORT_CONTEXT.OK = Succès du processus d'import du contexte)
 
     - KO : une des règles ci-dessus n'est pas respectée (STP_IMPORT_CONTEXT.KO=Échec du processus d'import du contexte)
 
     - FATAL : une erreur technique est survenue lors de l'import du contexte (STP_IMPORT_CONTEXT.FATAL=Erreur fatale lors du processus d'import du contexte)
+
+    - STARTED : Début du processus d'importe du contexte ( STP_IMPORT_CONTEXT.STARTED=Début du processus d''import du contexte ) 
+
+    - IDENTIFIER DPLICATION : L'identifiant est déjà utilisé ( STP_IMPORT_CONTEXT.IDENTIFIER_DUPLICATION.KO=Echec de l'import : l'identifiant est déjà utilisé ) 
+
+    - EMPTY REQUIRED FIELD : Un des champs obligatoires n'est pas renseigné ( STP_IMPORT_CONTEXT.EMPTY_REQUIRED_FIELD.KO=Echec de l'import : au moins un des champs obligatoires n'est pas renseigné ) 
+
+    - SECURITY PROFILE NOT FOUND : Le profil de sécurité mentionné est inconnu du système ( STP_IMPORT_CONTEXT.SECURITY_PROFILE_NOT_FOUND.KO=Echec de l'import : profil de sécurité non trouvé) 
+
+    - UNKNOWN VALUE : Au moins un objet déclare une valeur inconnue ( STP_IMPORT_CONTEXT.UNKNOWN_VALUE.KO=Echec de l'import : au moins un objet déclare une valeur inconnue ) 
+
+
+
 
 Mise à jour d'un contexte applicatif (STP_UPDATE_CONTEXT)
 ---------------------------------------------------------------------

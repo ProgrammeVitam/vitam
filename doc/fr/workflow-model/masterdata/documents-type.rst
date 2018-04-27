@@ -45,6 +45,15 @@ Import des métadonnées d'un document type (IMPORT_ARCHIVEUNITPROFILE )
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du du document type (IMPORT_ARCHIVEUNITPROFILE.FATAL=Erreur fatale lors du processus d'import du du document type)
 
+    - STARTED : Début du processus d'import du document type ( IMPORT_ARCHIVEUNITPROFILE.STARTED=Début du processus d'import du document type ) 
+
+    - WARNING : Avertissement lord du processus d'import du document type ( IMPORT_ARCHIVEUNITPROFILE.WARNING=Avertissement lors du processus d'import du document type )
+
+    - IDENTIFIER DUPLICATION : L'identifiant est déjà utilisé ( IMPORT_ARCHIVEUNITPROFILE.IDENTIFIER_DUPLICATION.KO=Echec de l'import : l'identifiant est déjà utilisé ) 
+
+    - EMPTY REQUIRED FIELD : Au moins un des champs obligatoires n'est pas renseigné ( IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO=Echec de l'import : au moins un des champs obligatoires n''est pas renseigné ) 
+
+    - INVALID JSON SCHEMA : Schéma JSON invalide ( IMPORT_ARCHIVEUNITPROFILE.INVALID_JSON_SCHEMA.KO=Echec de l''import : schéma JSON non valide ) 
 
 
 Mise à jour d'un document type (UPDATE_ARCHIVEUNITPROFILE)
