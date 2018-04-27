@@ -31,6 +31,7 @@ package fr.gouv.vitam.common.model.processing;
  */
 public enum DistributionKind {
     // TODO P1 comment on each lines + since each is the same enum = String, remove String
+
     /**
      * Distribution by reference, so 1 item only
      */
@@ -38,13 +39,23 @@ public enum DistributionKind {
     /**
      * Distribution by List (workspace or other kind of lists)
      */
+
     LIST_IN_FILE("LIST_IN_FILE"),
+
     /**
-     * Distribution by List defined in a file
+     * Distribution by List defined in a file.
      */
     LIST_ORDERING_IN_FILE("LIST_ORDERING_IN_FILE"),
 
-    LIST_IN_DIRECTORY("LIST_IN_DIRECTORY");
+    /**
+     * Distribution by List defined in a directory.
+     */
+    LIST_IN_DIRECTORY("LIST_IN_DIRECTORY"),
+
+    /**
+     * Distribution by list defined in linked file.
+     */
+    LIST_IN_LINKED_FILE("LIST_IN_LINKED_FILE");
 
     private String value;
 
