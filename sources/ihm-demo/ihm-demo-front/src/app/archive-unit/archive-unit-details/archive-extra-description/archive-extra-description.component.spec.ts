@@ -1,12 +1,12 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from "@angular/core";
-import { Observable } from "rxjs/Rx";
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/observable/of';
 
 import { ArchiveExtraDescriptionComponent } from './archive-extra-description.component';
-import { ArchiveUnitHelper } from "../../archive-unit.helper";
-import { ArchiveUnitService } from "../../archive-unit.service";
-import { VitamResponse } from "../../../common/utils/response";
+import { ArchiveUnitHelper } from '../../archive-unit.helper';
+import { ArchiveUnitService } from '../../archive-unit.service';
+import { VitamResponse } from '../../../common/utils/response';
 
 let ArchiveUnitServiceStub = {
   getDetails: (id) => Observable.of({$results: [{ test: 'newValue', '#management': {SubmissionAgency: 'id'} }]}),

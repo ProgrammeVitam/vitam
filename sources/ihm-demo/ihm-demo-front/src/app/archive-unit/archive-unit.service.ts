@@ -6,6 +6,7 @@ import { HttpHeaders } from '@angular/common/http';
 
 @Injectable()
 export class ArchiveUnitService {
+  static inputRequest: any;
   ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL = 'archiveunit/objects/download';
   ARCHIVE_UNIT_SEARCH_API = 'archivesearch';
   ARCHIVE_UNIT_API = 'archiveunit';
@@ -17,7 +18,13 @@ export class ArchiveUnitService {
   AUDIT = 'evidenceaudit';
   OBJECTS = 'objects';
 
-  static inputRequest : any;
+  static setInputRequest(request) {
+    this.inputRequest = request ;
+  }
+
+  static getInputRequest() {
+    return this.inputRequest;
+  }
 
   constructor(private resourceService: ResourcesService) { }
 
@@ -65,11 +72,4 @@ export class ArchiveUnitService {
     return this.resourceService.post(`${this.ARCHIVE_UPDATE_API}/${this.UNITS}/${id}`, undefined, updateRequest);
   }
 
-  static setInputRequest(request) {
-    this.inputRequest = request ;
-  }
-
-  static getInputRequest() {
-    return this.inputRequest;
-  }
 }

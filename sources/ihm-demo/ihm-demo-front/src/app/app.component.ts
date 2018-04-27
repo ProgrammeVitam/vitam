@@ -14,12 +14,12 @@ import { TranslateService } from '@ngx-translate/core';
 export class AppComponent {
   title = 'vitam';
   displayGoToTop = false;
-  constructor(private router : Router, private authenticationService : AuthenticationService,
-              private activatedRoute : ActivatedRoute, private translate: TranslateService) {
+  constructor(private router: Router, private authenticationService : AuthenticationService,
+              private activatedRoute: ActivatedRoute, private translate: TranslateService) {
     router.events
       .filter(event => event instanceof NavigationEnd)
-      .subscribe((event : NavigationStart) => {
-        let permission = activatedRoute.firstChild.snapshot.data.permission;
+      .subscribe((event: NavigationStart) => {
+        const permission = activatedRoute.firstChild.snapshot.data.permission;
         if (permission && !this.authenticationService.checkUserPermission(permission)) {
           this.router.navigate(['ingest/sip']);
         }
@@ -28,7 +28,7 @@ export class AppComponent {
   }
 
   scrollToTop() {
-    window.scroll(0,0);
+    window.scroll(0, 0);
   }
 
   @HostListener('window:scroll', ['$event'])

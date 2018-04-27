@@ -1,9 +1,13 @@
 import { Injectable } from '@angular/core';
-import {DatePipe} from "@angular/common";
-import {SelectItem} from "primeng/primeng";
+import {DatePipe} from '@angular/common';
+import {SelectItem} from 'primeng/primeng';
 
 @Injectable()
 export class ReferentialHelper {
+
+  static optionLists = {
+    'DataObjectVersion': ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster']
+  };
 
   constructor() { }
 
@@ -27,10 +31,6 @@ export class ReferentialHelper {
       {label: 'Contenu brut', value: 'TextContent'},
       {label: 'Original papier', value: 'PhysicalMaster'}
     ]
-  };
-
-  static optionLists = {
-    'DataObjectVersion': ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster']
   };
 
   getOptions(field: string): any[] {
