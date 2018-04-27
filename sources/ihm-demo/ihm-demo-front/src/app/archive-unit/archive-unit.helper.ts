@@ -112,8 +112,9 @@ export class ArchiveUnitHelper {
     if (unitData.DescriptionLevel && unitData.DescriptionLevel !== 'Item') {
       return unitData.StartDate;
     }
+
     let lowestDate = '';
-    if (!unitData.DescriptionLevel && unitData.StartDate) {
+    if (unitData.StartDate) {
       lowestDate = unitData.StartDate;
     }
     if (unitData.CreatedDate && (lowestDate === '' || lowestDate > unitData.CreatedDate)) {
@@ -142,7 +143,7 @@ export class ArchiveUnitHelper {
       return unitData.EndDate;
     }
     let highestDate = '';
-    if (!unitData.DescriptionLevel && unitData.EndDate) {
+    if (unitData.EndDate) {
       highestDate = unitData.EndDate;
     }
     if (unitData.CreatedDate && (highestDate === '' || highestDate < unitData.CreatedDate)) {
