@@ -114,7 +114,7 @@
     {% endfor %}
 
     # Enable chunked mode for all requests to access-external & ingest-external
-    <LocationMatch "^/(ingest|access)-external">
+    <LocationMatch "^/(ingest|access|admin)-external">
         SetEnv proxy-sendchunked 1
         SetEnv proxy-sendcl 0
     </LocationMatch>
