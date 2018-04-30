@@ -72,7 +72,6 @@ public class AdminIdentityApplication extends Application {
                 singletons.add(new HeaderIdContainerFilter());
                 singletons.add(new JsonParseExceptionMapper());
 
-
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
