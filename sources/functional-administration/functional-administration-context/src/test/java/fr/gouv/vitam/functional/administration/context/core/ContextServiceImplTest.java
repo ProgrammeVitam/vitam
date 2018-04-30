@@ -240,7 +240,7 @@ public class ContextServiceImplTest {
 
         final ObjectNode permissionsNode = JsonHandler.createObjectNode();
         final ObjectNode permissionNode = JsonHandler.createObjectNode();
-        permissionNode.put("_tenant", TENANT_ID);
+        permissionNode.put("tenant", TENANT_ID);
 
         permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add(INGEST_CONTRACT_ID));
         permissionNode.set("AccessContracts", JsonHandler.createArrayNode());
@@ -256,7 +256,7 @@ public class ContextServiceImplTest {
 
         final Update update = new Update();
         update.addActions(setPermission);
-        update.setQuery(and().add(eq("Permissions._tenant", 0))
+        update.setQuery(and().add(eq("Permissions.tenant", 0))
             .add(eq("#id", context.getId())));
 
         JsonNode queryDslForUpdate = update.getFinalUpdate();

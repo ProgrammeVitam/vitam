@@ -8,13 +8,13 @@ export class Context {
   Name : string;
   Status : boolean;
   Description : string;
-  '#tenant' : string;
+  'tenant' : string;
   EnableControl : boolean;
   Permissions : Permission[];
 }
 
 export class Permission {
-  '#tenant': number;
+  'tenant': number;
   AccessContracts: string[];
   IngestContracts: string[];
 }
