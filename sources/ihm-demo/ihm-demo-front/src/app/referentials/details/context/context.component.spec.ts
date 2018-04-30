@@ -13,12 +13,12 @@ import { AuthenticationService } from '../../../authentication/authentication.se
 
 const context1 = {
   "#id":"aegqaaaaaahuuzbeabzqqak7aco5r5aaaaaq",
-  "#tenant": '0',
+  "tenant": '0',
   "Name":"admin-context",
   "Description": "Context de test",
   "Status":true,"EnableControl":false,
   "Permissions":[
-    {"#tenant":0,"AccessContracts":[],"IngestContracts":[]}],
+    {"tenant":0,"AccessContracts":[],"IngestContracts":[]}],
   "CreationDate":"2017-10-09T10:11:05.588",
   "LastUpdate":"2017-10-09T10:11:05.589",
   "ActivationDate":null,
@@ -28,12 +28,12 @@ const context1 = {
 };
 const context2 = {
   "#id":"aegqaaaaaahuuzbeabzqqak7aco5r5aaaaaq",
-  "#tenant": '0',
+  "tenant": '0',
   "Name":"admin-context",
   "Description": "Context de test",
   "Status":true,"EnableControl":false,
   "Permissions":[
-    {"#tenant":0,"AccessContracts":['ContratTNR'],"IngestContracts":[]}],
+    {"tenant":0,"AccessContracts":['ContratTNR'],"IngestContracts":[]}],
   "CreationDate":"2017-10-09T10:11:05.588",
   "LastUpdate":"2017-10-09T10:11:05.589",
   "ActivationDate":null,

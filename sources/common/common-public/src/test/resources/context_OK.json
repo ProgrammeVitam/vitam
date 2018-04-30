@@ -9,7 +9,7 @@
 	"EnableControl" : false,
 	"Permissions": [
 		{
-			"_tenant": 1,
+			"tenant": 1,
 			"AccessContracts": [
 				"AccessContracts_1",
 				"AccessContracts_2"
@@ -20,7 +20,7 @@
 			]
 		},
 		{
-			"_tenant": 0,
+			"tenant": 0,
 			"AccessContracts": [
 				"AccessContracts_5",
 				"AccessContracts_6"

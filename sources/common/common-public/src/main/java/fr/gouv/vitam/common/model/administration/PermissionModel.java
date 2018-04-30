@@ -1,6 +1,5 @@
 package fr.gouv.vitam.common.model.administration;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,6 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.common.model.ModelConstants;
 
+/**
+ * Permission model POJO
+ */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PermissionModel {
 
@@ -33,19 +35,20 @@ public class PermissionModel {
         this.ingestContract = ingestContract;
     }
 
-    public PermissionModel() {}
-
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public void setTenantExt(Integer tenant) {
-        this.tenant = tenant;
+    /**
+     * Default constructor
+     */
+    public PermissionModel() {
+        // empty constructor
     }
 
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+
+    @JsonProperty(ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
 
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
+    @JsonProperty(ModelConstants.TAG_TENANT)
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
     }

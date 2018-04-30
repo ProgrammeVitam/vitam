@@ -21,7 +21,7 @@ const CONTEXT_KEY_TRANSLATION = {
   Name: 'Intitulé',
   Status: 'Statut',
   Description: 'Description',
-  '#tenant': 'Tenant'
+  'tenant': 'Tenant'
 };
 
 @Component({
@@ -82,7 +82,7 @@ export class ContextComponent extends PageComponent {
   }
 
   translate(field: string) {
-    if (field.indexOf('#tenant') >= 0) {
+    if (field.indexOf('tenant') >= 0) {
       return 'Tenant';
     }
     if (field.indexOf('AccessContracts') >= 0) {
@@ -95,7 +95,7 @@ export class ContextComponent extends PageComponent {
   }
 
   isUpdatable(key: string) {
-    if (['CreationDate', 'LastUpdate', 'Identifier', '#tenant', '_id'].indexOf(key) > -1) {
+    if (['CreationDate', 'LastUpdate', 'Identifier', 'tenant', '_id'].indexOf(key) > -1) {
       return false;
     } else {
       return this.update;
@@ -165,7 +165,7 @@ export class ContextComponent extends PageComponent {
     }
     let modifiedContext = this.modifiedContext;
     this.modifiedContext.Permissions.forEach(function(value, index) {
-      if (tenantId == value['#tenant']) {
+      if (tenantId == value.tenant) {
         modifiedContext.Permissions.splice(index, 1);
       }
     });
@@ -179,7 +179,7 @@ export class ContextComponent extends PageComponent {
     }
     let newTenant = parseInt(this.selectedTenant);
     let newPermission = {
-      '#tenant': newTenant,
+      'tenant': newTenant,
       AccessContracts: [],
       IngestContracts: []
     };
@@ -194,7 +194,7 @@ export class ContextComponent extends PageComponent {
     this.modifiedContext = ObjectsService.clone(this.context);
 
     for (let permission of this.modifiedContext.Permissions) {
-      this.tenants.splice(this.tenants.indexOf(permission['#tenant']), 1);
+      this.tenants.splice(this.tenants.indexOf(permission['tenant']), 1);
     }
   }
 
