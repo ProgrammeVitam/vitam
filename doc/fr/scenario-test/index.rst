@@ -10,3 +10,4 @@
    tests_automatises.rst
    ecriture.rst
    guide_cucumber.rst
+   curl.rst

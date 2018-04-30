@@ -595,6 +595,114 @@ documentation:
       La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée.
     is: [AdminTraits.TraceabilityCheckResponseAsync]
 
+/rulesreferential/{opId}:
+  displayName: Référentiel des rêgles de gestion
+  uriParameters:
+        opId:
+          required: true
+          description: |
+            Identifiant de l'opération
+  description: |
+   API qui permet de récupérer le fichier original des rêgles de gestion sous forme de csv
+  get:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/octet-stream" ]
+      description: |
+        Récupére le fichier original des rêgles de gestion sous forme de csv à partir de l'id de l'opération
+      responses:
+        200:
+          description: Returns the csv file
+          body:
+            application/octet-stream:
+              description: Binary object as a csv file
+        404:
+          description: Not found, operation could not be found, or csv file attached does not exist
+          body:
+            application/json:
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+
+/agenciesreferential/{opId}:
+  displayName: Référentiel des services agents
+  uriParameters:
+        opId:
+          required: true
+          description: |
+            Identifiant de l'opération
+  description: |
+   API qui permet de récupérer le fichier original des services agents sous forme de csv
+  get:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/octet-stream" ]
+      description: |
+        Récupére le fichier original des services agents sous forme de csv à partir de l'id de l'opération
+      responses:
+        200:
+          description: Returns the csv file
+          body:
+            application/octet-stream:
+              description: Binary object as a csv file
+        404:
+          description: Not found, operation could not be found, or csv file attached does not exist
+          body:
+            application/json:
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+
+/ontologies:
+  displayName: Ontologies
+  description: |
+   API qui définit les requêtes pour accéder au référentiel des Ontologies.
+   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'ontologies selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Requête qui retourne des résultats contenant des Agencies.
+      La requête utilise le langage de requête DSL de type **recherche simple (SELECT SINGLE)** de Vitam en entrée et retourne une liste d'Ontologies selon le DSL Vitam en cas de succès.
+    is: [AdminTraits.AdminListingResponse]
+  post:
+    description: |
+      Requête qui retourne des résultats contenant des Ontologies si la requête utilise POST avec X-Http-Method-Override: GET.
+      Si il n'y a pas de X-Http-Method-Override, la requête importe un nouveau Référentiel d'Ontologies.
+    is: [AdminTraits.AdminListingResponse, StandardTraits.OverrideGet,
+       AdminTraits.AdminUpload, StandardTraits.UploadFileOptionalHeader]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+  /{ido}:
+    uriParameters:
+        ido:
+          required: true
+          description: |
+            Identifiant de l'ontologie
+    displayName: Ontologie
+    description: |
+     API qui définit les requêtes pour accéder à une ontologie dans le référentiel des Ontologies.
+    get:
+      description: |
+        Retourne une liste d'Ontologies contenant 1 seul résultat en cas de succès.
+      is: [AdminTraits.AdminItemResponse]
+    post:
+      description: |
+        Retourne une liste d'Ontologies contenant 1 seul résultat en cas de succès. La requête utilise POST avec X-Http-Method-Override: GET.
+      is: [AdminTraits.AdminItemResponse, StandardTraits.OverrideGet]
+      headers:
+        X-Http-Method-Override:
+          required: true
+    put:
+      description: |
+        Requête qui modifie une Ontologie.
+        La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
+      is: [AdminTraits.AdminUpload]
+
     
 /:
   displayName: Endpoints
