@@ -30,7 +30,7 @@
       "items": {
         "type": "object",
         "properties": {
-          "_tenant": {
+          "tenant": {
             "type": "integer"
           },
           "AccessContracts": {
@@ -46,7 +46,7 @@
             }
           }
         },
-        "required": ["_tenant"]
+        "required": ["tenant"]
       }
     },
     "CreationDate": {

@@ -7,12 +7,12 @@
     "SecurityProfile": "admin-security-profile",
     "Permissions": [
       {
-        "_tenant": 1,
+        "tenant": 1,
         "AccessContracts": [],
         "IngestContracts": []
       },
       {
-        "_tenant": 0,
+        "tenant": 0,
         "AccessContracts": [],
         "IngestContracts": ["ArchivalAgreement0", "ArchivalAgreement0Test", "aName 2", "ContractWithAttachment"]
       }

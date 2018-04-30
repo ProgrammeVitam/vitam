@@ -259,15 +259,9 @@ public class ContractsStep {
         // update contexte
         ObjectNode permissionsNode = JsonHandler.createObjectNode();
         permissionsNode.set(ContextModel.TAG_PERMISSIONS, JsonHandler.toJsonNode(permissions));
-
-        // TODO: 3/16/18 Ugly fix
-        final String s = JsonHandler.writeAsString(permissionsNode);
-        final String s1 = s.replaceAll("#", "_");
-        final JsonNode fromString = JsonHandler.getFromString(s1);
-
         VitamContext context = new VitamContext(1);
         context.setApplicationSessionId(applicationSessionId);
-        final SetAction setPermission = UpdateActionHelper.set((ObjectNode) fromString);
+        final SetAction setPermission = UpdateActionHelper.set(permissionsNode);
         final Update update = new Update();
         update.addActions(setPermission);
         JsonNode queryDsl = update.getFinalUpdateById();

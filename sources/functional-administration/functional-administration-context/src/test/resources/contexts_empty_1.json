@@ -6,12 +6,12 @@
     "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {
-        "_tenant": 2,
+        "tenant": 2,
         "AccessContracts": [],
         "IngestContracts": []
       },
       {
-        "_tenant": 1,
+        "tenant": 1,
         "AccessContracts": [],
         "IngestContracts": []
       }
@@ -25,12 +25,12 @@
     "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {
-        "_tenant": 2,
+        "tenant": 2,
         "AccessContracts": [],
         "IngestContracts": []
       },
       {
-        "_tenant": 1,
+        "tenant": 1,
         "AccessContracts": [],
         "IngestContracts": []
       }
