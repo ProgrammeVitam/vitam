@@ -1,0 +1,175 @@
+{
+  "unit": {
+    "_id": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+    "_mgt": {},
+    "DescriptionLevel": "RecordGrp",
+    "Title": "testPlan6",
+    "Description": "/home/pipav/Bureau/testPlan/testPlan2/testPlan6",
+    "StartDate": "2017-03-27T08:19:17",
+    "EndDate": "2017-03-27T08:19:17",
+    "_storage": {
+      "_nbc": 2,
+      "offerIds": [
+        "offer-fs-1.service.int.consul",
+        "offer-fs-2.service.int.consul"
+      ],
+      "strategyId": "default"
+    },
+    "_sps": [
+      "SHOULD_BE_REMOVED_AFTER_RECONTRUCT","Service_producteur"
+    ],
+    "_sp": "Service_producteur",
+    "_ops": [
+      "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq"
+    ],
+    "_opi": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+    "_unitType": "INGEST",
+    "_up": [
+      "aeaqaaaaaahmtusqabktwaldc34sm6aaaaba"
+    ],
+    "_us": [
+      "aeaqaaaaaahmtusqabktwaldc34sm6aaaaba",
+      "aeaqaaaaaahmtusqabktwaldc34sm4yaaabq"
+    ],
+    "_graph": [
+      "aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba",
+      "aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq"
+    ],
+    "_uds": {
+      "aeaqaaaaaahmtusqabktwaldc34sm6aaaaba": 1,
+      "aeaqaaaaaahmtusqabktwaldc34sm4yaaabq": 2
+    },
+    "_us_sp": {
+      "Service_producteur": [
+        "aeaqaaaaaahmtusqabktwaldc34sm6aaaaba",
+        "aeaqaaaaaahmtusqabktwaldc34sm4yaaabq"
+      ],
+      "SHOULD_BE_REMOVED_AFTER_RECONTRUCT": [
+        "aeaqaaaaaahmtusqabktwaldc34sm6aaaada"
+      ]
+    },
+    "_min": 1,
+    "_max": 3,
+    "_glpd": "2018-04-30T14:33:47.293",
+    "_v": 0,
+    "_tenant": 0
+  },
+  "lfc": {
+    "_id": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+    "evId": "aedqaaaaachmtusqabktwaldc34snoyaaaaq",
+    "evParentId": null,
+    "evType": "LFC.LFC_CREATION",
+    "evDateTime": "2018-04-30T14:33:37.211",
+    "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+    "evTypeProc": "INGEST",
+    "outcome": "OK",
+    "outDetail": "LFC.LFC_CREATION.OK",
+    "outMessg": "Succès de l'alimentation du journal du cycle de vie",
+    "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1053413968,\"SiteId\":1,\"GlobalPlatformId\":248107600}",
+    "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+    "evDetData": null,
+    "events": [
+      {
+        "evId": "aedqaaaaachmtusqabktwaldc34snoyaaaba",
+        "evParentId": null,
+        "evType": "LFC.CHECK_MANIFEST",
+        "evDateTime": "2018-04-30T14:33:37.211",
+        "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.CHECK_MANIFEST.OK",
+        "outMessg": "Succès de la vérification de la cohérence du bordereau de transfert",
+        "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1053413968,\"SiteId\":1,\"GlobalPlatformId\":248107600}",
+        "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+        "evDetData": "{ }"
+      },
+      {
+        "evId": "aedqaaaaachmtusqabktwaldc34snoyaaabq",
+        "evParentId": "aedqaaaaachmtusqabktwaldc34snoyaaaba",
+        "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
+        "evDateTime": "2018-04-30T14:33:37.211",
+        "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+        "outMessg": "Succès de la création du journal du cycle de vie",
+        "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1053413968,\"SiteId\":1,\"GlobalPlatformId\":248107600}",
+        "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+        "evDetData": null
+      },
+      {
+        "evId": "aedqaaaaachmtusqabktwaldc34totyaaaaq",
+        "evParentId": null,
+        "evType": "LFC.CHECK_UNIT_SCHEMA",
+        "evDateTime": "2018-04-30T14:33:41.477",
+        "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.CHECK_UNIT_SCHEMA.OK",
+        "outMessg": "Succès de la vérification globale de l'unité archivistique",
+        "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1053413968,\"SiteId\":1,\"GlobalPlatformId\":248107600}",
+        "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+        "evDetData": "{}"
+      },
+      {
+        "evId": "aedqaaaaachmtusqabktwaldc34to5yaaaaq",
+        "evParentId": null,
+        "evType": "LFC.CHECK_ARCHIVE_UNIT_PROFILE",
+        "evDateTime": "2018-04-30T14:33:41.495",
+        "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.CHECK_ARCHIVE_UNIT_PROFILE.OK",
+        "outMessg": "Succès de la vérification de la conformité aux documents type",
+        "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1053413968,\"SiteId\":1,\"GlobalPlatformId\":248107600}",
+        "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+        "evDetData": "{}"
+      },
+      {
+        "evId": "aedqaaaaachmtusqabktwaldc34tpbiaaaaq",
+        "evParentId": null,
+        "evType": "LFC.CHECK_CLASSIFICATION_LEVEL",
+        "evDateTime": "2018-04-30T14:33:41.509",
+        "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.CHECK_CLASSIFICATION_LEVEL.OK",
+        "outMessg": "Succès de la vérification du niveau de classification",
+        "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1053413968,\"SiteId\":1,\"GlobalPlatformId\":248107600}",
+        "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+        "evDetData": "{}"
+      },
+      {
+        "evId": "aedqaaaaachmtusqabktwaldc34tpfqaaaaq",
+        "evParentId": null,
+        "evType": "LFC.UNITS_RULES_COMPUTE",
+        "evDateTime": "2018-04-30T14:33:41.526",
+        "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.UNITS_RULES_COMPUTE.OK",
+        "outMessg": "Succès de l'application des règles de gestion et du calcul des dates d'échéance",
+        "agId": "{\"Name\":\"vitam-env-int-worker-02.vitam-env\",\"Role\":\"worker\",\"ServerId\":1053413968,\"SiteId\":1,\"GlobalPlatformId\":248107600}",
+        "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+        "evDetData": "{}"
+      },
+      {
+        "evId": "aedqaaaaachlm6sdabkeoaldc34u4dyaaaaq",
+        "evParentId": null,
+        "evType": "LFC.UNIT_METADATA_INDEXATION",
+        "evDateTime": "2018-04-30T14:33:47.361",
+        "evIdProc": "aeeaaaaaachnapmaabtqmaldc34rxxaaaaaq",
+        "evTypeProc": "INGEST",
+        "outcome": "OK",
+        "outDetail": "LFC.UNIT_METADATA_INDEXATION.OK",
+        "outMessg": "Succès de l'indexation des métadonnées de l'unité archivistique",
+        "agId": "{\"Name\":\"vitam-env-int-worker-01.vitam-env\",\"Role\":\"worker\",\"ServerId\":1052146243,\"SiteId\":1,\"GlobalPlatformId\":246839875}",
+        "obId": "aeaqaaaaaahmtusqabktwaldc34sm6aaaada",
+        "evDetData": "{}"
+      }
+    ],
+    "_tenant": 0,
+    "_v": 4,
+    "_lastPersistedDate": "2018-04-30T14:33:51.300"
+  }
+}

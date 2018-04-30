@@ -13,6 +13,7 @@ db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_uds" : 1 } )
 db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
 db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_og" : 1 , "_us" : 1 } )
 db.Unit.createIndex( { "_ops" : 1 } )
+db.Unit.createIndex( { "_glpd" : 1 } )
 
 db.ObjectGroup.createIndex( {             "_tenant" : 1 } )
 db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 } )
@@ -20,4 +21,5 @@ db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "_us" : 1 } )
 db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "_up" : 1 } )
 db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
 db.ObjectGroup.createIndex( { "_ops" : 1 } )
+db.ObjectGroup.createIndex( { "_glpd" : 1 } )
 

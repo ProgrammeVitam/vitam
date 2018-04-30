@@ -12,6 +12,7 @@ import java.util.Map;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -27,6 +28,7 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
+import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -97,10 +99,17 @@ public class StoreGraphServiceTest {
             .willReturn(gotRepository);
 
         given(findIterableUnit.projection(anyObject())).willReturn(findIterableUnit);
+        given(findIterableUnit.sort(anyObject())).willReturn(findIterableUnit);
+        given(findIterableUnit.limit(anyInt())).willReturn(findIterableUnit);
         given(findIterableUnit.iterator()).willReturn(mongoCursorUnit);
         given(findIterableGot.projection(anyObject())).willReturn(findIterableGot);
+        given(findIterableGot.sort(anyObject())).willReturn(findIterableGot);
+        given(findIterableGot.limit(anyInt())).willReturn(findIterableGot);
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
+        when(mongoCursorUnit.next()).thenAnswer(
+            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()) + "\"}")
+        );
     }
 
     @Test

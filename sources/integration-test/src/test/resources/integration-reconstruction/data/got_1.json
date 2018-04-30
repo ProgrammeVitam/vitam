@@ -1,6 +1,6 @@
 {
   "got" : {
-    "_id" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+    "_id" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
     "_tenant" : 0,
     "_profil" : "",
     "FileInfo" : {
@@ -12,7 +12,7 @@
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaahdwvstab7eialbsrrj4viaaaca",
-        "DataObjectGroupId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+        "DataObjectGroupId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
         "DataObjectVersion" : "BinaryMaster_1",
         "FormatIdentification" : {
           "FormatLitteral" : "7Zip format",
@@ -38,16 +38,17 @@
     "_nbc" : 1,
     "_ops" : [ "aeaqaaaaaagbcaacaang6ak4ts6zzzzzzzzz" ],
     "_sp" : "ABCDEFG",
-    "_sps" : [ "ABCDEFG" ],
+    "_sps" : [ "ABCDEFG" , "SHOULD_BE_REMOVED"],
     "_storage" : {
       "_nbc" : 0,
       "offerIds" : [ ],
       "strategyId" : "default"
     },
-    "_v" : 0
+    "_v" : 0,
+    "_glpd" : "2018-04-20T16:46:31.438"
   },
   "lfc" : {
-    "_id" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+    "_id" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
     "evId" : "aedqaaaaachdwvstab7eialbsrrj44qaaaaq",
     "evParentId" : null,
     "evType" : "LFC.LFC_CREATION",
@@ -58,7 +59,7 @@
     "outDetail" : "LFC.LFC_CREATION.OK",
     "outMessg" : "Succ\u00E8s de l'alimentation du journal du cycle de vie",
     "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-    "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+    "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
     "evDetData" : null,
     "events" : [ {
       "evId" : "aedqaaaaachdwvstab7eialbsrrj44qaaaba",
@@ -71,7 +72,7 @@
       "outDetail" : "LFC.CHECK_MANIFEST.OK",
       "outMessg" : "Succ\u00E8s de la v\u00E9rification de la coh\u00E9rence du bordereau de transfert",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
       "evDetData" : null
     }, {
       "evId" : "aedqaaaaachdwvstab7eialbsrrj44qaaabq",
@@ -84,7 +85,7 @@
       "outDetail" : "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
       "outMessg" : "Succ\u00E8s de la cr\u00E9ation du journal du cycle de vie",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
       "evDetData" : null
     }, {
       "evId" : "aedqaaaaachdwvstab7eialbsrrj52iaaaaq",
@@ -97,7 +98,7 @@
       "outDetail" : "LFC.CHECK_CONSISTENCY.OK",
       "outMessg" : "Succ\u00E8s de la v\u00E9rification de la coh\u00E9rence entre objets, groupes d'objets et unit\u00E9s archivistiques",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
       "evDetData" : null
     }, {
       "evId" : "aedqaaaaachdwvstab7eialbsrrlcziaaaaq",
@@ -110,7 +111,7 @@
       "outDetail" : "LFC.CHECK_DIGEST.OK",
       "outMessg" : "Succ\u00E8s de la v\u00E9rification de l'int\u00E9grit\u00E9 des objets vers\u00E9s",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
       "evDetData" : "{}"
     }, {
       "evId" : "aedqaaaaachdwvstab7eialbsrrlc4qaaaaq",
@@ -136,7 +137,7 @@
       "outDetail" : "LFC.OG_OBJECTS_FORMAT_CHECK.WARNING",
       "outMessg" : "Avertissement lors de la v\u00E9rification des formats : des informations relatives aux formats ont \u00E9t\u00E9 compl\u00E9t\u00E9es par la solution logicielle Vitam",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
       "evDetData" : "{\"diff\":{\"-\":{\"FormatLitteral\":\"7Zip format\",\"FormatId\":\"fmt/484\"},\"+\":{\"FormatLitteral\":\"7Zip format\",\"FormatId\":\"fmt/484\",\"MimeType\":\"application/epub+zip\"}}}"
     }, {
       "evId" : "aedqaaaaachdwvstab7eialbsrrldkyaaaaq",
@@ -162,7 +163,7 @@
       "outDetail" : "LFC.OBJ_STORAGE.OK",
       "outMessg" : "Succ\u00E8s de l'\u00E9criture des objets sur les offres de stockage",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
       "evDetData" : "{}"
     }, {
       "evId" : "aedqaaaaachdwvstab7eialbsrrowoiaaaaq",
@@ -188,7 +189,7 @@
       "outDetail" : "LFC.OG_METADATA_INDEXATION.OK",
       "outMessg" : "Succ\u00E8s de l'indexation des m\u00E9tadonn\u00E9es du groupe d'objets",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":1983600211,\"SiteId\":1,\"GlobalPlatformId\":238769747}",
-      "obId" : "aebaaaaaaahdwvstab7eialbsrrj4viaaacq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq",
       "evDetData" : "{}"
     } ],
     "_tenant" : 0,

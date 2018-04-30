@@ -99,6 +99,7 @@ public class StoreGraphService {
     public static final String ZIP_PREFIX_NAME = "store_graph_";
     public static final String $_GTE = "$gte";
     public static final String $_LT = "$lt";
+    public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";
 
     private VitamRepositoryProvider vitamRepositoryProvider;
     private RestoreBackupService restoreBackupService;
@@ -197,6 +198,8 @@ public class StoreGraphService {
         Integer totalTreatedDocuments = 0;
 
         if (tryStore) {
+            LOGGER.info("Start Graph store GOT and UNIT ...");
+
             try {
                 final VitamThreadPoolExecutor executor = VitamThreadPoolExecutor.getDefaultExecutor();
 
@@ -228,10 +231,10 @@ public class StoreGraphService {
             } finally {
                 alreadyRunningLock.set(false);
             }
-            LOGGER.warn("Graph store GOT and UNIT total : " + totalTreatedDocuments + " : (" + map.toString() + ")");
+            LOGGER.info("Graph store GOT and UNIT total : " + totalTreatedDocuments + " : (" + map.toString() + ")");
 
         } else {
-            LOGGER.warn("Graph store is already running ...");
+            LOGGER.info("Graph store is already running ...");
         }
         return map;
 
@@ -253,7 +256,7 @@ public class StoreGraphService {
         final String containerName = storeOperation.getId();
 
         if (alreadyRunningLock.get()) {
-            LOGGER.warn("Start graph shipping ...");
+            LOGGER.info("Start graph store "+metadataCollections.getName()+" ...");
 
             LocalDateTime lastStoreDate;
             try {
@@ -277,7 +280,6 @@ public class StoreGraphService {
             // Date in MongoDB
             final String startDate = LocalDateUtil.getFormattedDateForMongo(lastStoreDate);
             final String endDate = LocalDateUtil.getFormattedDateForMongo(currentStoreDate);
-
             // Zip file name in the storage
             final String graph_store_name = lastStoreDate.format(formatter) + "_" + currentStoreDate.format(formatter);
 
@@ -294,7 +296,7 @@ public class StoreGraphService {
                 final Bson projection = getProjection(metadataCollections);
                 final MongoCursor<Document> cursor = vitamRepositoryProvider
                     .getVitamMongoRepository(metadataCollections)
-                    .findDocuments(query, VitamConfiguration.getStoreGraphBatchSize())
+                    .findDocuments(query, VitamConfiguration.getBatchSize())
                     .projection(projection)
                     .iterator();
 
@@ -306,7 +308,7 @@ public class StoreGraphService {
                 int totalTreatedDocuments = 0;
                 while (cursor.hasNext()) {
                     documents.add(cursor.next());
-                    if (!cursor.hasNext() || documents.size() >= VitamConfiguration.getStoreGraphBatchSize()) {
+                    if (!cursor.hasNext() || documents.size() >= VitamConfiguration.getBatchSize()) {
                         totalTreatedDocuments = totalTreatedDocuments + documents.size();
                         storeInWorkspace(containerName, graphFolder, documents);
                         is_graph_updated = true;
@@ -316,11 +318,12 @@ public class StoreGraphService {
 
                 // Save in the storage the zipped file
                 if (is_graph_updated) {
+
                     zipAndSaveInOffer(dataCategory, containerName, graphFolder, graphZipName, graph_store_name);
-                    LOGGER.warn("End save storeped graph of " + metadataCollections.name() + " in the storage");
+                    LOGGER.info("End save graph of " + metadataCollections.name() + " in the storage");
                     return totalTreatedDocuments;
                 } else {
-                    LOGGER.warn("End without any storeped graph of " + metadataCollections.name() +
+                    LOGGER.info("End without any save graph of " + metadataCollections.name() +
                         " . No document found with updated graph");
                     return 0;
                 }
@@ -338,7 +341,7 @@ public class StoreGraphService {
                 }
             }
         } else {
-            LOGGER.warn("Graph store " + metadataCollections.name() + "is already running ...");
+            LOGGER.info("Graph store " + metadataCollections.name() + "is already running ...");
             return 0;
         }
     }
@@ -469,7 +472,7 @@ public class StoreGraphService {
                 try {
                     inputStream.close();
                 } catch (IOException e) {
-                    LOGGER.warn("InputStream close failed :", e);
+                    LOGGER.error("InputStream close failed :", e);
                 }
             }
         }

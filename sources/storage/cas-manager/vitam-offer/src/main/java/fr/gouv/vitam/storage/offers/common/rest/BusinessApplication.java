@@ -77,7 +77,6 @@ public class BusinessApplication extends Application {
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
             MongoDatabase database = mongoClient.getDatabase(configuration.getDbName());
             OfferSequenceDatabaseService offerSequenceDatabaseService = new OfferSequenceDatabaseService(database);
-            offerSequenceDatabaseService.initSequences();
 
             OfferLogDatabaseService offerDatabaseService =
                 new OfferLogDatabaseService(offerSequenceDatabaseService, database);

@@ -53,7 +53,7 @@ public class OfferSequenceDatabaseService {
 
     /**
      * Constructor
-     * 
+     *
      * @param mongoDatabase mongoDatabase
      */
     public OfferSequenceDatabaseService(MongoDatabase mongoDatabase) {
@@ -61,18 +61,8 @@ public class OfferSequenceDatabaseService {
     }
 
     /**
-     * Init offerSequence collection in database if not exists
-     */
-    public void initSequences() {
-        if (mongoCollection.count(new BasicDBObject(OfferSequence.ID_FIELD, BACKUP_LOG_SEQUENCE_ID)) == 0) {
-            OfferSequence offerSequence = new OfferSequence(BACKUP_LOG_SEQUENCE_ID);
-            mongoCollection.insertOne(offerSequence.toDocument());
-        }
-    }
-
-    /**
      * Increments the sequence and retrieve the next sequence value
-     * 
+     *
      * @param sequenceId sequence identifier
      * @return next sequence value
      * @throws ContentAddressableStorageDatabaseException database error
@@ -80,10 +70,11 @@ public class OfferSequenceDatabaseService {
     public long getNextSequence(String sequenceId) throws ContentAddressableStorageDatabaseException {
         try {
             final BasicDBObject incQuery = new BasicDBObject();
-            incQuery.append("$inc", new BasicDBObject(OfferSequence.COUNTER_FIELD, 1));
+            incQuery.append("$inc", new BasicDBObject(OfferSequence.COUNTER_FIELD, 1l));
             Bson query = eq(OfferSequence.ID_FIELD, sequenceId);
             FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
             findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
+            findOneAndUpdateOptions.upsert(true);
 
             Document sequence = mongoCollection.findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
             if (sequence != null) {

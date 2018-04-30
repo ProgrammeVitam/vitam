@@ -2,20 +2,28 @@ package fr.gouv.vitam.reconstruction.integration.test;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
-import static fr.gouv.vitam.common.database.offset.OffsetRepository.COLLECTION_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -24,6 +32,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -46,8 +55,13 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
+import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
+import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
+import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
+import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -60,10 +74,10 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -71,6 +85,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.util.Files;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -98,20 +113,36 @@ public class ReconstructionMetadataIT {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionMetadataIT.class);
 
-    private static final String OP_GUID = "aeaqaaaaaagbcaacaang6ak4ts6zzzzzzzzz";
-    private static final String UNIT_0_JSON = "integration-reconstruction/data/unit_0.json";
-    private static final String UNIT_0_GUID = "aeaqaaaaaagf2rjkaa4kkalbspglplyaaaca";
-    private static final String UNIT_1_JSON = "integration-reconstruction/data/unit_1.json";
-    private static final String UNIT_1_GUID = "aeaqaaaaaagf2rjkaa4kkalbsqboewaaaacq";
-    private static final String UNIT_2_JSON = "integration-reconstruction/data/unit_2.json";
-    private static final String UNIT_2_GUID = "aeaqaaaaaahdwvstab7eialbsrah7pyaaabq";
+    private static final String unit_with_graph_0 = "integration-reconstruction/data/unit_with_graph_0.json";
+    private static final String unit_with_graph_1 = "integration-reconstruction/data/unit_with_graph_1.json";
+    private static final String unit_with_graph_2 = "integration-reconstruction/data/unit_with_graph_2.json";
+    private static final String unit_with_graph_3 = "integration-reconstruction/data/unit_with_graph_3.json";
 
-    private static final String GOT_0_JSON = "integration-reconstruction/data/got_0.json";
-    private static final String GOT_0_GUID = "aebaaaaaaahdwvstab7eialbsrq4wgyaaaaq";
-    private static final String GOT_1_JSON = "integration-reconstruction/data/got_1.json";
-    private static final String GOT_1_GUID = "aebaaaaaaahdwvstab7eialbsrrj4viaaacq";
-    private static final String GOT_2_JSON = "integration-reconstruction/data/got_2.json";
-    private static final String GOT_2_GUID = "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq";
+
+    private static final String unit_with_graph_0_guid = "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq";
+    private static final String unit_with_graph_1_guid = "aeaqaaaaaahmtusqabktwaldc34sm6aaaada";
+    private static final String unit_with_graph_2_guid = "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca";
+    private static final String unit_with_graph_3_guid = "aeaqaaaaaahlm6sdabkeoaldc3hq6laaaaaq";
+    private static final String unit_with_graph_4_guid = "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq";
+
+
+    private static final String got_with_graph_0 = "integration-reconstruction/data/got_0.json";
+    private static final String got_with_graph_1 = "integration-reconstruction/data/got_1.json";
+    private static final String got_with_graph_2 = "integration-reconstruction/data/got_2.json";
+
+
+    private static final String got_with_graph_0_guid = "aebaaaaaaahlm6sdabzmoalc4pzqrpqaaaaq";
+    private static final String got_with_graph_1_guid = "aebaaaaaaahlm6sdabzmoalc4pzqrtqaaaaq";
+    private static final String got_with_graph_2_guid = "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq";
+
+
+    private static final String unit_graph_zip_file_name = "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
+    private static final String unit_graph_zip_file =
+        "integration-reconstruction/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
+
+    private static final String got_graph_zip_file_name = "1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
+    private static final String got_graph_zip_file =
+        "integration-reconstruction/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
 
     private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
     private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
@@ -131,6 +162,7 @@ public class ReconstructionMetadataIT {
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
+    public static final String JSON_EXTENTION = ".json";
 
     private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
@@ -146,7 +178,8 @@ public class ReconstructionMetadataIT {
     private static OffsetRepository offsetRepository;
 
     private MetadataReconstructionService reconstructionService;
-
+    private VitamRepositoryProvider vitamRepositoryProvider;
+    private StoreGraphService storeGraphService;
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -154,7 +187,8 @@ public class ReconstructionMetadataIT {
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
             MetadataCollections.UNIT.getName(), MetadataCollections.OBJECTGROUP.getName(),
-            OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION, COLLECTION_NAME);
+            OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION, OffsetRepository.COLLECTION_NAME,
+            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
@@ -313,13 +347,39 @@ public class ReconstructionMetadataIT {
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
-            // .readTimeout(600, TimeUnit.SECONDS)
-            // .connectTimeout(600, TimeUnit.SECONDS)
+            .readTimeout(600, TimeUnit.SECONDS)
+            .connectTimeout(600, TimeUnit.SECONDS)
             .build();
         Retrofit retrofit =
             new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
         reconstructionService = retrofit.create(MetadataReconstructionService.class);
+
+
+        Map<MetadataCollections, VitamMongoRepository> mongoRepository = new HashMap<>();
+        mongoRepository.put(MetadataCollections.UNIT,
+            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.UNIT.name())));
+        mongoRepository.put(MetadataCollections.OBJECTGROUP,
+            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.OBJECTGROUP.name())));
+
+        Map<MetadataCollections, VitamElasticsearchRepository> esRepository = new HashMap<>();
+        esRepository.put(MetadataCollections.UNIT,
+            new VitamElasticsearchRepository(elasticsearchRule.getClient(),
+                MetadataCollections.UNIT.name().toLowerCase(), true));
+        esRepository.put(MetadataCollections.OBJECTGROUP,
+            new VitamElasticsearchRepository(elasticsearchRule.getClient(),
+                MetadataCollections.OBJECTGROUP.name().toLowerCase(), true));
+
+
+        vitamRepositoryProvider = VitamRepositoryFactory.getInstance(mongoRepository, esRepository);
+        RestoreBackupService restoreBackupService = new RestoreBackupService();
+        storeGraphService = new StoreGraphService(
+            VitamRepositoryFactory.getInstance(),
+            restoreBackupService,
+            WorkspaceClientFactory.getInstance(),
+            StorageClientFactory.getInstance());
+
+        VitamConfiguration.setAdminTenant(1);
     }
 
     @After
@@ -333,20 +393,22 @@ public class ReconstructionMetadataIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testReconstructionMetadatas() throws Exception {
+    public void testReconstructionOfMetadataThenOK() throws Exception {
+        // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         LogbookLifeCyclesClient lifecycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
 
         // 0. prepare data
-        workspaceClient.createContainer(OP_GUID);
-        createInWorkspace(UNIT_0_GUID, UNIT_0_JSON, DataCategory.UNIT);
-        createInWorkspace(UNIT_1_GUID, UNIT_1_JSON, DataCategory.UNIT);
-        createInWorkspace(UNIT_2_GUID, UNIT_2_JSON, DataCategory.UNIT);
+        String container = GUIDFactory.newGUID().getId();
+        workspaceClient.createContainer(container);
+        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
 
-        createInWorkspace(GOT_0_GUID, GOT_0_JSON, DataCategory.OBJECTGROUP);
-        createInWorkspace(GOT_1_GUID, GOT_1_JSON, DataCategory.OBJECTGROUP);
-        createInWorkspace(GOT_2_GUID, GOT_2_JSON, DataCategory.OBJECTGROUP);
+        createInWorkspace(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
+        createInWorkspace(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
+        createInWorkspace(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
 
         RequestResponse<OfferLog> offerLogResponse1 =
             storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
@@ -355,20 +417,16 @@ public class ReconstructionMetadataIT {
         assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().size()).isEqualTo(3);
 
         List<ReconstructionRequestItem> reconstructionItems;
-        ReconstructionRequestItem reconstructionItem1;
         ReconstructionRequestItem reconstructionItem2;
         Response<List<ReconstructionResponseItem>> response;
         RequestResponse<JsonNode> metadataResponse;
         JsonNode lifecycleResponse;
 
-        // 1. reconstruct unit
+        // 1. Reconstruct unit
         reconstructionItems = new ArrayList<>();
-        reconstructionItem1 = new ReconstructionRequestItem();
+        ReconstructionRequestItem reconstructionItem1 = new ReconstructionRequestItem();
         reconstructionItem1.setCollection(DataCategory.UNIT.name());
         reconstructionItem1.setLimit(2);
-
-        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0);
-
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
@@ -378,40 +436,40 @@ public class ReconstructionMetadataIT {
         assertThat(response.body().get(0).getTenant()).isEqualTo(0);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        metadataResponse = metadataClient.getUnitByIdRaw(UNIT_0_GUID);
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_0_guid);
         assertThat(metadataResponse.isOk());
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(UNIT_0_GUID);
+            .isEqualTo(unit_with_graph_0_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectUnitLifeCycleById(UNIT_0_GUID,
-                getSelectQueryProjectionSimple(UNIT_0_GUID).getFinalSelect());
+            lifecycleClient.selectUnitLifeCycleById(unit_with_graph_0_guid,
+                getSelectQueryProjectionSimple(unit_with_graph_0_guid).getFinalSelect());
         assertThat(lifecycleResponse).isNotNull();
         assertThat(lifecycleResponse.get("$results")).isNotNull();
         assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(UNIT_0_GUID);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(4);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(unit_with_graph_0_guid);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
 
-        metadataResponse = metadataClient.getUnitByIdRaw(UNIT_1_GUID);
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
         assertThat(metadataResponse.isOk());
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(UNIT_1_GUID);
+            .isEqualTo(unit_with_graph_1_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectUnitLifeCycleById(UNIT_1_GUID,
-                getSelectQueryProjectionSimple(UNIT_1_GUID).getFinalSelect());
+            lifecycleClient.selectUnitLifeCycleById(unit_with_graph_1_guid,
+                getSelectQueryProjectionSimple(unit_with_graph_1_guid).getFinalSelect());
         assertThat(lifecycleResponse).isNotNull();
         assertThat(lifecycleResponse.get("$results")).isNotNull();
         assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(UNIT_1_GUID);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(unit_with_graph_1_guid);
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(4);
 
 
-        // 2. reconstruct object group
+        // 2. Reconstruct object group
         reconstructionItems = new ArrayList<>();
         reconstructionItem2 = new ReconstructionRequestItem();
         reconstructionItem2.setCollection(DataCategory.OBJECTGROUP.name());
@@ -419,51 +477,50 @@ public class ReconstructionMetadataIT {
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
-        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 0);
-
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName()))
-            .isEqualTo(5L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(5L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(GOT_0_GUID);
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
         assertThat(metadataResponse.isOk());
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(GOT_0_GUID);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
+        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_id").asText()).isEqualTo(got_with_graph_0_guid);
+        assertThat(first.get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectObjectGroupLifeCycleById(GOT_0_GUID,
-                getSelectQueryProjectionSimple(GOT_0_GUID).getFinalSelect());
+            lifecycleClient.selectObjectGroupLifeCycleById(got_with_graph_0_guid,
+                getSelectQueryProjectionSimple(got_with_graph_0_guid).getFinalSelect());
         assertThat(lifecycleResponse).isNotNull();
         assertThat(lifecycleResponse.get("$results")).isNotNull();
         assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(GOT_0_GUID);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(got_with_graph_0_guid);
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
 
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(GOT_1_GUID);
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
         assertThat(metadataResponse.isOk());
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(GOT_1_GUID);
+            .isEqualTo(got_with_graph_1_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectObjectGroupLifeCycleById(GOT_1_GUID,
-                getSelectQueryProjectionSimple(GOT_1_GUID).getFinalSelect());
+            lifecycleClient.selectObjectGroupLifeCycleById(got_with_graph_1_guid,
+                getSelectQueryProjectionSimple(got_with_graph_1_guid).getFinalSelect());
         assertThat(lifecycleResponse).isNotNull();
         assertThat(lifecycleResponse.get("$results")).isNotNull();
         assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(GOT_1_GUID);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(got_with_graph_1_guid);
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
 
-        // 3. relaunch reconstruct for unit and got
-        reconstructionItems = new ArrayList<>();
+        // 3. Rest offset and relaunch reconstruct for unit and got
         offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0L);
         offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 0L);
+
+
+        reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
@@ -474,62 +531,53 @@ public class ReconstructionMetadataIT {
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(5L);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
-        // 4. reconstruct next for unit and got
+        // 4. Reconstruct next for unit and got
         reconstructionItems = new ArrayList<>();
-        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 2L);
-
         reconstructionItems.add(reconstructionItem1);
-        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 5L);
-
         reconstructionItems.add(reconstructionItem2);
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName()))
-            .isEqualTo(3L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(6L);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
-        metadataResponse = metadataClient.getUnitByIdRaw(UNIT_2_GUID);
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
         assertThat(metadataResponse.isOk());
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(UNIT_2_GUID);
+            .isEqualTo(unit_with_graph_2_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectUnitLifeCycleById(UNIT_2_GUID,
-                getSelectQueryProjectionSimple(UNIT_2_GUID).getFinalSelect());
+            lifecycleClient.selectUnitLifeCycleById(unit_with_graph_2_guid,
+                getSelectQueryProjectionSimple(unit_with_graph_2_guid).getFinalSelect());
         assertThat(lifecycleResponse).isNotNull();
         assertThat(lifecycleResponse.get("$results")).isNotNull();
         assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(UNIT_2_GUID);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(4);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(unit_with_graph_2_guid);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
 
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(GOT_2_GUID);
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_2_guid);
         assertThat(metadataResponse.isOk());
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(GOT_2_GUID);
+            .isEqualTo(got_with_graph_2_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectObjectGroupLifeCycleById(GOT_2_GUID,
-                getSelectQueryProjectionSimple(GOT_2_GUID).getFinalSelect());
+            lifecycleClient.selectObjectGroupLifeCycleById(got_with_graph_2_guid,
+                getSelectQueryProjectionSimple(got_with_graph_2_guid).getFinalSelect());
         assertThat(lifecycleResponse).isNotNull();
         assertThat(lifecycleResponse.get("$results")).isNotNull();
         assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(GOT_2_GUID);
+        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(got_with_graph_2_guid);
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
 
-        // 5. reconstruct nothing for unit and got
+        // 5. Reconstruct nothing for unit and got
         reconstructionItems = new ArrayList<>();
-        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 3L);
-
         reconstructionItems.add(reconstructionItem1);
-        offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 6L);
-
         reconstructionItems.add(reconstructionItem2);
 
         response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
@@ -537,10 +585,10 @@ public class ReconstructionMetadataIT {
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName()));
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(6L);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
-        // 6. reconstruct on unused tenants
+        // 6. Reconstruct on unused tenants
         reconstructionItems = new ArrayList<>();
         offsetRepository.createOrUpdateOffset(TENANT_1, MetadataCollections.UNIT.getName(), 0L);
 
@@ -558,14 +606,13 @@ public class ReconstructionMetadataIT {
         assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(0L);
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
-        // 6. reconstruct on unit and another invalid collection
-        reconstructionItems = new ArrayList<>();
+        // 6. Reset Unit offset and reconstruct on unit and another invalid collection
         offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0L);
+        reconstructionItems = new ArrayList<>();
 
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
         reconstructionItem2.setCollection(DataCategory.MANIFEST.name());
-        offsetRepository.createOrUpdateOffset(TENANT_1, MetadataCollections.UNIT.getName(), 0L);
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
@@ -579,26 +626,599 @@ public class ReconstructionMetadataIT {
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
     }
 
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testStoreUnitGraphThenStoreThenOK() throws DatabaseException, StoreGraphException {
+        VitamConfiguration.setStoreGraphElementsPerFile(5);
+
+        LocalDateTime dateTime =
+            LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
+
+        String dateInMongo = LocalDateUtil.getFormattedDateForMongo(dateTime);
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            documents.add(Document.parse("{\"_id\": " + i + ", \"_glpd\": \"" + dateInMongo + "\" }"));
+        }
+
+        vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT).save(documents);
+
+        MongoCollection<Document> collection = mongoRule.getMongoCollection(MetadataCollections.UNIT.name());
+        long count = collection.count();
+        assertThat(count).isEqualTo(10);
+
+        Map<MetadataCollections, Integer> ok = storeGraphService.tryStoreGraph();
+        assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(10);
+
+
+        dateTime = LocalDateTime.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
+        dateInMongo = LocalDateUtil.getFormattedDateForMongo(dateTime);
+        documents = new ArrayList<>();
+        for (int i = 10; i < 15; i++) {
+            documents.add(Document.parse("{\"_id\": " + i + ", \"_glpd\": \"" + dateInMongo + "\" }"));
+        }
+
+        vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT).save(documents);
+
+        collection = mongoRule.getMongoCollection(MetadataCollections.UNIT.name());
+        count = collection.count();
+        assertThat(count).isEqualTo(15);
+
+        ok = storeGraphService.tryStoreGraph();
+        assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(5);
+
+        ok = storeGraphService.tryStoreGraph();
+        assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(0);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReconstruction_unit_then_unitgraph_in_two_phase_query_OK() throws Exception {
+        // Clean offerLog
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+
+        // 0. prepare data
+        String container = GUIDFactory.newGUID().getId();
+        workspaceClient.createContainer(container);
+        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
+
+
+        RequestResponse<OfferLog> offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
+        // 1. reconstruct unit
+        List<ReconstructionRequestItem> reconstructionItems = new ArrayList<>();
+        ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.UNIT.name());
+        reconstructionItem.setLimit(4);
+        reconstructionItem.setTenant(TENANT_0);
+        reconstructionItems.add(reconstructionItem);
+
+        Response<List<ReconstructionResponseItem>> response =
+            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        assertThat(response.code()).isEqualTo(200);
+        assertThat(response.body().size()).isEqualTo(1);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(4L);
+        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
+        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+
+        RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
+            .isEqualTo(unit_with_graph_1_guid);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_sps").toString())
+            .contains("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+
+        ///////////////////////////////////////////////////////////////
+        //        Reconstruction Graph
+        ///////////////////////////////////////////////////////////////
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        createInWorkspace(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
+
+
+        offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
+
+
+        // 2. reconstruct object group
+        reconstructionItems = new ArrayList<>();
+        reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.UNIT_GRAPH.name());
+        reconstructionItem.setLimit(2);
+        reconstructionItem.setTenant(TENANT_0);
+        reconstructionItems.add(reconstructionItem);
+
+        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        assertThat(response.code()).isEqualTo(200);
+        assertThat(response.body().size()).isEqualTo(1);
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
+
+
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
+        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
+
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
+        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
+        assertThat(first.get("DescriptionLevel")).isNull();
+        assertThat(first.get("_storage")).isNull();
+        assertThat(first.get("_tenant")).isNull();
+        assertThat(first.get("_v")).isNull();
+
+
+        assertThat(offsetRepository.findOffsetBy(1, DataCategory.UNIT_GRAPH.name()))
+            .isEqualTo(5L);
+        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReconstruction_unit_then_got_then_unitgraph_then_gotgraoh_in_one_phase_query_OK() throws Exception {
+        // Clean offerLog
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+
+        // 0. prepare data
+        String container = GUIDFactory.newGUID().getId();
+        workspaceClient.createContainer(container);
+        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
+
+        createInWorkspace(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
+        createInWorkspace(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
+        createInWorkspace(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
+
+
+        RequestResponse<OfferLog> offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
+
+        offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
+
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        createInWorkspace(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
+        createInWorkspace(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
+
+        offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
+
+        offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
+
+
+        // Reconstruct ALL (Unit, ObjectGroup, Unit_Graph, ObjectGroup_Graph)
+        List<ReconstructionRequestItem> reconstructionItems = new ArrayList<>();
+        ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.UNIT.name());
+        reconstructionItem.setLimit(4);
+        reconstructionItem.setTenant(TENANT_0);
+        reconstructionItems.add(reconstructionItem);
+
+        reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.OBJECTGROUP.name());
+        reconstructionItem.setLimit(3);
+        reconstructionItem.setTenant(TENANT_0);
+        reconstructionItems.add(reconstructionItem);
+
+        reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.UNIT_GRAPH.name());
+        reconstructionItem.setLimit(3);
+        reconstructionItem.setTenant(TENANT_1);
+        reconstructionItems.add(reconstructionItem);
+
+        reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.OBJECTGROUP_GRAPH.name());
+        reconstructionItem.setLimit(3);
+        reconstructionItem.setTenant(TENANT_1);
+        reconstructionItems.add(reconstructionItem);
+
+
+        Response<List<ReconstructionResponseItem>> response =
+            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        assertThat(response.code()).isEqualTo(200);
+        assertThat(response.body().size()).isEqualTo(4);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(4L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(7L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_1, DataCategory.UNIT_GRAPH.name())).isEqualTo(8L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_1, DataCategory.OBJECTGROUP_GRAPH.name())).isEqualTo(9L);
+        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
+        assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
+        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+
+        assertThat(response.body().get(1).getTenant()).isEqualTo(0);
+        assertThat(response.body().get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP.name());
+        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+
+        assertThat(response.body().get(2).getTenant()).isEqualTo(1);
+        assertThat(response.body().get(2).getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
+        assertThat(response.body().get(2).getStatus()).isEqualTo(StatusCode.OK);
+
+        assertThat(response.body().get(3).getTenant()).isEqualTo(1);
+        assertThat(response.body().get(3).getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
+        assertThat(response.body().get(3).getStatus()).isEqualTo(StatusCode.OK);
+
+
+        // Check Unit
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
+
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
+        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
+
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
+        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
+        assertThat(first.get("DescriptionLevel")).isNull();
+        assertThat(first.get("_storage")).isNull();
+        assertThat(first.get("_tenant")).isNull();
+        assertThat(first.get("_v")).isNull();
+
+
+        // Check Object Group
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
+        assertThat(first.get("_v").asInt()).isEqualTo(0);
+        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
+        assertThat(first.get("_sps").toString()).contains("FRAN_NP_050770");
+
+
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");
+        assertThat(first.get("_v").asInt()).isEqualTo(0);
+        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
+        assertThat(first.get("_sps").toString()).contains("SHOULD_BE_ADDED");
+    }
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReconstruction_unitgraph_then_gotgraoh_then_unit_then_got_in_two_phase_query_OK() throws Exception {
+        // Clean offerLog
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+
+        // 0. prepare data
+        String container = GUIDFactory.newGUID().getId();
+        workspaceClient.createContainer(container);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+        createInWorkspace(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
+        createInWorkspace(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
+
+        RequestResponse<OfferLog> offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
+
+        offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP_GRAPH, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(1);
+
+        // Reconstruct Unit_Graph, ObjectGroup_Graph
+        List<ReconstructionRequestItem> reconstructionItems = new ArrayList<>();
+        ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.UNIT_GRAPH.name());
+        reconstructionItem.setLimit(3);
+        reconstructionItem.setTenant(TENANT_1);
+        reconstructionItems.add(reconstructionItem);
+
+        reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.OBJECTGROUP_GRAPH.name());
+        reconstructionItem.setLimit(3);
+        reconstructionItem.setTenant(TENANT_1);
+        reconstructionItems.add(reconstructionItem);
+
+        Response<List<ReconstructionResponseItem>> response =
+            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        assertThat(response.code()).isEqualTo(200);
+        assertThat(response.body().size()).isEqualTo(2);
+        assertThat(offsetRepository.findOffsetBy(TENANT_1, DataCategory.UNIT_GRAPH.name())).isEqualTo(1L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_1, DataCategory.OBJECTGROUP_GRAPH.name())).isEqualTo(2L);
+        assertThat(response.body().get(0).getTenant()).isEqualTo(1);
+        assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT_GRAPH.name());
+        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+
+        assertThat(response.body().get(1).getTenant()).isEqualTo(1);
+        assertThat(response.body().get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP_GRAPH.name());
+        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+
+
+
+        // Check Unit
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
+        assertThat(first.get("DescriptionLevel")).isNull();
+        assertThat(first.get("_storage")).isNull();
+        assertThat(first.get("_tenant")).isNull();
+        assertThat(first.get("_v")).isNull();
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
+        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
+        assertThat(first.get("DescriptionLevel")).isNull();
+        assertThat(first.get("_storage")).isNull();
+        assertThat(first.get("_tenant")).isNull();
+        assertThat(first.get("_v")).isNull();
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
+        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
+        assertThat(first.get("DescriptionLevel")).isNull();
+        assertThat(first.get("_storage")).isNull();
+        assertThat(first.get("_tenant")).isNull();
+        assertThat(first.get("_v")).isNull();
+
+
+        // Check Object Group
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
+        assertThat(first.get("_sps").toString()).contains("FRAN_NP_050770");
+        assertThat(first.get("_v")).isNull();
+        assertThat(first.get("_sp")).isNull();
+
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
+        assertThat(first.get("_sps").toString()).contains("SHOULD_BE_ADDED");
+        assertThat(first.get("_v")).isNull();
+        assertThat(first.get("_sp")).isNull();
+
+
+        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+        createInWorkspace(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
+
+        createInWorkspace(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
+        createInWorkspace(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
+        createInWorkspace(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
+
+
+        offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(4);
+
+        offerLogResponse =
+            storageClient.getOfferLogs("default", DataCategory.OBJECTGROUP, 0L, 10, Order.ASC);
+        assertThat(offerLogResponse).isNotNull();
+        assertThat(offerLogResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse).getResults().size()).isEqualTo(3);
+
+
+        // Reconstruct Unit, ObjectGroup
+        reconstructionItems = new ArrayList<>();
+        reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.UNIT.name());
+        reconstructionItem.setLimit(4);
+        reconstructionItem.setTenant(TENANT_0);
+        reconstructionItems.add(reconstructionItem);
+
+        reconstructionItem = new ReconstructionRequestItem();
+        reconstructionItem.setCollection(DataCategory.OBJECTGROUP.name());
+        reconstructionItem.setLimit(4);
+        reconstructionItem.setTenant(TENANT_0);
+        reconstructionItems.add(reconstructionItem);
+
+
+
+        response =
+            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        assertThat(response.code()).isEqualTo(200);
+        assertThat(response.body().size()).isEqualTo(2);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(6L);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(9L);
+        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
+        assertThat(response.body().get(0).getCollection()).isEqualTo(DataCategory.UNIT.name());
+        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+
+        assertThat(response.body().get(1).getTenant()).isEqualTo(0);
+        assertThat(response.body().get(1).getCollection()).isEqualTo(DataCategory.OBJECTGROUP.name());
+        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+
+
+
+        // Check Unit
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca/aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("FRAN_NP_009913");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:49.738");
+
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaada/aeaqaaaaaahmtusqabktwaldc34sm6aaaaba");
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahmtusqabktwaldc34sm6aaaaba/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_us_sp").toString()).contains("Service_producteur");
+        assertThat(first.get("_sps").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("SHOULD_BE_REMOVED_AFTER_RECONTRUCT");
+        assertThat(first.get("_us_sp").toString()).doesNotContain("aeaqaaaaaahmtusqabktwaldc34sm4yaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T14:33:47.293");
+        assertThat(first.get("_storage")).isNotNull();
+        assertThat(first.get("_tenant")).isNotNull();
+        assertThat(first.get("_v")).isNotNull();
+
+        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_graph").toString())
+            .contains("aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq/aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca");
+        assertThat(first.get("_us_sp").toString()).contains("aeaqaaaaaahlm6sdabkeoaldc3hq6jaaaabq");
+        assertThat(first.get("_glpd").toString()).contains("2018-04-30T13:47:50.000");
+
+        // Check Object Group
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
+        assertThat(first.get("_v").asInt()).isEqualTo(0);
+        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
+        assertThat(first.get("_sps").toString()).contains("FRAN_NP_050770");
+        assertThat(first.get("_qualifiers")).isNotNull();
+        assertThat(first.get("_tenant")).isNotNull();
+        assertThat(first.get("_v")).isNotNull();
+
+        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
+        assertThat(metadataResponse.isOk());
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
+        assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");
+        assertThat(first.get("_v").asInt()).isEqualTo(0);
+        assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
+        assertThat(first.get("_sps").toString()).contains("SHOULD_BE_ADDED");
+        assertThat(first.get("_qualifiers")).isNotNull();
+        assertThat(first.get("_tenant")).isNotNull();
+        assertThat(first.get("_v")).isNotNull();
+    }
+
     private Select getSelectQueryProjectionSimple(String guid) throws InvalidCreateOperationException {
         Select select = new Select();
         select.setQuery(QueryHelper.eq("obId", guid));
         return select;
     }
 
-    private void createInWorkspace(String guid, String jsonFile, DataCategory type)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException, IOException,
-        FileNotFoundException, StorageAlreadyExistsClientException, StorageNotFoundClientException,
+    private void createInWorkspace(String container, String fileName, String extention, String file, DataCategory type)
+        throws ContentAddressableStorageServerException, IOException,
+        StorageAlreadyExistsClientException, StorageNotFoundClientException,
         StorageServerClientException {
         final ObjectDescription objectDescription = new ObjectDescription();
-        objectDescription.setWorkspaceContainerGUID(OP_GUID);
-        objectDescription.setObjectName(guid + ".json");
+        objectDescription.setWorkspaceContainerGUID(container);
+        objectDescription.setObjectName(fileName + extention);
         objectDescription.setType(type);
-        objectDescription.setWorkspaceObjectURI(guid + ".json");
+        objectDescription.setWorkspaceObjectURI(fileName + extention);
 
-        try (FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(jsonFile))) {
-            workspaceClient.putObject(OP_GUID, guid + ".json", stream);
+        try (FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(file))) {
+            workspaceClient.putObject(container, fileName + extention, stream);
         }
-        storageClient.storeFileFromWorkspace("default", type, guid, objectDescription);
+        storageClient.storeFileFromWorkspace("default", type, fileName, objectDescription);
     }
 
     /**

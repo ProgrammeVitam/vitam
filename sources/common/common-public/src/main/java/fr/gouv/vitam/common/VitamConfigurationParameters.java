@@ -64,9 +64,9 @@ public class VitamConfigurationParameters {
      */
     private Integer numberDbClientThread;
     /*
-     * StoreGraphBatchSize
+     * The number of elements per file
      */
-    private Integer storeGraphBatchSize;
+    private Integer storeGraphElementsPerFile;
 
     /**
      * The overlap delay (in seconds) for store graph operation.
@@ -805,21 +805,21 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for storeGraphBatchSize
+     * Getter for storeGraphElementsPerFile
      *
-     * @return storeGraphBatchSize
+     * @return storeGraphElementsPerFile
      */
-    public Integer getStoreGraphBatchSize() {
-        return storeGraphBatchSize;
+    public Integer getStoreGraphElementsPerFile() {
+        return storeGraphElementsPerFile;
     }
 
     /**
-     * Setter for storeGraphBatchSize
+     * Setter for storeGraphElementsPerFile
      *
-     * @param storeGraphBatchSize
+     * @param storeGraphElementsPerFile
      */
-    public void setStoreGraphBatchSize(Integer storeGraphBatchSize) {
-        this.storeGraphBatchSize = storeGraphBatchSize;
+    public void setStoreGraphElementsPerFile(Integer storeGraphElementsPerFile) {
+        this.storeGraphElementsPerFile = storeGraphElementsPerFile;
     }
 
 

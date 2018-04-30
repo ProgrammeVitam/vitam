@@ -311,14 +311,14 @@ public class VitamConfiguration {
     private static int maxElasticsearchBulk = 1000;
 
     /**
-     * batchSize and used in lifecycleSpliterator for the limit
+     * batchSize for mongodb and used in lifecycleSpliterator and store graph service for the limit
      */
     private static int batchSize = 1000;
 
     /*
-     * StoreGraphBatchSize
+     * Number of elements per file use for store graph service
      */
-    private static int storeGraphBatchSize = 10000;
+    private static int storeGraphElementsPerFile = 10000;
 
     /**
      * The overlap delay (in seconds) for store graph operation.
@@ -746,8 +746,8 @@ public class VitamConfiguration {
             setDefaultOriginatingAgencyByTenant(parameters.getDefaultOriginatingAgencyForExport());
         }
 
-        if (null != parameters.getStoreGraphBatchSize()) {
-            setStoreGraphBatchSize(parameters.getStoreGraphBatchSize());
+        if (null != parameters.getStoreGraphElementsPerFile()) {
+            setStoreGraphElementsPerFile(parameters.getStoreGraphElementsPerFile());
         }
 
         if (null != parameters.getStoreGraphOverlapDelay()) {
@@ -1735,22 +1735,22 @@ public class VitamConfiguration {
 
 
     /**
-     * Get the storegraph batch size
+     * Get the store graph elements per file
      *
-     * @return storeGraphBatchSize
+     * @return storeGraphElementsPerFile
      */
-    public static Integer getStoreGraphBatchSize() {
-        return storeGraphBatchSize;
+    public static int getStoreGraphElementsPerFile() {
+        return storeGraphElementsPerFile;
     }
 
 
     /**
-     * Set store graph batch Size
+     * Set store graph elements per file
      *
-     * @param storeGraphBatchSize
+     * @param storeGraphElementsPerFile
      */
-    public static void setStoreGraphBatchSize(Integer storeGraphBatchSize) {
-        VitamConfiguration.storeGraphBatchSize = storeGraphBatchSize;
+    public static void setStoreGraphElementsPerFile(Integer storeGraphElementsPerFile) {
+        VitamConfiguration.storeGraphElementsPerFile = storeGraphElementsPerFile;
     }
 
 

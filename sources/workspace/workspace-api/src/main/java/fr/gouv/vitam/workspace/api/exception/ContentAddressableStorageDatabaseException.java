@@ -32,8 +32,6 @@ package fr.gouv.vitam.workspace.api.exception;
  */
 public class ContentAddressableStorageDatabaseException extends ContentAddressableStorageException {
 
-    private static final long serialVersionUID = 2221417866533636710L;
-
     /**
      * Constructor
      * 
@@ -42,15 +40,6 @@ public class ContentAddressableStorageDatabaseException extends ContentAddressab
      */
     public ContentAddressableStorageDatabaseException(String message) {
         super(message);
-    }
-
-    /**
-     * Constructor
-     * 
-     * @param cause cause to associate with the exception
-     */
-    public ContentAddressableStorageDatabaseException(Throwable cause) {
-        super(cause);
     }
 
     /**

@@ -32,6 +32,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -150,6 +151,7 @@ public class VitamMongoRepository implements VitamRepository {
         try {
             collection.bulkWrite(queries);
         } catch (Exception e) {
+            LOGGER.error("Bulk update documents exception: ", e);
             throw new DatabaseException(e);
         }
     }
@@ -162,6 +164,17 @@ public class VitamMongoRepository implements VitamRepository {
         if (count == 0) {
             LOGGER.error(String.format("Document %s is not deleted", id));
             throw new DatabaseException(String.format("Document %s is not deleted", id));
+        }
+    }
+
+    @Override
+    public long remove(Bson query) throws DatabaseException {
+        ParametersChecker.checkParameter("All params are required", query);
+        try {
+            return collection.deleteMany(query).getDeletedCount();
+        } catch (Exception e) {
+            LOGGER.error("Remove documents exception: ", e);
+            throw new DatabaseException(e);
         }
     }
 
@@ -286,9 +299,13 @@ public class VitamMongoRepository implements VitamRepository {
 
 
     @Override
-    public FindIterable<Document> findDocuments(List<String> ids, Bson projection) {
-        ParametersChecker.checkParameter("All params are required", ids, projection);
-        return collection.find(in(ID, ids)).projection(projection);
+    public FindIterable<Document> findDocuments(Collection<String> ids, Bson projection) {
+        ParametersChecker.checkParameter("Id list is required ", ids);
+        if (null == projection) {
+            return collection.find(in(ID, ids));
+        } else {
+            return collection.find(in(ID, ids)).projection(projection);
+        }
     }
 
 

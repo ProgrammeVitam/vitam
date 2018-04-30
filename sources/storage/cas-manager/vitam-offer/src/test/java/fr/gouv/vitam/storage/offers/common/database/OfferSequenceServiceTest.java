@@ -33,18 +33,15 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.bson.Document;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.bson.Document;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class OfferSequenceServiceTest {
 
@@ -55,57 +52,24 @@ public class OfferSequenceServiceTest {
         OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION);
 
     @Test
-    public void testInitializeSequenceOnce() throws ContentAddressableStorageDatabaseException {
-        OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(mongoRule.getMongoDatabase());
-
-        service.initSequences();
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find()).hasSize(1)
-            .extracting("Counter").containsExactly(0L);
-
-        service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find()).hasSize(1)
-            .extracting("Counter").containsExactly(1L);
-
-        service.initSequences();
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find()).hasSize(1)
-            .extracting("Counter").containsExactly(1L);
-    }
-
-    @Test
     public void testOfferSequenceService() throws ContentAddressableStorageDatabaseException {
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(mongoRule.getMongoDatabase());
 
-        service.initSequences();
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find()).hasSize(1)
-            .extracting("Counter").containsExactly(0L);
+        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find())
+            .hasSize(0);
 
-        Long count = service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find()).hasSize(1)
+        service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find())
+            .hasSize(1)
             .extracting("Counter").containsExactly(1L);
-        assertThat(count).isEqualTo(1L);
 
-        count = service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find()).hasSize(1)
-            .extracting("Counter").containsExactly(2L);
-        assertThat(count).isEqualTo(2L);
+        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find())
+            .hasSize(1)
+            .extracting("Counter").containsExactly(1L);
+
     }
-
     @Test
-    public void testOfferSequenceServiceException() {
-        OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(mongoRule.getMongoDatabase());
-        assertThatCode(() -> {
-            service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
-
-        mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).drop();
-        assertThatCode(() -> {
-            service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
-    }
-
-    @Test
-    public void should_throw_ContentAddressableStorageDatabaseException_on_getOfferLog_when_mongo_throws_MongoException()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+    public void should_throw_ContentAddressableStorageDatabaseException_on_getOfferLog_when_mongo_throws_MongoException() {
         // given
         MongoDatabase mongoDatabase = mock(MongoDatabase.class);
         MongoCollection<Document> mongoCollection = mock(MongoCollection.class);

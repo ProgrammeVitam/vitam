@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -94,6 +95,14 @@ public interface VitamRepository {
     void remove(String id, Integer tenant) throws DatabaseException;
 
 
+
+    /**
+     * Remove by query
+     * @param query
+     * @throws DatabaseException
+     */
+    long remove(Bson query) throws DatabaseException;
+
     /**
      * Remove collection by name and tenant
      *
@@ -158,7 +167,7 @@ public interface VitamRepository {
      * @param projection the fields wanted in the result
      * @return An iterable of documents
      */
-    FindIterable<Document> findDocuments(List<String> ids, Bson projection);
+    FindIterable<Document> findDocuments(Collection<String> ids, Bson projection);
 
     /**
      * Return iterable over document for the given collection for a specific tenant

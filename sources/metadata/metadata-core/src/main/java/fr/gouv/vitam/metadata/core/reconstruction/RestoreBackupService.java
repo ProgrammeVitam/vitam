@@ -133,7 +133,7 @@ public class RestoreBackupService {
                 filename, collection.name(), strategy));
         InputStream inputStream = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            DataCategory type = null;
+            DataCategory type;
             switch (collection) {
                 case UNIT:
                     type = DataCategory.UNIT;

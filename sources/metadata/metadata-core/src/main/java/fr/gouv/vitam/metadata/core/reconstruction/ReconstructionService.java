@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.reconstruction;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphObjectGroupFields;
@@ -36,18 +37,27 @@ import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComp
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoBulkWriteException;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOneModel;
@@ -62,6 +72,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -177,35 +188,35 @@ public class ReconstructionService {
                 return reconstructCollection(MetadataCollections.getFromValue(reconstructionItem.getCollection()),
                     reconstructionItem.getTenant(), reconstructionItem.getLimit());
             default:
-                return new ReconstructionResponseItem();
+                return new ReconstructionResponseItem(reconstructionItem, StatusCode.KO);
         }
     }
 
-    private ReconstructionResponseItem reconstructGraphFromZipStream(String category, int limit) {
+    private ReconstructionResponseItem reconstructGraphFromZipStream(String collectionName, int limit) {
 
         Integer tenant = VitamConfiguration.getAdminTenant();
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
 
-        final long offset = offsetRepository.findOffsetBy(tenant, category);
-        ParametersChecker.checkParameter("Parameter collection is required.", category);
+        final long offset = offsetRepository.findOffsetBy(tenant, collectionName);
+        ParametersChecker.checkParameter("Parameter collection is required.", collectionName);
         LOGGER.info(String
             .format(
                 "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-                category, tenant, limit, offset));
+                collectionName, tenant, limit, offset));
         ReconstructionResponseItem response =
-            new ReconstructionResponseItem().setCollection(category).setTenant(tenant);
+            new ReconstructionResponseItem().setCollection(collectionName).setTenant(tenant);
         MetadataCollections metaDaCollection;
-        DataCategory dataCategory = DataCategory.valueOf(category);
+        DataCategory dataCategory = DataCategory.valueOf(collectionName);
         switch (dataCategory) {
             case UNIT_GRAPH:
                 metaDaCollection = MetadataCollections.UNIT;
                 break;
-            case OBJECTGROUP:
+            case OBJECTGROUP_GRAPH:
                 metaDaCollection = MetadataCollections.OBJECTGROUP;
                 break;
             default:
-                throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", category));
+                throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collectionName));
         }
 
         long newOffset = offset;
@@ -217,28 +228,37 @@ public class ReconstructionService {
                 restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC);
 
             for (OfferLog offerLog : listing) {
+                String guid = GUIDFactory.newGUID().getId();
                 InputStream zipFileAsStream =
                     restoreBackupService.loadData(STRATEGY_ID, dataCategory, offerLog.getFileName());
 
-                reconstructGraphFromZipStream(metaDaCollection, zipFileAsStream);
+                Path filePath = Files.createTempFile(guid + "_", offerLog.getFileName());
+                try {
+                    // Copy file to local tmp
+                    Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
+                    reconstructGraphFromZipStream(metaDaCollection, Files.newInputStream(filePath));
+                } finally {
+                    // Remove file
+                    Files.deleteIfExists(filePath);
+                }
                 newOffset = offerLog.getSequence();
                 // log therecontruction of Vitam collection.
                 LOGGER.info(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
-                    category, tenant, offset, LocalDateUtil.now()));
+                    collectionName, tenant, offset, LocalDateUtil.now()));
             }
 
             response.setStatus(StatusCode.OK);
-        } catch (ReconstructionException de) {
+        } catch (ReconstructionException | IOException de) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
-                category, tenant, offset), de);
+                collectionName, tenant, offset), de);
             newOffset = offset;
             response.setStatus(StatusCode.KO);
 
         } finally {
-            offsetRepository.createOrUpdateOffset(tenant, category, newOffset);
+            offsetRepository.createOrUpdateOffset(tenant, collectionName, newOffset);
         }
         return response;
     }
@@ -452,7 +472,11 @@ public class ReconstructionService {
             throw new DatabaseException("Optimistic lock number of retry reached");
         }
         LOGGER.info("[Reconstruction]: Back up of metadatas bulk");
+
+        // Do not erase graph data
         preventAlreadyExistingGraphData(collection, dataFromOffer);
+
+        // Create bulk of ReplaceOneModel
         List<WriteModel<Document>> metadatas =
             dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).map(this::createReplaceOneModel)
                 .collect(Collectors.toList());
@@ -460,6 +484,7 @@ public class ReconstructionService {
             this.bulkMongo(collection, metadatas);
         } catch (DatabaseException e) {
             if (e.getCause() instanceof MongoBulkWriteException) {
+                LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct AU/GOT");
 
                 try {
                     Thread.sleep(ThreadLocalRandom.current().nextInt(100));
@@ -476,11 +501,15 @@ public class ReconstructionService {
             }
 
         }
+
+        List<Document> documents =
+            dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).collect(Collectors.toList());
+        bulkElasticsearch(collection, documents);
     }
 
     /**
      * @param metaDaCollection
-     * @param zipStream        the zip
+     * @param zipStream        The zip
      * @throws DatabaseException
      */
     private void reconstructGraphFromZipStream(MetadataCollections metaDaCollection, InputStream zipStream)
@@ -504,22 +533,64 @@ public class ReconstructionService {
             }
         } catch (InvalidParseOperationException | IOException | ArchiveException | DatabaseException e) {
             throw new ReconstructionException(e);
+        } finally {
+            removeGraphOnlyReconstructedOlderDocuments(metaDaCollection);
         }
 
     }
 
+
+    /**
+     * Find all older (AU/GOT) where only graph data are reconstructed
+     * As Documents with only graph data are not indexed in elasticsearch=> we have not to implement deletion from Elastcisearch
+     */
+    private void removeGraphOnlyReconstructedOlderDocuments(MetadataCollections metaDaCollection) {
+
+        try {
+
+            String dateDeleteLimit = LocalDateUtil.getFormattedDateForMongo(
+                LocalDateTime
+                    .now()
+                    .minus(VitamConfiguration.getDeleteIncompleteReconstructedUnitDelay(), ChronoUnit.SECONDS));
+            Bson query = and(
+                exists(Unit.TENANT_ID, false),
+                lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));
+
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).remove(query);
+        } catch (DatabaseException e) {
+            LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
+        }
+    }
+
+    /**
+     * @param metadataCollections
+     * @param arrayNode
+     * @throws DatabaseException
+     */
     private void treatBulkGraph(MetadataCollections metadataCollections, ArrayNode arrayNode) throws DatabaseException {
         List<WriteModel<Document>> collection = new ArrayList<>();
+        Set<String> ids = new HashSet<>();
         arrayNode.forEach(o -> {
             //Create UpdateOneModel
             try {
                 collection.add(createUpdateOneModel(o));
+                /**
+                 * Take only documents having graph data and business data
+                 * Skip all documents with only graph data
+                 */
+                if (null != o.get(Unit.TENANT_ID)) {
+                    ids.add(o.get(Unit.ID).asText());
+                }
             } catch (InvalidParseOperationException e) {
                 throw new VitamFatalRuntimeException(e);
             }
         });
 
+        // Save in MongoDB
         bulkMongo(metadataCollections, collection);
+
+        // Save in Elasticsearch
+        bulkElasticsearch(metadataCollections, ids);
     }
 
     /**
@@ -534,14 +605,53 @@ public class ReconstructionService {
         this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).update(collection);
     }
 
+
+    /**
+     * Bulk save in elasticsearch
+     *
+     * @param metaDaCollection
+     * @param collection       of id of documents
+     * @throws DatabaseException
+     */
+    private void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
+        throws DatabaseException {
+
+        if (collection.isEmpty()) {
+            return;
+        }
+
+        FindIterable<Document> fit =
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).findDocuments(collection, null);
+        MongoCursor<Document> it = fit.iterator();
+        List<Document> documents = new ArrayList<>();
+        while (it.hasNext()) {
+            documents.add(it.next());
+        }
+
+        bulkElasticsearch(metaDaCollection, documents);
+    }
+
+    /**
+     * Bulk save in elasticsearch
+     *
+     * @param metaDaCollection
+     * @param collection       of documents
+     * @throws DatabaseException
+     */
+    private void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
+        throws DatabaseException {
+        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection).save(collection);
+    }
+
     /**
      * @param graphData
      * @return
      * @throws InvalidParseOperationException
      */
     private UpdateOneModel<Document> createUpdateOneModel(JsonNode graphData) throws InvalidParseOperationException {
+        JsonNode id = ((ObjectNode) graphData).remove(Unit.ID);
         final Document data = new Document($_SET, Document.parse(JsonHandler.writeAsString(graphData)));
-        return new UpdateOneModel<>(eq(ID, graphData.get(ID)), data, new UpdateOptions().upsert(true));
+        return new UpdateOneModel<>(eq(Unit.ID, id.asText()), data, new UpdateOptions().upsert(true));
     }
 
 
@@ -551,11 +661,10 @@ public class ReconstructionService {
      * @throws InvalidParseOperationException
      */
     private WriteModel<Document> createReplaceOneModel(Document document) {
-        final Document data = new Document($_SET, document);
-        final Object _glpd = document.get(Unit.GRAPH_LAST_PERSISTED_DATE);
+        final Object glpd = document.get(Unit.GRAPH_LAST_PERSISTED_DATE);
 
         Bson filter;
-        if (null == _glpd) {
+        if (null == glpd) {
             // Document not yet in mongodb or in mongodb with but without graph data
             filter = and(
                 eq(ID, document.get(ID)),
@@ -565,9 +674,9 @@ public class ReconstructionService {
             // Document already exists in mongodb and already have graph data
             filter = and(
                 eq(ID, document.get(ID)),
-                eq(Unit.GRAPH_LAST_PERSISTED_DATE, _glpd.toString())
+                eq(Unit.GRAPH_LAST_PERSISTED_DATE, glpd.toString())
             );
         }
-        return new ReplaceOneModel<>(filter, data, new UpdateOptions().upsert(true));
+        return new ReplaceOneModel<>(filter, document, new UpdateOptions().upsert(true));
     }
 }

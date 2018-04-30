@@ -30,6 +30,7 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -329,7 +330,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
     }
 
     @Override
-    public FindIterable<Document> findDocuments(List<String> ids, Bson projection) {
+    public FindIterable<Document> findDocuments(Collection<String> ids, Bson projection) {
         // Not implement yet
         throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -353,6 +354,11 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 throw new DatabaseException("Delete Document Exception: " + result);
         }
 
+    }
+
+    @Override
+    public long remove(Bson query) throws DatabaseException {
+        return 0;
     }
 
     @Override

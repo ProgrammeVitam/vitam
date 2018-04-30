@@ -75,6 +75,7 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
     /**
      * Used only for tests
+     *
      * @param mongoRepository
      * @param esRepository
      * @return
@@ -83,11 +84,9 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
     public static synchronized VitamRepositoryFactory getInstance(
         Map<MetadataCollections, VitamMongoRepository> mongoRepository,
         Map<MetadataCollections, VitamElasticsearchRepository> esRepository) {
-        if (instance == null) {
-            instance = new VitamRepositoryFactory();
-            instance.mongoRepository = mongoRepository;
-            instance.esRepository = esRepository;
-        }
+        instance = new VitamRepositoryFactory();
+        instance.mongoRepository = mongoRepository;
+        instance.esRepository = esRepository;
         return instance;
     }
 
