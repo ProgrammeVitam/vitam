@@ -2,6 +2,7 @@ import {Component, OnInit, OnChanges, Input, Output, EventEmitter} from '@angula
 import { ArchiveUnitService } from "../../archive-unit.service";
 import { ArchiveUnitHelper } from "../../archive-unit.helper";
 import { Router, ActivatedRoute } from "@angular/router";
+import {DateService} from "../../../common/utils/date.service";
 
 @Component({
   selector: 'vitam-archive-main-description',
@@ -58,7 +59,16 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
       if (fieldName === 'Title') {
         newTitle = this.updatedFields[fieldName];
       }
-      updateStructure.push({fieldId: fieldName, newFieldValue: this.updatedFields[fieldName]});
+
+      //In case of EndDate field, we must adjust date picked by user to be set to the latest minute of the given day
+      //to insure successful compare with StartDate with same day as value
+      
+      if(fieldName === 'EndDate'){
+          let adjustedEndUTCDate = DateService.transformUTCDate(this.updatedFields[fieldName], 23, 59, 59, 999);
+          updateStructure.push({fieldId: fieldName, newFieldValue: adjustedEndUTCDate});
+      } else {
+        updateStructure.push({fieldId: fieldName, newFieldValue: this.updatedFields[fieldName]});
+      }
     }
     this.archiveUnitService.updateMetadata(this.archiveUnit['#id'], updateStructure)
       .subscribe((data) => {
