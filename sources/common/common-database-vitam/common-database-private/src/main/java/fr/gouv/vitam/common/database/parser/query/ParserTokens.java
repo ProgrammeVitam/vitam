@@ -304,6 +304,7 @@ public class ParserTokens extends BuilderToken {
         "EveryOriginatingAgency",
         "EveryDataObjectVersion",
         "RootUnits",
+        "ExcludedRootUnits",
         "_tenant",
         "_v",
         "_score",

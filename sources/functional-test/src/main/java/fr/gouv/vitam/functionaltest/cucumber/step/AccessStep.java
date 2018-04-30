@@ -416,6 +416,19 @@ public class AccessStep {
     }
 
     /**
+     * replace in the loaded query the given parameter by an id previously retrieved
+     *
+     * @param parameter parameter name in the query
+     * @throws Throwable
+     */
+    @When("^j'utilise dans la requête le paramètre (.*) avec l'id$")
+    public void i_use_the_following_parameter_query_with_an_id(String parameter) throws Throwable {
+        String query = world.getQuery().replace(parameter, world.getUnitId());
+        world.setQuery(query);
+    }
+
+
+    /**
      * replace in the loaded query the string {{guid}} by the guid of the first unit found for given title
      *
      * @param title title of the unit

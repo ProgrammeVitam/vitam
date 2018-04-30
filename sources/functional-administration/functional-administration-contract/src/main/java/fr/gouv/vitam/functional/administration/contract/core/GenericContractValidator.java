@@ -86,6 +86,8 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validating contract (%s), %s : %s";
         private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
             "Error while validating contract (%s), RootUnits (%s) not found in database";
+        private static final String ERR_CONTRACT_ROOT_GUID_INCLUDED_AND_EXCLUDED =
+                "Error while validating contract (%s), root GUID (%s) can not be included and excluded at the same time";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_WRONG_LINK_PARENT_ID =
             "the id of the AU %s is not in filing nor holding schema";
@@ -176,6 +178,17 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         public static GenericRejectionCause rejectRootUnitsNotFound(String contractName, String guidArrayAsString) {
             return new GenericRejectionCause(
                 String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+        }
+
+        /**
+         * Generate RejectionCause for root GUID used in both RootUnits and ExcludedRootUnits
+         *
+         * @param guid the contract name or identifier
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectRootGuidIncludedAndExcluded(String contractName, String guid) {
+            return new GenericRejectionCause(
+                    String.format(ERR_CONTRACT_ROOT_GUID_INCLUDED_AND_EXCLUDED, contractName, guid));
         }
 
         /**

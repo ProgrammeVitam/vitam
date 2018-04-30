@@ -59,6 +59,7 @@ public class AccessContractModelTest {
         Set<String> originatingAgencies = new HashSet<>();
         originatingAgencies.add("FR_FAKE");
         Set<String> rootUnits = Sets.newHashSet("guid");
+        Set<String> excludedRootUnits = Sets.newHashSet("excludedGuid");
         contract
             .setId(id)
             .setTenant(TENANT_ID)
@@ -71,7 +72,8 @@ public class AccessContractModelTest {
         contract
             .setOriginatingAgencies(originatingAgencies)
             .setEveryOriginatingAgency(true)
-            .setRootUnits(rootUnits);
+            .setRootUnits(rootUnits)
+            .setExcludedRootUnits(excludedRootUnits);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
@@ -81,6 +83,7 @@ public class AccessContractModelTest {
         assertEquals(deactivationdate, contract.getDeactivationdate());
         assertEquals(originatingAgencies, contract.getOriginatingAgencies());
         assertEquals(rootUnits, contract.getRootUnits());
+        assertEquals(excludedRootUnits, contract.getExcludedRootUnits());
         assertTrue(contract.getEveryOriginatingAgency());
     }
 

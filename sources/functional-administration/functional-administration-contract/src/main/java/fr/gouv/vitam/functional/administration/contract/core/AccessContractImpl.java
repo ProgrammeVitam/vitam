@@ -115,6 +115,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
     private static final String DATA_OBJECT_VERSION_INVALID = "Data object version invalid";
     private static final String ROOT_UNIT_INVALID = "RootUnits invalid, should be a list of guid";
+    private static final String EXCLUDED_ROOT_UNIT_INVALID = "ExcludedRootUnits invalid, should be a list of guid";
     private static final String ORIGINATING_AGENCIES_INVALID = "OriginatingAgencies invalid, should be a list of guid";
     private static final String THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT =
         "The Access contract EveryDataObjectVersion must be true or false but not ";
@@ -140,6 +141,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String UPDATE_CONTRACT_BAD_REQUEST = "STP_UPDATE_ACCESS_CONTRACT.BAD_REQUEST.KO";    
     private static final String UPDATE_VALUE_NOT_IN_ENUM = "STP_UPDATE_ACCESS_CONTRACT.NOT_IN_ENUM.KO";
     private static final String UPDATE_AGENCY_NOT_FOUND = "STP_UPDATE_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO";
+    private static final String UPDATE_KO = "STP_UPDATE_ACCESS_CONTRACT.KO";
 
     private static final String EVDETDATA_IDENTIFIER = "identifier";
 
@@ -384,7 +386,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                             VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                             result.get().getReason(),
                             "AccessContract",
-                            StatusCode.KO).setMessage(validators.get(validator)));
+                            StatusCode.KO)
+                            .setMessage(validators.get(validator))
+                            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode()));
                     // once a validation error is detected on a contract, jump to next contract
                     return false;
                 }
@@ -742,8 +746,17 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             return (contract, contractName) -> {
                 Set<String> rootUnits = contract.getRootUnits();
 
-                if (null == rootUnits) {
-                    return Optional.empty();
+                if (null == contract.getRootUnits()) {
+                    if (null == contract.getExcludedRootUnits()) {
+                        return Optional.empty();
+                    }
+                    rootUnits = contract.getExcludedRootUnits();
+                } else {
+                    if (null != contract.getExcludedRootUnits()) {
+                        AccessContractModel acm = new AccessContractModel();
+                        acm.setExcludedRootUnits(contract.getExcludedRootUnits());
+                        validateExistsArchiveUnits(metaDataClient).validate(acm, contractName);
+                    }
                 }
 
                 rootUnits.removeIf(unit -> unit.trim().isEmpty());
@@ -771,7 +784,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     List<JsonNode> result = responseOK.getResults();
                     if (null == result || result.isEmpty()) {
                         return Optional.of(GenericRejectionCause
-                            .rejectRootUnitsNotFound(contract.getName(), String.join(",", rootUnits)));
+                            .rejectRootUnitsNotFound(contractName , String.join(",", rootUnits)));
 
                     } else if (result.size() == rootUnits.size()) {
                         return Optional.empty();
@@ -781,7 +794,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                             notFoundRootUnits.remove(unit.get("#id").asText());
                         });
                         return Optional.of(GenericRejectionCause
-                            .rejectRootUnitsNotFound(contract.getName(), String.join(",", notFoundRootUnits)));
+                            .rejectRootUnitsNotFound(contractName, String.join(",", notFoundRootUnits)));
                     }
                 } catch (InvalidParseOperationException |
                     MetaDataExecutionException |
@@ -961,7 +974,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                     ROOT_UNIT_INVALID +
                         value.asText(),
-                    StatusCode.KO).setMessage(UPDATE_AGENCY_NOT_FOUND));
+                    StatusCode.KO).setMessage(UPDATE_KO));
             } else {
 
                 try {
@@ -976,14 +989,47 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         // Validation error
                         error.addToErrors(
                             getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), rejection
-                                .get().getReason(), StatusCode.KO).setMessage(UPDATE_AGENCY_NOT_FOUND));
+                                .get().getReason(), StatusCode.KO).setMessage(UPDATE_KO));
                     }
 
                 } catch (InvalidParseOperationException e) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                         ROOT_UNIT_INVALID +
                             value.asText(),
-                        StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                        StatusCode.KO).setMessage(UPDATE_KO));
+                }
+            }
+        }
+
+        // Validate that ExcludedRootUnits, if not empty, exists in database
+        if (AccessContractModel.EXCLUDED_ROOT_UNITS.equals(field)) {
+            if (!value.isArray()) {
+                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        EXCLUDED_ROOT_UNIT_INVALID +
+                                value.asText(),
+                        StatusCode.KO).setMessage(UPDATE_KO));
+            } else {
+
+                try {
+                    Set<String> excludedRootUnits = JsonHandler.getFromJsonNode(value, Set.class);
+                    AccessContractModel toValidate = new AccessContractModel();
+                    toValidate.setExcludedRootUnits(excludedRootUnits);
+                    Optional<GenericRejectionCause> rejection =
+                            manager.validateExistsArchiveUnits(metaDataClient)
+                                    .validate(toValidate, contractName);
+
+                    if (rejection.isPresent()) {
+                        // Validation error
+                        error.addToErrors(
+                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), rejection
+                                .get().getReason(), StatusCode.KO).setMessage(UPDATE_KO));
+                    }
+
+                } catch (InvalidParseOperationException e) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            ROOT_UNIT_INVALID +
+                                    value.asText(),
+                            StatusCode.KO).setMessage(UPDATE_KO));
                 }
             }
         }

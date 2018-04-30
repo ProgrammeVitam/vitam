@@ -31,6 +31,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.ws.rs.Consumes;
@@ -618,8 +619,19 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
         Set<String> rootUnits = contract.getRootUnits();
-        if (null != rootUnits && !rootUnits.isEmpty()) {
+        Set<String> excludedRootUnits = contract.getExcludedRootUnits();
+        if ((null != rootUnits && !rootUnits.isEmpty())
+                || (null != excludedRootUnits && !excludedRootUnits.isEmpty())) {
+            if(null == rootUnits) {
+                rootUnits = new HashSet<>();
+            }
             String[] rootUnitsArray = rootUnits.toArray(new String[rootUnits.size()]);
+
+            if(null == excludedRootUnits) {
+                excludedRootUnits = new HashSet<>();
+            }
+            String[] excludedRootUnitsArray = excludedRootUnits.toArray(new String[excludedRootUnits.size()]);
+
             final SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(queryDsl);
 
@@ -627,13 +639,25 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .or().add(QueryHelper.in(PROJECTIONARGS.ID.exactToken(), rootUnitsArray),
                     QueryHelper.in(PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray));
 
+            Query excludeRootUnitsRestriction = QueryHelper
+                    .and().add(QueryHelper.nin(PROJECTIONARGS.ID.exactToken(), excludedRootUnitsArray),
+                            QueryHelper.nin(PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray));
+
+
             List<Query> queryList = parser.getRequest().getQueries();
             if (queryList.isEmpty()) {
-                queryList.add(rootUnitsRestriction.setDepthLimit(0));
+                if (rootUnitsArray.length > 0)
+                    queryList.add(rootUnitsRestriction.setDepthLimit(0));
+                if (excludedRootUnitsArray.length > 0)
+                    queryList.add(excludeRootUnitsRestriction.setDepthLimit(0));
             } else {
                 Query firstQuery = queryList.get(0);
                 int depth = firstQuery.getParserRelativeDepth();
-                Query restrictedQuery = QueryHelper.and().add(rootUnitsRestriction, firstQuery);
+                Query restrictedQuery = QueryHelper.and().add(firstQuery);
+                if (rootUnitsArray.length > 0)
+                    restrictedQuery = QueryHelper.and().add(restrictedQuery, rootUnitsRestriction);
+                if (excludedRootUnitsArray.length > 0)
+                    restrictedQuery = QueryHelper.and().add(restrictedQuery, excludeRootUnitsRestriction);
                 restrictedQuery.setDepthLimit(depth);
                 parser.getRequest().getQueries().set(0, restrictedQuery);
             }

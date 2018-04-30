@@ -48,6 +48,9 @@
     "RootUnits": {
       "type": "keyword"
     },
+    "ExcludedRootUnits": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },

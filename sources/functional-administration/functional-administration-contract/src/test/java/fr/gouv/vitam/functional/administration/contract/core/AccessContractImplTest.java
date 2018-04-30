@@ -780,7 +780,7 @@ public class AccessContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenAccessContractsTestEmptyRootUnitsOK() throws Exception {
+    public void givenAccessContractsTestEmptyRootUnitsAndExcludedRootUnitsOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_empty_root_units.json");
 
@@ -795,6 +795,43 @@ public class AccessContractImplTest {
             .contains("aName1");
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestNotExistingExcludedRootUnits() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_not_exists_excluded_root_units.json");
+
+        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        final List<AccessContractModel> accessContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        assertThat(response.isOk()).isFalse();
+        assertThat(response.toString()).contains("RootUnits (GUID1,GUID2,GUID3) not found in database");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestExistingExcludedRootUnitsOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok_excluded_root_units.json");
+
+        RequestResponseOK<JsonNode> res = new RequestResponseOK<>();
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID1"));
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID2"));
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
+
+        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(res.toJsonNode());
+        final List<AccessContractModel> accessContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        assertThat(response.isOk()).isTrue();
+        assertThat(((RequestResponseOK) response).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(0).getName()).contains("aName");
+        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName())
+                .contains("aName1");
+    }
 
     @Test
     @RunWithCustomExecutor

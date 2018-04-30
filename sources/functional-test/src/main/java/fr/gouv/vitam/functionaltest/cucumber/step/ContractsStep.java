@@ -400,4 +400,23 @@ public class ContractsStep {
         final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
     }
+
+
+    @When("^je modifie un contrat d'accès et le statut de la requête est (.*)$")
+    public void update_access_contract(Integer statusCode)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        String contractIdentifier = getModel().get("Identifier").asText();
+
+        JsonNode queryDsl = JsonHandler.getFromString(world.getQuery());
+        RequestResponse requestResponse = null;
+
+        requestResponse = world.getAdminClient().updateAccessContract(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                contractIdentifier, queryDsl);
+        assertThat(statusCode).isEqualTo(requestResponse.getStatus());
+
+
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        world.setOperationId(operationId);
+    }
 }
