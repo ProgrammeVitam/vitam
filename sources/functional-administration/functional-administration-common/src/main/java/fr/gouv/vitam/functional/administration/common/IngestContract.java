@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
  * Defines an Ingest contract model for SIP transfer control. </BR>
  * It's an implementation of the SEDA specification and NF Z44022 MEDONA concerning the communication between a
  * TransferringAgency and an ArchivalAgency.
- *
  */
 public class IngestContract extends VitamDocument<IngestContract> {
 
@@ -90,6 +89,14 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * the desactication date of contract
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
+    /**
+     * the everydataobjectversion false by default
+     */
+    public static final String EVERYDATAOBJECTVERSION = "EveryDataObjectVersion";
+    /**
+     * the MasterMandatory true by default
+     */
+    public static final String MASTERMANDATORY = "MasterMandatory";
 
     /**
      * Empty Constructor
@@ -122,7 +129,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
     }
 
     /**
-     *
      * @param tenantId the working tenant
      */
     public IngestContract(Integer tenantId) {
@@ -145,7 +151,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Name of the contract
-     * 
+     *
      * @return name of contract
      */
     public String getName() {
@@ -154,7 +160,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set or change the contract name
-     * 
+     *
      * @param name to set
      * @return this
      */
@@ -165,7 +171,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Get the contract description
-     * 
+     *
      * @return this
      */
     public String getDescription() {
@@ -174,7 +180,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set or change the contract description
-     * 
+     *
      * @param description to set to contact
      * @return this
      */
@@ -186,7 +192,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Get the contract status
-     * 
+     *
      * @return status of ingest contact
      */
     public ActivationStatus getStatus() {
@@ -202,9 +208,11 @@ public class IngestContract extends VitamDocument<IngestContract> {
         }
     }
 
+
+
     /**
      * Set or change the contract status
-     * 
+     *
      * @param status to set
      * @return this
      */
@@ -215,7 +223,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set or change the contract status
-     * 
+     *
      * @param checkParentLink to set
      * @return this
      */
@@ -226,7 +234,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Get the contract check ParentLink status
-     * 
+     *
      * @return status of checkParentLink for this ingest contact
      */
     public ActivationStatus getCheckParentLink() {
@@ -243,7 +251,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
     }
 
     /**
-     *
      * @return collection of archive profiles
      */
     public Set<String> getArchiveProfiles() {
@@ -252,7 +259,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set the collection of archive profiles
-     * 
+     *
      * @param archiveProfiles
      * @return this
      */
@@ -322,6 +329,24 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public IngestContract setDeactivationdate(String deactivationdate) {
         append(DEACTIVATIONDATE, deactivationdate);
+        return this;
+    }
+
+    public Boolean getEveryDataObjectVersion() {
+        return getBoolean(EVERYDATAOBJECTVERSION);
+    }
+
+    public IngestContract setEveryDataObjectVersion(boolean everyDataObjectVersion) {
+        append(EVERYDATAOBJECTVERSION, everyDataObjectVersion);
+        return this;
+    }
+
+    public Boolean getMasterMandatory() {
+        return getBoolean(MASTERMANDATORY);
+    }
+
+    public IngestContract setMasterMandatory(boolean masterMandatory) {
+        append(MASTERMANDATORY, masterMandatory);
         return this;
     }
 

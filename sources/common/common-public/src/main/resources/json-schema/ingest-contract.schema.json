@@ -112,7 +112,37 @@
       "items": {
         "type": "string"
       }
+    },
+    "MasterMandatory": {
+      "type": "boolean"
+    },
+    "EveryDataObjectVersion": {
+      "type": "boolean"
+    },
+    "DataObjectVersion": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "BinaryMaster",
+          "Dissemination",
+          "Thumbnail",
+          "TextContent",
+          "PhysicalMaster"
+        ]
+      }
     }
   },
-  "required": ["_id", "_tenant", "_v", "Identifier", "Status", "CreationDate", "LastUpdate", "Name"]
+  "required": [
+    "_id",
+    "_tenant",
+    "_v",
+    "Identifier",
+    "Status",
+    "CreationDate",
+    "LastUpdate",
+    "Name",
+    "MasterMandatory",
+    "EveryDataObjectVersion"
+  ]
 }

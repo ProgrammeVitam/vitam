@@ -547,8 +547,22 @@ public class IngestContractImplTest {
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
         responseCast = ingestContractService.findContracts(queryDsl);
         assertThat(responseCast.getResults()).isNotEmpty();
+        final SelectParserSingle parserbName2 = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select selectbName2 = new Select();
+        parserbName2.parse(selectbName2.getFinalSelect());
+        parserbName2.addCondition(QueryHelper.eq("Name", "bName2"));
+        final JsonNode queryDslbName2 = parserbName2.getRequest().getFinalSelect();
+        RequestResponseOK<IngestContractModel> responseFindbName2 = ingestContractService.findContracts(queryDslbName2);
+        for (final IngestContractModel ingestContractModel : responseFindbName2.getResults()){
+            assertThat(ingestContractModel.isMasterMandatory()).isTrue();
+            assertThat(ingestContractModel.isEveryDataObjectVersion()).isFalse();
+        }
         for (final IngestContractModel ingestContractModel : responseCast.getResults()) {
             assertThat(ActivationStatus.ACTIVE.equals(ingestContractModel.getStatus())).isTrue();
+        }
+        for (final IngestContractModel ingestContractModel : responseCast.getResults()) {
+            assertThat(ingestContractModel.isMasterMandatory()).isFalse();
+            assertThat(ingestContractModel.isEveryDataObjectVersion()).isTrue();
         }
         final String identifier = responseCast.getResults().get(0).getIdentifier();
         // Test update for ingest contract Status => inactive

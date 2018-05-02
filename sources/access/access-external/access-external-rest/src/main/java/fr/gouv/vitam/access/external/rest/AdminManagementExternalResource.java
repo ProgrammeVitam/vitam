@@ -435,7 +435,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "ingestcontracts:create:json",
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select) {
-
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),

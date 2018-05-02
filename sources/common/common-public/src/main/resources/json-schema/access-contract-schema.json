@@ -67,15 +67,24 @@
       "description": "pattern: Date",
       "anyOf": [
         {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
         },
         {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time"
         },
         {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time-vitam"
         }
       ]
@@ -84,15 +93,24 @@
       "description": "pattern: Date",
       "anyOf": [
         {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
         },
         {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time"
         },
         {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "date-time-vitam"
         }
       ]
@@ -100,7 +118,14 @@
     "DataObjectVersion": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "enum": [
+          "BinaryMaster",
+          "Dissemination",
+          "Thumbnail",
+          "TextContent",
+          "PhysicalMaster"
+        ]
       }
     },
     "OriginatingAgencies": {
@@ -125,5 +150,17 @@
       }
     }
   },
-  "required": ["_id", "_tenant", "Name", "_v", "Identifier", "Status", "CreationDate", "LastUpdate", "EveryDataObjectVersion", "EveryOriginatingAgency", "WritingPermission"]
+  "required": [
+    "_id",
+    "_tenant",
+    "Name",
+    "_v",
+    "Identifier",
+    "Status",
+    "CreationDate",
+    "LastUpdate",
+    "EveryDataObjectVersion",
+    "EveryOriginatingAgency",
+    "WritingPermission"
+  ]
 }

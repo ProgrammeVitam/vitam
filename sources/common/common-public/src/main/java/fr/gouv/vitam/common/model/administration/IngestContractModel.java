@@ -45,11 +45,17 @@ public class IngestContractModel extends AbstractContractModel {
     /**
      * Attachment GUID
      */
-    public static final String LINK_PARENT_ID = "LinkParentId";    
+    public static final String LINK_PARENT_ID = "LinkParentId";
     /**
-     * Activated control on parent id (ACTIVE / INACTOVE)
+     * Activated control on parent id (ACTIVE / INACTIVE)
      */
     public static final String TAG_CHECK_PARENT_LINK = "CheckParentLink";
+
+    public static final String MASTER_MANDATORY = "MasterMandatory";
+
+    public static final String EVERY_DATA_OBJECT_VERSION = "EveryDataObjectVersion";
+
+    public static final String DATA_OBJECT_VERSION = "DataObjectVersion";
 
     @JsonProperty(LINK_PARENT_ID)
     private String linkParentId;
@@ -59,12 +65,26 @@ public class IngestContractModel extends AbstractContractModel {
 
     @JsonProperty(TAG_CHECK_PARENT_LINK)
     private ActivationStatus checkParentLink;
-    
+    /**
+     * masterMandatory is true by default if no value is specified
+     */
+    @JsonProperty(MASTER_MANDATORY)
+    private boolean masterMandatory = true;
+    /**
+     * everyDataObjectVersion is false by default if no value is specified
+     */
+    @JsonProperty(EVERY_DATA_OBJECT_VERSION)
+    private boolean everyDataObjectVersion = false;
+
+    @JsonProperty(DATA_OBJECT_VERSION)
+    private Set<String> dataObjectVersion;
+
+
     public IngestContractModel() {
         super();
     }
-    
-    
+
+
     /**
      * @return linkParentId
      */
@@ -90,7 +110,7 @@ public class IngestContractModel extends AbstractContractModel {
         this.archiveProfiles = archiveProfiles;
         return this;
     }
-    
+
     /**
      * Get the check parent link status
      *
@@ -111,5 +131,31 @@ public class IngestContractModel extends AbstractContractModel {
         this.checkParentLink = status;
         return this;
     }
-    
+
+    public boolean isMasterMandatory() {
+        return masterMandatory;
+    }
+
+    public IngestContractModel setMasterMandatory(boolean masterMandatory) {
+        this.masterMandatory = masterMandatory;
+        return this;
+    }
+
+    public boolean isEveryDataObjectVersion() {
+        return everyDataObjectVersion;
+    }
+
+    public IngestContractModel setEveryDataObjectVersion(boolean everyDataObjectVersion) {
+        this.everyDataObjectVersion = everyDataObjectVersion;
+        return this;
+    }
+
+    public Set<String> getDataObjectVersion() {
+        return dataObjectVersion;
+    }
+
+    public IngestContractModel setDataObjectVersion(Set<String> dataObjectVersion) {
+        this.dataObjectVersion = dataObjectVersion;
+        return this;
+    }
 }
