@@ -31,6 +31,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.functional.administration.common.Agencies.DESCRIPTION;
 import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.ERROR;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
 import  fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import java.io.ByteArrayInputStream;
@@ -836,7 +837,7 @@ public class AgenciesService implements VitamAutoCloseable {
         final AgenciesReport reportFinal = generateReport();
 
         final ArrayNode messagesArrayNode = JsonHandler.createArrayNode();
-        final HashMap<String, String> errors = new HashMap<>();
+        final HashMap<String, Object> errors = new HashMap<>();
 
         for (Integer line : errorsMap.keySet()) {
             List<ErrorReportAgencies> errorsReports = errorsMap.get(line);
@@ -847,11 +848,11 @@ public class AgenciesService implements VitamAutoCloseable {
                 switch (error.getCode()) {
                     case STP_IMPORT_AGENCIES_MISSING_INFORMATIONS:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                            error.getMissingInformations());
+                                error.getMissingInformations());
                         break;
                     case STP_IMPORT_AGENCIES_ID_DUPLICATION:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                            error.getFileAgenciesModel().getId());
+                                error.getFileAgenciesModel().getId());
                         break;
                     case STP_IMPORT_AGENCIES_NOT_CSV_FORMAT:
                     case STP_IMPORT_AGENCIES_DELETE_USED_AGENCIES:
@@ -861,7 +862,7 @@ public class AgenciesService implements VitamAutoCloseable {
                 }
                 messagesArrayNode.add(errorNode);
             }
-            errors.put(String.format("line %s", line), messagesArrayNode.toString());
+            errors.put(String.format("line %s", line), messagesArrayNode);
         }
         reportFinal.setError(errors);
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));

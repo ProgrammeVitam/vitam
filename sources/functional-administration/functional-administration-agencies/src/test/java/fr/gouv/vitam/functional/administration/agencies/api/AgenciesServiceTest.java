@@ -258,8 +258,7 @@ public class AgenciesServiceTest {
 
         assertThat(response.isOk()).isFalse();
         assertThat(report.get("Operation")).isNotNull();
-        String error =
-            "{\"line 4\":\"[{\\\"Code\\\":\\\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\\\",\\\"Message\\\":\\\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\\\",\\\"Information additionnelle\\\":\\\"Name\\\"}]\"}";
+        String error = "{\"line 4\":[{\"Code\":\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\",\"Message\":\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\",\"Information additionnelle\":\"Name\"}]}";
         assertThat(report.get("error").toString()).isEqualTo(error);
         reportPath.toFile().delete();
 
@@ -272,8 +271,7 @@ public class AgenciesServiceTest {
 
         assertThat(response.isOk()).isFalse();
         assertThat(report.get("Operation")).isNotNull();
-        error =
-            "{\"line 3\":\"[{\\\"Code\\\":\\\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\\\",\\\"Message\\\":\\\"Le fichier importé n'est pas au format CSV\\\"}]\"}";
+        error = "{\"line 3\":[{\"Code\":\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\",\"Message\":\"Le fichier importé n'est pas au format CSV\"}]}";
         assertThat(report.get("error").toString()).isEqualTo(error);
         reportPath.toFile().delete();
 
