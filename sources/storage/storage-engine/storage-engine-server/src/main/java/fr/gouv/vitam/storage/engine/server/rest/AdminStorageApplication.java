@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.server.rest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
@@ -82,6 +83,7 @@ public class AdminStorageApplication extends Application {
 
             singletons.add(new AdminOfferSyncResource(distribution));
             singletons.add(new BasicAuthenticationFilter(storageConfiguration));
+            singletons.add(new AdminRequestIdFilter());
 
         } catch (IOException e) {
             throw new RuntimeException(e);

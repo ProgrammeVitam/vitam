@@ -46,6 +46,7 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
+import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
 /**
@@ -79,6 +80,7 @@ public class AdminLogbookApplication extends Application {
             singletons.add(new LogbookAdminResource(VitamRepositoryFactory.getInstance(), logbookConfiguration));
             singletons.add(new LogbookReconstructionResource(VitamRepositoryFactory.getInstance(), offsetRepository));
             singletons.add(new BasicAuthenticationFilter(logbookConfiguration));
+            singletons.add(new AdminRequestIdFilter());
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }

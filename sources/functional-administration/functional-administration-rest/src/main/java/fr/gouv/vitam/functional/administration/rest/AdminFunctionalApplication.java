@@ -49,6 +49,7 @@ import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
 /**
@@ -107,6 +108,7 @@ public class AdminFunctionalApplication extends Application {
             singletons.add(adminSecurityProfileResource);
 
             singletons.add(new BasicAuthenticationFilter(configuration));
+            singletons.add(new AdminRequestIdFilter());
 
         } catch (VitamException | IOException e) {
             throw new RuntimeException(e);
