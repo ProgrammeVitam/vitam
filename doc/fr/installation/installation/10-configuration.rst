@@ -54,7 +54,9 @@ Enfin, la déclaration des configuration des offres de stockage est réalisée d
 
 Se référer aux commentaires dans le fichier pour le renseigner correctement.
 
-.. note:: dans le cas d'un déploiement multi-sites, dans la section ``vitam_strategy``, la directive ``vitam_site_name`` définit pour  l'offre associée le nom du datacenter consul.  Par défaut, si non défini, c'est la valeur de la variable ``vitam_site_name`` définie dans l'inventaire.
+.. note:: Dans le cas d'un déploiement multi-sites, dans la section ``vitam_strategy``, la directive ``vitam_site_name`` définit pour  l'offre associée le nom du datacenter consul.  Par défaut, si non définie, c'est la valeur de la variable ``vitam_site_name`` définie dans l'inventaire.
+
+.. warning:: Ne définir, dans la section ``vitam_strategy``, QUE les noms déclarés pour chaque type d'offre (ne pas laisser d'entrée qui ne soit définie sur aucune offre).
 
 .. warning:: Ne pas oublier, en cas de connexion à un keystone en https, de répercuter dans la :term:`PKI` la clé publique de la CA du keystone.
 
