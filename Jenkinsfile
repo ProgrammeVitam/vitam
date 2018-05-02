@@ -257,11 +257,15 @@ pipeline {
                         sshagent (credentials: ['jenkins_sftp_to_repository']) {
                             sh 'vitam-build.git/push_deployment_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
+                    },
+                    "Updating symlink": {
+                        sshagent (credentials: ['jenkins_sftp_to_repository']) {
+                            sh 'vitam-build.git/push_symlink_repo.sh commit $SERVICE_REPO_SSHURL'
+                        }
                     }
                 )
             }
         }
-
         stage("Checkmarx analysis") {
             when {
                 anyOf {
@@ -295,6 +299,7 @@ pipeline {
             }
 
         }
+
         stage("Information") {
             steps {
                 script {
