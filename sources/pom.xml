@@ -258,6 +258,14 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>1.16</version>
+                    <configuration>
+                        <offline>true</offline>
+                    </configuration>
+                </plugin>
                 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
                 <!-- Main Maven plugins, see http://maven.apache.org/plugins/index.html -->
                 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
