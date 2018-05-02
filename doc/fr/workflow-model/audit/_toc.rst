@@ -7,5 +7,6 @@ AUDIT
    
    workflow-check-traceability
    workflow_audit_file_existing_integrity
-   workflow_audit_file_consistency
    rapportaudit
+   workflow_audit_file_consistency
+   rapportauditconsistency
