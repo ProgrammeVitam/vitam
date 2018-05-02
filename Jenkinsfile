@@ -24,6 +24,8 @@ pipeline {
         SERVICE_CHECKMARX_URL = credentials("service-checkmarx-url")
         SERVICE_REPO_SSHURL = credentials("repository-connection-string")
         SERVICE_GIT_URL = credentials("service-gitlab-url")
+        SERVICE_PROXY_HOST = credentials("http-proxy-host")
+        SERVICE_PROXY_PORT = credentials("http-proxy-port")
     }
 
    stages {
@@ -273,7 +275,9 @@ pipeline {
                 sh 'mkdir -p target'
                 sh 'mkdir -p logs'
                 // KWA : Visibly, backslash escape hell. \\ => \ in groovy string.
-                sh '/opt/CxConsole/runCxConsole.sh scan --verbose -Log "${PWD}/logs/cxconsole.log" -CxServer "$SERVICE_CHECKMARX_URL" -CxUser "VITAM openLDAP\\\\$CI_USR" -CxPassword \\"$CI_PSW\\" -ProjectName "CxServer\\SP\\Vitam\\Users\\vitam-parent $GIT_BRANCH" -LocationType folder -locationPath "${PWD}/sources"  -Preset "Default 2014" -LocationPathExclude test target bower_components node_modules dist -ReportPDF "${PWD}/target/checkmarx-report.pdf"'
+                withEnv(["JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttp.proxyPort=${env.SERVICE_PROXY_PORT} -Dhttps.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttps.proxyPort=${env.SERVICE_PROXY_PORT}"]) {
+                    sh '/opt/CxConsole/runCxConsole.sh scan --verbose -Log "${PWD}/logs/cxconsole.log" -CxServer "$SERVICE_CHECKMARX_URL" -CxUser "VITAM openLDAP\\\\$CI_USR" -CxPassword \\"$CI_PSW\\" -ProjectName "CxServer\\SP\\Vitam\\Users\\vitam-parent $GIT_BRANCH" -LocationType folder -locationPath "${PWD}/sources"  -Preset "Default 2014" -LocationPathExclude test target bower_components node_modules dist -ReportPDF "${PWD}/target/checkmarx-report.pdf"'
+                }
             }
             post {
                 success {
