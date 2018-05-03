@@ -59,7 +59,7 @@ public class AgenciesReport {
     @JsonProperty("Operation")
     private HashMap<String, String> jdo = new HashMap<>();
     @JsonProperty("error")
-    private HashMap<String, String> errors;
+    private HashMap<String, Object> errors;
 
     /**
      *
@@ -94,7 +94,7 @@ public class AgenciesReport {
     }
 
     /**
-     * 
+     *
      * @return
      */
     public List<String> getUpdatedAgencies() {
@@ -177,7 +177,7 @@ public class AgenciesReport {
      *
      * @return
      */
-    public HashMap<String, String> getErrors() {
+    public HashMap<String, Object> getErrors() {
         return errors;
     }
 
@@ -185,7 +185,7 @@ public class AgenciesReport {
      *
      * @param errors
      */
-    public void setError(HashMap<String, String> errors) {
+    public void setError(HashMap<String, Object> errors) {
         this.errors = errors;
     }
 
