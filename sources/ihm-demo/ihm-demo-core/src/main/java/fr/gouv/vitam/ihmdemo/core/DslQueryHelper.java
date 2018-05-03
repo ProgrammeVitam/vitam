@@ -92,6 +92,9 @@ public final class DslQueryHelper {
     private static final String ARCHIVE_UNIT_PROFILE_ID = "ArchiveUnitProfileID";
     private static final String ARCHIVE_UNIT_PROFILE_IDENTIFIER = "ArchiveUnitProfileIdentifier";
     private static final String ARCHIVE_UNIT_PROFILE_NAME = "ArchiveUnitProfileName";
+    private static final String ONTOLOGY_TYPE = "OntologyType";
+    private static final String ONTOLOGY_NAME = "OntologyName";
+    private static final String ONTOLOGY_ID = "OntologyID";
     private static final String ORIGINATING_AGENCY_TAG = "#originating_agency";
     private static final String DESCRIPTION_LEVEL_TAG = "DescriptionLevel";
     private static final String DESCRIPTION = "Description";
@@ -188,7 +191,8 @@ public final class DslQueryHelper {
                     case CONTRACT_NAME:
                     case PROFILE_NAME:
                     case ARCHIVE_UNIT_PROFILE_NAME:
-                        realSortField = "Name";
+                    case ONTOLOGY_NAME:
+                        realSortField = "ApiField";
                         break;
 
                     case PROFILE_IDENTIFIER:
@@ -326,6 +330,13 @@ public final class DslQueryHelper {
                         }
                         break;
 
+                    case ONTOLOGY_TYPE:
+                        if ("all".equals(searchValue)) {
+                            query.add(exists("Type"));
+                        } else if (!searchValue.isEmpty()) {
+                            query.add(match("Type", searchValue));
+                        }
+
                     case AGENCY_NAME:
                     case CONTEXT_NAME:
                     case CONTRACT_NAME:
@@ -338,11 +349,26 @@ public final class DslQueryHelper {
                         }
                         break;
 
+                    case ONTOLOGY_NAME:
+                        if ("all".equals(searchValue)) {
+                            query.add(or()
+                                .add(exists("ApiField"))
+                                .add(exists("SedaField"))
+                            );
+                        } else if (!searchValue.isEmpty()) {
+                            query.add(or()
+                                .add(match("ApiField", searchValue))
+                                .add(match("SedaField", searchValue))
+                            );
+                        }
+                        break;
+
                     case AGENCY_ID:
                     case CONTRACT_ID:
                     case CONTEXT_ID:
                     case PROFILE_ID:
                     case ARCHIVE_UNIT_PROFILE_ID:
+                    case ONTOLOGY_ID:
                         if (!"all".equals(searchValue)) {
                             query.add(eq("Identifier", searchValue));
                         }

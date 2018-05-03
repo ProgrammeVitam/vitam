@@ -1,5 +1,4 @@
 export class Ontology {
-  Name: string;
   Identifier: string;
   ApiField: string;
   SedaField: string;
@@ -8,4 +7,5 @@ export class Ontology {
   Description: string;
   CreationDate: string;
   LastUpdate: string;
+  '#tenant': string;
 }
