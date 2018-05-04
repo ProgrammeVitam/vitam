@@ -43,10 +43,6 @@
     name: git-lfs
     state: latest
 
-# SYSTEM WIDE ? sinon, lancer en tant que vitam
-- name: initialize git lfs
-  shell: git lfs install
-
 - name: ensure subdir exist
   file:
     path: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/test-data/system"
@@ -80,23 +76,18 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: vitam_gitlab_itest_login is defined
 
+- name: initialize git lfs
+  chdir: /vitam/data/ihm-recette/test-data/system
+  shell: git lfs install --local
+  become_user: "{{ vitam_defaults.users.vitam }}"
 
-# cf. https://help.github.com/articles/caching-your-github-password-in-git/
-# and https://git-scm.com/docs/git-credential-cache
-# - name: init cache for git
-#   shell: git config credential.helper 'store --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
-#   become_user: "{{ vitam_defaults.users.vitam }}"
-#   args:
-#     chdir: /vitam/data/ihm-recette/test-data/system/
-
-# - name: init cache for git
-#   shell: git config credential.helper 'cache --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
-#   become_user: "{{ vitam_defaults.users.vitam }}"
-#   args:
-#     chdir: /vitam/data/ihm-recette/test-data/system/
+# # SYSTEM WIDE ? sinon, lancer en tant que vitam
+# - name: initialize git lfs
+#   chdir: /vitam/data/ihm-recette/test-data/system
+#   shell: git lfs pull
 
 - name: ensure git repo is clean
-  shell: git clean -fd
+  shell: git reset --hard
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
