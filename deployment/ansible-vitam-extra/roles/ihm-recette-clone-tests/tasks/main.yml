@@ -77,9 +77,10 @@
   when: vitam_gitlab_itest_login is defined
 
 - name: initialize git lfs
-  chdir: /vitam/data/ihm-recette/test-data/system
   shell: git lfs install --local
   become_user: "{{ vitam_defaults.users.vitam }}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system
 
 # # SYSTEM WIDE ? sinon, lancer en tant que vitam
 # - name: initialize git lfs
