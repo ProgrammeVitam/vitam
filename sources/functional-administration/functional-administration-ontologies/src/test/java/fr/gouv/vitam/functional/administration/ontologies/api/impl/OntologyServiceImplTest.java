@@ -162,6 +162,15 @@ public class OntologyServiceImplTest {
         assertThat(ontologyModelList.getResults()).isEmpty();
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestFindAllForCacheThenReturnEmpty() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final RequestResponseOK<OntologyModel> ontologyModelList =
+                ontologyService.findOntologiesForCache(JsonHandler.createObjectNode());
+        assertThat(ontologyModelList.getResults()).isEmpty();
+    }
+
 
     @Test
     @RunWithCustomExecutor

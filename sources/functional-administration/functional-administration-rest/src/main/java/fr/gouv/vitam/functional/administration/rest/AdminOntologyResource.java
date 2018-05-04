@@ -92,4 +92,17 @@ public class AdminOntologyResource {
         return ontologyResource.findOntologies(queryDsl);
     }
 
+    @Path("/ontologies/cache")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findOntologiesForCache(JsonNode queryDsl) {
+        // TODO: report this as a vitam event
+        LOGGER.info("find ontology with admin interface");
+        LOGGER.info("using of admin tenant: 1");
+
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        return ontologyResource.findOntologiesForCache(queryDsl);
+    }
+    
 }

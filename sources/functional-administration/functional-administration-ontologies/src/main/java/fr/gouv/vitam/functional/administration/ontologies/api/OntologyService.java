@@ -75,6 +75,15 @@ public interface OntologyService extends VitamAutoCloseable {
     RequestResponseOK<OntologyModel> findOntologies(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;
 
-
+    /**
+     * find an ontology by QueryDsl (find directly in db)
+     *
+     * @param queryDsl the query as a json to be executed
+     * @return list of OntologyModel
+     * @throws ReferentialException thrown if the query could not be executed
+     * @throws InvalidParseOperationException thrown if the query could not be executed
+     */
+    RequestResponseOK<OntologyModel> findOntologiesForCache(JsonNode queryDsl)
+        throws ReferentialException, InvalidParseOperationException;
 
 }
