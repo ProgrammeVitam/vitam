@@ -48,7 +48,7 @@ Le fonctionnement multisite s'appuie fortement sur les capacités de reconstruct
 * Sur le site secondaire, des processus viennent régulièrement récupérer les données écrites en dernier dans l'offre de stockage de ce site (en se basant sur le contenu des logs d'écriture de l'offre) pour alimenter en update le contenu des bases de données "secondaires" :
 
     - Référentiels : reconstruction régulière et totale
-    - AU/GOT/BDO/Journaux : reconstruction au fil de l’eau
+    - AU/GOT/BDO/Journaux/Graphe : reconstruction au fil de l’eau
 
 En cas de perte du site primaire, l'intégralité des données est donc présente dans le stockage sur le site secondaire, et est presque entièrement reconstruit dans les bases de données du même site. Une fois la reconstruction complètement terminée, le site secondaire est donc accessible ; le niveau d'accessibilité dépendra de la stratégie de stockage sur le site secondaire :
 

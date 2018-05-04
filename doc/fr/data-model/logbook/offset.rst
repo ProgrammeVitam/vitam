@@ -7,7 +7,11 @@ Utilisation de la collection
 Cette collection permet de persister les offsets des dernières données reconstruites des offres de stockage lors de la reconstruction au fil de l'eau pour les collections :
 
   * LogbookOperation
-  
+  * Unit
+  * ObjetGroup
+  * UNIT_GRAPH
+  * OBJETGROUP_GRAPH
+
 Il y a une valeur d'offset par couple tenant/collection. 
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs
