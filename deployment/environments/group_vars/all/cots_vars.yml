@@ -1,5 +1,7 @@
 ---
 consul_remote_sites:
+    # domain_name variables must correspond to vitam_site_name in each site inventory
+    # wan contains the wan addresses of consul server instances
     # - dc2:
     #   domain_name: "dc2"
     #   wan: ["10.10.10.10","1.1.1.1"]
