@@ -97,8 +97,7 @@ public class MongoDbAccessMetadataImplTest {
     private static ElasticsearchTestConfiguration config = null;
 
     @Rule
-    public MongoRule
-        mongoRule =
+    public MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test", "ObjectGroup", "Unit");
     private MongoClient mongoClient = mongoRule.getMongoClient();
 
@@ -159,12 +158,15 @@ public class MongoDbAccessMetadataImplTest {
         final String operationId = "1234";
         unit.insertOne(
             new Document("_id", "1").append("_ops", Arrays.asList(operationId))
+                .append("_opi", Arrays.asList(operationId))
                 .append("_sps", Arrays.asList("sp1", "sp2")));
         unit.insertOne(
             new Document("_id", "2").append("_ops", Arrays.asList(operationId))
+                .append("_opi", Arrays.asList(operationId))
                 .append("_sps", Arrays.asList("sp1")));
         unit.insertOne(
             new Document("_id", "3").append("_ops", Arrays.asList("otherOperationId"))
+                .append("_opi", Arrays.asList("otherOperationId"))
                 .append("_sps", Arrays.asList("sp2")));
         // When
         final List<Document> documents = metaData.selectAccessionRegisterOnUnitByOperationId(operationId);

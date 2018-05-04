@@ -48,7 +48,7 @@ public class MongoDbMetadataResponseFilter {
     /**
      * Removes a field from document
      *
-     * @param document  the document to update
+     * @param document the document to update
      * @param fieldName the field to remove
      */
     private static final void remove(Document document, String fieldName) {
@@ -98,7 +98,7 @@ public class MongoDbMetadataResponseFilter {
                     break;
                 case INITIAL_OPERATION:
                     replace(document, MetadataDocument.OPI, VitamFieldsHelper.initialOperation());
-                    break;                    
+                    break;
                 case QUALIFIERS:
                     filterQualifiers(document);
                     break;
@@ -181,6 +181,7 @@ public class MongoDbMetadataResponseFilter {
                 if (versions != null) {
                     for (Object version : versions) {
                         replace((Document) version, MetadataDocument.ID, VitamFieldsHelper.id());
+                        replace((Document) version, MetadataDocument.OPI, VitamFieldsHelper.initialOperation());
                         replace((Document) qualifier, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
 
                         Object storage = ((Document) version).get(ObjectGroup.STORAGE);

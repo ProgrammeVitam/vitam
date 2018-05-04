@@ -337,7 +337,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             throw new InvalidParseOperationException(e);
         }
         if (Strings.isNullOrEmpty(objectGroupId)) {
-            throw new InvalidParseOperationException("unitId may not be empty");
+            throw new InvalidParseOperationException("objectGroupId may not be empty");
         }
         Response response = null;
         try {

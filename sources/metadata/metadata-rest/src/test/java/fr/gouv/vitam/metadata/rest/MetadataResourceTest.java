@@ -287,20 +287,7 @@ public class MetadataResourceTest {
     public void givenInsertComplexUnitGraphThenCheckGraph() throws Exception {
 
         /*
-         * Test case :
-         * 1(sp1)  2(sp2)  3(sp3)
-         * |     / |       |
-         * |   /   |       |
-         * | /     |       |
-         * 4(sp1)  5(sp2)  6(sp4)
-         * |     /
-         * |   /
-         * | /
-         * 7(sp1)
-         * |
-         * |
-         * |
-         * 8(sp1)
+         * Test case : 1(sp1) 2(sp2) 3(sp3) | / | | | / | | | / | | 4(sp1) 5(sp2) 6(sp4) | / | / | / 7(sp1) | | | 8(sp1)
          */
 
         // Given
@@ -335,10 +322,7 @@ public class MetadataResourceTest {
 
     private void createUnit(String id, String sp, String... directParents) throws Exception {
 
-        String unitData = "{"
-            + "\"#id\": \"" + id + "\","
-            + "\"#originating_agency\": \"" + sp + "\""
-            + "}";
+        String unitData = "{" + "\"#id\": \"" + id + "\"," + "\"#originating_agency\": \"" + sp + "\"" + "}";
 
         with()
             .contentType(ContentType.JSON)
@@ -483,6 +467,7 @@ public class MetadataResourceTest {
         String operationId = "1234";
         MetadataCollections.UNIT.getCollection().insertOne(
             new Document("_id", "1").append("_ops", singletonList(operationId))
+                .append("_opi", singletonList(operationId))
                 .append("_sps", Arrays.asList("sp1", "sp2")));
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
