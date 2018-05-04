@@ -19,14 +19,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
-import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.Before;
@@ -37,10 +33,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-public class StoreGraphServiceTest {
 
-    public static final String DEFAULT_STRATEGY = "default";
+@RunWith(MockitoJUnitRunner.class)
+public class GraphBuilderServiceImplTest {
+
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -50,23 +46,10 @@ public class StoreGraphServiceTest {
     private VitamRepositoryProvider vitamRepositoryProvider;
 
     @Mock
-    private RestoreBackupService restoreBackupService;
-
-    @Mock
     private VitamMongoRepository unitRepository;
 
     @Mock
     private VitamMongoRepository gotRepository;
-
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private StorageClientFactory storageClientFactory;
-
-
-    @Mock
-    private StorageClient storageClient;
 
     @Mock
     private FindIterable findIterableUnit;
@@ -82,14 +65,12 @@ public class StoreGraphServiceTest {
     private MongoCursor mongoCursorGot;
 
     @InjectMocks
-    private StoreGraphService storeGraphService;
+    private GraphBuilderServiceImpl storeGraphService;
 
     @Before
     public void setup() {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
-        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
-        given(storageClientFactory.getClient()).willReturn(storageClient);
 
         given(unitRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableUnit);
         given(gotRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableGot);
@@ -114,48 +95,7 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenNoGraphInOfferThenGetListingReturnInitialDate() throws StoreGraphException {
-        // given
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenReturn(
-                Lists.newArrayList());
-
-        LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
-        assertThat(date).isEqualTo(StoreGraphService.INITIAL_START_DATE);
-
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void whenGetListingReturnLastDate() throws StoreGraphException {
-        // given
-        String startDate = "2018-01-01-00-00-00-000";
-        String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenReturn(
-                Lists.newArrayList(
-                    new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        "write")));
-
-
-        LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
-        LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
-        assertThat(date).isEqualTo(dateTime);
-    }
-
-
-    @Test(expected = StoreGraphException.class)
-    @RunWithCustomExecutor
-    public void whenGetListingThenExceptionOccurs() throws StoreGraphException {
-        // given
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenThrow(new RuntimeException(""));
-        storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void whenTryStoreGraphThenOK() throws StoreGraphException {
+    public void whenBuildGraphThenOK() throws GraphBuilderException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
@@ -187,7 +127,7 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenStoreGraphThenNoUnitGraphInThePeriodOK() throws StoreGraphException {
+    public void whenStoreGraphThenNoUnitGraphInThePeriodOK() throws GraphBuilderException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
