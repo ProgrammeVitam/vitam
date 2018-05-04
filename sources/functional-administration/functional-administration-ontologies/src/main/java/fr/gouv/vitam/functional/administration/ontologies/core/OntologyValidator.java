@@ -28,7 +28,9 @@ package fr.gouv.vitam.functional.administration.ontologies.core;
 
 import java.util.Optional;
 
+import fr.gouv.vitam.common.model.ModelConstants;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.functional.administration.common.OntologyErrorCode;
 
 /**
  * Used to validate ontology and to apply acceptance rules.
@@ -79,39 +81,62 @@ public interface OntologyValidator {
         private static final String ERR_DUPLICATE_ONTOLOGY = "The ontology %s already exists in database";
         private static final String ERR_INVALID_IDENTIFIER = "The ontology identifier %s is not valid";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        private static final String ERR_USED_ONTOLOGY = "The ontology %s is used in a document type";
 
 
+        private OntologyModel ontologyModel;
         private String reason;
+        private String fieldName;
+        private OntologyErrorCode errorCode;
 
         /**
          * Constructor
          *
+         * @param errorCode
          * @param error
          */
-        public RejectionCause(String error) {
+        public RejectionCause(String fieldName, OntologyModel ontologyModel, OntologyErrorCode errorCode, String error) {
+            setErrorCode(errorCode);
             setReason(error);
+            setFieldName(fieldName);
+            setOntologyModel(ontologyModel);
         }
 
 
 
         /**
-         * Reject if id exist and the action is creation. If id exists, it should be an update instead of create
+         * Reject if an id exist and the action is creation. If id exists, it should be an update instead of create
          *
-         * @param identifier
+         * @param ontologyModel
          * @return RejectionCause
          */
-        public static RejectionCause rejectIdNotAllowedInCreate(String identifier) {
-            return new RejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, identifier));
+        public static RejectionCause rejectIdNotAllowedInCreate(OntologyModel ontologyModel) {
+            return new RejectionCause(ModelConstants.TAG_ID, ontologyModel, OntologyErrorCode.STP_IMPORT_ONTOLOGIES_ID_NOT_ALLOWED_IN_CREATE,
+                String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, ontologyModel.getId()));
         }
 
         /**
          * Verify that no other ontology with the same identifier already exists
          *
-         * @param identifier
+         * @param ontologyModel
          * @return RejectionCause
          */
-        public static RejectionCause rejectDuplicatedInDatabase(String identifier) {
-            return new RejectionCause(String.format(ERR_DUPLICATE_ONTOLOGY, identifier));
+        public static RejectionCause rejectDuplicatedInDatabase(OntologyModel ontologyModel) {
+            return new RejectionCause(OntologyModel.TAG_IDENTIFIER, ontologyModel, OntologyErrorCode.STP_IMPORT_ONTOLOGIES_IDENTIFIER_ALREADY_IN_ONTOLOGY,
+                String.format(ERR_DUPLICATE_ONTOLOGY, ontologyModel.getIdentifier()));
+        }
+
+
+        /**
+         * Verify that the ontology is not used in a document type
+         *
+         * @param ontologyModel
+         * @param documentTypes the list of documentTypes using the specified ontology
+         * @return RejectionCause
+         */
+        public static RejectionCause rejectUsedByDocumentTypeInDatabase(OntologyModel ontologyModel, String documentTypes) {
+            return new RejectionCause(null, ontologyModel, OntologyErrorCode.STP_IMPORT_ONTOLOGIES_DELETE_USED_ONTOLOGY,
+                documentTypes);
         }
 
 
@@ -119,11 +144,12 @@ public interface OntologyValidator {
         /**
          * Reject if the ontology identifier is not valid
          *
-         * @param identifier
+         * @param ontologyModel
          * @return RejectionCause
          */
-        public static RejectionCause rejectInvalidIdentifier(String identifier) {
-            return new RejectionCause(String.format(ERR_INVALID_IDENTIFIER, identifier));
+        public static RejectionCause rejectInvalidIdentifier(OntologyModel ontologyModel) {
+            return new RejectionCause(OntologyModel.TAG_IDENTIFIER, ontologyModel, OntologyErrorCode.STP_IMPORT_ONTOLOGIES_INVALID_IDENTIFIER,
+                String.format(ERR_INVALID_IDENTIFIER, ontologyModel.getIdentifier()));
         }
 
 
@@ -133,8 +159,8 @@ public interface OntologyValidator {
          * @param fieldName
          * @return RejectionCause
          */
-        public static RejectionCause rejectMandatoryMissing(String fieldName) {
-            return new RejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
+        public static RejectionCause rejectMandatoryMissing(OntologyModel ontologyModel, String fieldName) {
+            return new RejectionCause(fieldName, ontologyModel, OntologyErrorCode.STP_IMPORT_ONTOLOGIES_MISSING_INFORMATION, String.format(ERR_MANDATORY_FIELD, fieldName));
         }
 
         /**
@@ -148,6 +174,30 @@ public interface OntologyValidator {
 
         private void setReason(String reason) {
             this.reason = reason;
+        }
+
+        public OntologyErrorCode getErrorCode() {
+            return errorCode;
+        }
+
+        private void setErrorCode(OntologyErrorCode errorCode) {
+            this.errorCode = errorCode;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+
+        public void setFieldName(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public OntologyModel getOntologyModel() {
+            return ontologyModel;
+        }
+
+        public void setOntologyModel(OntologyModel ontologyModel) {
+            this.ontologyModel = ontologyModel;
         }
     }
 }

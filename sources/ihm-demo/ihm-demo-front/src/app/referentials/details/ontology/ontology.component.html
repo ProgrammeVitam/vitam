@@ -49,6 +49,19 @@
             </div>
             <div class="ui-g-12">
 
+                <vitam-metadata-field [title]="'Traduction'" [originalTitle]="'ShortName'"
+                                      [value]="ontology.ShortName" [labelSize]="4"
+                                      class="ui-g-4" [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+                <vitam-metadata-field [title]="'Collections'" [originalTitle]="'Collections'"
+                                      [value]="ontology.Collections"
+                                      [labelSize]="4"
+                                      class="ui-g-4" [updateMode]="false"
+                                      [(updatedFields)]="updatedFields"></vitam-metadata-field>
+            </div>
+            <div class="ui-g-12">
+
             </div>
         </div>
     </div>

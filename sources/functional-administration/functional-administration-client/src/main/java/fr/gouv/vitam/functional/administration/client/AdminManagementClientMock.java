@@ -556,7 +556,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         return new RequestResponseOK();
     }
 
-    @Override public RequestResponse importOntologies(List<OntologyModel> ontologyModelList) throws InvalidParseOperationException, AdminManagementClientServerException {
+    @Override public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
 
@@ -579,10 +580,4 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         return responses;
     }
 
-    @Override public RequestResponse<OntologyModel> updateOntology(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        OntologyModel model =
-            JsonHandler.getFromString(ClientMockResultHelper.ONTOLOGIES, OntologyModel.class);
-        return ClientMockResultHelper.createReponse(model).setHttpCode(200);
-    }
 }

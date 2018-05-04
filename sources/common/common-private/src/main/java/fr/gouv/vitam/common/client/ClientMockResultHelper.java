@@ -370,6 +370,8 @@ public class ClientMockResultHelper {
         "\"SedaField\":\"OriginatingAgencyIdentifier\", " +
         "\"Description\":\"Internal ontology sample\", " +
         "\"Origin\":\"INTERNAL\", " +
+        "\"ShortName\":\"Originating Agency Identifier\", " +
+        "\"Collections\":[\"Unit\",\"ObjectGroup\"]," +
         "\"Type\":\"KEYWORD\", " +
         "\"CreationDate\":\"2018-02-02\", " +
         "\"LastUpdate\":\"2018-02-02\"" +

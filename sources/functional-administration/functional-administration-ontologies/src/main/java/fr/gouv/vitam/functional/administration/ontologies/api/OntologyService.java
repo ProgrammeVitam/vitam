@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.ontologies.api;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,7 +46,7 @@ public interface OntologyService extends VitamAutoCloseable {
 
 
     /**
-     * Create a collections of ontologies After passing the validation steps. If all the ontologies are valid, they are
+     * Import a collections of ontologies After passing the validation steps. If all the ontologies are valid, they are
      * stored in the collection and indexed. </BR>
      * The ontologies are not valid in the following situations : </BR>
      * <ul>
@@ -55,12 +56,13 @@ public interface OntologyService extends VitamAutoCloseable {
      * <li>A field has an invalid format</li>
      * </ul>
      *
-     * @param ontologyList the list of profiles to be created
+     * @param ontologyList the list of ontologies to be imported
+     * @param forceUpdate
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating ontologies
      */
-    RequestResponse<OntologyModel> createOntologies(List<OntologyModel> ontologyList)
-        throws VitamException;
+    RequestResponse<OntologyModel> importOntologies(boolean forceUpdate, List<OntologyModel> ontologyList)
+        throws VitamException, IOException;
 
     /**
      * find an ontology by QueryDsl
@@ -73,15 +75,6 @@ public interface OntologyService extends VitamAutoCloseable {
     RequestResponseOK<OntologyModel> findOntologies(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;
 
-    /**
-     * Update an ontology after passing validation steps : </BR>
-     *
-     * @param id identifier of the ontology to update
-     * @param queryDsl the given dsl for update
-     * @return RequestResponseOK on success or VitamError else
-     * @throws VitamException if in error occurs while validating ontologies
-     */
-    RequestResponse updateOntology(String id, JsonNode queryDsl)
-        throws VitamException;
+
 
 }

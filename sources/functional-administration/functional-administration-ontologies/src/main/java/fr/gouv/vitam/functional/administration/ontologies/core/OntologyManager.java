@@ -27,24 +27,24 @@
 
 package fr.gouv.vitam.functional.administration.ontologies.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.regex;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -54,18 +54,19 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
+import fr.gouv.vitam.functional.administration.common.ErrorReportOntologies;
 import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import org.bson.conversions.Bson;
 
 /**
@@ -73,44 +74,58 @@ import org.bson.conversions.Bson;
  */
 public class OntologyManager {
 
-    private static final String ONTOLOGY_SERVICE_ERROR = "Ontology service Error";
-    private static final String FUNCTIONAL_MODULE_ONTOLOGY = "FunctionalModule-Ontology";
-    private static final String COLLECTION_NAME = "Ontology";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyManager.class);
 
-    private List<OntologyValidator> validators;
+    private List<OntologyValidator> internalCreateValidators;
 
-    private List<OntologyValidator> externalValidators;
+    private List<OntologyValidator> externalCreateValidators;
+
+    private List<OntologyValidator> externalUpdateValidators;
+
+    private List<OntologyValidator> internalUpdateValidators;
+
+    private List<OntologyValidator> deleteValidators;
+
+    Map<String, List<ErrorReportOntologies>> errors;
 
     private final GUID eip;
 
     private LogbookOperationsClient logbookClient;
-    private final MetaDataClient metaDataClient;
 
-    public OntologyManager(LogbookOperationsClient logbookClient, MetaDataClient metaDataClient, GUID eip) {
+    public OntologyManager(LogbookOperationsClient logbookClient, GUID eip, Map<String, List<ErrorReportOntologies>> errors) {
         this.logbookClient = logbookClient;
-        this.metaDataClient = metaDataClient;
         this.eip = eip;
-        externalValidators = Arrays.asList(
+        this.errors = errors;
+        externalCreateValidators = Arrays.asList(
             createMandatoryParamsValidator(),
             createWrongFieldFormatValidator(),
             createCheckIdentifierValidator(),
             createCheckDuplicateInDatabaseValidator());
-        validators = Arrays.asList(
+        internalCreateValidators = Arrays.asList(
             createMandatoryParamsValidator(),
             createWrongFieldFormatValidator(),
             createCheckDuplicateInDatabaseValidator());
+        externalUpdateValidators = Arrays.asList(
+            createMandatoryParamsValidator(),
+            createWrongFieldFormatValidator(),
+            createCheckIdentifierValidator());
+        internalUpdateValidators = Arrays.asList(
+            createMandatoryParamsValidator(),
+            createWrongFieldFormatValidator());
+        deleteValidators = Arrays.asList(
+            createCheckUsedByDocumentTypeValidator());
     }
 
 
 
-    private boolean validate(OntologyModel ontology, VitamError error, List<OntologyValidator> validators) {
+    private boolean validate(String identifier, OntologyModel ontology, List<OntologyValidator> validators) {
 
         for (OntologyValidator validator : validators) {
             Optional<OntologyValidator.RejectionCause> result = validator.validate(ontology);
             if (result.isPresent()) {
                 // there is a validation error on this ontology.
-                error.addToErrors(getVitamError(result.get().getReason()));
+                this.addError(identifier, new ErrorReportOntologies(result.get().getErrorCode(), result.get().getFieldName(), result.get().getReason(), ontology), errors);
                 // once a validation error is detected on a ontology, jump to next ontology
                 return false;
             }
@@ -118,18 +133,74 @@ public class OntologyManager {
         return true;
     }
 
-    public boolean validateInternalOntology(OntologyModel ontology, VitamError error) {
-        return validate(ontology, error, validators);
+    /**
+     * Validate the creation of an INTERNAL ontology
+     *
+     * @param identifier
+     * @param ontology
+     * @return
+     */
+    public boolean validateCreateInternalOntology(String identifier, OntologyModel ontology) {
+        return validate(identifier, ontology, internalCreateValidators);
     }
 
-    public boolean validateExternalOntology(OntologyModel ontology, VitamError error) {
-        return validate(ontology, error, externalValidators);
+    /**
+     * Validate the creation of an EXTERNAL ontology
+     *
+     * @param identifier
+     * @param ontology
+     * @return
+     */
+    public boolean validateCreateExternalOntology(String identifier, OntologyModel ontology) {
+        return validate(identifier, ontology, externalCreateValidators);
     }
 
-    private VitamError getVitamError(String error) {
-        return new VitamError(VitamCode.ONTOLOGY_VALIDATION_ERROR.getItem())
-            .setMessage(ONTOLOGY_SERVICE_ERROR)
-            .setState("ko").setContext(FUNCTIONAL_MODULE_ONTOLOGY).setDescription(error);
+    /**
+     * Validate the update of an EXTERNAL ontology
+     *
+     * @param identifier
+     * @param ontology
+     * @return
+     */
+    public boolean validateUpdateExternalOntology(String identifier, OntologyModel ontology) {
+        return validate(identifier, ontology, externalUpdateValidators);
+    }
+
+    /**
+     * Validate the update of an INTERNAL ontology
+     *
+     * @param identifier
+     * @param ontology
+     * @return
+     */
+    public boolean validateUpdateInternalOntology(String identifier, OntologyModel ontology) {
+        return validate(identifier, ontology, internalUpdateValidators);
+    }
+
+    /**
+     * Validate the deletion of an ontology
+     *
+     * @param identifier
+     * @param ontology
+     * @return
+     */
+    public boolean validateDeleteOntology(String identifier, OntologyModel ontology) {
+        return validate(identifier, ontology, deleteValidators);
+    }
+
+    /**
+     * Add an error to the report
+     *
+     * @param identifier
+     * @param error
+     */
+    public void addError(String identifier, ErrorReportOntologies error, Map<String, List<ErrorReportOntologies>> errors) {
+        List<ErrorReportOntologies> lineErrors = this.errors.get(identifier);
+        if (lineErrors == null) {
+            lineErrors = new ArrayList<ErrorReportOntologies>();
+        }
+        lineErrors.add(error);
+        errors.put(identifier, lineErrors);
     }
 
     /**
@@ -234,11 +305,11 @@ public class OntologyManager {
         return (ontology) -> {
             OntologyValidator.RejectionCause rejection = null;
             if (ontology.getIdentifier() == null || ontology.getIdentifier().isEmpty()) {
-                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing(Ontology.IDENTIFIER);
+                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing(ontology, Ontology.IDENTIFIER);
             } else if (ontology.getType() == null) {
-                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing(Ontology.TYPE);
+                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing(ontology, Ontology.TYPE);
             } else if (ontology.getOrigin() == null) {
-                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing(Ontology.ORIGIN);
+                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing(ontology, Ontology.ORIGIN);
             }
             return (rejection == null) ? Optional.empty() : Optional.of(rejection);
         };
@@ -265,7 +336,7 @@ public class OntologyManager {
 
             } catch (Exception e) {
                 LOGGER.error("Error ontology parse dates", e);
-                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing("CreationDate");
+                rejection = OntologyValidator.RejectionCause.rejectMandatoryMissing(ontology, "CreationDate");
             }
 
             ontology.setLastupdate(now);
@@ -278,6 +349,7 @@ public class OntologyManager {
 
     /**
      * Check if the ontology identifier already exists in DB or is equal to a sedafield in DB
+     * Check is done for the current tenant and the admin tenant ontologies
      *
      * @return
      */
@@ -286,16 +358,45 @@ public class OntologyManager {
         return (ontology) -> {
             if (ParametersChecker.isNotEmpty(ontology.getIdentifier())) {
                 int tenant = ParameterHelper.getTenantParameter();
-                Bson clause = and(eq(VitamDocument.TENANT_ID, tenant),
-                    or(regex(Ontology.IDENTIFIER, "^(?i)" + Pattern.quote(ontology.getIdentifier())),
-                        regex(Ontology.SEDAFIELD, "^(?i)" + Pattern.quote(ontology.getIdentifier()))));
+                Bson clause = or(regex(Ontology.IDENTIFIER, "^(?i)" + Pattern.quote(ontology.getIdentifier())),
+                    regex(Ontology.SEDAFIELD, "^(?i)" + Pattern.quote(ontology.getIdentifier())));
+
                 boolean exist = FunctionalAdminCollections.ONTOLOGY.getCollection().count(clause) > 0;
                 if (exist) {
-                    return Optional.of(OntologyValidator.RejectionCause.rejectDuplicatedInDatabase(ontology.getIdentifier()));
+                    return Optional.of(OntologyValidator.RejectionCause.rejectDuplicatedInDatabase(ontology));
                 }
             }
             return Optional.empty();
 
+        };
+    }
+
+
+
+    /**
+     * Check if the ontology is used in a document type
+     *
+     * @return
+     */
+    public OntologyValidator createCheckUsedByDocumentTypeValidator() {
+
+        return (ontology) -> {
+            if (ParametersChecker.isNotEmpty(ontology.getIdentifier())) {
+                Bson clause = in(ArchiveUnitProfileModel.FIELDS, ontology.getIdentifier());
+                FindIterable<ArchiveUnitProfile> find = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().find(clause);
+                boolean isUsed = false;
+                ArrayNode documentTypesNode = JsonHandler.createArrayNode();
+                MongoCursor<ArchiveUnitProfile> iter = find.iterator();
+                while (iter.hasNext()) {
+                    isUsed = true;
+                    final ArchiveUnitProfile archiveUnitProfile = iter.next();
+                    documentTypesNode.add(archiveUnitProfile.getIdentifier());
+                }
+                if (isUsed) {
+                    return Optional.of(OntologyValidator.RejectionCause.rejectUsedByDocumentTypeInDatabase(ontology, JsonHandler.unprettyPrint(documentTypesNode)));
+                }
+            }
+            return Optional.empty();
         };
     }
 
@@ -314,14 +415,13 @@ public class OntologyManager {
 
                 final Matcher matcher = compiledPattern.matcher(ontology.getIdentifier().trim());
                 if (matcher.find()) {
-                    return Optional.of(OntologyValidator.RejectionCause.rejectInvalidIdentifier(ontology.getIdentifier()));
+                    return Optional.of(OntologyValidator.RejectionCause.rejectInvalidIdentifier(ontology));
                 }
             }
             return Optional.empty();
 
         };
     }
-
 
 
 }

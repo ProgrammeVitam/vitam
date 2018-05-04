@@ -5,7 +5,8 @@ export class Ontology {
   Origin: string;
   Type: string;
   Description: string;
+  ShortName: string;
+  Collections: string[];
   CreationDate: string;
   LastUpdate: string;
-  '#tenant': string;
 }

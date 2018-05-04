@@ -58,6 +58,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -2971,7 +2972,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
     /**
-     * Create ontologies
+     * Import the ontologies json file
      *
      * @param request HTTP request
      * @param input a json file
@@ -2982,12 +2983,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("ontologies:create")
-    public Response createOntologies(@Context HttpServletRequest request, InputStream input)
+    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate, @Context HttpServletRequest request, InputStream input)
         throws IOException {
         // want a creation
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.createOntologies(
+                adminClient.importOntologies(forceUpdate,
                     UserInterfaceTransactionManager.getVitamContext(request), input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();

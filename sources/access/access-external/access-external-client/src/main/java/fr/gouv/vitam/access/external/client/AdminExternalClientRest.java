@@ -1090,13 +1090,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    @Override public RequestResponse createOntologies(VitamContext vitamContext, InputStream ontologies)
+    @Override public RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream ontologies)
         throws InvalidParseOperationException, AccessExternalClientException {
         ParametersChecker.checkParameter("The input ontologies json is mandatory", ontologies,
             AdminCollections.ONTOLOGY);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.putAll(vitamContext.getHeaders());
+        headers.add(GlobalDataRest.FORCE_UPDATE, forceUpdate);
         try {
             response = performRequest(HttpMethod.POST, AdminCollections.ONTOLOGY.getName(), headers,
                 ontologies, MediaType.APPLICATION_JSON_TYPE,
@@ -1112,24 +1113,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override public RequestResponse updateOntology(VitamContext vitamContext, String ontologyId, JsonNode queryDSL)
-        throws InvalidParseOperationException, AccessExternalClientException {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ONTOLOGY + ontologyId, headers,
-                queryDSL, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

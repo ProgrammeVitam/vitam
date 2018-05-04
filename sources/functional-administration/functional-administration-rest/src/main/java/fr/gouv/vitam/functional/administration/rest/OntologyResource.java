@@ -29,10 +29,9 @@ package fr.gouv.vitam.functional.administration.rest;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -42,6 +41,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -112,12 +111,12 @@ public class OntologyResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOntologies(List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
+    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate, List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
         try (OntologyService ontologyService =
             new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
-            RequestResponse requestResponse = ontologyService.createOntologies(ontologyModelList);
+            RequestResponse requestResponse = ontologyService.importOntologies(forceUpdate, ontologyModelList);
 
             if (!requestResponse.isOk()) {
                 return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
@@ -133,46 +132,6 @@ public class OntologyResource {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
-        }
-    }
-
-    /**
-     * Update the ontology
-     *
-     * @param id ontology ID to update
-     * @param queryDsl update query
-     * @return Response
-     */
-    @Path(ONTOLOGY_URI + "/{id}")
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateOntology(@PathParam("id") String id, JsonNode queryDsl) {
-        ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, id);
-        ParametersChecker.checkParameter(DSL_QUERY_IS_MANDATORY_PATAMETER, queryDsl);
-
-        try (OntologyService ontologyService =
-            new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
-            SanityChecker.checkParameter(id);
-            RequestResponse requestResponse = ontologyService.updateOntology(id, queryDsl);
-            if (Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
-                ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
-                return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
-            } else if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
-                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
-            } else {
-
-                return Response.status(Status.OK).entity(requestResponse).build();
-            }
-        } catch (VitamException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (Exception e) {
-            LOGGER.error("Unexpected server error {}", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
     }
 

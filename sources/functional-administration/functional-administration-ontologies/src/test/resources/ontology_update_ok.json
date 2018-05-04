@@ -4,23 +4,28 @@
     "ApiField": "#originating_agencies",
     "SedaField": "OriginatingAgencyIdentifier",
     "Origin": "INTERNAL",
-    "Type": "KEYWORD",
+    "Type": "TEXT",
+    "Description": "Internal ontology update type",
     "ShortName": "Originating Agency Identifier",
     "Collections": [
       "Unit",
       "ObjectGroup"
     ],
-    "Description": "Internal ontology sample",
     "CreationDate": "2016-12-10T00:00:00.000",
     "LastUpdate": "2018-02-16T18:36:33.444"
   },
   {
-    "Identifier": "_mgt",
+    "Identifier": "_mgt2",
     "ApiField": "#management",
+    "SedaField": "Management",
     "Origin": "INTERNAL",
     "Type": "KEYWORD",
+    "Description": "Internal ontology create",
     "ShortName": "Originating Agency Identifier",
-    "Description": "Internal ontology sample",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ],
     "CreationDate": "2016-12-10T00:00:00.000",
     "LastUpdate": "2018-02-16T18:36:33.444"
   }

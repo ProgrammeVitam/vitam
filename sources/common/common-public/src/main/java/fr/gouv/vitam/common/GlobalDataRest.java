@@ -203,6 +203,12 @@ public class GlobalDataRest {
      */
     public static final String X_GLOBAL_EXECUTION_STATUS = "X-Global-Execution-Status";
 
+
+    /**
+     * Force update Header
+     */
+    public static final String FORCE_UPDATE = "Force-Update";
+
     private GlobalDataRest() {
         // empty
     }

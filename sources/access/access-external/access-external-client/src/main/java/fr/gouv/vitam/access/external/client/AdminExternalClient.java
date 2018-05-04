@@ -777,7 +777,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
-     * Create a set of ontologies metadata. </BR>
+     * Import a set of ontologies metadata. </BR>
      * If all the ontologies are valid, they will be stored in the ontology collection and indexed. The
      * input is invalid in the following situations : </BR>
      * <ul>
@@ -787,28 +787,14 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <li>A field has an invalid format</li>
      * </ul>
      *
+     * @param forceUpdate
      * @param vitamContext the vitam context
      * @param ontologies as Json InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse createOntologies(VitamContext vitamContext, InputStream ontologies)
-        throws InvalidParseOperationException, AccessExternalClientException;
-
-
-
-    /**
-     * Update the given ontology by query DSL
-     *
-     * @param vitamContext the vitam context
-     * @param ontologyId the id of the ontology target
-     * @param queryDSL the given DSL query
-     * @return Response status OK or a VitamError
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientException
-     */
-    RequestResponse updateOntology(VitamContext vitamContext, String ontologyId, JsonNode queryDSL)
+    RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream ontologies)
         throws InvalidParseOperationException, AccessExternalClientException;
 
 

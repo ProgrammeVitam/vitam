@@ -680,11 +680,12 @@ public interface AdminManagementClient extends MockOrRestClient {
      * </ul>
      *
      * @param ontologyModelList the list of ontologies to import
+     * @param forceUpdate
      * @return The server response as vitam RequestResponse
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException
      */
-    RequestResponse importOntologies(List<OntologyModel> ontologyModelList)
+    RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
@@ -711,17 +712,5 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<OntologyModel> findOntologyByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
-    /**
-     * Update an Ontology
-     *
-     * @param id
-     * @param queryDsl
-     * @return the updated OntologyModel for success
-     * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
-     * @throws ReferentialNotFoundException
-     */
-    RequestResponse<OntologyModel> updateOntology(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
 }

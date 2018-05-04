@@ -3,6 +3,7 @@ package fr.gouv.vitam.access.external.rest;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
@@ -2222,7 +2223,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
-            .importOntologies(anyObject());
+            .importOntologies(anyBoolean(), anyObject());
 
         File fileOntologies = PropertiesUtils.getResourceFile("ontologies_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileOntologies);
@@ -2241,7 +2242,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
-            .importOntologies(anyObject());
+            .importOntologies(anyBoolean(), anyObject());
 
         File fileOntologies = PropertiesUtils.getResourceFile("ontologies_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileOntologies);
