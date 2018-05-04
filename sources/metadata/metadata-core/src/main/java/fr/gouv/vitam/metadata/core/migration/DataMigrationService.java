@@ -225,6 +225,6 @@ public class DataMigrationService {
     }
 
     private void updateUnitSedaModel(Unit unit) {
-        // FIXME : To be implemented in #4426
+        SedaConverterTool.convertUnitToSeda21(unit);
     }
 }
