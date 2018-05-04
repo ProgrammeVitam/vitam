@@ -76,21 +76,29 @@ La recherche par identifiant est spécifique. L'identifiant étant unique, il n'
 
 Affiner la recherche 
 --------------------
-Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents champs (FACET). Pour accèder à ces filtres, l'utilisateur doit déplier le bloc "Affiner la recherche" en cliquant sur le pictogramme "plus" situé à droite de l'écran. 
+Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents champs (FACET). Pour accéder à ces filtres, l’utilisateur doit déplier le bloc « Affiner la recherche » en cliquant sur le pictogramme « plus » situé à droite de l’écran.
 
-L'utilisateur peut filtrer ces résultats de recherche en sélectionnant un ou plusieurs des 5 filtres proposés à ce jour :
-- Niveau de description 
+L’utilisateur peut filtrer les résultats de recherche en sélectionnant un des filtres proposés: 
+- Niveau de description
+	- Item : Article File  = Document
+	- SubGrp =  Groupe d'articles
+	- RecordGrp = Sous-groupe d'articles
+	- Subseries =  Sous-série
+	- Series =  Série
+	- Collection = Collection
+	- Class = Classe
+	- Subfonds = Sous-fonds
+	- Fonds = Fonds
 - Service producteur
-- Langue
 - Date de début
 - Date de fin
--(Mots clés / indisponible pour le moment) 
+- Titre par langue
+- Langue
+- Unités archivistiques avec ou sans objets 
 
-Pour lancer cette opération, les facets concernées doivent être cochées et l'utilisateur doit cliquer sur "rechercher". Au clic, l'utilisateur dispose, en fonction de ces résultats et de la facet selectionnée, d'une liste mentionnant le nombre d'unités archivistiques correspondant à demande.  
-En cliquant sur une des occurences, l'utilisateur visualise la liste spécifique d'unités archivistiques. 
+Pour lancer cette opération, la ou les facet(s) concernée(s) doivent être cochée(s) et l’utilisateur doit cliquer sur « rechercher » dans le bloc « affiner la recherche ». Pour lancer une nouvelle facet, l’utilisateur peut « rafraichir » ses précédents résultats en cliquant sur « effacer », sélectionner une autre facet et lancer l’opération en cliquant sur « rechercher ». Au clic, sur une des occurrences de la facet, l’utilisateur visualise, dans le bloc de « résultats », la liste des unités archivistiques correspondant à sa demande. 
 
-
-.. image:: images/facet.png
+.. image:: images/Facetdetail.png
 
 
 Résultats de recherche
