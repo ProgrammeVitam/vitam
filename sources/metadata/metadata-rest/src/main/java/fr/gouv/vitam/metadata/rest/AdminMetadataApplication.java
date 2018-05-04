@@ -26,19 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import com.google.common.base.Throwables;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
@@ -46,9 +34,21 @@ import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
+import fr.gouv.vitam.metadata.core.migration.DataMigrationRepository;
+import fr.gouv.vitam.metadata.core.migration.DataMigrationService;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Admin application.
@@ -61,7 +61,7 @@ public class AdminMetadataApplication extends Application {
 
     /**
      * Constructor
-     * 
+     *
      * @param servletConfig servletConfig
      */
     public AdminMetadataApplication(@Context ServletConfig servletConfig) {
@@ -90,6 +90,7 @@ public class AdminMetadataApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
             singletons.add(metadataReconstructionResource);
+            singletons.add(new MetadataMigrationAdminResource());
             singletons.add(new BasicAuthenticationFilter(metaDataConfiguration));
             singletons.add(new AdminRequestIdFilter());
         } catch (IOException e) {

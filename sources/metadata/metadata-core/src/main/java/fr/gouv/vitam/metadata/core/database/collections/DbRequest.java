@@ -1075,7 +1075,7 @@ public class DbRequest {
         throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
         MetaDataAlreadyExistException {
 
-        LOGGER.debug(String.format("Exec db insert unit request: %s", requestParser));
+        LOGGER.debug("Exec db insert unit request: %s", requestParser);
 
         try {
 
@@ -1087,7 +1087,10 @@ public class DbRequest {
             String unitId = unit.getId();
 
             Set<String> roots = requestParser.getRequest().getRoots();
-            unit.buildParentGraph(roots);
+
+            List<Unit> parentUnits = getUnitDirectParents(roots);
+
+            unit.buildParentGraph(parentUnits);
 
             unit.insert();
 
@@ -1122,6 +1125,26 @@ public class DbRequest {
         }
     }
 
+    private List<Unit> getUnitDirectParents(Set<String> roots) throws MetaDataNotFoundException {
+        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
+            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
+                in(MetadataDocument.ID, roots), Unit.UNIT_VITAM_GRAPH_PROJECTION);
+        final Set<String> notFound = new HashSet<>(roots);
+        List<Unit> parentUnits = new ArrayList<>(roots.size());
+        try (MongoCursor<Unit> cursor = iterable.iterator()) {
+            while (cursor.hasNext()) {
+                final Unit parentUnit = cursor.next();
+                parentUnits.add(parentUnit);
+                notFound.remove(parentUnit.getId());
+            }
+        }
+        if (!notFound.isEmpty()) {
+            LOGGER.error("Cannot find parent: " + notFound);
+            throw new MetaDataNotFoundException("Cannot find parents: " + notFound);
+        }
+        return parentUnits;
+    }
+
     /**
      * Inserts an object group
      *
@@ -1129,7 +1152,6 @@ public class DbRequest {
      * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws MetaDataAlreadyExistException when insert metadata exception
-     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public void execInsertObjectGroupRequest(InsertParserMultiple requestParser)
         throws MetaDataExecutionException, InvalidParseOperationException, MetaDataAlreadyExistException {
