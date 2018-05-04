@@ -32,11 +32,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * File Utility class
@@ -176,5 +180,22 @@ public final class FileUtil {
      */
     public static final String readInputStream(InputStream input) throws IOException {
         return readInputStreamLimited(input, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Save some imput stream in vitam temporary Folder
+     * @param inputStream the input strem
+     * @return File
+     * @throws IOException the IOException
+     */
+    public static File saveInTemporaryVitamFolder(InputStream inputStream) throws IOException {
+        try {
+            String uniqueFileId = GUIDFactory.newGUID().getId();
+            File csvFile = PropertiesUtils.fileFromTmpFolder(uniqueFileId);
+            Files.copy(inputStream, csvFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return csvFile;
+        } finally {
+            StreamUtils.closeSilently(inputStream);
+        }
     }
 }

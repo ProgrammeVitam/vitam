@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -72,21 +74,39 @@ public interface VitamRepository {
      */
     void saveOrUpdate(List<Document> documents) throws DatabaseException;
 
+    /**
+     * Used to execute a bulk update
+     * If document exists then update
+     * If document do not exists then create document
+     * throw Duplicate key exception if document exists by _id but not exists by filter in the update one model
+     *
+     * @param updates
+     * @throws DatabaseException
+     */
+    void update(List<WriteModel<Document>> updates) throws DatabaseException;
 
     /**
      * Remove document by id
      *
-     * @param id the id of the document to be removed
+     * @param id     the id of the document to be removed
      * @param tenant the tenant of the document to be removed
      * @throws DatabaseException in case error with database occurs
      */
     void remove(String id, Integer tenant) throws DatabaseException;
 
 
+
+    /**
+     * Remove by query
+     * @param query
+     * @throws DatabaseException
+     */
+    long remove(Bson query) throws DatabaseException;
+
     /**
      * Remove collection by name and tenant
      *
-     * @param name the name of the collection to be removed
+     * @param name   the name of the collection to be removed
      * @param tenant the tenant of the collection to be removed
      * @throws DatabaseException in case error with database occurs
      */
@@ -95,7 +115,6 @@ public interface VitamRepository {
     /**
      * Remove by tenant for collection multi-tenant
      *
-     * 
      * @param tenant the tenant
      * @return the number of deleted documents
      * @throws DatabaseException in case error with database occurs
@@ -104,7 +123,7 @@ public interface VitamRepository {
 
     /**
      * Remove by tenant for collection cross-tenant
-     * 
+     *
      * @return number of purged documents
      * @throws DatabaseException in case error with database occurs
      */
@@ -114,7 +133,7 @@ public interface VitamRepository {
     /**
      * Get vitam document by id
      *
-     * @param id the document id
+     * @param id     the document id
      * @param tenant the tenant of the document
      * @return the document if found
      * @throws DatabaseException in case error with database occurs
@@ -124,9 +143,9 @@ public interface VitamRepository {
 
     /**
      * find by identifier for all tenant
-     * 
+     *
      * @param identifier the identifier of the document
-     * @param tenant the tenant of the document
+     * @param tenant     the tenant of the document
      * @return the document if found
      * @throws DatabaseException in case error with database occurs
      */
@@ -134,31 +153,40 @@ public interface VitamRepository {
 
     /**
      * Find by identifier for collections cross tenant
-     * 
+     *
      * @param identifier the identifier of the document
      * @return the document if found
      * @throws DatabaseException in case error with database occurs
      */
     Optional<Document> findByIdentifier(String identifier) throws DatabaseException;
-    
+
+    /**
+     * Find collection of document by there id and return only projection fields
+     *
+     * @param ids list of documents id
+     * @param projection the fields wanted in the result
+     * @return An iterable of documents
+     */
+    FindIterable<Document> findDocuments(Collection<String> ids, Bson projection);
+
     /**
      * Return iterable over document for the given collection for a specific tenant
      *
      * @param mongoBatchSize mongoBatchSize
-     * @param tenant tenant id
+     * @param tenant         tenant id
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant);
-    
+
     /**
      * Return iterable over document for the given collection for a specific tenant and fields
-     * 
-     * @param fields list of fields for filter
+     *
+     * @param fields         list of fields for filter
      * @param mongoBatchSize mongoBatchSize
-     * @param tenant tenant id
+     * @param tenant         tenant id
      * @return iterable over document for the given collection
      */
-    FindIterable<Document> findByFieldsDocuments(Map<String,String> fields, int mongoBatchSize, Integer tenant);
+    FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize, Integer tenant);
 
     /**
      * Return iterable over document for the given collection
@@ -173,7 +201,7 @@ public interface VitamRepository {
     /**
      * Return iterable over document for the given collection
      *
-     * @param query the mongo query to be executed
+     * @param query          the mongo query to be executed
      * @param mongoBatchSize mongoBatchSize
      * @return iterable over document for the given collection
      */

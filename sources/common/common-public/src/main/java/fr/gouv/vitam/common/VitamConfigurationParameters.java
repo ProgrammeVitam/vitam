@@ -49,7 +49,7 @@ public class VitamConfigurationParameters {
     /**
      * Worker bulk size
      */
-    private Integer workerBulkSize;    
+    private Integer workerBulkSize;
     /**
      * Restore bulk size
      */
@@ -64,10 +64,21 @@ public class VitamConfigurationParameters {
      */
     private Integer numberDbClientThread;
     /*
-     * StoreGraphBatchSize
+     * The number of elements per file
      */
-    private Integer storeGraphBatchSize;
+    private Integer storeGraphElementsPerFile;
 
+    /**
+     * The overlap delay (in seconds) for store graph operation.
+     * Used to do not treat elements in critical state due to clock difference or GC slow down or VM freeze
+     */
+    private Integer storeGraphOverlapDelay;
+
+    /**
+     * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data units
+     * The unit should contains only graph data and the graph last persisted date should be 30 day older
+     */
+    private Integer deleteIncompleteReconstructedUnitDelay;
 
     /**
      *
@@ -215,7 +226,7 @@ public class VitamConfigurationParameters {
      * default originatingAgency for DIP export when multiple originatingAgencies are in conflict in exported AU
      */
     private Map<Integer, String> defaultOriginatingAgencyForExport;
-    
+
     /**
      * Setter for   vitamCleanPeriod;
      */
@@ -776,6 +787,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter for worker bulk size
+     *
      * @return
      */
     public Integer getWorkerBulkSize() {
@@ -784,6 +796,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Setter for worker bulk size
+     *
      * @param workerBulkSize
      */
     public void setWorkerBulkSize(Integer workerBulkSize) {
@@ -792,38 +805,77 @@ public class VitamConfigurationParameters {
 
 
     /**
-     * Getter for storeGraphBatchSize
-     * @return storeGraphBatchSize
+     * Getter for storeGraphElementsPerFile
+     *
+     * @return storeGraphElementsPerFile
      */
-    public Integer getStoreGraphBatchSize() {
-        return storeGraphBatchSize;
+    public Integer getStoreGraphElementsPerFile() {
+        return storeGraphElementsPerFile;
     }
 
     /**
-     * Setter for storeGraphBatchSize
-     * @param storeGraphBatchSize
+     * Setter for storeGraphElementsPerFile
+     *
+     * @param storeGraphElementsPerFile
      */
-    public void setStoreGraphBatchSize(Integer storeGraphBatchSize) {
-        this.storeGraphBatchSize = storeGraphBatchSize;
+    public void setStoreGraphElementsPerFile(Integer storeGraphElementsPerFile) {
+        this.storeGraphElementsPerFile = storeGraphElementsPerFile;
+    }
+
+
+    /**
+     * Get store graph overlap delay
+     *
+     * @return storeGraphOverlapDelay
+     */
+    public Integer getStoreGraphOverlapDelay() {
+        return storeGraphOverlapDelay;
     }
 
     /**
-    * Getter for restore bulk size
-    * 
-    * @return
-    */
-   public Integer getRestoreBulkSize() {
-       return restoreBulkSize;
-   }
+     * Set store graph overlap delay
+     *
+     * @param storeGraphOverlapDelay
+     */
+    public void setStoreGraphOverlapDelay(Integer storeGraphOverlapDelay) {
+        this.storeGraphOverlapDelay = storeGraphOverlapDelay;
+    }
 
-   /**
-    * Getter for restore bulk size
-    * 
-    * @return restoreBulkSize
-    */
-   public void setRestoreBulkSize(int restoreBulkSize) {
-       this.restoreBulkSize = restoreBulkSize;
-   }
+    /**
+     * Get the delay of deleting incomplete reconstructed units
+     *
+     * @return deleteIncompleteReconstructedUnitDelay
+     */
+    public Integer getDeleteIncompleteReconstructedUnitDelay() {
+        return deleteIncompleteReconstructedUnitDelay;
+    }
+
+    /**
+     * Set the delay of deleting incomplete reconstructed units
+     *
+     * @param deleteIncompleteReconstructedUnitDelay
+     */
+    public void setDeleteIncompleteReconstructedUnitDelay(Integer deleteIncompleteReconstructedUnitDelay) {
+        this.deleteIncompleteReconstructedUnitDelay = deleteIncompleteReconstructedUnitDelay;
+    }
+
+    /**
+     * Getter for restore bulk size
+     *
+     * @return
+     */
+    public Integer getRestoreBulkSize() {
+        return restoreBulkSize;
+    }
+
+    /**
+     * Getter for restore bulk size
+     *
+     * @return restoreBulkSize
+     */
+    public void setRestoreBulkSize(int restoreBulkSize) {
+        this.restoreBulkSize = restoreBulkSize;
+    }
 
 
     /**
@@ -929,7 +981,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter for defaultOriginatingAgencyForExport
-     * 
+     *
      * @return defaultOriginatingAgencyForExport
      */
     public Map<Integer, String> getDefaultOriginatingAgencyForExport() {
@@ -942,6 +994,6 @@ public class VitamConfigurationParameters {
     public void setDefaultOriginatingAgencyForExport(Map<Integer, String> defaultOriginatingAgencyForExport) {
         this.defaultOriginatingAgencyForExport = defaultOriginatingAgencyForExport;
     }
-    
-    
+
+
 }

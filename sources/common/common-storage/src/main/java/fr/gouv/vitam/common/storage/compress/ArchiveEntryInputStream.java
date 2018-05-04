@@ -24,31 +24,81 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.workspace.api.exception;
+package fr.gouv.vitam.common.storage.compress;
 
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Thrown when the workspace client server is unavailable
+ * ArchiveEntryInputStream class
+ * Archive input streams <b>MUST</b> override the {@link #read(byte[], int, int)} - or {@link #read()} - method so
+ * that reading from the stream generates EOF for the end of data in each entry as well as at the end of the file
+ * proper.
  */
-public class ContentAddressableStorageDatabaseException extends ContentAddressableStorageException {
+public class ArchiveEntryInputStream extends InputStream {
+    InputStream inputStream;
+    boolean closed = false;
 
     /**
-     * Constructor
-     * 
-     * @param message to associate with a new ContentAddressableStorageServerException
+     * @param archiveInputStream
+     * @throws IOException
+     */
+    public ArchiveEntryInputStream(InputStream archiveInputStream) throws IOException {
+        inputStream = archiveInputStream;
+    }
+
+    @Override
+    public int available() throws IOException {
+        if (closed) {
+            return -1;
+        }
+        return inputStream.available();
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+        if (closed) {
+            return -1;
+        }
+        return inputStream.skip(n);
+    }
+
+    @Override
+    public int read() throws IOException {
+        if (closed) {
+            return -1;
+        }
+        return inputStream.read();
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+        if (closed) {
+            return -1;
+        }
+        return inputStream.read(b);
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        if (closed) {
+            return -1;
+        }
+        return inputStream.read(b, off, len);
+    }
+
+    @Override
+    public void close() {
+        closed = true;
+    }
+
+    /**
+     * Allow to "fakely" reopen this InputStream
      *
+     * @param isclosed
      */
-    public ContentAddressableStorageDatabaseException(String message) {
-        super(message);
+    public void setClosed(boolean isclosed) {
+        closed = isclosed;
     }
 
-    /**
-     * Constructor
-     * 
-     * @param message message to associate with the exception
-     * @param cause cause to associate with the exception
-     */
-    public ContentAddressableStorageDatabaseException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

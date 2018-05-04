@@ -10,4 +10,14 @@
     }
     {% if not loop.last %},{% endif %}
     {% endfor %}
+    ,
+    {
+        "collection": "UNIT_GRAPH",
+        "tenant": {{ vitam_tenant_admin }}
+    }
+    ,
+    {
+        "collection": "OBJECTGROUP_GRAPH",
+        "tenant": {{ vitam_tenant_admin }}
+    }
 ]

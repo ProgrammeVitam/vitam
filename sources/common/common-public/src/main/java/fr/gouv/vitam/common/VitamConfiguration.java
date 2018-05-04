@@ -311,14 +311,26 @@ public class VitamConfiguration {
     private static int maxElasticsearchBulk = 1000;
 
     /**
-     * batchSize and used in lifecycleSpliterator for the limit
+     * batchSize for mongodb and used in lifecycleSpliterator and store graph service for the limit
      */
     private static int batchSize = 1000;
 
     /*
-     * StoreGraphBatchSize
+     * Number of elements per file use for store graph service
      */
-    private static int storeGraphBatchSize = 10000;
+    private static int storeGraphElementsPerFile = 10000;
+
+    /**
+     * The overlap delay (in seconds) for store graph operation.
+     * Used to do not treat elements in critical state due to clock difference or GC slow down or VM freeze
+     */
+    private static int storeGraphOverlapDelay = 300;
+
+    /**
+     * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data units
+     * The unit should contains only graph data and the graph last persisted date should be 30 day older
+     */
+    private static int deleteIncompleteReconstructedUnitDelay = 2592000;
 
     /**
      * default offset for lifecycleSpliterator
@@ -729,13 +741,21 @@ public class VitamConfiguration {
         if (null != parameters.getTenants()) {
             setTenants(parameters.getTenants());
         }
-        
+
         if (null != parameters.getDefaultOriginatingAgencyForExport()) {
             setDefaultOriginatingAgencyByTenant(parameters.getDefaultOriginatingAgencyForExport());
         }
 
-        if (null != parameters.getStoreGraphBatchSize()) {
-            setStoreGraphBatchSize(parameters.getStoreGraphBatchSize());
+        if (null != parameters.getStoreGraphElementsPerFile()) {
+            setStoreGraphElementsPerFile(parameters.getStoreGraphElementsPerFile());
+        }
+
+        if (null != parameters.getStoreGraphOverlapDelay()) {
+            setStoreGraphOverlapDelay(parameters.getStoreGraphOverlapDelay());
+        }
+
+        if (null != parameters.getDeleteIncompleteReconstructedUnitDelay()) {
+            setDeleteIncompleteReconstructedUnitDelay(parameters.getDeleteIncompleteReconstructedUnitDelay());
         }
 
     }
@@ -1510,6 +1530,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for distributeurBatchSize;
+     *
      * @param distributeurBatchSize
      */
     public static void setDistributeurBatchSize(int distributeurBatchSize) {
@@ -1714,22 +1735,59 @@ public class VitamConfiguration {
 
 
     /**
-     * Get the storegraph batch size
+     * Get the store graph elements per file
      *
-     * @return storeGraphBatchSize
+     * @return storeGraphElementsPerFile
      */
-    public static int getStoreGraphBatchSize() {
-        return storeGraphBatchSize;
+    public static int getStoreGraphElementsPerFile() {
+        return storeGraphElementsPerFile;
     }
 
 
     /**
-     * Set store graph batch Size
+     * Set store graph elements per file
      *
-     * @param storeGraphBatchSize
+     * @param storeGraphElementsPerFile
      */
-    public static void setStoreGraphBatchSize(int storeGraphBatchSize) {
-        VitamConfiguration.storeGraphBatchSize = storeGraphBatchSize;
+    public static void setStoreGraphElementsPerFile(Integer storeGraphElementsPerFile) {
+        VitamConfiguration.storeGraphElementsPerFile = storeGraphElementsPerFile;
+    }
+
+
+    /**
+     * Get store graph overlap delay
+     *
+     * @return storeGraphOverlapDelay
+     */
+    public static Integer getStoreGraphOverlapDelay() {
+        return storeGraphOverlapDelay;
+    }
+
+    /**
+     * Set store graph overlap delay
+     *
+     * @param storeGraphOverlapDelay
+     */
+    public static void setStoreGraphOverlapDelay(Integer storeGraphOverlapDelay) {
+        VitamConfiguration.storeGraphOverlapDelay = storeGraphOverlapDelay;
+    }
+
+    /**
+     * Get the delay of deleting incomplete reconstructed units
+     *
+     * @return deleteIncompleteReconstructedUnitDelay
+     */
+    public static int getDeleteIncompleteReconstructedUnitDelay() {
+        return deleteIncompleteReconstructedUnitDelay;
+    }
+
+    /**
+     * Set the delay of deleting incomplete reconstructed units
+     *
+     * @param deleteIncompleteReconstructedUnitDelay
+     */
+    public static void setDeleteIncompleteReconstructedUnitDelay(int deleteIncompleteReconstructedUnitDelay) {
+        VitamConfiguration.deleteIncompleteReconstructedUnitDelay = deleteIncompleteReconstructedUnitDelay;
     }
 
     /**

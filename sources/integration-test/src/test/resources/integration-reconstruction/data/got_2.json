@@ -1,6 +1,6 @@
 {
   "got" : {
-    "_id" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+    "_id" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
     "_tenant" : 0,
     "_profil" : "",
     "FileInfo" : {
@@ -12,7 +12,7 @@
       "_nbc" : 1,
       "versions" : [ {
         "_id" : "aeaaaaaaaagf2rjkaa4kkalbspgxieqaaaaq",
-        "DataObjectGroupId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+        "DataObjectGroupId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
         "DataObjectVersion" : "BinaryMaster_1",
         "FormatIdentification" : {
           "FormatLitteral" : "Acrobat PDF 1.4 - Portable Document Format",
@@ -38,7 +38,6 @@
     "_nbc" : 1,
     "_ops" : [ "aeaqaaaaaagbcaacaang6ak4ts6zzzzzzzzz" ],
     "_sp" : "FRAN_NP_009913",
-    "_sps" : [ "FRAN_NP_009913" ],
     "_storage" : {
       "_nbc" : 0,
       "offerIds" : [ ],
@@ -47,7 +46,7 @@
     "_v" : 0
   },
   "lfc" : {
-    "_id" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+    "_id" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
     "evId" : "aedqaaaaacgf2rjkaa4kkalbspgxilyaaaaq",
     "evParentId" : null,
     "evType" : "LFC.LFC_CREATION",
@@ -58,7 +57,7 @@
     "outDetail" : "LFC.LFC_CREATION.OK",
     "outMessg" : "Succ\u00E8s de l'alimentation du journal du cycle de vie",
     "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-    "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+    "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
     "evDetData" : null,
     "events" : [ {
       "evId" : "aedqaaaaacgf2rjkaa4kkalbspgxilyaaaba",
@@ -71,7 +70,7 @@
       "outDetail" : "LFC.CHECK_MANIFEST.OK",
       "outMessg" : "Succ\u00E8s de la v\u00E9rification de la coh\u00E9rence du bordereau de transfert",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-      "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
       "evDetData" : null
     }, {
       "evId" : "aedqaaaaacgf2rjkaa4kkalbspgxilyaaabq",
@@ -84,7 +83,7 @@
       "outDetail" : "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
       "outMessg" : "Succ\u00E8s de la cr\u00E9ation du journal du cycle de vie",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-      "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
       "evDetData" : null
     }, {
       "evId" : "aedqaaaaacgf2rjkaa4kkalbspgxjoqaaaaq",
@@ -97,7 +96,7 @@
       "outDetail" : "LFC.CHECK_CONSISTENCY.OK",
       "outMessg" : "Succ\u00E8s de la v\u00E9rification de la coh\u00E9rence entre objets, groupes d'objets et unit\u00E9s archivistiques",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-      "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
       "evDetData" : null
     }, {
       "evId" : "aedqaaaaacgf2rjkaa4kkalbspgyabaaaaaq",
@@ -110,7 +109,7 @@
       "outDetail" : "LFC.CHECK_DIGEST.OK",
       "outMessg" : "Succ\u00E8s de la v\u00E9rification de l'int\u00E9grit\u00E9 des objets vers\u00E9s",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-      "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
       "evDetData" : "{}"
     }, {
       "evId" : "aedqaaaaacgf2rjkaa4kkalbspgyadiaaaaq",
@@ -136,7 +135,7 @@
       "outDetail" : "LFC.OG_OBJECTS_FORMAT_CHECK.OK",
       "outMessg" : "Succ\u00E8s de la v\u00E9rification des formats",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-      "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
       "evDetData" : "{}"
     }, {
       "evId" : "aedqaaaaacgf2rjkaa4kkalbspgyauiaaaaq",
@@ -162,7 +161,7 @@
       "outDetail" : "LFC.OBJ_STORAGE.OK",
       "outMessg" : "Succ\u00E8s de l'\u00E9criture des objets sur les offres de stockage",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-      "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
       "evDetData" : "{}"
     }, {
       "evId" : "aedqaaaaacgf2rjkaa4kkalbspgzijqaaaaq",
@@ -188,7 +187,7 @@
       "outDetail" : "LFC.OG_METADATA_INDEXATION.OK",
       "outMessg" : "Succ\u00E8s de l'indexation des m\u00E9tadonn\u00E9es du groupe d'objets",
       "agId" : "{\"Name\":\"vitam-iaas-app-04.int.novalocal\",\"Role\":\"worker\",\"ServerId\":878527786,\"SiteId\":1,\"GlobalPlatformId\":207439146}",
-      "obId" : "aebaaaaaaagf2rjkaa4kkalbspgxieyaaaaq",
+      "obId" : "aebaaaaaaahlm6sdabzmoalc4pzxztyaaaaq",
       "evDetData" : "{}"
     } ],
     "_tenant" : 0,
