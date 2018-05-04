@@ -24,12 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.evidence;
+package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
@@ -38,8 +39,8 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -52,52 +53,40 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroupPrepare;
 
 import java.io.File;
 import java.util.stream.StreamSupport;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.checkNumberOfResultQuery;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSelectMultiQuery;
 
 /**
- * EvidenceAuditPrepare class
+ * MigrationUnitPrepare class
  */
-public class EvidenceAuditPrepare extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditPrepare.class);
-
-    private static final String EVIDENCE_AUDIT_LIST_OBJECT = "EVIDENCE_AUDIT_LIST_OBJECT";
+public class MigrationUnitPrepare extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
     private static final String FIELDS_KEY = "$fields";
+
+    private static String MIGRATION_UNITS_LIST = "MIGRATION_UNITS_LIST";
     private MetaDataClientFactory metaDataClientFactory;
 
-    public EvidenceAuditPrepare() {
-        this.metaDataClientFactory = MetaDataClientFactory.getInstance();
-    }
-
     @VisibleForTesting
-    EvidenceAuditPrepare(MetaDataClientFactory metaDataClientFactory) {
+    public MigrationUnitPrepare(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
-    @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
-        ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT);
+    public MigrationUnitPrepare() {        metaDataClientFactory = MetaDataClientFactory.getInstance();    }
+
+    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler)  throws ProcessingException {
+        ItemStatus itemStatus = new ItemStatus(MIGRATION_UNITS_LIST);
+
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
-            JsonNode queryNode = handlerIO.getJsonFromWorkspace("query.json");
+            SelectMultiQuery selectMultiQuery = getSelectMultiQuery(handler);
 
-            SelectParserMultiple parser = new SelectParserMultiple();
-
-            parser.parse(queryNode);
-
-            SelectMultiQuery select = parser.getRequest();
-            ObjectNode objectNode = createObjectNode();
-            objectNode.put(VitamFieldsHelper.id(), 1);
-            objectNode.put(VitamFieldsHelper.object(), 1);
-            JsonNode projection = createObjectNode().set(FIELDS_KEY, objectNode);
-            select.setProjection(projection);
-
-            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(select,
+            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(selectMultiQuery,
                 query -> {
                     try {
                         JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
@@ -106,64 +95,39 @@ public class EvidenceAuditPrepare extends ActionHandler {
                         throw new IllegalStateException(e);
                     }
                 }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
-
             StreamSupport.stream(scrollRequest, false).forEach(
-                item -> {
-                    ObjectNode itemUnit = createObjectNode();
-                    itemUnit.put("id", item.get("#id").textValue());
-                    itemUnit.put("metadaType", MetadataType.UNIT.name());
+                unit -> {
+                    File file = null;
 
-                    if (item.get("#object") != null) {
-                        ObjectNode itemGot = createObjectNode();
-                        itemGot.put("id", item.get("#object").textValue());
-                        itemGot.put("metadaType", MetadataType.OBJECTGROUP.name());
-                        saveItemToWorkSpace(itemGot, handlerIO);
+                    try {
+                        String identifier = unit.get("#id").asText();
+                        file = handler.getNewLocalFile(identifier);
+                        JsonHandler.writeAsFile(unit, file);
+                        handler.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + identifier, file, true, false);
+
+                    } catch (InvalidParseOperationException | ProcessingException e) {
+                        LOGGER.error(e);
+                        throw new IllegalStateException(e);
                     }
-                    saveItemToWorkSpace(itemUnit, handlerIO);
-                });
-            if (checkNumberOfUnit(itemStatus, scrollRequest.estimateSize())) {
-                return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT)
-                    .setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);
-            }
 
-        } catch (InvalidParseOperationException e) {
+                });
+
+            if (checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
+                return new ItemStatus(MIGRATION_UNITS_LIST)
+                    .setItemsStatus(MIGRATION_UNITS_LIST, itemStatus);
+            }
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
         }
 
         itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT).setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);
+        return new ItemStatus(MIGRATION_UNITS_LIST).setItemsStatus(MIGRATION_UNITS_LIST, itemStatus);
     }
 
-    private void saveItemToWorkSpace(JsonNode item, HandlerIO handlerIO) {
-        File file = null;
-        try {
 
-            String identifier = item.get("id").asText();
-            file = handlerIO.getNewLocalFile(identifier);
-            JsonHandler.writeAsFile(item, file);
 
-            handlerIO.transferFileToWorkspace("Object" + "/" + identifier, file, true, false);
-
-        } catch (ProcessingException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(e);
-        }
-
-    }
-
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { //Nothing todo
-    }
-
-    private boolean checkNumberOfUnit(ItemStatus itemStatus, long total) {
-        if (total == 0) {
-            itemStatus.increment(StatusCode.KO);
-            ObjectNode infoNode = createObjectNode();
-            infoNode.put("Reason", "the DSL query has no result");
-            String evdev = JsonHandler.unprettyPrint(infoNode);
-            itemStatus.setEvDetailData(evdev);
-            return true;
-        }
-        return false;
+    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        //nothing
     }
 }

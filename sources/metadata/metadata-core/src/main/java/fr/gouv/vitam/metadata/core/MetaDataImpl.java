@@ -313,9 +313,11 @@ public class MetaDataImpl implements MetaData {
         try {
             final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
             updateRequest.parse(updateQuery);
+
             // Reset $roots (add or override unit_id on roots)
             if (objectId != null && !objectId.isEmpty()) {
                 final RequestMultiple request = updateRequest.getRequest();
+                request.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
                 if (request != null) {
                     LOGGER.debug("Reset $roots objectId by :" + objectId);
                     request.resetRoots().addRoots(objectId);
