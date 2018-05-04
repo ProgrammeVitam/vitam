@@ -51,6 +51,11 @@ public class AccessContractModel extends AbstractContractModel {
     public static final String ROOT_UNITS = "RootUnits";
 
     /**
+     * Excluded root units
+     */
+    public static final String EXCLUDED_ROOT_UNITS = "ExcludedRootUnits";
+
+    /**
      * DataObjectVersion
      */
     public static final String DATA_OBJECT_VERSION = "DataObjectVersion";
@@ -82,6 +87,9 @@ public class AccessContractModel extends AbstractContractModel {
 
     @JsonProperty(ROOT_UNITS)
     private Set<String> rootUnits;
+
+    @JsonProperty(EXCLUDED_ROOT_UNITS)
+    private Set<String> excludedRootUnits;
 
     /**
      * Constructor without fields
@@ -202,6 +210,24 @@ public class AccessContractModel extends AbstractContractModel {
      */
     public AccessContractModel setRootUnits(Set<String> rootUnits) {
         this.rootUnits = rootUnits;
+        return this;
+    }
+
+    /**
+     * @return the excluded root units
+     */
+    public Set<String> getExcludedRootUnits() {
+        return excludedRootUnits;
+    }
+
+    /**
+     * Collection of archive units' GUIDs. If not empty then access is forbidden to given unit and its children.
+     *
+     * @param excludedRootUnits collection of guid of units (can be empty)
+     * @return this
+     */
+    public AccessContractModel setExcludedRootUnits(Set<String> excludedRootUnits) {
+        this.excludedRootUnits = excludedRootUnits;
         return this;
     }
 

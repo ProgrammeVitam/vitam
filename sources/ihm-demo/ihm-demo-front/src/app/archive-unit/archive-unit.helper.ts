@@ -1,6 +1,4 @@
 import { Injectable } from '@angular/core';
-import {DatePipe} from "@angular/common";
-import {SelectItem} from "primeng/primeng";
 import {ObjectsService} from "../common/utils/objects.service";
 
 @Injectable()

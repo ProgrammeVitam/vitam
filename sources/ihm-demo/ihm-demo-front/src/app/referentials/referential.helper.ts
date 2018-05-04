@@ -16,7 +16,7 @@ export class ReferentialHelper {
   }
 
   useChips(key : string) {
-    return ['OriginatingAgencies', 'ArchiveProfiles', 'RootUnits'].indexOf(key) > -1;
+    return ['OriginatingAgencies', 'ArchiveProfiles', 'RootUnits', 'ExcludedRootUnits'].indexOf(key) > -1;
   }
 
   useMultiSelect(key : string) {

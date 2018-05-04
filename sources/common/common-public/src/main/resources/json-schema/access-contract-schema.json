@@ -148,6 +148,12 @@
       "items": {
         "type": "string"
       }
+    },
+    "ExcludedRootUnits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [
