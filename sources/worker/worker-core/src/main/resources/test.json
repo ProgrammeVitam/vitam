@@ -40,9 +40,9 @@
     "aeaqaaaaaaggo2kdaamz6ak5xswxr2qaaaaq"
   ],
   "_uds": {
-    "aeaqaaaaaaggo2kdaamz6ak5xswxr6yaaaaq": 3,
-    "aeaqaaaaaaggo2kdaamz6ak5xswxr2qaaaaq": 1,
-    "aeaqaaaaaaggo2kdaamz6ak5xswxr4yaaaaq": 2
+    "1": ["aeaqaaaaaaggo2kdaamz6ak5xswxr2qaaaaq"],
+    "2": ["aeaqaaaaaaggo2kdaamz6ak5xswxr4yaaaaq"],
+    "3": ["aeaqaaaaaaggo2kdaamz6ak5xswxr6yaaaaq"]
   },
   "_storage": {
     "_nbc": 2,

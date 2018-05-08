@@ -40,8 +40,8 @@
     "aeaqaaaaaaguu2zzaazsualbwlwdgoqaaaba"
   ],
   "_uds": {
-    "aeaqaaaaaaguu2zzaazsualbwlwdfoiaaaba": 2,
-    "aeaqaaaaaaguu2zzaazsualbwlwdgoqaaaba": 1
+    "1": ["aeaqaaaaaaguu2zzaazsualbwlwdgoqaaaba"],
+    "2": ["aeaqaaaaaaguu2zzaazsualbwlwdfoiaaaba"]
   },
   "_v": 0,
   "_tenant": 0

@@ -393,8 +393,8 @@ public class DbRequestTest {
                 (ObjectNode) createInsertRequestTreeWithParents(guidParent2, "Fake titre_B", operation);
             final ObjectNode insertReq3 =
                 (ObjectNode) createInsertRequestTreeWithParents(guidChild, "Fake titre_C", operation);
-            insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent1, guidParent2)));
-            ObjectNode uds = JsonHandler.createObjectNode().put(guidParent1, 1L).put(guidParent2, 1L);
+            insertReq3.set(ROOTS, JsonHandler.toJsonNode(Arrays.asList(guidParent1, guidParent2)));
+            ObjectNode uds = JsonHandler.createObjectNode().put("1", guidParent1).put("2", guidParent2);
             ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds);
 
             // Insert data (insertReq1, insertReq2, insertReq3)
@@ -470,13 +470,13 @@ public class DbRequestTest {
             final ObjectNode insertReq2 =
                 (ObjectNode) createInsertRequestTreeWithParents(guidChild1, "Fake titre_B", operation);
             insertReq2.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent)));
-            ObjectNode uds = JsonHandler.createObjectNode().put(guidParent, 1);
+            ObjectNode uds = JsonHandler.createObjectNode().put("1", guidParent);
             ((ObjectNode) insertReq2.get(DATA)).set(_UDS, uds);
 
             final ObjectNode insertReq3 =
                 (ObjectNode) createInsertRequestTreeWithParents(guidChild2, "Fake titre_C", operation);
             insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent, guidChild1)));
-            ObjectNode uds1 = JsonHandler.createObjectNode().put(guidParent, 2).put(guidChild1, 1);
+            ObjectNode uds1 = JsonHandler.createObjectNode().put("2", guidParent).put("1", guidChild1);
             ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds1);
 
             // Insert data (insertReq1, insertReq2, insertReq3)
@@ -857,8 +857,8 @@ public class DbRequestTest {
             final Result result2 = dbRequest.execRequest(selectParser);
             assertEquals(2L, result2.getNbResult());
             final List<MetadataDocument<?>> list2 = result2.getFinal();
-            assertEquals("mon titreB Complet", ((Document) list2.get(0)).getString(TITLE));
-            assertEquals("mon titreA Complet", ((Document) list2.get(1)).getString(TITLE));
+            assertEquals("mon titreB Complet", list2.get(0).getString(TITLE));
+            assertEquals("mon titreA Complet", list2.get(1).getString(TITLE));
 
         } finally {
             // clean
@@ -1502,9 +1502,10 @@ public class DbRequestTest {
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result<MetadataDocument<?>> resultSelectRel3 = dbRequest.execRequest(selectParser1);
+
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
-            resultSelectRel3.getCurrentIds().iterator().next().toString());
+            resultSelectRel3.getCurrentIds().iterator().next());
 
         insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_3).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar");

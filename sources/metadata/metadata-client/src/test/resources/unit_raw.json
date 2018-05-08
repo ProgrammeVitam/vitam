@@ -33,8 +33,7 @@
         "aeaqaaaaaagwky22aboqialbbrqygvyaaaba"
     ],
     "_uds": {
-        "aeaqaaaaaagwky22aboqialbbrqyguyaaaba": 1,
-        "aeaqaaaaaagwky22aboqialbbrqygvyaaaba": 1
+        "1": ["aeaqaaaaaagwky22aboqialbbrqyguyaaaba", "aeaqaaaaaagwky22aboqialbbrqygvyaaaba"]
     },
     "_v": 1,
     "_tenant": 0,

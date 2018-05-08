@@ -82,7 +82,6 @@ public class GraphService {
             .append(ID, 1)
             .append(OG, 1);
 
-
     private MongoDbMetadataRepository mongoDbMetadataRepository;
 
     public GraphService(MongoDbMetadataRepository mongoDbMetadataRepository) {

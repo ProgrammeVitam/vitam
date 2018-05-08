@@ -441,7 +441,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param type
      * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *                   values" : [list of id] } }"
-     * @param filter     the filter
      * @param sorts      the list of sort
      * @param facets     the list of facet
      * @return a structure as ResultInterface
@@ -449,8 +448,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @throws BadRequestException
      */
     protected final Result search(final MetadataCollections collection, final Integer tenantId, final String type,
-        final QueryBuilder query, final QueryBuilder filter, final List<SortBuilder> sorts, int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
+                                  final QueryBuilder query, final List<SortBuilder> sorts, int offset, Integer limit,
+                                  final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws MetaDataExecutionException, BadRequestException {
 
         final SearchResponse response;
@@ -487,21 +486,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 request.setSize(limit);
             }
             if (sorts != null) {
-                sorts.stream().forEach(sort -> request.addSort(sort));
+                sorts.forEach(request::addSort);
             }
             if (facets != null) {
-                facets.stream().forEach(facet -> request.addAggregation(facet));
+                facets.forEach(request::addAggregation);
             }
-            if (filter != null) {
-                if (GlobalDatasDb.USE_FILTERED_REQUEST) {
-                    final BoolQueryBuilder filteredQueryBuilder = QueryBuilders.boolQuery().must(query).must(filter);
-                    request.setQuery(filteredQueryBuilder);
-                } else {
-                    request.setQuery(query).setPostFilter(filter);
-                }
-            } else {
-                request.setQuery(query);
-            }
+
+            request.setQuery(query);
+
             if (GlobalDatasDb.PRINT_REQUEST) {
                 LOGGER.warn("ESReq: {}", request);
             } else {
@@ -520,7 +512,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
 
         if (response.status() != RestStatus.OK) {
-            LOGGER.debug("Error " + response.status() + " from : " + request + ":" + query + " # " + filter);
+            LOGGER.debug("Error " + response.status() + " from : " + request + ":" + query);
             throw new MetaDataExecutionException("Error " + response.status());
         }
         final SearchHits hits = response.getHits();
@@ -533,9 +525,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
 
-        final Iterator<SearchHit> iterator = hits.iterator();
-        while (iterator.hasNext()) {
-            final SearchHit hit = iterator.next();
+        for (SearchHit hit : hits) {
             final String id = hit.getId();
             resultRequest.addId(id, hit.getScore());
         }
@@ -547,10 +537,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         // facets
         Aggregations aggregations = response.getAggregations();
         if (aggregations != null) {
-            final Iterator<Aggregation> aggIterator = aggregations.iterator();
-            while (aggIterator.hasNext()) {
+            for (Aggregation aggregation : aggregations) {
                 resultRequest
-                    .addFacetResult(ElasticsearchFacetResultHelper.transformFromEsAggregation(aggIterator.next()));
+                    .addFacetResult(ElasticsearchFacetResultHelper.transformFromEsAggregation(aggregation));
             }
         }
 

@@ -312,8 +312,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     @VisibleForTesting
-    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -2590,6 +2589,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     private void checkIngestContractWithAttachmentGuid(ArrayNode attachmentNode)
         throws ProcessingUnitLinkingException {
+
         try (final MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             for (String auToBeChecked : existingUnitGuids) {
                 if (ingestContract != null && ingestContract.getLinkParentId() != null &&

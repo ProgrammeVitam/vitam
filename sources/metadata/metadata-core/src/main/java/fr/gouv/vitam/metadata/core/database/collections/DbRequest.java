@@ -451,27 +451,22 @@ public class DbRequest {
             new BoolQueryBuilder().must(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(exactDepth).gte(0))
                 .must(QueryBuilders.rangeQuery(Unit.MINDEPTH).lte(exactDepth).gte(0));
         if (!previous.getCurrentIds().isEmpty()) {
-            roots.must(QueryToElasticsearch.getRoots(MetadataDocument.UP,
-                previous.getCurrentIds()));
-        }
-        QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
-        if (tenantId != null) {
-            // lets add the query on the tenant
-            query =
-                new BoolQueryBuilder().must(query).must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
+            roots.must(QueryToElasticsearch.getRoots(MetadataDocument.UP, previous.getCurrentIds()));
         }
 
-        if (roots != null) {
-            query = QueryToElasticsearch.getFullCommand(query, roots);
-        }
-        LOGGER.debug(QUERY2 + "{}", query);
+            // lets add the query on the tenant
+        BoolQueryBuilder query = new BoolQueryBuilder()
+            .must(QueryToElasticsearch.getCommand(realQuery))
+            .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
+            .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
+
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Req1LevelMD: {}", query);
         }
 
         final Result<MetadataDocument<?>> result =
             MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, null, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("UnitExact: {}", result);
@@ -501,92 +496,47 @@ public class DbRequest {
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         QueryBuilder roots;
-        boolean tocheck = false;
+
+        // lets add the query on the tenant
+        BoolQueryBuilder query = new BoolQueryBuilder()
+            .must(QueryToElasticsearch.getCommand(realQuery));
 
         if (previous.getCurrentIds().isEmpty()) {
             if (relativeDepth < 1) {
-                roots = QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(1).gte(0);
+                query.filter(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(1).gte(0));
             } else {
-                roots = QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(relativeDepth + 1).gte(0);
+                query.filter(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(relativeDepth + 1).gte(0));
             }
         } else {
             if (relativeDepth == 1) {
-                roots = QueryToElasticsearch.getRoots(MetadataDocument.UP,
-                    previous.getCurrentIds());
+                roots = QueryToElasticsearch.getRoots(MetadataDocument.UP, previous.getCurrentIds());
+                query.filter(roots);
             } else if (relativeDepth > 1) {
-                roots = QueryToElasticsearch.getRoots(Unit.UNITUPS, previous.getCurrentIds());
-                tocheck = true;
+                QueryToElasticsearch.addRoots(query, Unit.UNITDEPTHS, previous.getCurrentIds(), relativeDepth);
+
             } else {
                 // Relative parent: previous has future result in their _up
                 // so future result ids are in previous UNITDEPTHS
                 final Set<String> fathers = aggregateUnitDepths(previous.getCurrentIds(), relativeDepth);
                 roots = QueryToElasticsearch.getRoots(MetadataDocument.ID, fathers);
+                query.filter(roots);
             }
         }
 
-        QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
-        if (tenantId != null) {
-            // lets add the query on the tenant
-            query =
-                new BoolQueryBuilder().must(query).must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
-        }
+        query.filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
 
-        if (roots != null) {
-            query = QueryToElasticsearch.getFullCommand(query, roots);
-        }
-        LOGGER.debug(QUERY2 + "{}", query);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Req1LevelMD: {}", query);
         }
 
-        final Result<MetadataDocument<?>> resultPreviousFilter =
+        final Result<MetadataDocument<?>> result =
             MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, null, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
-        // Now filter to remove false positive for > 1
-        Result<MetadataDocument<?>> result = resultPreviousFilter;
-        if (!previous.getCurrentIds().isEmpty() && relativeDepth > 1) {
-            result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
-            final Bson newRoots = QueryToMongodb.getRoots(MetadataDocument.ID, resultPreviousFilter.getCurrentIds());
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT, newRoots,
-                    Unit.UNIT_VITAM_PROJECTION);
-            final List<String> finalList = new ArrayList<>();
-            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-                while (cursor.hasNext()) {
-                    final Unit unit = cursor.next();
-                    if (tocheck) {
-                        // now check for relativeDepth > 1
-                        final Map<String, Integer> depths = unit.getDepths();
-                        boolean check = false;
-                        for (final String pid : previous.getCurrentIds()) {
-                            final Integer depth = depths.get(pid);
-                            if (depth != null && depth <= relativeDepth) {
-                                check = true;
-                                break;
-                            }
-                        }
-                        if (!check) {
-                            // ignore since false positive
-                            continue;
-                        }
-                    }
-                    final String id = unit.getId();
-                    finalList.add(id);
-                }
-            }
-            for (int i = 0; i < resultPreviousFilter.getNbResult(); i++) {
-                final String id = resultPreviousFilter.getCurrentIds().get(i);
-                if (finalList.contains(id)) {
-                    result.addId(id, resultPreviousFilter.scores.get(i));
-                }
-            }
-            result.setTotal(resultPreviousFilter.getTotal());
-        }
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("UnitRelative: {}", result);
         }
+
         return result;
     }
 
@@ -616,13 +566,14 @@ public class DbRequest {
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
             @SuppressWarnings("unchecked")
-            final List<Map<String, Integer>> array =
-                (List<Map<String, Integer>>) aggregate.get(DEPTH_ARRAY);
+            final List<Map<String, List<String>>> array =
+                (List<Map<String, List<String>>>) aggregate.get(DEPTH_ARRAY);
             relativeDepth = Math.abs(relativeDepth);
-            for (final Map<String, Integer> map : array) {
+            for (final Map<String, List<String>> map : array) {
                 for (final String key : map.keySet()) {
-                    if (map.get(key) <= relativeDepth) {
-                        set.add(key);
+                    int depth = Integer.parseInt(key);
+                    if (depth <= relativeDepth) {
+                        set.addAll(map.get(key));
                     }
                 }
                 map.clear();
@@ -669,7 +620,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, facets, scrollId, scrollTimeout);
+            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, facets, scrollId, scrollTimeout);
     }
 
     /**
@@ -712,7 +663,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.OBJECTGROUP.getEsClient().search(MetadataCollections.OBJECTGROUP, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, null, scrollId, scrollTimeout);
+            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, null, scrollId, scrollTimeout);
     }
 
     /**
