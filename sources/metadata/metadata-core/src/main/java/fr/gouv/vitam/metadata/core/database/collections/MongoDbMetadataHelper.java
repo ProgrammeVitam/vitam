@@ -42,7 +42,10 @@ import static com.mongodb.client.model.Filters.eq;
 
 /**
  * MongoDb Helper for Metadata
+ *
+ * @deprecated use {@link MongoDbMetadataRepository}
  */
+@Deprecated
 public class MongoDbMetadataHelper {
     /**
      * Quick projection for ID Only

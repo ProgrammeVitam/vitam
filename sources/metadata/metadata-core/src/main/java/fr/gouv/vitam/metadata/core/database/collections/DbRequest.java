@@ -32,6 +32,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -83,6 +84,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import fr.gouv.vitam.metadata.core.graph.GraphService;
+
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -135,10 +138,19 @@ public class DbRequest {
     private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
+    private GraphService graphService;
+
+    @VisibleForTesting
+    DbRequest(GraphService graphService) {
+        this.graphService = graphService;
+    }
+
     /**
      * Constructor
      */
-    public DbRequest() {}
+    public DbRequest() {
+        this(new GraphService(new MongoDbMetadataRepository()));
+    }
 
     /**
      * The request should be already analyzed.
@@ -348,8 +360,8 @@ public class DbRequest {
                 facets = QueryToElasticsearch.getFacets(requestParser);
             }
             VitamCollection.setMatch(false);
-            limit = ((SelectToMongodb) requestToMongodb).getFinalLimit();
-            offset = ((SelectToMongodb) requestToMongodb).getFinalOffset();
+            limit = requestToMongodb.getFinalLimit();
+            offset = requestToMongodb.getFinalOffset();
         }
 
         if (GlobalDatasDb.PRINT_REQUEST && LOGGER.isDebugEnabled()) {
@@ -488,7 +500,7 @@ public class DbRequest {
         final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
-        QueryBuilder roots = null;
+        QueryBuilder roots;
         boolean tocheck = false;
 
         if (previous.getCurrentIds().isEmpty()) {
@@ -1087,10 +1099,7 @@ public class DbRequest {
             String unitId = unit.getId();
 
             Set<String> roots = requestParser.getRequest().getRoots();
-
-            List<Unit> parentUnits = getUnitDirectParents(roots);
-
-            unit.buildParentGraph(parentUnits);
+            graphService.compute(unit, roots);
 
             unit.insert();
 
@@ -1123,26 +1132,6 @@ public class DbRequest {
         } catch (final MongoException e) {
             throw new MetaDataExecutionException("Insert concern", e);
         }
-    }
-
-    private List<Unit> getUnitDirectParents(Set<String> roots) throws MetaDataNotFoundException {
-        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                in(MetadataDocument.ID, roots), Unit.UNIT_VITAM_GRAPH_PROJECTION);
-        final Set<String> notFound = new HashSet<>(roots);
-        List<Unit> parentUnits = new ArrayList<>(roots.size());
-        try (MongoCursor<Unit> cursor = iterable.iterator()) {
-            while (cursor.hasNext()) {
-                final Unit parentUnit = cursor.next();
-                parentUnits.add(parentUnit);
-                notFound.remove(parentUnit.getId());
-            }
-        }
-        if (!notFound.isEmpty()) {
-            LOGGER.error("Cannot find parent: " + notFound);
-            throw new MetaDataNotFoundException("Cannot find parents: " + notFound);
-        }
-        return parentUnits;
     }
 
     /**

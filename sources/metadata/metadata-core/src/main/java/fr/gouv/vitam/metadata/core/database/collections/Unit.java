@@ -26,46 +26,34 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import org.apache.commons.collections4.MultiValuedMap;
-import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.bson.Document;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 
 /**
  * Unit class:<br>
  *
  * @formatter:off { MD content, _id: UUID, _tenant: tenant, _profil: documentType,, _min: depthmin, _max: depthmax,
- * _mgt. Management structure, _uds: { UUID1 : depth1, UUID2 : depth2, ... }, // not indexed and not to
- * be in ES! _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
+ * _mgt. Management structure, _uds: { depth1: [UUID1], depth2: [UUID2, UUID3] ... },
+ * _us: [ UUID1, UUID2, ... }, // indexed and equivalent to _uds _up: [ UUID1, UUID2, ... ], //
  * limited to immediate parent _og: UUID, _nbc : immediateChildNb }
  * @formatter:on
  */
 public class Unit extends MetadataDocument<Unit> {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Unit.class);
-
     private static final long serialVersionUID = -4351321928647834270L;
 
     /**
-     * UNITDEPTHS : { UUID1 : depth2, UUID2 : depth2 }
+     * UNITDEPTHS : { depth1: [UUID1], depth2: [UUID2, UUID3] }
      */
     public static final String UNITDEPTHS = "_uds";
     /**
@@ -100,17 +88,6 @@ public class Unit extends MetadataDocument<Unit> {
      * Es projection (no UPS)
      */
     public static final BasicDBObject UNIT_ES_PROJECTION = new BasicDBObject(UNITDEPTHS, 0);
-
-    public static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
-        new BasicDBObject(UP, 1)
-            .append(UNITUPS, 1)
-            .append(GRAPH, 1)
-            .append(ORIGINATING_AGENCIES, 1)
-            .append(UNITDEPTHS, 1)
-            .append(ORIGINATING_AGENCY, 1)
-            .append(PARENT_ORIGINATING_AGENCIES, 1)
-            .append(ID, 1)
-            .append(OG, 1);
 
     /**
      * Unit Id, Vitam fields Only projection (no content nor management)
@@ -255,78 +232,4 @@ public class Unit extends MetadataDocument<Unit> {
         return map;
     }
 
-    public void buildParentGraph(Collection<Unit> directParentUnits) {
-
-        String id = getId();
-        Set<String> directParents = new HashSet<>();
-        Set<String> allParents = new HashSet<>();
-        Set<String> graph = new HashSet<>();
-        Map<String, Integer> parentDepths = new HashMap<>();
-        Set<String> allOriginatingAgencies = new HashSet<>();
-        MultiValuedMap<String, String> allParentOriginatingAgencies = new HashSetValuedHashMap<>();
-        String originatingAgency = get(ORIGINATING_AGENCY, String.class);
-        if (originatingAgency != null) {
-            allOriginatingAgencies.add(originatingAgency);
-        }
-
-        if (!directParentUnits.isEmpty()) {
-
-            for (Unit parentUnit : directParentUnits) {
-                directParents.add(parentUnit.getId());
-            }
-
-            allParents.addAll(directParents);
-
-            for (String directParent : directParents) {
-                graph.add(createGraphRelation(id, directParent));
-            }
-
-            for (Unit parentUnit : directParentUnits) {
-
-                allParents.addAll(parentUnit.getCollectionOrEmpty(UNITUPS));
-
-                graph.addAll(parentUnit.getCollectionOrEmpty(GRAPH));
-
-                allOriginatingAgencies.addAll(parentUnit.getCollectionOrEmpty(Unit.ORIGINATING_AGENCIES));
-
-                Map<String, Collection<String>> parentUnitsByOriginatingAgencies =
-                    parentUnit.getMapOrEmpty(Unit.PARENT_ORIGINATING_AGENCIES);
-                parentUnitsByOriginatingAgencies
-                    .forEach(allParentOriginatingAgencies::putAll);
-
-                String parentOriginatingAgency = parentUnit.get(Unit.ORIGINATING_AGENCY, String.class);
-                if (parentOriginatingAgency != null) {
-                    allParentOriginatingAgencies.put(parentOriginatingAgency, parentUnit.getId());
-                }
-
-                Map<String, Integer> parentParentDepths = parentUnit.getMapOrEmpty(UNITDEPTHS);
-                for (Entry<String, Integer> entry : parentParentDepths.entrySet()) {
-                    parentDepths.put(entry.getKey(), entry.getValue() + 1);
-                }
-            }
-
-            // Set/override direct parents depth to 1
-            for (String directParent : directParents) {
-                parentDepths.put(directParent, 1);
-            }
-        }
-
-        put(UP, directParents);
-        put(UNITUPS, allParents);
-        put(GRAPH, graph);
-        put(ORIGINATING_AGENCIES, allOriginatingAgencies);
-        put(UNITDEPTHS, parentDepths);
-        put(PARENT_ORIGINATING_AGENCIES, allParentOriginatingAgencies.asMap());
-
-        put(MINDEPTH, 1);
-        int maxDepth = parentDepths.values().stream().max(Comparator.naturalOrder()).orElse(0) + 1;
-        put(MAXDEPTH, maxDepth);
-
-        put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
-
-        // Debug
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("DEBUG: UNIT {}", JSON.serialize(this));
-        }
-    }
 }
