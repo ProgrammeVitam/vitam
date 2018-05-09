@@ -118,7 +118,9 @@ export class ArchiveUnitFacetComponent implements OnInit {
 
     if (this.disabledFacet) {
       this.clearFacetResults();
-      delete this.data.$facetResults;
+      if (this.data && this.data.$facetResults) {
+        delete this.data.$facetResults;
+      }
     }
   }
 
@@ -264,8 +266,8 @@ export class ArchiveUnitFacetComponent implements OnInit {
   }
 
   clearFacetResults() {
+    this.selectedFacets = [];
     delete this.facets;
-    delete this.selectedFacets;
     delete this.facetDLResults;
     delete this.facetOAResults;
     delete this.facetSDResults;
