@@ -374,10 +374,13 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 - Nœud de rattachement
 - Contrôle sur noeud de rattachement
 - Tenant
+- Présence Obligatoire d'un master
+- Tous les usages 
+- Liste blanche des usages
 
 |
 
-    .. image:: images/detail_ce.png
+.. image:: images/detail_ce.png
 
 
 Modifier un contrat d'entrée
@@ -387,7 +390,7 @@ Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modi
 
 |
 
-     .. image:: images/detail_ce.png
+.. image:: images/detail_ce_modif.png
 
 
 * Statut
@@ -407,6 +410,12 @@ Il est possible d'ajouter dans ce champ l'identifiant (GUID) d'une unité archiv
 En activant cette option un contrôle est effectué sur la cohérence du rattachement parent / enfant du SIP.
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
+
+
+* Contrôle sur les usages 
+
+- Il est possible via l'option " Présence obligatoire d'un Master " d'activer un contrôle sur la présence ou non d'un objet dont l'usage est déclaré de type "Master" dans le SIP relié au contrat 
+- Il est possible également d'activer / désactiver le contrôle sur une liste d'usages via les options dans le détail des contrats d'accès : " Tous les usages " permet d'autoriser la présence de tous les usages ou bien d'en sélectionner que certains via la "Liste blanche des usages". 
 
 Contrats d'accès
 =================
@@ -500,9 +509,11 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 - Liste blanche des usages (permet de restreindre à certains usages)
 - Nœuds de consultation
 - Tenant
+- Noeuds inaccessibles
 
 
 .. image:: images/detail_ca.png
+
 
 
 Modifier un contrat d'accès
@@ -546,6 +557,11 @@ Un contrat peut restreindre l'accès aux unités archivistiques listées en tant
 
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
+
+
+*Restriction par nœud inaccessible*
+Un contrat peut restreindre l'accès à la consultation à partir de certains noeuds, grâce à l'option "Noeud inaccessible". Pour cela il faut déclarer l'id de l'unité archivistique dans le champs, et toutes les unités archivistiques de la descendance ne seront pas disponibles à la consultation.
+
 
 
 Contextes applicatifs

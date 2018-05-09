@@ -39,7 +39,18 @@ Le titre de la page est visible sur les onglets des navigateurs Internet. Il cor
 
 |
 
-    .. image:: images/titre_IHM_demo.png
+.. image:: images/titre_IHM_demo.png
+
+
+
+Flèche Retour en haut de page
+=============================
+
+- Pour toutes les pages , un bouton " Retour en haut de page " permet de retourner tout en haut de la page en cliquant sur l'icone. 
+
+
+.. image:: images/fleche.png
+
 
 
 Formulaire de recherche
