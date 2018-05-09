@@ -35,87 +35,87 @@ Une fois la suppression effectuée, un message de confirmation s'affiche dans un
 
 .. image:: images/administration_purge_pop_up_ok.png
 
-**Référentiel des formats**
+ * Référentiel des formats
 
 Le référentiel des formats de la solution logicielle Vitam est supprimé **pour tous les tenants**. L'IHM du référentiel de formats est vide de contenu. Sans référentiel des formats, aucun SIP ne pourra être importé dans la solution logicielle Vitam.
 
-**Référentiel des règles de gestion**
+ * Référentiel des règles de gestion
 
 Le référentiel des règles de gestion de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des règles de gestion est vide de contenu. Sans référentiel des règles de gestion, aucun SIP ne pourra être importé sur le tenant dans la solution logicielle Vitam.
 
-**Registre des fonds**
+ * Registre des fonds
 
-Le contenu du registre des fonds de la solution logicielle Vitam est supprimé. L'IHM du "registre des fonds" est vide de contenu.
+Le contenu du registre des fonds de la solution logicielle Vitam est supprimé pour le tenant supprimé par l'utilisateur. L'IHM du "registre des fonds" est vide de contenu.
 
-**Purge des profils d'archivage**
+ * Purge des profils d'archivage 
 
-Tous les profils sont supprimés de la solution logicielle Vitam. L'IHM du "référentiel des profils" est vide de contenu.
+Tous les profils sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. L'IHM du "référentiel des profils" est vide de contenu.
 
-**Purge des contextes applicatifs**
+ * Purge des contextes applicatifs 
 
 Lors de son exécution, la fonctionnalité de purge des contextes contrôle qu'il y a plus d'un contexte dans le référentiel. Si tel n'est pas le cas, la purge n'est pas réalisée. Si le référentiel contient plus d'un contexte, ils sont supprimés de la solution logicielle Vitam à l'exception de celui nommé « admin-context ».
 
-**Purge des services agents**
+ * Purge des services agents
 
 Le référentiel des services agents de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des services agents est vide de contenu. Sans référentiel de service agents, aucun SIP ne pourra être importé sur le tenant dans la solution logicielle Vitam.
 
-**Purge des documents type**
+ * Purge des documents type 
 
 Le référentiel des documents type de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des documents type est vide de contenu.
 
 Purge des journaux
 ------------------
 
-**Journal du cycle de vie** (unités archivistiques)
+ * Journal du cycle de vie (unités archivistiques)
 
-Tous les journaux du cycle de vie des unités archivistiques sont supprimés de la solution logicielle Vitam. L'IHM de chaque "Journal du cycle de vie" d'une unité archivistique est vide de contenu.
-
-
-**Journal du cycle de vie** (groupes d'objets)
-
-Tous les journaux du cycle de vie des objets sont supprimés de la solution logicielle Vitam. L'IHM de chaque "Journal du cycle de vie" d'un objet est vide de contenu.
+Tous les journaux du cycle de vie des unités archivistiques sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. L'IHM de chaque "Journal du cycle de vie" d'une unité archivistique est vide de contenu.
 
 
-**Journaux des opérations**
+ * Journal du cycle de vie (groupes d'objets)
 
-Tous les journaux des opérations sont supprimés de la solution logicielle Vitam. Les IHM "Journal des opérations" et "Journal des opérations d'entrées" sont vides de contenu.
+Tous les journaux du cycle de vie des objets sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. L'IHM de chaque "Journal du cycle de vie" d'un objet est vide de contenu.
+
+
+ * Journaux des opérations
+
+Tous les journaux des opérations sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. Les IHM "Journal des opérations" et "Journal des opérations d'entrées" sont vides de contenu.
 
 Purge des Unités Archivistiques et Groupes d'Objets
 ---------------------------------------------------
 
-**Purge des Unités Archivistiques**
+ * Purge des Unités Archivistiques
 
-Toutes les unités archivistiques sont supprimées de la solution logicielle Vitam. L'IHM "Recherche d'archives" ne comprend plus d'unité archivistique.
+Toutes les unités archivistiques sont supprimées de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. L'IHM "Recherche d'archives" ne comprend plus d'unité archivistique.
 
-**Purge des groupes d'objets**
+ * Purge des groupes d'objets 
 
-Tous les objets sont supprimés de la solution logicielle Vitam. L'IHM "Détail d'une unité archivistique" ne comprend plus d'objet.
+Tous les objets sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. Les IHM "Recherche d'archives" et "Détail d'une unité archivistique" ne comprennent plus d'objets.
 
 Purge des contrats
 ------------------
 
-**Contrats d'accès**
+ * Contrats d'accès
 
-Tous les contrats d'accès sont supprimés de la solution logicielle Vitam. L'IHM "Contrats d'accès" est vide de contenu.
+Tous les contrats d'accès sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. L'IHM "Contrats d'accès" est vide de contenu.
 
-**Contrats d'entrée**
+ * Contrats d'entrée
 
-Tous les contrats d'entrée sont supprimés de la solution logicielle Vitam. L'IHM "Contrats d'entrée" est vide de contenu.
+Tous les contrats d'entrée sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. L'IHM "Contrats d'entrée" est vide de contenu.
 
 
 Recherche et Modification d'un fichier 
 ======================================
 
-**Recherche d'un fichier**
+ * Recherche d'un fichier
 
-Il est possible de rechercher un fichier, en sélectionnant au préalable la catégorie de Recherche : au niveau de l'unité archivistique, de l'objet, ou du groupe d'objet. 
+Il est possible de rechercher un fichier grâce à son identifiant dans le champ "titre", en sélectionnant au préalable la catégorie de Recherche : au niveau de l'unité archivistique, de l'objet, ou du groupe d'objets. 
 
 Il faut également sélectionner un tenant au préalable. 
 
 En cliquant sur le bouton "Récupérer le fichier", le fichier est exporté, et disponible dans le but d' être modifié. 
 
 
-**Modification d'un fichier**
+ * Modification d'un fichier
 
 Un fois le fichier téléchargé, il est possible de le modifier, et l'importer à nouveau, en sachant que la version importée, sera enregistrée à la place de la dernière version exportée. 
 

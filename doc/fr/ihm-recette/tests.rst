@@ -4,8 +4,8 @@ Tests
 Tests de performance
 ====================
 
-Principe
---------
+Introduction
+------------
 
 Les tests de performance consistent à réaliser plusieurs fois l'entrée d'un SIP et à mesurer son temps d'exécution. Ces entrées peuvent être réalisées par une ou plusieurs tâches parallèles.
 
@@ -46,12 +46,11 @@ Chaque ligne du fichier .csv représente une entrée. Les colonnes sont :
 * CHECK_CONTAINER
 * STP_UPLOAD_SIP
 * STP_INGEST_CONTROL_SIP
+* PREPARE_STORAGE_INFO
 * CHECK_SEDA
 * CHECK_HEADER
 * CHECK_HEADER.CHECK_AGENT
 * CHECK_HEADER.CHECK_CONTRACT_INGEST
-* CHECK_HEADER.CHECK_IC_AP_RELATION
-* CHECK_HEADER.CHECK_ARCHIVEPROFILE
 * CHECK_DATAOBJECTPACKAGE
 * CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION
 * CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER
@@ -62,19 +61,25 @@ Chaque ligne du fichier .csv représente une entrée. Les colonnes sont :
 * OG_OBJECTS_FORMAT_CHECK
 * STP_UNIT_CHECK_AND_PROCESS
 * CHECK_UNIT_SCHEMA
+* CHECK_ARCHIVE_UNIT_PROFILE
+* CHECK_CLASSIFICATION_LEVEL
 * UNITS_RULES_COMPUTE
 * STP_STORAGE_AVAILABILITY_CHECK	STORAGE_AVAILABILITY_CHECK
+* STORAGE_AVAILABILITY_CHECK
 * STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK
 * STP_OBJ_STORING
 * OBJ_STORAGE
 * OG_METADATA_INDEXATION
 * STP_UNIT_METADATA
 * UNIT_METADATA_INDEXATION
-* STP_OG_STORING	OG_METADATA_STORAGE
+* STP_OG_STORING	
 * COMMIT_LIFE_CYCLE_OBJECT_GROUP
+* OG_METADATA_STORAGE
 * STP_UNIT_STORING
-* UNIT_METADATA_STORAGE
 * COMMIT_LIFE_CYCLE_UNIT
+* UNIT_METADATA_STORAGE
+* STP_UPDATE_OBJECT_GROUP
+* OBJECT_LIST_EMPTY
 * STP_ACCESSION_REGISTRATION
 * ACCESSION_REGISTRATION
 * STP_INGEST_FINALISATION
@@ -82,7 +87,7 @@ Chaque ligne du fichier .csv représente une entrée. Les colonnes sont :
 * ROLL_BACK
 
 
-La première contient le GUID de l'opération d'entrée. Les autres colonnes indiquent le temps en millisecondes qui a été nécessaire pour passer l'étape.
+La colonne "Opération ID" contient le GUID de l'opération d'entrée. Les autres colonnes indiquent le temps en millisecondes qui a été nécessaire pour passer l'étape.
 
 Tests fonctionnels
 ==================
@@ -109,12 +114,12 @@ La page est divisée en deux parties :
 
 .. image:: images/RECETTE_test_fonctionnels_ecran_principal.png
 
-**Boutons de gestion**
+ * Boutons de gestion
 
   * Bouton "Lancer les tests" : permet de rejouer les tests configurés. Ceci donnera lieu à la création d'un nouveau rapport.
   * Bouton "Mise à jour référentiel" : permet de récupérer les derniers fichiers de configuration des tests depuis "Git" (gestionnaire de sources). Ainsi, si un utilisateur a ajouté des tests et que ceux-ci ont été intégrés à Git, le fait de cliquer sur ce bouton permet de les prendre en compte au prochain clic sur le bouton "Lancer les Tests".
 
-**Résultat des derniers tests**
+ * Résultat des derniers tests
 
 Les résultats de tests sont affichés dans un tableau à deux colonnes :
 
@@ -125,7 +130,7 @@ Chaque ligne représente le rapport issu d'une campagne de tests. La colonne "Ra
 
 La colonne détail affiche simplement la mention "Accès au détail".
 
-Au clic sur une ligne, la page du détail du rapport concerné s'affiche dans un nouvel onglet.
+Au clic sur une ligne, la page du détail du rapport concerné s'affiche sur l'écran.
 
 Détail des tests
 ----------------
@@ -137,7 +142,7 @@ L'écran de détail d'une campagne de tests est divisé en deux parties :
 
 .. image:: images/RECETTE_detail_tests.png
 
-**Parie Résumé**
+**Partie Résumé**
 
 La partie Résumé comporte les trois indications suivantes :
 
@@ -162,6 +167,9 @@ Le tableau est constitué de quatre colonnes :
 
 Testeur de requêtes DSL
 =======================
+
+Introduction
+------------
 
 Le testeur de requêtes DSL met à disposition des administrateurs une interface graphique permettant de simplifier l'exécution de requêtes sur les API de la solution logicielle Vitam.
 
@@ -222,11 +230,13 @@ Si la requête envoyée par l'administrateur ne respecte pas le formatage de la 
 
 .. image:: images/DSl_requete_Json_KO.png
 
-L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en cliquant sur le bouton "Effacer". Le contenu de l'espace dédié à la question n'est en revanche pas effacé.
+L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en cliquant sur le bouton "Effacer". 
 
 
 Visualisation du graphe
 =======================
+
+- L'interface est accessible par le Menu: Tests > Visualisation du graphe. 
 
 Cette partie permet d'avoir une répresentation visuelle d'un graphe contenu dans un SIP. 
 La première étape consiste donc à récupérer les information suivantes :
@@ -236,9 +246,7 @@ La première étape consiste donc à récupérer les information suivantes :
 
 Note : la page correspondant à l'écran utilisé est expérimentale. 
 
-Dans l'interface de l 'IHM Recette, l'administrateur peut aller dans la Partie " Tests " puis dans la partie " Visualisation du Graphe ". 
-
-Il faut ensuite rajouter les informations dans les champs prévus à cet effet : " Contrat " et " Identifiant d'opération" 
+Il faut ensuite rajouter les informations dans les champs prévus à cet effet : "Contrat" et "Identifiant d'opération" 
 
 Puis il suffit de cliquer sur le bouton " Envoyer la requête" pour visualiser plusieurs choses : 
 

@@ -14,7 +14,7 @@ L'IHM de recette est développée à des fins de test uniquement.
 Elle contient des interfaces utilisateurs permettant, par tenant, de :
 
   * Administrer les collections MongoDB (référentiels, journaux, objets...)
-  * Lancer des tests automatisés via SOAP UI
+  * Lancer des tests (performance, fonctionnels, requêtes DSL ) 
   * Sécuriser manuellement les journaux des opérations
 
 
@@ -23,7 +23,7 @@ Accès
 
 L'accès à l'IHM de recette s'effectue par un chemin différent de l'IHM démo. Par défaut, son adresse est :
 
-**addresse_de_votre_serveur/ihm-recette/#!/login**
+**addresse_de_votre_serveur/ihm-recette/#/admin/collection 
 
 Contrairement à l'IHM de démo, la sélection de tenants se fait une fois connecté. La page de connexion ne contient donc  qu'un champ "Identifiant" et un champ "Mot de passe".
 
@@ -46,21 +46,18 @@ Les pages accessibles sont réparties de la façon suivante :
 **Admin**
 
 	* Administration des collections
+        * Recherche et Modification d'un fichier	
 
 **Tests**
 
 	* Tests de performance
 	* Tests fonctionnels
 	* Tests requêtes DSL
+        * Visualisation du pgraphe 
 
 **Sécurisation**
 
 	* Sécurisation des journaux 
-
-
-**Visualisation du graphe**
-
-	* Visualisation du graphe
 
 
 Fil d'Ariane
