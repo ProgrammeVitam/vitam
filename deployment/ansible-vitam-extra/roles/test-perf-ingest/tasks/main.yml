@@ -1,5 +1,9 @@
 ---
 # FIXME OMA : variabiliser les arborescences... et remettre / entre port et baseuri quand ansiblerie 2.1 sera mergée !
+- name: ensure no old result is present
+  file:
+    path: "{{inventory_dir}}/report.csv"
+    state: absent
 
 - name: copy "jeux de données" for performance tests
   copy:
@@ -75,6 +79,6 @@
 - name: download output file
   fetch:
     src: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/report/performance/{{launched.results[0].content}}"
-    dest: "{{inventory_dir}}/"
+    dest: "{{inventory_dir}}/report.csv"
     flat: yes
   ignore_errors: true
