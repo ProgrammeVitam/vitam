@@ -2,4 +2,8 @@
 
 - hosts: hosts-ihm-recette
   roles:
-    - { role: test-perf-ingest, ingest_number: 5, sip_name: SIP-1000-102400.zip, parallel: false }
+    - test-perf-ingest
+  vars:
+    ingest_number: 5
+    sip_name: SIP-1000-102400.zip
+    parallel: false
