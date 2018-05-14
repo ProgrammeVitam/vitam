@@ -5,21 +5,25 @@ db = db.getSiblingDB('metadata')
 // Create indexes
 // A single collection can have no more than 64 indexes.
 
-db.Unit.createIndex( {             "_tenant" : 1 } )
-db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 } )
-db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_us" : 1 } )
-db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_up" : 1 } )
-db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_uds" : 1 } )
-db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
-db.Unit.createIndex( { "_id" : 1 , "_tenant" : 1 , "_og" : 1 , "_us" : 1 } )
+db.Unit.createIndex( { "_tenant" : 1 } )
 db.Unit.createIndex( { "_ops" : 1 } )
 db.Unit.createIndex( { "_glpd" : 1 } )
 
-db.ObjectGroup.createIndex( {             "_tenant" : 1 } )
-db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 } )
-db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "_us" : 1 } )
-db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "_up" : 1 } )
-db.ObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
+db.ObjectGroup.createIndex( { "_tenant" : 1 } )
 db.ObjectGroup.createIndex( { "_ops" : 1 } )
 db.ObjectGroup.createIndex( { "_glpd" : 1 } )
 
+
+// Drop R6 indexes, if any
+
+db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 } )
+db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_us" : 1 } )
+db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_up" : 1 } )
+db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_uds" : 1 } )
+db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
+db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_og" : 1 , "_us" : 1 } )
+
+db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 } )
+db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_us" : 1 } )
+db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_up" : 1 } )
+db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
