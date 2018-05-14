@@ -68,6 +68,8 @@ import java.util.Map;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
@@ -126,7 +128,7 @@ public class ArchiveUnitProfileServiceImplTest {
 
         archiveUnitProfileService =
             new ArchiveUnitProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, functionalBackupService);
+                vitamCounterService, functionalBackupService, false);
 
     }
 
@@ -316,9 +318,11 @@ public class ArchiveUnitProfileServiceImplTest {
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
-        // We juste test the first profile
+        // We just test the first profile
         final ArchiveUnitProfileModel acm = responseCast.getResults().iterator().next();
         assertThat(acm).isNotNull();
+        assertThat(acm.getFields()).isNotNull();
+        assertEquals(acm.getFields().size(), 0);
 
         final String id1 = acm.getId();
         assertThat(id1).isNotNull();
@@ -327,6 +331,27 @@ public class ArchiveUnitProfileServiceImplTest {
         final ArchiveUnitProfileModel one = archiveUnitProfileService.findByIdentifier(id1);
         assertThat(one).isNull();
     }
+    
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenTestWithSchema() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_with_schema.json");
+        final List<ArchiveUnitProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+        final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
+
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        assertThat(responseCast.getResults()).hasSize(1);
+
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        String id3 = "aIdentifier3";
+        final ArchiveUnitProfileModel acm = archiveUnitProfileService.findByIdentifier(id3);
+        assertThat(acm).isNotNull();
+        assertThat(acm.getFields()).isNotNull();
+        assertTrue(acm.getFields().size() > 0);
+    }    
 
     @Test
     @RunWithCustomExecutor

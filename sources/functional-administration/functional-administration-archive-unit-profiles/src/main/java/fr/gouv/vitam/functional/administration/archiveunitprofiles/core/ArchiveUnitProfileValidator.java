@@ -73,6 +73,8 @@ public interface ArchiveUnitProfileValidator {
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_JSON_SHEMA = "The field %s is not a json schema";
         private static final String ERR_JSON_SCHEMA_IN_USE = "The field %s is used by an archiveUnit";
+        private static final String ERR_MISSING_ONTOLOGY_FIELD= "The field %s specified in the schema is not declared in ontology";
+        private static final String ERR_INCORRECT_ONTOLOGY_FIELD= "The field %s specified in the schema is not compatible with the one declared in ontology";
 
         private String reason;
 
@@ -126,7 +128,7 @@ public interface ArchiveUnitProfileValidator {
         public static RejectionCause rejectJsonSchemaModificationIfInUse(String fieldName) {
             return new RejectionCause(String.format(ERR_JSON_SCHEMA_IN_USE, fieldName));
         }
-
+        
         /**
          * Reject if the field is not a json shema
          *
@@ -147,6 +149,26 @@ public interface ArchiveUnitProfileValidator {
          */
         public static RejectionCause rejectMandatoryMissing(String fieldName) {
             return new RejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
+        }
+
+        /**
+         * Reject if one field is not declared in ontology
+         *
+         * @param fieldName
+         * @return RejectionCause
+         */
+        public static RejectionCause rejectMissingFieldInOntology(String fieldName) {
+            return new RejectionCause(String.format(ERR_MISSING_ONTOLOGY_FIELD, fieldName));
+        }
+        
+        /**
+         * Reject if one field is not compatible with the one declared in ontology
+         *
+         * @param fieldName
+         * @return RejectionCause
+         */
+        public static RejectionCause rejectIncorrectFieldInOntology(String fieldName) {
+            return new RejectionCause(String.format(ERR_INCORRECT_ONTOLOGY_FIELD, fieldName));
         }
 
         /**
