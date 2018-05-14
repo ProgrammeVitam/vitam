@@ -7,7 +7,7 @@
     "address": "{{ ip_service }}",
     {% endif %}
     "port": {{ composant.port_http }},
-    "enableTagOverride": false,
+    "enable_tag_override": false,
     "checks": [
       {
         "name": "{{ composant.cluster_name }} : HTTP check",
