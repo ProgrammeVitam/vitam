@@ -44,6 +44,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -244,7 +245,7 @@ public class JsonHandlerTest {
         try {
             JsonHandler.getFromStringAsTypeRefence("{}", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException | InvalidFormatException e) {// NOSONAR
             // Ignore
         }
 

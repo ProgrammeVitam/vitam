@@ -45,6 +45,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -306,10 +307,12 @@ public final class JsonHandler {
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromStringAsTypeRefence(final String value, final TypeReference<T> clasz)
-            throws InvalidParseOperationException {
+            throws InvalidParseOperationException, InvalidFormatException {
         try {
             ParametersChecker.checkParameter("value or class", value, clasz);
             return OBJECT_MAPPER.readValue(value, clasz);
+        } catch (final InvalidFormatException e) {
+            throw new InvalidFormatException(null, e.toString(), value, clasz.getClass());
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -288,7 +289,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
             return uriListWorkspace.stream().filter(uri -> uri.toString().contains(encodedSeparator)).collect(Collectors
                 .toList());
-        } catch (InvalidParseOperationException | UnsupportedEncodingException e) {
+        } catch (InvalidParseOperationException | InvalidFormatException | UnsupportedEncodingException e) {
             throw new ProcessingException(e);
         }
     }
