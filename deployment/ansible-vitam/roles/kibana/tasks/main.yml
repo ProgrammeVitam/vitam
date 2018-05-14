@@ -48,7 +48,6 @@
     state: started
 
 #### Consul configuration ####
-
 - name: Ensure consul config dir is OK
   file:
     path: "{{ consul_folder_conf }}"
@@ -63,5 +62,7 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
+  tags:
+    - consul_conf
   notify:
    - reload consul configuration

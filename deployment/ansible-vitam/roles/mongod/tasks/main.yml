@@ -71,7 +71,9 @@
     dest: "{{ consul_folder_conf }}/service-mongod.json"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}" 
+  tags:
+    - consul_conf
   notify:
    - reload consul configuration
 

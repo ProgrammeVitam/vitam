@@ -123,6 +123,8 @@
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - logstash
+  tags:
+    - consul_conf
   notify:
    - reload consul configuration
 
