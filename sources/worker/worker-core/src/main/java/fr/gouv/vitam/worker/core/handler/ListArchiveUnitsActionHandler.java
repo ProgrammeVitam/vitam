@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -62,10 +61,10 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -157,16 +156,9 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             selectMultiple.addRoots(arrayNode);
             selectMultiple.addProjection(projectionNode);
             LOGGER.debug("Selected Query For linked unit: " + selectMultiple.getFinalSelect().toString());
-            
-            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(selectMultiple,
-                    query -> {
-                        try {
-                            JsonNode jsonNode = metaDataClient.selectUnits(query.getFinalSelect());
-                            return RequestResponseOK.getFromJsonNode(jsonNode);
-                        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
-                            throw new IllegalStateException(e);
-                        }
-                    }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
+                .createUnitScrollSplitIterator(metaDataClient,selectMultiple);
 
             StreamSupport.stream(scrollRequest, false).forEach(
                     item -> {

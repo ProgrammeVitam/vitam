@@ -59,7 +59,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -85,6 +84,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
 /**
  * create manifest and put in on workspace
@@ -144,16 +144,9 @@ public class CreateManifest extends ActionHandler {
             SelectMultiQuery request = parser.getRequest();
             request.setProjection(projection);
 
-            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(request,
-                query -> {
-                    try {
-                        JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
-                        return RequestResponseOK.getFromJsonNode(jsonNode);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
-                        // TODO : throw VitamRuntimeException and set item status according to
-                        throw new IllegalStateException(e);
-                    }
-                }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
+                .createUnitScrollSplitIterator(client,request);
 
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> createGraph(multimap, originatingAgencies, ogs, item));

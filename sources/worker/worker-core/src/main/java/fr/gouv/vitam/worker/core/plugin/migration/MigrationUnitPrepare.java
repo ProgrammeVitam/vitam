@@ -27,25 +27,15 @@
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
@@ -53,13 +43,11 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
-import java.io.File;
-import java.util.stream.StreamSupport;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
-import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.checkNumberOfResultQuery;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
+import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.checkNumberOfResultQuery;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.createAndSaveLinkedFilesInWorkSpaceFromScrollRequest;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSelectMultiQuery;
 
 /**
@@ -67,50 +55,36 @@ import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSele
  */
 public class MigrationUnitPrepare extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
-    private static final String FIELDS_KEY = "$fields";
 
-    private static String MIGRATION_UNITS_LIST = "MIGRATION_UNITS_LIST";
+    private static final String MIGRATION_UNITS_LIST = "MIGRATION_UNITS_LIST";
     private MetaDataClientFactory metaDataClientFactory;
+    private final  int bachSize;
 
     @VisibleForTesting
-    public MigrationUnitPrepare(MetaDataClientFactory metaDataClientFactory) {
+    public MigrationUnitPrepare(MetaDataClientFactory metaDataClientFactory, int bachSize) {
         this.metaDataClientFactory = metaDataClientFactory;
+        this.bachSize = bachSize;
     }
 
-    public MigrationUnitPrepare() {        metaDataClientFactory = MetaDataClientFactory.getInstance();    }
+    /**
+     * Constructor
+     */
+    public MigrationUnitPrepare() {
+        metaDataClientFactory = MetaDataClientFactory.getInstance();
+        bachSize = GlobalDatasDb.LIMIT_LOAD;
+    }
 
-    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler)  throws ProcessingException {
+    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler)   {
         ItemStatus itemStatus = new ItemStatus(MIGRATION_UNITS_LIST);
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
 
-            SelectMultiQuery selectMultiQuery = getSelectMultiQuery(handler);
+            SelectMultiQuery selectMultiQuery = getSelectMultiQuery();
 
-            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(selectMultiQuery,
-                query -> {
-                    try {
-                        JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
-                        return RequestResponseOK.getFromJsonNode(jsonNode);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
-            StreamSupport.stream(scrollRequest, false).forEach(
-                unit -> {
-                    File file = null;
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
+                .createUnitScrollSplitIterator(client, selectMultiQuery,bachSize);
 
-                    try {
-                        String identifier = unit.get("#id").asText();
-                        file = handler.getNewLocalFile(identifier);
-                        JsonHandler.writeAsFile(unit, file);
-                        handler.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + identifier, file, true, false);
-
-                    } catch (InvalidParseOperationException | ProcessingException e) {
-                        LOGGER.error(e);
-                        throw new IllegalStateException(e);
-                    }
-
-                });
+            createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(scrollRequest, handler, ARCHIVE_UNIT_FOLDER, bachSize);
 
             if (checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(MIGRATION_UNITS_LIST)

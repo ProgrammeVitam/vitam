@@ -47,9 +47,11 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -69,10 +71,13 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
@@ -102,6 +107,13 @@ public class DataMigrationResource {
         workspaceClientFactory = WorkspaceClientFactory.getInstance();
     }
 
+    /**
+     * Constructor
+     *
+     * @param logbookOperationsClientFactory    logbookOperationsClientFactory
+     * @param processingManagementClientFactory processingManagementClientFactory
+     * @param workspaceClientFactory            workspaceClientFactory
+     */
     @VisibleForTesting
     public DataMigrationResource(
         LogbookOperationsClientFactory logbookOperationsClientFactory,
@@ -112,10 +124,18 @@ public class DataMigrationResource {
         this.workspaceClientFactory = workspaceClientFactory;
     }
 
-
+    /**
+     * Migration Api
+     *
+     * @param headers headers
+     * @return Response
+     */
 
     @POST
     @Path("/migrate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response migrateTo(@Context HttpHeaders headers) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         ParametersChecker.checkParameter("TenantId is mandatory", xTenantId);
@@ -131,13 +151,9 @@ public class DataMigrationResource {
             GUID guid = GUIDReader.getGUID(requestId);
 
             VitamThreadUtils.getVitamSession().setRequestId(guid.getId());
-            Select select = new Select();
-                select.setQuery(exists("id"));
 
             createOperation(guid);
             workspaceClient.createContainer(guid.getId());
-
-            workspaceClient.putObject(guid.getId(), "query.json", writeToInpustream(select.getFinalSelect()));
 
             processingClient.initVitamProcess(Contexts.DATA_MIGRATION.name(), guid.getId(), DATA_MIGRATION);
 
@@ -150,10 +166,7 @@ public class DataMigrationResource {
             LOGGER.error(e);
             return status(BAD_REQUEST).build();
 
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException|InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new VitamFatalRuntimeException("Internal server error", e);
-
-        }catch (VitamClientException |InternalServerException | InvalidGuidOperationException e) {
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -170,7 +183,7 @@ public class DataMigrationResource {
 
 
 
-    private void createOperation(GUID guid )
+    private void createOperation(GUID guid)
         throws LogbookClientBadRequestException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
@@ -185,7 +198,7 @@ public class DataMigrationResource {
                     VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
                     guid);
             client.create(initParameter);
-        }  catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
+        } catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
             throw new VitamRuntimeException("Internal server error ", e);
         }
     }

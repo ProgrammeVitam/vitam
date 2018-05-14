@@ -35,9 +35,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -55,38 +53,23 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
-import org.jclouds.json.Json;
 
 import javax.ws.rs.NotFoundException;
 import java.io.File;
@@ -99,7 +82,6 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.n
  */
 public class MigrationUnits extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
-    private static final String FIELDS_KEY = "$fields";
     private static final String UNIT_UPDATE_MIGRATION = "UPDATE_MIGRATION_UNITS";
     private static final String JSON = ".json";
     private static final String OB_ID = "obId";
@@ -107,7 +89,7 @@ public class MigrationUnits extends ActionHandler {
     private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
     private static final String DEFAULT_STRATEGY = "default";
 
-    private static String MIGRATION_UNITS = "MIGRATION_UNITS";
+    private static final String MIGRATION_UNITS = "MIGRATION_UNITS";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private StorageClientFactory storageClientFactory;
@@ -136,7 +118,7 @@ public class MigrationUnits extends ActionHandler {
         try (
             MetaDataClient metaDataClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
-            StorageClient storageClient = storageClientFactory.getClient();
+            StorageClient storageClient = storageClientFactory.getClient()
         )
         {
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
@@ -184,29 +166,44 @@ public class MigrationUnits extends ActionHandler {
         return new ItemStatus(MIGRATION_UNITS).setItemsStatus(MIGRATION_UNITS, itemStatus);
     }
 
+
     /**
      * @param unitId id
      * @return unit metadata as json
      */
-    private JsonNode getUnitMetadata(String unitId) throws ProcessingException {
+    JsonNode getUnitMetadata(String unitId) throws ProcessingException {
         MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-
+        final String error = String.format("No such  unit '%s'", unitId);
         RequestResponse<JsonNode> requestResponse;
+
+        JsonNode jsonResponse= null;
         try {
             requestResponse = metaDataClient.getUnitByIdRaw(unitId);
 
             if (requestResponse.isOk()) {
-                return ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+                jsonResponse = requestResponse.toJsonNode();
+            }
+            JsonNode jsonNode;
+            // check response
+            if (jsonResponse == null) {
+                LOGGER.error(error);
+                throw new ProcessingException(error);
+            }
+            jsonNode = jsonResponse.get($RESULTS);
+            // if result = 0 then throw Exception
+            if (jsonNode == null || jsonNode.size() == 0) {
+                LOGGER.error(error);
+                throw new VitamException(error);
             }
 
-            throw new NotFoundException(String.format("No such unit metadata '%s'", unitId));
+            // return a single node
+            return jsonNode.get(0);
 
         } catch (VitamException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
         }
     }
-
     /**
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
@@ -216,7 +213,7 @@ public class MigrationUnits extends ActionHandler {
      */
     private JsonNode retrieveLogbookLifeCycleById(String idDocument)
         throws ProcessingException {
-        JsonNode jsonResponse = null;
+        JsonNode jsonResponse;
         try {
             LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient();
             final SelectParserSingle parser = new SelectParserSingle();

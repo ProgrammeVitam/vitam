@@ -34,25 +34,19 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.MetadataType;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroupPrepare;
+import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
 import java.io.File;
 import java.util.stream.StreamSupport;
@@ -97,15 +91,8 @@ public class EvidenceAuditPrepare extends ActionHandler {
             JsonNode projection = createObjectNode().set(FIELDS_KEY, objectNode);
             select.setProjection(projection);
 
-            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(select,
-                query -> {
-                    try {
-                        JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
-                        return RequestResponseOK.getFromJsonNode(jsonNode);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException | VitamDBException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
+                .createUnitScrollSplitIterator(client, select);
 
             StreamSupport.stream(scrollRequest, false).forEach(
                 item -> {
@@ -121,7 +108,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
                     }
                     saveItemToWorkSpace(itemUnit, handlerIO);
                 });
-            if (checkNumberOfUnit(itemStatus, scrollRequest.estimateSize())) {
+            if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT)
                     .setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);
             }
@@ -152,18 +139,5 @@ public class EvidenceAuditPrepare extends ActionHandler {
 
     }
 
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { //Nothing todo
-    }
-
-    private boolean checkNumberOfUnit(ItemStatus itemStatus, long total) {
-        if (total == 0) {
-            itemStatus.increment(StatusCode.KO);
-            ObjectNode infoNode = createObjectNode();
-            infoNode.put("Reason", "the DSL query has no result");
-            String evdev = JsonHandler.unprettyPrint(infoNode);
-            itemStatus.setEvDetailData(evdev);
-            return true;
-        }
-        return false;
-    }
+    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException { /* Nothing todo */  }
 }

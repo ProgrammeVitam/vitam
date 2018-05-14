@@ -69,6 +69,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.StoreMetaDataObjectGroupActionPlugin;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import javax.ws.rs.NotFoundException;
@@ -82,7 +83,6 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.n
  */
 public class MigrationObjectGroups extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
-    private static final String FIELDS_KEY = "$fields";
     private static final String OBJECT_GROUPS_UPDATE_MIGRATION = "UPDATE_MIGRATION_OBJECT_GROUPS";
     private static final String JSON = ".json";
     private static final String OB_ID = "obId";
@@ -90,7 +90,7 @@ public class MigrationObjectGroups extends ActionHandler {
     private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
     private static final String DEFAULT_STRATEGY = "default";
 
-    private static String MIGRATION_OBJECT_GROUPS = "MIGRATION_OBJECT_GROUPS";
+    private static final String MIGRATION_OBJECT_GROUPS = "MIGRATION_OBJECT_GROUPS";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private StorageClientFactory storageClientFactory;
@@ -103,10 +103,12 @@ public class MigrationObjectGroups extends ActionHandler {
         this.storageClientFactory = storageClientFactory;
     }
 
+    /**
+     * Constructor
+     */
     public MigrationObjectGroups() {
-        metaDataClientFactory = MetaDataClientFactory.getInstance();
-        logbookLifeCyclesClientFactory = LogbookLifeCyclesClientFactory.getInstance();
-        storageClientFactory = StorageClientFactory.getInstance();
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
+            StorageClientFactory.getInstance());
     }
 
 
@@ -119,9 +121,10 @@ public class MigrationObjectGroups extends ActionHandler {
         try (
             MetaDataClient metaDataClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
-            StorageClient storageClient = storageClientFactory.getClient();
+            StorageClient storageClient = storageClientFactory.getClient()
         )
         {
+
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
 
             metaDataClient.updateObjectGroupById(updateMultiQuery.getFinalUpdate(), objectGroupId);
@@ -134,6 +137,7 @@ public class MigrationObjectGroups extends ActionHandler {
 
             final String fileName = objectGroupId + JSON;
 
+            //TODO Call StoreMetaDataObjectGroupActionPlugin
             //// get metadata
             JsonNode objectGroupMetadata = getObjectGroupMetadata(objectGroupId);
 
@@ -171,18 +175,33 @@ public class MigrationObjectGroups extends ActionHandler {
      * @param objectGroupId id
      * @return unit metadata as json
      */
-    private JsonNode getObjectGroupMetadata(String objectGroupId) throws ProcessingException {
+     JsonNode getObjectGroupMetadata(String objectGroupId) throws ProcessingException {
         MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-
+        final String error = String.format("No such ObjectGroup metadata '%s'", objectGroupId);
         RequestResponse<JsonNode> requestResponse;
+
+        JsonNode jsonResponse= null;
         try {
             requestResponse = metaDataClient.getObjectGroupByIdRaw(objectGroupId);
 
             if (requestResponse.isOk()) {
-                return ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+                jsonResponse = requestResponse.toJsonNode();
+            }
+            JsonNode jsonNode;
+            // check response
+            if (jsonResponse == null) {
+                LOGGER.error(error);
+                throw new ProcessingException(error);
+            }
+            jsonNode = jsonResponse.get($RESULTS);
+            // if result = 0 then throw Exception
+            if (jsonNode == null || jsonNode.size() == 0) {
+                LOGGER.error(error);
+                throw new VitamException(error);
             }
 
-            throw new NotFoundException(String.format("No such ObjectGroup metadata '%s'", objectGroupId));
+            // return a single node
+            return jsonNode.get(0);
 
         } catch (VitamException e) {
             LOGGER.error(e);
@@ -199,7 +218,7 @@ public class MigrationObjectGroups extends ActionHandler {
      */
     private JsonNode retrieveLogbookLifeCycleById(String idDocument)
         throws ProcessingException {
-        JsonNode jsonResponse = null;
+        JsonNode jsonResponse;
         try {
             LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient();
             final SelectParserSingle parser = new SelectParserSingle();
