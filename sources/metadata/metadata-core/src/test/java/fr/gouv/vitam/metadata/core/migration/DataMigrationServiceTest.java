@@ -13,8 +13,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.graph.GraphService;
+
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.junit.After;
@@ -35,6 +38,8 @@ import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Sorts.orderBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceTest {
@@ -62,8 +67,11 @@ public class DataMigrationServiceTest {
     private DataMigrationRepository repository =
         new DataMigrationRepository(unitCollection, ogCollection, TEST_BULK_SIZE);
 
+    private GraphService graphService;
+
     @Before
     public void setUpBeforeClass() throws Exception {
+        graphService = new GraphService(new MongoDbMetadataRepository(unitCollection));
     }
 
     @After
@@ -75,7 +83,7 @@ public class DataMigrationServiceTest {
     public void tryStartMongoDataUpdate_firstStart() throws Exception {
 
         // Given
-        DataMigrationService instance = Mockito.spy(new DataMigrationService(repository));
+        DataMigrationService instance = spy(new DataMigrationService(repository, graphService));
         CountDownLatch awaitTermination = new CountDownLatch(1);
         Mockito.doAnswer(i -> {
             awaitTermination.countDown();
@@ -88,14 +96,14 @@ public class DataMigrationServiceTest {
 
         // Than
         assertThat(started).isTrue();
-        Mockito.verify(instance, Mockito.times(1)).mongoDataUpdate();
+        verify(instance, Mockito.times(1)).mongoDataUpdate();
     }
 
     @Test
     public void tryStartMongoDataUpdate_alreadyRunning() throws Exception {
 
         // Given
-        DataMigrationService instance = Mockito.spy(new DataMigrationService(repository));
+        DataMigrationService instance = spy(new DataMigrationService(repository, graphService));
 
         CountDownLatch longRunningTask = new CountDownLatch(1);
 
@@ -114,7 +122,7 @@ public class DataMigrationServiceTest {
         // Then : Ensure process invoked once
         assertThat(firstStart).isTrue();
         assertThat(secondStart).isFalse();
-        Mockito.verify(instance, Mockito.times(1)).mongoDataUpdate();
+        verify(instance, Mockito.times(1)).mongoDataUpdate();
     }
 
     @Test
@@ -123,7 +131,7 @@ public class DataMigrationServiceTest {
         // First invocation
 
         // Given
-        DataMigrationService instance = Mockito.spy(new DataMigrationService(repository));
+        DataMigrationService instance = spy(new DataMigrationService(repository, graphService));
 
         // When
         boolean firstStart = instance.tryStartMongoDataUpdate();
@@ -135,7 +143,7 @@ public class DataMigrationServiceTest {
         // Then : Ensure process invoked twice
         assertThat(firstStart).isTrue();
         assertThat(secondStart).isTrue();
-        Mockito.verify(instance, Mockito.times(2)).mongoDataUpdate();
+        verify(instance, Mockito.times(2)).mongoDataUpdate();
     }
 
     private static void awaitOrThrow(CountDownLatch awaitTermination) throws InterruptedException {
@@ -146,7 +154,7 @@ public class DataMigrationServiceTest {
     public void mongoDataUpdate_emptyDataSet() throws Exception {
 
         // Given
-        DataMigrationService instance = new DataMigrationService(repository);
+        DataMigrationService instance = new DataMigrationService(repository, graphService);
 
         // When
         instance.mongoDataUpdate();
@@ -167,7 +175,7 @@ public class DataMigrationServiceTest {
         String ogDataSetFile = "DataMigrationR6/15ObjectGroupDataSet/R6ObjectGroupDataSet.json";
         importObjectGroupDataSetFile(ogDataSetFile);
 
-        DataMigrationService instance = new DataMigrationService(repository);
+        DataMigrationService instance = new DataMigrationService(repository, graphService);
 
         // When
         instance.mongoDataUpdate();

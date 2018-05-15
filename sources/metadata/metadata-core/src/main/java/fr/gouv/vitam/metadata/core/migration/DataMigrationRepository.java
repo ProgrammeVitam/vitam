@@ -68,6 +68,7 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Projections.computed;
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
+import static fr.gouv.vitam.metadata.core.graph.GraphService.UNIT_VITAM_GRAPH_PROJECTION;
 
 /**
  * Repository for mongo data migration
@@ -237,7 +238,7 @@ public class DataMigrationRepository {
         FindIterable<Unit> iterable = unitCollection
             .find(in(Unit.ID, unitIds))
             .batchSize(unitIds.size())
-            .projection(Unit.UNIT_VITAM_GRAPH_PROJECTION);
+            .projection(UNIT_VITAM_GRAPH_PROJECTION);
 
         Map<String, Unit> directParentById = new HashMap<>();
         try (MongoCursor<Unit> cursor = iterable.iterator()) {

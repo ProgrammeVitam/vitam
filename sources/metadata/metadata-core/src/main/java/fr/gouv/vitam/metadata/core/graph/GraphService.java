@@ -43,14 +43,12 @@ import java.util.Set;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.mongodb.BasicDBObject;
 import com.mongodb.util.JSON;
 
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
@@ -70,8 +68,7 @@ public class GraphService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GraphService.class);
 
-    @VisibleForTesting
-    static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
+    public static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
         new BasicDBObject(UP, 1)
             .append(UNITUPS, 1)
             .append(GRAPH, 1)
@@ -88,7 +85,7 @@ public class GraphService {
         this.mongoDbMetadataRepository = mongoDbMetadataRepository;
     }
 
-    public void compute(Unit unit, Set<String> directParents) throws MetaDataNotFoundException {
+    public void compute(Unit unit, Collection<String> directParents) throws MetaDataNotFoundException {
 
         String id = unit.getId();
         Set<String> allParents = new HashSet<>();
@@ -109,7 +106,7 @@ public class GraphService {
                 graph.add(createGraphRelation(id, directParent));
             }
 
-            Collection<? extends VitamDocument> select = mongoDbMetadataRepository.selectByIds(UNIT, UNIT_VITAM_GRAPH_PROJECTION, directParents);
+            Collection<? extends VitamDocument> select = mongoDbMetadataRepository.selectByIds(UNIT_VITAM_GRAPH_PROJECTION, directParents);
 
             final Set<String> notFound = new HashSet<>(directParents);
 

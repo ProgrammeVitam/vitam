@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.graph;
 
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
@@ -77,7 +76,7 @@ public class GraphServiceTest {
         uds12.put("1", Lists.newArrayList("1"));
         unit2.put(UNITDEPTHS, uds12);
 
-        given(mongoDbMetadataRepository.selectByIds(MetadataCollections.UNIT, UNIT_VITAM_GRAPH_PROJECTION, directParents))
+        given(mongoDbMetadataRepository.selectByIds(UNIT_VITAM_GRAPH_PROJECTION, directParents))
             .willReturn(Lists.newArrayList(unit1, unit2));
 
         Unit unit = new Unit();
@@ -102,7 +101,7 @@ public class GraphServiceTest {
         Unit unit2 = new Unit();
         unit2.put("_id", "2");
 
-        given(mongoDbMetadataRepository.selectByIds(MetadataCollections.UNIT, UNIT_VITAM_GRAPH_PROJECTION, directParents))
+        given(mongoDbMetadataRepository.selectByIds(UNIT_VITAM_GRAPH_PROJECTION, directParents))
             .willReturn(Lists.newArrayList(unit1, unit2));
 
         Unit unit = new Unit();

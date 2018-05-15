@@ -32,7 +32,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import fr.gouv.vitam.metadata.core.graph.GraphService;
+
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -64,19 +68,25 @@ public class DataMigrationService {
 
     private final AtomicBoolean isRunning = new AtomicBoolean();
 
+    private final GraphService graphService;
+
     /**
      * Constructor
      */
     public DataMigrationService() {
-        this(new DataMigrationRepository());
+        this(new DataMigrationRepository(),
+            new GraphService(
+                new MongoDbMetadataRepository(MetadataCollections.UNIT.getCollection())
+            ));
     }
 
     /**
      * Constructor for testing
      */
     @VisibleForTesting
-    DataMigrationService(DataMigrationRepository dataMigrationRepository) {
+    DataMigrationService(DataMigrationRepository dataMigrationRepository, GraphService graphService) {
         this.dataMigrationRepository = dataMigrationRepository;
+        this.graphService = graphService;
     }
 
     public boolean isMongoDataUpdateInProgress() {
@@ -157,7 +167,7 @@ public class DataMigrationService {
         CompletableFuture[] futures =
             unitsToUpdate.stream().map(unit -> CompletableFuture.runAsync(() -> {
                 try {
-                    processDocument(directParentById, unit);
+                    processDocument(unit);
                     updatedUnits.add(unit);
                 } catch (Exception e) {
                     LOGGER.error("An error occurred during unit migration: " + unit.getId(), e);
@@ -176,27 +186,18 @@ public class DataMigrationService {
             sw.getTime(TimeUnit.SECONDS), updatedUnitCount.get(), unitsWithErrorsCount.get()));
     }
 
-    private void processDocument(Map<String, Unit> directParentById, Unit unit) throws
+    private void processDocument(Unit unit) throws
         MetaDataNotFoundException {
 
-        buildParentGraph(directParentById, unit);
+        buildParentGraph(unit);
         updateUnitSedaModel(unit);
     }
 
-    private void buildParentGraph(Map<String, Unit> directParentById, Unit unit) throws
+    private void buildParentGraph(Unit unit) throws
         MetaDataNotFoundException {
 
         Collection<String> directParentIds = unit.getCollectionOrEmpty(Unit.UP);
-        List<Unit> parentUnits = new ArrayList<>(directParentIds.size());
-        for (String directParentId : directParentIds) {
-            Unit parentUnit = directParentById.get(directParentId);
-            if (parentUnit == null) {
-                throw new MetaDataNotFoundException(
-                    "Could not find parent unit " + directParentId + " for unit " + unit.getId());
-            }
-            parentUnits.add(parentUnit);
-        }
-        unit.buildParentGraph(parentUnits);
+        graphService.compute(unit, directParentIds);
     }
 
     private void processObjectGroups() {

@@ -7,9 +7,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import org.bson.conversions.Bson;
@@ -22,6 +22,11 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
  */
 public class MongoDbMetadataRepository {
 
+    private MongoCollection mongoCollection;
+
+    public MongoDbMetadataRepository(MongoCollection mongoCollection) {
+        this.mongoCollection = mongoCollection;
+    }
 
     public MetadataDocument findOne(MetadataCollections col, String id) {
         return MongoDbMetadataHelper.findOne(col, id);
@@ -30,14 +35,19 @@ public class MongoDbMetadataRepository {
     /**
      * Does not call getAfterLoad.
      *
-     * @param collection domain of request
      * @param projection select condition
      * @param directParents list of parents
      * @return the FindIterable on the find request based on the given collection
      */
-    public <T extends VitamDocument> Collection<T> selectByIds(MetadataCollections collection,
-                                                               Bson projection, Set<String> directParents) {
-        FindIterable<T> iterable =  (FindIterable<T>) MongoDbMetadataHelper.select(collection, in(ID, directParents), projection);
+    public <T extends VitamDocument> Collection<T> selectByIds(Bson projection, Collection<String> directParents) {
+        final Bson condition = in(ID, directParents);
+        FindIterable<?> result;
+        if (projection != null) {
+            result = mongoCollection.find(condition).projection(projection);
+        } else {
+            result = mongoCollection.find(condition);
+        }
+        FindIterable<T> iterable =  (FindIterable<T>) result;
 
         List<T> vitamDocuments = new ArrayList<>();
 

@@ -149,7 +149,7 @@ public class DbRequest {
      * Constructor
      */
     public DbRequest() {
-        this(new GraphService(new MongoDbMetadataRepository()));
+        this(new GraphService(new MongoDbMetadataRepository(MetadataCollections.UNIT.getCollection())));
     }
 
     /**
