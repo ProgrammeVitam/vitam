@@ -120,7 +120,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
             }
             // store OG to workspace
-            ((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
+            //((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
+            // why is that ?
             if(LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
             }

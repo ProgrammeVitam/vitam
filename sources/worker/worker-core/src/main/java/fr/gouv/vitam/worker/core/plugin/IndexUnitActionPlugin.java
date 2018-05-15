@@ -29,13 +29,17 @@ package fr.gouv.vitam.worker.core.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -115,7 +119,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (final StepAlreadyExecutedException e) {
             LOGGER.warn(e);
             itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
@@ -130,11 +134,13 @@ public class IndexUnitActionPlugin extends ActionHandler {
     /**
      * Index archive unit
      *
-     * @param params     work parameters
+     * @param params work parameters
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
+     * @throws InvalidCreateOperationException
      */
-    private void indexArchiveUnit(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
+    private void indexArchiveUnit(WorkerParameters params, ItemStatus itemStatus)
+        throws ProcessingException, InvalidCreateOperationException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
         final String containerId = params.getContainerName();
@@ -172,6 +178,11 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 }
                 ObjectNode finalInsert = ((InsertMultiQuery) query).addData(data).getFinalInsert();
                 metadataClient.insertUnit(finalInsert);
+            } else {
+                ((UpdateMultiQuery) query)
+                    .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
+                String existingAuGUID = data.get("#id").asText();
+                metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(), existingAuGUID);
             }
             itemStatus.increment(StatusCode.OK);
 
@@ -193,18 +204,21 @@ public class IndexUnitActionPlugin extends ActionHandler {
         } catch (IOException e) {
             LOGGER.error("Archive unit not found");
             throw new ProcessingException("Archive unit not found");
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("InvalidCreateOperationException for " + (query != null ? query.toString() : ""));
+            throw e;
         }
     }
 
     /**
      * Convert xml archive unit to json node for insert/update.
      *
-     * @param input       xml archive unit
+     * @param input xml archive unit
      * @param containerId container id
-     * @param objectName  unit file name
+     * @param objectName unit file name
      * @return map of data
      * @throws InvalidParseOperationException exception while reading temporary json file
-     * @throws ProcessingException            exception while reading xml file
+     * @throws ProcessingException exception while reading xml file
      */
     // FIXME do we need to create a new file or not ?
     private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)

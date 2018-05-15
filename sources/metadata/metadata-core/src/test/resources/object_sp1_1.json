@@ -12,6 +12,7 @@
           "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
           "DataObjectVersion": "PhysicalMaster_1",
           "PhysicalId": 123456789,
+          "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
           "_storage": {
             "_nbc": 1,
             "offerIds": [
@@ -31,6 +32,7 @@
           "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
           "DataObjectVersion": "BinaryMaster_1",
           "Size": 100,
+          "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
           "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
           "_storage": {
             "_nbc": 1,
@@ -44,6 +46,7 @@
           "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
           "DataObjectVersion": "BinaryMaster_1",
           "Size": 100,
+          "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
           "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
           "_storage": {
             "_nbc": 1,
@@ -60,6 +63,7 @@
     "aeaqaaaaaagbcaacaajo4ak4tr2o7rqaaaaq"
   ],
   "_nbc": 0,
+  "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
   "_ops": [
     "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq"
   ],

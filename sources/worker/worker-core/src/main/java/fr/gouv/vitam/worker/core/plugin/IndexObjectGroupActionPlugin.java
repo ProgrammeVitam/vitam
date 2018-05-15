@@ -27,18 +27,43 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.NBCHILD;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -108,17 +133,88 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         final String objectName = params.getObjectName();
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             final ObjectNode json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
-            json.remove(SedaConstants.PREFIX_WORK);
-            final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
-            metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
+            handleExistingObjectGroup(json, metadataClient, params);
             itemStatus.increment(StatusCode.OK);
         } catch (final MetaDataAlreadyExistException e) {
-            throw new StepAlreadyExecutedException("Object "+ objectName +" already processed", e);
-        } catch (final MetaDataException e) {
+            throw new StepAlreadyExecutedException("Object " + objectName + " already processed", e);
+        } catch (final MetaDataException | VitamClientException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingException("Json wrong format", e);
         }
+    }
+
+    private void handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient, WorkerParameters params)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, MetadataInvalidSelectException,
+        MetaDataClientServerException, InvalidParseOperationException, MetaDataNotFoundException,
+        MetaDataAlreadyExistException, InvalidCreateOperationException, VitamClientException {
+        JsonNode work = json.remove(SedaConstants.PREFIX_WORK);
+        if (work != null && work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID) != null &&
+            !work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID).asText().isEmpty()) {
+            // this means object group is existing, so we will update and not insert
+            String existingOg = work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID).asText();
+            RequestResponse<JsonNode> requestResponse = metadataClient.getObjectGroupByIdRaw(existingOg);
+            JsonNode ogInDB = null;
+            if (requestResponse.isOk()) {
+                ogInDB = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+            }
+
+            if (ogInDB != null) {
+                ArrayNode originQualifiers = (ArrayNode) ogInDB.get(QUALIFIERS);
+                ArrayNode newQualifiers = (ArrayNode) json.get(QUALIFIERS);
+                // lets create an update query
+                UpdateMultiQuery query = new UpdateMultiQuery();
+                query.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
+                JsonNode newUpdateQuery =
+                    query
+                        .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()),
+                            generateQualifiersUpdate(originQualifiers, newQualifiers))
+                        .getFinalUpdate();
+
+                metadataClient.updateObjectGroupById(newUpdateQuery, ogInDB.get(ID).asText());
+
+                return;
+            }
+        }
+        final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
+        metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
+        return;
+    }
+
+    private Action generateQualifiersUpdate(ArrayNode originQualifiers, ArrayNode newQualifiers)
+        throws InvalidCreateOperationException {
+        ArrayNode finalQualifiers = originQualifiers.deepCopy();
+        Map<String, JsonNode> action = new HashMap<>();
+        HashMap<String, ArrayNode> listOrigin = new HashMap<String, ArrayNode>();
+        for (int i = 0; i < originQualifiers.size(); i++) {
+            JsonNode qualifierNode = originQualifiers.get(i);
+            listOrigin.put(qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText(),
+                (ArrayNode) qualifierNode.get(SedaConstants.TAG_VERSIONS));
+        }
+        for (int i = 0; i < newQualifiers.size(); i++) {
+            JsonNode qualifierNode = newQualifiers.get(i);
+            String qualifType = qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText();
+            if (listOrigin.containsKey(qualifType)) {
+                for (int j = 0; j < finalQualifiers.size(); j++) {
+                    ObjectNode current = (ObjectNode) finalQualifiers.get(j);
+                    if (current.get(SedaConstants.PREFIX_QUALIFIER).asText()
+                        .equals(qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText())) {
+                        int nbCopy = current.get(NBCHILD).asInt() + 1;
+                        current.put(NBCHILD, current.get(NBCHILD).asInt() + 1);
+                        ArrayNode currentArray = (ArrayNode) current.get(SedaConstants.TAG_VERSIONS);
+                        ((ObjectNode) qualifierNode.get(SedaConstants.TAG_VERSIONS).get(0)).put(
+                            SedaConstants.TAG_DO_VERSION,
+                            current.get(SedaConstants.PREFIX_QUALIFIER).asText() + "_" + nbCopy);
+                        currentArray.add(qualifierNode.get(SedaConstants.TAG_VERSIONS).get(0));
+                        break;
+                    }
+                }
+            } else {
+                finalQualifiers.add(qualifierNode);
+            }
+        }
+        action.put(PROJECTIONARGS.QUALIFIERS.exactToken(), finalQualifiers);
+        return new SetAction(action);
     }
 
     @Override

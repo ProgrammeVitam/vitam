@@ -138,7 +138,7 @@ public class SedaConstants {
     /**
      * Tag of DataObjectGroupExistingReferenceId
      */
-    public static final String TAG_DATA_OBJECT_GROUP_EXISITING_REFERENCEID = "DataObjectGroupExistingReferenceId";
+    public static final String TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID = "DataObjectGroupExistingReferenceId";
 
 
     /**

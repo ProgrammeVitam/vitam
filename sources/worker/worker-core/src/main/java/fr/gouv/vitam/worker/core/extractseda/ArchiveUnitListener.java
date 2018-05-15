@@ -34,6 +34,7 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -147,6 +148,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Map<String, GotObj> dataObjectIdWithoutObjectGroupId;
     private Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters;
     private Set<String> existingUnitGuids;
+    private Map<String, String> existingUnitIdWithExistingObjectGroup;
     private LogbookTypeProcess logbookTypeProcess;
     private String containerId;
     private MetaDataClientFactory metaDataClientFactory;
@@ -158,6 +160,29 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private final Map<String, JsonNode> existingGOTs;
     private String ingestContract;
 
+    /**
+     * 
+     * @param handlerIO
+     * @param archiveUnitTree
+     * @param unitIdToGuid
+     * @param guidToUnitId
+     * @param unitIdToGroupId
+     * @param objectGroupIdToUnitId
+     * @param dataObjectIdToObjectGroupId
+     * @param dataObjectIdWithoutObjectGroupId
+     * @param guidToLifeCycleParameters
+     * @param existingUnitGuids
+     * @param logbookTypeProcess
+     * @param containerId
+     * @param metaDataClientFactory
+     * @param objectGroupIdToGuid
+     * @param dataObjectIdToGuid
+     * @param unitIdToSetOfRuleId
+     * @param workflowUnitType
+     * @param originatingAgencies
+     * @param existingGOTs
+     * @param existingUnitIdWithExistingObjectGroup
+     */
     public ArchiveUnitListener(HandlerIO handlerIO, ObjectNode archiveUnitTree, Map<String, String> unitIdToGuid,
         Map<String, String> guidToUnitId,
         Map<String, String> unitIdToGroupId,
@@ -169,7 +194,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         MetaDataClientFactory metaDataClientFactory,
         Map<String, String> objectGroupIdToGuid,
         Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
-        List<String> originatingAgencies, Map<String, JsonNode> existingGOTs) {
+        List<String> originatingAgencies, Map<String, JsonNode> existingGOTs,
+        Map<String, String> existingUnitIdWithExistingObjectGroup) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -190,6 +216,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.originatingAgencies = originatingAgencies;
         this.existingGOTs = existingGOTs;
         this.objectMapper = getObjectMapper();
+        this.existingUnitIdWithExistingObjectGroup = existingUnitIdWithExistingObjectGroup;
 
         DescriptiveMetadataMapper descriptiveMetadataMapper = new DescriptiveMetadataMapper();
         RuleMapper ruleMapper = new RuleMapper();
@@ -316,7 +343,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      */
     private void enhanceSignatures(DescriptiveMetadataModel descriptiveMetadataModel) {
 
-        if(descriptiveMetadataModel.getSignature() != null && !descriptiveMetadataModel.getSignature().isEmpty()){
+        if (descriptiveMetadataModel.getSignature() != null && !descriptiveMetadataModel.getSignature().isEmpty()) {
             for (DescriptiveMetadataContentType.Signature signature : descriptiveMetadataModel.getSignature()) {
 
                 String signedObjectId =
@@ -386,7 +413,9 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             // In case where systemId is key:value format, then erase value with the correct unit id
             existingArchiveUnitGuid = unitInDB.get("#id").asText();
             existingUnitGuids.add(existingArchiveUnitGuid);
-
+            if (unitInDB.get("#object") != null && unitInDB.get("#object").asText() != null) {
+                existingUnitIdWithExistingObjectGroup.put(existingArchiveUnitGuid, unitInDB.get("#object").asText());
+            }
             if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
                 LOGGER.error("Linking not allowed  {}", existingArchiveUnitGuid);
                 throw new ProcessingUnitLinkingException("Linking Unauthorized ");
@@ -799,6 +828,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             fields.put(ID.exactToken(), 1);
             fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
             fields.put(ORIGINATING_AGENCY.exactToken(), 1);
+            fields.put(OBJECT.exactToken(), 1);
             projection.set(FIELDS.exactToken(), fields);
 
 

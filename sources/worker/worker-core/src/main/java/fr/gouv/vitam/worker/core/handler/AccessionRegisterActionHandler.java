@@ -257,13 +257,15 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                         throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
                     }
 
-                    final JsonNode nodeAcquisitionInformation = dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
-                    if(nodeAcquisitionInformation != null && !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())){
+                    final JsonNode nodeAcquisitionInformation =
+                        dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+                    if (nodeAcquisitionInformation != null &&
+                        !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
                         acquisitionInformation = nodeAcquisitionInformation.asText();
                     }
 
                     final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
-                    if(nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())){
+                    if (nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())) {
                         legalStatus = nodeLegalStatus.asText();
                     }
 
@@ -292,7 +294,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
-        String originalAgency, String submissionAgency, String archivalAgreement, String acquisitionInformation, String legalStatus, UnitPerOriginatingAgency agency,
+        String originalAgency, String submissionAgency, String archivalAgreement, String acquisitionInformation,
+        String legalStatus, UnitPerOriginatingAgency agency,
         ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId, boolean symbolic) {
 
         RegisterValueDetailModel totalObjectsGroups, totalUnits, totalObjects, objectSize;

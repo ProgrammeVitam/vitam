@@ -30,6 +30,7 @@ package fr.gouv.vitam.metadata.core;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPI;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
 
@@ -85,7 +86,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.MetaData;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -163,7 +163,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document("$and", Arrays.asList(new Document(OPS, operationId),
+            new Document("$match", new Document("$and", Arrays.asList(new Document(OPI, operationId),
                 new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
             new Document("$unwind", "$" + ORIGINATING_AGENCIES),
             new Document("$group",
@@ -180,6 +180,7 @@ public class MetaDataImpl implements MetaData {
                 new Document("$unwind", "$" + QUALIFIERS),
                 new Document("$unwind", "$" + QUALIFIERS + ".versions"),
                 new Document("$unwind", "$" + ORIGINATING_AGENCIES),
+                new Document("$match", new Document(QUALIFIERS + ".versions._opi", operationId)),
                 new Document("$group", new Document(ID, "$" + ORIGINATING_AGENCIES)
                     .append("totalSize", new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
                     .append("totalObject", new Document("$sum", 1))
