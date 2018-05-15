@@ -209,6 +209,8 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
+  tags:
+    - consul_conf
   notify:
    - reload consul configuration
 

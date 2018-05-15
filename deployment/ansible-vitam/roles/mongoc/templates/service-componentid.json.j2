@@ -2,7 +2,7 @@
   "service": {
     "name": "{{ mongo_cluster_name }}-mongoc",
     "port": {{ mongodb.mongoc_port }},
-    "enableTagOverride": false,
+    "enable_tag_override": false,
     "checks": [
       {
         "name": "{{ mongo_cluster_name }}-mongoc : TCP check",
