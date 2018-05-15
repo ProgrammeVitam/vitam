@@ -62,12 +62,12 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
 
     public SwiftKeystoneFactoryV3(StorageConfiguration configuration)
         throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
-        domainIdentifier = Identifier.byName(configuration.getSwiftUid());
-        projectIdentifier = Identifier.byName(configuration.getProjectName());
+        domainIdentifier = Identifier.byName(configuration.getSwiftDomain());
+        projectIdentifier = Identifier.byName(configuration.getSwiftProjectName());
         configOS4J = Config.newConfig()
             .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration));
 
-        if (configuration.getKeystoneEndPoint().startsWith("https")) {
+        if (configuration.getSwiftKeystoneAuthUrl().startsWith("https")) {
             File file = new File(configuration.getSwiftTrustTore());
             SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(file, configuration.getSwiftTrustTorePassword().toCharArray()).build();
 
@@ -81,8 +81,8 @@ public class SwiftKeystoneFactoryV3 implements Supplier<OSClient> {
         if (token == null || token.getExpires().before(LocalDateUtil.getDate(LocalDateUtil.now()))) {
             LOGGER.info("No token or token expired, let's get authenticate again");
             // endpoint(endpoint v3).credentials(user, mdp, domain).scopeToProject(project, domain)
-            osClientV3 = OSFactory.builderV3().endpoint(configuration.getKeystoneEndPoint())
-                .credentials(configuration.getSwiftSubUser(), configuration.getCredential(), domainIdentifier)
+            osClientV3 = OSFactory.builderV3().endpoint(configuration.getSwiftKeystoneAuthUrl())
+                .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword(), domainIdentifier)
                 .scopeToProject(projectIdentifier, domainIdentifier)
                 .withConfig(configOS4J)
                 .authenticate();

@@ -61,11 +61,11 @@ public class StoreContextBuilderTest {
     public void setUp() {
         configuration = new StorageConfiguration();
         configuration.setProvider(StorageProvider.SWIFT_AUTH_V3.getValue());
-        configuration.setSwiftUid("default");
-        configuration.setProjectName("demo");
-        configuration.setKeystoneEndPoint("http://localhost:8000/identity/v3");
-        configuration.setSwiftSubUser("demo");
-        configuration.setCredential("password");
+        configuration.setSwiftDomain("default");
+        configuration.setSwiftProjectName("demo");
+        configuration.setSwiftKeystoneAuthUrl("http://localhost:8000/identity/v3");
+        configuration.setSwiftUser("demo");
+        configuration.setSwiftPassword("password");
     }
 
     /**

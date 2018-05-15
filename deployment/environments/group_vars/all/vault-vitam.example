@@ -86,3 +86,7 @@ ldap_authentification:
     ldap_pwd: "admin"
 
 admin_basic_auth_password: adminPassword
+
+vitam_offers:
+    offer-swift-1:
+        swiftPassword: password
