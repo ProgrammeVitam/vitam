@@ -106,7 +106,10 @@ public class AdminFunctionalApplication extends Application {
             AdminSecurityProfileResource adminSecurityProfileResource =
                 new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);
-            singletons.add(new DataMigrationResource());
+
+            AdminDataMigrationResource adminDataMigrationResource = new AdminDataMigrationResource();
+            singletons.add(adminDataMigrationResource);
+            singletons.add(new AdminMigrationResource(adminDataMigrationResource));
 
             singletons.add(new BasicAuthenticationFilter(configuration));
             singletons.add(new AdminRequestIdFilter());
