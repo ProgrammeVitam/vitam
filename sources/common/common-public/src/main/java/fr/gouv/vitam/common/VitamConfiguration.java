@@ -758,6 +758,10 @@ public class VitamConfiguration {
             setStoreGraphOverlapDelay(parameters.getStoreGraphOverlapDelay());
         }
 
+        if (null != parameters.getMigrationBulkSize()) {
+            setMigrationBulkSize(parameters.getMigrationBulkSize());
+        }
+
         if (null != parameters.getDeleteIncompleteReconstructedUnitDelay()) {
             setDeleteIncompleteReconstructedUnitDelay(parameters.getDeleteIncompleteReconstructedUnitDelay());
         }
