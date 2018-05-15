@@ -386,6 +386,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         Map<Integer, List<ErrorReport>> errors = new HashMap<Integer, List<ErrorReport>>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
         List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
@@ -393,7 +394,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
 
             try {
-                rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules, insertRules,
+                rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules,
                     notUsedDeletedRules, notUsedUpdatedRules);
             } catch (FileRulesUpdateException exc) {
                 LOGGER.warn("used Rules ({}) want to be updated",
