@@ -75,6 +75,11 @@ public class VitamConfigurationParameters {
     private Integer storeGraphOverlapDelay;
 
     /**
+     * Data migration bulk size
+     */
+    private Integer migrationBulkSize;
+
+    /**
      * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data units
      * The unit should contains only graph data and the graph last persisted date should be 30 day older
      */
@@ -839,6 +844,21 @@ public class VitamConfigurationParameters {
      */
     public void setStoreGraphOverlapDelay(Integer storeGraphOverlapDelay) {
         this.storeGraphOverlapDelay = storeGraphOverlapDelay;
+    }
+
+    /**
+     * Set data migration bulk size
+     */
+    public Integer getMigrationBulkSize() {
+        return migrationBulkSize;
+    }
+
+    /**
+     * Get data migration bulk size
+     * @param migrationBulkSize
+     */
+    public void setMigrationBulkSize(Integer migrationBulkSize) {
+        this.migrationBulkSize = migrationBulkSize;
     }
 
     /**
