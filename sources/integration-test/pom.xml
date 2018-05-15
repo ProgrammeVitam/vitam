@@ -265,5 +265,10 @@
 			<artifactId>internal-security-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>net.javacrumbs.json-unit</groupId>
+			<artifactId>json-unit</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

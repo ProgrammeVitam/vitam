@@ -81,4 +81,8 @@
   </logger>
   {% endif %}
 
+  {% if vitam_struct.vitam_component == 'metadata' %}
+  <logger name="fr.gouv.vitam.metadata.core.migration" level="INFO"/>
+  {% endif %}
+
 </configuration>

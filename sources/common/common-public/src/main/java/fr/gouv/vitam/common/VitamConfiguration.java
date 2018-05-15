@@ -319,12 +319,16 @@ public class VitamConfiguration {
      * Number of elements per file use for store graph service
      */
     private static int storeGraphElementsPerFile = 10000;
-
     /**
      * The overlap delay (in seconds) for store graph operation.
      * Used to do not treat elements in critical state due to clock difference or GC slow down or VM freeze
      */
     private static int storeGraphOverlapDelay = 300;
+
+    /*
+     * Data migration bulk size
+     */
+    private static int migrationBulkSize = 10000;
 
     /**
      * The time in seconds 60*60*24*30 (default 30 days) to wait before deleting reconstructed with only graph data units
@@ -1810,5 +1814,23 @@ public class VitamConfiguration {
 
     public static long getSwiftFileLimit() {
         return swiftFileLimit;
+    }
+
+    /**
+     * Get migrationBulkSize
+     *
+     * @return migrationBulkSize
+     */
+    public static int getMigrationBulkSize() {
+        return migrationBulkSize;
+    }
+
+    /**
+     * Set the migrationBulkSize
+     *
+     * @param migrationBulkSize
+     */
+    public static void setMigrationBulkSize(int migrationBulkSize) {
+        VitamConfiguration.migrationBulkSize = migrationBulkSize;
     }
 }

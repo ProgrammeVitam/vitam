@@ -28,9 +28,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SingletonUtils;
@@ -49,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
 
 /**
@@ -104,7 +101,7 @@ public class Unit extends MetadataDocument<Unit> {
      */
     public static final BasicDBObject UNIT_ES_PROJECTION = new BasicDBObject(UNITDEPTHS, 0);
 
-    private static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
+    public static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
         new BasicDBObject(UP, 1)
             .append(UNITUPS, 1)
             .append(GRAPH, 1)
@@ -258,9 +255,10 @@ public class Unit extends MetadataDocument<Unit> {
         return map;
     }
 
-    public void buildParentGraph(Set<String> directParents) throws MetaDataNotFoundException {
+    public void buildParentGraph(Collection<Unit> directParentUnits) {
 
         String id = getId();
+        Set<String> directParents = new HashSet<>();
         Set<String> allParents = new HashSet<>();
         Set<String> graph = new HashSet<>();
         Map<String, Integer> parentDepths = new HashMap<>();
@@ -271,7 +269,11 @@ public class Unit extends MetadataDocument<Unit> {
             allOriginatingAgencies.add(originatingAgency);
         }
 
-        if (!directParents.isEmpty()) {
+        if (!directParentUnits.isEmpty()) {
+
+            for (Unit parentUnit : directParentUnits) {
+                directParents.add(parentUnit.getId());
+            }
 
             allParents.addAll(directParents);
 
@@ -279,47 +281,33 @@ public class Unit extends MetadataDocument<Unit> {
                 graph.add(createGraphRelation(id, directParent));
             }
 
-            @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                    in(MetadataDocument.ID, directParents), Unit.UNIT_VITAM_GRAPH_PROJECTION);
-            final Set<String> notFound = new HashSet<>(directParents);
-            try (MongoCursor<Unit> cursor = iterable.iterator()) {
-                while (cursor.hasNext()) {
-                    final Unit parentUnit = cursor.next();
+            for (Unit parentUnit : directParentUnits) {
 
-                    allParents.addAll(parentUnit.getCollectionOrEmpty(UNITUPS));
+                allParents.addAll(parentUnit.getCollectionOrEmpty(UNITUPS));
 
-                    graph.addAll(parentUnit.getCollectionOrEmpty(GRAPH));
+                graph.addAll(parentUnit.getCollectionOrEmpty(GRAPH));
 
-                    allOriginatingAgencies.addAll(parentUnit.getCollectionOrEmpty(Unit.ORIGINATING_AGENCIES));
+                allOriginatingAgencies.addAll(parentUnit.getCollectionOrEmpty(Unit.ORIGINATING_AGENCIES));
 
-                    Map<String, Collection<String>> parentUnitsByOriginatingAgencies =
-                        parentUnit.getMapOrEmpty(Unit.PARENT_ORIGINATING_AGENCIES);
-                    parentUnitsByOriginatingAgencies
-                        .forEach((key, ids) -> allParentOriginatingAgencies.putAll(key, ids));
+                Map<String, Collection<String>> parentUnitsByOriginatingAgencies =
+                    parentUnit.getMapOrEmpty(Unit.PARENT_ORIGINATING_AGENCIES);
+                parentUnitsByOriginatingAgencies
+                    .forEach(allParentOriginatingAgencies::putAll);
 
-                    String parentOriginatingAgency = parentUnit.get(Unit.ORIGINATING_AGENCY, String.class);
-                    if (parentOriginatingAgency != null) {
-                        allParentOriginatingAgencies.put(parentOriginatingAgency, parentUnit.getId());
-                    }
+                String parentOriginatingAgency = parentUnit.get(Unit.ORIGINATING_AGENCY, String.class);
+                if (parentOriginatingAgency != null) {
+                    allParentOriginatingAgencies.put(parentOriginatingAgency, parentUnit.getId());
+                }
 
-                    Map<String, Integer> parentParentDepths = parentUnit.getMapOrEmpty(UNITDEPTHS);
-                    for (Entry<String, Integer> entry : parentParentDepths.entrySet()) {
-                        parentDepths.put(entry.getKey(), entry.getValue() + 1);
-                    }
-
-                    notFound.remove(parentUnit.getId());
+                Map<String, Integer> parentParentDepths = parentUnit.getMapOrEmpty(UNITDEPTHS);
+                for (Entry<String, Integer> entry : parentParentDepths.entrySet()) {
+                    parentDepths.put(entry.getKey(), entry.getValue() + 1);
                 }
             }
 
             // Set/override direct parents depth to 1
             for (String directParent : directParents) {
                 parentDepths.put(directParent, 1);
-            }
-
-            if (!notFound.isEmpty()) {
-                LOGGER.error("Cannot find parent: " + notFound);
-                throw new MetaDataNotFoundException("Cannot find parents: " + notFound);
             }
         }
 
