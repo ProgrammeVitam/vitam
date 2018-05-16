@@ -1,0 +1,81 @@
+{
+	"_id": "aeaqaaaaaahgcid5abhfialde3bsxdqaaaca",
+	"_mgt": {},
+	"DescriptionLevel": "RecordGrp",
+	"Title": "dossier1",
+	"OriginatingSystemId": ["OriginatingSystemId_02"],
+	"Description": "Sed pellentesque augue tellus, at ultricies ex viverra ut. Vivamus sed orci leo. Phasellus gravida ex quis velit pretium, at hendrerit urna elementum. Nam placerat leo in magna mattis consectetur. Fusce convallis efficitur imperdiet. Phasellus ac interdum dui. Nunc ullamcorper placerat metus",
+	"Language" : ["fr"],
+	"ArchivalAgencyArchiveUnitIdentifier" : ["ArchivalAgencyArchiveUnitIdentifier0"],
+	"StartDate": "2016-06-03T15:28:00",
+	"EndDate": "2016-06-03T15:28:00",
+	"AuthorizedAgent":
+	[{
+		"FirstName": "John",
+		"GivenName": "Doe",
+		"BirthName": "1990-01-01",
+		"BirthPlace": {
+			"City":"Lagny sur Marne"
+		}
+	}],
+	"Signature" :
+	[
+		{
+			"Signer" :
+			[{
+					"Corpname" : "Service d'archives 2",
+					"SigningTime" : "2017-11-13T19:28:40"
+			}],
+			"Validator" : {
+				"FirstName" : "Laurent",
+				"BirthName" : "Dupois",
+				"ValidationTime" : "2016-10-12T16:28:40"
+			},
+			"ReferencedObject" : {
+				"SignedObjectDigest" : {
+					"Value" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+					"Algorithm" : "SHA-512"
+				}
+			}
+		}
+	],
+	"_storage": {
+		"_nbc": 2,
+		"offerIds": [
+			"offer-fs-1.service.int.consul",
+			"offer-fs-2.service.int.consul"
+		],
+		"strategyId": "default"
+	},
+	"_sps": [
+		"FRAN_NP_009913"
+	],
+	"_sp": "FRAN_NP_009913",
+	"_ops": [
+		"aeeaaaaaachejunfab6syalde3bsb2qaaaaq"
+	],
+	"_opi": "aeeaaaaaachejunfab6syalde3bsb2qaaaaq",
+	"_unitType": "INGEST",
+	"_up": [
+		"aeaqaaaaaahgcid5abhfialde3bsxcqaaabq"
+	],
+	"_us": [
+		"aeaqaaaaaahgcid5abhfialde3bsxcqaaabq"
+	],
+	"_graph": [
+		"aeaqaaaaaahgcid5abhfialde3bsxdqaaaca/aeaqaaaaaahgcid5abhfialde3bsxcqaaabq"
+	],
+	"_uds": {
+		"aeaqaaaaaahgcid5abhfialde3bsxcqaaabq": 1
+	},
+	"_us_sp": {
+		"FRAN_NP_009913": [
+			"aeaqaaaaaahgcid5abhfialde3bsxcqaaabq"
+		]
+	},
+	"_min": 1,
+	"_max": 2,
+	"_glpd": "2018-05-03T16:08:46.137",
+	"_v": 0,
+	"_tenant": 0
+}
