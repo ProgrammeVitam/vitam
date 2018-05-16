@@ -96,7 +96,7 @@ public class MongoDbMetadataResponseFilter {
                 case OPERATIONS:
                     replace(document, MetadataDocument.OPS, VitamFieldsHelper.operations());
                     break;
-                case INITIAL_OPERATION:
+                case OPI:
                     replace(document, MetadataDocument.OPI, VitamFieldsHelper.initialOperation());
                     break;                    
                 case QUALIFIERS:
