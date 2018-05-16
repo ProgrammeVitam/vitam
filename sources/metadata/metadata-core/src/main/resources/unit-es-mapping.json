@@ -27,6 +27,15 @@
         }
       },
       {
+        "full_name": {
+          "path_match":   "_uds.*",
+          "mapping": {
+            "type": "keyword"
+          }
+        }
+
+      },
+      {
         "all_string": {
           "match": "*",
           "mapping": {
@@ -1109,8 +1118,7 @@
         "type": "keyword"
       },
       "_uds": {
-        "type": "object",
-        "enabled": false
+        "type": "object"
       },
       "_unused": {
         "type": "object",

@@ -100,17 +100,33 @@ public class QueryToElasticsearch {
      * @param field String
      * @param roots Set of String
      * @return the filter associated with the roots
-     * @throws InvalidParseOperationException if field is not in roots
      */
-    public static QueryBuilder getRoots(final String field, final Collection<String> roots)
-        throws InvalidParseOperationException {
-        final String[] values = new String[roots.size()];
-        int i = 0;
-        for (final String node : roots) {
-            values[i++] = node;
-        }
+    public static QueryBuilder getRoots(final String field, final Collection<String> roots) {
+        String[] values = new String[roots.size()];
+        values = roots.toArray(values);
+
         // NB: terms and not term since multiple values
         return QueryBuilders.termsQuery(field, values);
+    }
+
+    /**
+     * @param query
+     * @param field String
+     * @param roots Set of String
+     * @return the filter associated with the roots
+     */
+    public static void addRoots(BoolQueryBuilder query, final String field, final Collection<String> roots, int depth) {
+        String[] values = new String[roots.size()];
+        values = roots.toArray(values);
+
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        for (int i = 1; i <= depth; i++) {
+            boolQueryBuilder.should(QueryBuilders.termsQuery(field + "." + i, values));
+        }
+
+        query.filter(boolQueryBuilder);
+        // NB: terms and not term since multiple values
     }
 
     /**
@@ -133,7 +149,7 @@ public class QueryToElasticsearch {
      * <b>Note</b> : if the query contains a match and the collection allows to use score, the socre is added to the
      * sort<br>
      * <br>
-     * 
+     *
      * @param requestParser the original parser
      * @param hasFullText True to add scoreSort
      * @param score True will add score first
@@ -1006,7 +1022,7 @@ public class QueryToElasticsearch {
 
     /**
      * Create ES facets from request parser
-     * 
+     *
      * @param requestParser parser
      * @return list of facets
      * @throws InvalidParseOperationException if could not create ES facets
@@ -1039,7 +1055,7 @@ public class QueryToElasticsearch {
 
     /**
      * Add date_range es facet from facet
-     * 
+     *
      * @param builders es facets
      * @param facet facet
      */
@@ -1065,7 +1081,7 @@ public class QueryToElasticsearch {
 
     /**
      * Add terms es facet from facet
-     * 
+     *
      * @param builders es facets
      * @param facet facet
      */
@@ -1082,7 +1098,7 @@ public class QueryToElasticsearch {
 
     /**
      * Add filters es facet from facet
-     * 
+     *
      * @param builders es facets
      * @param facet facet
      */

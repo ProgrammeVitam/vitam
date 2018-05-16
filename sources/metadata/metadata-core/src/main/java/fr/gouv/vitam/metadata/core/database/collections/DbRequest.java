@@ -32,6 +32,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -83,6 +84,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import fr.gouv.vitam.metadata.core.graph.GraphService;
+
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -135,10 +138,19 @@ public class DbRequest {
     private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
+    private GraphService graphService;
+
+    @VisibleForTesting
+    DbRequest(GraphService graphService) {
+        this.graphService = graphService;
+    }
+
     /**
      * Constructor
      */
-    public DbRequest() {}
+    public DbRequest() {
+        this(new GraphService(new MongoDbMetadataRepository(MetadataCollections.UNIT.getCollection())));
+    }
 
     /**
      * The request should be already analyzed.
@@ -348,8 +360,8 @@ public class DbRequest {
                 facets = QueryToElasticsearch.getFacets(requestParser);
             }
             VitamCollection.setMatch(false);
-            limit = ((SelectToMongodb) requestToMongodb).getFinalLimit();
-            offset = ((SelectToMongodb) requestToMongodb).getFinalOffset();
+            limit = requestToMongodb.getFinalLimit();
+            offset = requestToMongodb.getFinalOffset();
         }
 
         if (GlobalDatasDb.PRINT_REQUEST && LOGGER.isDebugEnabled()) {
@@ -439,27 +451,22 @@ public class DbRequest {
             new BoolQueryBuilder().must(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(exactDepth).gte(0))
                 .must(QueryBuilders.rangeQuery(Unit.MINDEPTH).lte(exactDepth).gte(0));
         if (!previous.getCurrentIds().isEmpty()) {
-            roots.must(QueryToElasticsearch.getRoots(MetadataDocument.UP,
-                previous.getCurrentIds()));
-        }
-        QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
-        if (tenantId != null) {
-            // lets add the query on the tenant
-            query =
-                new BoolQueryBuilder().must(query).must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
+            roots.must(QueryToElasticsearch.getRoots(MetadataDocument.UP, previous.getCurrentIds()));
         }
 
-        if (roots != null) {
-            query = QueryToElasticsearch.getFullCommand(query, roots);
-        }
-        LOGGER.debug(QUERY2 + "{}", query);
+            // lets add the query on the tenant
+        BoolQueryBuilder query = new BoolQueryBuilder()
+            .must(QueryToElasticsearch.getCommand(realQuery))
+            .filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId))
+            .filter(QueryBuilders.termQuery(Unit.UNITUPS + "." + exactDepth, previous.getCurrentIds()));
+
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Req1LevelMD: {}", query);
         }
 
         final Result<MetadataDocument<?>> result =
             MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, null, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("UnitExact: {}", result);
@@ -488,93 +495,48 @@ public class DbRequest {
         final int limit, final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
-        QueryBuilder roots = null;
-        boolean tocheck = false;
+        QueryBuilder roots;
+
+        // lets add the query on the tenant
+        BoolQueryBuilder query = new BoolQueryBuilder()
+            .must(QueryToElasticsearch.getCommand(realQuery));
 
         if (previous.getCurrentIds().isEmpty()) {
             if (relativeDepth < 1) {
-                roots = QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(1).gte(0);
+                query.filter(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(1).gte(0));
             } else {
-                roots = QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(relativeDepth + 1).gte(0);
+                query.filter(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(relativeDepth + 1).gte(0));
             }
         } else {
             if (relativeDepth == 1) {
-                roots = QueryToElasticsearch.getRoots(MetadataDocument.UP,
-                    previous.getCurrentIds());
+                roots = QueryToElasticsearch.getRoots(MetadataDocument.UP, previous.getCurrentIds());
+                query.filter(roots);
             } else if (relativeDepth > 1) {
-                roots = QueryToElasticsearch.getRoots(Unit.UNITUPS, previous.getCurrentIds());
-                tocheck = true;
+                QueryToElasticsearch.addRoots(query, Unit.UNITDEPTHS, previous.getCurrentIds(), relativeDepth);
+
             } else {
                 // Relative parent: previous has future result in their _up
                 // so future result ids are in previous UNITDEPTHS
                 final Set<String> fathers = aggregateUnitDepths(previous.getCurrentIds(), relativeDepth);
                 roots = QueryToElasticsearch.getRoots(MetadataDocument.ID, fathers);
+                query.filter(roots);
             }
         }
 
-        QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
-        if (tenantId != null) {
-            // lets add the query on the tenant
-            query =
-                new BoolQueryBuilder().must(query).must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
-        }
+        query.filter(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
 
-        if (roots != null) {
-            query = QueryToElasticsearch.getFullCommand(query, roots);
-        }
-        LOGGER.debug(QUERY2 + "{}", query);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Req1LevelMD: {}", query);
         }
 
-        final Result<MetadataDocument<?>> resultPreviousFilter =
+        final Result<MetadataDocument<?>> result =
             MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, null, sorts, offset, limit, facets, scrollId, scrollTimeout);
+                VitamCollection.getTypeunique(), query, sorts, offset, limit, facets, scrollId, scrollTimeout);
 
-        // Now filter to remove false positive for > 1
-        Result<MetadataDocument<?>> result = resultPreviousFilter;
-        if (!previous.getCurrentIds().isEmpty() && relativeDepth > 1) {
-            result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
-            final Bson newRoots = QueryToMongodb.getRoots(MetadataDocument.ID, resultPreviousFilter.getCurrentIds());
-            @SuppressWarnings("unchecked")
-            final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT, newRoots,
-                    Unit.UNIT_VITAM_PROJECTION);
-            final List<String> finalList = new ArrayList<>();
-            try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-                while (cursor.hasNext()) {
-                    final Unit unit = cursor.next();
-                    if (tocheck) {
-                        // now check for relativeDepth > 1
-                        final Map<String, Integer> depths = unit.getDepths();
-                        boolean check = false;
-                        for (final String pid : previous.getCurrentIds()) {
-                            final Integer depth = depths.get(pid);
-                            if (depth != null && depth <= relativeDepth) {
-                                check = true;
-                                break;
-                            }
-                        }
-                        if (!check) {
-                            // ignore since false positive
-                            continue;
-                        }
-                    }
-                    final String id = unit.getId();
-                    finalList.add(id);
-                }
-            }
-            for (int i = 0; i < resultPreviousFilter.getNbResult(); i++) {
-                final String id = resultPreviousFilter.getCurrentIds().get(i);
-                if (finalList.contains(id)) {
-                    result.addId(id, resultPreviousFilter.scores.get(i));
-                }
-            }
-            result.setTotal(resultPreviousFilter.getTotal());
-        }
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("UnitRelative: {}", result);
         }
+
         return result;
     }
 
@@ -604,13 +566,14 @@ public class DbRequest {
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
             @SuppressWarnings("unchecked")
-            final List<Map<String, Integer>> array =
-                (List<Map<String, Integer>>) aggregate.get(DEPTH_ARRAY);
+            final List<Map<String, List<String>>> array =
+                (List<Map<String, List<String>>>) aggregate.get(DEPTH_ARRAY);
             relativeDepth = Math.abs(relativeDepth);
-            for (final Map<String, Integer> map : array) {
+            for (final Map<String, List<String>> map : array) {
                 for (final String key : map.keySet()) {
-                    if (map.get(key) <= relativeDepth) {
-                        set.add(key);
+                    int depth = Integer.parseInt(key);
+                    if (depth <= relativeDepth) {
+                        set.addAll(map.get(key));
                     }
                 }
                 map.clear();
@@ -657,7 +620,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, facets, scrollId, scrollTimeout);
+            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, facets, scrollId, scrollTimeout);
     }
 
     /**
@@ -700,7 +663,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.OBJECTGROUP.getEsClient().search(MetadataCollections.OBJECTGROUP, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, null, scrollId, scrollTimeout);
+            VitamCollection.getTypeunique(), finalQuery, sorts, offset, limit, null, scrollId, scrollTimeout);
     }
 
     /**
@@ -1087,10 +1050,7 @@ public class DbRequest {
             String unitId = unit.getId();
 
             Set<String> roots = requestParser.getRequest().getRoots();
-
-            List<Unit> parentUnits = getUnitDirectParents(roots);
-
-            unit.buildParentGraph(parentUnits);
+            graphService.compute(unit, roots);
 
             unit.insert();
 
@@ -1123,26 +1083,6 @@ public class DbRequest {
         } catch (final MongoException e) {
             throw new MetaDataExecutionException("Insert concern", e);
         }
-    }
-
-    private List<Unit> getUnitDirectParents(Set<String> roots) throws MetaDataNotFoundException {
-        @SuppressWarnings("unchecked") final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
-                in(MetadataDocument.ID, roots), Unit.UNIT_VITAM_GRAPH_PROJECTION);
-        final Set<String> notFound = new HashSet<>(roots);
-        List<Unit> parentUnits = new ArrayList<>(roots.size());
-        try (MongoCursor<Unit> cursor = iterable.iterator()) {
-            while (cursor.hasNext()) {
-                final Unit parentUnit = cursor.next();
-                parentUnits.add(parentUnit);
-                notFound.remove(parentUnit.getId());
-            }
-        }
-        if (!notFound.isEmpty()) {
-            LOGGER.error("Cannot find parent: " + notFound);
-            throw new MetaDataNotFoundException("Cannot find parents: " + notFound);
-        }
-        return parentUnits;
     }
 
     /**

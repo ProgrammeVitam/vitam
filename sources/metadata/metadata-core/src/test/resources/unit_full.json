@@ -34,13 +34,10 @@
         "aeaqaaaaaafegzdyaafpsalabsrm5tiaaaba"
     ],
     "_uds": {
-        "aeaqaaaaaafegzdyaafpsalabsrm5syaaaba": 2,
-        "aeaqaaaaaafegzdyaafpsalabsrm5uaaaaba": 3,
-        "aeaqaaaaaafegzdyaafpsalabsrm5tyaaaba": 4,
-        "aeaqaaaaaafegzdyaafpsalabsrm5qqaaaba": 4,
-        "aeaqaaaaaafegzdyaafpsalabsrm5ryaaabq": 3,
-        "aeaqaaaaaafegzdyaafpsalabsrm5uiaaaba": 2,
-        "aeaqaaaaaafegzdyaafpsalabsrm5tiaaaba": 1
+        "1": ["aeaqaaaaaafegzdyaafpsalabsrm5tiaaaba"],
+        "2": ["aeaqaaaaaafegzdyaafpsalabsrm5uiaaaba", "aeaqaaaaaafegzdyaafpsalabsrm5syaaaba"],
+        "3": ["aeaqaaaaaafegzdyaafpsalabsrm5ryaaabq", "aeaqaaaaaafegzdyaafpsalabsrm5uaaaaba"],
+        "4": ["aeaqaaaaaafegzdyaafpsalabsrm5tyaaaba", "aeaqaaaaaafegzdyaafpsalabsrm5qqaaaba"]
     },
     "_v": 1,
     "_tenant": 0,

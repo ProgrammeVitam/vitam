@@ -36,8 +36,8 @@
       "aeaqaaaaaahmtusqabktwaldc34sm5iaaabq/aeaqaaaaaahmtusqabktwaldc34sm4yaaabq"
     ],
     "_uds": {
-      "aeaqaaaaaahmtusqabktwaldc34sm4yaaabq": 2,
-      "aeaqaaaaaahmtusqabktwaldc34sm5iaaabq": 1
+      "1": ["aeaqaaaaaahmtusqabktwaldc34sm5iaaabq"],
+      "2": ["aeaqaaaaaahmtusqabktwaldc34sm4yaaabq"]
     },
     "_us_sp": {
       "Service_producteur": [

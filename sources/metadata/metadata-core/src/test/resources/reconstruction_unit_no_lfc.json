@@ -36,9 +36,9 @@
     },
     "_us" : [ "aeaqaaaaaaft45swaaxg2albfwxhleyaaaba", "aeaqaaaaaaft45swaaxg2albfwxhlfaaaaba", "aeaqaaaaaaft45swaaxg2albfwxhlfaaaacq" ],
     "_uds" : {
-      "aeaqaaaaaaft45swaaxg2albfwxhleyaaaba" : 3,
-      "aeaqaaaaaaft45swaaxg2albfwxhlfaaaaba" : 2,
-      "aeaqaaaaaaft45swaaxg2albfwxhlfaaaacq" : 1
+      "1": ["aeaqaaaaaaft45swaaxg2albfwxhlfaaaacq"],
+      "2": ["aeaqaaaaaaft45swaaxg2albfwxhlfaaaaba"],
+      "3": ["aeaqaaaaaaft45swaaxg2albfwxhleyaaaba"]
     },
     "_v" : 0,
     "_tenant" : 0
