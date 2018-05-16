@@ -437,7 +437,7 @@ public class MetadataManagementIT {
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_0_guid);
@@ -453,7 +453,7 @@ public class MetadataManagementIT {
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_1_guid);
@@ -484,7 +484,7 @@ public class MetadataManagementIT {
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_id").asText()).isEqualTo(got_with_graph_0_guid);
@@ -500,7 +500,7 @@ public class MetadataManagementIT {
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(got_with_graph_1_guid);
@@ -544,7 +544,7 @@ public class MetadataManagementIT {
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_2_guid);
@@ -560,7 +560,7 @@ public class MetadataManagementIT {
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(got_with_graph_2_guid);
@@ -710,7 +710,7 @@ public class MetadataManagementIT {
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_1_guid);
@@ -745,7 +745,7 @@ public class MetadataManagementIT {
         assertThat(response.body().size()).isEqualTo(1);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -756,7 +756,7 @@ public class MetadataManagementIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -771,7 +771,7 @@ public class MetadataManagementIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -792,7 +792,7 @@ public class MetadataManagementIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testReconstruction_unit_then_got_then_unitgraph_then_gotgraoh_in_one_phase_query_OK() throws Exception {
+    public void testReconstruction_unit_then_got_then_unitgraph_then_gotgraph_in_one_phase_query_OK() throws Exception {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -895,7 +895,7 @@ public class MetadataManagementIT {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -905,7 +905,7 @@ public class MetadataManagementIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -920,7 +920,7 @@ public class MetadataManagementIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -935,7 +935,7 @@ public class MetadataManagementIT {
 
         // Check Object Group
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
@@ -945,7 +945,7 @@ public class MetadataManagementIT {
 
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");
@@ -958,7 +958,7 @@ public class MetadataManagementIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testReconstruction_unitgraph_then_gotgraoh_then_unit_then_got_in_two_phase_query_OK() throws Exception {
+    public void testReconstruction_unitgraph_then_gotgraph_then_unit_then_got_in_two_phase_query_OK() throws Exception {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -1016,7 +1016,7 @@ public class MetadataManagementIT {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1029,7 +1029,7 @@ public class MetadataManagementIT {
         assertThat(first.get("_v")).isNull();
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1047,7 +1047,7 @@ public class MetadataManagementIT {
         assertThat(first.get("_v")).isNull();
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1062,7 +1062,7 @@ public class MetadataManagementIT {
 
         // Check Object Group
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
@@ -1071,7 +1071,7 @@ public class MetadataManagementIT {
         assertThat(first.get("_sp")).isNull();
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
@@ -1138,7 +1138,7 @@ public class MetadataManagementIT {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1148,7 +1148,7 @@ public class MetadataManagementIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1165,7 +1165,7 @@ public class MetadataManagementIT {
         assertThat(first.get("_v")).isNotNull();
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1175,7 +1175,7 @@ public class MetadataManagementIT {
 
         // Check Object Group
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
@@ -1187,7 +1187,7 @@ public class MetadataManagementIT {
         assertThat(first.get("_v")).isNotNull();
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");

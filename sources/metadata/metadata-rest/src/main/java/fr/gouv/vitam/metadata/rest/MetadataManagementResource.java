@@ -68,9 +68,9 @@ public class MetadataManagementResource {
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
     private final String STORE_GRAPH_URI = "/storegraph";
-    private final String GRAPH_BUILDER_URI = "/graphbuilder";
+    private final String COMPUTE_GRAPH_URI = "/computegraph";
     private final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
-    private final String GRAPH_BUILDER_PROGRESS_URI = "/graphbuilder/progress";
+    private final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
     /**
      * Error/Exceptions messages.
      */
@@ -200,14 +200,14 @@ public class MetadataManagementResource {
      *
      * @return the response
      */
-    @Path(GRAPH_BUILDER_URI)
+    @Path(COMPUTE_GRAPH_URI)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response startGraphBuilder() {
+    public Response computeGraph() {
 
         try {
-            Map<MetadataCollections, Integer> map = this.graphBuilderService.buildGraph();
+            Map<MetadataCollections, Integer> map = this.graphBuilderService.computeGraph();
             return Response.ok().entity(map).build();
         } catch (Exception e) {
             LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);
@@ -222,11 +222,11 @@ public class MetadataManagementResource {
      *
      * @return the response
      */
-    @Path(GRAPH_BUILDER_PROGRESS_URI)
+    @Path(COMPUTE_GRAPH_PROGRESS_URI)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response graphBuilderInProgress() {
+    public Response computeGraphInProgress() {
 
         boolean inProgress = this.storeGraphService.isInProgress();
         if (inProgress) {

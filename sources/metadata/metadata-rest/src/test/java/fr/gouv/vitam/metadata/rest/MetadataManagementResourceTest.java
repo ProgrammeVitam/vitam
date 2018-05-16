@@ -119,11 +119,11 @@ public class MetadataManagementResourceTest {
         final Map<MetadataCollections, Integer> map = new HashMap<>();
         map.put(MetadataCollections.UNIT, 10);
         map.put(MetadataCollections.OBJECTGROUP, 3);
-        when(graphBuilderService.buildGraph()).thenReturn(map);
+        when(graphBuilderService.computeGraph()).thenReturn(map);
         MetadataManagementResource reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
         // When
-        Response response = reconstructionResource.startGraphBuilder();
+        Response response = reconstructionResource.computeGraph();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -139,11 +139,11 @@ public class MetadataManagementResourceTest {
     public void should_return_ko_when_graph_builder_handled() throws GraphBuilderException {
         // Given
         String errorMessage = "Error in graph builder";
-        when(graphBuilderService.buildGraph()).thenThrow(new RuntimeException(errorMessage));
+        when(graphBuilderService.computeGraph()).thenThrow(new RuntimeException(errorMessage));
         MetadataManagementResource reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
         // When
-        Response response = reconstructionResource.startGraphBuilder();
+        Response response = reconstructionResource.computeGraph();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());

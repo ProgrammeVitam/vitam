@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -71,7 +72,6 @@ import org.bson.Document;
  */
 public interface GraphBuilderService {
 
-    String GRAPH_LAST_PERSISTED_DATE = "_glpd";
     String $_SET = "$set";
     Integer START_DEPTH = 1;
 
@@ -110,7 +110,7 @@ public interface GraphBuilderService {
      *
      * @return the map of collection:number of treated documents
      */
-    Map<MetadataCollections, Integer> buildGraph() throws GraphBuilderException;
+    Map<MetadataCollections, Integer> computeGraph() throws GraphBuilderException;
 
 
 
@@ -118,11 +118,11 @@ public interface GraphBuilderService {
      * Should be called only for the method tryStoreGraph
      *
      * @param metadataCollections the collection concerned by the build of the graph
-     * @param queryDSL            TODO: the query that select elements subject of build of the graph
+     * @param queryDSL            the query dsl to select units subject of computing graph
      * @return False if an exception occurs of if no unit graph was stored.
      * True if a stored zip file is created and saved in the storage.
      */
-    Integer buildGraph(MetadataCollections metadataCollections, JsonNode queryDSL);
+    Integer computeGraph(MetadataCollections metadataCollections, JsonNode queryDSL);
 
 
 
@@ -132,7 +132,7 @@ public interface GraphBuilderService {
      * @param documents
      * @throws GraphBuilderException
      */
-    default void prefetch(List<Document> documents) throws GraphBuilderException {
+    default void preLoadCache(List<Document> documents) throws GraphBuilderException {
         List<String> allUps =
             documents
                 .stream()
@@ -172,23 +172,23 @@ public interface GraphBuilderService {
      * @param prePopulateCache    if true pre-populate cache
      * @throws GraphBuilderException
      */
-    default void calculateGraph(MetadataCollections metadataCollections, List<Document> documents,
+    default void computeGraph(MetadataCollections metadataCollections, List<Document> documents,
         boolean prePopulateCache)
         throws GraphBuilderException {
 
         if (prePopulateCache) {
-            prefetch(documents);
+            preLoadCache(documents);
         }
 
         List<WriteModel<Document>> updateOneModels;
         try {
             switch (metadataCollections) {
                 case UNIT:
-                    updateOneModels = documents.stream().map(o -> calculateUnitGraph(o)).collect(Collectors.toList());
+                    updateOneModels = documents.stream().map(o -> computeUnitGraph(o)).collect(Collectors.toList());
                     break;
                 case OBJECTGROUP:
                     updateOneModels =
-                        documents.stream().map(o -> calculateObjectGroupGraph(o)).collect(Collectors.toList());
+                        documents.stream().map(o -> computeObjectGroupGraph(o)).collect(Collectors.toList());
                     break;
                 default:
                     throw new GraphBuilderException("Collection (" + metadataCollections + ") not supported");
@@ -201,7 +201,12 @@ public interface GraphBuilderService {
         if (!updateOneModels.isEmpty()) {
             try {
                 this.bulkUpdateMongo(metadataCollections, updateOneModels);
+                // Re-Index all documents
+                this.bulkElasticsearch(metadataCollections,
+                    documents.stream().map(o -> o.get(Unit.ID, String.class)).collect(
+                        Collectors.toSet()));
             } catch (DatabaseException e) {
+                // Rollback in MongoDB and Elasticsearch
                 throw new GraphBuilderException(e);
             }
         }
@@ -224,7 +229,7 @@ public interface GraphBuilderService {
      * @return UpdateOneModel for Unit
      * @throws GraphBuilderException
      */
-    default UpdateOneModel<Document> calculateUnitGraph(Document document)
+    default UpdateOneModel<Document> computeUnitGraph(Document document)
         throws VitamRuntimeException {
 
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
@@ -232,7 +237,7 @@ public interface GraphBuilderService {
         String unitId = document.get(Unit.ID, String.class);
         String originatingAgency = document.get(Unit.ID, String.class);
         if (null != ups) {
-            buildUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, originatingAgency, ups, START_DEPTH);
+            computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, originatingAgency, ups, START_DEPTH);
         }
 
         // Calculate other information
@@ -241,8 +246,7 @@ public interface GraphBuilderService {
         Set<String> us = new HashSet<>();
         Set<String> sps = new HashSet<>();
         Map<String, Set<String>> us_sp = new HashMap<>();
-        MultiValuedMap<Integer, String> uds_reverse = new HashSetValuedHashMap<>();
-        Map<String, Integer> uds = new HashMap<>();
+        MultiValuedMap<Integer, String> uds = new HashSetValuedHashMap<>();
 
         Integer min = 1;
         Integer max = 1;
@@ -261,33 +265,33 @@ public interface GraphBuilderService {
 
             ussp.add(ugr.getParent());
 
-
             /*
-             * Depth [guid:depth]
+             * Parents depth [depth: [guid]]
              */
-            Integer depth = uds.get(ugr.getParentOriginatingAgency());
-            if (null == depth || depth > ugr.getDepth()) {
-                uds.put(ugr.getParentOriginatingAgency(), ugr.getDepth());
-            }
-
-            /*
-             * Reverse depth [depth: [guid]]
-             * TODO not yet implemented, but if implemented, then we have to:
-             * loop the map, and keep only in the lower depth guid with multiple depth
-             */
-            uds_reverse.put(ugr.getDepth(), ugr.getParentOriginatingAgency());
+            uds.put(ugr.getDepth(), ugr.getParentOriginatingAgency());
 
             max = max < ugr.getDepth() ? ugr.getDepth() : max;
         }
 
+
+        // Remove GUIDs having a multiple depths from the depths collections and keep only those in the lower depth
+        Map<Integer, Collection<String>> parentsDepths = uds.asMap();
+        Set<Integer> depths = new TreeSet<>(parentsDepths.keySet());
+        Collection<String> parents = new HashSet<>();
+        depths.forEach(o -> {
+            Collection<String> currentParents = parentsDepths.get(o);
+            currentParents.removeAll(parents);
+            parents.addAll(currentParents);
+        });
+
         Document update = new Document(Unit.UNITUPS, us)
-            .append(Unit.UNITDEPTHS, uds)
+            .append(Unit.UNITDEPTHS, parentsDepths)
             .append(Unit.ORIGINATING_AGENCIES, sps)
             .append(Unit.PARENT_ORIGINATING_AGENCIES, us_sp)
             .append(Unit.MINDEPTH, min)
             .append(Unit.MAXDEPTH, max + 1) // +1 because if no parent _max==1 if one parent _max==2
             .append(Unit.GRAPH, graph)
-            .append(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
         Document data = new Document($_SET, update);
         return new UpdateOneModel<>(eq(Unit.ID, unitId), data, new UpdateOptions().upsert(false));
@@ -302,18 +306,19 @@ public interface GraphBuilderService {
      * @return UpdateOneModel for ObjectGroup
      * @throws GraphBuilderException
      */
-    default UpdateOneModel<Document> calculateObjectGroupGraph(Document document)
+    default UpdateOneModel<Document> computeObjectGroupGraph(Document document)
         throws VitamRuntimeException {
 
         Set<String> sps = new HashSet();
         String gotId = document.get(ObjectGroup.ID, String.class);
         List<String> ups = document.get(ObjectGroup.UP, List.class);
         if (null != ups) {
-            buildObjectGroupGraph(sps, ups);
+            computeObjectGroupGraph(sps, ups);
         }
 
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
-            .append(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
+            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
+                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
 
         return new UpdateOneModel<>(eq(ObjectGroup.ID, gotId), data, new UpdateOptions().upsert(false));
     }
@@ -327,7 +332,7 @@ public interface GraphBuilderService {
      * @param currentDepth      the current depth, initially equals to 1
      * @throws ExecutionException
      */
-    static void buildUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
+    static void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
         String originatingAgency, List<String> ups, Integer currentDepth)
         throws VitamRuntimeException {
         if (null == ups || ups.isEmpty()) {
@@ -354,7 +359,7 @@ public interface GraphBuilderService {
 
             graphRels.add(ugr);
 
-            buildUnitGraphUsingDirectParents(graphRels,
+            computeUnitGraphUsingDirectParents(graphRels,
                 unitParent.getKey(),
                 au.get(Unit.ORIGINATING_AGENCY, String.class),
                 au.get(Unit.UP, List.class), nextDepth);
@@ -368,7 +373,7 @@ public interface GraphBuilderService {
      * @param ups
      * @throws ExecutionException
      */
-    default void buildObjectGroupGraph(Set<String> originatingAgencies, List<String> ups)
+    default void computeObjectGroupGraph(Set<String> originatingAgencies, List<String> ups)
         throws VitamRuntimeException {
         if (null == ups || ups.isEmpty()) {
             return;
@@ -386,4 +391,25 @@ public interface GraphBuilderService {
             originatingAgencies.addAll(au.get(Unit.ORIGINATING_AGENCIES, List.class));
         }
     }
+
+
+    /**
+     * Bulk save in elasticsearch
+     *
+     * @param metaDaCollection
+     * @param collection       of id of documents
+     * @throws DatabaseException
+     */
+    void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
+        throws DatabaseException;
+
+    /**
+     * Bulk save in elasticsearch
+     *
+     * @param metaDaCollection
+     * @param collection       of documents
+     * @throws DatabaseException
+     */
+    void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
+        throws DatabaseException;
 }

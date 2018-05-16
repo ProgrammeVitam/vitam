@@ -117,7 +117,7 @@ public class GraphBuilderServiceImplTest {
         });
 
 
-        Map<MetadataCollections, Integer> map = graphBuilderService.buildGraph();
+        Map<MetadataCollections, Integer> map = graphBuilderService.computeGraph();
         assertThat(map.get(MetadataCollections.UNIT)).isEqualTo(3);
         assertThat(map.get(MetadataCollections.OBJECTGROUP)).isEqualTo(3);
     }
@@ -137,7 +137,7 @@ public class GraphBuilderServiceImplTest {
         });
 
 
-        Integer result = graphBuilderService.buildGraph(MetadataCollections.OBJECTGROUP, null);
+        Integer result = graphBuilderService.computeGraph(MetadataCollections.OBJECTGROUP, null);
         assertThat(result).isEqualTo(3);
     }
 
@@ -156,7 +156,7 @@ public class GraphBuilderServiceImplTest {
         });
 
 
-        Integer result = graphBuilderService.buildGraph(MetadataCollections.UNIT, null);
+        Integer result = graphBuilderService.computeGraph(MetadataCollections.UNIT, null);
         assertThat(result).isEqualTo(3);
     }
 
@@ -169,7 +169,7 @@ public class GraphBuilderServiceImplTest {
         when(mongoCursorGot.hasNext()).thenAnswer(o -> false);
 
 
-        Map<MetadataCollections, Integer> map = graphBuilderService.buildGraph();
+        Map<MetadataCollections, Integer> map = graphBuilderService.computeGraph();
         assertThat(map.get(MetadataCollections.UNIT)).isEqualTo(0);
         assertThat(map.get(MetadataCollections.OBJECTGROUP)).isEqualTo(0);
     }
