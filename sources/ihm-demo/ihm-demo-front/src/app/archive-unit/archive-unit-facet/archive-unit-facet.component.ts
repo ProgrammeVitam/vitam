@@ -223,8 +223,10 @@ export class ArchiveUnitFacetComponent implements OnInit {
   research(selectedFacetValue, facetField) {
     const facetSearchCriteria: any = {};
     if (facetField === 'LanguageTitleFacet') {
-      facetSearchCriteria.field = selectedFacetValue;
-      facetSearchCriteria.value = this.mapFacetField.get(selectedFacetValue);
+      const title = this.mapFacetField.get(selectedFacetValue);
+      facetSearchCriteria.field = title;
+      facetSearchCriteria.value = title;
+      // "title" contains all we need. We don't need any different information for "value" on the back-end side.
     } else {
       facetSearchCriteria.field = this.mapFacetField.get(facetField);
       facetSearchCriteria.value = selectedFacetValue;
