@@ -36,15 +36,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -78,45 +75,36 @@ public class GraphBuilderServiceImpl implements GraphBuilderService {
 
     @Override
     public Map<MetadataCollections, Integer> buildGraph() throws GraphBuilderException {
-        boolean tryStore = alreadyRunningLock.compareAndSet(false, true);
+        boolean tryBuildGraph = alreadyRunningLock.compareAndSet(false, true);
         final Map<MetadataCollections, Integer> map = new HashMap<>();
         map.put(MetadataCollections.UNIT, 0);
         map.put(MetadataCollections.OBJECTGROUP, 0);
         Integer totalTreatedDocuments = 0;
 
-        if (tryStore) {
+        if (tryBuildGraph) {
             try {
                 final VitamThreadPoolExecutor executor = VitamThreadPoolExecutor.getDefaultExecutor();
 
-                CompletableFuture<Integer>[] futures = new CompletableFuture[] {
-                    CompletableFuture.supplyAsync(() -> {
-                        Integer numberOfDocuments = buildGraph(MetadataCollections.UNIT, null);
-                        map.put(MetadataCollections.UNIT, numberOfDocuments);
-                        return numberOfDocuments;
-                    }, executor)
-                    ,
-                    CompletableFuture.supplyAsync(() -> {
-                        Integer numberOfDocuments = buildGraph(MetadataCollections.OBJECTGROUP, null);
-                        map.put(MetadataCollections.OBJECTGROUP, numberOfDocuments);
-                        return numberOfDocuments;
-                    }, executor)
-                };
-                // Start async the features
-                CompletableFuture<Integer> result = CompletableFuture
-                    .allOf(futures)
-                    .thenApply(v -> Stream.of(futures).map(CompletableFuture::join).collect(Collectors.toList()))
-                    .thenApplyAsync((numberOfDocuments) -> numberOfDocuments.stream().mapToInt(o -> o).sum())
-                    .exceptionally(th -> {
-                        throw new RuntimeException(th);
-                    });
+                CompletableFuture.supplyAsync(() -> {
+                    Integer numberOfDocuments = buildGraph(MetadataCollections.UNIT, null);
+                    map.put(MetadataCollections.UNIT, numberOfDocuments);
+                    return numberOfDocuments;
+                }, executor).get();
 
-                totalTreatedDocuments = result.get();
+                CompletableFuture.supplyAsync(() -> {
+                    Integer numberOfDocuments = buildGraph(MetadataCollections.OBJECTGROUP, null);
+                    map.put(MetadataCollections.OBJECTGROUP, numberOfDocuments);
+                    return numberOfDocuments;
+                }, executor).get();
+
+                totalTreatedDocuments = map.get(MetadataCollections.UNIT) + map.get(MetadataCollections.OBJECTGROUP);
             } catch (InterruptedException | ExecutionException e) {
                 throw new GraphBuilderException(e);
             } finally {
                 alreadyRunningLock.set(false);
             }
-            LOGGER.warn("Calculate Graph of GOT/UNIT total : " + totalTreatedDocuments + " : (" + map.toString() + ")");
+            LOGGER.warn(
+                "Calculate Graph of GOT/UNIT total : " + totalTreatedDocuments + " : Stats (" + map.toString() + ")");
 
         } else {
             LOGGER.warn("Calculate graph is already running ...");
@@ -137,44 +125,39 @@ public class GraphBuilderServiceImpl implements GraphBuilderService {
     @Override
     public Integer buildGraph(MetadataCollections metadataCollections, JsonNode queryDSL) {
 
-        final GUID storeOperation = GUIDFactory.newGUID();
-        VitamThreadUtils.getVitamSession().setRequestId(storeOperation);
-        final String containerName = storeOperation.getId();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
 
-        if (alreadyRunningLock.get()) {
-            LOGGER.warn("Start calculate graph of (" + metadataCollections.name() + ") ...");
+        LOGGER.warn("Start calculate graph of (" + metadataCollections.name() + ") ...");
 
-            try {
-                final MongoCursor<Document> cursor = vitamRepositoryProvider
-                    .getVitamMongoRepository(metadataCollections)
-                    .findDocuments(exists(GRAPH_LAST_PERSISTED_DATE, false), VitamConfiguration.getBatchSize())
-                    .projection(include(Unit.UP))
-                    .iterator();
+        try {
+            // TODO: 5/16/18 Refactor if queryDSL is provided
+            final MongoCursor<Document> cursor = vitamRepositoryProvider
+                .getVitamMongoRepository(metadataCollections)
+                .findDocuments(exists(GRAPH_LAST_PERSISTED_DATE, false), VitamConfiguration.getBatchSize())
+                .projection(include(Unit.UP))
+                .iterator();
 
-                List<Document> documents = new ArrayList<>();
+            List<Document> documents = new ArrayList<>();
 
-                int totalTreatedDocuments = 0;
-                while (cursor.hasNext()) {
-                    documents.add(cursor.next());
-                    if (!cursor.hasNext() || documents.size() >= VitamConfiguration.getBatchSize()) {
-                        totalTreatedDocuments = totalTreatedDocuments + documents.size();
-                        calculateGraph(metadataCollections, documents, true);
-                        documents = new ArrayList<>();
-                    }
+            int totalTreatedDocuments = 0;
+            while (cursor.hasNext()) {
+                documents.add(cursor.next());
+                if (!cursor.hasNext() || documents.size() >= VitamConfiguration.getBatchSize()) {
+                    totalTreatedDocuments = totalTreatedDocuments + documents.size();
+                    calculateGraph(metadataCollections, documents, true);
+                    documents = new ArrayList<>();
                 }
-
-                LOGGER.warn("End calculate graph  of (" + metadataCollections.name() + ")");
-                return totalTreatedDocuments;
-            } catch (GraphBuilderException e) {
-                LOGGER.error(String
-                        .format("[Consistency ERROR] : Error while calculate graph of (%s)", metadataCollections.name()),
-                    e);
-                return 0;
             }
-        } else {
-            LOGGER.warn("Calculate graph of (" + metadataCollections.name() + ") is already running ...");
+
+            LOGGER.warn("End calculate graph  of (" + metadataCollections.name() + ")");
+            return totalTreatedDocuments;
+        } catch (GraphBuilderException e) {
+            LOGGER.error(String
+                    .format("[Consistency ERROR] : Error while calculate graph of (%s)", metadataCollections.name()),
+                e);
             return 0;
         }
+
     }
 
     /**

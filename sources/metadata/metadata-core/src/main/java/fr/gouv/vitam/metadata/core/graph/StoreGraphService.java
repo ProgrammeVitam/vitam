@@ -184,6 +184,12 @@ public class StoreGraphService {
         return dataCategory;
     }
 
+
+    public boolean isInProgress() {
+        return alreadyRunningLock.get();
+    }
+
+
     /**
      * If no graph store in progress, try to start one
      * Should be exposed in the API

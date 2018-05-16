@@ -24,12 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.reconstruction.integration.test;
+package fr.gouv.vitam.metadata.management.integration.test;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
@@ -42,37 +40,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.util.Files;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -124,6 +106,17 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import okhttp3.OkHttpClient;
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.util.Files;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -144,24 +137,24 @@ public class BackupAndReconstructionLogbookIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupAndReconstructionLogbookIT.class);
 
     private static final String ACCESS_CONTRACT =
-        "integration-reconstruction/data/access_contract_every_originating_angency.json";
+        "integration-metadata-management/data/access_contract_every_originating_angency.json";
 
     private static final String LOGBOOK_0_GUID = "aecaaaaaaceeytj5abrzmalbvy426faaaaaq";
     private static final String LOGBOOK_0_EVENT_GUID = "aedqaaaaaceeytj5abrzmalbvy43cpyaaaba";
-    private static final String REGISTER_0_JSON = "integration-reconstruction/data/register_0.json";
+    private static final String REGISTER_0_JSON = "integration-metadata-management/data/register_0.json";
     private static final String LOGBOOK_1_GUID = "aecaaaaaaceeytj5abrzmalbvy42qsaaaaaq";
     private static final String LOGBOOK_1_EVENT_GUID = "aedqaaaaaceeytj5abrzmalbvy42vhyaaaba";
-    private static final String REGISTER_1_JSON = "integration-reconstruction/data/register_1.json";
+    private static final String REGISTER_1_JSON = "integration-metadata-management/data/register_1.json";
     private static final String LOGBOOK_2_GUID = "aecaaaaaaceeytj5abrzmalbvybpaeiaaaaq";
     private static final String LOGBOOK_2_EVENT_GUID = "aedqaaaaaceeytj5abrzmalbvybpkaiaaaba";
 
 
-    private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
-    private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
-    private static final String STORAGE_CONF = "integration-reconstruction/storage-engine.conf";
-    private static final String WORKSPACE_CONF = "integration-reconstruction/workspace.conf";
+    private static final String DEFAULT_OFFER_CONF = "integration-metadata-management/storage-default-offer.conf";
+    private static final String LOGBOOK_CONF = "integration-metadata-management/logbook.conf";
+    private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
+    private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
     private static final String ADMIN_MANAGEMENT_CONF =
-        "integration-reconstruction/functional-administration.conf";
+        "integration-metadata-management/functional-administration.conf";
 
     private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;
@@ -693,7 +686,7 @@ public class BackupAndReconstructionLogbookIT {
             FileUtils.deleteDirectory(directory);
         } catch (IOException | IllegalArgumentException e) {
             LOGGER.error("ERROR: Exception has been thrown when cleaning offers.", e);
-            throw new VitamRuntimeException("beurk");
+            //throw new VitamRuntimeException("beurk");
         }
     }
 

@@ -1,4 +1,4 @@
-package fr.gouv.vitam.reconstruction.integration.test;
+package fr.gouv.vitam.metadata.management.integration.test;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
@@ -106,17 +106,17 @@ import retrofit2.http.POST;
 /**
  * Integration tests for the reconstruction of metadatas. <br/>
  */
-public class ReconstructionMetadataIT {
+public class MetadataManagementIT {
 
     /**
      * Vitam logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionMetadataIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataManagementIT.class);
 
-    private static final String unit_with_graph_0 = "integration-reconstruction/data/unit_with_graph_0.json";
-    private static final String unit_with_graph_1 = "integration-reconstruction/data/unit_with_graph_1.json";
-    private static final String unit_with_graph_2 = "integration-reconstruction/data/unit_with_graph_2.json";
-    private static final String unit_with_graph_3 = "integration-reconstruction/data/unit_with_graph_3.json";
+    private static final String unit_with_graph_0 = "integration-metadata-management/data/unit_with_graph_0.json";
+    private static final String unit_with_graph_1 = "integration-metadata-management/data/unit_with_graph_1.json";
+    private static final String unit_with_graph_2 = "integration-metadata-management/data/unit_with_graph_2.json";
+    private static final String unit_with_graph_3 = "integration-metadata-management/data/unit_with_graph_3.json";
 
 
     private static final String unit_with_graph_0_guid = "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq";
@@ -126,9 +126,9 @@ public class ReconstructionMetadataIT {
     private static final String unit_with_graph_4_guid = "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq";
 
 
-    private static final String got_with_graph_0 = "integration-reconstruction/data/got_0.json";
-    private static final String got_with_graph_1 = "integration-reconstruction/data/got_1.json";
-    private static final String got_with_graph_2 = "integration-reconstruction/data/got_2.json";
+    private static final String got_with_graph_0 = "integration-metadata-management/data/got_0.json";
+    private static final String got_with_graph_1 = "integration-metadata-management/data/got_1.json";
+    private static final String got_with_graph_2 = "integration-metadata-management/data/got_2.json";
 
 
     private static final String got_with_graph_0_guid = "aebaaaaaaahlm6sdabzmoalc4pzqrpqaaaaq";
@@ -138,17 +138,17 @@ public class ReconstructionMetadataIT {
 
     private static final String unit_graph_zip_file_name = "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
     private static final String unit_graph_zip_file =
-        "integration-reconstruction/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
+        "integration-metadata-management/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
 
     private static final String got_graph_zip_file_name = "1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
     private static final String got_graph_zip_file =
-        "integration-reconstruction/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
+        "integration-metadata-management/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
 
-    private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
-    private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
-    private static final String STORAGE_CONF = "integration-reconstruction/storage-engine.conf";
-    private static final String WORKSPACE_CONF = "integration-reconstruction/workspace.conf";
-    private static final String METADATA_CONF = "integration-reconstruction/metadata.conf";
+    private static final String DEFAULT_OFFER_CONF = "integration-metadata-management/storage-default-offer.conf";
+    private static final String LOGBOOK_CONF = "integration-metadata-management/logbook.conf";
+    private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
+    private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
+    private static final String METADATA_CONF = "integration-metadata-management/metadata.conf";
 
     private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;

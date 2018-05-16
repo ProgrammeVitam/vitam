@@ -34,8 +34,6 @@ import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
-import fr.gouv.vitam.metadata.core.migration.DataMigrationRepository;
-import fr.gouv.vitam.metadata.core.migration.DataMigrationService;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -84,8 +82,8 @@ public class AdminMetadataApplication extends Application {
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
 
-            final MetadataReconstructionResource metadataReconstructionResource =
-                new MetadataReconstructionResource(vitamRepositoryProvider, offsetRepository);
+            final MetadataManagementResource metadataReconstructionResource =
+                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());

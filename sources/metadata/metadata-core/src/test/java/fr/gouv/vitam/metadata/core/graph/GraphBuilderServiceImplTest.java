@@ -19,11 +19,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,7 +61,7 @@ public class GraphBuilderServiceImplTest {
     private MongoCursor mongoCursorGot;
 
     @InjectMocks
-    private GraphBuilderServiceImpl storeGraphService;
+    private GraphBuilderServiceImpl graphBuilderService;
 
     @Before
     public void setup() {
@@ -91,20 +87,15 @@ public class GraphBuilderServiceImplTest {
         when(mongoCursorUnit.next()).thenAnswer(
             o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()) + "\"}")
         );
+        when(mongoCursorGot.next()).thenAnswer(
+            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()) + "\"}")
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void whenBuildGraphThenOK() throws GraphBuilderException {
-        // given
-        String startDate = "2018-01-01-00-00-00-000";
-        String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenReturn(
-                Lists.newArrayList(
-                    new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        "write")));
-
+        // Given
         final int[] cpt = {0};
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
 
@@ -115,38 +106,71 @@ public class GraphBuilderServiceImplTest {
             return true;
         });
 
-        LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
+        final int[] cptGot = {0};
+        when(mongoCursorGot.hasNext()).thenAnswer(o -> {
 
-        LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
-        assertThat(date).isEqualTo(dateTime);
+            if (cptGot[0] > 4) {
+                return false;
+            }
+            cptGot[0]++;
+            return true;
+        });
 
-        Map<MetadataCollections, Integer> stored = storeGraphService.tryStoreGraph();
-        assertThat(stored.get(MetadataCollections.UNIT)).isEqualTo(3);
+
+        Map<MetadataCollections, Integer> map = graphBuilderService.buildGraph();
+        assertThat(map.get(MetadataCollections.UNIT)).isEqualTo(3);
+        assertThat(map.get(MetadataCollections.OBJECTGROUP)).isEqualTo(3);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void whenBuildObjectGroupGraphThenOK() throws GraphBuilderException {
+        // Given
+        final int[] cpt = {0};
+        when(mongoCursorGot.hasNext()).thenAnswer(o -> {
+
+            if (cpt[0] > 4) {
+                return false;
+            }
+            cpt[0]++;
+            return true;
+        });
+
+
+        Integer result = graphBuilderService.buildGraph(MetadataCollections.OBJECTGROUP, null);
+        assertThat(result).isEqualTo(3);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void whenBuildUnitGraphThenOK() throws GraphBuilderException {
+        // Given
+        final int[] cpt = {0};
+        when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
+
+            if (cpt[0] > 4) {
+                return false;
+            }
+            cpt[0]++;
+            return true;
+        });
+
+
+        Integer result = graphBuilderService.buildGraph(MetadataCollections.UNIT, null);
+        assertThat(result).isEqualTo(3);
     }
 
 
     @Test
     @RunWithCustomExecutor
-    public void whenStoreGraphThenNoUnitGraphInThePeriodOK() throws GraphBuilderException {
+    public void whenBuildGraphThenQueryResultIsEmpty() throws GraphBuilderException {
         // given
-        String startDate = "2018-01-01-00-00-00-000";
-        String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenReturn(
-                Lists.newArrayList(
-                    new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        "write")));
-
-
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);
+        when(mongoCursorGot.hasNext()).thenAnswer(o -> false);
 
-        LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
 
-        LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
-        assertThat(date).isEqualTo(dateTime);
-
-        Map<MetadataCollections, Integer> stored = storeGraphService.tryStoreGraph();
-        // Because no zip file created in the offer
-        assertThat(stored.get(MetadataCollections.UNIT)).isEqualTo(0);
+        Map<MetadataCollections, Integer> map = graphBuilderService.buildGraph();
+        assertThat(map.get(MetadataCollections.UNIT)).isEqualTo(0);
+        assertThat(map.get(MetadataCollections.OBJECTGROUP)).isEqualTo(0);
     }
 }

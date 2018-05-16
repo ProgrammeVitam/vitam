@@ -81,7 +81,7 @@ public interface GraphBuilderService {
             .maximumSize(VitamConfiguration.getMaxCacheEntries())
             .recordStats()
             .softValues()
-            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .expireAfterAccess(VitamConfiguration.getExpireCacheEntriesDelay(), TimeUnit.MINUTES)
             .build(new CacheLoader<String, Document>() {
                 @Override
                 public Document load(String key) {
