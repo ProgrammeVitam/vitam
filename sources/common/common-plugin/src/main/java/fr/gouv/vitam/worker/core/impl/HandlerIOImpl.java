@@ -46,6 +46,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -494,7 +495,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(containerName, folderName)
                     .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
                 });
-        } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
+        } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
         }

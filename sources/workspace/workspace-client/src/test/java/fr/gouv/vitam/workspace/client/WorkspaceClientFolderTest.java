@@ -50,11 +50,11 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -214,7 +214,7 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     @Test
     public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList()
-        throws ContentAddressableStorageServerException, InvalidParseOperationException {
+        throws ContentAddressableStorageServerException, InvalidParseOperationException, InvalidFormatException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
         final List<URI> uris =
             JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
@@ -224,7 +224,7 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     @Test
     public void given_FolderExists_When_FindingUriObjects_Then_ReturnURIList()
-        throws ContentAddressableStorageServerException, InvalidParseOperationException, URISyntaxException {
+        throws ContentAddressableStorageServerException, InvalidParseOperationException, URISyntaxException, InvalidFormatException {
         List<URI> uriListWorkspaceOK = new ArrayList<>();
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));

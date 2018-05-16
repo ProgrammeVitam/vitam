@@ -42,6 +42,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Splitter;
@@ -326,7 +327,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     }
 
     private void validatePreventRuleCategory(String unit, JsonNode managementNode)
-        throws InvalidParseOperationException, ProcessingException {
+        throws InvalidParseOperationException, InvalidFormatException, ProcessingException {
 
 
         if (null == managementNode || !managementNode.elements().hasNext()) {
@@ -400,7 +401,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private void validatePreventRuleCategory(String unit, String ruleType, StringBuffer report,
         Collection<String> ruleIds,
         AdminManagementClient adminManagementClient)
-        throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException {
+        throws FileRulesException, InvalidParseOperationException, InvalidFormatException,
+            AdminManagementClientServerException {
 
         if (null == ruleIds) {
             return;

@@ -33,7 +33,9 @@ import static com.mongodb.client.model.Filters.eq;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -375,14 +377,18 @@ public class ProfileManager {
      */
     public ProfileValidator createMandatoryParamsValidator() {
         return (profile) -> {
-            RejectionCause rejection = null;
+            List<String> missingParams = new ArrayList<>();
 
             if (profile.getFormat() == null ||
                 (!profile.getFormat().equals(ProfileFormat.RNG) && !profile.getFormat().equals(ProfileFormat.XSD))) {
-                rejection = RejectionCause.rejectMandatoryMissing(Profile.FORMAT);
+                missingParams.add(Profile.FORMAT);
+            }
+            if (profile.getName() == null || profile.getName().length() == 0) {
+                missingParams.add(Profile.NAME);
             }
 
-            return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+            return (missingParams.size() == 0) ? Optional.empty() :
+                    Optional.of(RejectionCause.rejectSeveralMandatoryMissing(missingParams));
         };
     }
 

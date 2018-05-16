@@ -17,6 +17,7 @@
  */
 package fr.gouv.vitam.functional.administration.profile.core;
 
+import java.util.List;
 import java.util.Optional;
 
 import fr.gouv.vitam.common.model.administration.ProfileModel;
@@ -69,7 +70,7 @@ public interface ProfileValidator {
 
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating profile (%s)";
         private static final String ERR_DUPLICATE_PROFILE = "The profile %s already exists in database";
-        private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory.";
 
         private String reason;
 
@@ -111,6 +112,20 @@ public interface ProfileValidator {
          */
         public static RejectionCause rejectMandatoryMissing(String fieldName) {
             return new RejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
+        }
+
+        /**
+         * Reject if multiple mandatory parameters are null
+         *
+         * @param fieldsName
+         * @return RejectionCause
+         */
+        public static RejectionCause rejectSeveralMandatoryMissing(List<String> fieldsName) {
+            String allMissingFields = "";
+            for (String field : fieldsName) {
+                allMissingFields += String.format(ERR_MANDATORY_FIELD, field);
+            }
+            return new RejectionCause(allMissingFields);
         }
 
         /**
