@@ -165,6 +165,9 @@ Les blocs <event> sont composés des balises suivantes :
 La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques, sous la forme de blocs <event>.
 
 
+NOTE : si l'import du SIP rencontre une erreur de type "FATAL" liée à une erreur technique, il y a possibilité de suivre l'opération étape par étape via la page " Gestiondes opérations" 
+
+
 Journal des opérations d'entrée
 ===============================
 
