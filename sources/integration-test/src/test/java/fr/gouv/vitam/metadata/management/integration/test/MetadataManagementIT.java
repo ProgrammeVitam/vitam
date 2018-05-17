@@ -1212,10 +1212,11 @@ public class MetadataManagementIT {
         assertThat(body.get(MetadataCollections.UNIT)).isEqualTo(4);
         assertThat(body.get(MetadataCollections.OBJECTGROUP)).isEqualTo(4);
 
-        // Check graph data for unit (AU_3, AU_6, AU_7, AU_10)
+        // Check graph data for unit (AU_3, AU_6, AU_7,AU_9, AU_10)
         Document au3 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_3")).first();
         Document au6 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_6")).first();
         Document au7 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_7")).first();
+        Document au9 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_9")).first();
         Document au10 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_10")).first();
 
         // AU3
@@ -1230,14 +1231,14 @@ public class MetadataManagementIT {
         assertThat(au6.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA2");
         assertThat(au6.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA2");
         assertThat((List) au6.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2", "AU_5");
-        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).hasSize(1);
-        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).containsKeys("1");
+        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).hasSize(2);
+        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).containsKeys("2");
         assertThat((List) au6.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_5", "AU_2");
-        assertThat(au6.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(2);
+        assertThat((List) au6.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_2");
+        assertThat(au6.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(3);
         assertThat(au6.get(Unit.GRAPH, List.class))
             .contains(GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"),
                 GraphUtils.createGraphRelation("AU_5", "AU_2"));
-
 
         //AU 7
         assertThat(au7.get(Unit.UNITUPS, List.class)).contains("AU_1", "AU_2", "AU_4");
@@ -1256,7 +1257,6 @@ public class MetadataManagementIT {
             .contains(GraphUtils.createGraphRelation("AU_7", "AU_4"), GraphUtils.createGraphRelation("AU_4", "AU_1"),
                 GraphUtils.createGraphRelation("AU_4", "AU_2"));
 
-
         //AU 10
         assertThat(au10.get(Unit.UNITUPS, List.class)).contains("AU_1", "AU_2", "AU_4", "AU_5", "AU_6", "AU_8", "AU_9");
         assertThat(au10.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
@@ -1265,15 +1265,16 @@ public class MetadataManagementIT {
         assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA1")).contains("AU_1");
         assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2", "AU_6", "AU_8", "AU_9");
         assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA4")).contains("AU_4");
-        assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).hasSize(3);
+        assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).hasSize(4);
         assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).containsKeys("1", "2", "3");
         assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_8", "AU_9");
         assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_4", "AU_6", "AU_5");
-        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("3")).contains("AU_1", "AU_2");
-        assertThat(au10.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(4);
+        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("3")).contains("AU_1", "AU_2", "AU_5");
+        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("4")).contains("AU_2");
+        assertThat(au10.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(5);
         assertThat(au10.get(Unit.GRAPH, List.class))
             .contains(GraphUtils.createGraphRelation("AU_10", "AU_8"), GraphUtils.createGraphRelation("AU_10", "AU_9"),
-                GraphUtils.createGraphRelation("AU_8", "AU_6"), GraphUtils.createGraphRelation("AU_8", "AU_4"), GraphUtils.createGraphRelation("AU_9", "AU_5"), GraphUtils.createGraphRelation("AU_5", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"), GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_1"));
+                GraphUtils.createGraphRelation("AU_8", "AU_6"), GraphUtils.createGraphRelation("AU_8", "AU_4"), GraphUtils.createGraphRelation("AU_9", "AU_5"), GraphUtils.createGraphRelation("AU_9", "AU_6"), GraphUtils.createGraphRelation("AU_5", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"), GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_1"));
 
 
         // Check graph data for ObjectGroup (GOT_4, GOT_6, GOT_8, GOT_9, GOT_10)
@@ -1311,6 +1312,7 @@ public class MetadataManagementIT {
 
     }
 
+    // See computegraph.png for more information
     private void initializeDbWithUnitAndObjectGroupData() {
         // Create units with or without graph data
         Document au1 = new Document(Unit.ID, "AU_1")
@@ -1358,7 +1360,7 @@ public class MetadataManagementIT {
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au9 = new Document(Unit.ID, "AU_9")
-            .append(Unit.UP, Lists.newArrayList("AU_5"))
+            .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 

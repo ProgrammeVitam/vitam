@@ -178,7 +178,9 @@ public class GraphBuilderServiceImpl implements GraphBuilderService {
             documents.add(it.next());
         }
 
-        bulkElasticsearch(metaDaCollection, documents);
+        if (!documents.isEmpty()) {
+            bulkElasticsearch(metaDaCollection, documents);
+        }
     }
 
     @Override

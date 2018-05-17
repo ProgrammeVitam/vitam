@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -13,7 +14,10 @@ import java.util.Map;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -48,6 +52,12 @@ public class GraphBuilderServiceImplTest {
     private VitamMongoRepository gotRepository;
 
     @Mock
+    private VitamElasticsearchRepository unitEsRepository;
+
+    @Mock
+    private VitamElasticsearchRepository gotEsRepository;
+
+    @Mock
     private FindIterable findIterableUnit;
 
     @Mock
@@ -64,16 +74,29 @@ public class GraphBuilderServiceImplTest {
     private GraphBuilderServiceImpl graphBuilderService;
 
     @Before
-    public void setup() {
+    public void setup() throws DatabaseException {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
 
         given(unitRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableUnit);
         given(gotRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableGot);
 
+
+        given(unitRepository.findDocuments(anyObject(), anyObject())).willReturn(findIterableUnit);
+        given(gotRepository.findDocuments(anyObject(), anyObject())).willReturn(findIterableGot);
+
+
+        doNothing().when(unitEsRepository).update(anyObject());
+        doNothing().when(gotEsRepository).update(anyObject());
+
         given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT)).willReturn(unitRepository);
         given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP))
             .willReturn(gotRepository);
+
+        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.UNIT)).willReturn(unitEsRepository);
+        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.OBJECTGROUP))
+            .willReturn(gotEsRepository);
+
 
         given(findIterableUnit.projection(anyObject())).willReturn(findIterableUnit);
         given(findIterableUnit.sort(anyObject())).willReturn(findIterableUnit);
@@ -85,10 +108,12 @@ public class GraphBuilderServiceImplTest {
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
         when(mongoCursorUnit.next()).thenAnswer(
-            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()) + "\"}")
+            o -> new Document("_id", GUIDFactory.newGUID().getId())
+                .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
         );
         when(mongoCursorGot.next()).thenAnswer(
-            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()) + "\"}")
+            o -> new Document("_id", GUIDFactory.newGUID().getId())
+                .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
         );
     }
 

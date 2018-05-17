@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -51,6 +50,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import com.mongodb.Function;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
@@ -90,7 +90,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
             .recordStats()
             .softValues()
             .concurrencyLevel(concurrencyLevel)
-            .expireAfterAccess(VitamConfiguration.getExpireCacheEntriesDelay(), TimeUnit.MINUTES)
+            .expireAfterAccess(VitamConfiguration.getExpireCacheEntriesDelay(), TimeUnit.SECONDS)
             .build(new CacheLoader<String, Document>() {
                 @Override
                 public Document load(String key) {
@@ -142,14 +142,13 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      * @throws GraphBuilderException
      */
     default void preLoadCache(List<Document> documents) throws GraphBuilderException {
-        List<String> allUps =
+        Set<String> allUps =
             documents
                 .stream()
                 .map(o -> (List<String>) o.get(Unit.UP, List.class))
                 .filter(CollectionUtils::isNotEmpty)
                 .flatMap(Collection::stream)
-                .distinct()
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         try {
             ImmutableMap<String, Document> docs = unitCache.getAll(allUps);
@@ -161,8 +160,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                     .map(o -> (List<String>) o.get(Unit.UP, List.class))
                     .filter(CollectionUtils::isNotEmpty)
                     .flatMap(Collection::stream)
-                    .distinct()
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
 
                 if (!allUps.isEmpty()) {
                     docs = unitCache.getAll(allUps);
@@ -191,33 +189,44 @@ public interface GraphBuilderService extends VitamAutoCloseable {
             preLoadCache(documents);
         }
 
-        List<WriteModel<Document>> updateOneModels;
-        CompletableFuture<WriteModel<Document>>[] features;
+        Function<Document, WriteModel<Document>> func;
         try {
             switch (metadataCollections) {
                 case UNIT:
-                    features =
-                        documents.stream()
-                            .map(o -> CompletableFuture.supplyAsync(() -> computeUnitGraph(o), executor))
-                            .toArray(CompletableFuture[]::new);
-
+                    func = this::computeUnitGraph;
                     break;
                 case OBJECTGROUP:
-                    features =
-                        documents.stream()
-                            .map(o -> CompletableFuture.supplyAsync(() -> computeObjectGroupGraph(o), executor))
-                            .toArray(CompletableFuture[]::new);
+                    func = this::computeObjectGroupGraph;
                     break;
                 default:
                     throw new GraphBuilderException("Collection (" + metadataCollections + ") not supported");
             }
+
+            CompletableFuture<WriteModel<Document>>[] features = documents.stream()
+                .map(o -> CompletableFuture.supplyAsync(() -> func.apply(o), executor))
+                .toArray(CompletableFuture[]::new);
+
 
             CompletableFuture<List<WriteModel<Document>>> result = CompletableFuture.allOf(features).
                 thenApply(v ->
                     Stream.of(features)
                         .map(CompletableFuture::join)
                         .collect(Collectors.toList()));
-            updateOneModels = result.get();
+            List<WriteModel<Document>> updateOneModels = result.get();
+
+
+            if (!updateOneModels.isEmpty()) {
+                try {
+                    this.bulkUpdateMongo(metadataCollections, updateOneModels);
+                    // Re-Index all documents
+                    this.bulkElasticsearch(metadataCollections,
+                        documents.stream().map(o -> o.get(Unit.ID, String.class)).collect(
+                            Collectors.toSet()));
+                } catch (DatabaseException e) {
+                    // Rollback in MongoDB and Elasticsearch
+                    throw new GraphBuilderException(e);
+                }
+            }
 
         } catch (VitamRuntimeException e) {
             throw new GraphBuilderException(e.getCause());
@@ -226,18 +235,6 @@ public interface GraphBuilderService extends VitamAutoCloseable {
         }
 
 
-        if (!updateOneModels.isEmpty()) {
-            try {
-                this.bulkUpdateMongo(metadataCollections, updateOneModels);
-                // Re-Index all documents
-                this.bulkElasticsearch(metadataCollections,
-                    documents.stream().map(o -> o.get(Unit.ID, String.class)).collect(
-                        Collectors.toSet()));
-            } catch (DatabaseException e) {
-                // Rollback in MongoDB and Elasticsearch
-                throw new GraphBuilderException(e);
-            }
-        }
     }
 
 
@@ -288,25 +285,18 @@ public interface GraphBuilderService extends VitamAutoCloseable {
             uds.put(ugr.getDepth(), ugr.getParent());
         }
 
-
-        // Remove GUIDs having a multiple depths from the depths collections and keep only those in the lower depth
         // MongoDB do not accept number as key of map, so convert Integer to String
         Map<String, Collection<String>> parentsDepths = new HashMap<>();
         Map<Integer, Collection<String>> udsMap = uds.asMap();
-        Set<Integer> depths = new TreeSet<>(udsMap.keySet());
-        Collection<String> parents = new HashSet<>();
         Integer min = 1;
         Integer max = 1;
-        for (Integer o : depths) {
+        for (Integer o : udsMap.keySet()) {
             Collection<String> currentParents = udsMap.get(o);
-            currentParents.removeAll(parents);
-            parents.addAll(currentParents);
             if (!currentParents.isEmpty()) {
                 parentsDepths.put(String.valueOf(o), currentParents);
                 max = max < o ? o : max;
             }
         }
-
         /*
          * If the current document is present in the cache ?
          * Then two options:
@@ -319,7 +309,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
          */
 
         if (null != unitCache.getIfPresent(unitId)) {
-            document.put(Unit.ORIGINATING_AGENCIES, sps);
+            document.put(Unit.ORIGINATING_AGENCIES, new ArrayList<>(sps));
             unitCache.put(unitId, document);
         }
 

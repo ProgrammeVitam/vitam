@@ -236,14 +236,16 @@ public class ReconstructionService {
                     InputStream zipFileAsStream =
                         restoreBackupService.loadData(STRATEGY_ID, dataCategory, offerLog.getFileName());
 
-                    // Copy file to local tmp
+                    // Copy file to local tmp to prevent risk of broken stream
                     Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
                     // Close the stream
                     IOUtils.closeQuietly(zipFileAsStream);
 
                     // Handle a reconstruction from a copied zip file
-                    reconstructGraphFromZipStream(metaDaCollection, filePath);
+                    try (InputStream zipInputStream = Files.newInputStream(filePath)) {
+                        reconstructGraphFromZipStream(metaDaCollection, zipInputStream);
+                    }
                 } finally {
                     // Remove file
                     Files.deleteIfExists(filePath);
@@ -516,15 +518,14 @@ public class ReconstructionService {
 
     /**
      * @param metaDaCollection
-     * @param filePath         The path of the zip file
+     * @param zipStream         The zip inputStream
      * @throws DatabaseException
      */
-    private void reconstructGraphFromZipStream(MetadataCollections metaDaCollection, Path filePath)
+    private void reconstructGraphFromZipStream(MetadataCollections metaDaCollection, InputStream zipStream)
         throws ReconstructionException {
         LOGGER.info("[Reconstruction]: Back up of metadatas bulk");
 
-        try (final InputStream zipStream = Files.newInputStream(filePath);
-            final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+        try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
                 .createArchiveInputStream(CommonMediaType.valueOf(CommonMediaType.ZIP), zipStream)) {
             ArchiveEntry entry;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
