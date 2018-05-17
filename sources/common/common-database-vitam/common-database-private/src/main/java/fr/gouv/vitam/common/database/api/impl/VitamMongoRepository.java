@@ -42,6 +42,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOptions;
@@ -149,7 +150,7 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public void update(List<WriteModel<Document>> queries) throws DatabaseException {
         try {
-            collection.bulkWrite(queries);
+            collection.bulkWrite(queries, new BulkWriteOptions().ordered(false));
         } catch (Exception e) {
             LOGGER.error("Bulk update documents exception: ", e);
             throw new DatabaseException(e);

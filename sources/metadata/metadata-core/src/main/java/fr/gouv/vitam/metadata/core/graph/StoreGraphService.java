@@ -226,7 +226,7 @@ public class StoreGraphService {
                 CompletableFuture<Integer> result = CompletableFuture
                     .allOf(futures)
                     .thenApply(v -> Stream.of(futures).map(CompletableFuture::join).collect(Collectors.toList()))
-                    .thenApplyAsync((numberOfDocuments) -> numberOfDocuments.stream().mapToInt(o -> o).sum())
+                    .thenApply((numberOfDocuments) -> numberOfDocuments.stream().mapToInt(o -> o).sum())
                     .exceptionally(th -> {
                         throw new RuntimeException(th);
                     });

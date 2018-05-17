@@ -38,9 +38,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.cache.CacheBuilder;
@@ -56,6 +60,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.graph.GraphUtils;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -70,10 +75,13 @@ import org.bson.Document;
  * This class get units where calculated data are modified
  * Zip generated files and store the zipped file in the offer.
  */
-public interface GraphBuilderService {
+public interface GraphBuilderService extends VitamAutoCloseable {
 
     String $_SET = "$set";
     Integer START_DEPTH = 1;
+
+    Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 16);
+    ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel);
 
     LoadingCache<String, Document> unitCache =
         CacheBuilder
@@ -81,6 +89,7 @@ public interface GraphBuilderService {
             .maximumSize(VitamConfiguration.getMaxCacheEntries())
             .recordStats()
             .softValues()
+            .concurrencyLevel(concurrencyLevel)
             .expireAfterAccess(VitamConfiguration.getExpireCacheEntriesDelay(), TimeUnit.MINUTES)
             .build(new CacheLoader<String, Document>() {
                 @Override
@@ -139,6 +148,7 @@ public interface GraphBuilderService {
                 .map(o -> (List<String>) o.get(Unit.UP, List.class))
                 .filter(CollectionUtils::isNotEmpty)
                 .flatMap(Collection::stream)
+                .distinct()
                 .collect(Collectors.toList());
 
         try {
@@ -151,6 +161,7 @@ public interface GraphBuilderService {
                     .map(o -> (List<String>) o.get(Unit.UP, List.class))
                     .filter(CollectionUtils::isNotEmpty)
                     .flatMap(Collection::stream)
+                    .distinct()
                     .collect(Collectors.toList());
 
                 if (!allUps.isEmpty()) {
@@ -181,20 +192,37 @@ public interface GraphBuilderService {
         }
 
         List<WriteModel<Document>> updateOneModels;
+        CompletableFuture<WriteModel<Document>>[] features;
         try {
             switch (metadataCollections) {
                 case UNIT:
-                    updateOneModels = documents.stream().map(o -> computeUnitGraph(o)).collect(Collectors.toList());
+                    features =
+                        documents.stream()
+                            .map(o -> CompletableFuture.supplyAsync(() -> computeUnitGraph(o), executor))
+                            .toArray(CompletableFuture[]::new);
+
                     break;
                 case OBJECTGROUP:
-                    updateOneModels =
-                        documents.stream().map(o -> computeObjectGroupGraph(o)).collect(Collectors.toList());
+                    features =
+                        documents.stream()
+                            .map(o -> CompletableFuture.supplyAsync(() -> computeObjectGroupGraph(o), executor))
+                            .toArray(CompletableFuture[]::new);
                     break;
                 default:
                     throw new GraphBuilderException("Collection (" + metadataCollections + ") not supported");
             }
+
+            CompletableFuture<List<WriteModel<Document>>> result = CompletableFuture.allOf(features).
+                thenApply(v ->
+                    Stream.of(features)
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toList()));
+            updateOneModels = result.get();
+
         } catch (VitamRuntimeException e) {
             throw new GraphBuilderException(e.getCause());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new GraphBuilderException(e);
         }
 
 
@@ -212,15 +240,6 @@ public interface GraphBuilderService {
         }
     }
 
-    /**
-     * Bulk write in mongodb
-     *
-     * @param metaDaCollection
-     * @param collection
-     * @throws DatabaseException
-     */
-    void bulkUpdateMongo(MetadataCollections metaDaCollection, List<WriteModel<Document>> collection)
-        throws DatabaseException;
 
     /**
      * Create update model for Unit
@@ -235,7 +254,7 @@ public interface GraphBuilderService {
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
         List<String> ups = document.get(Unit.UP, List.class);
         String unitId = document.get(Unit.ID, String.class);
-        String originatingAgency = document.get(Unit.ID, String.class);
+        String originatingAgency = document.get(Unit.ORIGINATING_AGENCY, String.class);
         if (null != ups) {
             computeUnitGraphUsingDirectParents(stackOrderedGraphRels, unitId, originatingAgency, ups, START_DEPTH);
         }
@@ -248,11 +267,9 @@ public interface GraphBuilderService {
         Map<String, Set<String>> us_sp = new HashMap<>();
         MultiValuedMap<Integer, String> uds = new HashSetValuedHashMap<>();
 
-        Integer min = 1;
-        Integer max = 1;
         for (GraphRelation ugr : stackOrderedGraphRels) {
 
-            graph.add(GraphUtils.createGraphRelation(ugr.getUnitOriginatingAgency(), ugr.getParentOriginatingAgency()));
+            graph.add(GraphUtils.createGraphRelation(ugr.getUnit(), ugr.getParent()));
             us.add(ugr.getParent());
             sps.add(ugr.getUnitOriginatingAgency());
             sps.add(ugr.getParentOriginatingAgency());
@@ -268,23 +285,46 @@ public interface GraphBuilderService {
             /*
              * Parents depth [depth: [guid]]
              */
-            uds.put(ugr.getDepth(), ugr.getParentOriginatingAgency());
-
-            max = max < ugr.getDepth() ? ugr.getDepth() : max;
+            uds.put(ugr.getDepth(), ugr.getParent());
         }
 
 
         // Remove GUIDs having a multiple depths from the depths collections and keep only those in the lower depth
-        Map<Integer, Collection<String>> parentsDepths = uds.asMap();
-        Set<Integer> depths = new TreeSet<>(parentsDepths.keySet());
+        // MongoDB do not accept number as key of map, so convert Integer to String
+        Map<String, Collection<String>> parentsDepths = new HashMap<>();
+        Map<Integer, Collection<String>> udsMap = uds.asMap();
+        Set<Integer> depths = new TreeSet<>(udsMap.keySet());
         Collection<String> parents = new HashSet<>();
-        depths.forEach(o -> {
-            Collection<String> currentParents = parentsDepths.get(o);
+        Integer min = 1;
+        Integer max = 1;
+        for (Integer o : depths) {
+            Collection<String> currentParents = udsMap.get(o);
             currentParents.removeAll(parents);
             parents.addAll(currentParents);
-        });
+            if (!currentParents.isEmpty()) {
+                parentsDepths.put(String.valueOf(o), currentParents);
+                max = max < o ? o : max;
+            }
+        }
 
-        Document update = new Document(Unit.UNITUPS, us)
+        /*
+         * If the current document is present in the cache ?
+         * Then two options:
+         *      - invalidate cache for this key
+         *      - update cache
+         * Why ?
+         * the cache will be re-used to compute graph of ObjectGroup
+         *
+         * In this case, we will just update cache. because invalidation must be done
+         */
+
+        if (null != unitCache.getIfPresent(unitId)) {
+            document.put(Unit.ORIGINATING_AGENCIES, sps);
+            unitCache.put(unitId, document);
+        }
+
+        Document update = new Document(Unit.ID, unitId)
+            .append(Unit.UNITUPS, us)
             .append(Unit.UNITDEPTHS, parentsDepths)
             .append(Unit.ORIGINATING_AGENCIES, sps)
             .append(Unit.PARENT_ORIGINATING_AGENCIES, us_sp)
@@ -391,6 +431,17 @@ public interface GraphBuilderService {
             originatingAgencies.addAll(au.get(Unit.ORIGINATING_AGENCIES, List.class));
         }
     }
+
+
+    /**
+     * Bulk write in mongodb
+     *
+     * @param metaDaCollection
+     * @param collection
+     * @throws DatabaseException
+     */
+    void bulkUpdateMongo(MetadataCollections metaDaCollection, List<WriteModel<Document>> collection)
+        throws DatabaseException;
 
 
     /**

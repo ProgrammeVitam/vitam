@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,6 +45,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -128,7 +130,7 @@ public class GraphBuilderServiceImpl implements GraphBuilderService {
             final MongoCursor<Document> cursor = vitamRepositoryProvider
                 .getVitamMongoRepository(metadataCollections)
                 .findDocuments(exists(Unit.GRAPH_LAST_PERSISTED_DATE, false), VitamConfiguration.getBatchSize())
-                .projection(include(Unit.UP))
+                .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY))
                 .iterator();
 
             List<Document> documents = new ArrayList<>();
@@ -183,5 +185,21 @@ public class GraphBuilderServiceImpl implements GraphBuilderService {
     public void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
         this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection).save(collection);
+    }
+
+    @Override
+    public void close() {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Shutdown GraphBuilderService executor");
+        }
+
+        executor.shutdown();
+        try {
+            executor.awaitTermination(10L, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            LOGGER.error("Error while shutting down GraphBuilderService executor", e);
+            throw new VitamRuntimeException(e);
+        }
+
     }
 }
