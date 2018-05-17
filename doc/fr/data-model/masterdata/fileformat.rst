@@ -157,9 +157,8 @@ S'il existe plusieurs balises <HasPriorityOverFileFormatID> dans le fichier XML 
 **"Extension":** Extension(s) du format.
     
     * Il s'agit d'un tableau de chaînes de caractères.
-    * Ne peut être vide
     * Il contient les valeurs situées entre les balises <Extension> elles-mêmes encapsulées entre les balises <FileFormat>. Le champ <Extension> peut-être multivalué. Dans ce cas, les différentes valeurs situées entre les différentes balises <Extension> sont placées dans le tableau et séparées par une virgule.
-    * Cardinalité : 1-1
+    * Cardinalité : 0-1
 
 Par exemple, pour le format dont le PUID est fmt/918 la représentation XML est la suivante :
 

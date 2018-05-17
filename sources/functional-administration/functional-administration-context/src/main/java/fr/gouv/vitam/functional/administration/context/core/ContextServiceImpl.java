@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -370,7 +371,7 @@ public class ContextServiceImpl implements ContextService {
                 contextModel.getId()
             );
 
-        } catch (SchemaValidationException e) {
+        } catch (SchemaValidationException | BadRequestException e) {
             LOGGER.error(e);
             final String err = "Update context error > " + e.getMessage();
 

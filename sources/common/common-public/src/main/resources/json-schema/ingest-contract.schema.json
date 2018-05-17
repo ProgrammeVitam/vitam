@@ -23,7 +23,11 @@
       "type": "string"
     },
     "Status": {
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
     },
     "CreationDate": {
       "description": "pattern: Date",
@@ -103,5 +107,5 @@
       }
     }
   },
-  "required": ["_id", "_tenant", "_v", "Identifier", "Status", "CreationDate", "LastUpdate"]
+  "required": ["_id", "_tenant", "_v", "Identifier", "Status", "CreationDate", "LastUpdate", "Name"]
 }

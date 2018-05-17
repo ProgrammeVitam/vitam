@@ -118,9 +118,11 @@ public interface MongoDbAccessReferential {
      * @param collection collection of Mongo Type for update
      * @return DbRequestResult
      * @throws ReferentialException when error occurs;
+     * @throws SchemaValidationException 
+     * @throws BadRequestException 
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
-        throws ReferentialException, SchemaValidationException;
+        throws ReferentialException, SchemaValidationException, BadRequestException;
 
     /**
      * Update with queryDsl
@@ -130,9 +132,11 @@ public interface MongoDbAccessReferential {
      * @param version
      * @return DbRequestResult
      * @throws ReferentialException when error occurs;
+     * @throws SchemaValidationException 
+     * @throws BadRequestException 
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
-        throws ReferentialException, SchemaValidationException;
+        throws ReferentialException, SchemaValidationException, BadRequestException;
 
     /**
      * @param select filter

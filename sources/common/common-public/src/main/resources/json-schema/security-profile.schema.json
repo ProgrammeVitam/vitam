@@ -28,10 +28,10 @@
   },
   "anyOf": [
     {
-      "required": ["_id", "_v", "Identifier", "Permissions"]
+      "required": ["_id", "_v", "Identifier", "FullAccess", "Permissions", "Name"]
     },
     {
-      "required": ["_id", "_v", "Identifier", "FullAccess"]
+      "required": ["_id", "_v", "Identifier", "FullAccess", "Name"]
     }
   ]
   
