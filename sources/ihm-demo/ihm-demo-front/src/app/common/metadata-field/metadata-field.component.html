@@ -11,7 +11,7 @@
   </div>
   <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="updateMode && canUpdate">
     <p-calendar *ngIf="displayMode === 'Date'" [(ngModel)]="dateValue" [inputStyle]="{'width':'100%'}" (onSelect)="valueChange()"
-                (onBlur)="checkDateValid()" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true" [yearRange]="yearRange" [locale]="frLocale"></p-calendar>
+                (onClose)="checkDateValid()" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true" [yearRange]="yearRange" [locale]="frLocale"></p-calendar>
     <textarea pInputTextarea *ngIf="displayMode === 'TextArea'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" rows="3"></textarea>
     <p-dropdown *ngIf="displayMode === 'DropDown'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()"></p-dropdown>
     <input pInputText *ngIf="displayMode === 'TextInput'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" (blur)="valueChange()"/>
