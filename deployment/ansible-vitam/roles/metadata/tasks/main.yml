@@ -5,7 +5,7 @@
     name: curl
     state: present
 
-- name: Copy the metadata reconstruction and log shipping script
+- name: Copy the metadata reconstruction and log shipping and compute graph script
   template:
     src: "{{ item }}.j2"
     dest: "{{ vitam_defaults.folder.root_path }}/script/metadata/{{ item }}"
@@ -15,6 +15,7 @@
   with_items:
     - reconstruction.sh
     - storegraph.sh
+    - computegraph.sh
     - reconstruction_payload.json
 
 - name: Copy the metadata reconstruction conf

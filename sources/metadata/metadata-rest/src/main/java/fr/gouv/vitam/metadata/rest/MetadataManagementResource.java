@@ -48,7 +48,9 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
+import fr.gouv.vitam.metadata.core.graph.GraphBuilderServiceImpl;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
+import fr.gouv.vitam.metadata.core.graph.api.GraphBuilderService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
@@ -57,16 +59,18 @@ import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
  * Metadata reconstruction resource.
  */
 @Path("/metadata/v1")
-public class MetadataReconstructionResource {
+public class MetadataManagementResource {
 
     /**
      * Vitam Logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataReconstructionResource.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataManagementResource.class);
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
     private final String STORE_GRAPH_URI = "/storegraph";
-
+    private final String COMPUTE_GRAPH_URI = "/computegraph";
+    private final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
+    private final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
     /**
      * Error/Exceptions messages.
      */
@@ -82,6 +86,7 @@ public class MetadataReconstructionResource {
      */
     private ReconstructionService reconstructionService;
     private StoreGraphService storeGraphService;
+    private GraphBuilderService graphBuilderService;
 
     /**
      * Constructor
@@ -89,11 +94,10 @@ public class MetadataReconstructionResource {
      * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param offsetRepository
      */
-    public MetadataReconstructionResource(VitamRepositoryProvider vitamRepositoryProvider,
+    public MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository) {
-        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository);
-
-        this.storeGraphService = new StoreGraphService(vitamRepositoryProvider);
+        this(new ReconstructionService(vitamRepositoryProvider, offsetRepository),
+            new StoreGraphService(vitamRepositoryProvider), new GraphBuilderServiceImpl(vitamRepositoryProvider));
     }
 
     /**
@@ -103,11 +107,13 @@ public class MetadataReconstructionResource {
      * @param storeGraphService
      */
     @VisibleForTesting
-    public MetadataReconstructionResource(
+    public MetadataManagementResource(
         ReconstructionService reconstructionService,
-        StoreGraphService storeGraphService) {
+        StoreGraphService storeGraphService,
+        GraphBuilderService graphBuilderService) {
         this.reconstructionService = reconstructionService;
         this.storeGraphService = storeGraphService;
+        this.graphBuilderService = graphBuilderService;
     }
 
     /**
@@ -163,6 +169,73 @@ public class MetadataReconstructionResource {
         } catch (Exception e) {
             LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);
             return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+
+    /**
+     * Check if store graph is in progress.<br/>
+     *
+     * @return the response
+     */
+    @Path(STORE_GRAPH_PROGRESS_URI)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response storeGraphInProgress() {
+
+        boolean inProgress = this.storeGraphService.isInProgress();
+        if (inProgress) {
+            LOGGER.info("Store graph in progress ...");
+            return Response.ok("{\"msg\": \"Store graph in progress ...\"}").build();
+        } else {
+            LOGGER.info("No active store graph");
+            return Response.status(Response.Status.NOT_FOUND).entity("{\"msg\": \"No active store graph\"}")
+                .build();
+        }
+    }
+
+    /**
+     * API to access and launch the Vitam graph builder service for metadatas.<br/>
+     *
+     * @return the response
+     */
+    @Path(COMPUTE_GRAPH_URI)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response computeGraph() {
+
+        try {
+            Map<MetadataCollections, Integer> map = this.graphBuilderService.computeGraph();
+            return Response.ok().entity(map).build();
+        } catch (Exception e) {
+            LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);
+            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+
+
+    /**
+     * Check if graph builder is in progress.<br/>
+     *
+     * @return the response
+     */
+    @Path(COMPUTE_GRAPH_PROGRESS_URI)
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
+    public Response computeGraphInProgress() {
+
+        boolean inProgress = this.storeGraphService.isInProgress();
+        if (inProgress) {
+            LOGGER.info("Graph builder in progress ...");
+            return Response.ok("{\"msg\": \"Graph builder in progress ...\"}").build();
+        } else {
+            LOGGER.info("No active graph builder");
+            return Response.status(Response.Status.NOT_FOUND).entity("{\"msg\": \"No active graph builder\"}")
+                .build();
         }
     }
 }

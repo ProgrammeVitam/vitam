@@ -78,7 +78,6 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -96,6 +95,7 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
@@ -229,24 +229,33 @@ public class ReconstructionService {
 
             for (OfferLog offerLog : listing) {
                 String guid = GUIDFactory.newGUID().getId();
-                InputStream zipFileAsStream =
-                    restoreBackupService.loadData(STRATEGY_ID, dataCategory, offerLog.getFileName());
 
                 Path filePath = Files.createTempFile(guid + "_", offerLog.getFileName());
                 try {
-                    // Copy file to local tmp
+                    // Read zip file from offer
+                    InputStream zipFileAsStream =
+                        restoreBackupService.loadData(STRATEGY_ID, dataCategory, offerLog.getFileName());
+
+                    // Copy file to local tmp to prevent risk of broken stream
                     Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                    reconstructGraphFromZipStream(metaDaCollection, Files.newInputStream(filePath));
+                    // Close the stream
+                    IOUtils.closeQuietly(zipFileAsStream);
+
+                    // Handle a reconstruction from a copied zip file
+                    try (InputStream zipInputStream = Files.newInputStream(filePath)) {
+                        reconstructGraphFromZipStream(metaDaCollection, zipInputStream);
+                    }
                 } finally {
                     // Remove file
                     Files.deleteIfExists(filePath);
                 }
                 newOffset = offerLog.getSequence();
-                // log therecontruction of Vitam collection.
+                // log the recontruction of Vitam collection.
                 LOGGER.info(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
                     collectionName, tenant, offset, LocalDateUtil.now()));
+
             }
 
             response.setStatus(StatusCode.OK);
@@ -509,7 +518,7 @@ public class ReconstructionService {
 
     /**
      * @param metaDaCollection
-     * @param zipStream        The zip
+     * @param zipStream         The zip inputStream
      * @throws DatabaseException
      */
     private void reconstructGraphFromZipStream(MetadataCollections metaDaCollection, InputStream zipStream)
@@ -517,11 +526,8 @@ public class ReconstructionService {
         LOGGER.info("[Reconstruction]: Back up of metadatas bulk");
 
         try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-            .createArchiveInputStream(CommonMediaType.valueOf(CommonMediaType.ZIP), zipStream)) {
+                .createArchiveInputStream(CommonMediaType.valueOf(CommonMediaType.ZIP), zipStream)) {
             ArchiveEntry entry;
-            // create entryInputStream to resolve the stream closed problem
-            final ArchiveEntryInputStream
-                entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
                     if (!entry.isDirectory()) {
@@ -529,7 +535,6 @@ public class ReconstructionService {
                         treatBulkGraph(metaDaCollection, arrayNode);
                     }
                 }
-                entryInputStream.setClosed(false);
             }
         } catch (InvalidParseOperationException | IOException | ArchiveException | DatabaseException e) {
             throw new ReconstructionException(e);

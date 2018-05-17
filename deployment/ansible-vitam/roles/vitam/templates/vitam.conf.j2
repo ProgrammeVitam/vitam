@@ -7,6 +7,7 @@ workerBulkSize: 16
 {% if inventory_hostname in groups['hosts-metadata'] %}
 storeGraphElementsPerFile: 10000
 storeGraphOverlapDelay: 300
+expireCacheEntriesDelay: 300
 deleteIncompleteReconstructedUnitDelay: 2592000
 migrationBulkSize: 10000
 {% endif %}

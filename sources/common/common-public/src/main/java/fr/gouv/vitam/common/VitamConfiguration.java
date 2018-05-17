@@ -306,6 +306,11 @@ public class VitamConfiguration {
     private static int maxCacheEntries = 10000;
 
     /**
+     * Expire time for the cache entries in seconds (5 minutes by default)
+     */
+    private static int expireCacheEntriesDelay = 300;
+
+    /**
      * Max Elasticsearch Bulk
      */
     private static int maxElasticsearchBulk = 1000;
@@ -736,6 +741,10 @@ public class VitamConfiguration {
         }
         if (null != parameters.getMaxCacheEntries()) {
             setMaxCacheEntries(parameters.getMaxCacheEntries());
+        }
+
+        if (null != parameters.getExpireCacheEntriesDelay()) {
+            setExpireCacheEntriesDelay(parameters.getExpireCacheEntriesDelay());
         }
 
         if (null != parameters.getAdminTenant()) {
@@ -1615,6 +1624,24 @@ public class VitamConfiguration {
      */
     public static void setMaxCacheEntries(int maxCacheEntries) {
         VitamConfiguration.maxCacheEntries = maxCacheEntries;
+    }
+
+
+
+    /**
+     * Setter for expireCacheEntriesDelay
+     * @return expireCacheEntriesDelay
+     */
+    public static int getExpireCacheEntriesDelay() {
+        return expireCacheEntriesDelay;
+    }
+
+    /**
+     * Getter for expireCacheEntriesDelay
+     * @param expireCacheEntriesDelay
+     */
+    public static void setExpireCacheEntriesDelay(int expireCacheEntriesDelay) {
+        VitamConfiguration.expireCacheEntriesDelay = expireCacheEntriesDelay;
     }
 
     /**

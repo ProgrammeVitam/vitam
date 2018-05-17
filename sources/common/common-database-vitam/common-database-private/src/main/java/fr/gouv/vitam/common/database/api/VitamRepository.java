@@ -97,6 +97,7 @@ public interface VitamRepository {
 
 
     /**
+     * Be careful when using this method
      * Remove by query
      * @param query
      * @throws DatabaseException
@@ -104,6 +105,7 @@ public interface VitamRepository {
     long remove(Bson query) throws DatabaseException;
 
     /**
+     * Be careful when using this method
      * Remove collection by name and tenant
      *
      * @param name   the name of the collection to be removed
@@ -113,6 +115,7 @@ public interface VitamRepository {
     void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException;
 
     /**
+     * Be careful when using this method
      * Remove by tenant for collection multi-tenant
      *
      * @param tenant the tenant
@@ -122,6 +125,7 @@ public interface VitamRepository {
     long purge(Integer tenant) throws DatabaseException;
 
     /**
+     * Be careful when using this method
      * Remove by tenant for collection cross-tenant
      *
      * @return number of purged documents

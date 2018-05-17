@@ -79,8 +79,8 @@ public class BusinessApplication extends Application {
 
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
 
-            MetadataReconstructionResource metadataReconstruction =
-                new MetadataReconstructionResource(vitamRepositoryProvider, offsetRepository);
+            MetadataManagementResource metadataReconstruction =
+                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

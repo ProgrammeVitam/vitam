@@ -184,6 +184,12 @@ public class StoreGraphService {
         return dataCategory;
     }
 
+
+    public boolean isInProgress() {
+        return alreadyRunningLock.get();
+    }
+
+
     /**
      * If no graph store in progress, try to start one
      * Should be exposed in the API
@@ -220,7 +226,7 @@ public class StoreGraphService {
                 CompletableFuture<Integer> result = CompletableFuture
                     .allOf(futures)
                     .thenApply(v -> Stream.of(futures).map(CompletableFuture::join).collect(Collectors.toList()))
-                    .thenApplyAsync((numberOfDocuments) -> numberOfDocuments.stream().mapToInt(o -> o).sum())
+                    .thenApply((numberOfDocuments) -> numberOfDocuments.stream().mapToInt(o -> o).sum())
                     .exceptionally(th -> {
                         throw new RuntimeException(th);
                     });

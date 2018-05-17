@@ -1,5 +1,6 @@
-package fr.gouv.vitam.reconstruction.integration.test;
+package fr.gouv.vitam.metadata.management.integration.test;
 
+import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -7,16 +8,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -33,6 +36,7 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.graph.GraphUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -55,13 +59,11 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
-import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
-import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -84,7 +86,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import okhttp3.OkHttpClient;
 import org.apache.commons.io.FileUtils;
-import org.assertj.core.util.Files;
+import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -99,6 +101,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
@@ -106,17 +109,17 @@ import retrofit2.http.POST;
 /**
  * Integration tests for the reconstruction of metadatas. <br/>
  */
-public class ReconstructionMetadataIT {
+public class MetadataManagementIT {
 
     /**
      * Vitam logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionMetadataIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataManagementIT.class);
 
-    private static final String unit_with_graph_0 = "integration-reconstruction/data/unit_with_graph_0.json";
-    private static final String unit_with_graph_1 = "integration-reconstruction/data/unit_with_graph_1.json";
-    private static final String unit_with_graph_2 = "integration-reconstruction/data/unit_with_graph_2.json";
-    private static final String unit_with_graph_3 = "integration-reconstruction/data/unit_with_graph_3.json";
+    private static final String unit_with_graph_0 = "integration-metadata-management/data/unit_with_graph_0.json";
+    private static final String unit_with_graph_1 = "integration-metadata-management/data/unit_with_graph_1.json";
+    private static final String unit_with_graph_2 = "integration-metadata-management/data/unit_with_graph_2.json";
+    private static final String unit_with_graph_3 = "integration-metadata-management/data/unit_with_graph_3.json";
 
 
     private static final String unit_with_graph_0_guid = "aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq";
@@ -126,9 +129,9 @@ public class ReconstructionMetadataIT {
     private static final String unit_with_graph_4_guid = "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq";
 
 
-    private static final String got_with_graph_0 = "integration-reconstruction/data/got_0.json";
-    private static final String got_with_graph_1 = "integration-reconstruction/data/got_1.json";
-    private static final String got_with_graph_2 = "integration-reconstruction/data/got_2.json";
+    private static final String got_with_graph_0 = "integration-metadata-management/data/got_0.json";
+    private static final String got_with_graph_1 = "integration-metadata-management/data/got_1.json";
+    private static final String got_with_graph_2 = "integration-metadata-management/data/got_2.json";
 
 
     private static final String got_with_graph_0_guid = "aebaaaaaaahlm6sdabzmoalc4pzqrpqaaaaq";
@@ -138,17 +141,17 @@ public class ReconstructionMetadataIT {
 
     private static final String unit_graph_zip_file_name = "1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
     private static final String unit_graph_zip_file =
-        "integration-reconstruction/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
+        "integration-metadata-management/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-444";
 
     private static final String got_graph_zip_file_name = "1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
     private static final String got_graph_zip_file =
-        "integration-reconstruction/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
+        "integration-metadata-management/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
 
-    private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
-    private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
-    private static final String STORAGE_CONF = "integration-reconstruction/storage-engine.conf";
-    private static final String WORKSPACE_CONF = "integration-reconstruction/workspace.conf";
-    private static final String METADATA_CONF = "integration-reconstruction/metadata.conf";
+    private static final String DEFAULT_OFFER_CONF = "integration-metadata-management/storage-default-offer.conf";
+    private static final String LOGBOOK_CONF = "integration-metadata-management/logbook.conf";
+    private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
+    private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
+    private static final String METADATA_CONF = "integration-metadata-management/metadata.conf";
 
     private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;
@@ -177,9 +180,8 @@ public class ReconstructionMetadataIT {
     private static MetadataMain metadataMain;
     private static OffsetRepository offsetRepository;
 
-    private MetadataReconstructionService reconstructionService;
-    private VitamRepositoryProvider vitamRepositoryProvider;
-    private StoreGraphService storeGraphService;
+    private MetadataManagementResource metadataManagementResource;
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -192,7 +194,7 @@ public class ReconstructionMetadataIT {
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(Files.newTemporaryFolder(), MetadataCollections.UNIT.getName(),
+        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(), MetadataCollections.UNIT.getName(),
             MetadataCollections.OBJECTGROUP.getName());
 
 
@@ -353,7 +355,7 @@ public class ReconstructionMetadataIT {
         Retrofit retrofit =
             new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
-        reconstructionService = retrofit.create(MetadataReconstructionService.class);
+        metadataManagementResource = retrofit.create(MetadataManagementResource.class);
 
 
         Map<MetadataCollections, VitamMongoRepository> mongoRepository = new HashMap<>();
@@ -369,15 +371,6 @@ public class ReconstructionMetadataIT {
         esRepository.put(MetadataCollections.OBJECTGROUP,
             new VitamElasticsearchRepository(elasticsearchRule.getClient(),
                 MetadataCollections.OBJECTGROUP.name().toLowerCase(), true));
-
-
-        vitamRepositoryProvider = VitamRepositoryFactory.getInstance(mongoRepository, esRepository);
-        RestoreBackupService restoreBackupService = new RestoreBackupService();
-        storeGraphService = new StoreGraphService(
-            VitamRepositoryFactory.getInstance(),
-            restoreBackupService,
-            WorkspaceClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
 
         VitamConfiguration.setAdminTenant(1);
     }
@@ -429,7 +422,7 @@ public class ReconstructionMetadataIT {
         reconstructionItem1.setLimit(2);
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -437,7 +430,7 @@ public class ReconstructionMetadataIT {
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_0_guid);
@@ -453,7 +446,7 @@ public class ReconstructionMetadataIT {
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_1_guid);
@@ -477,14 +470,14 @@ public class ReconstructionMetadataIT {
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(5L);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_id").asText()).isEqualTo(got_with_graph_0_guid);
@@ -500,7 +493,7 @@ public class ReconstructionMetadataIT {
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(got_with_graph_1_guid);
@@ -523,7 +516,7 @@ public class ReconstructionMetadataIT {
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -535,7 +528,7 @@ public class ReconstructionMetadataIT {
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
@@ -544,7 +537,7 @@ public class ReconstructionMetadataIT {
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_2_guid);
@@ -560,7 +553,7 @@ public class ReconstructionMetadataIT {
         assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(got_with_graph_2_guid);
@@ -580,7 +573,7 @@ public class ReconstructionMetadataIT {
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
@@ -598,7 +591,7 @@ public class ReconstructionMetadataIT {
         reconstructionItem2.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem2);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.UNIT.getName())).isEqualTo(0L);
@@ -616,7 +609,7 @@ public class ReconstructionMetadataIT {
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -630,7 +623,7 @@ public class ReconstructionMetadataIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testStoreUnitGraphThenStoreThenOK() throws DatabaseException, StoreGraphException {
+    public void testStoreUnitGraphThenStoreThenOK() throws DatabaseException, StoreGraphException, IOException {
         VitamConfiguration.setStoreGraphElementsPerFile(5);
 
         LocalDateTime dateTime =
@@ -642,13 +635,12 @@ public class ReconstructionMetadataIT {
             documents.add(Document.parse("{\"_id\": " + i + ", \"_glpd\": \"" + dateInMongo + "\" }"));
         }
 
-        vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT).save(documents);
+        MetadataCollections.UNIT.getCollection().insertMany(documents);
 
-        MongoCollection<Document> collection = mongoRule.getMongoCollection(MetadataCollections.UNIT.name());
-        long count = collection.count();
-        assertThat(count).isEqualTo(10);
+        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(10);
 
-        Map<MetadataCollections, Integer> ok = storeGraphService.tryStoreGraph();
+        Map<MetadataCollections, Integer> ok = metadataManagementResource.tryStoreGraph().execute().body();
+
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(10);
 
 
@@ -659,16 +651,14 @@ public class ReconstructionMetadataIT {
             documents.add(Document.parse("{\"_id\": " + i + ", \"_glpd\": \"" + dateInMongo + "\" }"));
         }
 
-        vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT).save(documents);
+        MetadataCollections.UNIT.getCollection().insertMany(documents);
 
-        collection = mongoRule.getMongoCollection(MetadataCollections.UNIT.name());
-        count = collection.count();
-        assertThat(count).isEqualTo(15);
+        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(15);
 
-        ok = storeGraphService.tryStoreGraph();
+        ok = metadataManagementResource.tryStoreGraph().execute().body();
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(5);
 
-        ok = storeGraphService.tryStoreGraph();
+        ok = metadataManagementResource.tryStoreGraph().execute().body();
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(0);
     }
 
@@ -702,7 +692,7 @@ public class ReconstructionMetadataIT {
         reconstructionItems.add(reconstructionItem);
 
         Response<List<ReconstructionResponseItem>> response =
-            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(4L);
@@ -710,7 +700,7 @@ public class ReconstructionMetadataIT {
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
 
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
             .isEqualTo(unit_with_graph_1_guid);
@@ -740,12 +730,12 @@ public class ReconstructionMetadataIT {
         reconstructionItem.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem);
 
-        response = reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -756,7 +746,7 @@ public class ReconstructionMetadataIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -771,7 +761,7 @@ public class ReconstructionMetadataIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -792,7 +782,7 @@ public class ReconstructionMetadataIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testReconstruction_unit_then_got_then_unitgraph_then_gotgraoh_in_one_phase_query_OK() throws Exception {
+    public void testReconstruction_unit_then_got_then_unitgraph_then_gotgraph_in_one_phase_query_OK() throws Exception {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -868,7 +858,7 @@ public class ReconstructionMetadataIT {
 
 
         Response<List<ReconstructionResponseItem>> response =
-            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(4);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(4L);
@@ -895,7 +885,7 @@ public class ReconstructionMetadataIT {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -905,7 +895,7 @@ public class ReconstructionMetadataIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -920,7 +910,7 @@ public class ReconstructionMetadataIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -935,7 +925,7 @@ public class ReconstructionMetadataIT {
 
         // Check Object Group
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
@@ -945,7 +935,7 @@ public class ReconstructionMetadataIT {
 
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");
@@ -958,7 +948,7 @@ public class ReconstructionMetadataIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testReconstruction_unitgraph_then_gotgraoh_then_unit_then_got_in_two_phase_query_OK() throws Exception {
+    public void testReconstruction_unitgraph_then_gotgraph_then_unit_then_got_in_two_phase_query_OK() throws Exception {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -998,7 +988,7 @@ public class ReconstructionMetadataIT {
         reconstructionItems.add(reconstructionItem);
 
         Response<List<ReconstructionResponseItem>> response =
-            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_1, DataCategory.UNIT_GRAPH.name())).isEqualTo(1L);
@@ -1016,7 +1006,7 @@ public class ReconstructionMetadataIT {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1029,7 +1019,7 @@ public class ReconstructionMetadataIT {
         assertThat(first.get("_v")).isNull();
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1047,7 +1037,7 @@ public class ReconstructionMetadataIT {
         assertThat(first.get("_v")).isNull();
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1062,7 +1052,7 @@ public class ReconstructionMetadataIT {
 
         // Check Object Group
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.735");
@@ -1071,7 +1061,7 @@ public class ReconstructionMetadataIT {
         assertThat(first.get("_sp")).isNull();
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_glpd").asText()).isEqualTo("2018-04-20T16:46:31.438");
@@ -1120,7 +1110,7 @@ public class ReconstructionMetadataIT {
 
 
         response =
-            reconstructionService.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(6L);
@@ -1138,7 +1128,7 @@ public class ReconstructionMetadataIT {
         // Check Unit
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1148,7 +1138,7 @@ public class ReconstructionMetadataIT {
 
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1165,7 +1155,7 @@ public class ReconstructionMetadataIT {
         assertThat(first.get("_v")).isNotNull();
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_4_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_graph").toString())
@@ -1175,7 +1165,7 @@ public class ReconstructionMetadataIT {
 
         // Check Object Group
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("FRAN_NP_050770");
@@ -1187,7 +1177,7 @@ public class ReconstructionMetadataIT {
         assertThat(first.get("_v")).isNotNull();
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk());
+        assertThat(metadataResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
         first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
         assertThat(first.get("_sp").asText()).isEqualTo("ABCDEFG");
@@ -1198,6 +1188,224 @@ public class ReconstructionMetadataIT {
         assertThat(first.get("_tenant")).isNotNull();
         assertThat(first.get("_v")).isNotNull();
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testComputeUnitAndObjectGroupGraph() throws Exception {
+        // Clean offerLog
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        //Given
+        initializeDbWithUnitAndObjectGroupData();
+
+        //Then
+        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(10);
+        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(5);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+
+        // Compute Graph
+        Map<MetadataCollections, Integer> body = metadataManagementResource.computeGraph().execute().body();
+
+        // Check that 4 unit and 4 ObjectGroup are trated
+        assertThat(body.get(MetadataCollections.UNIT)).isEqualTo(4);
+        assertThat(body.get(MetadataCollections.OBJECTGROUP)).isEqualTo(4);
+
+        // Check graph data for unit (AU_3, AU_6, AU_7,AU_9, AU_10)
+        Document au3 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_3")).first();
+        Document au6 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_6")).first();
+        Document au7 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_7")).first();
+        Document au9 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_9")).first();
+        Document au10 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_10")).first();
+
+        // AU3
+        assertThat(au3.get(Unit.UNITUPS, List.class)).contains("AU_1");
+        assertThat(au3.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA1");
+        assertThat(au3.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKey("OA1");
+        assertThat(au3.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(2);
+        assertThat(au3.get(Unit.GRAPH, List.class)).contains(GraphUtils.createGraphRelation("AU_3", "AU_1"));
+
+        //AU 6
+        assertThat(au6.get(Unit.UNITUPS, List.class)).contains("AU_2", "AU_5");
+        assertThat(au6.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA2");
+        assertThat(au6.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA2");
+        assertThat((List) au6.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2", "AU_5");
+        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).hasSize(2);
+        assertThat(au6.get(Unit.UNITDEPTHS, Map.class)).containsKeys("2");
+        assertThat((List) au6.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_5", "AU_2");
+        assertThat((List) au6.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_2");
+        assertThat(au6.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(3);
+        assertThat(au6.get(Unit.GRAPH, List.class))
+            .contains(GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"),
+                GraphUtils.createGraphRelation("AU_5", "AU_2"));
+
+        //AU 7
+        assertThat(au7.get(Unit.UNITUPS, List.class)).contains("AU_1", "AU_2", "AU_4");
+        assertThat(au7.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+        assertThat(au7.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
+        assertThat(au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA1", "OA2", "OA4");
+        assertThat((List) au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA1")).contains("AU_1");
+        assertThat((List) au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2");
+        assertThat((List) au7.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA4")).contains("AU_4");
+        assertThat(au7.get(Unit.UNITDEPTHS, Map.class)).hasSize(2);
+        assertThat(au7.get(Unit.UNITDEPTHS, Map.class)).containsKeys("1", "2");
+        assertThat((List) au7.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_4");
+        assertThat((List) au7.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_1", "AU_2");
+        assertThat(au7.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(3);
+        assertThat(au7.get(Unit.GRAPH, List.class))
+            .contains(GraphUtils.createGraphRelation("AU_7", "AU_4"), GraphUtils.createGraphRelation("AU_4", "AU_1"),
+                GraphUtils.createGraphRelation("AU_4", "AU_2"));
+
+        //AU 10
+        assertThat(au10.get(Unit.UNITUPS, List.class)).contains("AU_1", "AU_2", "AU_4", "AU_5", "AU_6", "AU_8", "AU_9");
+        assertThat(au10.get(Unit.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+        assertThat(au10.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
+        assertThat(au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA1", "OA2", "OA4");
+        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA1")).contains("AU_1");
+        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2", "AU_6", "AU_8", "AU_9");
+        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA4")).contains("AU_4");
+        assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).hasSize(4);
+        assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).containsKeys("1", "2", "3");
+        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("1")).contains("AU_8", "AU_9");
+        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("2")).contains("AU_4", "AU_6", "AU_5");
+        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("3")).contains("AU_1", "AU_2", "AU_5");
+        assertThat((List) au10.get(Unit.UNITDEPTHS, Map.class).get("4")).contains("AU_2");
+        assertThat(au10.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(5);
+        assertThat(au10.get(Unit.GRAPH, List.class))
+            .contains(GraphUtils.createGraphRelation("AU_10", "AU_8"), GraphUtils.createGraphRelation("AU_10", "AU_9"),
+                GraphUtils.createGraphRelation("AU_8", "AU_6"), GraphUtils.createGraphRelation("AU_8", "AU_4"), GraphUtils.createGraphRelation("AU_9", "AU_5"), GraphUtils.createGraphRelation("AU_9", "AU_6"), GraphUtils.createGraphRelation("AU_5", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"), GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_1"));
+
+
+        // Check graph data for ObjectGroup (GOT_4, GOT_6, GOT_8, GOT_9, GOT_10)
+        Document got4 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_4")).first();
+        Document got6 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_6")).first();
+        Document got8 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_8")).first();
+        Document got9 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_9")).first();
+        Document got10 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_10")).first();
+
+
+        // Got 4
+        assertThat(got4.get(ObjectGroup.UP, List.class)).contains("AU_4");
+        assertThat(got4.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
+        assertThat(got4.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+
+        // Got 6
+        assertThat(got6.get(ObjectGroup.UP, List.class)).contains("AU_6");
+        assertThat(got6.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
+        assertThat(got6.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA2");
+
+        // Got 8
+        assertThat(got8.get(ObjectGroup.UP, List.class)).contains("AU_8", "AU_3", "AU_7");
+        assertThat(got8.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
+        assertThat(got8.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+
+        // Got 9
+        assertThat(got9.get(ObjectGroup.UP, List.class)).contains("AU_9");
+        assertThat(got9.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
+        assertThat(got9.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA2");
+
+        // Got 10
+        assertThat(got10.get(ObjectGroup.UP, List.class)).contains("AU_10");
+        assertThat(got10.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
+        assertThat(got10.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+
+    }
+
+    // See computegraph.png for more information
+    private void initializeDbWithUnitAndObjectGroupData() {
+        // Create units with or without graph data
+        Document au1 = new Document(Unit.ID, "AU_1")
+            .append(Unit.UP, Lists.newArrayList())
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
+
+        Document au2 = new Document(Unit.ID, "AU_2")
+            .append(Unit.UP, Lists.newArrayList())
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+
+        Document au3 =
+            new Document(Unit.ID, "AU_3")
+                .append(Unit.UP, Lists.newArrayList("AU_1"))
+                .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA1"));
+
+        Document au4 = new Document(Unit.ID, "AU_4")
+            .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        Document au5 = new Document(Unit.ID, "AU_5")
+            .append(Unit.UP, Lists.newArrayList("AU_2"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+
+        Document au6 = new Document(Unit.ID, "AU_6")
+            .append(Unit.UP, Lists.newArrayList("AU_2", "AU_5"))
+            .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+
+        Document au7 =
+            new Document(Unit.ID, "AU_7")
+                .append(Unit.UP, Lists.newArrayList("AU_4"))
+                .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        Document au8 = new Document(Unit.ID, "AU_8")
+            .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        Document au9 = new Document(Unit.ID, "AU_9")
+            .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+
+        Document au10 =
+            new Document(Unit.ID, "AU_10")
+                .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
+                .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
+        MetadataCollections.UNIT.getCollection()
+            .insertMany(units);
+
+        ////////////////////////////////////////////////
+        // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
+        ///////////////////////////////////////////////
+        Document got4 = new Document(ObjectGroup.ID, "GOT_4")
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_4"))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA4");
+
+        // Got 6 have Graph Data
+        Document got6 = new Document(ObjectGroup.ID, "GOT_6")
+            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
+                Lists.newArrayList("OA4", "OA1", "OA2"));
+
+        //Unit "AU_8", "AU_3", "AU_7" attached to got 8
+        Document got8 = new Document(ObjectGroup.ID, "GOT_8")
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_8", "AU_3", "AU_7"))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
+
+        Document got9 = new Document(ObjectGroup.ID, "GOT_9")
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_9"))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
+
+        Document got10 =
+            new Document(ObjectGroup.ID, "GOT_10")
+                .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
+                .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
+
+        List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
+        MetadataCollections.OBJECTGROUP.getCollection().insertMany(gots);
+    }
+
 
     private Select getSelectQueryProjectionSimple(String guid) throws InvalidCreateOperationException {
         Select select = new Select();
@@ -1227,15 +1435,19 @@ public class ReconstructionMetadataIT {
     private static void cleanOffers() {
         // ugly style but we don't have the digest herelo
         File directory = new File(OFFER_FOLDER);
-        try {
-            FileUtils.cleanDirectory(directory);
-            FileUtils.deleteDirectory(directory);
-        } catch (IOException | IllegalArgumentException e) {
-            LOGGER.error("ERROR: Exception has been thrown when cleaning offers.", e);
+        if (directory.exists()) {
+            try {
+                Files.walk(directory.toPath())
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+            } catch (IOException | IllegalArgumentException e) {
+                LOGGER.error("ERROR: Exception has been thrown when cleaning offers.", e);
+            }
         }
     }
 
-    public interface MetadataReconstructionService {
+    public interface MetadataManagementResource {
         @POST("/metadata/v1/reconstruction")
         @Headers({
             "Accept: application/json",
@@ -1243,6 +1455,23 @@ public class ReconstructionMetadataIT {
         })
         Call<List<ReconstructionResponseItem>> reconstructCollection(@Header("X-Tenant-Id") String tenant,
             @Body List<ReconstructionRequestItem> reconstructionItems);
+
+
+
+        @GET("/metadata/v1/storegraph")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Map<MetadataCollections, Integer>> tryStoreGraph();
+
+        @GET("/metadata/v1/computegraph")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Map<MetadataCollections, Integer>> computeGraph();
+
     }
 
 }

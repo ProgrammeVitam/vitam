@@ -114,7 +114,7 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenNoGraphInOfferThengetLastShippingReturnInitialDate() throws StoreGraphException {
+    public void whenNoGraphInOfferThenGetListingReturnInitialDate() throws StoreGraphException {
         // given
         when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
             .thenReturn(
@@ -127,7 +127,7 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenGetLastShippingReturnLastShippingDate() throws StoreGraphException {
+    public void whenGetListingReturnLastDate() throws StoreGraphException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
@@ -146,7 +146,7 @@ public class StoreGraphServiceTest {
 
     @Test(expected = StoreGraphException.class)
     @RunWithCustomExecutor
-    public void whenGetLastShippingThenExceptionOccurs() throws StoreGraphException {
+    public void whenGetListingThenExceptionOccurs() throws StoreGraphException {
         // given
         when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
             .thenThrow(new RuntimeException(""));
@@ -155,7 +155,7 @@ public class StoreGraphServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenShipGraphThenOK() throws StoreGraphException {
+    public void whenTryStoreGraphThenOK() throws StoreGraphException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
@@ -180,8 +180,8 @@ public class StoreGraphServiceTest {
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(dateTime);
 
-        Map<MetadataCollections, Integer> shipped = storeGraphService.tryStoreGraph();
-        assertThat(shipped.get(MetadataCollections.UNIT)).isEqualTo(3);
+        Map<MetadataCollections, Integer> stored = storeGraphService.tryStoreGraph();
+        assertThat(stored.get(MetadataCollections.UNIT)).isEqualTo(3);
     }
 
 
@@ -205,8 +205,8 @@ public class StoreGraphServiceTest {
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(dateTime);
 
-        Map<MetadataCollections, Integer> shipped = storeGraphService.tryStoreGraph();
+        Map<MetadataCollections, Integer> stored = storeGraphService.tryStoreGraph();
         // Because no zip file created in the offer
-        assertThat(shipped.get(MetadataCollections.UNIT)).isEqualTo(0);
+        assertThat(stored.get(MetadataCollections.UNIT)).isEqualTo(0);
     }
 }

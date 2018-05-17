@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.reconstruction.integration.test;
+package fr.gouv.vitam.metadata.management.integration.test;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
@@ -105,12 +105,12 @@ public class BackupAndReconstructionFunctionalAdminIT {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(BackupAndReconstructionFunctionalAdminIT.class);
 
-    private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
-    private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
-    private static final String STORAGE_CONF = "integration-reconstruction/storage-engine.conf";
-    private static final String WORKSPACE_CONF = "integration-reconstruction/workspace.conf";
+    private static final String DEFAULT_OFFER_CONF = "integration-metadata-management/storage-default-offer.conf";
+    private static final String LOGBOOK_CONF = "integration-metadata-management/logbook.conf";
+    private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
+    private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
     private static final String ADMIN_MANAGEMENT_CONF =
-        "integration-reconstruction/functional-administration.conf";
+        "integration-metadata-management/functional-administration.conf";
 
     private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;
@@ -118,15 +118,15 @@ public class BackupAndReconstructionFunctionalAdminIT {
     private static final String AGENCY_IDENTIFIER_1 = "FR_ORG_AGEN";
     private static final String AGENCY_IDENTIFIER_2 = "FRAN_NP_005568";
     private static final String INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV =
-        "integration-reconstruction/data/agencies_1.csv";
+        "integration-metadata-management/data/agencies_1.csv";
 
     private static final String INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_2_CSV =
-        "integration-reconstruction/data/agencies_2.csv";
+        "integration-metadata-management/data/agencies_2.csv";
 
     private static final String INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON =
-        "integration-reconstruction/data/security_profile_1.json";
+        "integration-metadata-management/data/security_profile_1.json";
     private static final String INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON =
-        "integration-reconstruction/data/security_profile_2.json";
+        "integration-metadata-management/data/security_profile_2.json";
 
     private static final String SECURITY_PROFILE_IDENTIFIER_1 = "SEC_PROFILE-000001";
     private static final String SECURITY_PROFILE_IDENTIFIER_2 = "SEC_PROFILE-000002";

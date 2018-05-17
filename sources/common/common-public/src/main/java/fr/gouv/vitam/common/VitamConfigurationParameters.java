@@ -90,6 +90,11 @@ public class VitamConfigurationParameters {
      */
     private Integer numberEsQueue;
     private Integer maxCacheEntries;
+    /**
+     * Expire time for the cache entries in seconds (5 minutes by default)
+     */
+    private static Integer expireCacheEntriesDelay;
+
     private Integer cacheControlDelay;
 
     private Integer adminTenant;
@@ -963,6 +968,22 @@ public class VitamConfigurationParameters {
         this.maxCacheEntries = maxCacheEntries;
     }
 
+
+    /**
+     * Setter for expireCacheEntriesDelay
+     * @return expireCacheEntriesDelay
+     */
+    public Integer getExpireCacheEntriesDelay() {
+        return expireCacheEntriesDelay;
+    }
+
+    /**
+     * Getter for expireCacheEntriesDelay
+     * @param expireCacheEntriesDelay
+     */
+    public void setExpireCacheEntriesDelay(Integer expireCacheEntriesDelay) {
+        this.expireCacheEntriesDelay = expireCacheEntriesDelay;
+    }
 
     /**
      * Getter for tenant admin
