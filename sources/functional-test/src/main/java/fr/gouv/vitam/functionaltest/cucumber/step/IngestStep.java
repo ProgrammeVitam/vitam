@@ -42,13 +42,17 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
+
 import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -56,7 +60,6 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.tools.SipTool;
-import org.apache.commons.lang3.StringUtils;
 
 public class IngestStep {
 
@@ -221,7 +224,14 @@ public class IngestStep {
     public void afterScenario() throws IOException {
 
         if (this.sip != null && deleteSip) {
-            Files.delete(this.sip);
+            try {
+                // if we have a real guid, that means we were handling a created file, if not, that means the sip was
+                // used in vitam-itests so we don't delete it !!
+                GUIDReader.getGUID(this.sip.getFileName().toString());
+                Files.delete(this.sip);
+            } catch (final InvalidGuidOperationException e) {
+                LOGGER.info("This is not a guid, no need to delete ", e);
+            }
             deleteSip = false;
             attachMode = false;
         }
