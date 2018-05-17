@@ -99,7 +99,18 @@
 		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditFinalize",
 		"propertiesFile":"evidence_audit_finalize.properties"
 	},
-
+	"MIGRATION_UNITS_LIST":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare"
+	},
+	"MIGRATION_UNITS":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationUnits"
+	},
+	"MIGRATION_OBJECT_GROUPS_LIST":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroupPrepare"
+	},
+	"MIGRATION_OBJECT_GROUPS":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroups"
+	},
 	"PUT_BINARY_ON_WORKSPACE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"

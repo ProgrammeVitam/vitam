@@ -40,6 +40,20 @@ public class ChainedFileModel {
     private String nextFile;
 
     /**
+     * Constructor
+     * @param elements elments
+     * @param nextFile nextFile
+     */
+    public ChainedFileModel(List<String> elements, String nextFile) {
+        this.elements = elements;
+        this.nextFile = nextFile;
+    }
+
+    public ChainedFileModel() {
+        //Empty
+    }
+
+    /**
      * getElements
      *
      * @return
