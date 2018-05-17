@@ -142,7 +142,7 @@ public class ParserTokens extends BuilderToken {
         "RelatedObjectReference.Requires.RepositoryObjectPID",
         "SentDate",
         "Signature.DateSignature",
-        "Signature.Masterdata",
+        "Signature.Masterdata.Value",
         "Signature.ReferencedObject.SignedObjectDigest.Algorithm",
         "Signature.ReferencedObject.SignedObjectDigest.Value",
         "Signature.ReferencedObject.SignedObjectId",
