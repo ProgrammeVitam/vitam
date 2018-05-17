@@ -11,7 +11,7 @@
 - name: Check if ontologies already exist in functional-admin
   uri:
     method: GET
-    body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"_mgt\"}},\"$filter\":{},\"$projection\":{} }"
+    body: "{ \"$query\":{\"$eq\":{\"Identifier\":\"AcquiredDate\"}},\"$filter\":{},\"$projection\":{} }"
     status_code: 200
     url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/ontologies"
     body_format: "json"
@@ -26,7 +26,7 @@
 - name: Import ontologies to functionnal-admin
   uri:
     method: POST
-    body: "[{\"Identifier\":\"_sps\",\"ApiField\":\"#originating_agencies\",\"SedaField\":\"OriginatingAgencyIdentifier\",\"Origin\":\"INTERNAL\",\"Type\":\"KEYWORD\",\"Description\":\"Internal ontology sample\"},{\"Identifier\":\"_mgt\",\"ApiField\":\"#management\",\"SedaField\":\"Management\",\"Origin\":\"INTERNAL\",\"Type\":\"KEYWORD\",\"Description\":\"Internal ontology sample\"}]"
+    body: "{{ lookup('file', 'files/VitamOntology.json')}}"
     status_code: 200,201
     url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/ontologies"
     body_format: "json"
@@ -35,3 +35,4 @@
   run_once: true
   register: functional_adm_response
   when: ontologies_check_json.hits.total < 1
+

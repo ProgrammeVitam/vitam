@@ -456,7 +456,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
     }
 
-    @Override public RequestResponse createOntologies(VitamContext vitamContext, InputStream profiles) throws InvalidParseOperationException, AccessExternalClientException {
+    @Override public RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream profiles)
+        throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper
             .createReponse(ClientMockResultHelper.getOntologies(Status.CREATED.getStatusCode()).toJsonNode())
             .setHttpCode(Status.CREATED.getStatusCode());
@@ -470,8 +471,5 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return (RequestResponse<OntologyModel>) ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }
 
-    @Override public RequestResponse updateOntology(VitamContext vitamContext, String ontologyId, JsonNode queryDSL)
-        throws InvalidParseOperationException, AccessExternalClientException {
-        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getOntologies(Status.OK.getStatusCode()).toJsonNode());
-    }
+
 }

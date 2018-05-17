@@ -26,20 +26,18 @@
  */
 package fr.gouv.vitam.common.external.client;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -48,11 +46,11 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -398,6 +396,13 @@ public class ClientMockResultHelper {
         ontology.setDescription("Internal ontology sample");
         ontology.setOrigin(OntologyOrigin.INTERNAL);
         ontology.setType(OntologyType.KEYWORD);
+        ontology.setShortName("Originating Agency Identifier");
+        ontology.setCollections(new ArrayList<String>() {
+            {
+                add("Unit");
+                add("ObjectGroup");
+            }
+        });
         ontology.setVersion(0);
         ontology.setCreationdate("2017-04-09");
         ontology.setLastupdate("2017-04-09");

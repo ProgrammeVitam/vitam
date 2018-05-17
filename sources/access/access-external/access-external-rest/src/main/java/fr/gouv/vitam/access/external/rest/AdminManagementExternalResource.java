@@ -39,6 +39,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -2412,14 +2413,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "ontologies:create:json", description = "Ecrire une ou plusieurs ontologies dans le référentiel")
-    public Response createOntologies(JsonNode ontologies) {
+    @Secured(permission = "ontologies:create:json", description = "Importer les ontologies dans le référentiel")
+    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate, JsonNode ontologies) {
 
         ParametersChecker.checkParameter("Json ontologies is a mandatory parameter", ontologies);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
-                client.importOntologies(JsonHandler.getFromStringAsTypeRefence(ontologies.toString(),
+                client.importOntologies(forceUpdate, JsonHandler.getFromStringAsTypeRefence(ontologies.toString(),
                     new TypeReference<List<OntologyModel>>() {
                     }));
             return Response.status(requestResponse.getStatus())
@@ -2511,46 +2512,5 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
-    /**
-     * Update an ontology
-     *
-     * @param identifier
-     * @param queryDsl
-     * @return Response
-     * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
-     */
-    @Path("/ontologies/{identifier:.+}")
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "ontologies:id:update:json", description = "Effectuer une mise à jour sur une ontologie")
-    public Response updateOntology(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException {
-
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
-            updateParserSingle.parse(queryDsl);
-            Update update = updateParserSingle.getRequest();
-            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));//TODO quel Identifiant ?
-            RequestResponse response = client.updateOntology(identifier, update.getFinalUpdate());
-            return getResponse(response);
-        } catch (ReferentialNotFoundException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_ONTOLOGY_NOT_FOUND, e.getMessage())
-                .setHttpCode(Status.NOT_FOUND.getStatusCode())
-                .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR, e.getMessage())
-                .toResponse();
-        } catch (IllegalArgumentException e) {
-            LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ONTOLOGY_ERROR, e.getMessage())
-                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
-        }
-    }
 
 }

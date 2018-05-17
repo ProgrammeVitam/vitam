@@ -1043,6 +1043,9 @@ public class ParserTokens extends BuilderToken {
             case "Signature":
             case "Gps":
             case "_nbc":
+            case "SedaField":
+            case "ApiField":
+            case "ShortName":
                 // OG
                 return false;
             default:

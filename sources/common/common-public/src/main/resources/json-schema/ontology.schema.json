@@ -26,6 +26,7 @@
       "type": "string"
     },
     "Type": {
+      "type": "string",
       "enum": [
         "TEXT",
         "KEYWORD",
@@ -38,10 +39,17 @@
       ]
     },
     "Origin": {
+      "type": "string",
       "enum": [
         "INTERNAL",
         "EXTERNAL"
       ]
+    },
+    "ShortName": {
+      "type": "string"
+    },
+    "Collections": {
+      "type": "array"
     },
     "CreationDate": {
       "description": "pattern: Date",
@@ -85,8 +93,6 @@
     "Identifier",
     "Origin",
     "Type",
-    "SedaField",
-    "ApiField",
     "CreationDate",
     "LastUpdate"
   ]

@@ -148,6 +148,9 @@ export class UploadService {
   uploadReferentials(collection: string, file: any) {
     let header = new HttpHeaders();
     header = header.set('Content-Type', 'application/octet-stream').set('X-Filename', file.name);
+    if ('ontologies'==collection){
+     header = header.set('Force-Update', 'true');
+    }
     return this.resourcesService.post(collection, header, file, 'text');
   }
 

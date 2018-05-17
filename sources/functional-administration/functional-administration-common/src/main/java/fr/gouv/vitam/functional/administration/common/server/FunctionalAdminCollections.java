@@ -112,7 +112,7 @@ public enum FunctionalAdminCollections {
     /**
      * Ontology collection
      */
-    ONTOLOGY(Ontology.class, true, false);
+    ONTOLOGY(Ontology.class, false, false);
 
     final private VitamCollection vitamCollection;
     final private boolean multitenant;

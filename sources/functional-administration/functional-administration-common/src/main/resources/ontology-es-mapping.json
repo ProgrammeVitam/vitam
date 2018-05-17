@@ -1,12 +1,10 @@
 {
   "properties": {
     "ApiField": {
-      "type": "text",
-      "fielddata": true
+      "type": "keyword"
     },
     "SedaField": {
-      "type": "text",
-      "fielddata": true
+      "type": "keyword"
     },
     "Identifier": {
       "type": "keyword"
@@ -18,6 +16,12 @@
       "type": "keyword"
     },
     "Origin": {
+      "type": "keyword"
+    },
+    "ShortName": {
+      "type": "keyword"
+    },
+    "Collections": {
       "type": "keyword"
     },
     "CreationDate": {

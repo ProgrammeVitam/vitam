@@ -1164,7 +1164,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
                 .entity(ClientMockResultHelper.getOntologies(Status.CREATED.getStatusCode()))
                 .build());
         InputStream ontologiesFile = PropertiesUtils.getResourceAsStream("ontology_ok.json");
-        RequestResponse resp = client.createOntologies(new VitamContext(TENANT_ID), ontologiesFile);
+        RequestResponse resp = client.importOntologies(true, new VitamContext(TENANT_ID), ontologiesFile);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
@@ -1177,7 +1177,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             .setMessage("invalid input").setDescription("Input file of ontologies is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         RequestResponse resp =
-            client.createOntologies(new VitamContext(TENANT_ID), new FakeInputStream(0));
+            client.importOntologies(true, new VitamContext(TENANT_ID), new FakeInputStream(0));
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -1186,7 +1186,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void testCreateOntologiesWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        client.createOntologies(new VitamContext(TENANT_ID), null);
+        client.importOntologies(true, new VitamContext(TENANT_ID), null);
     }
 
     /**
@@ -1223,14 +1223,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(((RequestResponseOK<OntologyModel>) resp).getResults()).hasSize(0);
     }
 
-
-    @Test
-    public void testUpdateOntology() throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
-        assertThat(client.updateOntology(
-            new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
-            .isTrue();
-    }
 
 
 

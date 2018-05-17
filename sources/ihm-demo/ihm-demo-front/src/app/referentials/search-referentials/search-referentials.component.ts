@@ -357,10 +357,14 @@ export class SearchReferentialsComponent extends PageComponent {
           this.columns = [
             ColumnDefinition.makeSpecialValueColumn('Intitulé', (item) => item.SedaField ? item.SedaField : item.ApiField,
               undefined, () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('ShortName', 'Traduction', undefined,
+              () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
-              () => ({'width': '225px'})),
+              () => ({'width': '200px'})),
+            ColumnDefinition.makeStaticColumn('Collections', 'Collections', undefined,
+              () => ({'width': '200px'})),
             ColumnDefinition.makeStaticColumn('Type', 'Type d\'indexation', undefined,
               () => ({'width': '125px'}))
           ];

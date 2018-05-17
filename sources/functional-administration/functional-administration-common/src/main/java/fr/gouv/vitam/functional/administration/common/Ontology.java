@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.OntologyOrigin;
@@ -72,7 +75,16 @@ public class Ontology extends VitamDocument<Ontology> {
     public static final String ORIGIN = "Origin";
 
     /**
-     * the creatation date of the profile
+     * ShortName Tag
+     */
+    public static final String SHORT_NAME = "ShortName";
+
+    /**
+     * Collections Tag
+     */
+    public static final String COLLECTIONS = "Collections";
+    /**
+     * the creation date of the ontology
      */
     public static final String CREATIONDATE = "CreationDate";
     /**
@@ -238,7 +250,7 @@ public class Ontology extends VitamDocument<Ontology> {
     /**
      * Get the ontology origin
      *
-     * @return status of the ontology
+     * @return origin of the ontology
      */
     public OntologyOrigin getOrigin() {
         return (OntologyOrigin) get(ORIGIN);
@@ -250,10 +262,53 @@ public class Ontology extends VitamDocument<Ontology> {
      * @param origin to set
      * @return this
      */
-    public Ontology getOrigin(OntologyOrigin origin) {
+    public Ontology setOrigin(OntologyOrigin origin) {
         append(ORIGIN, origin);
         return this;
     }
+
+
+
+    /**
+     * Get the ontology ShortName
+     *
+     * @return shortName of the ontology
+     */
+    public String getShortName() {
+        return getString(SHORT_NAME);
+    }
+
+    /**
+     * Set or change the ontology shortName
+     *
+     * @param shortName to set
+     * @return this
+     */
+    public Ontology setShortName(String shortName) {
+        append(SHORT_NAME, shortName);
+        return this;
+    }
+
+    public List<String> getCollections() {
+        return (List<String>) get(COLLECTIONS);
+    }
+
+
+    /**
+     * Set or change the ontology collections
+     *
+     * @param collections to set
+     * @return this
+     */
+    public Ontology setCollections(List<String> collections) {
+        if (!collections.isEmpty()) {
+            final List<String> col = new ArrayList<>();
+            col.addAll(collections);
+            append(COLLECTIONS, col);
+        }
+        return this;
+    }
+
 
     /**
      * @return creation date of ontology

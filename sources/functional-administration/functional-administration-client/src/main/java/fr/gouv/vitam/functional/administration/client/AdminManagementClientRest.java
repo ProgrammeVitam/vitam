@@ -123,7 +123,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles";
     private static final String UPDATE_ARCHIVE_UNIT_PROFILE_URI = "/archiveunitprofiles/";
     private static final String ONTOLOGY_URI = "/ontologies";
-    private static final String UPDATE_ONTOLOGY_URI = "/ontologies/";
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
@@ -1559,11 +1558,15 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    @Override public RequestResponse importOntologies(List<OntologyModel> ontologyModelList) throws InvalidParseOperationException, AdminManagementClientServerException {
+    @Override public RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The ontology json is mandatory", ontologyModelList);
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.FORCE_UPDATE, forceUpdate);
+
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ONTOLOGY_URI, null,
+            response = performRequest(HttpMethod.POST, ONTOLOGY_URI, headers,
                 ontologyModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
                 false);
             return RequestResponse.parseFromResponse(response);
@@ -1640,28 +1643,5 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    @Override public RequestResponse<OntologyModel> updateOntology(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
-        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, UPDATE_ARCHIVE_UNIT_PROFILE_URI + id, null, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            if (status == Status.OK) {
-                LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<OntologyModel>().setHttpCode(Status.OK.getStatusCode());
-            } else if (status == Status.NOT_FOUND) {
-                throw new ReferentialNotFoundException("Ontology not found with id: " + id);
-            }
 
-            return RequestResponse.parseFromResponse(response, OntologyModel.class);
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
 }

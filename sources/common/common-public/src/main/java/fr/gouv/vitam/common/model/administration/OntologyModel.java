@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
@@ -71,6 +73,16 @@ public class OntologyModel {
      * LastUpdate Tag
      */
     public static final String LAST_UPDATE = "LastUpdate";
+
+    /**
+     * ShortName Tag
+     */
+    public static final String TAG_SHORT_NAME = "ShortName";
+
+    /**
+     * Collections Tag
+     */
+    public static final String TAG_COLLECTIONS = "Collections";
     /**
      * unique id
      */
@@ -129,6 +141,13 @@ public class OntologyModel {
      */
     @JsonProperty(LAST_UPDATE)
     private String lastupdate;
+
+
+    @JsonProperty(TAG_SHORT_NAME)
+    private String shortName;
+
+    @JsonProperty(TAG_COLLECTIONS)
+    private List<String> collections;
 
     /**
      * Constructor without fields use for jackson
@@ -235,5 +254,25 @@ public class OntologyModel {
         this.lastupdate = lastupdate;
         return this;
     }
+
+
+    public String getShortName() {
+        return shortName;
+    }
+
+    public OntologyModel setShortName(String shortName) {
+        this.shortName = shortName;
+        return this;
+    }
+
+    public List<String> getCollections() {
+        return collections;
+    }
+
+    public OntologyModel setCollections(List<String> collections) {
+        this.collections = collections;
+        return this;
+    }
+
 
 }

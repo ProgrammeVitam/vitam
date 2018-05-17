@@ -126,7 +126,8 @@ export class LogbookOperationComponent extends PageComponent {
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
     if (['AUDIT', 'EXPORT_DIP', 'INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
-      || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME') {
+      || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME'
+      || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
 
       if (LogbookOperationComponent.isOperationInProgress(item)) {
         return ['fa-clock-o'];
@@ -224,7 +225,7 @@ export class LogbookOperationComponent extends PageComponent {
         logbookService.downloadDIP(item.evIdProc);
         break;
       case 'MASTERDATA':
-        if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES') {
+        if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES'|| item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
           logbookService.downloadReport(item.evIdProc);
           break;
         } else if (item.evType.toUpperCase() === 'HOLDINGSCHEME') {

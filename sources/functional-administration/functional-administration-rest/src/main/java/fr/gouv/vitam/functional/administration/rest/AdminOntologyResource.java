@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -38,6 +39,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -68,13 +70,13 @@ public class AdminOntologyResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importOntologies(List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
+    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate, List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
         // TODO: report this as a vitam event
-        LOGGER.info("create ontology with admin interface");
-        LOGGER.info("using of admin tenant: 1");
+        LOGGER.info("imports ontologies with admin interface");
+        LOGGER.info("use of admin tenant: 1");
 
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-        return ontologyResource.createOntologies(ontologyModelList, uri);
+        return ontologyResource.importOntologies(forceUpdate, ontologyModelList, uri);
     }
 
     @Path("/ontologies")
