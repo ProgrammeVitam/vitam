@@ -157,6 +157,10 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_RULES_DURATION_KO = "jeu_donnees_KO_regles_CSV_test.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
+    
+    private static final String FILE_UPDATE_RULE_DURATION = "jeu_donnees_OK_regles_CSV_update_ruleDuration.csv";    
+    private static final String FILE_UPDATE_RULE_DESC = "jeu_donnees_OK_regles_CSV_update_ruleDesc.csv";
+    
     private static final String FILE_DELETE_RULE = "jeu_donnees_OK_regles_CSV_delete_rule.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";
@@ -287,12 +291,13 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
         List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
-                errors, usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
+                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
         } catch (final FileRulesException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         } catch (FileRulesDeleteException e) {
@@ -303,7 +308,7 @@ public class RulesManagerFileImplTest {
 
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
-                errors, usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
+                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
             fail("Check file with FILE_TO_TEST_KO should throw exception");
         } catch (final FileRulesCsvException e) {
             exception.expect(FileRulesCsvException.class);
@@ -347,13 +352,14 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();        
         List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
 
         assertThatThrownBy(() -> rulesFileManager.checkFile(
             new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO_EMPTY_LINE)), errors, usedDeletedRules,
-            usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
+            usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
                 .isInstanceOf(FileRulesCsvException.class)
                 .hasMessageContaining("Index for header 'RuleType' is 1 but CSVRecord only has 1 values!");
 
@@ -801,6 +807,7 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();        
         List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
@@ -809,7 +816,7 @@ public class RulesManagerFileImplTest {
         // When
         assertThatThrownBy(() -> rulesFileManager
             .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
-                usedDeletedRules, usedUpdatedRules, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
+                usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
                     .isInstanceOf(ReferentialException.class);
 
         return rulesFileManager.generateErrorReport(errorsMap, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
@@ -942,14 +949,13 @@ public class RulesManagerFileImplTest {
                 assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
             }
         }
-
-
+        
         final Path reportAfterUpdate = Paths.get(file.getAbsolutePath(), "reportAfterUpdate.json");
         getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate);
 
         // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_TYPE)),
-            FILE_UPDATE_RULE_TYPE);
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_DURATION)),
+            FILE_UPDATE_RULE_DURATION);
         List<FileRules> fileRulesAfterInsert =
             convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
         assertEquals(23, fileRulesAfterInsert.size());
@@ -963,9 +969,36 @@ public class RulesManagerFileImplTest {
 
         for (FileRules fileRulesUpdated : fileRulesAfterInsert) {
             if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
-                assertEquals(APPRAISAL_RULE, fileRulesUpdated.getRuletype());
+                assertEquals(ACCESS_RULE, fileRulesUpdated.getRuletype());
+                assertEquals("26", fileRulesUpdated.getRuleduration());
             }
         }
+        
+        File file2 = folder.newFolder();        
+        final Path reportAfterUpdate2 = Paths.get(file2.getAbsolutePath(), "reportAfterUpdate.json");
+        getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate2);
+        
+        // FILE_TO_COMPARE => update 1 rule, but only one descritption
+        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_DESC)),
+            FILE_UPDATE_RULE_DESC);
+        List<FileRules> fileRulesAfterInsert2 =
+            convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+        assertEquals(23, fileRulesAfterInsert2.size());
+        final JsonNode reportAfterUpdateNode2 = JsonHandler.getFromFile(reportAfterUpdate2.toFile());
+        final JsonNode jdoAfterUpdateNode2 = reportAfterUpdateNode2.get(ReportConstants.JDO_DISPLAY);
+        final String evIdAfterUpdate2 = jdoAfterUpdateNode2.get("evId").asText();
+        final String outMessgAfterUpdate2 = jdoAfterUpdateNode2.get("outMessg").asText();
+        assertThat(evIdAfterUpdate2).isNotEmpty();
+        assertThat(outMessgAfterUpdate2)
+            .contains("Succès du processus d'enregistrement de la copie du référentiel des règles de gestion");
+
+        for (FileRules fileRulesUpdated : fileRulesAfterInsert2) {
+            if (ACC_00003.equals(fileRulesUpdated.getRuleid())) {
+                assertEquals(ACCESS_RULE, fileRulesUpdated.getRuletype());
+                assertEquals("26", fileRulesUpdated.getRuleduration());
+            }
+        }
+        
     }
 
     @Test
