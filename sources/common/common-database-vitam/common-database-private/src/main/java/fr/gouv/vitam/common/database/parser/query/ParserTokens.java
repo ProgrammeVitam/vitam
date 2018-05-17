@@ -560,7 +560,7 @@ public class ParserTokens extends BuilderToken {
         /**
          * Unit or GOT's initial operation
          */
-        INITIAL_OPERATION("opi"),
+        OPI("opi"),
         /**
          * originating agency
          */
@@ -689,7 +689,7 @@ public class ParserTokens extends BuilderToken {
                     case "_ops":
                         return OPERATIONS;
                     case "_opi":
-                        return INITIAL_OPERATION;
+                        return OPI;
                     case "_up":
                         return UNITUPS;
                     case "_us":
@@ -854,7 +854,7 @@ public class ParserTokens extends BuilderToken {
                         case VERSION:
                         case USAGE:
                         case OPERATIONS:
-                        case INITIAL_OPERATION:
+                        case OPI:
                         case SCORE:
                         case LAST_PERSISTED_DATE:
                         case GRAPH:
