@@ -1,0 +1,10 @@
+{
+  "title": "Répartition des entrées par statut final",
+  "visState": "{\"title\":\"Répartition des entrées par statut final\",\"type\":\"pie\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"legendPosition\":\"right\",\"isDonut\":false,\"type\":\"pie\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"segment\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"outDetail=\\\"PROCESS_SIP_UNITARY.OK\\\"\"}}},\"label\":\"\"},{\"input\":{\"query\":{\"query_string\":{\"query\":\"outDetail=\\\"PROCESS_SIP_UNITARY.KO\\\"\"}}}},{\"input\":{\"query\":{\"query_string\":{\"query\":\"outDetail=\\\"PROCESS_SIP_UNITARY.WARNING\\\"\"}}}},{\"input\":{\"query\":{\"query_string\":{\"query\":\"outDetail=\\\"PROCESS_SIP_UNITARY.FATAL\\\"\"}}}}]}}],\"listeners\":{}}",
+  "uiStateJSON": "{}",
+  "description": "",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"index\":\"logbookoperation_*\",\"query\":{\"match_all\":{}},\"filter\":[]}"
+  }
+}
