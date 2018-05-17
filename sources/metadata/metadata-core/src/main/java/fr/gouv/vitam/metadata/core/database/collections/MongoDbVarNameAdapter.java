@@ -123,7 +123,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     case OPERATIONS:
                         // Valid for Unit and OG
                         return MetadataDocument.OPS;
-                    case INITIAL_OPERATION:
+                    case OPI:
                         // Valid for Unit and OG
                         return MetadataDocument.OPI;
                     case ORIGINATING_AGENCY:
