@@ -829,11 +829,11 @@
             }
           },
           "Masterdata": {
-            }
             "properties" : {
-              "Value" : {
+              "Value": {
                 "type": "keyword"
               }
+            }
           },
           "ReferencedObject": {
             "properties": {
