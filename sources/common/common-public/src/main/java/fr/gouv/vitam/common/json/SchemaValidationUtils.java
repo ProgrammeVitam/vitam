@@ -28,10 +28,17 @@ package fr.gouv.vitam.common.json;
 
 import java.io.FileNotFoundException;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -125,6 +132,22 @@ public class SchemaValidationUtils {
      * ontology.schema
      */
     public static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
+
+
+    private static final String TYPE = "type";
+    private static final String ARRAY = "array";
+    private static final String ENUM = "enum";
+    private static final String OBJECT = "object";
+    private static final String PROPERTIES = "properties";
+    private static final String ITEMS = "items";
+    private static final String ANY_OF = "anyOf";
+    private static final String ALL_OF = "allOf";
+    private static final String ONE_OF = "oneOf";
+    private static final List<String> SCHEMA_DECLARATION_TYPE = Arrays.asList(new String[] {
+        "$schema",
+        "id", "type", "additionalProperties", "anyOf", "required", "description", "items", "title",
+        "oneOf", "enum", "minLength", "minItems", "properties"
+    });
 
     /**
      * Constructor with a default schema filename
@@ -336,7 +359,7 @@ public class SchemaValidationUtils {
                 final Date endDate = LocalDateUtil.getDate(
                     archiveUnit.get(SedaConstants.TAG_RULE_END_DATE).asText());
 
-                LOGGER.debug("in SchemaValidationUtils class, StartDate="+startDate+" EndDate="+endDate);
+                LOGGER.debug("in SchemaValidationUtils class, StartDate=" + startDate + " EndDate=" + endDate);
 
                 if (endDate.before(startDate)) {
                     final String errorMessage =
@@ -396,4 +419,99 @@ public class SchemaValidationUtils {
         return validateUnit(unitCopy);
     }
 
+    /**
+     * Get fields list declared in schema
+     * 
+     * @param schemaJsonAsString
+     * @return a map with fields and its information declared in the schema
+     * @throws InvalidParseOperationException
+     */
+    public HashMap<String, ArrayNode> extractFieldsFromSchema(String schemaJsonAsString)
+        throws InvalidParseOperationException {
+        HashMap<String, ArrayNode> listProperties = new HashMap<String, ArrayNode>();
+        JsonNode externalSchema = JsonHandler.getFromString(schemaJsonAsString);
+        if (externalSchema != null && externalSchema.get(PROPERTIES) != null) {
+            extractPropertyFromJsonNode(externalSchema.get(PROPERTIES), listProperties);
+        }
+        return listProperties;
+    }
+
+
+    private void extractPropertyFromJsonNode(JsonNode currentJson, Map<String, ArrayNode> listProperties) {
+        final Iterator<Entry<String, JsonNode>> iterator = currentJson.fields();
+        while (iterator.hasNext()) {
+            final Entry<String, JsonNode> entry = iterator.next();
+            String key = entry.getKey();
+            ArrayNode types = JsonHandler.createArrayNode();
+            List<String> typesAsList = new ArrayList<String>();
+            JsonNode value = entry.getValue();
+            if (value != null && value.isObject() || value.isArray()) {
+                // if subproperties
+                extractPropertyFromJsonNode(value, listProperties);
+            }
+            if (value != null && value.get(TYPE) != null && value.get(TYPE).isTextual()) {
+                typesAsList.add(value.get(TYPE).asText());
+            } else if (value != null && value.get(TYPE) != null && value.get(TYPE).isArray()) {
+                for (Iterator<JsonNode> it = value.get(TYPE).iterator(); it.hasNext();) {
+                    typesAsList.add((it.next()).asText());
+                }
+            } else if (value != null && value.get(ENUM) != null) {
+                for (Iterator<JsonNode> it = value.get(ENUM).iterator(); it.hasNext();) {
+                    JsonNode element = it.next();
+                    if (element.isDouble() || element.isNumber() || element.isFloat() ||
+                        element.isInt() && !typesAsList.contains("number")) {
+                        typesAsList.add("number");
+                    } else if (element.isBoolean() && !typesAsList.contains("boolean")) {
+                        typesAsList.add("boolean");
+                    } else if (!typesAsList.contains("string")) {
+                        typesAsList.add("string");
+                    }
+                }
+            } else if (!handleAnyOfOneOfAllOf(value, typesAsList)) {
+                typesAsList.add(OBJECT);
+            }
+            if (!SCHEMA_DECLARATION_TYPE.contains(key) && value.isObject() && value.get(PROPERTIES) == null &&
+                (value.get(ITEMS) == null || (value.get(ITEMS) != null && value.get(ITEMS).get(PROPERTIES) == null))) {
+                if (value.get(ITEMS) != null && typesAsList.contains(ARRAY)) {
+                    if (!value.get(ITEMS).get(TYPE).isArray()) {
+                        types.add(value.get(ITEMS).get(TYPE));
+                    } else {
+                        for (int i = 0; i < value.get(ITEMS).get(TYPE).size(); i++) {
+                            types.add(value.get(ITEMS).get(TYPE).get(i));
+                        }
+                    }
+                } else {
+                    for (String type : typesAsList) {
+                        types.add(type);
+                    }
+                }
+                listProperties.put(key, types);
+            }
+        }
+
+    }
+
+    private boolean handleAnyOfOneOfAllOf(JsonNode value, List<String> type) {
+        String typeToAdd = null;
+        boolean isThereAType = false;
+        if (value.get(ANY_OF) != null) {
+            typeToAdd = ANY_OF;
+        } else if (value.get(ALL_OF) != null) {
+            typeToAdd = ALL_OF;
+        } else if (value.get(ONE_OF) != null) {
+            typeToAdd = ONE_OF;
+        } else {
+            return isThereAType;
+        }
+        for (Iterator<JsonNode> it = value.get(typeToAdd).iterator(); it.hasNext();) {
+            JsonNode current = ((ObjectNode) it.next()).get(TYPE);
+            if (current != null) {
+                if (type != null && !type.contains(current.asText())) {
+                    type.add((String) current.asText());
+                    isThereAType = true;
+                }
+            }
+        }
+        return isThereAType;
+    }
 }

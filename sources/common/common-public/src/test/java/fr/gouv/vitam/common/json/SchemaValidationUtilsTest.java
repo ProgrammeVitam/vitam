@@ -27,16 +27,24 @@
 package fr.gouv.vitam.common.json;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
-import org.junit.Test;
-
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 
 public class SchemaValidationUtilsTest {
 
@@ -257,11 +265,26 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         // When
-        SchemaValidationStatus status = schemaValidation.validateJson(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE)),
+        JsonNode jsonArcUnit =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE));
+        SchemaValidationStatus status = schemaValidation.validateJson(jsonArcUnit,
             "ArchiveUnitProfile");
         // Then
         assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.VALID);
+        ArchiveUnitProfileModel archiveUnitProfile =
+            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        HashMap<String, ArrayNode> extractFields =
+            schemaValidation.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+        assertNotNull(extractFields);
+        assertThat(extractFields.size() > 1);
+        assertEquals(extractFields.size(), 80);
+        // assert child fields are present
+        assertNotNull(extractFields.get("Rule"));
+        assertNotNull(extractFields.get("StartDate"));
+        assertNotNull(extractFields.get("PreventRulesId"));
+        // assert parent fields are not present
+        assertNull(extractFields.get("Rules"));
+        assertNull(extractFields.get("Management"));
     }
 
     @Test
@@ -364,8 +387,8 @@ public class SchemaValidationUtilsTest {
     public void givenSameDatesOK() throws Exception {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
-                .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_SAME_DATES_JSON_FILE))
-                        .get(TAG_ARCHIVE_UNIT));
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_SAME_DATES_JSON_FILE))
+                .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
 

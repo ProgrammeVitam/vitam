@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
@@ -77,6 +77,10 @@ public class ArchiveUnitProfileModel {
     public static final String CONTROLSCHEMA = "ControlSchema";
 
     /**
+     * ControlSchema Tag
+     */
+    public static final String FIELDS = "Fields";
+    /**
      * unique id
      */
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
@@ -120,6 +124,9 @@ public class ArchiveUnitProfileModel {
 
     @JsonProperty(CONTROLSCHEMA)
     private String controlSchema;
+
+    @JsonProperty(FIELDS)
+    private List<String> fields;
 
     /**
      * Constructor without fields use for jackson
@@ -235,4 +242,27 @@ public class ArchiveUnitProfileModel {
         this.controlSchema = controlSchema;
         return this;
     }
+
+    /**
+     * Get Fields
+     * 
+     * @return fields
+     */
+    public List<String> getFields() {
+        return fields;
+    }
+
+    /**
+     * Set fields
+     * 
+     * @param fields
+     * @return modified pojo
+     */
+    public ArchiveUnitProfileModel setFields(List<String> fields) {
+        this.fields = fields;
+        return this;
+    }
+
+
+
 }

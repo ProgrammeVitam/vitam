@@ -25,9 +25,12 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Optional;
 
+import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -63,7 +66,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
-import org.bson.conversions.Bson;
 
 /**
  * This class manage validation and log operation of profile service
@@ -95,11 +97,13 @@ public class ArchiveUnitProfileManager {
         this.logbookClient = logbookClient;
         this.metaDataClient = metaDataClient;
         this.eip = eip;
-        validators = new HashMap<ArchiveUnitProfileValidator, String>() {{
-            put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
-            put(createWrongFieldFormatValidator(), WRONG_FIELD_FORMAT);
-            put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
-        }};
+        validators = new HashMap<ArchiveUnitProfileValidator, String>() {
+            {
+                put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
+                put(createWrongFieldFormatValidator(), WRONG_FIELD_FORMAT);
+                put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
+            }
+        };
     }
 
     public boolean validateArchiveUnitProfile(ArchiveUnitProfileModel profile,
@@ -133,7 +137,8 @@ public class ArchiveUnitProfileManager {
      * @param errorsDetails
      */
     public void logValidationError(String eventType, String objectId, String errorsDetails,
-                                   String KOEventType) throws VitamException {
+        String KOEventType)
+        throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
@@ -165,7 +170,7 @@ public class ArchiveUnitProfileManager {
     }
 
     private void logbookMessageError(String objectId, String errorsDetails,
-                                     LogbookOperationParameters logbookParameters, String KOEventType) {
+        LogbookOperationParameters logbookParameters, String KOEventType) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -428,6 +433,7 @@ public class ArchiveUnitProfileManager {
 
     /**
      * Check if the ArchiveUnitProfile is used in a ArchiveUnit
+     * 
      * @return
      */
     public ArchiveUnitProfileValidator createCheckUsedJsonSchema() {
@@ -442,7 +448,8 @@ public class ArchiveUnitProfileManager {
                     if (jsonNode != null && jsonNode.get("$results").size() > 0) {
                         return Optional.of(RejectionCause.rejectJsonSchemaModificationIfInUse(profile.getName()));
                     }
-                } catch (InvalidCreateOperationException | VitamDBException | InvalidParseOperationException | MetaDataExecutionException |
+                } catch (InvalidCreateOperationException | VitamDBException | InvalidParseOperationException |
+                    MetaDataExecutionException |
                     MetaDataDocumentSizeException | MetaDataClientServerException e) {
                     return Optional.of(RejectionCause.rejectJsonSchemaModificationIfInUse(profile.getName()));
                 }

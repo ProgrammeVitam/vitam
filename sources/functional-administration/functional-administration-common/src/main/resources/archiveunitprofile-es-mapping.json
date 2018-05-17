@@ -30,7 +30,7 @@
       "format": "strict_date_optional_time"
     },
     "ControlSchema": {
-      "type": "keyword"
+      "enabled": false
     },
     "_tenant": {
       "type": "long"

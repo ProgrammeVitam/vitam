@@ -99,6 +99,12 @@
     },
 	"ControlSchema": {
     	"type": "string"
+	},
+	"Fields": {
+    	"type": "array",
+    	"items": {
+          "type": "string"
+        }
 	}
     
   },
