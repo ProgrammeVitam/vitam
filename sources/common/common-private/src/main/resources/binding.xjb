@@ -29,7 +29,6 @@
                         <jxb:javaType name="java.lang.String"></jxb:javaType>
                     </jxb:baseType>
                 </jxb:property>
-
             </jxb:bindings>
             <annox:annotate>
                 <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
@@ -120,6 +119,15 @@
                     <jxb:javaType name="java.lang.String"></jxb:javaType>
                 </jxb:baseType>
             </jxb:property>
+        </jxb:bindings>
+        <jxb:bindings node="xs:complexType[@name='DataObjectOrArchiveUnitReferenceType']">
+            <jxb:bindings node="//xs:element[@name='ArchiveUnitRefId']">
+                <jxb:property>
+                    <jxb:baseType>
+                        <jxb:javaType name="java.lang.String"></jxb:javaType>
+                    </jxb:baseType>
+                </jxb:property>
+            </jxb:bindings>
         </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='AgentType']">
             <jxb:class ref="fr.gouv.vitam.common.model.unit.AgentTypeModel" />

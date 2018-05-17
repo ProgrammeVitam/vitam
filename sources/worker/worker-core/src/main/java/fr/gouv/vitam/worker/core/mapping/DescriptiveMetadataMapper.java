@@ -135,6 +135,19 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setTransmitter(metadataContentType.getTransmitter());
         descriptiveMetadataModel.setSender(metadataContentType.getSender());
 
+        if(metadataContentType.getRelatedObjectReference() != null){
+            DescriptiveMetadataContentType.RelatedObjectReference relatedObjectRef = metadataContentType.getRelatedObjectReference();
+            DescriptiveMetadataContentType.RelatedObjectReference relatedObjectRefNew = new DescriptiveMetadataContentType.RelatedObjectReference();
+
+            descriptiveMetadataModel.setRelatedObjectReference(relatedObjectRefNew);
+
+            relatedObjectRefNew.getIsPartOf().addAll(relatedObjectRef.getIsPartOf());
+            relatedObjectRefNew.getIsVersionOf().addAll(relatedObjectRef.getIsVersionOf());
+            relatedObjectRefNew.getReplaces().addAll(relatedObjectRef.getReplaces());
+            relatedObjectRefNew.getRequires().addAll(relatedObjectRef.getRequires());
+            relatedObjectRefNew.getReferences().addAll(relatedObjectRef.getReferences());
+        }
+
         return descriptiveMetadataModel;
     }
 
