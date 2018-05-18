@@ -757,7 +757,7 @@ public class AccessStep {
     private int actionImport(String filename, InputStream inputStream, AdminCollections adminCollection)
         throws AccessExternalClientException, InvalidParseOperationException {
         int status = 0;
-        RequestResponse response;
+        RequestResponse response = null;
         if (FORMATS.equals(adminCollection)) {
 
             response = world.getAdminClient().createFormats(
@@ -780,8 +780,10 @@ public class AccessStep {
                             inputStream, filename);
             status = response.getHttpCode();
         }
-        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-        world.setOperationId(operationId);
+        if (response != null) {
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            world.setOperationId(operationId);
+        }
         return status;
     }
 

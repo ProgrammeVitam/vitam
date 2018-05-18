@@ -115,6 +115,7 @@
                 "name": "mapsGuid.file",
                 "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
               }
+              
             ]
           }
         }

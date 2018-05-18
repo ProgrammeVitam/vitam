@@ -93,7 +93,7 @@ public class LogbookService {
             LogbookOperation actual = requestResponseOK.getFirstResult();
             LogbookEventOperation last = Iterables.getLast(actual.getEvents());
 
-            if (!StringUtils.equals("FATAL", status)) {
+            if (!StringUtils.equals("FATAL", status)) {                
                 assertThat(last.getEvType()).as("last event is type %s, but %s was expected.",
                     last.getEvType(), actual.getEvType()).isEqualTo(actual.getEvType());
             }
