@@ -497,14 +497,14 @@ public class ParserTokens extends BuilderToken {
     /**
      * reload cached ontologies
      */
-    private static void loadOnttologies() {
+    private static void loadOntologies() {
         Map<String, Boolean> reloadedOntologies = new HashMap<>();
 
         try (AdminManagementOntologiesClient client = ONTOLOGY_MGT_FACTORY.getClient()) {
             RequestResponse<OntologyModel> ontologyResponse = client.findOntologiesForCache(new Select().getFinalSelect());
             if (ontologyResponse.isOk()) {
                 ((RequestResponseOK<OntologyModel>) ontologyResponse).getResults().stream().forEach(ontology -> {
-                    reloadedOntologies.put(ontology.getApiField(), ontology.getType().isAnalyzed());
+                    reloadedOntologies.put(ontology.getIdentifier(), ontology.getType().isAnalyzed());
                 });
             }
         } catch (final Exception e) {
@@ -528,7 +528,7 @@ public class ParserTokens extends BuilderToken {
     private static Boolean getAnalyzedFlagFromCachedOntologies(String key) {
         if (analyzedOntologyCache.isEmpty()) {
             // force cache reload
-            loadOnttologies();
+            loadOntologies();
         }
         
         return analyzedOntologyCache.get(key);
@@ -1146,14 +1146,14 @@ public class ParserTokens extends BuilderToken {
     private static class OntologiesLoader implements Runnable {
         
         // TODO : change period
-        private Integer period = VitamConfiguration.getCacheControlDelay() * 5; // 5 min
+        private Integer period = VitamConfiguration.getExpireCacheEntriesDelay(); // default 5min
         
         public OntologiesLoader() {
             Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, 0, period, TimeUnit.SECONDS);
         }
 
         @Override public void run() {
-            loadOnttologies();
+            loadOntologies();
         }
     }
 }
