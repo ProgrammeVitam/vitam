@@ -172,7 +172,7 @@ public class AdminManagementOntologiesClientRestTest extends VitamJerseyTest {
      */
     @Test
     @RunWithCustomExecutor
-    public void findAllAgenciesThenReturnTwo()
+    public void findAllOntologiesThenReturnTwo()
             throws FileNotFoundException, InvalidParseOperationException, VitamClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Response.Status.OK)
