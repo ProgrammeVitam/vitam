@@ -28,34 +28,11 @@
 
 package fr.gouv.vitam.functional.administration.ontologies.api.impl;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.CODE;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.ERROR;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.EV_DATE_TIME;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.EV_ID;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.EV_TYPE;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.JDO_DISPLAY;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.MESSAGE;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.OUT_MESSG;
-
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -105,6 +82,32 @@ import fr.gouv.vitam.functional.administration.ontologies.core.OntologyValidator
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.bson.Document;
+
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.CODE;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.ERROR;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.EV_DATE_TIME;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.EV_ID;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.EV_TYPE;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.JDO_DISPLAY;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.MESSAGE;
+import static fr.gouv.vitam.functional.administration.common.ReportConstants.OUT_MESSG;
 
 /**
  * The implementation of the Ontology CRUD service
@@ -445,6 +448,20 @@ public class OntologyServiceImpl implements OntologyService {
         return result.getDocuments(Ontology.class, OntologyModel.class);
     }
 
+    @Override
+    public RequestResponseOK<OntologyModel> findOntologiesForCache(JsonNode queryDsl)
+            throws ReferentialException, InvalidParseOperationException {
+        final RequestResponseOK<OntologyModel> response = new RequestResponseOK<>(queryDsl);
+
+        FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find();
+        MongoCursor<Document> it = documents.iterator();
+        while (it.hasNext()) {
+            response.addResult(JsonHandler.getFromString(it.next().toJson(), OntologyModel.class));
+        }
+
+        return response;
+    }
+
     /**
      * Create the specified ontologies
      *
@@ -458,9 +475,7 @@ public class OntologyServiceImpl implements OntologyService {
             mongoAccess.insertDocuments(ontologiesToCreate, FunctionalAdminCollections.ONTOLOGY).close();
         }
     }
-
-
-
+    
     /**
      * Build a jsonNode from an OntologyModel
      *

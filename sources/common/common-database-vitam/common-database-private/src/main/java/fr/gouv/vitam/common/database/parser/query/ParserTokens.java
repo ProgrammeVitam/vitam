@@ -26,18 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.query;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.functional.administration.ontologies.client.AdminManagementOntologiesClient;
+import fr.gouv.vitam.functional.administration.ontologies.client.AdminManagementOntologiesClientFactory;
+
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.logging.SysErrLogger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main language definition
  */
 public class ParserTokens extends BuilderToken {
+    
     /**
      * Default prefix for internal variable
      */
@@ -469,8 +483,70 @@ public class ParserTokens extends BuilderToken {
         "_v",
         "_score"));
 
+    private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY = AdminManagementOntologiesClientFactory.getInstance();
+    private static ConcurrentMap<String, Boolean> analyzedOntologyCache = new ConcurrentHashMap<>();
+    
+    static {
+        new OntologiesLoader();
+    }
+
     private ParserTokens() {
         // Empty
+    }
+
+    /**
+     * reload cached ontologies
+     */
+    private static void loadOnttologies() {
+        Map<String, Boolean> reloadedOntologies = new HashMap<>();
+
+        try (AdminManagementOntologiesClient client = ONTOLOGY_MGT_FACTORY.getClient()) {
+            RequestResponse<OntologyModel> ontologyResponse = client.findOntologiesForCache(new Select().getFinalSelect());
+            if (ontologyResponse.isOk()) {
+                ((RequestResponseOK<OntologyModel>) ontologyResponse).getResults().stream().forEach(ontology -> {
+                    reloadedOntologies.put(ontology.getApiField(), ontology.getType().isAnalyzed());
+                });
+            }
+        } catch (final Exception e) {
+            // unable to load ontologies
+            // TODO : handle exception properly
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+
+        }
+
+        // refresh cache
+        analyzedOntologyCache.clear();
+        analyzedOntologyCache.putAll(reloadedOntologies);
+    }
+
+    /**
+     * get isAnalyzed flag from cached ontology (reload cache if necessary)
+     * 
+     * @param key
+     * @return
+     */
+    private static Boolean getAnalyzedFlagFromCachedOntologies(String key) {
+        if (analyzedOntologyCache.isEmpty()) {
+            // force cache reload
+            loadOnttologies();
+        }
+        
+        return analyzedOntologyCache.get(key);
+    }
+
+    /**
+     * extract key from a path name
+     *
+     * @param name the path
+     * @return the key
+     */
+    private static String getKeyFromPathName(String name) {
+        int dotPos = name.lastIndexOf(".");
+        if (dotPos > 0) {
+            return name.substring(dotPos + 1);
+        }
+
+        return name;
     }
 
 
@@ -761,11 +837,20 @@ public class ParserTokens extends BuilderToken {
             if (name == null || name.isEmpty()) {
                 return false;
             }
-
-            // Quick & dirty implementation.
-            // FIXME : Replace this unmaintainable code using a cleaner / more robust way.
-
-            return NON_ANALYZED_FIELDS.contains(name);
+            
+            try {
+                Boolean isFieldAnalyzed = getAnalyzedFlagFromCachedOntologies(getKeyFromPathName(name));
+                if (isFieldAnalyzed != null) {
+                    return Boolean.FALSE.equals(isFieldAnalyzed);
+                } else {
+                    SysErrLogger.FAKE_LOGGER.syserr("Unable to use ontology to check if field is not analyzed " + name);
+                    return NON_ANALYZED_FIELDS.contains(name);
+                }
+            } catch (Exception e) {
+                // TODO : handle exception properly
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                return false;
+            }
         }
 
         /**
@@ -1056,5 +1141,19 @@ public class ParserTokens extends BuilderToken {
             return false;
         }
         return true;
+    }
+
+    private static class OntologiesLoader implements Runnable {
+        
+        // TODO : change period
+        private Integer period = VitamConfiguration.getCacheControlDelay() * 5; // 5 min
+        
+        public OntologiesLoader() {
+            Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this, 0, period, TimeUnit.SECONDS);
+        }
+
+        @Override public void run() {
+            loadOnttologies();
+        }
     }
 }

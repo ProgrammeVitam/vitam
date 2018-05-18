@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,44 +23,29 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
+package fr.gouv.vitam.functional.administration.ontologies.client;
 
-package fr.gouv.vitam.common.model.administration;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 
 /**
- * Enum for Ontology type
+ * AdminManagementOntologiesClient interface
  */
-public enum OntologyType {
-    TEXT ("TEXT", true),
-    KEYWORD ("KEYWORD", false),
-    DATE ("DATE", false),
-    LONG ("LONG", false),
-    DOUBLE ("DOUBLE", false),
-    BOOLEAN ("BOOLEAN", false),
-    GEO_POINT ("GEO_POINT", false),
-    ENUM ("ENUM", false);
-
-    private String type;
-    private boolean analyzed;
-
-    OntologyType(String type, boolean analyzed) {
-        this.type = type;
-        this.analyzed = analyzed;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public boolean isAnalyzed() {
-        return analyzed;
-    }
-
-    public void setAnalyzed(boolean analyzed) {
-        this.analyzed = analyzed;
-    }
+public interface AdminManagementOntologiesClient extends MockOrRestClient {
+    
+    /**
+     * Find ontologies according to the given json query (we can also use this method to find ontology by identifier)
+     *
+     * @param query
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws VitamClientException
+     */
+    RequestResponse<OntologyModel> findOntologiesForCache(JsonNode query)
+        throws InvalidParseOperationException, VitamClientException;
 }

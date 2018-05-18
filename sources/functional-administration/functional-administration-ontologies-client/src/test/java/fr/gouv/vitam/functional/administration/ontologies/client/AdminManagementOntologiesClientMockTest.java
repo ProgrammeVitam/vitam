@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,44 +23,41 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
+package fr.gouv.vitam.functional.administration.ontologies.client;
 
-package fr.gouv.vitam.common.model.administration;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.junit.Rule;
+import org.junit.Test;
 
-/**
- * Enum for Ontology type
- */
-public enum OntologyType {
-    TEXT ("TEXT", true),
-    KEYWORD ("KEYWORD", false),
-    DATE ("DATE", false),
-    LONG ("LONG", false),
-    DOUBLE ("DOUBLE", false),
-    BOOLEAN ("BOOLEAN", false),
-    GEO_POINT ("GEO_POINT", false),
-    ENUM ("ENUM", false);
+import java.io.InputStream;
 
-    private String type;
-    private boolean analyzed;
+import static org.assertj.core.api.Assertions.assertThat;
 
-    OntologyType(String type, boolean analyzed) {
-        this.type = type;
-        this.analyzed = analyzed;
-    }
 
-    public String getType() {
-        return type;
-    }
+public class AdminManagementOntologiesClientMockTest {
 
-    public void setType(String type) {
-        this.type = type;
-    }
+    AdminManagementOntologiesClientMock client = new AdminManagementOntologiesClientMock();
+    private static final Integer TENANT_ID = 0;
+    InputStream stream;
 
-    public boolean isAnalyzed() {
-        return analyzed;
-    }
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    public void setAnalyzed(boolean analyzed) {
-        this.analyzed = analyzed;
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindProfiles() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findOntologiesForCache(JsonHandler.createObjectNode());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(resp.isOk());
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
 }

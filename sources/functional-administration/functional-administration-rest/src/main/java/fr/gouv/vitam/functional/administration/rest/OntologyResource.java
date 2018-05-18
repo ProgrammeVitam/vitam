@@ -68,6 +68,7 @@ public class OntologyResource {
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyResource.class);
     public static final String ONTOLOGY_URI = "/ontologies";
+    public static final String ONTOLOGY_CACHE_URI = "/ontologies/cache";
 
     private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER =
         "The json input of ontology type is mandatory";
@@ -165,6 +166,39 @@ public class OntologyResource {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Find ontologies for cache by queryDsl
+     *
+     * @param queryDsl
+     * @return Response
+     */
+    @GET
+    @Path(ONTOLOGY_CACHE_URI)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findOntologiesForCache(JsonNode queryDsl) {
+
+        try (OntologyService ontologyService =
+                     new OntologyServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+
+            final RequestResponseOK<OntologyModel> ontologyModelList =
+                    ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);
+
+            return Response.status(Status.OK)
+                    .entity(ontologyModelList)
+                    .build();
+
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
     }
 
