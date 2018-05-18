@@ -74,6 +74,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
         "aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
         "aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
     ]
+     "ExcludedRootUnits": ["aeaqaaaaaagbcaacaaceoalde3yowuaaaaoq"],
     }
 
 Détail des champs
@@ -194,3 +195,10 @@ Détail des champs
   * Il s'agit d'un tableau de chaînes de caractères.
   * Peut être vide
   * Cardinalité : 0-1
+
+**"ExcludedRootUnits":** Liste des noeuds de consultation à partir desquels le détenteur du contrat n'a pas accès. Si aucun noeud n'est spécifié, alors l'utilisateur a accès à tous les noeuds.
+
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Peut être vide
+  * Cardinalité : 0-1
+
