@@ -246,7 +246,7 @@
   "SedaField" : "Descriptions",
   "ApiField" : "Descriptions",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "Descriptions",
   "Collections" : [ "Unit" ]
@@ -660,7 +660,7 @@
   "SedaField" : "Titles",
   "ApiField" : "Titles",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "Titles",
   "Collections" : [ "Unit" ]
@@ -705,7 +705,7 @@
   "SedaField" : "_glpd",
   "ApiField" : "#graph_last_persisted_date",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "_glpd",
   "Collections" : [ "Unit" ]
@@ -714,7 +714,7 @@
   "SedaField" : "_graph",
   "ApiField" : "#graph",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "_graph",
   "Collections" : [ "Unit" ]
@@ -849,7 +849,7 @@
   "SedaField" : "_score",
   "ApiField" : "#score",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "_score",
   "Collections" : [ "Unit", "ObjectGroup", "AccessContract", "AccessionRegisterDetail", "AccessionRegisterSummary", "Agencies", "ArchiveUnitProfile", "Context", "FileFormat", "IngestContract", "LogbookOperation", "Ontology", "Profile", "FileRules", "SecurityProfile" ]
@@ -903,7 +903,7 @@
   "SedaField" : "_uds",
   "ApiField" : "#uds",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "_uds",
   "Collections" : [ "Unit", "ObjectGroup" ]
@@ -921,7 +921,7 @@
   "SedaField" : "_unused",
   "ApiField" : "_unused",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "_unused",
   "Collections" : [ "Unit", "ObjectGroup" ]
@@ -948,7 +948,7 @@
   "SedaField" : "_us_sp",
   "ApiField" : "#parent_originating_agencies",
   "Description" : "unit-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "_us_sp",
   "Collections" : [ "Unit" ]
@@ -1029,7 +1029,7 @@
   "SedaField" : "Metadata",
   "ApiField" : "Metadata",
   "Description" : "og-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "Metadata",
   "Collections" : [ "ObjectGroup" ]
@@ -1038,7 +1038,7 @@
   "SedaField" : "OtherMetadata",
   "ApiField" : "OtherMetadata",
   "Description" : "og-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "OtherMetadata",
   "Collections" : [ "ObjectGroup" ]
@@ -1407,7 +1407,7 @@
   "SedaField" : "Permissions",
   "ApiField" : "Permissions",
   "Description" : "context-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "Permissions",
   "Collections" : [ "Context", "SecurityProfile" ]
@@ -1569,7 +1569,7 @@
   "SedaField" : "events",
   "ApiField" : "events",
   "Description" : "logbook-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "events",
   "Collections" : [ "LogbookOperation" ]
