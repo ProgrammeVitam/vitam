@@ -55,8 +55,6 @@ En cas de perte du site primaire, l'intégralité des données est donc présent
 * Soit la dégradation du niveau de résilience des offres est acceptée, et la stratégie de stockage devra être modifiée pour limiter les écritures à une seule offre.
 * Soit cette stratégie continue à requérir l'écriture sur 2 offres de stockage, et le système ne sera accessible qu'en lecture seule ; seule une recréation de l'offre de stockage sur le site principal permettra le retour à un fonctionnement nominal (Cf. admonition ci-dessous). Ce scénario est délicat à implémenter, et nécessite notamment la mise en place d'un contrat d'accès spécifique permettant de bloquer les accès en modification.
 
-.. caution:: La version courante de la solution logicielle VITAM ne permet pas la resynchronisation d'une offre de stockage à partir d'une autre offre de stockage. Ainsi la réplication de l'offre de stockage du site secondaire vers une nouvelle offre de stockage du site principal,  indispensable pour un retour à la normale une fois le PRA terminé, doit être réalisé par des moyens d'infrastructure uniquement (recopie de systèmes de fichiers, duplication d'un object storage, dump + restoration de la base MongoDB des offres de stockage, ...)
-
 .. caution:: En cas de bascule de site, les traitements en cours sur le site 1 sont perdus ; en particulier, les ingests non terminés doivent être renvoyés à VITAM et les autres batchs en cours doivent être relancés. L’incohérence des données sera réglée dans une version ultérieure du système VITAM.
 
 
