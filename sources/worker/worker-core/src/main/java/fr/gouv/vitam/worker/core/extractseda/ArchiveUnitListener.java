@@ -305,6 +305,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             enhanceSignatures(descriptiveMetadataModel);
 
+            replaceInternalReferenceForRelatedObjectReference(descriptiveMetadataModel);
+
             // fill list rules to map
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccess());
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getStorage());
@@ -356,6 +358,56 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             }
         }
 
+    }
+
+    /**
+     * fill sytemGUID for all item of RelatedObjectReference (RelationGroup) instead of internal seda id (defined in manifest).
+     * @param descriptiveMetadataModel
+     */
+    private void replaceInternalReferenceForRelatedObjectReference(DescriptiveMetadataModel descriptiveMetadataModel){
+
+        if (descriptiveMetadataModel.getRelatedObjectReference() != null ){
+
+            DescriptiveMetadataContentType.RelatedObjectReference relatedObjReference = descriptiveMetadataModel.getRelatedObjectReference();
+
+            fillDataObjectOrArchiveUnitReference(relatedObjReference.getIsVersionOf());
+            fillDataObjectOrArchiveUnitReference(relatedObjReference.getReplaces());
+            fillDataObjectOrArchiveUnitReference(relatedObjReference.getRequires());
+            fillDataObjectOrArchiveUnitReference(relatedObjReference.getIsPartOf());
+            fillDataObjectOrArchiveUnitReference(relatedObjReference.getReferences());
+        }
+    }
+
+    private void fillDataObjectOrArchiveUnitReference(List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReference) {
+
+        for(DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
+
+            String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
+
+            if(archiveUnitRefId != null) {
+                if(unitIdToGuid.containsKey(archiveUnitRefId)){
+                    relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
+                }
+            }
+
+            DataObjectRefType dataObjectRefType = relatedObjectReferenceItem.getDataObjectReference();
+
+            if(dataObjectRefType != null) {
+                if (dataObjectRefType.getDataObjectReferenceId() != null) {
+                    String dataObjecRefId = dataObjectRefType.getDataObjectReferenceId();
+                    if (dataObjectIdToGuid.containsKey(dataObjecRefId)) {
+                        dataObjectRefType.setDataObjectReferenceId(dataObjectIdToGuid.get(dataObjecRefId));
+                    }
+                }
+
+                if (dataObjectRefType.getDataObjectGroupReferenceId() != null) {
+                    String dataObjecGroupRefId = dataObjectRefType.getDataObjectGroupReferenceId();
+                    if (objectGroupIdToGuid.containsKey(dataObjecGroupRefId)) {
+                        dataObjectRefType.setDataObjectGroupReferenceId(objectGroupIdToGuid.get(dataObjecGroupRefId));
+                    }
+                }
+            }
+        }
     }
 
     /**
