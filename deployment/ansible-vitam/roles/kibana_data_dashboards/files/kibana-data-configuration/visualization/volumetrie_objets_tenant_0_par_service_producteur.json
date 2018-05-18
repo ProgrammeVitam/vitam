@@ -1,0 +1,10 @@
+{
+  "title": "Volumétrie des objets par service producteur sur le tenant 0",
+  "visState": "{\"title\":\"Volumétrie des objets par service producteur sur le tenant 0\",\"type\":\"pie\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"legendPosition\":\"right\",\"isDonut\":false,\"type\":\"pie\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"sum\",\"schema\":\"metric\",\"params\":{\"field\":\"#qualifiers.versions.Size\"}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"#sp\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"_term\"}}],\"listeners\":{}}",
+  "uiStateJSON": "{}",
+  "description": "",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"index\":\"objectgroup_*\",\"query\":{\"match_all\":{}},\"filter\":[{\"meta\":{\"index\":\"objectgroup_*\",\"negate\":false,\"disabled\":false,\"alias\":null,\"type\":\"phrase\",\"key\":\"#tenant\",\"value\":\"0\"},\"query\":{\"match\":{\"#tenant\":{\"query\":0,\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
+  }
+}
