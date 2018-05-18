@@ -2268,8 +2268,14 @@
             ]
           },
           "Masterdata": {
-            "description": "Type: CodeType (NonEmptyTokenType + FIXME: some attributes, How to do)",
-            "type": "string"
+            "description": "Type: CodeType (NonEmptyTokenType)",
+            "type": "object",
+            "properties": {
+              "Value": {
+                "description": "CodeType value",
+                "type": "string"
+              }
+            }
           },
           "ReferencedObject": {
             "type": "object",

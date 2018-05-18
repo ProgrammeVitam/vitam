@@ -838,7 +838,11 @@
             }
           },
           "Masterdata": {
-            "type": "keyword"
+            "properties" : {
+              "Value": {
+                "type": "keyword"
+              }
+            }
           },
           "ReferencedObject": {
             "properties": {
