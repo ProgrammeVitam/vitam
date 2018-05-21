@@ -304,6 +304,30 @@ En ce qui concerne les objets physiques, les colonnes n'affichent que l'informat
 Les unités disponibles sont celles répertoriées par l'UNECE.
 
 
+**Rattachement des Unité archivistiques à un Groupe d'Objet Technique (GOT)**
+
+Il est possible de rattacher une Unité archivistique à un GOT existant dans le but de compléter un versement.
+
+Ces rattachements peuvent concerner le versement de nouveaux usages ou de nouvelles versions. 
+Le système permet d'importer plusieurs usages d'un même objet (BinaryMaster, Dissemination, TextContent...), il supporte également les différentes versions de cet objet. Les versions apparaissent sous la forme usage_1 / usage_2 / usage_3
+Ces différents usages ou versions sont visibles dans le bloc "groupe d'objets". 
+
+Il est également possible d'effectuer un versement sans Binary ou physical master et de compléter par la suite en déclarant le GUID du GOT lors de l'ingest.
+Ces possibilités sont gérées et autorisées par le contrat d'entrée.
+
+Pour procéder à cette opération, il est nécesssaire d'avoir : 
+cette / ces  option(s) active(s) dans le contrat d'entrée et la balise <UpdateOperation><SystemId> intégrée dans le manifest (cf. Modèle de données)
+ <Management>
+ <UpdateOperation><SystemId>GUID du GOT à compléter</SystemId></UpdateOperation>
+ </Management>
+
+.. image:: images/rattachement_got.png
+
+
+
+
+
+
 **Export du Dissemination Information Package (DIP)**
 
 Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix d'exports sont disponibles :
