@@ -86,6 +86,16 @@ public class VitamConfigurationParameters {
     private Integer deleteIncompleteReconstructedUnitDelay;
 
     /**
+     * The number of retry executing action when optimistic lock occurs
+     */
+    private Integer optimisticLockRetryNumber;
+    /**
+     * Optimistic lock sleep time in milliseconds, the sleep time after each retry
+     */
+    private Integer optimisticLockSleepTime;
+
+
+    /**
      *
      */
     private Integer numberEsQueue;
@@ -860,6 +870,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Get data migration bulk size
+     *
      * @param migrationBulkSize
      */
     public void setMigrationBulkSize(Integer migrationBulkSize) {
@@ -883,6 +894,45 @@ public class VitamConfigurationParameters {
     public void setDeleteIncompleteReconstructedUnitDelay(Integer deleteIncompleteReconstructedUnitDelay) {
         this.deleteIncompleteReconstructedUnitDelay = deleteIncompleteReconstructedUnitDelay;
     }
+
+
+    /**
+     * Get optimistic lock retry number
+     *
+     * @return optimisticLockRetryNumber
+     */
+    public Integer getOptimisticLockRetryNumber() {
+        return optimisticLockRetryNumber;
+    }
+
+    /**
+     * Set optimistic lock retry number
+     *
+     * @param optimisticLockRetryNumber
+     */
+    public void setOptimisticLockRetryNumber(Integer optimisticLockRetryNumber) {
+        this.optimisticLockRetryNumber = optimisticLockRetryNumber;
+    }
+
+    /**
+     * Get optimistic lock sleep time
+     *
+     * @return optimisticLockSleepTime
+     */
+    public Integer getOptimisticLockSleepTime() {
+        return optimisticLockSleepTime;
+    }
+
+    /**
+     * Set optimistic lock sleep time
+     *
+     * @param optimisticLockSleepTime
+     */
+    public void setOptimisticLockSleepTime(Integer optimisticLockSleepTime) {
+        this.optimisticLockSleepTime = optimisticLockSleepTime;
+    }
+
+
 
     /**
      * Getter for restore bulk size
@@ -971,6 +1021,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Setter for expireCacheEntriesDelay
+     *
      * @return expireCacheEntriesDelay
      */
     public Integer getExpireCacheEntriesDelay() {
@@ -979,6 +1030,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter for expireCacheEntriesDelay
+     *
      * @param expireCacheEntriesDelay
      */
     public void setExpireCacheEntriesDelay(Integer expireCacheEntriesDelay) {

@@ -342,6 +342,15 @@ public class VitamConfiguration {
     private static int deleteIncompleteReconstructedUnitDelay = 2592000;
 
     /**
+     * The number of retry executing action when optimistic lock occurs
+     */
+    private static int optimisticLockRetryNumber = 50;
+    /**
+     * Optimistic lock sleep time in milliseconds, the sleep time after each retry
+     */
+    private static int optimisticLockSleepTime = 20;
+
+    /**
      * default offset for lifecycleSpliterator
      */
     private static int defaultOffset = 0;
@@ -773,6 +782,14 @@ public class VitamConfiguration {
 
         if (null != parameters.getDeleteIncompleteReconstructedUnitDelay()) {
             setDeleteIncompleteReconstructedUnitDelay(parameters.getDeleteIncompleteReconstructedUnitDelay());
+        }
+
+        if (null != parameters.getOptimisticLockRetryNumber()) {
+            setOptimisticLockRetryNumber(parameters.getOptimisticLockRetryNumber());
+        }
+
+        if (null != parameters.getOptimisticLockSleepTime()) {
+            setOptimisticLockSleepTime(parameters.getOptimisticLockSleepTime());
         }
 
     }
@@ -1630,6 +1647,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for expireCacheEntriesDelay
+     *
      * @return expireCacheEntriesDelay
      */
     public static int getExpireCacheEntriesDelay() {
@@ -1638,6 +1656,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for expireCacheEntriesDelay
+     *
      * @param expireCacheEntriesDelay
      */
     public static void setExpireCacheEntriesDelay(int expireCacheEntriesDelay) {
@@ -1823,6 +1842,42 @@ public class VitamConfiguration {
      */
     public static void setDeleteIncompleteReconstructedUnitDelay(int deleteIncompleteReconstructedUnitDelay) {
         VitamConfiguration.deleteIncompleteReconstructedUnitDelay = deleteIncompleteReconstructedUnitDelay;
+    }
+
+    /**
+     * Get optimistic lock retry number
+     *
+     * @return optimisticLockRetryNumber
+     */
+    public static int getOptimisticLockRetryNumber() {
+        return optimisticLockRetryNumber;
+    }
+
+    /**
+     * Set optimistic lock retry number
+     *
+     * @param optimisticLockRetryNumber
+     */
+    public static void setOptimisticLockRetryNumber(int optimisticLockRetryNumber) {
+        VitamConfiguration.optimisticLockRetryNumber = optimisticLockRetryNumber;
+    }
+
+    /**
+     * Get optimistic lock sleep time
+     *
+     * @return optimisticLockSleepTime
+     */
+    public static int getOptimisticLockSleepTime() {
+        return optimisticLockSleepTime;
+    }
+
+    /**
+     * Set optimistic lock sleep time
+     *
+     * @param optimisticLockSleepTime
+     */
+    public static void setOptimisticLockSleepTime(int optimisticLockSleepTime) {
+        VitamConfiguration.optimisticLockSleepTime = optimisticLockSleepTime;
     }
 
     /**

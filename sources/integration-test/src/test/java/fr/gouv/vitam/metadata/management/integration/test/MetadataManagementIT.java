@@ -102,7 +102,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
@@ -373,6 +372,9 @@ public class MetadataManagementIT {
                 MetadataCollections.OBJECTGROUP.name().toLowerCase(), true));
 
         VitamConfiguration.setAdminTenant(1);
+
+        // ReconstructionService delete all unit and GOT without _tenant and older than 1 month.
+        VitamConfiguration.setDeleteIncompleteReconstructedUnitDelay(Integer.MAX_VALUE);
     }
 
     @After
@@ -422,7 +424,7 @@ public class MetadataManagementIT {
         reconstructionItem1.setLimit(2);
         reconstructionItem1.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem1);
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -470,7 +472,7 @@ public class MetadataManagementIT {
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(5L);
@@ -516,7 +518,7 @@ public class MetadataManagementIT {
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -528,7 +530,7 @@ public class MetadataManagementIT {
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
@@ -573,7 +575,7 @@ public class MetadataManagementIT {
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
@@ -591,7 +593,7 @@ public class MetadataManagementIT {
         reconstructionItem2.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.UNIT.getName())).isEqualTo(0L);
@@ -609,7 +611,7 @@ public class MetadataManagementIT {
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -692,7 +694,7 @@ public class MetadataManagementIT {
         reconstructionItems.add(reconstructionItem);
 
         Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection( reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(4L);
@@ -730,7 +732,7 @@ public class MetadataManagementIT {
         reconstructionItem.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem);
 
-        response = metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
 
@@ -858,7 +860,7 @@ public class MetadataManagementIT {
 
 
         Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(4);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(4L);
@@ -952,7 +954,6 @@ public class MetadataManagementIT {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-
         // 0. prepare data
         String container = GUIDFactory.newGUID().getId();
         workspaceClient.createContainer(container);
@@ -988,7 +989,7 @@ public class MetadataManagementIT {
         reconstructionItems.add(reconstructionItem);
 
         Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection( reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_1, DataCategory.UNIT_GRAPH.name())).isEqualTo(1L);
@@ -1110,7 +1111,7 @@ public class MetadataManagementIT {
 
 
         response =
-            metadataManagementResource.reconstructCollection("" + TENANT_0, reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(6L);
@@ -1453,7 +1454,7 @@ public class MetadataManagementIT {
             "Accept: application/json",
             "Content-Type: application/json"
         })
-        Call<List<ReconstructionResponseItem>> reconstructCollection(@Header("X-Tenant-Id") String tenant,
+        Call<List<ReconstructionResponseItem>> reconstructCollection(
             @Body List<ReconstructionRequestItem> reconstructionItems);
 
 
