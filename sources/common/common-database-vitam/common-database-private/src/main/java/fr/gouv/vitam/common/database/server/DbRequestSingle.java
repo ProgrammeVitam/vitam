@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -84,6 +85,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -159,7 +161,7 @@ public class DbRequestSingle {
 
     /**
      * execute all request
-     * 
+     *
      * @param request
      * @param version
      * @throws InvalidParseOperationException
@@ -217,8 +219,8 @@ public class DbRequestSingle {
      * Main method for Multiple Insert
      *
      * @param arrayNode
-     * @return DbRequestResult
      * @param version
+     * @return DbRequestResult
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
@@ -355,7 +357,8 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private DbRequestResult findDocuments(JsonNode select) throws DatabaseException, BadRequestException, VitamDBException{
+    private DbRequestResult findDocuments(JsonNode select)
+        throws DatabaseException, BadRequestException, VitamDBException {
         MongoCursor<VitamDocument<?>> cursor = search(select);
         return new DbRequestResult().setCursor(cursor).setTotal(total > 0 ? total : count).setCount(count)
             .setLimit(limit).setOffset(offset);
@@ -365,11 +368,12 @@ public class DbRequestSingle {
      * Private method to select Elasticsearch or MongoDb
      *
      * @param select
-     * @return MongoCursor<VitamDocument<?>>
+     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private MongoCursor<VitamDocument<?>> search(JsonNode select) throws DatabaseException, BadRequestException, VitamDBException {
+    private MongoCursor<VitamDocument<?>> search(JsonNode select)
+        throws DatabaseException, BadRequestException, VitamDBException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
             parser.parse(select);
@@ -391,7 +395,7 @@ public class DbRequestSingle {
      * Private method for select using ElasticsearchDbRequestSingle
      *
      * @param parser
-     * @return MongoCursor<VitamDocument<?>>
+     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      * @throws InvalidCreateOperationException
@@ -399,7 +403,8 @@ public class DbRequestSingle {
      * @throws BadRequestException
      */
     private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(SelectParserSingle parser)
-        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException, VitamDBException {
+        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException,
+        VitamDBException {
         SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         QueryBuilder query = QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0));
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(vitamCollection.isUseScore());
@@ -433,10 +438,10 @@ public class DbRequestSingle {
      * Private method for select using MongoDb from Elasticsearch result
      *
      * @param parser
-     * @param list list of Ids
-     * @param list list of scores for each Ids
-     * @return MongoCursor<VitamDocument<?>>
-     * @throws InvalidParseOperationException when query is not correct
+     * @param list   list of Ids
+     * @param list   list of scores for each Ids
+     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
+     * @throws InvalidParseOperationException  when query is not correct
      * @throws InvalidCreateOperationException
      */
     private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser, List<String> list,
@@ -450,7 +455,7 @@ public class DbRequestSingle {
      * Private method for select using MongoDb
      *
      * @param parser
-     * @return MongoCursor<VitamDocument<?>>
+     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
      * @throws InvalidParseOperationException when query is not correctBson
      */
     @SuppressWarnings("unchecked")
@@ -497,12 +502,12 @@ public class DbRequestSingle {
     /**
      * Private sub method for Elasticsearch search
      *
-     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *        values" : [list of id] } }"
+     * @param query  as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *               values" : [list of id] } }"
      * @param filter the filter
-     * @param sorts the list of sort
+     * @param sorts  the list of sort
      * @param offset the offset
-     * @param limit the limit
+     * @param limit  the limit
      * @return a structure as ResultInterface
      * @throws DatabaseException
      * @throws BadRequestException
@@ -570,18 +575,27 @@ public class DbRequestSingle {
         searchResult.close();
         final Map<String, List<String>> diffs = new HashMap<>();
         List<VitamDocument<?>> listUpdatedDocuments = new ArrayList<>();
+        MongoCollection collection = vitamCollection.getCollection();
+
         for (VitamDocument<?> document : listDocuments) {
             document.remove(VitamDocument.SCORE);
             final String documentId = document.getId();
-            final Integer documentVersion = document.getVersion();
-            final String documentBeforeUpdate = JsonHandler.prettyPrint(document);
+            String documentBeforeUpdate = JsonHandler.prettyPrint(document);
 
             VitamDocument<?> updatedDocument = null;
             int nbTry = 0;
             boolean modified = false;
+            boolean updated = false;
 
-            while (updatedDocument == null && nbTry < 3) {
+            while (!updated && nbTry < VitamConfiguration.getOptimisticLockRetryNumber()) {
+
+                if (nbTry > 0) {
+                    document = (VitamDocument<?>) collection.find(eq(VitamDocument.ID, documentId)).first();
+                    documentBeforeUpdate = JsonHandler.prettyPrint(document);
+                }
+
                 nbTry++;
+
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
 
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
@@ -590,39 +604,53 @@ public class DbRequestSingle {
 
                 try {
                     SchemaValidationUtils validator = new SchemaValidationUtils();
-                    SchemaValidationStatus status = validator.validateJson(updatedJsonDocument,vitamCollection.getName() ) ;
+                    SchemaValidationStatus status =
+                        validator.validateJson(updatedJsonDocument, vitamCollection.getName());
                     if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                         throw new SchemaValidationException(status.getValidationMessage());
                     }
                 } catch (FileNotFoundException | ProcessingException e) {
-                    LOGGER.debug("Unable to initialize Json Validator : " +e.getMessage());
+                    LOGGER.debug("Unable to initialize Json Validator : " + e.getMessage());
                     throw new InvalidCreateOperationException(e);
                 }
 
                 updatedDocument = document.newInstance(updatedJsonDocument);
-                if (!updatedDocument.equals(document)) {
+                if (!document.equals(updatedDocument)) {
                     modified = true;
-                    updatedDocument.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
-                    MongoCollection collection = vitamCollection.getCollection();
-                    Bson condition = and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, documentVersion));
+                    updatedDocument.put(VitamDocument.VERSION, document.getVersion() + 1);
+                    Bson condition =
+                        and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, document.getVersion()));
                     // Note: cannot do bulk since we need to check each and every update
                     try {
                         UpdateResult result = collection.replaceOne(condition, updatedDocument);
-                        if (result.getModifiedCount() != 1) {
-                            updatedDocument = null;
-                        }
+                        updated = result.getModifiedCount() == 1;
                     } catch (final MongoException e) {
                         LOGGER.warn("Update Document error : " + e.getMessage());
-                        updatedDocument = null;
                     }
+
+
+                    if (!updated) {
+                        LOGGER.warn(
+                            "[Optimistic_Lock]: optimistic lock occurs while update document with id (" + documentId +
+                                ") of the collection " + vitamCollection.getName() + " retry number = " + nbTry);
+
+                        try {
+                            Thread.sleep(
+                                ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
+                        } catch (InterruptedException e1) {
+                            SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
+                            throw new DatabaseException(e1);
+                        }
+                    }
+
                 } else {
                     break;
                 }
             }
 
-            if (modified && updatedDocument == null) {
-                // Throw Error after 3 try
-                throw new DatabaseException("Can not modify Document");
+            if (modified && !updated) {
+                // Throw Error after nb try
+                throw new DatabaseException("[Optimistic_Lock]: Can not modify Document");
             }
             if (modified) {
                 listUpdatedDocuments.add(updatedDocument);
@@ -650,7 +678,8 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException
      */
     private DbRequestResult deleteDocuments(JsonNode request)
-        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException, VitamDBException {
+        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException,
+        VitamDBException {
         final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
         parser.parse(request);
         parser.addProjection(JsonHandler.createObjectNode(), JsonHandler.createObjectNode().put(VitamDocument.ID, 1));
