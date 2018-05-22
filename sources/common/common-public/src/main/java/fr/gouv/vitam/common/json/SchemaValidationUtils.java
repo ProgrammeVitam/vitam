@@ -149,6 +149,9 @@ public class SchemaValidationUtils {
         "oneOf", "enum", "minLength", "minItems", "properties"
     });
 
+    private static final List<String> SCHEMA_DECLARATION_INTERNAL_FIELDS_USABLE = Arrays.asList(new String[] {
+        "_up", "_og"});
+
     /**
      * Constructor with a default schema filename
      * 
@@ -409,7 +412,9 @@ public class SchemaValidationUtils {
         final Iterator<String> names = unitCopy2.fieldNames();
         while (names.hasNext()) {
             String name = names.next();
-            if ("_mgt".equals(name) || "#management".equals(name)) {
+            if (SCHEMA_DECLARATION_INTERNAL_FIELDS_USABLE.contains(name)) {
+                continue;
+            } else if ("_mgt".equals(name) || "#management".equals(name)) {
                 final JsonNode value = unitCopy.remove(name);
                 unitCopy.set("Management", value);
             } else if (isExternal && name != null && name.startsWith(ModelConstants.UNDERSCORE)) {
@@ -467,7 +472,7 @@ public class SchemaValidationUtils {
                         typesAsList.add("string");
                     }
                 }
-            } else if (!handleAnyOfOneOfAllOf(value, typesAsList)) {
+            } else if (value != null && !handleAnyOfOneOfAllOf(value, typesAsList)) {
                 typesAsList.add(OBJECT);
             }
             if (!SCHEMA_DECLARATION_TYPE.contains(key) && value.isObject() && value.get(PROPERTIES) == null &&

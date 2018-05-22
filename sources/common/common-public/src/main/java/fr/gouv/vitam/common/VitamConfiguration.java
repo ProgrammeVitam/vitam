@@ -128,7 +128,7 @@ public class VitamConfiguration {
     /**
      * swift file limit to upload
      */
-    private static final long swiftFileLimit = 4_000_000_000L;
+    private static final long SWIFT_FILE_LIMIT = 4_000_000_000L;
 
     /**
      * Max shutdown timeout 2 minute
@@ -1899,7 +1899,7 @@ public class VitamConfiguration {
     }
 
     public static long getSwiftFileLimit() {
-        return swiftFileLimit;
+        return SWIFT_FILE_LIMIT;
     }
 
     /**

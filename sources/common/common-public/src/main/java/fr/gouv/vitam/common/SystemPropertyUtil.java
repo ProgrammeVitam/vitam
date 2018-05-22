@@ -47,6 +47,8 @@ public final class SystemPropertyUtil {
     public static final String FILE_ENCODING = "file.encoding";
 
     private static final Properties PROPS = new Properties();
+    
+    private static final String INVALID_PROPERTY = "Invalid property ";
 
     private static Platform m_os = null;
 
@@ -176,7 +178,7 @@ public final class SystemPropertyUtil {
         try {
             StringUtils.checkSanityString(value);
         } catch (InvalidParseOperationException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            SysErrLogger.FAKE_LOGGER.syserr(INVALID_PROPERTY + key, e);
             return def;
         }
 
@@ -215,7 +217,7 @@ public final class SystemPropertyUtil {
         try {
             StringUtils.checkSanityString(value);
         } catch (InvalidParseOperationException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            SysErrLogger.FAKE_LOGGER.syserr(INVALID_PROPERTY + key, e);
             return def;
         }
         SysErrLogger.FAKE_LOGGER.syserr(
@@ -255,7 +257,7 @@ public final class SystemPropertyUtil {
         try {
             StringUtils.checkSanityString(value);
         } catch (InvalidParseOperationException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            SysErrLogger.FAKE_LOGGER.syserr(INVALID_PROPERTY + key, e);
             return def;
         }
         SysErrLogger.FAKE_LOGGER.syserr(
@@ -295,7 +297,7 @@ public final class SystemPropertyUtil {
         try {
             StringUtils.checkSanityString(value);
         } catch (InvalidParseOperationException e) {
-            SysErrLogger.FAKE_LOGGER.syserr("Invalid property " + key, e);
+            SysErrLogger.FAKE_LOGGER.syserr(INVALID_PROPERTY + key, e);
             return def;
         }
 

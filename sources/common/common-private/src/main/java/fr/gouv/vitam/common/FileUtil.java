@@ -49,6 +49,8 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 public final class FileUtil {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FileUtil.class);
+    
+    private static final String FILE_CANT_BE_DELETED = "File could not be deleted: ";
 
     private FileUtil() {
         // Unused
@@ -115,7 +117,7 @@ public final class FileUtil {
                 status &= delereRecursiveInternal(file);
             }
             if (!file.delete()) {
-                LOGGER.warn("File could not be deleted: " + file);
+                LOGGER.warn(FILE_CANT_BE_DELETED + file);
                 status = false;
             }
         }
@@ -137,14 +139,14 @@ public final class FileUtil {
         }
         if (!file.isDirectory()) {
             if (!file.delete()) {
-                LOGGER.warn("File could not be deleted: " + file);
+                LOGGER.warn(FILE_CANT_BE_DELETED + file);
                 return false;
             }
             return true;
         }
         boolean status = delereRecursiveInternal(file);
         if (!file.delete()) {
-            LOGGER.warn("File could not be deleted: " + file);
+            LOGGER.warn(FILE_CANT_BE_DELETED + file);
             status = false;
         }
         return status;

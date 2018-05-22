@@ -35,21 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.DBObject;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.WriteModel;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.api.VitamRepository;
-import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
@@ -70,12 +55,40 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.WriteModel;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.api.VitamRepository;
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
+
 /**
  * Implementation for Elasticsearch
  */
 public class VitamElasticsearchRepository implements VitamRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamElasticsearchRepository.class);
+    /**
+     * Identifier
+     */
     public static final String IDENTIFIER = "Identifier";
+    private static final String ALL_PARAMS_REQUIRED = "All params are required";
+    private static final String BULK_REQ_FAIL_WITH_ERROR = "Bulk Request failure with error: ";
+    private static final String EV_DET_DATA = "evDetData";
+    private static final String RIGHT_STATE_ID = "rightsStatementIdentifier";
+    private static final String AG_ID_EXT = "agIdExt";
+    private static final String EVENTS = "events";
+    private static final String NOT_IMPLEMENTED_YET = "Not implemented yet";
+
 
     private Client client;
     private String indexName;
@@ -84,8 +97,8 @@ public class VitamElasticsearchRepository implements VitamRepository {
     /**
      * VitamElasticsearchRepository Constructor
      *
-     * @param client        the es client
-     * @param indexName     the name of the index
+     * @param client the es client
+     * @param indexName the name of the index
      * @param indexByTenant specifies if the index is for a specific tenant or not
      */
     public VitamElasticsearchRepository(Client client, String indexName, boolean indexByTenant) {
@@ -101,7 +114,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     @Override
     public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", document);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, document);
         Document internalDocument = new Document(document);
         String id = internalDocument.getString(VitamDocument.ID);
         Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
@@ -134,7 +147,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     @Override
     public void save(List<Document> documents) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", documents);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
         BulkRequestBuilder bulkRequest = client.prepareBulk();
 
         documents.forEach(document -> {
@@ -159,7 +172,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         BulkResponse bulkResponse = bulkRequest.get();
 
         if (bulkResponse.hasFailures()) {
-            LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+            LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
             throw new DatabaseException(bulkResponse.buildFailureMessage());
         }
 
@@ -202,7 +215,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         BulkResponse bulkResponse = bulkRequest.get();
 
         if (bulkResponse.hasFailures()) {
-            LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+            LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
             throw new DatabaseException("Index Elasticsearch has errors");
         }
     }
@@ -245,76 +258,76 @@ public class VitamElasticsearchRepository implements VitamRepository {
         BulkResponse bulkResponse = bulkRequest.get();
 
         if (bulkResponse.hasFailures()) {
-            LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+            LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
             throw new DatabaseException("Index Elasticsearch has errors");
         }
     }
 
     // TODO : very ugly here, should be generic
     private void transformDataForElastic(Document vitamDocument) {
-        if (vitamDocument.get("evDetData") != null) {
-            String evDetDataString = (String) vitamDocument.get("evDetData");
+        if (vitamDocument.get(EV_DET_DATA) != null) {
+            String evDetDataString = (String) vitamDocument.get(EV_DET_DATA);
             LOGGER.debug(evDetDataString);
             try {
                 JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
-                vitamDocument.remove("evDetData");
-                vitamDocument.put("evDetData", evDetData);
+                vitamDocument.remove(EV_DET_DATA);
+                vitamDocument.put(EV_DET_DATA, evDetData);
             } catch (InvalidParseOperationException e) {
                 LOGGER.warn("EvDetData is not a json compatible field", e);
             }
         }
-        if (vitamDocument.get("agIdExt") != null) {
-            String agidExt = (String) vitamDocument.get("agIdExt");
+        if (vitamDocument.get(AG_ID_EXT) != null) {
+            String agidExt = (String) vitamDocument.get(AG_ID_EXT);
             LOGGER.debug(agidExt);
             try {
                 JsonNode agidExtNode = JsonHandler.getFromString(agidExt);
-                vitamDocument.remove("agIdExt");
-                vitamDocument.put("agIdExt", agidExtNode);
+                vitamDocument.remove(AG_ID_EXT);
+                vitamDocument.put(AG_ID_EXT, agidExtNode);
             } catch (InvalidParseOperationException e) {
                 LOGGER.warn("agidExtNode is not a json compatible field", e);
             }
         }
-        if (vitamDocument.get("rightsStatementIdentifier") != null) {
+        if (vitamDocument.get(RIGHT_STATE_ID) != null) {
             String rightsStatementIdentifier =
-                (String) vitamDocument.get("rightsStatementIdentifier");
+                (String) vitamDocument.get(RIGHT_STATE_ID);
             LOGGER.debug(rightsStatementIdentifier);
             try {
                 JsonNode rightsStatementIdentifierNode = JsonHandler.getFromString(rightsStatementIdentifier);
-                vitamDocument.remove("rightsStatementIdentifier");
-                vitamDocument.put("rightsStatementIdentifier",
+                vitamDocument.remove(RIGHT_STATE_ID);
+                vitamDocument.put(RIGHT_STATE_ID,
                     rightsStatementIdentifierNode);
             } catch (InvalidParseOperationException e) {
                 LOGGER.warn("rightsStatementIdentifier is not a json compatible field", e);
             }
         }
-        List<Document> eventDocuments = (List<Document>) vitamDocument.get("events");
+        List<Document> eventDocuments = (List<Document>) vitamDocument.get(EVENTS);
         if (eventDocuments != null) {
             for (Document eventDocument : eventDocuments) {
-                if (eventDocument.getString("evDetData") != null) {
+                if (eventDocument.getString(EV_DET_DATA) != null) {
                     String eventEvDetDataString =
-                        eventDocument.getString("evDetData");
+                        eventDocument.getString(EV_DET_DATA);
                     Document eventEvDetDataDocument = Document.parse(eventEvDetDataString);
-                    eventDocument.remove("evDetData");
-                    eventDocument.put("evDetData", eventEvDetDataDocument);
+                    eventDocument.remove(EV_DET_DATA);
+                    eventDocument.put(EV_DET_DATA, eventEvDetDataDocument);
                 }
-                if (eventDocument.getString("rightsStatementIdentifier") != null) {
+                if (eventDocument.getString(RIGHT_STATE_ID) != null) {
                     String eventrightsStatementIdentifier =
-                        eventDocument.getString("rightsStatementIdentifier");
+                        eventDocument.getString(RIGHT_STATE_ID);
                     Document eventEvDetDataDocument = Document.parse(eventrightsStatementIdentifier);
-                    eventDocument.remove("rightsStatementIdentifier");
-                    eventDocument.put("rightsStatementIdentifier", eventEvDetDataDocument);
+                    eventDocument.remove(RIGHT_STATE_ID);
+                    eventDocument.put(RIGHT_STATE_ID, eventEvDetDataDocument);
                 }
-                if (eventDocument.getString("agIdExt") != null) {
+                if (eventDocument.getString(AG_ID_EXT) != null) {
                     String eventagIdExt =
-                        eventDocument.getString("agIdExt");
+                        eventDocument.getString(AG_ID_EXT);
                     Document eventEvDetDataDocument = Document.parse(eventagIdExt);
-                    eventDocument.remove("agIdExt");
-                    eventDocument.put("agIdExt", eventEvDetDataDocument);
+                    eventDocument.remove(AG_ID_EXT);
+                    eventDocument.put(AG_ID_EXT, eventEvDetDataDocument);
                 }
             }
         }
-        vitamDocument.remove("events");
-        vitamDocument.put("events", eventDocuments);
+        vitamDocument.remove(EVENTS);
+        vitamDocument.put(EVENTS, eventDocuments);
 
     }
 
@@ -326,18 +339,18 @@ public class VitamElasticsearchRepository implements VitamRepository {
     @Override
     public void update(List<WriteModel<Document>> updates) throws DatabaseException {
         // Not implement yet
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
     }
 
     @Override
     public FindIterable<Document> findDocuments(Collection<String> ids, Bson projection) {
         // Not implement yet
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
     }
 
     @Override
     public void remove(String id, Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", id);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
 
         String index = indexName;
         if (indexByTenant) {
@@ -368,7 +381,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     @Override
     public long purge(Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
         String index = indexName;
         if (indexByTenant) {
@@ -400,7 +413,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
             BulkResponse bulkResponse = bulkRequest.get();
 
             if (bulkResponse.hasFailures()) {
-                LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
                 throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s",
                     bulkResponse.buildFailureMessage()));
             }
@@ -441,7 +454,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
             BulkResponse bulkResponse = bulkRequest.get();
 
             if (bulkResponse.hasFailures()) {
-                LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
                 throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s",
                     bulkResponse.buildFailureMessage()));
             }
@@ -454,7 +467,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
     @Override
     public Optional<Document> getByID(String id, Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", id);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
 
         String index = indexName;
         if (indexByTenant) {
@@ -478,7 +491,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
     @Override
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
         throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
         String index = indexName;
         if (indexByTenant) {
@@ -504,7 +517,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
     @Override
     public Optional<Document> findByIdentifier(String identifier)
         throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required");
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED);
 
         String index = indexName;
 
@@ -526,24 +539,24 @@ public class VitamElasticsearchRepository implements VitamRepository {
     public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
         Integer tenant) {
         // Not implement yet
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
     }
 
     @Override
     public FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant) {
         // Not implement yet
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
     }
 
     @Override
     public FindIterable<Document> findDocuments(int mongoBatchSize) {
         // Not implement yet
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
     }
 
     @Override
     public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
         // Not implement yet
-        throw new UnsupportedOperationException("Not implemented yet");
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_YET);
     }
 }

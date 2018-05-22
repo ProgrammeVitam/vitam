@@ -176,7 +176,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String UNIT_CHECK_DT = "UNIT_METADATA_UPDATE_CHECK_DT";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
     private static final String COMMIT_LIFE_CYCLE_UNIT = "COMMIT_LIFE_CYCLE_UNIT";
-    private static final String _DIFF = "$diff";
+    private static final String DOLLAR_DIFF = "$diff";
     private static final String RESULTS = "$results";
     private static final String METADATA_INTERNAL_SERVER_ERROR = "Metadata internal server error";
     private static final String LOGBOOK_OPERATION_ALREADY_EXISTS = "logbook operation already exists";
@@ -222,6 +222,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String RULES_PREFIX = '.' + RULES_KEY;
     private static final String FINAL_ACTION_PREFIX = '.' + FINAL_ACTION_KEY;
     private static final String PREVENT_INHERITANCE_PREFIX = '.' + INHERITANCE_KEY + '.' + PREVENT_INHERITANCE_KEY;
+    private static final String NOT_A_SELECT_OPERATION = "Not a Select operation";
+    private static final String DATA_CATEGORY = "Data category ";
+    private static final String ID_DOC_EMPTY = "idDocument is empty";
+    private static final String UNSUPPORTED_CATEGORY = "Unsupported category ";
+    private static final String ERROR_CODE = "errorCode";
+    private static final String RULE_TYPE = "RuleType";    
 
     /**
      * AccessModuleImpl constructor
@@ -275,7 +281,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
             parser.getRequest().reset();
             if (!(parser instanceof SelectParserMultiple)) {
-                throw new InvalidParseOperationException("Not a Select operation");
+                throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
             }
             jsonNode =
                 metaDataClient.selectUnits(jsonQuery);
@@ -312,7 +318,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
         if (!(parser instanceof SelectParserMultiple)) {
-            throw new InvalidParseOperationException("Not a Select operation");
+            throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
         }
         return selectMetadataDocumentById(jsonQuery, idUnit, DataCategory.UNIT);
     }
@@ -321,8 +327,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws InvalidParseOperationException, AccessInternalExecutionException {
         JsonNode jsonNode;
 
-        ParametersChecker.checkParameter("Data category ", dataCategory);
-        ParametersChecker.checkParameter("idDocument is empty", idDocument);
+        ParametersChecker.checkParameter(DATA_CATEGORY, dataCategory);
+        ParametersChecker.checkParameter(ID_DOC_EMPTY, idDocument);
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             switch (dataCategory) {
@@ -333,7 +339,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery, idDocument);
                     break;
                 default:
-                    throw new IllegalArgumentException("Unsupported category " + dataCategory);
+                    throw new IllegalArgumentException(UNSUPPORTED_CATEGORY + dataCategory);
             }
             // TODO P1 : ProcessingException should probably be handled by clients ?
         } catch (MetadataInvalidSelectException | MetaDataDocumentSizeException | MetaDataExecutionException |
@@ -349,8 +355,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         RequestResponse<JsonNode> requestResponse;
         JsonNode jsonResponse;
 
-        ParametersChecker.checkParameter("Data category ", dataCategory);
-        ParametersChecker.checkParameter("idDocument is empty", idDocument);
+        ParametersChecker.checkParameter(DATA_CATEGORY, dataCategory);
+        ParametersChecker.checkParameter(ID_DOC_EMPTY, idDocument);
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             switch (dataCategory) {
@@ -361,7 +367,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     requestResponse = metaDataClient.getObjectGroupByIdRaw(idDocument);
                     break;
                 default:
-                    throw new IllegalArgumentException("Unsupported category " + dataCategory);
+                    throw new IllegalArgumentException(UNSUPPORTED_CATEGORY + dataCategory);
             }
             if (requestResponse.isOk()) {
                 jsonResponse = requestResponse.toJsonNode();
@@ -382,7 +388,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
         if (!(parser instanceof SelectParserMultiple)) {
-            throw new InvalidParseOperationException("Not a Select operation");
+            throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
         }
         return selectMetadataDocumentById(jsonQuery, idObjectGroup, DataCategory.OBJECTGROUP);
     }
@@ -594,7 +600,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, null);
         } catch (final InvalidParseOperationException ipoe) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put("errorCode", ipoe.getMessage());
+            evDetData.put(ERROR_CODE, ipoe.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
                 globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
                 JsonHandler.unprettyPrint(evDetData));
@@ -608,7 +614,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw iae;
         } catch (final MetaDataNotFoundException mdnfe) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put("errorCode", DT_NO_EXTISTING);
+            evDetData.put(ERROR_CODE, DT_NO_EXTISTING);
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
                 globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
                 JsonHandler.unprettyPrint(evDetData));
@@ -672,7 +678,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             LOGGER.error(WORKSPACE_SERVER_EXCEPTION, e);
         } catch (AccessInternalRuleExecutionException e) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put("errorCode", e.getMessage());
+            evDetData.put(ERROR_CODE, e.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
                 globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
                 JsonHandler.unprettyPrint(evDetData));
@@ -680,7 +686,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw e;
         } catch (final ArchiveUnitProfileNotFoundException | ArchiveUnitProfileInactiveException aupnfe) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put("errorCode", aupnfe.getMessage());
+            evDetData.put(ERROR_CODE, aupnfe.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
                 globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
                 JsonHandler.unprettyPrint(evDetData));
@@ -774,8 +780,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws AccessInternalExecutionException {
         JsonNode jsonNode;
 
-        ParametersChecker.checkParameter("Data category ", dataCategory);
-        ParametersChecker.checkParameter("idDocument is empty", idDocument);
+        ParametersChecker.checkParameter(DATA_CATEGORY, dataCategory);
+        ParametersChecker.checkParameter(ID_DOC_EMPTY, idDocument);
 
         try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             switch (dataCategory) {
@@ -784,7 +790,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
                     break;
                 default:
-                    throw new IllegalArgumentException("Unsupported category " + dataCategory);
+                    throw new IllegalArgumentException(UNSUPPORTED_CATEGORY + dataCategory);
             }
         } catch (final InvalidParseOperationException | LogbookClientException e) {
             LOGGER.error(e);
@@ -1045,7 +1051,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         if (diff == null) {
             return "";
         }
-        final JsonNode arrayNode = diff.has(_DIFF) ? diff.get(_DIFF) : diff.get(RESULTS);
+        final JsonNode arrayNode = diff.has(DOLLAR_DIFF) ? diff.get(DOLLAR_DIFF) : diff.get(RESULTS);
         if (arrayNode == null) {
             return "";
         }
@@ -1269,10 +1275,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             Select selectAUPforUnit = new Select();
             selectAUPforUnit.setProjection(JsonHandler.getFromString("{\"$fields\": { \"ArchiveUnitProfile\": 1}}"));
             JsonNode response = selectUnitbyId(selectAUPforUnit.getFinalSelect(), unitId);
-            if (response == null || response.get("$results") == null) {
+            if (response == null || response.get(RESULTS) == null) {
                 throw new AccessInternalExecutionException("Can't get unit by ID: " + unitId);
             }
-            JsonNode results = response.get("$results");
+            JsonNode results = response.get(RESULTS);
             if (results.size() != 1) {
                 throw new AccessInternalExecutionException("Can't get unique unit by ID: " + unitId);
             }
@@ -1290,10 +1296,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // TODO Do it cleaner
             String emptyQuery = "{\"$queries\": [],\"$filter\": { },\"$projection\": {}}";
             JsonNode response = selectUnitbyId(JsonHandler.getFromString(emptyQuery), unitId);
-            if (response == null || response.get("$results") == null) {
+            if (response == null || response.get(RESULTS) == null) {
                 throw new AccessInternalExecutionException("Can't get unit by ID: " + unitId);
             }
-            JsonNode results = response.get("$results");
+            JsonNode results = response.get(RESULTS);
             if (results.size() != 1) {
                 throw new AccessInternalExecutionException("Can't get unique unit by ID: " + unitId);
             }
@@ -1347,7 +1353,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             throw new AccessInternalRuleExecutionException(
                                 VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST.name());
                         }
-                        if (!category.equals(ruleInReferential.get("RuleType").asText())) {
+                        if (!category.equals(ruleInReferential.get(RULE_TYPE).asText())) {
                             LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not a " + category);
                             throw new AccessInternalRuleExecutionException(
                                 VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY.name());
@@ -1407,7 +1413,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST.name());
                     }
-                    if (!category.equals(ruleInReferential.get("RuleType").asText())) {
+                    if (!category.equals(ruleInReferential.get(RULE_TYPE).asText())) {
                         LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not a " + category);
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name());
@@ -1430,7 +1436,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private boolean checkInheritancePrevention(JsonNode categoryNode) {
         JsonNode inheritance = categoryNode.get(INHERITANCE_KEY);
         return inheritance != null &&
-            (inheritance.get("PreventRulesId") != null || inheritance.get("PreventInheritance") != null);
+            (inheritance.get("PreventRulesId") != null || inheritance.get(PREVENT_INHERITANCE_KEY) != null);
     }
 
     private boolean checkEndDateInRule(JsonNode rule) {
@@ -1476,7 +1482,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             throw new AccessInternalExecutionException("Error during checking existing rules", e);
         }
-        return response.get("$results").get(0);
+        return response.get(RESULTS).get(0);
     }
 
 
@@ -1490,7 +1496,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         String startDateString = updatingRule.get("StartDate") != null ? updatingRule.get("StartDate").asText() : null;
         String ruleId = updatingRule.get("Rule").asText();
-        String currentRuleType = ruleInReferential.get("RuleType").asText();
+        String currentRuleType = ruleInReferential.get(RULE_TYPE).asText();
 
         if (ParametersChecker.isNotEmpty(startDateString) && ParametersChecker.isNotEmpty(ruleId, currentRuleType)) {
             LocalDate startDate = LocalDate.parse(startDateString, timeFormatter);
@@ -1595,7 +1601,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     throw new ArchiveUnitProfileInactiveException("Archive unit profile is inactive");
                 }
             } else {
-                throw new ArchiveUnitProfileNotFoundException("Archive unit profile could not be found");
+                throw new ArchiveUnitProfileNotFoundException(DT_NO_EXTISTING);
             }
         } catch (AdminManagementClientServerException | InvalidParseOperationException |
             InvalidCreateOperationException e) {

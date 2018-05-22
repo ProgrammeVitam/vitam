@@ -89,7 +89,7 @@ public class QueryToElasticsearch {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(QueryToElasticsearch.class);
 
-    private static final String _UID = "_uid";
+    private static final String UNDERSCORE_UID = "_uid";
     private static final String FUZZINESS = "AUTO";
 
     private QueryToElasticsearch() {
@@ -186,7 +186,7 @@ public class QueryToElasticsearch {
             String key = entry.getKey();
             // special case of _id
             if (key.equals(VitamDocument.ID)) {
-                key = _UID;
+                key = UNDERSCORE_UID;
             }
             if (scoreNotAdded && score && requestParser.hasFullTextQuery() &&
                 !ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey())) {
@@ -352,7 +352,7 @@ public class QueryToElasticsearch {
         boolean isId = false;
         if (key.equals(VitamDocument.ID)) {
             logWarnUnsupportedIdForCommand(query, content);
-            key = _UID;
+            key = UNDERSCORE_UID;
             isId = true;
         }
 
@@ -943,7 +943,7 @@ public class QueryToElasticsearch {
         String fieldname = content.asText();
         if (VitamDocument.ID.equals(fieldname)) {
             logWarnUnsupportedIdForCommand(query, content);
-            fieldname = _UID;
+            fieldname = UNDERSCORE_UID;
         }
         final QueryBuilder queryBuilder = QueryBuilders.existsQuery(fieldname);
         switch (query) {
@@ -981,7 +981,7 @@ public class QueryToElasticsearch {
         String fieldname = content.asText();
         if (VitamDocument.ID.equals(fieldname)) {
             logWarnUnsupportedIdForCommand(query, content);
-            fieldname = _UID;
+            fieldname = UNDERSCORE_UID;
         }
         return QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(fieldname));
     }

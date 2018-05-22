@@ -71,15 +71,15 @@ public enum VitamRestEasyConfiguration {
     /**
      * connectionRequestTimeout
      */
-    connectionRequestTimeout,
+    CONNECTIONREQUESTTIMEOUT,
     /**
      * connectTimeout
      */
-    connectTimeout,
+    CONNECTTIMEOUT,
     /**
      * socketTimeout
      */
-    socketTimeout,
+    SOCKETTIMEOUT,
     /**
      * is connection manager shared
      */
@@ -115,7 +115,7 @@ public enum VitamRestEasyConfiguration {
     /**
      * contentCompressionEnabled
      */
-    contentCompressionEnabled,
+    CONTENTCOMPRESSIONENABLED,
     /**
      * Cache enable
      */

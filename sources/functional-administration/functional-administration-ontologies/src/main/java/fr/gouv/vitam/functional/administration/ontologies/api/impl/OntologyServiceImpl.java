@@ -135,8 +135,8 @@ public class OntologyServiceImpl implements OntologyService {
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
-    private static final String _TENANT = "_tenant";
-    private static final String _ID = "_id";
+    private static final String UND_TENANT = "_tenant";
+    private static final String UND_ID = "_id";
 
     private Map<Integer, List<VitamError>> errorsMap;
 
@@ -487,11 +487,11 @@ public class OntologyServiceImpl implements OntologyService {
         final ObjectNode ontologyNode = (ObjectNode) JsonHandler.toJsonNode(ontm);
         JsonNode jsonNode = ontologyNode.remove(VitamFieldsHelper.id());
         if (jsonNode != null) {
-            ontologyNode.set(_ID, jsonNode);
+            ontologyNode.set(UND_ID, jsonNode);
         }
         JsonNode hashTenant = ontologyNode.remove(VitamFieldsHelper.tenant());
         if (hashTenant != null) {
-            ontologyNode.set(_TENANT, hashTenant);
+            ontologyNode.set(UND_TENANT, hashTenant);
         }
         return ontologyNode;
     }

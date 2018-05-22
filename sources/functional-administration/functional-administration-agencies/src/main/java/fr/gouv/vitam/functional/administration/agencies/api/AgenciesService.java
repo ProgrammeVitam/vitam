@@ -31,9 +31,8 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static fr.gouv.vitam.functional.administration.common.Agencies.DESCRIPTION;
 import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
-import static fr.gouv.vitam.functional.administration.common.ReportConstants.ERROR;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
-import  fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,8 +51,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -80,11 +77,13 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamErrorMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -98,6 +97,7 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.ContractsFinder;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
@@ -127,9 +127,21 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
  */
 public class AgenciesService implements VitamAutoCloseable {
 
+    /**
+     * IMPORT_AGENCIES
+     */
     public static final String AGENCIES_IMPORT_EVENT = "IMPORT_AGENCIES";
+    /**
+     * AGENCIES_REPORT
+     */
     public static final String AGENCIES_REPORT_EVENT = "AGENCIES_REPORT";
+    /**
+     * BACKUP_AGENCIES
+     */
     public static final String AGENCIES_BACKUP_EVENT = "BACKUP_AGENCIES";
+    /**
+     * IMPORT_AGENCIES_BACKUP_CSV
+     */
     public static final String IMPORT_AGENCIES_BACKUP_CSV = "IMPORT_AGENCIES_BACKUP_CSV";
 
     private static final String AGENCIES_IMPORT_DELETION_ERROR = "DELETION";
@@ -143,8 +155,8 @@ public class AgenciesService implements VitamAutoCloseable {
     private static final String INVALID_CSV_FILE = "Invalid CSV File";
 
     private static final String MESSAGE_ERROR = "Import agency error > ";
-    private static final String _ID = "_id";
-    private static final String _TENANT = "_tenant";
+    private static final String UND_ID = "_id";
+    private static final String UND_TENANT = "_tenant";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
@@ -172,7 +184,8 @@ public class AgenciesService implements VitamAutoCloseable {
      * @param backupService the FunctionalBackupService
      */
     public AgenciesService(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService backupService) throws InvalidGuidOperationException{
+        VitamCounterService vitamCounterService, FunctionalBackupService backupService)
+        throws InvalidGuidOperationException {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.backupService = backupService;
@@ -697,11 +710,11 @@ public class AgenciesService implements VitamAutoCloseable {
             ObjectNode agencyNode = (ObjectNode) JsonHandler.toJsonNode(agency);
             JsonNode jsonNode = agencyNode.remove(VitamFieldsHelper.id());
             if (jsonNode != null) {
-                agencyNode.set(_ID, jsonNode);
+                agencyNode.set(UND_ID, jsonNode);
             }
             JsonNode hashTenant = agencyNode.remove(VitamFieldsHelper.tenant());
             if (hashTenant != null) {
-                agencyNode.set(_TENANT, hashTenant);
+                agencyNode.set(UND_TENANT, hashTenant);
             }
             agenciesNodeToPersist.add(agencyNode);
         }
@@ -848,11 +861,11 @@ public class AgenciesService implements VitamAutoCloseable {
                 switch (error.getCode()) {
                     case STP_IMPORT_AGENCIES_MISSING_INFORMATIONS:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                                error.getMissingInformations());
+                            error.getMissingInformations());
                         break;
                     case STP_IMPORT_AGENCIES_ID_DUPLICATION:
                         errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
-                                error.getFileAgenciesModel().getId());
+                            error.getFileAgenciesModel().getId());
                         break;
                     case STP_IMPORT_AGENCIES_NOT_CSV_FORMAT:
                     case STP_IMPORT_AGENCIES_DELETE_USED_AGENCIES:

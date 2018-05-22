@@ -18,3 +18,4 @@ Base MasterData
    securityprofile.rst
    vitamsequence.rst
    archiveunitprofile.rst
+   ontology.rst
