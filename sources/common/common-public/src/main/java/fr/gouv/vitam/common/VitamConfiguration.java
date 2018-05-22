@@ -315,6 +315,15 @@ public class VitamConfiguration {
     private static int batchSize = 1000;
 
     /**
+     * The number of retry executing action when optimistic lock occurs
+     */
+    private static int optimisticLockRetryNumber = 50;
+    /**
+     * Optimistic lock sleep time in milliseconds, the sleep time after each retry
+     */
+    private static int optimisticLockSleepTime = 20;
+
+    /**
      * default offset for lifecycleSpliterator
      */
     private static int defaultOffset = 0;
@@ -553,7 +562,34 @@ public class VitamConfiguration {
 
     /**
      * Set Tmp directory
+     *   /**
+     * Get optimistic lock retry number
      *
+     * @return optimisticLockRetryNumber
+     */
+    public static int getOptimisticLockRetryNumber() {
+        return optimisticLockRetryNumber;
+    }
+
+    /**
+     * Set optimistic lock retry number
+     *
+     * @param optimisticLockRetryNumber
+     */
+    public static void setOptimisticLockRetryNumber(int optimisticLockRetryNumber) {
+        VitamConfiguration.optimisticLockRetryNumber = optimisticLockRetryNumber;
+    }
+
+    /**
+     * Get optimistic lock sleep time
+     *
+     * @return optimisticLockSleepTime
+     */
+    public static int getOptimisticLockSleepTime() {
+        return optimisticLockSleepTime;
+    }
+
+    /**
      * @param tmp tmp the Tmp directory
      * @return this
      */
@@ -716,6 +752,13 @@ public class VitamConfiguration {
             setTenants(parameters.getTenants());
         }
 
+        if (null != parameters.getOptimisticLockRetryNumber()) {
+            setOptimisticLockRetryNumber(parameters.getOptimisticLockRetryNumber());
+        }
+
+        if (null != parameters.getOptimisticLockSleepTime()) {
+            setOptimisticLockSleepTime(parameters.getOptimisticLockSleepTime());
+        }
     }
 
     /**
@@ -1000,7 +1043,7 @@ public class VitamConfiguration {
 
     /**
      * setIntegrationTest
-     * 
+     *
      * @param value
      */
     public static void setIntegrationTest(boolean value) {
@@ -1059,7 +1102,7 @@ public class VitamConfiguration {
 
     /**
      * setter for vitamConfigFolderDefault
-     * 
+     *
      * @param vitamConfigFolderDefault
      */
     private static void setVitamConfigFolderDefault(String vitamConfigFolderDefault) {
@@ -1077,7 +1120,7 @@ public class VitamConfiguration {
 
     /**
      * setter for vitamDataFolderDefault
-     * 
+     *
      * @param vitamDataFolderDefault
      */
     private static void setVitamDataFolderDefault(String vitamDataFolderDefault) {
@@ -1095,7 +1138,7 @@ public class VitamConfiguration {
 
     /**
      * setter for vitamLogFolderDefault
-     * 
+     *
      * @param vitamLogFolderDefault
      */
     private static void setVitamLogFolderDefault(String vitamLogFolderDefault) {
@@ -1141,7 +1184,7 @@ public class VitamConfiguration {
 
     /**
      * setter for chunkSize
-     * 
+     *
      * @param chunkSize
      */
     private static void setChunkSize(int chunkSize) {
@@ -1150,7 +1193,7 @@ public class VitamConfiguration {
 
     /**
      * set the size of the queue of async workspace
-     * 
+     *
      * @param queueSize
      */
     public static void setAsyncWorkspaceQueueSize(int queueSize) {
@@ -1160,7 +1203,7 @@ public class VitamConfiguration {
 
     /**
      * setter for recvBufferSize
-     * 
+     *
      * @param recvBufferSize
      */
     private static void setRecvBufferSize(int recvBufferSize) {
@@ -1233,7 +1276,7 @@ public class VitamConfiguration {
     /**
      * setter for delayMultipleSubinputstream
      *
-     * @param delayMultipleSubinputstream 
+     * @param delayMultipleSubinputstream
      */
     private static void setDelayMultipleSubinputstream(int delayMultipleSubinputstream) {
         VitamConfiguration.delayMultipleSubinputstream = delayMultipleSubinputstream;
@@ -1479,7 +1522,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for distributeurBatchSize;
-     * 
+     *
      * @return distributeurBatchSize
      */
     public static int getDistributeurBatchSize() {
@@ -1514,7 +1557,7 @@ public class VitamConfiguration {
 
     /**
      * Getter restore bulk size
-     * 
+     *
      * @return restoreBulkSize
      */
     public static int getRestoreBulkSize() {
@@ -1523,7 +1566,7 @@ public class VitamConfiguration {
 
     /**
      * Setter restore bulk size
-     * 
+     *
      * @param restoreBulkSize
      */
     public static void setRestoreBulkSize(int restoreBulkSize) {
@@ -1532,7 +1575,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for cacheControlDelay;
-     * 
+     *
      * @return cacheControlDelay
      */
     public static int getCacheControlDelay() {
@@ -1541,7 +1584,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for cacheControlDelay;
-     * 
+     *
      * @param cacheControlDelay
      */
     public static void setCacheControlDelay(int cacheControlDelay) {
@@ -1550,7 +1593,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for maxCacheEntries;
-     * 
+     *
      * @return maxCacheEntries
      */
     public static int getMaxCacheEntries() {
@@ -1559,7 +1602,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for maxCacheEntries;
-     * 
+     *
      * @param maxCacheEntries
      */
     public static void setMaxCacheEntries(int maxCacheEntries) {
@@ -1568,7 +1611,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for exportScore;
-     * 
+     *
      * @return exportScore
      */
     public static boolean isExportScore() {
@@ -1577,7 +1620,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for exportScore;
-     * 
+     *
      * @param exportScore
      */
     private static void setExportScore(boolean exportScore) {
@@ -1588,7 +1631,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for maxElasticsearchBulk;
-     * 
+     *
      * @return maxElasticsearchBulk
      */
     public static int getMaxElasticsearchBulk() {
@@ -1597,7 +1640,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for maxElasticsearchBulk;
-     * 
+     *
      * @param maxElasticsearchBulk
      */
     private static void setMaxElasticsearchBulk(int maxElasticsearchBulk) {
@@ -1606,7 +1649,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for numberDbClientThread;
-     * 
+     *
      * @return numberDbClientThread
      */
     public static int getNumberDbClientThread() {
@@ -1615,7 +1658,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for numberDbClientThread;
-     * 
+     *
      * @param numberDbClientThread
      */
     private static void setNumberDbClientThread(int numberDbClientThread) {
@@ -1624,7 +1667,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for numberEsQueue;
-     * 
+     *
      * @return numberEsQueue
      */
 
@@ -1634,7 +1677,7 @@ public class VitamConfiguration {
 
     /**
      * Setter for numberEsQueue;
-     * 
+     *
      * @param numberEsQueue
      */
     private static void setNumberEsQueue(int numberEsQueue) {
@@ -1666,6 +1709,15 @@ public class VitamConfiguration {
      */
     public static int getBatchSize() {
         return batchSize;
+    }
+
+    /**
+     * Set optimistic lock sleep time
+     *
+     * @param optimisticLockSleepTime
+     */
+    public static void setOptimisticLockSleepTime(int optimisticLockSleepTime) {
+        VitamConfiguration.optimisticLockSleepTime = optimisticLockSleepTime;
     }
 
     /**

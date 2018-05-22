@@ -5,25 +5,16 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
-
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -40,29 +31,39 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.assertj.core.api.Assertions;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class DbRequestSingleTest {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    static JunitHelper junitHelper;
-    static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
-    static int port;
     static VitamCollection vitamCollection;
 
     private final static String CLUSTER_NAME = "vitam-cluster";
@@ -72,24 +73,25 @@ public class DbRequestSingleTest {
 
     private static final Integer TENANT_ID = 0;
 
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "vitam-test",
-            "Unit", "ObjectGroup");
 
-    @Rule
-    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder.newFolder(), "Unit", "ObjectGroup");
 
-    private MongoClient mongoClient = mongoRule.getMongoClient();
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
+            CollectionSample.class.getSimpleName());
 
-    public DbRequestSingleTest() throws IOException {}
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(), CollectionSample.class.getSimpleName());
+
+    private static MongoClient mongoClient = mongoRule.getMongoClient();
 
 
     /**
      * @throws java.lang.Exception
      */
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
 
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
@@ -100,14 +102,25 @@ public class DbRequestSingleTest {
         vitamCollection.initialize(new ElasticsearchAccess(CLUSTER_NAME, nodes));
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
+    }
 
+    @Before
+    public void before() {
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
+    }
+
+    @After
+    public void after() {
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     /**
      * @throws java.lang.Exception
      */
     @AfterClass
-    public static void tearDown() throws Exception {
+    public static void tearDown() {
         if (config == null) {
             return;
         }
@@ -121,9 +134,8 @@ public class DbRequestSingleTest {
         throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
         VitamDBException, SchemaValidationException {
 
-        final DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
         assertEquals(0, vitamCollection.getCollection().count());
 
         // init by dbRequest
@@ -205,12 +217,76 @@ public class DbRequestSingleTest {
         deleteResult.close();
     }
 
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testOptimisticLockOK()
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
+
+        VitamConfiguration.setOptimisticLockSleepTime(10);
+        VitamConfiguration.setOptimisticLockRetryNumber(5);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        assertEquals(0, vitamCollection.getCollection().count());
+
+        // init by dbRequest
+        final ArrayNode datas = JsonHandler.createArrayNode();
+        datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "Optimistic lock test", 3));
+        final Insert insert = new Insert();
+        insert.setData(datas);
+        final DbRequestResult insertResult = new DbRequestSingle(vitamCollection).execute(insert);
+        assertEquals(1, insertResult.getCount());
+        assertEquals(1, vitamCollection.getCollection().count());
+        insertResult.close();
+
+        CountDownLatch countDownLatch = new CountDownLatch(5);
+        // update
+        VitamThreadFactory.getInstance().newThread(() -> update(countDownLatch, 1)).start();
+        VitamThreadFactory.getInstance().newThread(() -> update(countDownLatch, 2)).start();
+        VitamThreadFactory.getInstance().newThread(() -> update(countDownLatch, 3)).start();
+        VitamThreadFactory.getInstance().newThread(() -> update(countDownLatch, 4)).start();
+        VitamThreadFactory.getInstance().newThread(() -> update(countDownLatch, 5)).start();
+
+        try {
+            countDownLatch.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            fail("OptimisticLock KO : " + e.getMessage());
+        }
+
+        Document document = (Document) vitamCollection.getCollection().find(new Document("Numero", 3)).first();
+        Assertions.assertThat(document.getString("Title")).contains("thread_");
+        Assertions.assertThat(document.getInteger("_v")).isEqualTo(5);
+    }
+
+
+    private void update(CountDownLatch countDownLatch, int nbr) {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+            final Update update = new Update();
+            update.setQuery(eq("Numero", 3));
+            update.addActions(UpdateActionHelper.set("Title", "thread_" + nbr));
+
+            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection).execute(update);
+            System.err.println("Thread_" + nbr + " >> " + updateResult.getDiffs());
+            assertEquals(1, updateResult.getCount());
+            updateResult.close();
+        } catch (Exception e) {
+            LOGGER.error("should not throw exception : ", e);
+            fail("should not throw exception : " + e.getMessage());
+        } finally {
+            countDownLatch.countDown();
+        }
+    }
+
     private ObjectNode getNewDocument(String id, String title, Integer num) {
         final ObjectNode node = JsonHandler.createObjectNode();
         node.put("_id", id);
         node.put("Title", title);
         node.put("Numero", num);
         node.put("_tenant", TENANT_ID);
+        node.put("_v", 0);
         return node;
     }
 }
