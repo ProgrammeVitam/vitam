@@ -208,9 +208,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String RULES_KEY = "Rules";
     private static final String FINAL_ACTION_KEY = "FinalAction";
     private static final String INHERITANCE_KEY = "Inheritance";
+    private static final String PREVENT_INHERITANCE_KEY = "PreventInheritance";
     private static final String MANAGEMENT_PREFIX = MANAGEMENT_KEY + '.';
     private static final String RULES_PREFIX = '.' + RULES_KEY;
     private static final String FINAL_ACTION_PREFIX = '.' + FINAL_ACTION_KEY;
+    private static final String PREVENT_INHERITANCE_PREFIX = '.' + INHERITANCE_KEY + '.' + PREVENT_INHERITANCE_KEY;
+
 
     /**
      * AccessModuleImpl constructor
@@ -1058,6 +1061,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         for (String category : VitamConstants.getSupportedRules()) {
             ArrayNode rulesForCategory = null;
             JsonNode categoryNode = management.get(category);
+            JsonNode updatedPreventInheritanceNode = null;
+
             if (categoryNode != null) {
                 rulesForCategory = (ArrayNode) categoryNode.get(RULES_KEY);
             }
@@ -1087,19 +1092,16 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     Map<String, JsonNode> action = new HashMap<>();
                     updatedRules.addAll(createdRules);
 
-                    // size = 0 that means this category is empty -> lets unset rules
-                    if (updatedRules.size() != 0) {
-                        action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
-                        if (finalAction != null) {
-                            action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                    // size = 0 and updatedPreventInheritanceNode==null  means this category is empty -> lets unset rules
+                    if (updatedRules.size() != 0 || updatedPreventInheritanceNode != null) {
+                        if (updatedRules.size() != 0) {
+                            action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
+                            if (finalAction != null) {
+                                action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                            }
                         }
-                        if (classificationLevel != null) {
-                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
-                                classificationLevel);
-                        }
-                        if (classificationOwner != null) {
-                            action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_OWNER,
-                                classificationOwner);
+                        if (updatedPreventInheritanceNode != null) {
+                            action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
                         }
                     } else {
                         try {
@@ -1121,6 +1123,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // Check for new rules (rules only present in request)
                 ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
                 JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
+                updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
+
                 JsonNode classificationLevel =
                     updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
                 JsonNode classificationOwner =
@@ -1132,6 +1136,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, createdRules);
                 if (finalAction != null) {
                     action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                }
+                if (updatedPreventInheritanceNode != null) {
+                    action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX, updatedPreventInheritanceNode);
                 }
                 if (classificationLevel != null) {
                     action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
@@ -1190,8 +1197,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             // - {"#management.AccessRule":{"Rules":[...]}}
                             String ruleToBeChecked = field.substring(MANAGEMENT_PREFIX.length());
                             if (ruleToBeChecked.contains(".")) {
-                                String mainAtt = ruleToBeChecked.split("\\.")[0];
-                                String subAtt = ruleToBeChecked.split("\\.")[1];
+                                String[] params = ruleToBeChecked.split("\\.");
+                                String mainAtt = params[0];
+                                String subAtt = params[params.length - 1];
                                 objectToPut = JsonHandler.createObjectNode();
                                 objectToPut.set(subAtt, object.get(field));
                                 ruleToBeChecked = mainAtt;
@@ -1245,46 +1253,48 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         // Check for all rules in rulesForCategory and compare with rules in rulesForUpdatedCategory
         ArrayNode updatedRules = JsonHandler.createArrayNode();
-        for (JsonNode unitRule : rulesForCategory) {
-            boolean findIt = false;
-            Iterator<JsonNode> updateRulesIterator = rulesForUpdatedCategory.iterator();
-            // Try to find a matching rule in order to check update
-            while (!findIt && updateRulesIterator.hasNext()) {
-                JsonNode updateRule = updateRulesIterator.next();
-                String updateRuleName = updateRule.get("Rule").asText();
-                if (unitRule.get("Rule") != null && unitRule.get("Rule").asText().equals(updateRuleName)) {
-                    findIt = true;
+        if (rulesForCategory != null && rulesForUpdatedCategory != null) {
+            for (JsonNode unitRule : rulesForCategory) {
+                boolean findIt = false;
+                Iterator<JsonNode> updateRulesIterator = rulesForUpdatedCategory.iterator();
+                // Try to find a matching rule in order to check update
+                while (!findIt && updateRulesIterator.hasNext()) {
+                    JsonNode updateRule = updateRulesIterator.next();
+                    String updateRuleName = updateRule.get("Rule").asText();
+                    if (unitRule.get("Rule") != null && unitRule.get("Rule").asText().equals(updateRuleName)) {
+                        findIt = true;
 
-                    if (checkEndDateInRule(updateRule)) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule + " contains an endDate");
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_END_DATE.name());
-                    }
-                    if (!checkRuleFinalAction(category, finalAction)) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule + "(FinalAction: " + finalAction +
-                            ") contains wrong FinalAction");
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION.name());
-                    }
-                    JsonNode ruleInReferential = checkExistingRule(updateRuleName);
-                    if (ruleInReferential == null) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not in referential");
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST.name());
-                    }
-                    if (!category.equals(ruleInReferential.get("RuleType").asText())) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not a " + category);
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY.name());
-                    }
+                        if (checkEndDateInRule(updateRule)) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule + " contains an endDate");
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_END_DATE.name());
+                        }
+                        if (!checkRuleFinalAction(category, finalAction)) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule + "(FinalAction: " + finalAction +
+                                ") contains wrong FinalAction");
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION.name());
+                        }
+                        JsonNode ruleInReferential = checkExistingRule(updateRuleName);
+                        if (ruleInReferential == null) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not in referential");
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST.name());
+                        }
+                        if (!category.equals(ruleInReferential.get("RuleType").asText())) {
+                            LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not a " + category);
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY.name());
+                        }
 
-                    try {
-                        updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
-                    } catch (AccessInternalRuleExecutionException e) {
-                        throw new AccessInternalRuleExecutionException(
-                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE.name());
+                        try {
+                            updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
+                        } catch (AccessInternalRuleExecutionException e) {
+                            throw new AccessInternalRuleExecutionException(
+                                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE.name());
+                        }
+                        updatedRules.add(updateRule);
                     }
-                    updatedRules.add(updateRule);
                 }
             }
         }
@@ -1296,53 +1306,55 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         JsonNode finalAction)
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         ArrayNode createdRules = JsonHandler.createArrayNode();
-        for (JsonNode updateRule : rulesForUpdatedCategory) {
-            if (updateRule.get("Rule") == null) {
-                throw new AccessInternalRuleExecutionException(
-                    VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES.name());
-            }
-            boolean findIt = false;
-            if (rulesForCategory != null) {
-                for (JsonNode unitRule : rulesForCategory) {
-                    if (unitRule.get("Rule") != null &&
-                        unitRule.get("Rule").asText().equals(updateRule.get("Rule").asText())) {
-                        // Stop loop over unitRule
-                        findIt = true;
+        if (rulesForUpdatedCategory != null) {
+            for (JsonNode updateRule : rulesForUpdatedCategory) {
+                if (updateRule.get("Rule") == null) {
+                    throw new AccessInternalRuleExecutionException(
+                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES.name());
+                }
+                boolean findIt = false;
+                if (rulesForCategory != null) {
+                    for (JsonNode unitRule : rulesForCategory) {
+                        if (unitRule.get("Rule") != null &&
+                            unitRule.get("Rule").asText().equals(updateRule.get("Rule").asText())) {
+                            // Stop loop over unitRule
+                            findIt = true;
+                        }
                     }
                 }
-            }
-            if (!findIt) {
-                // Created Rule
-                if (checkEndDateInRule(updateRule)) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule + " contains an endDate");
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE.name());
-                }
-                if (!checkRuleFinalAction(category, finalAction)) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule + "(FinalAction: " + finalAction +
-                        ") contains wrong FinalAction");
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name());
-                }
-                JsonNode ruleInReferential = checkExistingRule(updateRule.get("Rule").asText());
-                if (ruleInReferential == null) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not in referential");
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST.name());
-                }
-                if (!category.equals(ruleInReferential.get("RuleType").asText())) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not a " + category);
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name());
-                }
+                if (!findIt) {
+                    // Created Rule
+                    if (checkEndDateInRule(updateRule)) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule + " contains an endDate");
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE.name());
+                    }
+                    if (!checkRuleFinalAction(category, finalAction)) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule + "(FinalAction: " + finalAction +
+                            ") contains wrong FinalAction");
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name());
+                    }
+                    JsonNode ruleInReferential = checkExistingRule(updateRule.get("Rule").asText());
+                    if (ruleInReferential == null) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not in referential");
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST.name());
+                    }
+                    if (!category.equals(ruleInReferential.get("RuleType").asText())) {
+                        LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not a " + category);
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name());
+                    }
 
-                try {
-                    updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
-                } catch (AccessInternalRuleExecutionException e) {
-                    throw new AccessInternalRuleExecutionException(
-                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE.name());
+                    try {
+                        updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
+                    } catch (AccessInternalRuleExecutionException e) {
+                        throw new AccessInternalRuleExecutionException(
+                            VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE.name());
+                    }
+                    createdRules.add(updateRule);
                 }
-                createdRules.add(updateRule);
             }
         }
 
