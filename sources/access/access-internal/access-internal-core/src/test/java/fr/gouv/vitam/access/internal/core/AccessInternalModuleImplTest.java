@@ -242,6 +242,10 @@ public class AccessInternalModuleImplTest {
             + "\"$action\":["
             + "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
 
+    private static final String QUERY_PREVENT_INHERITANCE = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+        + "\"$action\":["
+        + "{\"$set\":{\"#management.AccessRule.Inheritance.PreventInheritance\":\"false\"}}]}}";
+
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
     private static final UpdateMultiQuery updateQuery = new UpdateMultiQuery();
@@ -854,6 +858,12 @@ public class AccessInternalModuleImplTest {
             results.getRequest().getActions().get(0).getCurrentObject().get("#management.StorageRule.Rules").size());
         assertEquals("Copy", results.getRequest().getActions().get(0).getCurrentObject()
             .get("#management.StorageRule.FinalAction").asText());
+
+        results = executeCheck(QUERY_PREVENT_INHERITANCE);
+        assertEquals(0,
+            results.getRequest().getActions().get(0).getCurrentObject().get("#management.AccessRule.Rules").size());
+        assertEquals("false", results.getRequest().getActions().get(0).getCurrentObject()
+            .get("#management.AccessRule.Inheritance.PreventInheritance").asText());
 
         try {
             executeCheck(QUERY_STRING_WITH_END);

@@ -709,7 +709,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @param tenantId
      * @param id
-     * @param object full object
+     * @param og full object
      * @return True if updated
      */
     public boolean updateFullOneOG(MetadataCollections collection, Integer tenantId, String id, ObjectGroup og) {
