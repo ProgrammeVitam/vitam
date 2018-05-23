@@ -30,25 +30,6 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -65,6 +46,25 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -117,6 +117,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -148,6 +149,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionExce
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupEveryDataObjectVersionException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
@@ -200,6 +203,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String SUBTASK_ATTACHEMENT_LINK = "CHECK_MANIFEST_WRONG_ATTACHMENT_LINK";
     private static final String SUBTASK_MALFORMED = "CHECK_MANIFEST_MALFORMED_DATA";
     private static final String EXISTING_OG_NOT_DECLARED = "EXISTING_OG_NOT_DECLARED";
+    private static final String MASTER_MANDATORY_REQUIRED = "MASTER_MANDATORY_REQUIRED";
+    private static final String ATTACHMENT_OBJECTGROUP = "ATTACHMENT_OBJECTGROUP";
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_ID = "LFC_CREATION";
     private static final String ATTACHMENT_IDS = "_up";
@@ -266,11 +271,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final Map<String, DataObjectInfo> objectGuidToDataObject;
     private final Map<String, DataObjectDetail> dataObjectIdToDetailDataObject;
     private final Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters;
+    private final Map<String, Boolean> dataObjectGroupMasterMandatory;
 
     private final List<Class<?>> handlerInputIOList = Arrays.asList(String.class, String.class, File.class);
     private File globalSedaParametersFile;
     private final Map<String, Set<String>> unitIdToSetOfRuleId;
     private final Map<String, StringWriter> mngtMdRuleIdToRulesXml;
+    private final Map<String, String> archiveUnitIdToGotIdForItemStatus;
     private int nbAUExisting = 0;
 
     private final List<String> originatingAgencies;
@@ -304,6 +311,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private AdminManagementClientFactory adminManagementClientFactory;
 
     private ObjectNode archiveUnitTree;
     private Map<String, JsonNode> existingGOTs;
@@ -313,11 +321,35 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      */
     public ExtractSedaActionHandler() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
+            AdminManagementClientFactory.getInstance());
     }
 
-    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+    @VisibleForTesting
+    Map<String, String> getUnitIdToGroupId() {
+        return unitIdToGroupId;
+    }
+
+    @VisibleForTesting
+    Map<String, String> getDataObjectIdToObjectGroupId() {
+        return dataObjectIdToObjectGroupId;
+    }
+
+    @VisibleForTesting
+    ObjectNode getArchiveUnitTree() {
+        return archiveUnitTree;
+    }
+
+    @VisibleForTesting
+    Map<String, Set<String>> getUnitIdToSetOfRuleId() {
+        return unitIdToSetOfRuleId;
+    }
+
+
+    @VisibleForTesting
+    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -337,12 +369,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
         physicalDataObjetsGuids = new HashSet<>();
         originatingAgencies = new ArrayList<>();
         existingGOTs = new HashMap<>();
+        archiveUnitIdToGotIdForItemStatus = new HashMap<>();
         existingUnitIdWithExistingObjectGroup = new HashMap<>();
+        dataObjectGroupMasterMandatory = new HashMap<>();
         isThereManifestRelatedReferenceRemained = new HashMap<>();
-
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     /**
@@ -494,6 +528,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final MissingFieldException e) {
             LOGGER.debug("MissingFieldException", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingObjectGroupMasterMandatoryException e) {
+            globalCompositeItemStatus.increment(StatusCode.KO);
+            updateDetailItemStatus(globalCompositeItemStatus,
+                getMessageItemStatusGOTMasterMandatory(e.getObjectGroupId()),
+                MASTER_MANDATORY_REQUIRED);
+        } catch (ProcessingObjectGroupEveryDataObjectVersionException e) {
+            globalCompositeItemStatus.increment(StatusCode.KO);
+            updateDetailItemStatus(globalCompositeItemStatus,
+                getMessageItemStatusGOTEveryDataObjectVersion(e.getUnitId(), e.getObjectGroupId()),
+                ATTACHMENT_OBJECTGROUP);
         } catch (final ArchiveUnitContainDataObjectException e) {
             LOGGER.debug("ProcessingException: archive unit contain an data object declared object group.", e);
             globalCompositeItemStatus.setEvDetailData(e.getEventDetailData());
@@ -562,6 +606,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ObjectNode error = JsonHandler.createObjectNode();
         error.put(SedaConstants.TAG_ARCHIVE_UNIT, unitId);
         error.put(SedaConstants.TAG_BINARY_DATA_OBJECT_ID, bdoId);
+        error.put(SedaConstants.TAG_DATA_OBJECT_GROUPE_ID, gotId);
+        return JsonHandler.unprettyPrint(error);
+    }
+
+    private String getMessageItemStatusGOTEveryDataObjectVersion(final String unitId, String objectGroupId) {
+        ObjectNode error = JsonHandler.createObjectNode();
+        error.put(SedaConstants.TAG_ARCHIVE_UNIT, unitId);
+        error.put(SedaConstants.TAG_DATA_OBJECT_REFERENCEID, objectGroupId);
+        return JsonHandler.unprettyPrint(error);
+    }
+
+    private String getMessageItemStatusGOTMasterMandatory(final String gotId) {
+        ObjectNode error = JsonHandler.createObjectNode();
         error.put(SedaConstants.TAG_DATA_OBJECT_GROUPE_ID, gotId);
         return JsonHandler.unprettyPrint(error);
     }
@@ -992,9 +1049,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             Stopwatch saveObjectGroupToWorkspaceStopWatch = Stopwatch.createStarted();
 
+            checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup();
             saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
                 storageInfo);
-
             PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.saveObjectGroup",
                 saveObjectGroupToWorkspaceStopWatch.elapsed(TimeUnit.MILLISECONDS));
 
@@ -1241,9 +1298,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         .transferFileToWorkspace(path + File.separator + unitGuid + JSON_EXTENSION,
                             unitCompleteTmpFile, true, asyncIO);
                 } finally {
-                    if (!unitTmpFileForRead.delete()) {
-                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-                    }
+                    deleteFileIfExist(unitTmpFileForRead);
                 }
             }
 
@@ -1762,7 +1817,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 jsonWriter.add(eventFactory.createCharacters(dataObjectId));
                 jsonWriter.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_ID));
 
-                // ObjectGroup Wrapping mode (seda version >= 2.1)
+                //ObjectGroup Wrapping mode (seda version >= 2.1)
                 if (currentGroupId != null) {
                     if (objectGroupIdToDataObjectId.get(currentGroupId) == null) {
                         final List<String> dataOjectList = new ArrayList<>();
@@ -2188,6 +2243,111 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return logbookLifeCycleParameters;
     }
 
+
+    private void checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup() throws ProcessingException {
+
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
+
+            RequestResponse<IngestContractModel> referenceContracts = getIngestContract(adminClient);
+            if (referenceContracts.isOk()) {
+                List<IngestContractModel> results =
+                    ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
+                if (results != null && results.size() > 0) {
+                    IngestContractModel contract = results.iterator().next();
+                    List<String> usages = new ArrayList<>();
+                    for (final Entry<String, List<String>> entry : objectGroupIdToDataObjectId.entrySet()) {
+                        dataObjectGroupMasterMandatory.put(entry.getKey(), false);
+                        for (int index = 0; index < entry.getValue().size(); index++) {
+                            final String id = entry.getValue().get(index);
+                            final File dataObjectFile =
+                                handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
+                            JsonNode dataObjectNode =
+                                JsonHandler.getFromFile(dataObjectFile).get(BINARY_DATA_OBJECT);
+
+                            if (dataObjectNode == null) {
+                                dataObjectNode = JsonHandler
+                                    .getFromFile(dataObjectFile)
+                                    .get(PHYSICAL_DATA_OBJECT);
+                            }
+                            String nodeCategory = "";
+                            if (dataObjectNode.get(SedaConstants.TAG_DO_VERSION) != null) {
+                                nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
+                            }
+                            if (nodeCategory.split("_").length == 1) {
+                                final String nodeCategoryNumbered = nodeCategory + "_1";
+                                ((ObjectNode) dataObjectNode)
+                                    .put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
+                            }
+                            nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
+                            if ((BINARY_MASTER.equals(nodeCategory.split("_")[0]) ||
+                                PHYSICAL_MASTER.equals(nodeCategory.split("_")[0]))) {
+                                dataObjectGroupMasterMandatory.replace(entry.getKey(), true);
+                            }
+                            usages.add(nodeCategory.split("_")[0]);
+                        }
+                    }
+                    if (contract.isMasterMandatory()) {
+                        List<String> objectIdWithoutMaster =
+                            dataObjectGroupMasterMandatory.entrySet().stream().filter(entry -> !entry.getValue())
+                                .map(Entry::getKey).collect(Collectors.toList());
+                        if (!objectIdWithoutMaster.isEmpty()) {
+                            String objectGroupsId = objectIdWithoutMaster.stream().collect(Collectors.joining(" , "));
+                            throw new ProcessingObjectGroupMasterMandatoryException(String.format(
+                                "BinaryMaster or PhysicalMaster is not present for objectGroup : %s",
+                                objectGroupsId), objectGroupsId);
+                        }
+                    }
+                    checkIngestContractForObjectGroupAttachment(contract, usages);
+                }
+            }
+        } catch (AdminManagementClientServerException | InvalidParseOperationException |
+            InvalidCreateOperationException e) {
+            throw new ProcessingException(e);
+        }
+
+    }
+
+    private RequestResponse<IngestContractModel> getIngestContract(AdminManagementClient adminClient)
+        throws InvalidParseOperationException, InvalidCreateOperationException, AdminManagementClientServerException {
+        JsonNode archivalTransfert =
+            JsonHandler.getFromFile(globalSedaParametersFile).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+        JsonNode archival_Agreement = archivalTransfert.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(IngestContract.IDENTIFIER, archival_Agreement.asText()));
+        JsonNode queryDsl = select.getFinalSelect();
+        return adminClient.findIngestContracts(queryDsl);
+    }
+
+    private void checkIngestContractForObjectGroupAttachment(IngestContractModel contract,
+        List<String> usages)
+        throws ProcessingObjectGroupEveryDataObjectVersionException {
+
+        if (!existingUnitIdWithExistingObjectGroup.isEmpty() && !contract.isEveryDataObjectVersion()) {
+            final Set<String> dataObjectVersion = contract.getDataObjectVersion();
+            if (dataObjectVersion != null && !dataObjectVersion.isEmpty()) {
+                List<String> usageInObjectVersion =
+                    usages.stream().filter(dataObjectVersion::contains).collect(Collectors.toList());
+                if (usageInObjectVersion.size() == usages.size()) {
+                    return;
+                }
+            }
+            List<String> ogId = new ArrayList<>();
+
+            existingUnitIdWithExistingObjectGroup.entrySet().stream()
+                .map(Entry::getKey)
+                .forEach(unitGuid -> unitIdToGuid.entrySet().stream()
+                    .filter(entry -> entry.getValue().contains(unitGuid))
+                    .findFirst()
+                    .ifPresent(unitmap -> ogId.add(unitIdToGroupId.get(unitmap.getKey()))));
+            String objectGroupsId = ogId.stream().collect(Collectors.joining(" , "));
+            String unitsId =
+                existingUnitIdWithExistingObjectGroup.keySet().stream().collect(Collectors.joining(" , "));
+            throw new ProcessingObjectGroupEveryDataObjectVersionException(
+                "Ingest Contract don't authorized ObjectGroup attachement",
+                unitsId, objectGroupsId);
+        }
+    }
+
     private void saveObjectGroupsToWorkspace(
         String containerId,
         LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess, String originatingAgency,
@@ -2253,6 +2413,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
                 objectGroup.put(SedaConstants.PREFIX_TENANT_ID, ParameterHelper.getTenantParameter());
+
                 final List<String> versionList = new ArrayList<>();
                 for (int index = 0; index < entry.getValue().size(); index++) {
                     final String id = entry.getValue().get(index);
@@ -2292,9 +2453,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             objectGroupType = dataObjectNode.get(METADATA).fieldNames().next();
                         }
                     }
-                    if (!dataObjectFile.delete()) {
-                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-                    }
+                    deleteFileIfExist(dataObjectFile);
                 }
 
                 objectGroup.put(SedaConstants.PREFIX_TYPE, objectGroupType);
@@ -2381,6 +2540,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         manageExistingObjectGroups(containerId, logbookLifeCycleClient, typeProcess, uuids);
+    }
+
+    private void deleteFileIfExist(File file) {
+        if (!file.delete()) {
+            LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
+        }
     }
 
     /**
@@ -2706,31 +2871,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (!handler.checkHandlerIO(HANDLER_IO_OUT_PARAMETER_NUMBER, handlerInputIOList)) {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
-    }
-
-    @VisibleForTesting
-    Map<String, String> getUnitIdToGroupId() {
-        return unitIdToGroupId;
-    }
-
-    @VisibleForTesting
-    Map<String, String> getDataObjectIdToGuid() {
-        return dataObjectIdToGuid;
-    }
-
-    @VisibleForTesting
-    Map<String, String> getDataObjectIdToObjectGroupId() {
-        return dataObjectIdToObjectGroupId;
-    }
-
-    @VisibleForTesting
-    ObjectNode getArchiveUnitTree() {
-        return archiveUnitTree;
-    }
-
-    @VisibleForTesting
-    Map<String, Set<String>> getUnitIdToSetOfRuleId() {
-        return unitIdToSetOfRuleId;
     }
 
 }
