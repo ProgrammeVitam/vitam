@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -48,6 +49,7 @@ public class AtrKoBuilder {
     private static final String COMMENT = "#COMMENT#";
     private static final String EVENT_TYPE = "#EVENT_TYPE#";
     private static final String EVENT_TYPE_CODE = "#EVENT_TYPE_CODE#";
+    private static final String EVENT_DATE_TIME = "#EVENT_DATE_TIME#";
     private static final String OUTCOME = "#OUTCOME#";
     private static final String OUTCOME_DETAIL = "#OUTCOME_DETAIL#";
     private static final String OUTCOME_DETAIL_MESSAGE = "#OUTCOME_DETAIL_MESSAGE#";
@@ -72,7 +74,7 @@ public class AtrKoBuilder {
      * @throws IngestExternalException
      */
     public static String buildAtrKo(String messageIdentifier, String archivalAgency, String transferringAgency,
-        String eventType, String addedMessage, StatusCode code) throws IngestExternalException {
+                                    String eventType, String addedMessage, StatusCode code, LocalDateTime eventDateTime) throws IngestExternalException {
         String xmlDefault;
         try {
             xmlDefault = FileUtil.readInputStream(PropertiesUtils.getResourceAsStream(ATR_KO_DEFAULT_XML));
@@ -89,6 +91,7 @@ public class AtrKoBuilder {
                 .replace(ARCHIVAL_AGENCY, archivalAgency).replace(TRANSFERRING_AGENCY, transferringAgency)
                 .replace(COMMENT, detail)
                 .replace(EVENT_TYPE_CODE, eventType).replace(EVENT_TYPE, event)
+                .replace(EVENT_DATE_TIME, eventDateTime.toString())
                 .replaceAll(OUTCOME, code.name())
                 .replace(OUTCOME_DETAIL, eventType +"."+ code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
     }

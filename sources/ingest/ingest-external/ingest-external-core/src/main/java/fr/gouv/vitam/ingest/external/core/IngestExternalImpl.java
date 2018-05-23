@@ -571,16 +571,16 @@ public class IngestExternalImpl implements IngestExternal {
             if (isFileInfected) {
                 atrKo = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
                     "TransferringAgencyToBeDefined",
-                    atrEventType, additionalMessage, statusCode);
+                    atrEventType, additionalMessage, statusCode, stpIngestFinalisationParameters.getEventDateTime());
 
             } else if (statusCode.equals(StatusCode.FATAL)) {
                 atrKo = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
                     "TransferringAgencyToBeDefined",
-                    atrEventType, additionalMessage, statusCode);
+                    atrEventType, additionalMessage, statusCode, stpIngestFinalisationParameters.getEventDateTime());
             } else {
                 atrKo = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
                     "TransferringAgencyToBeDefined",
-                    atrEventType, additionalMessage, statusCode);
+                    atrEventType, additionalMessage, statusCode, stpIngestFinalisationParameters.getEventDateTime());
             }
             if (isFileInfected || !statusCode.equals(StatusCode.FATAL)) {
                 storeATR(operationId, atrKo);
@@ -752,7 +752,7 @@ public class IngestExternalImpl implements IngestExternal {
         }
         String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
             "TransferringAgencyToBeDefined",
-            INGEST_INT_UPLOAD, null, StatusCode.FATAL);
+            INGEST_INT_UPLOAD, null, StatusCode.FATAL, stpIngestFinalisationParameters.getEventDateTime());
 
         AsyncInputStreamHelper responseHelper =
             new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(atr.getBytes(CharsetUtils.UTF8)));

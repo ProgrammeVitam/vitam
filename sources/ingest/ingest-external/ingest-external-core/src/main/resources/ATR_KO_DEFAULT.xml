@@ -12,19 +12,20 @@
         <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
         <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
         <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
-    </CodeListVersions>  
+    </CodeListVersions>
 
+    <ReplyCode>#OUTCOME#</ReplyCode>
     <Operation>
         <Event>
             <EventTypeCode>#EVENT_TYPE_CODE#</EventTypeCode>
             <EventType>#EVENT_TYPE#</EventType>
+            <EventDateTime>#EVENT_DATE_TIME#</EventDateTime>
             <Outcome>#OUTCOME#</Outcome>
             <OutcomeDetail>#OUTCOME_DETAIL#</OutcomeDetail>
             <OutcomeDetailMessage>#OUTCOME_DETAIL_MESSAGE#</OutcomeDetailMessage>
         </Event>
     </Operation>
-    
-    <ReplyCode>#OUTCOME#</ReplyCode>
+
     <MessageRequestIdentifier>Unknown</MessageRequestIdentifier>
     <ArchivalAgency>
         <Identifier>#ARCHIVAL_AGENCY#</Identifier>
