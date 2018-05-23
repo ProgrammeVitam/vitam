@@ -146,6 +146,10 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
+
+            // Check valid variable names first
+            parseOrderByFilter(rootNode);
+
             request.setFilter(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
@@ -177,7 +181,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      * { expression }
      *
      * @param command JsonNode
-     * @throws InvalidParseOperationException  if command is null or command could not parse to JSON
+     * @throws InvalidParseOperationException if command is null or command could not parse to JSON
      * @throws InvalidCreateOperationException if could not set query to request or analyzeOneCommand is in error
      */
     protected void analyzeRootQuery(final JsonNode command)
@@ -229,7 +233,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      *
      * @param condition the condition to add
      * @throws InvalidCreateOperationException when invalid create query exception occurred
-     * @throws InvalidParseOperationException  hen invalid parse data to create query
+     * @throws InvalidParseOperationException hen invalid parse data to create query
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         final RequestParserSingle newOne = RequestParserHelperSingle.getParser(rootNode.deepCopy(), adapter);

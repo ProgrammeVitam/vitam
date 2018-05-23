@@ -28,8 +28,10 @@ package fr.gouv.vitam.common.database.parser.request;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.AbstractRequest;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -37,6 +39,8 @@ import fr.gouv.vitam.common.database.parser.query.QueryParserHelper;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import java.util.Iterator;
 
 /**
  * Abstract class implementing Parser for a Request
@@ -173,4 +177,23 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      */
     public abstract boolean hintCache();
 
+    protected void parseOrderByFilter(JsonNode filterNode) throws InvalidParseOperationException {
+        if (filterNode.has(BuilderToken.SELECTFILTER.ORDERBY.exactToken())) {
+            final ObjectNode node = (ObjectNode) filterNode.get(BuilderToken.SELECTFILTER.ORDERBY.exactToken());
+            ObjectNode finalNode = node.deepCopy();
+            final Iterator<String> names = node.fieldNames();
+            while (names.hasNext()) {
+                final String name = names.next();
+                final String dbName = adapter.getVariableName(name);
+
+                // Force update rootNode with correct dbName (replace '#' by '_')
+                if (null != dbName) {
+                    final JsonNode value = finalNode.remove(name);
+                    finalNode.set(dbName, value);
+                }
+            }
+            node.removeAll();
+            node.setAll(finalNode);
+        }
+    }
 }

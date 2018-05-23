@@ -178,24 +178,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
             // Check valid variable names first
-            if (rootNode.has(SELECTFILTER.ORDERBY.exactToken())) {
-                final ObjectNode node = (ObjectNode) rootNode.get(SELECTFILTER.ORDERBY.exactToken());
-                ObjectNode finalNode = node.deepCopy();
-                final Iterator<String> names = node.fieldNames();
-                while (names.hasNext()) {
-                    final String name = names.next();
-                    final String dbName = adapter.getVariableName(name);
-
-                    // Force update rootNode with correct dbName (replace '#' by '_')
-                    if (null != dbName) {
-                        final JsonNode value = finalNode.remove(name);
-                        finalNode.set(dbName, value);
-                    }
-                }
-                node.removeAll();
-                node.setAll(finalNode);
-            }
-
+            parseOrderByFilter(rootNode);
             request.setFilter(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
