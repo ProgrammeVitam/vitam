@@ -289,12 +289,17 @@ pipeline {
                         artifacts: 'target/checkmarx-report.pdf',
                         fingerprint: true
                     )
+                    slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
+                }
+                unstable {
+                    slackSend (color: '#ffaa00', message: "Build Unstable de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
                 }
                 failure {
                     archiveArtifacts (
                         artifacts: 'logs/cxconsole.log',
                         fingerprint: true
                     )
+                    slackSend (color: '#a30000', message: "Build KO de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
                 }
             }
 
