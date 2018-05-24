@@ -43,6 +43,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,6 @@ public class ReconstructionService {
     public static final String $_SET = "$set";
     public static final String GRAPH_LAST_PERSISTED_DTE = "_glpd";
     public static final String GRAPH_LAST_PERSISTED_DATE = GRAPH_LAST_PERSISTED_DTE;
-    public static final int NB_RETRY = 1000;
 
     private RestoreBackupService restoreBackupService;
 
@@ -339,7 +339,8 @@ public class ReconstructionService {
                 }
 
 
-                reconstructCollectionMetadatas(collection, dataFromOffer, Integer.valueOf(NB_RETRY));
+                reconstructCollectionMetadatas(collection, dataFromOffer,
+                    VitamConfiguration.getOptimisticLockRetryNumber());
                 reconstructCollectionLifecycles(collection, dataFromOffer);
                 MetadataBackupModel last = Iterables.getLast(dataFromOffer);
                 newOffset = last.getOffset();
@@ -383,11 +384,24 @@ public class ReconstructionService {
     private void preventAlreadyExistingGraphData(MetadataCollections collection,
         List<MetadataBackupModel> dataFromOffer) {
 
-        List<String> idList =
-            dataFromOffer.stream().map(model -> model.getMetadatas().getString(ID)).collect(Collectors.toList());
+        List<MetadataBackupModel> toRemove = new ArrayList<>();
+        Map<String, MetadataBackupModel> dataMap = new HashMap<>();
 
-        final Map<String, Document> dataMap = dataFromOffer.stream().map(MetadataBackupModel::getMetadatas)
-            .collect(Collectors.toMap(document -> document.getString(ID), document -> document));
+        for (MetadataBackupModel mbm : dataFromOffer) {
+            Document document = mbm.getMetadatas();
+            String id = document.getString(ID);
+            MetadataBackupModel alreadyExists = dataMap.remove(id);
+            if (null != alreadyExists) {
+                toRemove.add(alreadyExists);
+            }
+
+            dataMap.put(id, mbm);
+        }
+
+        // Remove duplicate document and keep only the latest one (as they have the latest version in the storage)
+        dataFromOffer.removeAll(toRemove);
+
+
         final Bson projection;
 
         switch (collection) {
@@ -403,7 +417,7 @@ public class ReconstructionService {
 
 
         try (MongoCursor<Document> iterator = this.vitamRepositoryProvider.getVitamMongoRepository(collection)
-            .findDocuments(idList, projection)
+            .findDocuments(dataMap.keySet(), projection)
             .iterator()) {
 
             while (iterator.hasNext()) {
@@ -413,7 +427,7 @@ public class ReconstructionService {
 
                 Document sourceDocument = iterator.next();
                 String id = sourceDocument.getString(ID);
-                Document targetDocument = dataMap.get(id);
+                Document targetDocument = dataMap.get(id).getMetadatas();
 
                 targetDocument.putAll(sourceDocument);
             }
@@ -496,7 +510,7 @@ public class ReconstructionService {
                 LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct AU/GOT");
 
                 try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(100));
+                    Thread.sleep(ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
                 } catch (InterruptedException e1) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
                     throw new DatabaseException(e1);
@@ -518,7 +532,7 @@ public class ReconstructionService {
 
     /**
      * @param metaDaCollection
-     * @param zipStream         The zip inputStream
+     * @param zipStream        The zip inputStream
      * @throws DatabaseException
      */
     private void reconstructGraphFromZipStream(MetadataCollections metaDaCollection, InputStream zipStream)
@@ -526,7 +540,7 @@ public class ReconstructionService {
         LOGGER.info("[Reconstruction]: Back up of metadatas bulk");
 
         try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                .createArchiveInputStream(CommonMediaType.valueOf(CommonMediaType.ZIP), zipStream)) {
+            .createArchiveInputStream(CommonMediaType.valueOf(CommonMediaType.ZIP), zipStream)) {
             ArchiveEntry entry;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {

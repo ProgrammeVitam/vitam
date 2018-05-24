@@ -592,6 +592,10 @@ public class DbRequestSingle {
                 if (nbTry > 0) {
                     document = (VitamDocument<?>) collection.find(eq(VitamDocument.ID, documentId)).first();
                     documentBeforeUpdate = JsonHandler.prettyPrint(document);
+
+                    if (null == document) {
+                        throw new DatabaseException("[Optimistic_Lock]: Can not modify a deleted Document");
+                    }
                 }
 
                 nbTry++;
@@ -630,7 +634,7 @@ public class DbRequestSingle {
 
 
                     if (!updated) {
-                        LOGGER.warn(
+                        LOGGER.error(
                             "[Optimistic_Lock]: optimistic lock occurs while update document with id (" + documentId +
                                 ") of the collection " + vitamCollection.getName() + " retry number = " + nbTry);
 
