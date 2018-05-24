@@ -101,14 +101,69 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
           "aeaqaaaaaahccnklabtgyak7pkvypgqaaacq",
           "aeaqaaaaaahccnklabtgyak7pkvypgyaaaba"
       ],
-      "_uds": {
-          "aeaqaaaaaahccnklabtgyak7pkvypgqaaaba": 3,
-          "aeaqaaaaaahccnklabtgyak7pkvypgqaaacq": 2,
-          "aeaqaaaaaahccnklabtgyak7pkvypgyaaaba": 1
-      },
+
+   "_uds": {
+       "1": ["aeaqaaaaaahccnklabtgyak7pkvypgyaaaba"],
+       "2": ["aeaqaaaaaahjgl36aazigaldnxdkimiaaabq"],
+       "3": ["aeaqaaaaaahccnklabtgyak7pkvypgqaaaba"],
+   },
+	]
       "_v": 1,
       "_tenant": 0
     }
+
+
+Voici un autre extrait de détail JON : 
+
+
+.. code-block:: json
+
+   { .....
+   "_sp": "SP1",
+   "_up": [
+       "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
+       "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba"
+   ],
+   
+   "_us": [
+       "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
+       "aeaqaaaaaahjgl36aazigaldnxdkimiaaabq",
+       "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba"
+   ],
+   "_sps": [
+       "SP1",
+       "SP2"
+   ],
+   "_graph": [
+       "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq/aeaqaaaaaahjgl36aazigaldnxdkimiaaabq",
+       "aeaqaaaaaahjgl36aazigaldnxdkiviaaaba/aeaqaaaaaahjgl36aazigaldnxdkivaaaaba",
+       "aeaqaaaaaahjgl36aazigaldnxdkiviaaaba/aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
+       "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba/aeaqaaaaaahjgl36aazigaldnxdkimiaaabq"
+   ],
+   "_uds": {
+       "1": [
+           "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba",
+           "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq"
+       ],
+       "2": [
+           "aeaqaaaaaahjgl36aazigaldnxdkimiaaabq"
+       ]
+   },
+   "_us_sp": {
+       "SP1": [
+           "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba",
+           "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq"
+       ],
+       "SP2": [
+           "aeaqaaaaaahjgl36aazigaldnxdkimiaaabq",
+       ]
+   },
+   "_min": 1,
+   "_max": 3,
+   "_glpd": "2018-05-17T11:05:38.705"
+   }
+
+
 
 Détail du JSON
 ==============
@@ -259,6 +314,20 @@ Cette transposition se fait comme suit :
   * Il s'agit d'un tableau de JSON.
   * Champ peuplé par la solution logicielle Vitam.
   * Cardinalité : 1-1
+
+**"_us_sp":** Liste des AU parents concernant tous les niveaux de parentalité
+
+  * Il s'agit d'un tableau contenant les identifiants de tous les services producteurs de tous les parents liées à l'unité archivistique.
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Ne peut être vide. Il comprend au minimum le service versant déclaré dans le bordereau de transfert.
+  * Cardinalité : 1-1
+
+**"_glpd":** Date de la dernière modification de la partie _graph
+
+  * Il s'agit d'une chaîne de 36 caractères correspondant à une date.
+  * Champ peuplé par la solution logicielle Vitam.
+  * Cardinalité : 1-1
+
 
 **_profil:** Profil d'archivage utilisé lors de l'entrée.
 

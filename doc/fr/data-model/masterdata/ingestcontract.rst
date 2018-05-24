@@ -52,6 +52,9 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
       "LastUpdate": "2017-04-10T11:30:33.798",
       "ActivationDate": "2017-04-10T11:30:33.798",
       "DeactivationDate": null,
+      "MasterMandatory":true,
+      "EveryDataObjectVersion":false,
+      "DataObjectVersion":"PhysicalMaster"
       "ArchiveProfiles": [
           "ArchiveProfile8"
       ],
@@ -115,7 +118,7 @@ Détail des champs de la collection IngestContract
 
   * Cardinalité : 0-1
 
-**"DeactivationDate":** date de désactivation du contrat.
+**DeactivationDate:** date de désactivation du contrat.
 
   * La date est au format ISO 8601
 
@@ -123,9 +126,23 @@ Détail des champs de la collection IngestContract
 
   * Cardinalité : 0-1
 
-**"ArchiveProfiles":** liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
+
+**MasterIsMandatory:** Option qui rend obligatoire la présence d'un objet dont l'usage est de type Master (Physical ou Binary) 
   
-  * Tableau de chaînes de caractères correspondant à la valeur du champ Identifier de la collection Profile.
+  * True ou false
+  * Peut être vide mais sera à enregistré à true
+  * Cardinalité : 0-1
+
+
+**DataObjectVersion:** Option qui permet de préciser les types d'usages autorisés lors des imports. 
+  
+  * Liste des valeurs autorisées : Dissemination, Text Content, Physical Master, Binary Master, Thumbnail 
+  * Peut être vide
+  * Cardinalité : 0-1
+
+**EveryDataObjectVersion:** Option qui permet de préciser que tous les types d'usages sont autorisés lors des imports. 
+  
+  * Liste des valeurs autorisées : true, false
   * Peut être vide
   * Cardinalité : 0-1
 
