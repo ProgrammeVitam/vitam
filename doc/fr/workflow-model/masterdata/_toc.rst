@@ -15,3 +15,4 @@ MASTERDATA
    security_profiles
    contextes
    documents-type
+ontologie
