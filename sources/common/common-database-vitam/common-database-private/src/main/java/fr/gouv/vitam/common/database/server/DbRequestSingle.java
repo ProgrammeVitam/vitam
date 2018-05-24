@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -84,6 +85,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -279,6 +281,7 @@ public class DbRequestSingle {
             document.remove(VitamDocument.ID);
             document.remove(VitamDocument.SCORE);
             final String mongoJson = document.toJson(new JsonWriterSettings(JsonMode.STRICT));
+
             document.clear();
             final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
             mapIdJson.put(id, esJson);
@@ -553,18 +556,31 @@ public class DbRequestSingle {
         searchResult.close();
         final Map<String, List<String>> diffs = new HashMap<>();
         List<VitamDocument<?>> listUpdatedDocuments = new ArrayList<>();
+        MongoCollection collection = vitamCollection.getCollection();
+
         for (VitamDocument<?> document : listDocuments) {
             document.remove(VitamDocument.SCORE);
             final String documentId = document.getId();
-            final Integer documentVersion = document.getVersion();
-            final String documentBeforeUpdate = JsonHandler.prettyPrint(document);
+            String documentBeforeUpdate = JsonHandler.prettyPrint(document);
 
             VitamDocument<?> updatedDocument = null;
             int nbTry = 0;
             boolean modified = false;
+            boolean updated = false;
 
-            while (updatedDocument == null && nbTry < 10) {
+            while (!updated && nbTry < VitamConfiguration.getOptimisticLockRetryNumber()) {
+
+                if (nbTry > 0) {
+                    document = (VitamDocument<?>) collection.find(eq(VitamDocument.ID, documentId)).first();
+                    documentBeforeUpdate = JsonHandler.prettyPrint(document);
+
+                    if (null == document) {
+                        throw new DatabaseException("[Optimistic_Lock]: Can not modify a deleted document");
+                    }
+                }
+
                 nbTry++;
+
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
 
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
@@ -573,39 +589,53 @@ public class DbRequestSingle {
 
                 try {
                     SchemaValidationUtils validator = new SchemaValidationUtils();
-                    SchemaValidationStatus status = validator.validateJson(updatedJsonDocument,vitamCollection.getName() ) ;
+                    SchemaValidationStatus status =
+                        validator.validateJson(updatedJsonDocument, vitamCollection.getName());
                     if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                         throw new SchemaValidationException(status.getValidationMessage());
                     }
                 } catch (FileNotFoundException | ProcessingException e) {
-                    LOGGER.debug("Unable to initialize Json Validator : " +e.getMessage());
+                    LOGGER.debug("Unable to initialize Json Validator : " + e.getMessage());
                     throw new InvalidCreateOperationException(e);
                 }
 
                 updatedDocument = document.newInstance(updatedJsonDocument);
-                if (!updatedDocument.equals(document)) {
+                if (!document.equals(updatedDocument)) {
                     modified = true;
-                    updatedDocument.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
-                    MongoCollection collection = vitamCollection.getCollection();
-                    Bson condition = and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, documentVersion));
+                    updatedDocument.put(VitamDocument.VERSION, document.getVersion() + 1);
+                    Bson condition =
+                        and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, document.getVersion()));
                     // Note: cannot do bulk since we need to check each and every update
                     try {
                         UpdateResult result = collection.replaceOne(condition, updatedDocument);
-                        if (result.getModifiedCount() != 1) {
-                            updatedDocument = null;
-                        }
+                        updated = result.getModifiedCount() == 1;
                     } catch (final MongoException e) {
                         LOGGER.warn("Update Document error : " + e.getMessage());
-                        updatedDocument = null;
                     }
+
+
+                    if (!updated) {
+                        LOGGER.error(
+                            "[Optimistic_Lock]: optimistic lock occurs while update document with id (" + documentId +
+                                ") of the collection " + vitamCollection.getName() + " retry number = " + nbTry);
+
+                        try {
+                            Thread.sleep(
+                                ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
+                        } catch (InterruptedException e1) {
+                            SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
+                            throw new DatabaseException(e1);
+                        }
+                    }
+
                 } else {
                     break;
                 }
             }
 
-            if (modified && updatedDocument == null) {
-                // Throw Error after 3 try
-                throw new DatabaseException("Can not modify Document");
+            if (modified && !updated) {
+                // Throw Error after nb try
+                throw new DatabaseException("[Optimistic_Lock]: Can not modify Document");
             }
             if (modified) {
                 listUpdatedDocuments.add(updatedDocument);
@@ -633,7 +663,8 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException
      */
     private DbRequestResult deleteDocuments(JsonNode request)
-        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException, VitamDBException {
+        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException,
+        VitamDBException {
         final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
         parser.parse(request);
         parser.addProjection(JsonHandler.createObjectNode(), JsonHandler.createObjectNode().put(VitamDocument.ID, 1));

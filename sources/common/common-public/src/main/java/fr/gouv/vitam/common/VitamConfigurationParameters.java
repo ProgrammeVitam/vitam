@@ -48,7 +48,7 @@ public class VitamConfigurationParameters {
     /**
      * Worker bulk size
      */
-    private Integer workerBulkSize;    
+    private Integer workerBulkSize;
     /**
      * Restore bulk size
      */
@@ -62,6 +62,16 @@ public class VitamConfigurationParameters {
      *
      */
     private Integer numberDbClientThread;
+    /**
+     * The number of retry executing action when optimistic lock occurs
+     */
+    private Integer optimisticLockRetryNumber;
+    /**
+     * Optimistic lock sleep time in milliseconds, the sleep time after each retry
+     */
+    private Integer optimisticLockSleepTime;
+
+
     /**
      *
      */
@@ -779,8 +789,46 @@ public class VitamConfigurationParameters {
     }
 
     /**
+     * Get optimistic lock retry number
+     *
+     * @return optimisticLockRetryNumber
+     */
+    public Integer getOptimisticLockRetryNumber() {
+        return optimisticLockRetryNumber;
+    }
+
+    /**
+     * Set optimistic lock retry number
+     *
+     * @param optimisticLockRetryNumber
+     */
+    public void setOptimisticLockRetryNumber(Integer optimisticLockRetryNumber) {
+        this.optimisticLockRetryNumber = optimisticLockRetryNumber;
+    }
+
+    /**
+     * Get optimistic lock sleep time
+     *
+     * @return optimisticLockSleepTime
+     */
+    public Integer getOptimisticLockSleepTime() {
+        return optimisticLockSleepTime;
+    }
+
+    /**
+     * Set optimistic lock sleep time
+     *
+     * @param optimisticLockSleepTime
+     */
+    public void setOptimisticLockSleepTime(Integer optimisticLockSleepTime) {
+        this.optimisticLockSleepTime = optimisticLockSleepTime;
+    }
+
+
+
+    /**
     * Getter for restore bulk size
-    * 
+    *
     * @return
     */
    public Integer getRestoreBulkSize() {
@@ -789,7 +837,7 @@ public class VitamConfigurationParameters {
 
    /**
     * Getter for restore bulk size
-    * 
+    *
     * @return restoreBulkSize
     */
    public void setRestoreBulkSize(int restoreBulkSize) {
