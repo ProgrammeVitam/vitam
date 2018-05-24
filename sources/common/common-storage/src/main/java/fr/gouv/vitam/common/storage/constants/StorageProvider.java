@@ -38,7 +38,7 @@ public enum StorageProvider {
      * Swift storage offer (ceph or openStack)
      * authent v1
      */
-    SWIFT_AUTH_V1("openstack-swift"),
+    SWIFT_AUTH_V1("openstack-swift-v1"),
     /**
      * Swift storage offer
      * authent v2

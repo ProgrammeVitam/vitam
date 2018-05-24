@@ -2,12 +2,12 @@ provider: {{ vitam_offers[offer_conf]["provider"] }}
 {% if vitam_offers[offer_conf]["provider"] != "openstack-swift" %}
 storagePath: {{vitam_folder_data}}
 {% endif %}
-keystoneEndPoint: {{ vitam_offers[offer_conf]["keystone_auth_url"] | default("") }}
-swiftUid: {{ vitam_offers[offer_conf]["swift_uid"] | default("") }}
-swiftSubUser: {{ vitam_offers[offer_conf]["swift_subuser"] | default("") }}
-credential: {{ vitam_offers[offer_conf]["swift_password"] | default("") }}
-cephMode: {{  vitam_offers[offer_conf]["ceph_mode"] | default(true) }}
-projectName: {{ vitam_offers[offer_conf]["projectName"] | default("") }}
+swiftKeystoneAuthUrl: {{ vitam_offers[offer_conf]["swiftKeystoneAuthUrl"] | default("") }}
+swiftDomain: {{ vitam_offers[offer_conf]["swiftDomain"] | default("") }}
+swiftProjectName: {{ vitam_offers[offer_conf]["swiftProjectName"] | default("") }}
+swiftUser: {{ vitam_offers[offer_conf]["swiftUser"] | default("") }}
+swiftPassword: {{ vitam_offers[offer_conf]["swiftPassword"] | default("") }}
+
 swiftUrl: {{ vitam_offers[offer_conf]["swiftUrl"] | default("") }}
 swiftTrustTore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
 swiftTrustTorePassword: {{ password_truststore }}

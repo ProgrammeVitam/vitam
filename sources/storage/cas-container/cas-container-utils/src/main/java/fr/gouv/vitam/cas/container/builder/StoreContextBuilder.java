@@ -50,11 +50,10 @@ import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
  *
  * <pre>
  *    storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT_AUTH_V1.getValue())
- *      .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)
+ *      .setSwiftKeystoneAuthUrl("http://10.10.10.10:5000/auth/v1.0)
  *      .setTenantName(swift)
  *      .setUserName(user)
- *      .setCredential(passwd)
- *      .setCephMode(true);
+ *      .setSwiftPassword(passwd);
  *
  * contentAddressableStorage=StoreContextBuilder.newStoreContext(storeConfiguration);
  * </pre>

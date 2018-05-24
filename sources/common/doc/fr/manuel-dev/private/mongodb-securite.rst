@@ -43,7 +43,7 @@ Il a besoin de mot de passe "dbPassword" pour entrer le base et CRUD.
  --	List<ServerAddress> serverAddress:
 
 	La liste des adresses du serveur qui permet la base de données mongodb de connecter plusieurs nœuds
- --	Arrays.asList(credential): 
+ --	Arrays.asList(credential):
 
 	La liste des informations d'identification que ce client authentifie toutes les connexions avec
 

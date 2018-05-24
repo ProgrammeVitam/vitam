@@ -35,15 +35,14 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
 public class OfferConfiguration extends DbConfigurationImpl {
 
     private String provider;
-    private String keystoneEndPoint;
-    private String swiftUid;
-    private String swiftSubUser;
-    private String credential;
+    private String swiftKeystoneAuthUrl;
+    private String swiftDomain;
+    private String swiftUser;
+    private String swiftPassword;
     private String storagePath;
-    private Boolean cephMode;
     private String contextPath;
     private boolean authentication;
-    private String projectName;
+    private String swiftProjectName;
 
     /**
      * @return the provider
@@ -63,70 +62,70 @@ public class OfferConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * @return the keystoneEndPoint
+     * @return the swiftKeystoneAuthUrl
      */
-    public String getKeystoneEndPoint() {
-        return keystoneEndPoint;
+    public String getSwiftKeystoneAuthUrl() {
+        return swiftKeystoneAuthUrl;
     }
 
     /**
-     * @param keystoneEndPoint the keystoneEndPoint to set
+     * @param swiftKeystoneAuthUrl the swiftKeystoneAuthUrl to set
      *
      * @return this
      */
-    public OfferConfiguration setKeystoneEndPoint(String keystoneEndPoint) {
-        this.keystoneEndPoint = keystoneEndPoint;
+    public OfferConfiguration setSwiftKeystoneAuthUrl(String swiftKeystoneAuthUrl) {
+        this.swiftKeystoneAuthUrl = swiftKeystoneAuthUrl;
         return this;
     }
 
     /**
      * @return the tenantName
      */
-    public String getSwiftUid() {
-        return swiftUid;
+    public String getSwiftDomain() {
+        return swiftDomain;
     }
 
     /**
-     * @param swiftUid the tenantName to set
+     * @param swiftDomain the tenantName to set
      *
      * @return this
      */
-    public OfferConfiguration setSwiftUid(String swiftUid) {
-        this.swiftUid = swiftUid;
+    public OfferConfiguration setSwiftDomain(String swiftDomain) {
+        this.swiftDomain = swiftDomain;
         return this;
     }
 
     /**
-     * @return the swiftSubUser
+     * @return the swiftUser
      */
-    public String getSwiftSubUser() {
-        return swiftSubUser;
+    public String getSwiftUser() {
+        return swiftUser;
     }
 
     /**
-     * @param swiftSubUser the userName to set
+     * @param swiftUser the userName to set
      *
      * @return this
      */
-    public OfferConfiguration setSwiftSubUser(String swiftSubUser) {
-        this.swiftSubUser = swiftSubUser;
+    public OfferConfiguration setSwiftUser(String swiftUser) {
+        this.swiftUser = swiftUser;
         return this;
     }
 
     /**
-     * @return the credential
+     * @return the swiftPassword
      */
-    public String getCredential() {
-        return credential;
+    public String getSwiftPassword() {
+        return swiftPassword;
     }
 
     /**
-     * @param credential the credential to set
+     * @param swiftPassword the swiftPassword to set
      *
      * @return this
      */
-    public OfferConfiguration setCredential(String credential) {
-        this.credential = credential;
+    public OfferConfiguration setSwiftPassword(String swiftPassword) {
+        this.swiftPassword = swiftPassword;
         return this;
     }
 
@@ -144,23 +143,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
      */
     public OfferConfiguration setStoragePath(String storagePath) {
         this.storagePath = storagePath;
-        return this;
-    }
-
-    /**
-     * @return the cephMode
-     */
-    public Boolean isCephMode() {
-        return cephMode;
-    }
-
-    /**
-     * @param cephMode the cephMode to set
-     *
-     * @return this
-     */
-    public OfferConfiguration setCephMode(Boolean cephMode) {
-        this.cephMode = cephMode;
         return this;
     }
 
@@ -198,19 +180,19 @@ public class OfferConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * @return projectName
+     * @return swiftProjectName
      */
-    public String getProjectName() {
-        return projectName;
+    public String getSwiftProjectName() {
+        return swiftProjectName;
     }
 
     /**
      * 
-     * @param projectName the projectName to set or unset
+     * @param swiftProjectName the swiftProjectName to set or unset
      * @return OfferConfiguration
      */
-    public OfferConfiguration setProjectName(String projectName) {
-        this.projectName = projectName;
+    public OfferConfiguration setSwiftProjectName(String swiftProjectName) {
+        this.swiftProjectName = swiftProjectName;
         return this;
     }
 }

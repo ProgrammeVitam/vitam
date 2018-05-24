@@ -4,7 +4,7 @@ vitam_strategy:
   - name: offer-fs-1
     referent: true
 #    vitam_site_name: prod-dc2
-#  - name: offer_swift_1
+#  - name: offer-swift-1
 # Example :
 #  - name: distant
 #    referent: true
@@ -15,36 +15,34 @@ vitam_strategy:
 # WARNING : for offer names, please only use [a-z][a-z0-9-]* pattern
 vitam_offers:
   offer-fs-1:
-    # param can be filesystem or filesystem-hash
-    provider: filesystem
+    # param can be filesystem-hash (recomended) or filesystem (not recomended)
+    provider: filesystem-hash
   offer-swift-1:
-    # provider : openstack-swift for v1 or openstack-swift-v3 for v3
-    provider: openstack-swift
-    # keystoneEndPoint : URL de connexion à keystone
-    keystoneEndPoint: http://hostname-rados-gw:port/auth/1.0
-    # deprecated
-    keystone_auth_url: http://hostname-rados-gw:port/auth/1.0
-    # swiftUid : domaine OpenStack dans lequel l'utilisateur est enregistré
-    swift_uid: domaine
-    # swiftSubUser : identifiant de l'utilisateur
-    swift_subuser: utilisateur
-    # cephMode : doit être à false si offre v3 ; true si offre v1
-    cephMode: false
-    # projectName : tenant openstack
-    projectName: monTenant
+    # provider : openstack-swift-v1 for v1 or openstack-swift-v3 for v3
+    provider: openstack-swift-v3
+    # swiftKeystoneAuthUrl : URL de connexion à keystone
+    swiftKeystoneAuthUrl: https://openstack-hostname:port/auth/1.0
+    # swiftDomain : domaine OpenStack dans lequel l'utilisateur est enregistré
+    swiftDomain: domaine
+    # swiftUser : identifiant de l'utilisateur
+    swiftUser: utilisateur
+    # swiftPassword: sould be set in vault-vitam.yml (encrypted)
+    # swiftProjectName : nom du projet openstack
+    swiftProjectName: monTenant
+    # swiftUrl: optional variable to force the swift URL
+    # swiftUrl: https://swift-hostname:port/swift/v1
 
-
-    
   # example_swift_v1:
-  #   provider: openstack-swift
-  #   keystoneEndPoint: https://keystone/auth/1.0
-  #   swift_uid: tenant$user # <tenant>$<user>
-  #   swift_subuser: subuser
-  #   cephMode: true
+  #    provider: openstack-swift-v1
+  #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
+  #    swiftDomain: domain
+  #    swiftUser: user
+  #    swiftPassword: password
   # example_swift_v3:
-  #   provider: openstack-swift-v3
-  #   keystoneEndPoint: https://keystone/v3
-  #   swift_uid: domaine
-  #   swift_subuser: user
-  #   cephMode: false
-  #   projectName: monTenant
+  #    provider: openstack-swift-v3
+  #    swiftKeystoneAuthUrl: https://keystone/v3
+  #    swiftDomain: domaine
+  #    swiftUser: user
+  #    swiftPassword: password
+  #    swiftProjectName: monTenant
+  #    projectName: monTenant

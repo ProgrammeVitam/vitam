@@ -46,9 +46,9 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJ
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 public class OpenstackSwiftTest {
-    
+
     private ContentAddressableStorageJcloudsAbstract storage;
-    
+
     private static final String TENANT_ID = "1";
     private static final String TYPE = "object";
     private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
@@ -61,8 +61,8 @@ public class OpenstackSwiftTest {
     @Before
     public void setup() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
-        configuration.setProvider("openstack-swift").setCredential("vitam-cdh_password").setCephMode(true)
-                .setSwiftUid("vitam-cdh").setSwiftSubUser("swift").setKeystoneEndPoint("http://143.126.93.21:8080/auth/v1.0");
+        configuration.setProvider("openstack-swift").setSwiftPassword("vitam-cdh_password")
+                .setSwiftDomain("vitam-cdh").setSwiftUser("swift").setSwiftKeystoneAuthUrl("http://143.126.93.21:8080/auth/v1.0");
         storage = new OpenstackSwift(configuration);
     }
 

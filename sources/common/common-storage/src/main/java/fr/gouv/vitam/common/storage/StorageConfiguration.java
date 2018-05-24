@@ -34,15 +34,14 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String provider;
-    private String keystoneEndPoint;
-    private String swiftUid;
-    private String swiftSubUser;
-    private String credential;
+    private String swiftKeystoneAuthUrl;
+    private String swiftDomain;
+    private String swiftUser;
+    private String swiftPassword;
     private String storagePath;
-    private Boolean cephMode;
     private String contextPath;
     private boolean authentication;
-    private String projectName;
+    private String swiftProjectName;
     private String swiftUrl;
     private String swiftTrustTore;
     private String swiftTrustTorePassword;
@@ -82,74 +81,74 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @return the keystoneEndPoint
+     * @return the swiftKeystoneAuthUrl
      */
-    public String getKeystoneEndPoint() {
-        return keystoneEndPoint;
+    public String getSwiftKeystoneAuthUrl() {
+        return swiftKeystoneAuthUrl;
     }
 
     /**
-     * @param keystoneEndPoint
-     *            the keystoneEndPoint to set
+     * @param swiftKeystoneAuthUrl
+     *            the swiftKeystoneAuthUrl to set
      *
      * @return this
      */
-    public StorageConfiguration setKeystoneEndPoint(String keystoneEndPoint) {
-        this.keystoneEndPoint = keystoneEndPoint;
+    public StorageConfiguration setSwiftKeystoneAuthUrl(String swiftKeystoneAuthUrl) {
+        this.swiftKeystoneAuthUrl = swiftKeystoneAuthUrl;
         return this;
     }
 
     /**
      * @return the tenantName
      */
-    public String getSwiftUid() {
-        return swiftUid;
+    public String getSwiftDomain() {
+        return swiftDomain;
     }
 
     /**
-     * @param swiftUid
+     * @param swiftDomain
      *            the tenantName to set
      *
      * @return this
      */
-    public StorageConfiguration setSwiftUid(String swiftUid) {
-        this.swiftUid = swiftUid;
+    public StorageConfiguration setSwiftDomain(String swiftDomain) {
+        this.swiftDomain = swiftDomain;
         return this;
     }
 
     /**
-     * @return the swiftSubUser
+     * @return the swiftUser
      */
-    public String getSwiftSubUser() {
-        return swiftSubUser;
+    public String getSwiftUser() {
+        return swiftUser;
     }
 
     /**
-     * @param swiftSubUser
+     * @param swiftUser
      *            the userName to set
      *
      * @return this
      */
-    public StorageConfiguration setSwiftSubUser(String swiftSubUser) {
-        this.swiftSubUser = swiftSubUser;
+    public StorageConfiguration setSwiftUser(String swiftUser) {
+        this.swiftUser = swiftUser;
         return this;
     }
 
     /**
-     * @return the credential
+     * @return the swiftPassword
      */
-    public String getCredential() {
-        return credential;
+    public String getSwiftPassword() {
+        return swiftPassword;
     }
 
     /**
-     * @param credential
-     *            the credential to set
+     * @param swiftPassword
+     *            the swiftPassword to set
      *
      * @return this
      */
-    public StorageConfiguration setCredential(String credential) {
-        this.credential = credential;
+    public StorageConfiguration setSwiftPassword(String swiftPassword) {
+        this.swiftPassword = swiftPassword;
         return this;
     }
 
@@ -168,24 +167,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      */
     public StorageConfiguration setStoragePath(String storagePath) {
         this.storagePath = storagePath;
-        return this;
-    }
-
-    /**
-     * @return the cephMode
-     */
-    public Boolean isCephMode() {
-        return cephMode;
-    }
-
-    /**
-     * @param cephMode
-     *            the cephMode to set
-     *
-     * @return this
-     */
-    public StorageConfiguration setCephMode(Boolean cephMode) {
-        this.cephMode = cephMode;
         return this;
     }
 
@@ -223,12 +204,12 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
-    public String getProjectName() {
-        return projectName;
+    public String getSwiftProjectName() {
+        return swiftProjectName;
     }
 
-    public StorageConfiguration setProjectName(String projectName) {
-        this.projectName = projectName;
+    public StorageConfiguration setSwiftProjectName(String swiftProjectName) {
+        this.swiftProjectName = swiftProjectName;
         return this;
     }
 

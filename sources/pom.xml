@@ -106,7 +106,7 @@
         <commons-lang3>3.5</commons-lang3>
         <easymock.version>3.4</easymock.version>
         <jackson.version>2.8.7</jackson.version>
-        <elasticsearch.version>5.6.1</elasticsearch.version>
+        <elasticsearch.version>5.6.9</elasticsearch.version>
         <!-- TODO : no online maven repo for icu plugin V 5.6.1 -->
         <elasticsearch.icu.plugin.version>5.0.0-alpha5</elasticsearch.icu.plugin.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>

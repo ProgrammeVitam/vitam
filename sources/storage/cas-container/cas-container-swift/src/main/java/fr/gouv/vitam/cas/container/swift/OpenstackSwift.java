@@ -28,6 +28,7 @@ package fr.gouv.vitam.cas.container.swift;
 
 import java.util.Properties;
 
+import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
@@ -122,16 +123,16 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
 
     private ContextBuilder getContextBuilder(StorageConfiguration configuration) {
         final String swiftUserName;
-        if (StringUtils.isBlank(configuration.getSwiftSubUser())) {
-            swiftUserName = configuration.getSwiftUid();
+        if (StringUtils.isBlank(configuration.getSwiftUser())) {
+            swiftUserName = configuration.getSwiftDomain();
         } else {
-            swiftUserName = configuration.getSwiftUid() + ":" + configuration.getSwiftSubUser();
+            swiftUserName = configuration.getSwiftDomain() + ":" + configuration.getSwiftUser();
         }
         ContextBuilder contextBuilder = ContextBuilder.newBuilder(configuration.getProvider())
-                .endpoint(configuration.getKeystoneEndPoint())
-                .credentials(swiftUserName, configuration.getCredential());
-        // ceph swift
-        if (configuration.isCephMode()) {
+                .endpoint(configuration.getSwiftKeystoneAuthUrl())
+                .credentials(swiftUserName, configuration.getSwiftPassword());
+        // Set mandatory headers for keystone v1
+        if (StorageProvider.SWIFT_AUTH_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
             Properties overrides = new Properties();
             overrides.setProperty(KeystoneProperties.CREDENTIAL_TYPE, "tempAuthCredentials");
             overrides.setProperty("jclouds.swift.tempAuth.headerUser", "X-Auth-User");

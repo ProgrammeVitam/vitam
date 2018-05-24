@@ -97,13 +97,12 @@ public class SwiftTest {
         configuration = new StorageConfiguration();
         configuration.setProvider(PROVIDER);
         configuration.setStoragePath(STORAGE_PATH);
-        configuration.setKeystoneEndPoint("http://localhost:" + keystonePort + "/v3");
-        configuration.setSwiftUid(SWIFT_UID);
+        configuration.setSwiftKeystoneAuthUrl("http://localhost:" + keystonePort + "/v3");
+        configuration.setSwiftDomain(SWIFT_UID);
         configuration.setSwiftUrl("http://localhost:" + swiftPort + "/swift/v1");
-        configuration.setSwiftSubUser(SWIFT_SUB_USER);
-        configuration.setCredential(CREDENTIAL);
-        configuration.setCephMode(false);
-        configuration.setProjectName(PROJECT_NAME);
+        configuration.setSwiftUser(SWIFT_SUB_USER);
+        configuration.setSwiftPassword(CREDENTIAL);
+        configuration.setSwiftProjectName(PROJECT_NAME);
 
         String bodyResponse =
             JsonHandler.prettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile("keystone.json")));
