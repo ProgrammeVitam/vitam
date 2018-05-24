@@ -86,3 +86,6 @@ ldap_authentification:
     ldap_pwd: "admin"
 
 admin_basic_auth_password: adminPassword
+
+offer-swift-1:
+   swift_password: password
