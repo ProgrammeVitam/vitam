@@ -209,9 +209,10 @@ public class OntologyServiceImplTest {
             });
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
-        //Insert same file (same identifier)
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_update_identifiers_ko.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
             });
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
@@ -345,6 +346,27 @@ public class OntologyServiceImplTest {
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenUpdateWithMissingPropertyOk() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            });
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isTrue();
+        //Insert same file (same identifier= update different identifier=create)
+        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_empty_property_ok.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
+        assertThat(response2.isOk()).isTrue();
     }
 
 

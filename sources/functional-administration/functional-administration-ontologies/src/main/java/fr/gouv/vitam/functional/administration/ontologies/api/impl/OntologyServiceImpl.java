@@ -535,31 +535,35 @@ public class OntologyServiceImpl implements OntologyService {
         final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
         final Update updateOntologies = new Update();
         List<SetAction> actions = new ArrayList<SetAction>();
-
-        SetAction setDescription = new SetAction(OntologyModel.TAG_DESCRIPTION, ontologyModel.getDescription());
+        String description = ontologyModel.getDescription() == null ? "" : ontologyModel.getDescription();
+        SetAction setDescription = new SetAction(OntologyModel.TAG_DESCRIPTION, description);
         actions.add(setDescription);
         SetAction setUpdateDate =
             new SetAction(OntologyModel.LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         actions.add(setUpdateDate);
 
+        String apiField = ontologyModel.getApiField() == null ? "" : ontologyModel.getApiField();
         SetAction setApiValue;
-        setApiValue = new SetAction(OntologyModel.TAG_APIFIELD, ontologyModel.getApiField());
+        setApiValue = new SetAction(OntologyModel.TAG_APIFIELD, apiField);
         actions.add(setApiValue);
 
+        String sedaField = ontologyModel.getSedaField() == null ? "" : ontologyModel.getSedaField();
         SetAction setSedaValue;
-        setSedaValue = new SetAction(OntologyModel.TAG_SEDAFIELD, ontologyModel.getSedaField());
+        setSedaValue = new SetAction(OntologyModel.TAG_SEDAFIELD, sedaField);
         actions.add(setSedaValue);
 
         SetAction setTypeValue;
         setTypeValue = new SetAction(OntologyModel.TAG_TYPE, ontologyModel.getType().toString());
         actions.add(setTypeValue);
 
+        String shortName = ontologyModel.getShortName() == null ? "" : ontologyModel.getShortName();
         SetAction setShortName;
-        setShortName = new SetAction(OntologyModel.TAG_SHORT_NAME, ontologyModel.getShortName());
+        setShortName = new SetAction(OntologyModel.TAG_SHORT_NAME, shortName);
         actions.add(setShortName);
 
+        List<String> collections = ontologyModel.getCollections() == null ? new ArrayList<String>() : ontologyModel.getCollections();
         SetAction setCollections;
-        setCollections = new SetAction(OntologyModel.TAG_COLLECTIONS, ontologyModel.getCollections());
+        setCollections = new SetAction(OntologyModel.TAG_COLLECTIONS, collections);
         actions.add(setCollections);
 
         updateOntologies.setQuery(eq(OntologyModel.TAG_IDENTIFIER, ontologyModel.getIdentifier()));
