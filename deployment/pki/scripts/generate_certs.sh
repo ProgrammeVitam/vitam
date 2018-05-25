@@ -190,6 +190,8 @@ function copyCAFromPki {
 #############################    Main    #############################
 ######################################################################
 
+cd $(dirname $0)/../..
+
 # Vérification des paramètres
 if [ "${1}" == "" ]; then
     pki_logger "ERROR" "This script needs to know on which environment you want to apply to !"

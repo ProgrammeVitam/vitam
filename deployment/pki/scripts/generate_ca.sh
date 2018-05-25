@@ -90,6 +90,8 @@ function generate_ca_interm {
 #############################    Main    #############################
 ######################################################################
 
+cd $(dirname $0)/../..
+
 pki_logger "Lancement de la procédure de création des CA"
 pki_logger "=============================================="
 if [ ! -d ${REPERTOIRE_CA} ]; then

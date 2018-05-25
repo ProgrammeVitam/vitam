@@ -209,6 +209,7 @@ function generateHostKeystore {
 #############################    Main    #############################
 ######################################################################
 
+cd $(dirname $0)
 
 TMP_P12_PASSWORD="$(generatePassphrase)"
 REPERTOIRE_KEYSTORES="${REPERTOIRE_ROOT}/environments/keystores"
