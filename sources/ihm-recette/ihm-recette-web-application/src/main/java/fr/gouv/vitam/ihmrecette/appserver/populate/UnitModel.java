@@ -74,7 +74,7 @@ public class UnitModel {
     private Set<String> sps = new HashSet<>();
 
     @JsonProperty("_uds")
-    private Map<String, Integer> uds = new HashMap<>();
+    private Map<String, List<String>> uds = new HashMap<>();
 
     @JsonProperty("_tenant")
     private int tenant;
@@ -173,11 +173,11 @@ public class UnitModel {
         this.tenant = tenant;
     }
 
-    public Map<String, Integer> getUds() {
+    public Map<String, List<String>> getUds() {
         return uds;
     }
 
-    public void setUds(Map<String, Integer> uds) {
+    public void setUds(Map<String, List<String>> uds) {
         this.uds = uds;
     }
 

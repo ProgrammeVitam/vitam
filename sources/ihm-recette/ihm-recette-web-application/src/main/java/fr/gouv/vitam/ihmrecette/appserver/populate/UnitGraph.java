@@ -31,6 +31,7 @@ package fr.gouv.vitam.ihmrecette.appserver.populate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
@@ -49,6 +50,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +94,7 @@ public class UnitGraph {
     /**
      * Create a graph
      *
-     * @param i             used to generate dynamic metadata
+     * @param i used to generate dynamic metadata
      * @param populateModel model of populate service
      * @return new UnitGotModel (unitModel, gotModel)
      */
@@ -150,9 +152,9 @@ public class UnitGraph {
      * Create a unitModel
      *
      * @param operationId
-     * @param uuid                     Guid
+     * @param uuid Guid
      * @param descriptiveMetadataModel MetadataModel
-     * @param populateModel            populate Model
+     * @param populateModel populate Model
      * @return a UnitModel
      */
     private UnitModel createUnitModel(String operationId, String uuid,
@@ -211,11 +213,11 @@ public class UnitGraph {
             unitModel.getUs().add(rootId);
 
             // calculate uds
-            for (String s : rootUnit.getUds().keySet()) {
-                unitModel.getUds().merge(s, rootUnit.getUds().get(s) + 1, Math::min);
+            for (String depthStr : rootUnit.getUds().keySet()) {
+                int depth = Integer.parseInt(depthStr);
+                unitModel.getUds().put(Integer.toString(depth + 1), rootUnit.getUds().get(depthStr));
             }
-
-            unitModel.getUds().put(rootId, 1);
+            unitModel.getUds().put("1", Arrays.asList(rootId));
 
             // Min / Max
             unitModel.setMin(1);
@@ -231,7 +233,7 @@ public class UnitGraph {
             MultiValuedMap<String, String> parentOriginatingAgencies = new HashSetValuedHashMap<>();
             rootUnit.getParentOriginatingAgencies()
                 .forEach(parentOriginatingAgencies::putAll);
-            if(rootUnit.getSp() != null) {
+            if (rootUnit.getSp() != null) {
                 parentOriginatingAgencies.put(rootUnit.getSp(), rootUnit.getId());
             }
             unitModel.setParentOriginatingAgencies(parentOriginatingAgencies.asMap());
@@ -243,11 +245,11 @@ public class UnitGraph {
     /**
      * Create a GotModel
      *
-     * @param guid          GUID
+     * @param guid GUID
      * @param operationId
-     * @param tenantId      tenant identifier
+     * @param tenantId tenant identifier
      * @param fileInfoModel fileInfo
-     * @param parentUnit    unitModel of the parent AU
+     * @param parentUnit unitModel of the parent AU
      * @return a ObjectGroupModel
      */
     private ObjectGroupModel createObjectGroupModel(String guid, String operationId, int tenantId,
@@ -313,8 +315,9 @@ public class UnitGraph {
      * @param eventsSize the number of events to generate per LogbookLifecycle
      * @return
      */
-    private LogbookLifecycle createLogbookLifecycle(String evId, int tenantId, String obId, int eventsSize) {
-        LogbookLifecycle logbookLifecycle = new LogbookLifecycle();
+    private LogbookLifecyclePopulateModel createLogbookLifecycle(String evId, int tenantId, String obId,
+        int eventsSize) {
+        LogbookLifecyclePopulateModel logbookLifecycle = new LogbookLifecyclePopulateModel();
         logbookLifecycle.setId(obId);
         logbookLifecycle.setObId(obId);
         logbookLifecycle.setTenant(tenantId);
@@ -344,6 +347,7 @@ public class UnitGraph {
             events.add(event);
         }
         logbookLifecycle.setEvents(events);
+        logbookLifecycle.setLastPersistedDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         return logbookLifecycle;
     }
 

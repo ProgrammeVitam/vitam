@@ -81,7 +81,7 @@ public class UnitGraphTest {
         rootUnit.setSps(new HashSet<>(Arrays.asList("saphir")));
         rootUnit.getUp().add("123");
         rootUnit.getUs().add("123");
-        rootUnit.getUds().put("123", 1);
+        rootUnit.getUds().put("1", Arrays.asList("123"));
         rootUnit.getGraph().add("1234/123");
         rootUnit.getParentOriginatingAgencies().put("saphir", Collections.singletonList("123"));
         given(metadataRepository.findUnitById(populateModel.getRootId())).willReturn(Optional.of(rootUnit));
@@ -98,7 +98,7 @@ public class UnitGraphTest {
         assertThat(unitModel.getSps()).containsExactlyInAnyOrder(populateModel.getSp(), "saphir");
         assertThat(unitModel.getUp()).contains(populateModel.getRootId());
         assertThat(unitModel.getUs()).contains(populateModel.getRootId(), "123");
-        assertThat(unitModel.getUds()).containsEntry(populateModel.getRootId(), 1).containsEntry("123", 2);
+        assertThat(unitModel.getUds()).containsEntry("1", Arrays.asList(populateModel.getRootId())).containsEntry("2", Arrays.asList("123"));
         assertThat(unitModel.getGraph())
             .containsExactlyInAnyOrder("1234/123", createGraphRelation(unitModel.getId(), "1234"));
         assertThat(unitModel.getParentOriginatingAgencies()).containsOnlyKeys("saphir");
