@@ -38,6 +38,11 @@ public class RuleCategoryModel {
     private List<RuleModel> rules;
 
     /**
+     * Classification Audience
+     */
+    private String classificationAudience;
+
+    /**
      * classification level
      */
     private String classificationLevel;
@@ -138,5 +143,19 @@ public class RuleCategoryModel {
         this.classificationOwner = classificationOwner;
     }
 
+    /**
+     * getter for classificationAudience
+     *
+     * @return classificationAudience value
+     */
+    public String getClassificationAudience() {
+        return classificationAudience;
+    }
 
+    /**
+     * set classificationAudience
+     */
+    public void setClassificationAudience(String classificationAudience) {
+        this.classificationAudience = classificationAudience;
+    }
 }

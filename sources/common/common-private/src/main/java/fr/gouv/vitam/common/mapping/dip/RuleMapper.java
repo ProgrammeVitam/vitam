@@ -74,6 +74,7 @@ public class RuleMapper {
             // Case ClassificationRuleType manage other fields
             if (commonRule instanceof ClassificationRuleType) {
                 ClassificationRuleType crt = (ClassificationRuleType) commonRule;
+                crt.setClassificationAudience(ruleCategory.getClassificationAudience());
                 crt.setClassificationLevel(ruleCategory.getClassificationLevel());
                 crt.setClassificationOwner(ruleCategory.getClassificationOwner());
                 crt.setNeedReassessingAuthorization(rule.isNeedReassessingAuthorization());

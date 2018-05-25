@@ -100,6 +100,7 @@ public class ArchiveUnitMapper {
 
         if (archiveUnitType.getManagement() != null) {
             archiveUnit.getManagement().setUpdateOperationType(archiveUnitType.getManagement().getUpdateOperation());
+            archiveUnit.getManagement().setNeedAuthorization(archiveUnitType.getManagement().isNeedAuthorization());
             fillAccessRule(archiveUnitType, archiveUnit);
             fillStorageRule(archiveUnitType, archiveUnit);
             fillClassificationRule(archiveUnitType, archiveUnit);
@@ -172,13 +173,18 @@ public class ArchiveUnitMapper {
         ClassificationRuleType classificationRule = archiveUnitType.getManagement().getClassificationRule();
         RuleCategoryModel classificationRuleCategory = ruleMapper.fillCommonRule(classificationRule);
 
-        if (classificationRule != null && (classificationRule.getClassificationLevel() != null || classificationRule.getClassificationOwner() != null)) {
+        if (classificationRule != null &&
+            (classificationRule.getClassificationLevel() != null ||
+            classificationRule.getClassificationOwner() != null ||
+            classificationRule.getClassificationAudience() != null)
+            ) {
 
             if (classificationRuleCategory == null ) {
                 classificationRuleCategory = new RuleCategoryModel();
             }
             classificationRuleCategory.setClassificationLevel(classificationRule.getClassificationLevel());
             classificationRuleCategory.setClassificationOwner(classificationRule.getClassificationOwner());
+            classificationRuleCategory.setClassificationAudience(classificationRule.getClassificationAudience());
         }
 
         if (archiveUnit.getManagement().getClassification() != null) {
