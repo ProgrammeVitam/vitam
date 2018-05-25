@@ -67,7 +67,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String UPDATE_PROFILE = AccessExtAPI.PROFILES_API_UPDATE + "/";
     private static final String UPDATE_AU_PROFILE = AccessExtAPI.ARCHIVE_UNIT_PROFILE + "/";
     private static final String UPDATE_SECURITY_PROFILE = AccessExtAPI.SECURITY_PROFILES + "/";
-    private static final String UPDATE_ONTOLOGY = AccessExtAPI.ONTOLOGY + "/";
 
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final String BLANK_TENANT_ID = "Tenant identifier should be filled";
