@@ -20,10 +20,10 @@ public class StorageModel {
     public StorageModel() {
     }
 
-    public StorageModel(int nbCopy, String strategyId) {
+    public StorageModel(int nbCopy, String strategyId, List<String> offerIds) {
         this.nbCopy = nbCopy;
         this.strategyId = strategyId;
-        offerIds = new ArrayList<>();
+        this.offerIds = offerIds;
     }
 
     public int getNbCopy() {

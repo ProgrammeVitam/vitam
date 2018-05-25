@@ -354,6 +354,9 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             case UNIT:
                 description.append("Unit ");
                 break;
+            case OBJECTGROUP:
+                description.append("ObjectGroup ");
+                break;
             case LOGBOOK:
                 description.append("Logbook ");
                 break;
@@ -373,7 +376,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 description.append("Storagelog ");
                 break;
             case STORAGETRACEABILITY:
-                description.append("Storagetraceability");
+                description.append("STORAGETRACEABILITY");
                 break;
             case RULES:
                 description.append("Rules ");
@@ -386,6 +389,17 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 break;
             case BACKUP:
                 description.append("Backup ");
+                break;
+            case BACKUP_OPERATION:
+                description.append("Backup Operation ");
+            case CHECKLOGBOOKREPORTS:
+                description.append("CHECKLOGBOOKREPORTS ");
+                break;
+            case UNIT_GRAPH:
+                description.append("UNIT_GRAPH ");
+                break;
+            case OBJECTGROUP_GRAPH:
+                description.append("OBJECTGROUP_GRAPH ");
                 break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);

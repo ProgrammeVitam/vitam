@@ -39,7 +39,7 @@ public class UnitGraphTest {
         populateModel.setSp("vitam");
         populateModel.setRootId("1234");
         populateModel.setWithGots(false);
-        UnitModel rootUnit = new UnitModel(2, "default");
+        UnitModel rootUnit = new UnitModel();
         rootUnit.setId("1234");
         rootUnit.getSps().add("saphir");
         rootUnit.getParentOriginatingAgencies().put("saphir", Collections.singletonList("1234"));
@@ -75,7 +75,7 @@ public class UnitGraphTest {
         populateModel.setSp("vitam");
         populateModel.setRootId("1234");
         populateModel.setWithGots(true);
-        UnitModel rootUnit = new UnitModel(2, "default");
+        UnitModel rootUnit = new UnitModel();
         rootUnit.setId("1234");
         rootUnit.setSp("saphir");
         rootUnit.setSps(new HashSet<>(Arrays.asList("saphir")));

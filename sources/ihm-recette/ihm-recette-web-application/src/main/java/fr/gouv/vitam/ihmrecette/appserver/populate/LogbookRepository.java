@@ -26,21 +26,27 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Insert into logbook in bulk mode
@@ -64,10 +70,10 @@ public class LogbookRepository {
     /**
      * Store a LogbookLifecycleUnit in database
      *
-     * @param tenant      tenant identifier
+     * @param tenant tenant identifier
      * @param unitGotList data list of (unit,got) to store
      */
-    public boolean storeLogbookLifecycleUnit(int tenant, List<UnitGotModel> unitGotList) {
+    public void storeLogbookLifecycleUnit(int tenant, List<UnitGotModel> unitGotList) {
         List<Document> docs =
             unitGotList.stream().filter(unitGot -> unitGot.getLogbookLifecycleUnit() != null).map(unitGot ->
                 getDocument(unitGot.getLogbookLifecycleUnit())).collect(Collectors.toList());
@@ -75,18 +81,16 @@ public class LogbookRepository {
         if (!docs.isEmpty()) {
             this.store(tenant, docs, VitamDataType.LFC_UNIT);
         }
-        return true;
     }
-
 
 
     /**
      * Store a LifeCycleObjectGroup in database
      *
-     * @param tenant      tenant identifier
+     * @param tenant tenant identifier
      * @param unitGotList data list of (unit,got) to store
      */
-    public boolean storeLogbookLifeCycleObjectGroup(int tenant, List<UnitGotModel> unitGotList) {
+    public void storeLogbookLifeCycleObjectGroup(int tenant, List<UnitGotModel> unitGotList) {
         List<Document> docs =
             unitGotList.stream().filter(unitGot -> unitGot.getLogbookLifeCycleObjectGroup() != null).map(unitGot ->
                 getDocument(unitGot.getLogbookLifeCycleObjectGroup())).collect(Collectors.toList());
@@ -94,7 +98,6 @@ public class LogbookRepository {
         if (!docs.isEmpty()) {
             this.store(tenant, docs, VitamDataType.LFC_GOT);
         }
-        return true;
     }
 
 
@@ -102,8 +105,8 @@ public class LogbookRepository {
     /**
      * Store a document list
      *
-     * @param tenant        tenant identifier
-     * @param documents     documents to store and index
+     * @param tenant tenant identifier
+     * @param documents documents to store and index
      * @param vitamDataType dataType of documents
      */
     private void store(int tenant, List<Document> documents, VitamDataType vitamDataType) {
@@ -114,7 +117,7 @@ public class LogbookRepository {
     /**
      * Store a list of documents in db
      *
-     * @param documents     to store
+     * @param documents to store
      * @param vitamDataType of the documents to store
      */
     private void storeDocuments(List<Document> documents, VitamDataType vitamDataType) {
@@ -157,4 +160,19 @@ public class LogbookRepository {
         return Document.parse(source);
     }
 
+    public Map<String, JsonNode> findLfcsByIds(List<String> ids, VitamDataType vitamDataType) {
+
+        Map<String, JsonNode> result = new HashMap<>();
+        this.getCollection(vitamDataType).find(
+            Filters.in("_id", ids)
+        ).forEach((Consumer<? super Document>) i -> {
+            try {
+                result.put(i.getString("_id"), JsonHandler.getFromString(JSON.serialize(i)) );
+            } catch (InvalidParseOperationException e) {
+                throw new RuntimeException("Could not deserialize json", e);
+            }
+        });
+
+        return result;
+    }
 }

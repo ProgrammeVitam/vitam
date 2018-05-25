@@ -168,7 +168,10 @@ public class UnitGraph {
         // get rootUnit if any
         UnitModel rootUnit = null;
 
-        UnitModel unitModel = new UnitModel(1, "default");
+        UnitModel unitModel = new UnitModel();
+
+        List<String> offerIds = StoragePopulateImpl.getOfferIds();
+        unitModel.setStorageModel(new StorageModel(offerIds.size(), "default", offerIds));
 
         if (rootId != null) {
             rootUnit = cache.getUnchecked(rootId);
@@ -256,6 +259,9 @@ public class UnitGraph {
         FileInfoModel fileInfoModel,
         UnitModel parentUnit, int objectSize) {
         ObjectGroupModel gotModel = new ObjectGroupModel();
+
+        List<String> offerIds = StoragePopulateImpl.getOfferIds();
+        gotModel.setStorageModel(new StorageModel(offerIds.size(), "default", offerIds));
 
         gotModel.setId(guid);
         gotModel.setTenant(tenantId);

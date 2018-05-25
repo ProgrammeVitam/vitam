@@ -72,6 +72,8 @@ public class PopulateModel {
 
     private boolean withRules;
 
+    private boolean storeMetadataAndLfcInOffers = false;
+
     public int getNumberOfUnit() {
         return numberOfUnit;
     }
@@ -190,5 +192,13 @@ public class PopulateModel {
 
     public void setLFCUnitsEventsSize(int LFCUnitsEventsSize) {
         this.LFCUnitsEventsSize = LFCUnitsEventsSize;
+    }
+
+    public boolean isStoreMetadataAndLfcInOffers() {
+        return storeMetadataAndLfcInOffers;
+    }
+
+    public void setStoreMetadataAndLfcInOffers(boolean storeMetadataAndLfcInOffers) {
+        this.storeMetadataAndLfcInOffers = storeMetadataAndLfcInOffers;
     }
 }

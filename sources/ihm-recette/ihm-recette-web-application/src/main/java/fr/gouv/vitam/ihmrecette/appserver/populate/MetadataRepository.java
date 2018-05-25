@@ -26,36 +26,40 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
-import static com.mongodb.client.model.Filters.eq;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
-import fr.gouv.vitam.common.PropertiesUtils;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import org.bson.Document;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * insert into metadata in bulk mode
@@ -63,7 +67,7 @@ import org.elasticsearch.common.xcontent.XContentType;
 public class MetadataRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRepository.class);
-    public static final String STORAGE_CONF_FILE = "storage.conf";
+
     public static final String STRATEGY_ID = "default";
 
     private MongoDatabase metadataDb;
@@ -73,16 +77,11 @@ public class MetadataRepository {
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
 
-    public MetadataRepository(MongoDatabase metadataDb, TransportClient transportClient) {
+    public MetadataRepository(MongoDatabase metadataDb, TransportClient transportClient,
+        StoragePopulateImpl storagePopulateService) {
         this.metadataDb = metadataDb;
         this.transportClient = transportClient;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
-            final StorageConfiguration configuration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
-            storagePopulateService = new StoragePopulateImpl(configuration);
-        } catch (IOException e) {
-            LOGGER.error("Cannot initialize storage resource server, error when reading configuration file");
-            throw new RuntimeException(e);
-        }
+        this.storagePopulateService = storagePopulateService;
         this.objectMapper = UnitGotMapper.buildObjectMapper();
 
         // init collections for available metadataTypes
@@ -118,7 +117,7 @@ public class MetadataRepository {
      * @param indexInEs if true documents will be indexed in ES
      * @param unitGotList data list of (unit,got) to store
      */
-    public boolean store(int tenant, List<UnitGotModel> unitGotList, boolean storeInDb, boolean indexInEs) {
+    public void store(int tenant, List<UnitGotModel> unitGotList, boolean storeInDb, boolean indexInEs) {
         List<Document> gots = unitGotList.stream().filter(unitGot -> unitGot.getGot() != null).map(unitGot ->
             getDocument(unitGot.getGot())).collect(Collectors.toList());
 
@@ -134,8 +133,6 @@ public class MetadataRepository {
         List<Document> units = unitGotList.stream().map(unitGot ->
             getDocument(unitGot.getUnit())).collect(Collectors.toList());
         this.storeAndIndex(tenant, units, VitamDataType.UNIT, storeInDb, indexInEs);
-
-        return true;
     }
 
     private void storeObjects(List<UnitGotModel> unitGotList) {
@@ -171,7 +168,6 @@ public class MetadataRepository {
             indexDocuments(documents, vitamDataType, tenant);
         }
     }
-
 
     /**
      * store a list of documents in db
@@ -253,4 +249,18 @@ public class MetadataRepository {
         return Document.parse(source);
     }
 
+    public Map<String, JsonNode> findMetadataByIds(List<String> ids, VitamDataType vitamDataType) {
+        Map<String, JsonNode> result = new HashMap<>();
+        this.getCollection(vitamDataType).find(
+            Filters.in("_id", ids)
+        ).forEach((Consumer<? super Document>) i -> {
+            try {
+                result.put(i.getString("_id"), JsonHandler.getFromString(JSON.serialize(i)) );
+            } catch (InvalidParseOperationException e) {
+                throw new RuntimeException("Could not deserialize json", e);
+            }
+        });
+
+        return result;
+    }
 }

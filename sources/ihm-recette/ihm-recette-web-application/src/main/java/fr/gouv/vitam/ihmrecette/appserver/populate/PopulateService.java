@@ -26,10 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +56,7 @@ public class PopulateService {
     public static final String CONTRACT_POPULATE = "ContractPopulate";
     public static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
     private static String POPULATE_FILE_DIGEST;
-    
+
     private AtomicBoolean populateInProgress = new AtomicBoolean(false);
 
     private final MetadataRepository metadataRepository;
@@ -63,18 +65,21 @@ public class PopulateService {
 
     private final LogbookRepository logbookRepository;
 
+    private final MetadataStorageService metadataStorageService;
+
     private UnitGraph unitGraph;
     private int nbThreads;
     private final DigestType digestType;
 
     public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository,
-        LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads) {
+        LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService) {
         this.metadataRepository = metadataRepository;
         this.masterdataRepository = masterdataRepository;
         this.logbookRepository = logbookRepository;
         this.unitGraph = unitGraph;
         this.nbThreads = nThreads;
         this.digestType = VitamConfiguration.getDefaultDigestType();
+        this.metadataStorageService = metadataStorageService;
     }
 
     /**
@@ -144,12 +149,7 @@ public class PopulateService {
                 .createGraph(index, populateModel))
             .buffer(populateModel.getBulkSize())
             .parallel(nbThreads)
-            .map(unitGotList -> {
-                return metadataRepository.store(tenantId, unitGotList,
-                    populateModel.isStoreInDb(), populateModel.isIndexInEs()) &&
-                    logbookRepository.storeLogbookLifecycleUnit(tenantId, unitGotList) &&
-                    logbookRepository.storeLogbookLifeCycleObjectGroup(tenantId, unitGotList);
-            })
+            .map(unitGotList -> bulkPersist(populateModel, unitGotList))
             .sequential()
             .subscribe(t -> {
             }, t -> {
@@ -161,16 +161,31 @@ public class PopulateService {
                 POPULATE_FILE.delete();
                 long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
                 LOGGER.info("save time: {}", elapsed);
-                
+
                 // update accession register if complete with success
                 Optional<Document> accessionresgiterSummary =
-                        this.masterdataRepository.findAccessionRegitserSummary(tenantId, identifier);
+                    this.masterdataRepository.findAccessionRegitserSummary(tenantId, identifier);
 
                 if (!accessionresgiterSummary.isPresent()) {
                     this.masterdataRepository.createAccessionRegisterSummary(tenantId, identifier,
-                        populateModel.getNumberOfUnit(), populateModel.getNumberOfUnit() * populateModel.getObjectSize());
+                        populateModel.getNumberOfUnit(),
+                        populateModel.getNumberOfUnit() * populateModel.getObjectSize());
                 }
             });
+    }
+
+    private boolean bulkPersist(PopulateModel populateModel, List<UnitGotModel> unitGotList) {
+
+        metadataRepository.store(populateModel.getTenant(), unitGotList,
+            populateModel.isStoreInDb(), populateModel.isIndexInEs());
+
+        logbookRepository.storeLogbookLifecycleUnit(populateModel.getTenant(), unitGotList);
+
+        logbookRepository.storeLogbookLifeCycleObjectGroup(populateModel.getTenant(), unitGotList);
+
+        metadataStorageService.storeToOffers(populateModel, unitGotList);
+
+        return true;
     }
 
     /**
@@ -181,7 +196,7 @@ public class PopulateService {
     public boolean inProgress() {
         return populateInProgress.get();
     }
-    
+
     public static String getPopulateFileDigest() {
         return POPULATE_FILE_DIGEST;
     }

@@ -64,6 +64,9 @@ public class ObjectGroupModel {
     @JsonProperty("_glpd")
     private String graphLastPersistedDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
+    @JsonProperty("_storage")
+    private StorageModel storageModel;
+
     @JsonProperty("_tenant")
     private int tenant;
 
@@ -148,5 +151,13 @@ public class ObjectGroupModel {
 
     public void setGraphLastPersistedDate(String graphLastPersistedDate) {
         this.graphLastPersistedDate = graphLastPersistedDate;
+    }
+
+    public StorageModel getStorageModel() {
+        return storageModel;
+    }
+
+    public void setStorageModel(StorageModel storageModel) {
+        this.storageModel = storageModel;
     }
 }
