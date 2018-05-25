@@ -24,14 +24,7 @@ LimitNOFILE=65536
 # in elasticsearch.yml and 'MAX_LOCKED_MEMORY=unlimited' in /etc/sysconfig/elasticsearch
 #LimitMEMLOCK=infinity
 
-# Disable timeout logic and wait until process is stopped
-TimeoutStopSec=0
-
-# SIGTERM signal is used to stop the Java process
-KillSignal=SIGTERM
-
-# Java process is never killed
-SendSIGKILL=no
+TimeoutStopSec=10
 
 # When a JVM receives a SIGTERM signal it exits with code 143
 SuccessExitStatus=143
