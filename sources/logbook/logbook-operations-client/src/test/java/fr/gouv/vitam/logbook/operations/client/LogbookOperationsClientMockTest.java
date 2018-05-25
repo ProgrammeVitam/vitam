@@ -246,10 +246,19 @@ public class LogbookOperationsClientMockTest {
     }
 
     @Test
-    public void traceabilityTestLFC() throws Exception {
+    public void traceabilityTestObjectGroupLFC() throws Exception {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
-        RequestResponse response = client.traceabilityLFC();
+        RequestResponse response = client.traceabilityLfcObjectGroup();
+        assertNotNull(response);
+        assertTrue(response instanceof RequestResponseOK);
+    }
+
+    @Test
+    public void traceabilityTestUnitLFC() throws Exception {
+        final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient();
+        RequestResponse response = client.traceabilityLfcUnit();
         assertNotNull(response);
         assertTrue(response instanceof RequestResponseOK);
     }

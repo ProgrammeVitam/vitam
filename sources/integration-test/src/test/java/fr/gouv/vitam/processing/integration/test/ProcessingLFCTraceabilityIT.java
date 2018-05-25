@@ -27,18 +27,6 @@
 package fr.gouv.vitam.processing.integration.test;
 
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -53,6 +41,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -60,6 +49,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -91,13 +81,17 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -105,6 +99,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -118,14 +113,26 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Processing integration test
@@ -135,6 +142,7 @@ public class ProcessingLFCTraceabilityIT {
     private static final int DATABASE_PORT = 12346;
     private static final long SLEEP_TIME = 100l;
     private static final long NB_TRY = 4800; // equivalent to 4 minutes
+    private static final int MAX_ENTRIES = 100000;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient mongoClient;
@@ -149,7 +157,6 @@ public class ProcessingLFCTraceabilityIT {
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private final static String CLUSTER_NAME = "vitam-cluster";
-    static JunitHelper junitHelper;
     private static int TCP_PORT = 54321;
     private static int HTTP_PORT = 54320;
 
@@ -190,9 +197,8 @@ public class ProcessingLFCTraceabilityIT {
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
     private static String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
-    private static String LFC_TRACEABILITY_WORKFLOW = "LOGBOOK_LC_SECURISATION";
 
-    private static String SIP_COMPLEX_RULES = "integration-processing/OK_RULES_COMPLEXE_COMPLETE.zip";
+    private static String SIP_COMPLEX_RULES = "integration-processing/3_UNITS_2_GOTS.zip";
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -293,14 +299,12 @@ public class ProcessingLFCTraceabilityIT {
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
 
+        checkServerStatus();
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.getConfiguration().setData(defautDataFolder);
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
         if (mongod != null) {
             mongod.stop();
         }
@@ -330,16 +334,38 @@ public class ProcessingLFCTraceabilityIT {
         }
     }
 
-
-    @After
-    public void afterTest() {
-        MongoDatabase db = mongoClient.getDatabase("Vitam");
-        db.getCollection("Unit").deleteMany(new Document());
-        db.getCollection("ObjectGroup").deleteMany(new Document());
+    @Before
+    public void before() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        tryImportFile();
     }
 
-    @Test
-    public void testServersStatus() throws Exception {
+    @After
+    public void afterTest() throws Exception {
+        MongoDatabase db = mongoClient.getDatabase("Vitam");
+        db.getCollection("Unit").drop();
+        db.getCollection("ObjectGroup").drop();
+        db.getCollection("LogbookOperation").drop();
+        db.getCollection("LogbookLifeCycleUnit").drop();
+        db.getCollection("LogbookLifeCycleObjectGroup").drop();
+
+        for (LogbookCollections collection : LogbookCollections.values()) {
+            if (collection.getEsClient() != null) {
+                collection.getEsClient().deleteIndex(collection, tenantId);
+                collection.getEsClient().addIndex(collection, tenantId);
+            }
+        }
+        for (MetadataCollections collection : MetadataCollections.values()) {
+            if (collection.getEsClient() != null) {
+                collection.getEsClient().deleteIndex(collection, tenantId);
+                collection.getEsClient().addIndex(collection, tenantId);
+            }
+        }
+    }
+
+    private static void checkServerStatus() {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
 
@@ -360,6 +386,379 @@ public class ProcessingLFCTraceabilityIT {
         RestAssured.port = PORT_SERVICE_LOGBOOK;
         RestAssured.basePath = LOGBOOK_PATH;
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_shouldGetWarningWhenDbIsEmpty() throws Exception {
+
+        // Given (empty db)
+
+        // When
+        String traceabilityOperation = launchLogbookLFC(0, Contexts.UNIT_LFC_TRACEABILITY);
+
+        // Then
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
+        assertThat(traceabilityEvent).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_shouldGetWarnOnFirstTraceabilityWithFreshData()
+        throws Exception {
+
+        // Given
+        launchIngest();
+
+        // When
+        String traceabilityOperation = launchLogbookLFC(300, Contexts.UNIT_LFC_TRACEABILITY);
+
+        // Then
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
+        assertThat(traceabilityEvent).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_shouldGetOkOnFirstTraceabilityWithOldData() throws Exception {
+
+        // Given
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        // When
+        LocalDateTime beforeTraceability = LocalDateUtil.now();
+        String containerName = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability = LocalDateUtil.now();
+
+        // Then
+        assertCompletedWithStatus(containerName, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(containerName);
+
+        assertThat(traceabilityEvent.getLogType()).isEqualTo(TraceabilityType.UNIT_LIFECYCLE);
+        assertThat(traceabilityEvent.getMaxEntriesReached()).isFalse();
+        assertThat(traceabilityEvent.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent.getEndDate(),
+            beforeTraceability.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability.minusSeconds(temporizationDelayInSeconds));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_shouldGetWarnOnNextTraceabilityWithFreshData() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        launchIngest();
+        String traceabilityOperation1 = launchLogbookLFC(0, Contexts.UNIT_LFC_TRACEABILITY);
+
+
+        // Second ingest + traceability
+        launchIngest();
+        String traceabilityOperation2 = launchLogbookLFC(300, Contexts.UNIT_LFC_TRACEABILITY);
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+        assertThat(traceabilityEvent2).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_shouldGetOkOnNextTraceabilityWithOldData() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
+        String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability1 = LocalDateUtil.now();
+
+        // Second ingest + traceability
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
+        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability2 = LocalDateUtil.now();
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+
+        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_shouldGetWarnOnFreshGotUpdate() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        launchIngest();
+        String traceabilityOperation1 = launchLogbookLFC(0, Contexts.UNIT_LFC_TRACEABILITY);
+
+        // Update Got + traceability
+        changeOneGotLFC();
+        String traceabilityOperation2 = launchLogbookLFC(300, Contexts.UNIT_LFC_TRACEABILITY);
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+        assertThat(traceabilityEvent2).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_shouldGetOkOnOldGotUpdate() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
+        String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability1 = LocalDateUtil.now();
+
+
+        // Update Got + traceability
+        changeOneUnitLFC();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
+        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.UNIT_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability2 = LocalDateUtil.now();
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+
+        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+    }
+
+
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetWarningWhenDbIsEmpty() throws Exception {
+
+        // Given (empty db)
+
+        // When
+        String traceabilityOperation = launchLogbookLFC(0, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Then
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
+        assertThat(traceabilityEvent).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetWarnOnFirstTraceabilityWithFreshData()
+        throws Exception {
+
+        // Given
+        launchIngest();
+
+        // When
+        String traceabilityOperation = launchLogbookLFC(300, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Then
+        assertCompletedWithStatus(traceabilityOperation, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(traceabilityOperation);
+        assertThat(traceabilityEvent).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetOkOnFirstTraceabilityWithOldData() throws Exception {
+
+        // Given
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        // When
+        LocalDateTime beforeTraceability = LocalDateUtil.now();
+        String containerName = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability = LocalDateUtil.now();
+
+        // Then
+        assertCompletedWithStatus(containerName, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(containerName);
+
+        assertThat(traceabilityEvent.getLogType()).isEqualTo(TraceabilityType.OBJECTGROUP_LIFECYCLE);
+        assertThat(traceabilityEvent.getMaxEntriesReached()).isFalse();
+        assertThat(traceabilityEvent.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent.getEndDate(),
+            beforeTraceability.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability.minusSeconds(temporizationDelayInSeconds));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetWarnOnNextTraceabilityWithFreshData() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        launchIngest();
+        String traceabilityOperation1 = launchLogbookLFC(0, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+
+        // Second ingest + traceability
+        launchIngest();
+        String traceabilityOperation2 = launchLogbookLFC(300, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+        assertThat(traceabilityEvent2).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetOkOnNextTraceabilityWithOldData() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
+        String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability1 = LocalDateUtil.now();
+
+        // Second ingest + traceability
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
+        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability2 = LocalDateUtil.now();
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+
+        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetWarnOnFreshGotUpdate() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        launchIngest();
+        String traceabilityOperation1 = launchLogbookLFC(0, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Update Got + traceability
+        changeOneGotLFC();
+        String traceabilityOperation2 = launchLogbookLFC(300, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.WARNING);
+
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+        assertThat(traceabilityEvent2).isNull();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowObjectGroupLfcTraceability_shouldGetOkOnOldGotUpdate() throws Exception {
+
+        // Given / When
+
+        // First ingest + traceability
+        int temporizationDelayInSeconds = 2;
+        launchIngest();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability1 = LocalDateUtil.now();
+        String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability1 = LocalDateUtil.now();
+
+
+        // Update Got + traceability
+        changeOneGotLFC();
+        Thread.sleep(temporizationDelayInSeconds * 1000);
+
+        LocalDateTime beforeTraceability2 = LocalDateUtil.now();
+        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        LocalDateTime afterTraceability2 = LocalDateUtil.now();
+
+        // Then
+
+        assertCompletedWithStatus(traceabilityOperation1, StatusCode.OK);
+        assertCompletedWithStatus(traceabilityOperation2, StatusCode.OK);
+
+        TraceabilityEvent traceabilityEvent1 = getTraceabilityEvent(traceabilityOperation1);
+        TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
+
+        assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+
+        assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
     }
 
     private void tryImportFile() {
@@ -479,7 +878,6 @@ public class ProcessingLFCTraceabilityIT {
         RestAssured.basePath = WORKSPACE_PATH;
         final InputStream zipInputStreamSipObject =
             PropertiesUtils.getResourceAsStream(SIP_COMPLEX_RULES);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
@@ -487,7 +885,6 @@ public class ProcessingLFCTraceabilityIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName2, WORFKLOW_NAME);
         final RequestResponse<JsonNode> ret2 =
             processingClient.executeOperationProcess(containerName2, WORFKLOW_NAME,
@@ -495,19 +892,17 @@ public class ProcessingLFCTraceabilityIT {
         assertNotNull(ret2);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
         wait(containerName2);
-        ProcessWorkflow processWorkflow2 =
-            processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
-        assertNotNull(processWorkflow2);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
-        assertEquals(StatusCode.OK, processWorkflow2.getStatus());
+        assertCompletedWithStatus(containerName2, StatusCode.OK);
     }
 
-    private String launchLogbookLFC(int overlapDelay) throws Exception {
+    private String launchLogbookLFC(int temporizationDelayInSeconds, Contexts traceabilityContext)
+        throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid, "LOGBOOK_LC_SECURISATION");
+
+        createLogbookOperation(operationGuid, objectGuid, traceabilityContext.getEventType());
 
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -517,84 +912,23 @@ public class ProcessingLFCTraceabilityIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
 
-        ProcessingEntry processingEntry = new ProcessingEntry(containerName, LFC_TRACEABILITY_WORKFLOW);
+        ProcessingEntry processingEntry = new ProcessingEntry(containerName, traceabilityContext.getEventType());
         processingEntry.getExtraParams().put(
-            WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds.name(), Integer.toString(overlapDelay));
+            WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name(),
+            Integer.toString(temporizationDelayInSeconds));
+        processingEntry.getExtraParams().put(
+            WorkerParameterName.lifecycleTraceabilityMaxEntries.name(), Integer.toString(MAX_ENTRIES));
 
-        processingClient.initVitamProcess(Contexts.SECURISATION_LC.name(), processingEntry);
+        processingClient.initVitamProcess(traceabilityContext.name(), processingEntry);
         RequestResponse<ItemStatus> ret =
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-        return containerName;
-    }
 
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflowLFCTraceability() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        tryImportFile();
-
-        launchIngest();
-
-        // Launch securization for the first time (no overlap delay)
-
-        String containerName = launchLogbookLFC(0);
         wait(containerName);
 
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.OK, processWorkflow.getStatus());
-
-        // Launch securization a second time, with no lfc added (no overlap delay)
-        String containerName2nd = launchLogbookLFC(0);
-        wait(containerName2nd);
-        ProcessWorkflow processWorkflow2nd =
-            processMonitoring.findOneProcessWorkflow(containerName2nd, tenantId);
-        assertNotNull(processWorkflow2nd);
-        assertEquals(ProcessState.COMPLETED, processWorkflow2nd.getState());
-        // SINCE NO LFC ARE HANDLED, WARNING
-        assertEquals(StatusCode.WARNING, processWorkflow2nd.getStatus());
-
-        // Launch securization a third time, with no lfc added but with overlap delay
-        String containerName3rd = launchLogbookLFC(300);
-        wait(containerName3rd);
-        ProcessWorkflow processWorkflow3rd =
-            processMonitoring.findOneProcessWorkflow(containerName3rd, tenantId);
-        assertNotNull(processWorkflow3rd);
-        assertEquals(ProcessState.COMPLETED, processWorkflow3rd.getState());
-        // OK since old ingest should be reselected
-        assertEquals(StatusCode.OK, processWorkflow3rd.getStatus());
-
-        // launch an ingest
-        launchIngest();
-
-        // Launch securization with new lfc added (even with no overlap delay)
-        String containerName4th = launchLogbookLFC(0);
-        wait(containerName4th);
-        ProcessWorkflow processWorkflow4th =
-            processMonitoring.findOneProcessWorkflow(containerName4th, tenantId);
-        assertNotNull(processWorkflow4th);
-        assertEquals(ProcessState.COMPLETED, processWorkflow4th.getState());
-        assertEquals(StatusCode.OK, processWorkflow4th.getStatus());
-
-        // simulate audit, update some object LFC
-        changeOneGotLFC();
-        // simulate unit update, update some unit LFC
-        changeOneUnitLFC();
-
-
-        // Launch securization a second time, with lfc updated > so status OK (even with no overlap delay)
-        String containerName5th = launchLogbookLFC(0);
-        wait(containerName5th);
-        ProcessWorkflow processWorkflow5th =
-            processMonitoring.findOneProcessWorkflow(containerName5th, tenantId);
-        assertNotNull(processWorkflow5th);
-        assertEquals(ProcessState.COMPLETED, processWorkflow5th.getState());
-        assertEquals(StatusCode.OK, processWorkflow5th.getStatus());
+        return containerName;
     }
 
     private void changeOneGotLFC() throws Exception {
@@ -659,5 +993,40 @@ public class ProcessingLFCTraceabilityIT {
             logbookLifeCyclesClient.update(logbookLifeUnitUpdateParameters);
             logbookLifeCyclesClient.commit(logbookLifeUnitUpdateParameters);
         }
+    }
+
+    private void assertCompletedWithStatus(String containerName, StatusCode expected) {
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(expected, processWorkflow.getStatus());
+    }
+
+    private TraceabilityEvent getTraceabilityEvent(String containerName)
+        throws LogbookClientException, InvalidParseOperationException {
+        final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        Select select = new Select();
+        JsonNode response = logbookClient.selectOperationById(containerName, select.getFinalSelectById());
+        JsonNode jsonNode = response.get("$results").get(0);
+        JsonNode evDetData = jsonNode.get("evDetData");
+        if (evDetData == null || evDetData.isNull())
+            return null;
+        return JsonHandler.getFromString(evDetData.textValue(), TraceabilityEvent.class);
+    }
+
+    private void assertThatDateIsBetween(String mongoDate, LocalDateTime expectedMin, LocalDateTime expectedMax) {
+        assertThatDateIsAfterOrEqualTo(mongoDate, expectedMin);
+        assertThatDateIsBeforeOrEqualTo(mongoDate, expectedMax);
+    }
+
+    private void assertThatDateIsBeforeOrEqualTo(String mongoDate, LocalDateTime expectedMax) {
+        LocalDateTime dateTime = LocalDateUtil.parseMongoFormattedDate(mongoDate);
+        assertThat(dateTime).isBeforeOrEqualTo(expectedMax);
+    }
+
+    private void assertThatDateIsAfterOrEqualTo(String mongoDate, LocalDateTime expectedMin) {
+        LocalDateTime dateTime = LocalDateUtil.parseMongoFormattedDate(mongoDate);
+        assertThat(dateTime).isAfterOrEqualTo(expectedMin);
     }
 }

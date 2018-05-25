@@ -368,7 +368,12 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public Long getDataSize() throws TraceabilityException {
+    public boolean getMaxEntriesReached() {
+        return false;
+    }
+
+    @Override
+    public long getDataSize() throws TraceabilityException {
         if (traceabilityIterator != null) {
             return traceabilityIterator.getNumberOfLines();
         }

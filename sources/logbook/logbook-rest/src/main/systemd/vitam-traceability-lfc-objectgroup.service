@@ -1,12 +1,12 @@
 [Unit]
-Description=Secure logbook lifecycles
+Description=Secure logbook object group lifecycles
 
 Wants=network.target
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/vitam/script/logbook/launchTraceabilityLFC.sh
+ExecStart=/vitam/script/logbook/launchObjectGroupLfcTraceability.sh
 User=vitam
 Group=vitam
 StandardOutput=syslog

@@ -94,6 +94,11 @@ public class TraceabilityEvent {
     private DigestType digestAlgorithm;
 
     /**
+     * Max entries reached (unit & object group lifecycle traceability operation are limited in size)
+     */
+    private boolean maxEntriesReached;
+
+    /**
      * Empty constructor for Jackson
      */
     public TraceabilityEvent() {
@@ -119,7 +124,7 @@ public class TraceabilityEvent {
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash,
         byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
         String minusOneYearLogbookTraceabilityDate, long numberOfElement, String fileName, long size,
-        DigestType digestAlgorithm) {
+        DigestType digestAlgorithm, boolean maxEntriesReached) {
         this.logType = logType;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -132,6 +137,7 @@ public class TraceabilityEvent {
         this.fileName = fileName;
         this.size = size;
         this.digestAlgorithm = digestAlgorithm;
+        this.maxEntriesReached = maxEntriesReached;
     }
 
     /**
@@ -216,5 +222,12 @@ public class TraceabilityEvent {
      */
     public DigestType getDigestAlgorithm() {
         return digestAlgorithm;
+    }
+
+    /**
+     * @return true if max entries has been reached (unit & object group lifecycle traceability operation are limited in size)
+     */
+    public boolean getMaxEntriesReached() {
+        return maxEntriesReached;
     }
 }

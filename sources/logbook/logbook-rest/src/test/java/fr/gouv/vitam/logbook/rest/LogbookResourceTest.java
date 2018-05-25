@@ -126,7 +126,8 @@ public class LogbookResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String UNIT_LIFECYCLES = "/unitlifecycles";
     private static final String TRACEABILITY_URI = "/operations/traceability";
-    private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
+    private static final String OBJECT_GROUP_LFC_TRACEABILITY_URI = "/lifecycles/units/traceability";
+    private static final String UNIT_LFC_TRACEABILITY_URI = "/lifecycles/objectgroups/traceability";
     private static final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
     private static int databasePort;
@@ -298,7 +299,7 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public final void testTraceabilityLFC() {
+    public final void testTraceabilityUnitLfc() {
         logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
@@ -306,12 +307,24 @@ public class LogbookResourceTest {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersAppend)
-            .post(TRACEABILITY_LFC_URI)
+            .post(UNIT_LFC_TRACEABILITY_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
-
+    @Test
+    public final void testTraceabilityObjectGroupLfc() {
+        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity());
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(logbookParametersAppend)
+            .post(OBJECT_GROUP_LFC_TRACEABILITY_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
 
     @Test
     public final void testOperation() {

@@ -85,6 +85,7 @@ import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.logbook.administration.audit.exception.LogbookAuditException;
+import fr.gouv.vitam.logbook.administration.core.LfcTraceabilityType;
 import fr.gouv.vitam.logbook.administration.core.LogbookAdministration;
 import fr.gouv.vitam.logbook.administration.core.LogbookLFCAdministration;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
@@ -116,29 +117,6 @@ import fr.gouv.vitam.logbook.operations.core.AlertLogbookOperationsDecorator;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Logbook Resource implementation
@@ -206,7 +184,8 @@ public class LogbookResource extends ApplicationStatusResource {
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
 
         logbookLFCAdministration = new LogbookLFCAdministration(logbookOperation, processClientFactory,
-            clientFactory, configuration.getLifecycleTraceabilityOverlapDelay());
+            clientFactory, configuration.getLifecycleTraceabilityTemporizationDelay(),
+            configuration.getLifecycleTraceabilityMaxEntries());
 
         logbookAuditAdministration = new LogbookAuditAdministration(logbookOperation);
 
@@ -1796,17 +1775,35 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
-     * Run traceability secure lifecycles for logbook
+     * Runs unit lifecycle traceability
      *
      * @param xTenantId the tenant id
      * @return the response with a specific HTTP status
      */
     @POST
-    @Path("/lifecycles/traceability")
+    @Path("/lifecycles/units/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceabilityLFC(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response traceabilityLfcUnit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        return traceabilityLFC(xTenantId, LfcTraceabilityType.Unit);
+    }
+
+    /**
+     * Runs object group lifecycle traceability
+     *
+     * @param xTenantId the tenant id
+     * @return the response with a specific HTTP status
+     */
+    @POST
+    @Path("/lifecycles/objectgroups/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceabilityLfcObjectGroup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        return traceabilityLFC(xTenantId, LfcTraceabilityType.ObjectGroup);
+    }
+
+    private Response traceabilityLFC(String xTenantId,
+        LfcTraceabilityType lfcTraceabilityType) {
+
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -1815,7 +1812,7 @@ public class LogbookResource extends ApplicationStatusResource {
             Integer tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            final GUID guid = logbookLFCAdministration.generateSecureLogbookLFC();
+            final GUID guid = logbookLFCAdministration.generateSecureLogbookLFC(lfcTraceabilityType);
             final List<String> resultAsJson = new ArrayList<>();
 
             resultAsJson.add(guid.toString());

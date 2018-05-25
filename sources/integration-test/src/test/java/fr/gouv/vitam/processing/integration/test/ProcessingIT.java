@@ -266,7 +266,6 @@ public class ProcessingIT {
     private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String UPD8_AU_WORKFLOW = "UPDATE_RULES_ARCHIVE_UNITS";
-    private static String LFC_TRACEABILITY_WORKFLOW = "LOGBOOK_LC_SECURISATION";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String OK_RATTACHEMENT = "integration-processing/OK_Rattachement.zip";
     private static final String OK_RATTACHEMENT_MULTIPLE_AU = "integration-processing/OK_Rattachement_Multiple_AU.zip";

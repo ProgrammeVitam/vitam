@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
@@ -31,10 +32,22 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 public class LogbookAuditAdministration {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookAuditAdministration.class);
     private final LogbookOperations logbookOperations;
-    private static final AlertService alertService = new AlertServiceImpl();
+    private final AlertService alertService;
 
+    /**
+     * Constructor
+     */
     public LogbookAuditAdministration(LogbookOperations logbookOperations) {
+        this(logbookOperations, new AlertServiceImpl());
+    }
+
+    /**
+     * Constructor for testing
+     */
+    @VisibleForTesting
+    LogbookAuditAdministration(LogbookOperations logbookOperations, AlertService alertService) {
         this.logbookOperations = logbookOperations;
+        this.alertService = alertService;
     }
 
     /**

@@ -27,51 +27,7 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.AdditionalMatchers.and;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -87,6 +43,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -94,8 +51,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -105,14 +60,38 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
-    LogbookOperationsClientFactory.class})
-public class FinalizeLifecycleTraceabilityActionHandlerTest {
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
-    FinalizeLifecycleTraceabilityActionHandler plugin = new FinalizeLifecycleTraceabilityActionHandler();
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.AdditionalMatchers.and;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class FinalizeUnitLifecycleTraceabilityActionHandlerTest {
 
     private GUID guid = GUIDFactory.newGUID();
 
@@ -123,26 +102,18 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     private HandlerIOImpl handlerIO;
-    private List<IOParameter> out;
     private static final Integer TENANT_ID = 0;
 
     private final List<URI> uriListWorkspaceOKUnit = new ArrayList<>();
-    private final List<URI> uriListWorkspaceOKObj = new ArrayList<>();
 
-    private static final String HANDLER_ID = "FINALIZE_LC_TRACEABILITY";
-    private static final String LAST_OPERATION = "FinalizeLifecycleTraceabilityActionHandler/lastOperation.json";
-    private static final String LAST_OPERATION_EMPTY = "FinalizeLifecycleTraceabilityActionHandler/lastOperationEmpty.json";
+    private static final String LAST_OPERATION = "FinalizeUnitLifecycleTraceabilityActionHandler/lastOperation.json";
+    private static final String LAST_OPERATION_EMPTY =
+        "FinalizeUnitLifecycleTraceabilityActionHandler/lastOperationEmpty.json";
     private static final String TRACEABILITY_INFO =
-        "FinalizeLifecycleTraceabilityActionHandler/traceabilityInformation.json";
-    private static final String OBJECT_FILE =
-        "FinalizeLifecycleTraceabilityActionHandler/object.txt";
-    private static final String UNIT_FILE =
-        "FinalizeLifecycleTraceabilityActionHandler/unit.txt";
+        "FinalizeUnitLifecycleTraceabilityActionHandler/traceabilityInformation.json";
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private LogbookOperationsClient logbookOperationsClient;
 
@@ -153,10 +124,8 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
 
     private List<IOParameter> in;
-    
-    private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
 
-    public FinalizeLifecycleTraceabilityActionHandlerTest() throws FileNotFoundException {
+    public FinalizeUnitLifecycleTraceabilityActionHandlerTest() {
         // do nothing
     }
 
@@ -167,36 +136,34 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
-            .thenReturn(workspaceClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
-        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCyclesClientFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCyclesClient);
-
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient()).thenReturn(logbookOperationsClient);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
-        handlerIO = new HandlerIOImpl(workspaceClient, "FinalizeLifecycleTraceabilityActionHandlerTest", "workerId");
+        handlerIO =
+            new HandlerIOImpl(workspaceClient, "FinalizeUnitLifecycleTraceabilityActionHandlerTest", "workerId");
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/lastOperation.json")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityInformation.json")));
         uriListWorkspaceOKUnit
-            .add(new URI(URLEncoder.encode("aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq.json", CharsetUtils.UTF_8)));
-        uriListWorkspaceOKObj
-            .add(new URI(URLEncoder.encode("aebaaaaaaahgausqab7boak55jchzyqaaaaq.json", CharsetUtils.UTF_8)));
+            .add(new URI(URLEncoder.encode("aeaqaaaaaag457juaan3yaldndxdtfqaaaaq.json", CharsetUtils.UTF_8)));
+        uriListWorkspaceOKUnit
+            .add(new URI(URLEncoder.encode("aeaqaaaaaag457juaan3yaldndxdtgaaaaba.json", CharsetUtils.UTF_8)));
+        uriListWorkspaceOKUnit
+            .add(new URI(URLEncoder.encode("aeaqaaaaaag457juaan3yaldndxdsvqaaabq.json", CharsetUtils.UTF_8)));
+
+        Mockito.reset(workspaceClient);
+        for (URI uri : uriListWorkspaceOKUnit) {
+            when(workspaceClient.getObject(anyObject(),
+                eq(SedaConstants.LFC_UNITS_FOLDER + "/" + uri.toString())))
+                .thenReturn(Response.status(Response.Status.OK).entity(new ByteArrayInputStream("data".getBytes())).build());
+        }
     }
 
     @After
@@ -211,14 +178,14 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
-        Mockito.reset(workspaceClient);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKObj));
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKUnit));
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        FinalizeUnitLifecycleTraceabilityActionHandler plugin = new FinalizeUnitLifecycleTraceabilityActionHandler(
+            logbookOperationsClientFactory, workspaceClientFactory);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -230,23 +197,15 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
         handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
-        Mockito.reset(workspaceClient);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKObj));
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKUnit));
-        InputStream objectFile = new FileInputStream(PropertiesUtils.findFile(OBJECT_FILE));
-        InputStream unitFile = new FileInputStream(PropertiesUtils.findFile(UNIT_FILE));
-        when(workspaceClient.getObject(anyObject(),
-            eq(SedaConstants.LFC_OBJECTS_FOLDER + "/aebaaaaaaahgausqab7boak55jchzyqaaaaq.json")))
-                .thenReturn(Response.status(Status.OK).entity(objectFile).build());
-        when(workspaceClient.getObject(anyObject(),
-            eq(SedaConstants.LFC_UNITS_FOLDER + "/aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq.json")))
-                .thenReturn(Response.status(Status.OK).entity(unitFile).build());
         when(logbookOperationsClient.selectOperation(anyObject()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        FinalizeUnitLifecycleTraceabilityActionHandler plugin = new FinalizeUnitLifecycleTraceabilityActionHandler(
+            logbookOperationsClientFactory, workspaceClientFactory);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -259,9 +218,7 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Mockito.reset(workspaceClient);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
-            .thenReturn(new RequestResponseOK().addResult(new ArrayList<>()));
+
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(new ArrayList<>()));
 
@@ -269,16 +226,18 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
 
         Mockito.doReturn(JsonHandler.createObjectNode()).when(logbookOperationsClient).selectOperation(anyObject());
 
-        saveWorkspacePutObject("LogbookLifecycles", ".zip");
+        saveWorkspacePutObject("LogbookUnitLifecycles", ".zip");
 
+        FinalizeUnitLifecycleTraceabilityActionHandler plugin = new FinalizeUnitLifecycleTraceabilityActionHandler(
+            logbookOperationsClientFactory, workspaceClientFactory);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         try {
-            getSavedWorkspaceObject("LogbookLifecycles", ".zip");
+            getSavedWorkspaceObject("LogbookUnitLifecycles", ".zip");
             fail("Should throw an exception");
         } catch (FileNotFoundException e) {
             // do nothing
-        }        
+        }
     }
 
     @Test
@@ -289,30 +248,20 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        InputStream objectFile = new FileInputStream(PropertiesUtils.findFile(OBJECT_FILE));
-        InputStream unitFile = new FileInputStream(PropertiesUtils.findFile(UNIT_FILE));
-        Mockito.reset(workspaceClient);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKObj));
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKUnit));
-
-        when(workspaceClient.getObject(anyObject(),
-            eq(SedaConstants.LFC_OBJECTS_FOLDER + "/aebaaaaaaahgausqab7boak55jchzyqaaaaq.json")))
-                .thenReturn(Response.status(Status.OK).entity(objectFile).build());
-        when(workspaceClient.getObject(anyObject(),
-            eq(SedaConstants.LFC_UNITS_FOLDER + "/aeaqaaaaaqhgausqab7boak55nw5vqaaaaaq.json")))
-                .thenReturn(Response.status(Status.OK).entity(unitFile).build());
 
         Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
 
         Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperation(anyObject());
 
-        saveWorkspacePutObject("LogbookLifecycles", ".zip");
+        saveWorkspacePutObject("LogbookUnitLifecycles", ".zip");
 
+        FinalizeUnitLifecycleTraceabilityActionHandler plugin = new FinalizeUnitLifecycleTraceabilityActionHandler(
+            logbookOperationsClientFactory, workspaceClientFactory);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        InputStream stream = getSavedWorkspaceObject("LogbookLifecycles", ".zip");
+        InputStream stream = getSavedWorkspaceObject("LogbookUnitLifecycles", ".zip");
         assertNotNull(stream);
 
         JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
@@ -340,11 +289,11 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
             return null;
         }).when(workspaceClient).putObject(anyString(),
             and(Matchers.endsWith(extension), Matchers.contains(filenameContains)),
-            org.mockito.Matchers.any(InputStream.class));
+            Matchers.any(InputStream.class));
     }
 
     private InputStream getSavedWorkspaceObject(String filename, String extension)
-        throws InvalidParseOperationException, FileNotFoundException {
+        throws FileNotFoundException {
         File objectNameFile =
             new File(System.getProperty("vitam.tmp.folder") + "/" + handlerIO.getContainerName() + "_" +
                 handlerIO.getWorkerId() + "/" + filename.replaceAll("/", "_") + extension);

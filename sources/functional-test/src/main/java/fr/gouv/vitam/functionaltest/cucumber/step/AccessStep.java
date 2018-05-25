@@ -58,6 +58,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.VitamException;
 import org.assertj.core.api.Fail;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -957,37 +958,52 @@ public class AccessStep {
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
-
-
-    @When("^on lance la traçabilité des journaux de cycles de vie$")
-    public void lfc_traceability() {
+    @When("^on lance la traçabilité des journaux de cycles de vie des unités archivistiques$")
+    public void unit_lfc_traceability() {
         runInVitamThread(() -> {
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLFC();
-            assertThat(requestResponseOK.isOk()).isTrue();
-
-            final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-            assertThat(traceabilityOperationId).isNotNull();
-
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean process_timeout = vitamPoolingClient
-                .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
-                    TimeUnit.MILLISECONDS);
-            if (!process_timeout) {
-                fail("Traceability processing not finished. Timeout exceeded.");
-            }
-
-            VitamContext vitamContext =
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId());
-            RequestResponse<ItemStatus> operationProcessExecutionDetails =
-                world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
-
-            assertThat(operationProcessExecutionDetails.isOk()).isTrue();
-            assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
-                .getGlobalStatus()).isEqualTo(StatusCode.OK);
+            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcUnit();
+            checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
         });
+    }
+
+    @When("^on lance la traçabilité des journaux de cycles de vie des groupes d'objets$")
+    public void objectgroup_lfc_traceability() {
+        runInVitamThread(() -> {
+            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+
+            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
+            checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
+        });
+    }
+
+    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK requestResponseOK) throws VitamException {
+        assertThat(requestResponseOK.isOk()).isTrue();
+
+        final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        assertThat(traceabilityOperationId).isNotNull();
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean process_timeout = vitamPoolingClient
+            .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
+                TimeUnit.MILLISECONDS);
+        if (!process_timeout) {
+            fail("Traceability processing not finished. Timeout exceeded.");
+        }
+
+        VitamContext vitamContext =
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<ItemStatus> operationProcessExecutionDetails =
+            world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
+
+        assertThat(operationProcessExecutionDetails.isOk()).isTrue();
+
+        // Check is LFC status is OK ou WARN
+        // LFC with WARN (no data to secure) may occur randomly during tests if traceability timers are run concurrently
+        assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
+            .getGlobalStatus()).isIn(StatusCode.OK, StatusCode.WARNING);
     }
 
     /**

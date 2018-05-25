@@ -37,14 +37,30 @@ describe('LogbookService', () => {
 
     backend.verify();
   });
-  
-  it('launchTraceabilityLFC should call correct api', () => {
-    service.launchTraceabilityLFC().subscribe(response => {
+
+  it('launchTraceabilityUnitLfc should call correct api', () => {
+    service.launchTraceabilityUnitLfc().subscribe(response => {
       expect(response).not.toBeNull();
     });
 
     let response = backend.expectOne({
-      url: '/ihm-recette/v1/api/lifecycles/traceability',
+      url: '/ihm-recette/v1/api/lifecycles/units/traceability',
+      method: 'POST'
+    });
+    response.flush({
+      "result": 1
+    });
+
+    backend.verify();
+  });
+  
+  it('launchTraceabilityObjectGroupLfc should call correct api', () => {
+    service.launchTraceabilityObjectGroupLfc().subscribe(response => {
+      expect(response).not.toBeNull();
+    });
+
+    let response = backend.expectOne({
+      url: '/ihm-recette/v1/api/lifecycles/objectgroups/traceability',
       method: 'POST'
     });
     response.flush({

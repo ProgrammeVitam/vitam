@@ -1,5 +1,5 @@
 [Unit]
-Description=Secure logbook lifecycles
+Description=Secure logbook object group lifecycles
 
 [Timer]
 OnCalendar=*-*-* *:00:00

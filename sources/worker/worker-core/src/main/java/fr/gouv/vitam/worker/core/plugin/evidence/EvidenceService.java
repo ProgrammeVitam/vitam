@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -120,6 +122,11 @@ public class EvidenceService {
         "Invalid version. Database version (%s) not yet secured. Last secured version was (%s)";
     private static final String KO_UNSECURED_DATABASE_VERSION =
         "Invalid version. Database version (%s) has not been secured. Last secured version was (%s)";
+    private static final String LOGBOOK_UNIT_LFC_TRACEABILITY = Contexts.UNIT_LFC_TRACEABILITY.getEventType();
+    private static final String LOGBOOK_UNIT_LFC_TRACEABILITY_OK = LOGBOOK_UNIT_LFC_TRACEABILITY + ".OK";
+    private static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY = Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType();
+    public static final String LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK = LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY + ".OK";
+    public static final String OK = ".OK";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
@@ -486,12 +493,12 @@ public class EvidenceService {
 
             // Get most recent traceability operation
             String logbookOperationSecurisationId =
-                getLogbookSecurisationOperationId(lifecycle);
+                getLogbookSecureOperationId(lifecycle, metadataType);
             auditParameters.setSecurisationOperationId(logbookOperationSecurisationId);
 
             // Is the current operation the last lifecycle traceability
             boolean isLastLifeCycleTraceabilityOperation =
-                isLastLifeCycleTraceabilityOperation(logbookOperationSecurisationId);
+                isLastLifeCycleTraceabilityOperation(logbookOperationSecurisationId, metadataType);
             auditParameters.setLastSecurisation(isLastLifeCycleTraceabilityOperation);
 
             // Get filename, digest algorithm & digest from
@@ -667,25 +674,27 @@ public class EvidenceService {
      * Get logbook operation by unit lifecycle
      *
      * @param unitLifecycle the unit's lifeCycle
+     * @param metadataType
      * @return the logbookOperationId
      */
-    private String getLogbookSecurisationOperationId(JsonNode unitLifecycle) throws EvidenceAuditException {
+    private String getLogbookSecureOperationId(JsonNode unitLifecycle,
+        MetadataType metadataType) throws EvidenceAuditException {
 
         String lastPersistedDate = unitLifecycle.get(LAST_PERSISTED_DATE).asText();
 
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
 
-            Select select = new Select();
-            BooleanQuery query = and().add(
-                eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_LC_SECURISATION"),
-                eq("events.outDetail", "LOGBOOK_LC_SECURISATION.OK"),
-                lte("events.evDetData.StartDate", lastPersistedDate),
-                gte("events.evDetData.EndDate", lastPersistedDate)
-            );
-
-            select.setQuery(query);
-            select.setLimitFilter(0, 1);
-            select.addOrderByDescFilter("events.evDateTime");
+            Select select;
+            switch (metadataType) {
+                case UNIT:
+                    select = createLastSecureSelect(lastPersistedDate, LOGBOOK_UNIT_LFC_TRACEABILITY);
+                    break;
+                case OBJECTGROUP:
+                    select = createLastSecureSelect(lastPersistedDate, LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY);
+                    break;
+                default:
+                    throw new IllegalStateException("Unsupported metadata type " + metadataType);
+            }
 
             JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());
 
@@ -700,23 +709,53 @@ public class EvidenceService {
         }
     }
 
+    private Select createLastSecureSelect(String lastPersistedDate, String eventType)
+        throws InvalidCreateOperationException,
+        InvalidParseOperationException {
+        Select select = new Select();
+        BooleanQuery query = and().add(
+            eq(LogbookMongoDbName.eventType.getDbname(), eventType),
+            eq("events.outDetail", eventType + OK),
+            QueryHelper.lte("events.evDetData.StartDate", lastPersistedDate),
+            gte("events.evDetData.EndDate", lastPersistedDate)
+        );
+
+        select.setQuery(query);
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter("events.evDateTime");
+        return select;
+    }
+
+
     /**
      * Returns whether the traceability operation is the last traceability operation.
      *
-     * @param operationId the operation Id
+     * @param operationId  the operation Id
+     * @param metadataType
      * @return true if the operationId is the last traceability operation. False otherwise.
      */
-    private boolean isLastLifeCycleTraceabilityOperation(String operationId) throws EvidenceAuditException {
+    private boolean isLastLifeCycleTraceabilityOperation(String operationId,
+        MetadataType metadataType) throws EvidenceAuditException {
 
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
 
+
+            BooleanQuery query;
+            switch (metadataType) {
+                case UNIT:
+                    query = and().add(
+                        eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_UNIT_LFC_TRACEABILITY),
+                        eq("events.outDetail", LOGBOOK_UNIT_LFC_TRACEABILITY_OK)
+                    );                    break;
+                case OBJECTGROUP:
+                    query = and().add(
+                        eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY),
+                        eq("events.outDetail", EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK)
+                    );                    break;
+                default:
+                    throw new IllegalStateException("Unsupported metadata type " + metadataType);
+            }
             Select select = new Select();
-
-            BooleanQuery query = and().add(
-                eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_LC_SECURISATION"),
-                eq("events.outDetail", "LOGBOOK_LC_SECURISATION.OK")
-            );
-
             select.setQuery(query);
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter("events.evDateTime");
@@ -732,8 +771,6 @@ public class EvidenceService {
                 "An error occurred during last traceability operation retrieval", e);
         }
     }
-
-
 
     private DataCategory getDataCategory(MetadataType metadataType) {
         switch (metadataType) {

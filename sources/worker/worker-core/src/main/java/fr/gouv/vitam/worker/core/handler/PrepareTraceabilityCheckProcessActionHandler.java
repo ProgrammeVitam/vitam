@@ -190,7 +190,8 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
         switch (traceabilityEvent.getLogType()) {
             case OPERATION:
-            case LIFECYCLE:
+            case UNIT_LIFECYCLE:
+            case OBJECTGROUP_LIFECYCLE:
                 return DataCategory.LOGBOOK;
             case STORAGE:
                 return DataCategory.STORAGETRACEABILITY;
