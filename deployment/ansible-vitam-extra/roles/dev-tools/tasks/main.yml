@@ -116,7 +116,7 @@
     # extra_hosts:
     #     host1:  "{{ip_service}}"
     env:
-      ME_CONFIG_MONGODB_SERVER: "{{ groups['hosts-mongos-data'][0] }}"
+      ME_CONFIG_MONGODB_SERVER: "{{ hostvars[groups['hosts-mongos-data']|last]['ip_service'] }}"
       ME_CONFIG_MONGODB_PORT: "{{ mongodb.mongos_port }}"
       ME_CONFIG_SITE_BASEURL: "/{{ mongo_express.baseuri }}/"
       ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
