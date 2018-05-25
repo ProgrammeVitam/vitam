@@ -18,7 +18,7 @@ vitam_defaults:
     services:
         # Default log level for vitam components: logback values (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
         log_level: WARN
-        start_timeout: 150
+        start_timeout: 300
         stop_timeout: 3600
         port_service_timeout: 86400
     # Filter for the vitam package version to install
