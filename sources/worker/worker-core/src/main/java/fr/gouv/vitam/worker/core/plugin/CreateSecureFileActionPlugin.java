@@ -52,6 +52,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -62,7 +63,10 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
+
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
 
 
 /**
@@ -129,6 +133,15 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 metadataType = MetadataType.UNIT;
                 MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
 
+                if(unit.get(OG)!=null){
+                    lfcTraceSecFileDataLine.setIdGot(unit.get(OG).textValue());
+                }
+
+                ArrayList<String> parents = new ArrayList<>();
+                unit.get(MetadataDocument.UP).forEach(up -> parents.add(up.textValue()));
+                lfcTraceSecFileDataLine.setUp(parents);
+
+
                 hashMetaData = generateDigest(unit);
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(unit,
                     DataCategory.UNIT, lfGuid + JSON_EXTENSION, storageClient);
@@ -142,6 +155,8 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 lfcAndMetadataGlobalHashFromStorage = StorageClientUtil.getLFCAndMetadataGlobalHashFromStorage(og,
                     DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient);
                 List<ObjectGroupDocumentHash> list = StorageClientUtil.extractListObjectsFromJson(og, storageClient);
+
+                lfcTraceSecFileDataLine.setIdUnit(og.get(MetadataDocument.UP).get(0).textValue());
 
                 lfcTraceSecFileDataLine.setObjectGroupDocumentHashList(list);
             } else {
