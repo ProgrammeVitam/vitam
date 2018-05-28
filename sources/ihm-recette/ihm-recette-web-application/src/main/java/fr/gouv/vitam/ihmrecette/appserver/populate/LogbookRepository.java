@@ -160,7 +160,12 @@ public class LogbookRepository {
         return Document.parse(source);
     }
 
-    public Map<String, JsonNode> findLfcsByIds(List<String> ids, VitamDataType vitamDataType) {
+    /**
+     * Find raw metadata by ids
+     * @param ids the document ids
+     * @param vitamDataType the metadata type
+     */
+    public Map<String, JsonNode> findRawLfcsByIds(List<String> ids, VitamDataType vitamDataType) {
 
         Map<String, JsonNode> result = new HashMap<>();
         this.getCollection(vitamDataType).find(

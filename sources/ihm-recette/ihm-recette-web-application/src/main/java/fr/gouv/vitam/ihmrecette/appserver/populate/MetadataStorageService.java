@@ -43,6 +43,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Handles metadata backup for populate service
+ */
 public class MetadataStorageService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PopulateService.class);
@@ -51,6 +54,9 @@ public class MetadataStorageService {
     private final LogbookRepository logbookRepository;
     private final StoragePopulateImpl storagePopulateService;
 
+    /**
+     * Constructor
+     */
     public MetadataStorageService(MetadataRepository metadataRepository,
         LogbookRepository logbookRepository,
         StoragePopulateImpl storagePopulateService) {
@@ -59,6 +65,12 @@ public class MetadataStorageService {
         this.storagePopulateService = storagePopulateService;
     }
 
+    /**
+     * Stores LFC / GOT + LFC into offers
+     * @param populateModel
+     * @param unitGotList
+     * @return
+     */
     public boolean storeToOffers(PopulateModel populateModel, List<UnitGotModel> unitGotList) {
 
         if (populateModel.isStoreMetadataAndLfcInOffers()) {
@@ -75,8 +87,8 @@ public class MetadataStorageService {
 
     private void persistMetadataAndLfcToOffers(PopulateModel populateModel, List<String> ids,
         VitamDataType mdDataType, VitamDataType lfcDataType, DataCategory dataCategory) {
-        Map<String, JsonNode> metadataByIds = metadataRepository.findMetadataByIds(ids, mdDataType);
-        Map<String, JsonNode> lfcsByIds = logbookRepository.findLfcsByIds(ids, lfcDataType);
+        Map<String, JsonNode> metadataByIds = metadataRepository.findRawMetadataByIds(ids, mdDataType);
+        Map<String, JsonNode> lfcsByIds = logbookRepository.findRawLfcsByIds(ids, lfcDataType);
 
         for (String id : ids) {
 

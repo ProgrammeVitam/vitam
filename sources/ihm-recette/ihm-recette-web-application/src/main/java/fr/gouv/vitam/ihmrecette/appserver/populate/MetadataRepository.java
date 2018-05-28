@@ -249,7 +249,12 @@ public class MetadataRepository {
         return Document.parse(source);
     }
 
-    public Map<String, JsonNode> findMetadataByIds(List<String> ids, VitamDataType vitamDataType) {
+    /**
+     * Find raw metadata by ids
+     * @param ids the document ids
+     * @param vitamDataType the metadata type
+     */
+    public Map<String, JsonNode> findRawMetadataByIds(List<String> ids, VitamDataType vitamDataType) {
         Map<String, JsonNode> result = new HashMap<>();
         this.getCollection(vitamDataType).find(
             Filters.in("_id", ids)
