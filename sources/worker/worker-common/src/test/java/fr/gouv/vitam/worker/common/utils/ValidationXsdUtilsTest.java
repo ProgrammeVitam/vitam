@@ -72,10 +72,10 @@ public class ValidationXsdUtilsTest {
             SEDA_VITAM_VALIDATION_FILE));
     }
 
-    @Test(expected = SAXException.class)
-    public void givenXmlWithMissingTitleWhenCheckXsdThenThrowSAXException()
+    @Test
+    public void givenXmlWithMissingTitleWhenCheckXsdThenValidationOk()
         throws XMLStreamException, SAXException, IOException {
-        assertFalse(ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(WRONG_SEDA_MISSING_TITLE),
+        assertTrue(ValidationXsdUtils.checkWithXSD(PropertiesUtils.getResourceAsStream(WRONG_SEDA_MISSING_TITLE),
             SEDA_VITAM_VALIDATION_FILE));
     }
 
