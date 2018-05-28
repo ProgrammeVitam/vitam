@@ -2,14 +2,14 @@ package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 import com.google.common.collect.Lists;
 import com.mongodb.Block;
+import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
-
-import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.client.transport.TransportClient;
@@ -21,6 +21,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PopulateServiceTest {
 
+    private static final String STORAGE_CONF_FILE = "storage.conf";
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -60,11 +62,21 @@ public class PopulateServiceTest {
         client = new PreBuiltTransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
 
-        this.metadataRepository = new MetadataRepository(mongoRule.getMongoDatabase(), client);
+        StoragePopulateImpl storagePopulateService;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
+            final fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration
+                configuration =
+                PropertiesUtils.readYaml(yamlIS, fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration.class);
+            storagePopulateService = new StoragePopulateImpl(configuration);
+        }
+
+        this.metadataRepository = new MetadataRepository(mongoRule.getMongoDatabase(), client, storagePopulateService);
         this.masterdataRepository = new MasterdataRepository(mongoRule.getMongoDatabase(), client);
         this.logbookRepository = new LogbookRepository(logbookMongoRule.getMongoDatabase());
+        MetadataStorageService metadataStorageService = new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
         UnitGraph unitGraph = new UnitGraph(metadataRepository);
-        populateService = new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 4);
+        populateService =
+            new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 4, metadataStorageService);
     }
 
     @Test
@@ -84,7 +96,8 @@ public class PopulateServiceTest {
         ruleMap.put("ACC-000111", 20);
         populateModel.setRuleTemplatePercent(ruleMap);
 
-        UnitModel unitModel = new UnitModel(2, "default");
+        UnitModel unitModel = new UnitModel();
+        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
 
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");
@@ -110,7 +123,8 @@ public class PopulateServiceTest {
         Bson filter = Filters.eq("_mgt.StorageRule.Rules.Rule", "STR-00059");
         assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count(filter)).isEqualTo(10);
         assertThat(mongoRule.getMongoCollection(VitamDataType.AGENCIES.getCollectionName()).count()).isEqualTo(1);
-        assertThat(mongoRule.getMongoCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName()).count()).isEqualTo(1);
+        assertThat(mongoRule.getMongoCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName()).count())
+            .isEqualTo(1);
         assertThat(mongoRule.getMongoCollection(VitamDataType.RULES.getCollectionName()).count()).isEqualTo(2);
         mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) document -> {
@@ -118,7 +132,7 @@ public class PopulateServiceTest {
                 assertThat(!document.get("_up", List.class).contains("1234"));
                 assertThat(document.get("_us", List.class).size() == 1);
                 assertThat(document.get("_sps", List.class).size() == 1);
-                assertThat(document.get("_uds", Document.class).getInteger("1234").equals(1));
+                assertThat(document.get("_uds", Document.class).get("1", List.class)).containsExactly("1234");
             });
 
         int[] jdx = {0};
@@ -153,7 +167,9 @@ public class PopulateServiceTest {
         populateModel.setLFCUnitsEventsSize(10);
         populateModel.setLFCGotsEventsSize(5);
 
-        UnitModel unitModel = new UnitModel(2, "default");
+        UnitModel unitModel = new UnitModel();
+        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
+
         ObjectGroupModel got = new ObjectGroupModel();
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");

@@ -45,6 +45,9 @@ import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
+import fr.gouv.vitam.ihmrecette.appserver.populate.MetadataStorageService;
+import fr.gouv.vitam.ihmrecette.appserver.populate.StoragePopulateImpl;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -77,6 +80,8 @@ import fr.gouv.vitam.ihmrecette.appserver.populate.UnitGraph;
  * Business Application for ihm recette declaring resources and filters
  */
 public class BusinessApplication extends Application {
+
+    private static final String STORAGE_CONF_FILE = "storage.conf";
 
     private final CommonBusinessApplication commonBusinessApplication;
 
@@ -138,13 +143,22 @@ public class BusinessApplication extends Application {
             Settings settings = ElasticsearchAccess.getSettings(configuration.getClusterName());
             TransportClient esClient = getClient(settings, elasticsearchNodes);
 
-            MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient);
+            StoragePopulateImpl storagePopulateService;
+            try (final InputStream storageYamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
+                final StorageConfiguration storageConfiguration =
+                    PropertiesUtils.readYaml(storageYamlIS, StorageConfiguration.class);
+                storagePopulateService = new StoragePopulateImpl(storageConfiguration);
+            }
+
+
+            MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient, storagePopulateService);
             MasterdataRepository masterdataRepository = new MasterdataRepository(masterdataDb, esClient);
             LogbookRepository logbookRepository = new LogbookRepository(logbookDb);
+            MetadataStorageService metadataStorageService = new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
             UnitGraph unitGraph = new UnitGraph(metadataRepository);
             PopulateService populateService =
                 new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph,
-                    configuration.getIngestMaxThread());
+                    configuration.getIngestMaxThread(), metadataStorageService);
             PopulateResource populateResource = new PopulateResource(populateService);
 
             singletons.add(populateResource);
