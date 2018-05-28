@@ -203,7 +203,7 @@ public class OfferSyncServiceImpl implements OfferSyncService {
                         }
                         LOGGER
                             .warn("[OfferSync]: successful synchronization of category : {}, tenant : {}, offset : {}",
-                                category, tenant, Iterables.getLast(offerLogs).getSequence());
+                                category.getCollectionName(), tenant, Iterables.getLast(offerLogs).getSequence());
                     }
                     newOffset = null;
                 }
