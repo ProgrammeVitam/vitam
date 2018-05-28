@@ -1083,7 +1083,7 @@
   "SedaField" : "Encoding",
   "ApiField" : "Encoding",
   "Description" : "og-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "Encoding",
   "Collections" : [ "ObjectGroup" ]
@@ -1101,7 +1101,7 @@
   "SedaField" : "FormatLitteral",
   "ApiField" : "FormatLitteral",
   "Description" : "og-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "FormatLitteral",
   "Collections" : [ "ObjectGroup" ]
@@ -1110,7 +1110,7 @@
   "SedaField" : "MimeType",
   "ApiField" : "MimeType",
   "Description" : "og-es-mapping.json",
-  "Type" : "TEXT",
+  "Type" : "KEYWORD",
   "Origin" : "INTERNAL",
   "ShortName" : "MimeType",
   "Collections" : [ "ObjectGroup" ]
@@ -1745,4 +1745,3 @@
   "ShortName" : "FullAccess",
   "Collections" : [ "SecurityProfile" ]
 } ]
-

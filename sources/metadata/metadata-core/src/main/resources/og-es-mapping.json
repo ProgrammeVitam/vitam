@@ -104,13 +104,13 @@
                     "type": "keyword"
                   },
                   "FormatLitteral": {
-                    "type": "text"
+                    "type": "keyword"
                   },
                   "MimeType": {
-                    "type": "text"
+                    "type": "keyword"
                   },
                   "Encoding": {
-                    "type": "text"
+                    "type": "keyword"
                   }
                 }
               },
