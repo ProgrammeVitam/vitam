@@ -30,6 +30,7 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
     * Le champ "Description" est peuplé avec une chaîne de caractères
     * Le champ "Status" est peuplé avec de la valeur ACTIVE ou la valeur INACTIVE
     * Le champ "ArchiveProfile" est peuplé avec un tableau d'une ou plusieurs chaînes de caractère. Chacune de ces chaînes de caractère doit correspondre au champ "Identifier" d'un profil d'archivage contenu dans le référentiel des profils
+    * Le champ "CheckParentLink": est peuplé avec de la valeur ACTIVE ou la valeur INACTIVE
     * Le champ "LinkedParentId" est peuplé par une chaîne de caractères devant correspondre au GUID d'une AU de plan de classement ou d'arbre de positionnement pris en charge par la solution logicielle Vitam sur le même tenant
 
   + **Statuts** :
