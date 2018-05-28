@@ -159,6 +159,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private List<String> originatingAgencies;
     private final Map<String, JsonNode> existingGOTs;
     private String ingestContract;
+    private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
 
     /**
      * 
@@ -195,7 +196,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         Map<String, String> objectGroupIdToGuid,
         Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
         List<String> originatingAgencies, Map<String, JsonNode> existingGOTs,
-        Map<String, String> existingUnitIdWithExistingObjectGroup) {
+        Map<String, String> existingUnitIdWithExistingObjectGroup, Map<String, Boolean> isThereManifestRelatedReferenceRemained) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -217,6 +218,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.existingGOTs = existingGOTs;
         this.objectMapper = getObjectMapper();
         this.existingUnitIdWithExistingObjectGroup = existingUnitIdWithExistingObjectGroup;
+        this.isThereManifestRelatedReferenceRemained = isThereManifestRelatedReferenceRemained;
 
         DescriptiveMetadataMapper descriptiveMetadataMapper = new DescriptiveMetadataMapper();
         RuleMapper ruleMapper = new RuleMapper();
@@ -305,7 +307,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             enhanceSignatures(descriptiveMetadataModel);
 
-            replaceInternalReferenceForRelatedObjectReference(descriptiveMetadataModel);
+            replaceInternalReferenceForRelatedObjectReference(archiveUnitId, descriptiveMetadataModel);
 
             // fill list rules to map
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccess());
@@ -362,23 +364,26 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
     /**
      * fill sytemGUID for all item of RelatedObjectReference (RelationGroup) instead of internal seda id (defined in manifest).
+     * @param archiveUnitId
      * @param descriptiveMetadataModel
      */
-    private void replaceInternalReferenceForRelatedObjectReference(DescriptiveMetadataModel descriptiveMetadataModel){
+    private void replaceInternalReferenceForRelatedObjectReference(String archiveUnitId,
+        DescriptiveMetadataModel descriptiveMetadataModel){
 
         if (descriptiveMetadataModel.getRelatedObjectReference() != null ){
 
             DescriptiveMetadataContentType.RelatedObjectReference relatedObjReference = descriptiveMetadataModel.getRelatedObjectReference();
 
-            fillDataObjectOrArchiveUnitReference(relatedObjReference.getIsVersionOf());
-            fillDataObjectOrArchiveUnitReference(relatedObjReference.getReplaces());
-            fillDataObjectOrArchiveUnitReference(relatedObjReference.getRequires());
-            fillDataObjectOrArchiveUnitReference(relatedObjReference.getIsPartOf());
-            fillDataObjectOrArchiveUnitReference(relatedObjReference.getReferences());
+            fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getIsVersionOf());
+            fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getReplaces());
+            fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getRequires());
+            fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getIsPartOf());
+            fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getReferences());
         }
     }
 
-    private void fillDataObjectOrArchiveUnitReference(List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReference) {
+    private void fillDataObjectOrArchiveUnitReference(String archiveUnitId,
+        List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReference) {
 
         for(DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
 
@@ -387,6 +392,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             if(archiveUnitRefId != null) {
                 if(unitIdToGuid.containsKey(archiveUnitRefId)){
                     relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
+                } else {
+                    isThereManifestRelatedReferenceRemained.put(archiveUnitId, true);
                 }
             }
 
@@ -397,6 +404,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     String dataObjecRefId = dataObjectRefType.getDataObjectReferenceId();
                     if (dataObjectIdToGuid.containsKey(dataObjecRefId)) {
                         dataObjectRefType.setDataObjectReferenceId(dataObjectIdToGuid.get(dataObjecRefId));
+                    } else {
+                        isThereManifestRelatedReferenceRemained.put(archiveUnitId, true);
                     }
                 }
 
@@ -404,6 +413,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     String dataObjecGroupRefId = dataObjectRefType.getDataObjectGroupReferenceId();
                     if (objectGroupIdToGuid.containsKey(dataObjecGroupRefId)) {
                         dataObjectRefType.setDataObjectGroupReferenceId(objectGroupIdToGuid.get(dataObjecGroupRefId));
+                    } else {
+                        isThereManifestRelatedReferenceRemained.put(archiveUnitId, true);
                     }
                 }
             }

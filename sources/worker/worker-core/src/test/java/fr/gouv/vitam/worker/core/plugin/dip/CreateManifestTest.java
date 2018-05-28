@@ -161,10 +161,10 @@ public class CreateManifestTest {
             .containsExactlyInAnyOrder("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq",
                 "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba");
 
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveRestitutionRequest/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
             equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq"))
             .withNamespaceContext(prefix2Uri));
-        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveRestitutionRequest/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
+        Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
             equalTo("FRAN_NP_005568"))
             .withNamespaceContext(prefix2Uri));
     }

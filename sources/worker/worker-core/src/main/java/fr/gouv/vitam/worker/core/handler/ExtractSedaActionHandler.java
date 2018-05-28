@@ -78,6 +78,8 @@ import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -107,10 +109,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.unit.GotObj;
-import fr.gouv.vitam.common.model.unit.ManagementModel;
-import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
-import fr.gouv.vitam.common.model.unit.RuleModel;
+import fr.gouv.vitam.common.model.unit.*;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -282,6 +281,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private String linkParentId = null;
 
+    private  Map<String, Boolean>  isThereManifestRelatedReferenceRemained;
+
     private static JAXBContext jaxbContext;
 
     static {
@@ -333,6 +334,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         originatingAgencies = new ArrayList<>();
         existingGOTs = new HashMap<>();
         existingUnitIdWithExistingObjectGroup = new HashMap<>();
+        isThereManifestRelatedReferenceRemained = new HashMap<>();
+
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
@@ -376,7 +379,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 guidToLifeCycleParameters, existingUnitGuids, params.getLogbookTypeProcess(),
                 params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
                 dataObjectIdToGuid, unitIdToSetOfRuleId,
-                workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup);
+                workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup, isThereManifestRelatedReferenceRemained);
             unmarshaller.setListener(listener);
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
@@ -1208,6 +1211,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
 
+                if(isThereManifestRelatedReferenceRemained.get(unitId) != null && isThereManifestRelatedReferenceRemained.get(unitId)) {
+                    postReplaceInternalReferenceForRelatedObjectReference(archiveUnit);
+                }
                 // Write to new File
                 JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
                 // Write to workspace
@@ -1243,6 +1249,50 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void addStorageInformation(ObjectNode archiveUnit, JsonNode storageInfo) {
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
         archiveUnitNode.set(SedaConstants.STORAGE, storageInfo);
+    }
+    /**
+     * <p>Finalize filling of sytemGUID for all reference items of RelatedObjectReference (RelationGroup) instead of internal seda id (defined in manifest).<br>
+     *     not set yet by first pass call (one parsing) in method
+     *  {@link fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener#replaceInternalReferenceForRelatedObjectReference(String, DescriptiveMetadataModel)}
+     * </p>
+     * @param archiveUnit
+     * @throws InvalidParseOperationException if json serialization fail
+     */
+    private void postReplaceInternalReferenceForRelatedObjectReference(ObjectNode archiveUnit)
+        throws InvalidParseOperationException {
+
+        ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
+        DescriptiveMetadataContentType.RelatedObjectReference archiveUnitRelatedObjectReference;
+
+        if (archiveUnitNode.has(SedaConstants.TAG_RELATED_OBJECT_REFERENCE) &&
+            archiveUnitNode.get(SedaConstants.TAG_RELATED_OBJECT_REFERENCE) instanceof ObjectNode) {
+            archiveUnitRelatedObjectReference =
+                JsonHandler.getFromJsonNode(archiveUnitNode.get(SedaConstants.TAG_RELATED_OBJECT_REFERENCE), DescriptiveMetadataContentType.RelatedObjectReference.class);
+
+            fillArchiveUnitReference(archiveUnitRelatedObjectReference.getIsVersionOf());
+            fillArchiveUnitReference(archiveUnitRelatedObjectReference.getReplaces());
+            fillArchiveUnitReference(archiveUnitRelatedObjectReference.getRequires());
+            fillArchiveUnitReference(archiveUnitRelatedObjectReference.getIsPartOf());
+            fillArchiveUnitReference(archiveUnitRelatedObjectReference.getReferences());
+
+            ObjectNode archiveUnitRelatedObjectReferenceNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitRelatedObjectReference);
+            archiveUnitNode.set(SedaConstants.TAG_RELATED_OBJECT_REFERENCE, archiveUnitRelatedObjectReferenceNode);
+        }
+
+    }
+
+    private void fillArchiveUnitReference(List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReference) {
+
+        for (DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
+
+            String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
+
+            if (archiveUnitRefId != null) {
+                if (unitIdToGuid.containsKey(archiveUnitRefId)) {
+                    relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
+                }
+            }
+        }
     }
 
     private void bulkLifeCycleUnit(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient,

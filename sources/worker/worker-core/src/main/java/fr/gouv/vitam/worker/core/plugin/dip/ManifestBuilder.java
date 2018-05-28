@@ -105,7 +105,7 @@ public class ManifestBuilder implements AutoCloseable {
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
 
         writer.writeStartDocument();
-        writer.writeStartElement("ArchiveRestitutionRequest");
+        writer.writeStartElement(TAG_ARCHIVE_DELIVERY_REQUEST_REPLY);
         writer.writeNamespace("xlink", "http://www.w3.org/1999/xlink");
         writer.writeNamespace("pr", "info:lc/xmlns/premis-v2");
         writer.writeDefaultNamespace(NAMESPACE_URI);
