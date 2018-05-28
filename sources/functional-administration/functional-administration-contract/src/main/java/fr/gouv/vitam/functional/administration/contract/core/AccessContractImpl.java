@@ -129,6 +129,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER = "access contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_ACCESS_CONTRACT";
+    /**
+     * STP_BACKUP_ACCESS_CONTRACT
+     */
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_ACCESS_CONTRACT";
 
     private static final String EMPTY_REQUIRED_FIELD = "STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO";
@@ -146,8 +149,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String EVDETDATA_IDENTIFIER = "identifier";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
-    private static final String _TENANT = "_tenant";
-    private static final String _ID = "_id";
+    private static final String UND_TENANT = "_tenant";
+    private static final String UND_ID = "_id";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
@@ -261,11 +264,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 final ObjectNode accessContractNode = (ObjectNode) JsonHandler.toJsonNode(acm);
                 JsonNode hashId = accessContractNode.remove(VitamFieldsHelper.id());
                 if (hashId != null) {
-                    accessContractNode.set(_ID, hashId);
+                    accessContractNode.set(UND_ID, hashId);
                 }
                 JsonNode hashTenant = accessContractNode.remove(VitamFieldsHelper.tenant());
                 if (hashTenant != null) {
-                    accessContractNode.set(_TENANT, hashTenant);
+                    accessContractNode.set(UND_TENANT, hashTenant);
                 }
 
                 /* contract is valid, add it to the list to persist */

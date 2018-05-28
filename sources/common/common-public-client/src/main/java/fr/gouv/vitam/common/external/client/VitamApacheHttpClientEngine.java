@@ -241,7 +241,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
         clientBuilder.setConnectionReuseStrategy(MY_CONNECTION_REUSE_STRATEGY);
         clientBuilder.setKeepAliveStrategy(MY_KEEP_ALIVE_STRATEGY);
         clientBuilder.setDefaultRequestConfig(requestConfig);
-        if (!VitamRestEasyConfiguration.contentCompressionEnabled.isTrue(config)) {
+        if (!VitamRestEasyConfiguration.CONTENTCOMPRESSIONENABLED.isTrue(config)) {
             clientBuilder.disableContentCompression();
         }
 

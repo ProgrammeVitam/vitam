@@ -147,6 +147,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     private static final String AGENCIES = "agencies";
     private static final String RULES = "rules";
 
+    private static final String DOCUMENT_IS_MANDATORY = "document is a mandatory parameter";
+    private static final String JSON_SELECT_IS_MANDATORY = "Json select is a mandatory parameter";
+    private static final String SUCCESSFULLY_IMPORTED = "Successfully imported";
+    private static final String FORMAT_ID_MANDATORY = "formatId is a mandatory parameter";
+    private static final String UNEXPECTED_ERROR = "Unexpected error was thrown : ";
+
     private final SecureEndpointRegistry secureEndpointRegistry;
     private static final AlertService alertService = new AlertServiceImpl();
 
@@ -283,7 +289,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Resume in case of Exception
      *
-     * @param ex       exception to handle
+     * @param ex exception to handle
      * @param document the given document to import
      */
     private Response asyncResponseResume(Exception ex, InputStream document) {
@@ -297,8 +303,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a format
      *
-     * @param headers  http headers
-     * @param uriInfo  used to construct the created resource and send it back as location in the response
+     * @param headers http headers
+     * @param uriInfo used to construct the created resource and send it back as location in the response
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -310,7 +316,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = client.importFormat(document, filename);
                 // Send the http response with no entity and the status got from internalService;
@@ -342,7 +348,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a rules document
      *
-     * @param headers  http headers
+     * @param headers http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -356,7 +362,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
 
             // Check Html Pattern
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
@@ -437,11 +443,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "ingestcontracts:create:json",
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select) {
-        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<IngestContractModel>>() {
-                }));
+                new TypeReference<List<IngestContractModel>>() {}));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -450,7 +455,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
-                .entity("Successfully imported");
+                .entity(SUCCESSFULLY_IMPORTED);
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
@@ -483,11 +488,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Importer des contrats d'accès dans le référentiel")
     public Response importAccessContracts(JsonNode select) {
 
-        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<AccessContractModel>>() {
-                }));
+                new TypeReference<List<AccessContractModel>>() {}));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
                 return Response.status(Status.BAD_REQUEST)
@@ -496,7 +500,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
-                .entity("Successfully imported");
+                .entity(SUCCESSFULLY_IMPORTED);
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
@@ -529,15 +533,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Importer des contextes dans le référentiel", isAdminOnly = true)
     public Response importContexts(JsonNode select) {
 
-        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                new TypeReference<List<ContextModel>>() {
-                }));
+                new TypeReference<List<ContextModel>>() {}));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
-                .entity("Successfully imported");
+                .entity(SUCCESSFULLY_IMPORTED);
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
@@ -564,15 +567,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "profiles:create:binary", description = "Importer des profils dans le référentiel")
     public Response createProfiles(InputStream document) {
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ProfileModel>>() {
-                        }));
+                        new TypeReference<List<ProfileModel>>() {}));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -593,13 +595,13 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             } catch (InvalidFormatException e) {
                 LOGGER.error(e);
                 VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
-                        .setContext(ACCESS_EXTERNAL_MODULE)
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(error).build();
+                    .entity(error).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -623,13 +625,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "profiles:create:json", description = "Ecrire un profil dans le référentiel")
     public Response createProfiles(JsonNode select) {
 
-        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ProfileModel>>() {
-                    }));
+                    new TypeReference<List<ProfileModel>>() {}));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -655,18 +656,18 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:create:binary", description = "Importer un ou plusieurs document types dans le référentiel")
+    @Secured(permission = "archiveunitprofiles:create:binary",
+        description = "Importer un ou plusieurs document types dans le référentiel")
     public Response createArchiveUnitProfiles(InputStream document) {
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
                 RequestResponse requestResponse =
                     client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ArchiveUnitProfileModel>>() {
-                        }));
+                        new TypeReference<List<ArchiveUnitProfileModel>>() {}));
                 return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
 
@@ -687,13 +688,13 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             } catch (InvalidFormatException e) {
                 LOGGER.error(e);
                 VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
-                        .setContext(ACCESS_EXTERNAL_MODULE)
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(error).build();
+                    .entity(error).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -714,16 +715,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:create:json", description = "Ecrire un ou plusieurs document type dans le référentiel")
+    @Secured(permission = "archiveunitprofiles:create:json",
+        description = "Ecrire un ou plusieurs document type dans le référentiel")
     public Response createArchiveUnitProfiles(JsonNode select) {
 
-        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createArchiveUnitProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {
-                    }));
+                    new TypeReference<List<ArchiveUnitProfileModel>>() {}));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -731,7 +732,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (InvalidParseOperationException |InvalidFormatException e) {
+        } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
@@ -741,9 +742,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a Profile file document (xsd or rng, ...)
      *
-     * @param uriInfo           used to construct the created resource and send it back as location in the response
+     * @param uriInfo used to construct the created resource and send it back as location in the response
      * @param profileMetadataId id of the profile metadata
-     * @param profileFile       inputStream representing the data to import
+     * @param profileFile inputStream representing the data to import
      * @return The jaxRs Response
      */
     @Path("/profiles/{id:.+}")
@@ -1035,7 +1036,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:read", description = "Lister le contenu du référentiel des document types")
+    @Secured(permission = "archiveunitprofiles:read",
+        description = "Lister le contenu du référentiel des document types")
     public Response findArchiveUnitProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         try {
@@ -1098,7 +1100,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a agencies document
      *
-     * @param headers  http headers
+     * @param headers http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      * @throws InvalidParseOperationException
@@ -1113,7 +1115,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
 
             // Check Html Pattern
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
@@ -1277,7 +1279,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findFormatByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 final JsonNode result = client.getFormatByID(documentId);
@@ -1315,7 +1317,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findRuleByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 final JsonNode result = client.getRuleByID(documentId);
@@ -1352,7 +1354,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
@@ -1391,7 +1393,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findAccessContractsByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
@@ -1430,7 +1432,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findProfilesByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
@@ -1509,7 +1511,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findContextById(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
@@ -1631,7 +1633,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "archiveunitprofiles:id:update:json", description = "Effectuer une mise à jour sur un document type")
+    @Secured(permission = "archiveunitprofiles:id:update:json",
+        description = "Effectuer une mise à jour sur un document type")
     public Response updateArchiveUnitProfile(@PathParam("identifier") String identifier,
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException {
@@ -1757,7 +1760,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * findAccessionRegisterDetail
      *
      * @param documentId the document id of accession register to get
-     * @param select     the query to get document
+     * @param select the query to get document
      * @return Response
      */
     @GET
@@ -1816,7 +1819,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
+                .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         } catch (LogbookClientServerException e) {
@@ -1824,7 +1827,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
+                .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         } catch (AccessUnauthorizedException e) {
@@ -1856,7 +1859,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
+                .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         }
@@ -1880,8 +1883,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(JsonHandler.getFromStringAsTypeRefence(document.toString(),
-                new TypeReference<List<SecurityProfileModel>>() {
-                }));
+                new TypeReference<List<SecurityProfileModel>>() {}));
 
             // Send the http response with no entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status);
@@ -1974,7 +1976,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update a security profile
      *
      * @param identifier the identifier of the security profile to update
-     * @param queryDsl   query to execute
+     * @param queryDsl query to execute
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
@@ -2016,9 +2018,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
     @Deprecated
@@ -2064,7 +2066,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header of request
-     * @param query   the filter query
+     * @param query the filter query
      * @return the list of Operations details
      */
     @GET
@@ -2076,7 +2078,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.listOperationsDetails(query).toResponse();
         } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
                 .entity(
                     VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
@@ -2176,7 +2178,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -2190,7 +2192,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id      operation identifier
+     * @param id operation identifier
      * @return http response
      */
     @Path("operations/{id}")
@@ -2289,7 +2291,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.getWorkflowDefinitions().toResponse();
         } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
                 .entity(VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
                     e.getLocalizedMessage()))
@@ -2394,7 +2396,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
                     e.getLocalizedMessage()))
@@ -2414,15 +2416,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "ontologies:create:json", description = "Importer les ontologies dans le référentiel")
-    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate, JsonNode ontologies) {
+    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
+        JsonNode ontologies) {
 
         ParametersChecker.checkParameter("Json ontologies is a mandatory parameter", ontologies);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
                 client.importOntologies(forceUpdate, JsonHandler.getFromStringAsTypeRefence(ontologies.toString(),
-                    new TypeReference<List<OntologyModel>>() {
-                    }));
+                    new TypeReference<List<OntologyModel>>() {}));
             return Response.status(requestResponse.getStatus())
                 .entity(requestResponse).build();
 
@@ -2430,7 +2432,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (InvalidParseOperationException |InvalidFormatException e) {
+        } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();

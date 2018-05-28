@@ -220,8 +220,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     public void setGzipEncoded(boolean allowGzipEncoded) {
         this.allowGzipEncoded = allowGzipEncoded;
-        config.put(VitamRestEasyConfiguration.contentCompressionEnabled, allowGzipEncoded);
-        configNotChunked.put(VitamRestEasyConfiguration.contentCompressionEnabled, allowGzipEncoded);
+        config.put(VitamRestEasyConfiguration.CONTENTCOMPRESSIONENABLED, allowGzipEncoded);
+        configNotChunked.put(VitamRestEasyConfiguration.CONTENTCOMPRESSIONENABLED, allowGzipEncoded);
     }
 
     /**
@@ -488,7 +488,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         ResteasyClientBuilder clientBuilder = new ResteasyClientBuilder();
         clientBuilder.httpEngine(engine);
         clientBuilder.connectionCheckoutTimeout(
-            VitamRestEasyConfiguration.connectionRequestTimeout.getInt(config, 1000),
+            VitamRestEasyConfiguration.CONNECTIONREQUESTTIMEOUT.getInt(config, 1000),
             TimeUnit.MILLISECONDS);
         clientBuilder.establishConnectionTimeout(VitamRestEasyConfiguration.CONNECT_TIMEOUT.getInt(config, 1000),
             TimeUnit.MILLISECONDS);
@@ -515,11 +515,11 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         // Prevent Warning on misusage of non standard Calls
         config.put(VitamRestEasyConfiguration.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         config.put(VitamRestEasyConfiguration.CONNECT_TIMEOUT, VitamConfiguration.getConnectTimeout());
-        config.put(VitamRestEasyConfiguration.connectTimeout, VitamConfiguration.getConnectTimeout());
-        config.put(VitamRestEasyConfiguration.connectionRequestTimeout, VitamConfiguration.getDelayGetClient());
+        config.put(VitamRestEasyConfiguration.CONNECTTIMEOUT, VitamConfiguration.getConnectTimeout());
+        config.put(VitamRestEasyConfiguration.CONNECTIONREQUESTTIMEOUT, VitamConfiguration.getDelayGetClient());
         config.put(VitamRestEasyConfiguration.READ_TIMEOUT, VitamConfiguration.getReadTimeout());
-        config.put(VitamRestEasyConfiguration.socketTimeout, VitamConfiguration.getReadTimeout());
-        config.put(VitamRestEasyConfiguration.contentCompressionEnabled, allowGzipEncoded);
+        config.put(VitamRestEasyConfiguration.SOCKETTIMEOUT, VitamConfiguration.getReadTimeout());
+        config.put(VitamRestEasyConfiguration.CONTENTCOMPRESSIONENABLED, allowGzipEncoded);
         config.put(VitamRestEasyConfiguration.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
         if (chunkedMode) {
             config.put(VitamRestEasyConfiguration.CHUNKED_ENCODING_SIZE, VitamConfiguration.getChunkSize());

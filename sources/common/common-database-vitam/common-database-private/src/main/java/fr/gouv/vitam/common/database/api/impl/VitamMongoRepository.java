@@ -65,7 +65,7 @@ import org.bson.conversions.Bson;
 public class VitamMongoRepository implements VitamRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMongoRepository.class);
     public static final String NAME = "Name";
-
+    private static final String ALL_PARAMS_REQUIRED = "All params are required";
     private MongoCollection<Document> collection;
 
     /**
@@ -79,7 +79,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void save(Document document) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, document);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, document);
         try {
             collection.insertOne(document);
         } catch (Exception e) {
@@ -90,7 +90,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, document);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, document);
         try {
             ReplaceOneModel<Document> replaceOneModel =
                 new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
@@ -110,7 +110,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void save(List<Document> documents) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, documents);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
         List<InsertOneModel<Document>> collect =
             documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
 
@@ -128,7 +128,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void saveOrUpdate(List<Document> documents) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, documents);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
         List<ReplaceOneModel<Document>> collect =
             documents.stream().map(document -> new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
                 new UpdateOptions().upsert(true))).collect(Collectors.toList());
@@ -159,7 +159,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void remove(String id, Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", id);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
         DeleteResult delete = collection.deleteOne(new BasicDBObject(ID, id));
         long count = delete.getDeletedCount();
         if (count == 0) {
@@ -170,7 +170,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public long remove(Bson query) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", query);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, query);
         try {
             return collection.deleteMany(query).getDeletedCount();
         } catch (Exception e) {
@@ -182,7 +182,7 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException {
 
-        ParametersChecker.checkParameter("All params are required", name, tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, name, tenant);
         Bson query = and(eq(VitamDocument.TENANT_ID, tenant), eq(NAME, name));
         DeleteResult delete = collection.deleteOne(query);
         long count = delete.getDeletedCount();
@@ -199,7 +199,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public long purge(Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
         try {
             DeleteResult response = collection.deleteMany(new BasicDBObject(VitamDocument.TENANT_ID, tenant));
@@ -224,7 +224,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public Optional<Document> getByID(String id, Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", id);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
         try {
             FindIterable<Document> result = collection.find(new BasicDBObject(ID, id));
             if (result.iterator().hasNext()) {
@@ -242,7 +242,7 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
         throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", identifier, tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, identifier, tenant);
         Bson query = and(eq("Identifier", identifier), eq(VitamDocument.TENANT_ID, tenant));
         try {
             FindIterable<Document> result = collection.find(query);
@@ -253,8 +253,8 @@ public class VitamMongoRepository implements VitamRepository {
             }
         } catch (Exception e) {
             LOGGER.error(String
-                    .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
-                        identifier, tenant),
+                .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
+                    identifier, tenant),
                 e);
             throw new DatabaseException(String
                 .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
@@ -265,7 +265,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public Optional<Document> findByIdentifier(String identifier) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", identifier);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, identifier);
         try {
             FindIterable<Document> result = collection.find(eq("Identifier", identifier));
             if (result.iterator().hasNext()) {
@@ -275,8 +275,8 @@ public class VitamMongoRepository implements VitamRepository {
             }
         } catch (Exception e) {
             LOGGER.error(String
-                    .format("Error while findByIdentifierAndTenant > identifier : %s",
-                        identifier),
+                .format("Error while findByIdentifierAndTenant > identifier : %s",
+                    identifier),
                 e);
             throw new DatabaseException(String
                 .format("Error while findByIdentifierAndTenant > identifier : %s",
@@ -288,7 +288,7 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
         Integer tenant) {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
         if (fields == null || fields.isEmpty()) {
             return findDocuments(mongoBatchSize, tenant);
         }
@@ -312,7 +312,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant) {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
         return collection.find(new BasicDBObject(VitamDocument.TENANT_ID, tenant)).batchSize(mongoBatchSize);
     }
 

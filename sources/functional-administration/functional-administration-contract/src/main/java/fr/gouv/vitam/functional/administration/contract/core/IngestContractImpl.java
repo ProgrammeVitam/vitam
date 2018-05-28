@@ -135,8 +135,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private final VitamCounterService vitamCounterService;
     private final MetaDataClient metaDataClient;
     private final FunctionalBackupService functionalBackupService;
-    private static final String _TENANT = "_tenant";
-    private static final String _ID = "_id";
+    private static final String UND_TENANT = "_tenant";
+    private static final String UND_ID = "_id";
     private static final String RESULT_HITS = "$hits";
     private static final String HITS_SIZE = "size";
 
@@ -256,12 +256,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 final ObjectNode ingestContractNode = (ObjectNode) JsonHandler.toJsonNode(acm);
                 JsonNode hashId = ingestContractNode.remove(VitamFieldsHelper.id());
                 if (hashId != null) {
-                    ingestContractNode.set(_ID, hashId);
+                    ingestContractNode.set(UND_ID, hashId);
                 }
 
                 JsonNode hashTenant = ingestContractNode.remove(VitamFieldsHelper.tenant());
                 if (hashTenant != null) {
-                    ingestContractNode.set(_TENANT, hashTenant);
+                    ingestContractNode.set(UND_TENANT, hashTenant);
                 }
                 /* contract is valid, add it to the list to persist */
                 contractsToPersist.add(ingestContractNode);

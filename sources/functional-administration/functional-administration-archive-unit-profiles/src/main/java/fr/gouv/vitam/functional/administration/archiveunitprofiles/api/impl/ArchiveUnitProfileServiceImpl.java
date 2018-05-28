@@ -120,8 +120,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     private final MetaDataClient metaDataClient;
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
-    private static final String _TENANT = "_tenant";
-    private static final String _ID = "_id";
+    private static final String UND_TENANT = "_tenant";
+    private static final String UND_ID = "_id";
 
     private boolean checkOntology = true;
 
@@ -300,11 +300,11 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 /* archive unit profile is valid, add it to the list to persist */
 
                 if (jsonNode != null) {
-                    archiveProfileNode.set(_ID, jsonNode);
+                    archiveProfileNode.set(UND_ID, jsonNode);
                 }
                 JsonNode hashTenant = archiveProfileNode.remove(VitamFieldsHelper.tenant());
                 if (hashTenant != null) {
-                    archiveProfileNode.set(_TENANT, hashTenant);
+                    archiveProfileNode.set(UND_TENANT, hashTenant);
                 }
                 archiveProfilesToPersist.add(archiveProfileNode);
             }

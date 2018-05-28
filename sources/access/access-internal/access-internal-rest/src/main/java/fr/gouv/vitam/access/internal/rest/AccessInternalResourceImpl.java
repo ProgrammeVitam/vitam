@@ -134,8 +134,15 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class AccessInternalResourceImpl extends ApplicationStatusResource implements AccessInternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
-    public static final String EXPORT_DIP = "EXPORT_DIP";
-    public static final String UNITS = "units";
+    /**
+     * EXPORT DIP
+     */
+    private static final String EXPORT_DIP = "EXPORT_DIP";
+    /**
+     * UNITS
+     */
+    private static final String UNITS = "units";
+    private static final String RESULTS = "$results";    
 
     // DIP
     private DipService unitDipService;
@@ -278,7 +285,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
                         GUIDReader.getGUID(operationId),
-                        "EXPORT_DIP",
+                        EXPORT_DIP,
                         GUIDReader.getGUID(operationId),
                         LogbookTypeProcess.EXPORT_DIP,
                         StatusCode.STARTED,
@@ -379,7 +386,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
-            ArrayNode results = (ArrayNode) result.get("$results");
+            ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode unit = results.get(0);
             Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
             resetQuery(result, queryDsl);
@@ -495,7 +502,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(dslQuery);
             final JsonNode result =
                 accessModule.selectObjectGroupById(addProdServicesToQueryForObjectGroup(dslQuery), objectId);
-            ArrayNode results = (ArrayNode) result.get("$results");
+            ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode objectGroup = results.get(0);
             Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, objectId);
             return responseXmlFormat;
@@ -524,7 +531,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             //
             JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
-            ArrayNode results = (ArrayNode) result.get("$results");
+            ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode objectGroup = results.get(0);
             // Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
             Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, idUnit);

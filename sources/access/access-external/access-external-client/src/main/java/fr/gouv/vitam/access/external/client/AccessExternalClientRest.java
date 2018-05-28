@@ -39,6 +39,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/logbookunitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/logbookobjectslifecycles";
 
+    private static final String COULD_NOT_PARSE_SERVER_RESPONSE = "Could not parse server response";
+    private static final String VITAM_CLIENT_INTERNAL_EXCEPTION = "VitamClientInternalException: ";
+
     AccessExternalClientRest(AccessExternalClientFactory factory) {
         super(factory);
     }
@@ -57,10 +60,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -84,10 +87,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -110,10 +113,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -132,15 +135,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.putAll(vitamContext.getHeaders());
         try {
-            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/objects", headers,
+            response = performRequest(HttpMethod.GET, UNITS + unitId + "/objects", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -167,11 +170,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_VERSION, version);
 
         try {
-            response = performRequest(HttpMethod.GET, "/units/" + unitId + "/objects", headers,
+            response = performRequest(HttpMethod.GET, UNITS + unitId + "/objects", headers,
                 null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         }
         return response;
@@ -191,10 +194,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -216,10 +219,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -242,10 +245,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             return RequestResponse.parseFromResponse(response, LogbookLifecycle.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -269,10 +272,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             return RequestResponse.parseFromResponse(response, LogbookLifecycle.class);
 
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         }
     }
@@ -290,10 +293,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (IllegalStateException e) {
-            LOGGER.error("Could not parse server response ", e);
+            LOGGER.error(COULD_NOT_PARSE_SERVER_RESPONSE, e);
             throw createExceptionFromResponse(response);
         } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -315,7 +318,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
+            LOGGER.error(VITAM_CLIENT_INTERNAL_EXCEPTION, e);
             throw new VitamClientException(e);
         }
         return response;
