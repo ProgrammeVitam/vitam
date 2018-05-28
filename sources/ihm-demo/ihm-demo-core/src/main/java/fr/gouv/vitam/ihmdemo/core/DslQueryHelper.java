@@ -37,6 +37,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,9 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
 
@@ -802,4 +805,75 @@ public final class DslQueryHelper {
 
     }
 
+    /**
+     * Create a JsonNode similar to a composed Select/Update DSL query<br/>
+     * Input: {parentId: 'id', childId: 'id', action: 'ADD'} (action can be DELETE)<br/>
+     * Output:
+     *  [{
+     *   "$query": [
+     *     {
+     *       "$eq": {
+     *         "#id": "childId"
+     *       }
+     *     }
+     *   ],
+     *   "$action": [
+     *     {
+     *       "$add": { (action can be $pull if input ask for DELETE)
+     *         "#up": ["parentId"]
+     *       }
+     *     }
+     *   ]
+     * }]
+     *
+     * @param optionsMap input options given by frontend application
+     * @return jsonQuery for adminClient
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode createSelectAndUpdateDSLQuery(Map<String, Object> optionsMap)
+        throws InvalidCreateOperationException {
+
+        // Select part
+        ArrayNode queryArray = JsonHandler.createArrayNode();
+        ObjectNode query = JsonHandler.createObjectNode();
+        ObjectNode eqQuery = JsonHandler.createObjectNode();
+        eqQuery.set("#id", new TextNode((String) optionsMap.get("childId")));
+        query.set("$eq", eqQuery);
+        queryArray.add(query);
+
+        // Update part
+        ArrayNode actions = JsonHandler.createArrayNode();
+        ObjectNode action = JsonHandler.createObjectNode();
+        ObjectNode actionDetails = JsonHandler.createObjectNode();
+        ArrayNode actionIds = JsonHandler.createArrayNode();
+
+        String actionType;
+        switch((String) optionsMap.get("action")) {
+            case "ADD":
+                actionType = "$add";
+                break;
+            case "DELETE":
+                actionType = "$pull";
+                break;
+            default:
+                // TODO throw error ?
+                return null;
+        }
+
+        actionIds.add((String) optionsMap.get("parentId"));
+        actionDetails.set("#unitups", actionIds);
+        action.set(actionType, actionDetails);
+        actions.add(action);
+
+        // Full query
+        ArrayNode queries = JsonHandler.createArrayNode();
+        ObjectNode finalQuery = JsonHandler.createObjectNode();
+
+        finalQuery.set("$roots", JsonHandler.createArrayNode());
+        finalQuery.set("$query", queryArray);
+        finalQuery.set("$action", actions);
+        queries.add(finalQuery);
+
+        return queries;
+    }
 }

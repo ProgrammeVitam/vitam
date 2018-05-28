@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import {ResourcesService} from '../../common/resources.service';
 import {Observable} from 'rxjs/Observable';
-import {HttpHeaders} from '@angular/common/http';
 
 @Injectable()
 export class LoadStorageService {

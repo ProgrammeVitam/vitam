@@ -45,7 +45,7 @@ export class LoadStorageComponent extends PageComponent {
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, private resourcesService: ResourcesService,
               private loadStorageService: LoadStorageService, private tenantService: TenantService) {
-    super('Administration des collections', breadcrumb, titleService, breadcrumbService);
+    super('Recherche et modification d\'un fichier', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {
