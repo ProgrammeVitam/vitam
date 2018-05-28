@@ -70,6 +70,7 @@ import java.io.File;
 import java.io.InputStream;
 
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleUnitParameters;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.checkMigrationEvents;
 
 /**
  * MigrationUnits class
@@ -84,6 +85,7 @@ public class MigrationUnits extends ActionHandler {
     private static final String DEFAULT_STRATEGY = "default";
 
     private static final String MIGRATION_UNITS = "MIGRATION_UNITS";
+    private static final String LFC_UPDATE_MIGRATION_UNITS = "LFC.UPDATE_MIGRATION_UNITS";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private StorageClientFactory storageClientFactory;
@@ -113,8 +115,16 @@ public class MigrationUnits extends ActionHandler {
             MetaDataClient metaDataClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient()
-        )
-        {
+        ) {
+            //// get lfc
+            JsonNode lfc = getRawUnitLifeCycleById(unitId);
+            boolean doMigration = checkMigrationEvents(lfc, LFC_UPDATE_MIGRATION_UNITS);
+
+            if (!doMigration) {
+                itemStatus.increment(StatusCode.OK);
+                return new ItemStatus(MIGRATION_UNITS).setItemsStatus(MIGRATION_UNITS, itemStatus);
+            }
+
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
 
             metaDataClient.updateUnitbyId(updateMultiQuery.getFinalUpdate(), unitId);
@@ -132,8 +142,7 @@ public class MigrationUnits extends ActionHandler {
 
             MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
 
-            //// get lfc
-            JsonNode lfc = getRawUnitLifeCycleById(unitId);
+
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
@@ -159,7 +168,6 @@ public class MigrationUnits extends ActionHandler {
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(MIGRATION_UNITS).setItemsStatus(MIGRATION_UNITS, itemStatus);
     }
-
 
     /**
      * @param unitId id

@@ -70,6 +70,7 @@ import java.io.File;
 import java.io.InputStream;
 
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.checkMigrationEvents;
 
 /**
  * MigrationUnits class
@@ -84,6 +85,7 @@ public class MigrationObjectGroups extends ActionHandler {
     private static final String DEFAULT_STRATEGY = "default";
 
     private static final String MIGRATION_OBJECT_GROUPS = "MIGRATION_OBJECT_GROUPS";
+    private static final String LFC_UPDATE_MIGRATION_OBJECT = "LFC.UPDATE_MIGRATION_OBJECT_GROUPS";
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private StorageClientFactory storageClientFactory;
@@ -115,8 +117,16 @@ public class MigrationObjectGroups extends ActionHandler {
             MetaDataClient metaDataClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient()
-        )
-        {
+        ) {
+
+            //// get lfc
+            JsonNode lfc = getRawObjectGroupLifeCycleById(objectGroupId);
+            boolean doMigration = checkMigrationEvents(lfc, LFC_UPDATE_MIGRATION_OBJECT);
+
+            if (!doMigration) {
+                itemStatus.increment(StatusCode.OK);
+                return new ItemStatus(MIGRATION_OBJECT_GROUPS).setItemsStatus(MIGRATION_OBJECT_GROUPS, itemStatus);
+            }
 
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
 
@@ -136,8 +146,6 @@ public class MigrationObjectGroups extends ActionHandler {
 
             MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(objectGroupMetadata);
 
-            //// get lfc
-            JsonNode lfc = getRawObjectGroupLifeCycleById(objectGroupId);
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(objectGroupMetadata, lfc);

@@ -73,6 +73,23 @@
           }
         }
       ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_MIGRATION_FINALIZE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "MIGRATION_FINALIZE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
     }
   ]
 }

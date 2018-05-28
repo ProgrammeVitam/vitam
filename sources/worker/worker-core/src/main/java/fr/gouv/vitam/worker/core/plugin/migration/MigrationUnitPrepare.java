@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -45,6 +46,9 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
+import java.io.File;
+import java.util.List;
+
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
 import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.checkNumberOfResultQuery;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.createAndSaveLinkedFilesInWorkSpaceFromScrollRequest;
@@ -57,8 +61,10 @@ public class MigrationUnitPrepare extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
 
     private static final String MIGRATION_UNITS_LIST = "MIGRATION_UNITS_LIST";
+    static final String MIGRATION_UNITS_LIST_IDS = "migrationUnitsListIds";
     private MetaDataClientFactory metaDataClientFactory;
-    private final  int bachSize;
+    private final int bachSize;
+    private static final String REPORTS = "reports";
 
     @VisibleForTesting
     public MigrationUnitPrepare(MetaDataClientFactory metaDataClientFactory, int bachSize) {
@@ -74,7 +80,7 @@ public class MigrationUnitPrepare extends ActionHandler {
         bachSize = GlobalDatasDb.LIMIT_LOAD;
     }
 
-    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler)   {
+    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
         ItemStatus itemStatus = new ItemStatus(MIGRATION_UNITS_LIST);
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
@@ -82,15 +88,21 @@ public class MigrationUnitPrepare extends ActionHandler {
             SelectMultiQuery selectMultiQuery = getSelectMultiQuery();
 
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(client, selectMultiQuery,bachSize);
+                .createUnitScrollSplitIterator(client, selectMultiQuery, bachSize);
 
-            createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(scrollRequest, handler, ARCHIVE_UNIT_FOLDER, bachSize);
+            List<String> totalIdentifiers =
+                createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(scrollRequest, handler, ARCHIVE_UNIT_FOLDER,
+                    bachSize);
+            File file = handler.getNewLocalFile(MIGRATION_UNITS_LIST_IDS);
+            JsonHandler.writeAsFile(totalIdentifiers, file);
+            handler.transferFileToWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json",
+                file, true, false);
 
             if (checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(MIGRATION_UNITS_LIST)
                     .setItemsStatus(MIGRATION_UNITS_LIST, itemStatus);
             }
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | ProcessingException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
         }
