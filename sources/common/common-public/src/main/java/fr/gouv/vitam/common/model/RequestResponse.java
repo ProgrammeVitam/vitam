@@ -38,6 +38,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -197,7 +198,8 @@ public abstract class RequestResponse<T> {
             }
             throw new IllegalStateException("Cannot parse the response");
         }
-        return new VitamError("UnknownCode").setCode("").setHttpCode(response.getStatus());
+        return new VitamError("UnknownCode").setCode("").setHttpCode(response.getStatus())
+            .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
     }
 
     /**

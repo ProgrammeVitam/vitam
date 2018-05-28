@@ -1382,6 +1382,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
 
+        if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL)) {
+            ruleCategoryModel
+                .setClassificationLevel(globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL).asText());
+        }
+        if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER)) {
+            ruleCategoryModel
+                .setClassificationOwner(globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER).asText());
+        }
         JsonNode finalAction = globalMgtRuleNode.get(SedaConstants.TAG_RULE_FINAL_ACTION);
         if (finalAction != null && ruleCategoryModel.getFinalAction() == null) {
             ruleCategoryModel.setFinalAction(finalAction.asText());

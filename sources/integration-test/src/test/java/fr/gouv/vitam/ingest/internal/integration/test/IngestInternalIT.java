@@ -313,6 +313,8 @@ public class IngestInternalIT {
         "OK_ArchivesPhysiques_With_Attachment_Contract.zip";
     private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
 
+    private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
+
     private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
@@ -2346,6 +2348,66 @@ public class IngestInternalIT {
                 break;
             nbTry++;
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestInternal4396() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_4396);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        final Response response2 = client.uploadInitialLogbook(params);
+        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+        // init workflow before execution
+        client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+        wait(operationGuid.toString());
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "monSIP")).add(QueryHelper.in("#operations", operationGuid.toString())));
+        // Get AU
+        final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+        final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+
+        // management for this unit
+        LOGGER.warn(node.toString());
+        assertNotNull(node);
+        assertNotNull(node.get("$results"));
+        assertEquals(1, node.get("$results").size());
+        assertNotNull(node.get("$results").get(0).get("Title"));
+        assertNotNull(node.get("$results").get(0).get("#management"));
+        assertEquals("Secret Défense",node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationLevel").asText());
+        assertEquals("ClassOWn",node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationOwner").asText());
+
     }
 
 }
