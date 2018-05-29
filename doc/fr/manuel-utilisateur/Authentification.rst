@@ -1,7 +1,7 @@
 Authentification
 ################
 
-Cette partie est destinée à expliquer les fonctionnalités du système d'authentification, qui s'affiche dès qu'un utilisateur souhaite se connecter à l'IHM minimale, et, également du processus de déconnexion.
+Cette partie est destinée à expliquer les fonctionnalités du système d'authentification, qui s'affiche dès qu'un utilisateur souhaite se connecter à l'IHM minimale et, également du processus de déconnexion.
 
 Le système comporte actuellement deux niveaux d'authentification :
 
@@ -13,7 +13,7 @@ Connexion
 
 L'utilisateur de la solution logicielle Vitam peut s'authentifier de deux façons différentes, selon le paramétrage qui a été effectué. Il est possible de se connecter en utilisant un login et un mot de passe, ou de se connecter en utilisant un certificat.
 
-Dans les deux cas, l'utilisateur doit choisir le tenant sur lequel il souhaite se connecter, pour cela, il utilise le sélecteur "Tenant de la session". 
+Dans les deux cas, l'utilisateur doit choisir le tenant sur lequel il souhaite se connecter.Pour cela, il utilise le sélecteur "Tenant de la session". 
 
 |
 
@@ -47,7 +47,7 @@ Authentification par certificat
 
 Pour utiliser ce mode d'authentification, l'utilisateur doit détenir un certificat délivré par son service informatique. En cliquant simplement sur le bouton de connexion, il sera alors authentifié. Si l'utilisateur utilise un mauvais certificat ou n'utilise pas de certificat, un message d'erreur est affiché pour notifier de cette erreur.
 
-Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est de 30 minutes, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
+Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est de 30 minutes, non paramétrable par le métier, mais paramétrable par le gestionnaire de plateforme), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
 
 
 Rôles
@@ -61,8 +61,8 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 **Admin** : rôle accordant des droits étendus, permet d'accéder à l'ensemble des fonctionnalités, y compris d'administration fonctionnelle.
 
 Fonctionnalités spécifiques au mode Administrateur : 
-- Import des référentiels des contextes
-- Transfert d'un SIP en mode "Pas à pas".
+-Import des référentiels
+-Transfert d'un SIP en mode "Pas à pas".
 
 Les fonctionnalités disponibles sont présentes dans le menu:  
 

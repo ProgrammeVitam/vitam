@@ -6,7 +6,7 @@ Cette partie décrit les fonctionnalités de recherche et de consultation d'une 
 Recherche d'une unité archivistique
 ===================================
 
-Pour effectuer une recherche d'une unité archivistique, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche d'archives".
+Pour effectuer une recherche d'une unité archivistique, l'utilisateur clique sur le menu "Recherche", puis sélectionne "Recherche d'archives".
 
 
 .. image:: images/menu_au.png
@@ -28,7 +28,7 @@ Pour effectuer une recherche globale, l'utilisateur saisit un ou plusieurs mots 
 .. image:: images/au_rechchs.png
 
 Le ou les mots saisis vont être recherchés dans les métadonnées "Titre" et "Description" des unités archivistiques. La recherche simple s'effectue sur chacun des mots entrés de manière indépendante (réalisé avec un opérateur "OU") et permet de trouver les mots appartenant à l'un, à l'autre, ou aux deux ensembles de métadonnées visés. Il n’est pas possible de la paramétrer.
-Par exemple, une recherche "département gironde" retournera des résultats comprenant le mot "département" ou le mot  "gironde".
+Par exemple, une recherche "département Gironde" retournera des résultats comprenant le mot "département" ou le mot  "Gironde".
 
 Lorsqu'une recherche libre est effectuée, tous les résultats comprenant la chaîne de caractères demandée seront remontés. Exemple : pour une recherche du mot "acte" sera remonté "acte de naissance" ou "Divers actes de mariage".
 
@@ -76,7 +76,7 @@ La recherche par identifiant est spécifique. L'identifiant étant unique, il n'
 
 Affiner la recherche 
 --------------------
-Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents champs (FACET). Pour accéder à ces filtres, l’utilisateur doit déplier le bloc « Affiner la recherche » en cliquant sur le pictogramme « plus » situé à droite de l’écran.
+Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents filtres (FACET). Pour accéder à ces filtres, l’utilisateur doit déplier le bloc « Affiner la recherche » en cliquant sur le pictogramme « plus » situé à droite de l’écran.
 
 L’utilisateur peut filtrer les résultats de recherche en sélectionnant un des filtres proposés: 
 - Niveau de description
@@ -133,7 +133,7 @@ Depuis la liste des résultats, l'utilisateur peut consulter le détail d'une un
 Détail de l'unité archivistique
 -------------------------------
 
-La page affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivistique dans la solution logicielle Vitam.
+La page affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivistique dans la solution logicielle Vitam, compte tenu des mises à jour éventuelles.
 
 La page est divisée en plusieurs sections :
 
@@ -150,7 +150,7 @@ L'unité archivistique que l'on consulte est signalée en gras et par un pictogr
 .. image:: images/au_arbo.png
 
 
-Par défaut, l'unité archivistique affiche cinq niveaux parents et enfants directs. Dans le cas où il existe plus de cinq enfants, un lien plus d'enfants" est affiché.
+Par défaut, l'unité archivistique affiche cinq niveaux parents et enfants directs. Dans le cas où il existe plus de cinq enfants, un lien "plus d'enfants" est affiché.
 
 Un  clic sur ce lien ouvre une fenêtre modale composée d'un formulaire de recherche et sa liste de résultats.
 
@@ -161,7 +161,7 @@ Le formulaire permet d'effectuer une recherche par intitulé et dates extrêmes 
 
 Les résultats sont affichés avec les informations suivantes :
 
-- Sélectionné
+- Sélectionné : la colonne sélectionné
 - Identifiant
 - Intitulé
 - Type
@@ -172,10 +172,11 @@ Les résultats sont affichés avec les informations suivantes :
 .. image:: images/au_arbre_res.png
 
 
-La colonne "Sélectionné" permet de visualiser les unités archivistiques visibles dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionnées. Un clic sur une ligne permet de sélectionner ou désélectionner l'unité archivistique correspondante.
-Un fois les choix effectués, un clic sur le bouton "valider" enregistre les sélections et ferme la fenêtre automatiquement.
+La colonne "Sélectionné" permet de visualiser les unités archivistiques visibles dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionnées. 
+Un clic sur une ligne permet de sélectionner ou désélectionner l'unité archivistique correspondante.
+Un fois les choix effectués, un clic sur le bouton "valider" enregistre les sélections et ferme la fenêtre automatiquement. L'arborescence affiche les unités sélectionnées. 
 
-Un pictogramme de croix, placé en haut à droite de la fenêtre permet également de la refermer.
+Un pictogramme de croix, placé en haut à droite de la fenêtre permet de la refermer.
 
 .. image:: images/au_arbre_close.png
 
@@ -187,8 +188,8 @@ Affichée par défaut, cette section contient les principales métadonnées desc
 
 Concernant les services producteurs, il faut différencier :
 
- - Service producteur correspondant au service producteur de l'unité archivistique, repris du bloc <Content> du bordereau de transfert, qui seront dans la partie Description complémentaire. 
- - Service producteur de l'entrée, correspondant à la valeur de l'<OriginatingAgencyIdentifier> déclaré dans le bordereau de transfert au niveau du bloc <ManagementData>
+ - Service producteur correspondant au service producteur de l'unité archivistique, repris du bloc <Content> du bordereau de transfert, qui sera dans la partie Description complémentaire. 
+ - Service producteur de l'entrée, correspondant à la valeur de l' <OriginatingAgencyIdentifier> déclaré dans le bordereau de transfert au niveau du bloc <ManagementData>
  - Services ayant des droits sur l'entrée, correspondant aux services producteurs de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées, depuis le bloc <ManagementData>
 
 
@@ -200,15 +201,16 @@ La plupart des métadonnées descriptives peuvent être modifiées en cliquant s
 
 .. image:: images/au_modif.png
 
-Chaque ligne devient alors éditable, excepté les champs identifiant et type.
+Chaque ligne devient alors éditable, excepté les champs identifiant, type, service producteur de l'entrée et services ayant des droits sur l'unité.
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les sauvegarder et met à jour les métadonnées.
-Cette action est enregistrée dans le Journal du cycle de viede l'unité archivistique ainsi que dans le journal des opérations. Les anciennes valeurs sont sauvegardées à titre informatif dans la colonne détails sur l'événement située au niveau de l'étape de "mise à jour des métadonnées de l'unité archivistique.
+Cette action est enregistrée dans le Journal du cycle de vie de l'unité archivistique ainsi que dans le journal des opérations. 
+Les anciennes valeurs sont sauvegardées à titre informatif dans la colonne détails sur l'événement située au niveau de l'étape de mise à jour des métadonnées de l'unité archivistique.
 
 
 **Description complémentaire**
 
-Cette partie permet d'afficher l'ensemble des champs issus du bloc <Content>
+Cette partie permet d'afficher l'ensemble des champs issus du bloc <Content> du bordereau de transfert. 
 
 
 .. image:: images/au_desc_c.png
@@ -264,7 +266,7 @@ Dans cet exemple, une règle est héritée et donc non modifiable, tandis que la
 
 La suppression d'une règle s'effectue en cliquant sur la corbeille. Il est possible d'annuler l'action de suppression avant la validation des modifications en cliquant sur le pictogramme "+" situé à droite.
 
-Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier vos modifications. Un clic sur le bouton "Modifier" met à jour et sauvegarde les règles de gestion.
+Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier les modifications. Un clic sur le bouton "Modifier" met à jour et sauvegarde les règles de gestion.
 
 |
 
@@ -279,25 +281,24 @@ Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre un
 
 Si des objets sont disponibles, cette section est visible et affichée par défaut. Le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées pour cette unité archivistique y sont affichés.
 
-Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les informations suivantes :
+Chaque objet est listé dans une ligne du tableau. Les colonnes affichent les informations suivantes :
 
 - Usage, correspondant aux utilisations de l'objet (consultation, conservation, etc.)
 - Taille, exprimée en bytes
 - Format, correspondant à l'extension du format de l'objet
 - Date, correspondant à la date de dernière modification
-- Téléchargement, un clic sur icône de téléchargement permet de consulter l'objet.
+- Téléchargement, un clic sur l'icône de téléchargement permet de consulter l'objet.
+
+Un clic sur le pictogramme situé à droite de l'objet permet de consulter l'ensemble des métadonnées.
 
 |
 
 .. image:: images/au_got.png
-
-Un clic sur le pictogramme situé à droite de l'objet permet de consulter l'ensemble ses métadonnées.
-
 |
 
 .. image:: images/au_got_detail.png
 
-En ce qui concerne les objets physiques, les colonnes n'affichent que l'information suivante :
+En ce qui concerne les références à des objets physiques, les colonnes n'affichent que l'information suivante :
 
 - Usage
 
@@ -324,10 +325,6 @@ cette / ces  option(s) active(s) dans le contrat d'entrée et la balise <UpdateO
 .. image:: images/rattachement_got.png
 
 
-
-
-
-
 **Export du Dissemination Information Package (DIP)**
 
 Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix d'exports sont disponibles :
@@ -342,11 +339,11 @@ Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix
 
 Suite au clic sur le bouton "Exporter" une fenêtre modale s'ouvre et indique que le DIP est en cours de création et qu'il sera téléchargeable dans le journal des opérations. Un bouton "OK" ferme la fenêtre.
 
-Pour le télécharger, retourner au Journal des Opérations, rechercher dans la catégorie d'opérations " Export DIP ", et sélectionner dans les options de colonnes disponibles la case "Rapport". Le ligne correspondant au dernier export sera affichée, et il suffit de cliquer sur l'icone correspondant au rapport pour afficher le répertoire du DIP généré. 
+Pour télécharger le DIP, retourner au Journal des Opérations, rechercher dans la catégorie d'opérations "Export DIP", et sélectionner dans les options de colonnes disponibles la case "Rapport". Le ligne correspondant au dernier export sera affichée, et il suffit de cliquer sur l'icône correspondant au rapport pour afficher le répertoire du DIP généré. 
 
-Note: Via le Panier: il est possible d'exporter une sélection d'unités archivistiques, même si celles ci proviennent de services producteurs différents, en créant une sélection. Par contre, le service producteur qui sera affiché dans le DIP est "pré-configuré" vis à vis du serveur utilisé. 
+Note: via le panier: il est possible d'exporter une sélection d'unités archivistiques, même si celles ci proviennent de services producteurs différents, en créant une sélection. En revanche, le service producteur qui sera affiché dans le DIP est "pré-configuré" vis à vis du serveur utilisé. 
 
-L'export du panier ou de la sélection se fait de la même façon que pour un export classique. Un pop-up informe du fait que la génération du DIP est en cours, et le fichier en question se retrouvera via le journal des opérations, et sera disponible à l'export. 
+L'export du panier ou de la sélection se fait de la même façon que pour un export classique. Une pop-up informe du fait que la génération du DIP est en cours, et le fichier en question se retrouvera via le journal des opérations, et sera disponible au téléchargement. 
 
 
 Consultation des journaux du cycle de vie
@@ -422,23 +419,25 @@ Recherche par service producteur et consultation du registre des fonds.
 
 Le registre des fonds a pour but de :
 
-- fournir une vue globale et dynamique de l'ensemble des archives, placées sous la responsabilité du service d'archives
+- fournir une vue globale et dynamique de l'ensemble des archives organisées selon leur origine (service producteur), placées sous la responsabilité du service d'archives (versées dans Vitam)
 - permettre d'effectuer des recherches dans les archives en prenant pour critère l'origine de celles-ci, le service producteur
 
 Recherche
 ----------
 
-Pour y accéder, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche par service producteur".
+Pour y accéder, l'utilisateur clique sur le menu "Recherche", puis sélectionne "Recherche par service producteur".
 
 
 .. image:: images/menu_sp.png
 
 
-Par défaut, les services producteurs ayant fait des entrées sont affichés sous le formulaire de recherche.
+Par défaut, les services agents ayant fait des entrées sont affichés sous le formulaire de recherche.
+
+Note: les services versants ne figurent pas dans cette liste.
 
 Pour effectuer une recherche précise, on utilise le champ "Identifiant" en utilisant l'identifiant exact recherché. 
 Il est également possible de rechercher par Intitulé.
-NB : La recherche n'a alors pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots au singulier comme au pluriel.
+NB : la recherche n'a alors pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots au singulier comme au pluriel.
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher".
 La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée.
@@ -473,13 +472,13 @@ Depuis la liste des résultats, l'utilisateur peut consulter le détail d'un ser
 Consultation du registre des fonds
 ----------------------------------
 
-Depuis le détail du service agent, l'utilisateur peut consulter le registre des fonds de ce service en cliquant sur le bouton " Registre des Fonds" afin d'afficher le détail complet du fond. 
+Depuis le détail du service producteur, l'utilisateur peut consulter le registre des fonds de ce service en cliquant sur le bouton "Registre des Fonds" afin d'afficher le détail complet du fonds. 
 
 Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
 
-- Le 1er: regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés, c'est-à-dire les archives déclarées par ce service producteur par voie de rattachement.
+- Fonds propres: regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés, c'est-à-dire les archives déclarées par ce service producteur par voie de rattachement.
 
-- Le 2nd: listant toutes les opérations d'entrée effectuées pour ce service producteur
+- Fonds Symboliques: listant toutes les opérations d'entrée effectuées pour ce service producteur
 
 
 .. image:: images/fonds_detail.png
@@ -511,15 +510,15 @@ Cette vue affiche, sous forme de tableau, les informations consolidées suivante
   - Supprimé : Volume total des objets supprimés de la solution logicielle Vitam
   - Restant : Volume total des objets restant dans la solution logicielle Vitam
 
-Sous cette partie, la liste des entrées effectuées pour ce service producteur est affichée sous forme de tableau.
+Sous cette partie, un tableau liste des entrées effectuées pour ce service producteur est affichée sous forme de tableau.
 
 
-.. image:: images/fonds_operation.png
+.. image:: images/fonds_detail.png
 
 
 Pour chaque entrée, les informations suivantes sont affichées :
 
-- Fond propre : une coche indique que l'entrée provient d'un fond propre, une croix indique qu'elle provient d'un fond rattaché
+- Fond propre : une coche indique que l'entrée correspondant à un fond propre, une croix indique qu'elle correspond à un fond rattaché ou symbolique. 
 - Identifiant de l'opération attribué par la solution logicielle Vitam (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
 - Date d'entrée
@@ -543,6 +542,10 @@ Pour chaque entrée, les informations suivantes sont affichées :
 
 - Type (standard, plan de classement, arbre de positionnement)
 - Statut de l'entrée (En stock et complète, En stock et mise à jour, Sortie du stock)
+
+
+.. image:: images/fonds_operation.png
+
 
 Un bouton "Unités archivistiques associées" permet d'accéder directement à la liste des unités archivistiques liées à ce service producteur.
 
