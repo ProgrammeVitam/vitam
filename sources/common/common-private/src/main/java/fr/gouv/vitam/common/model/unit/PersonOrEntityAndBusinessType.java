@@ -28,7 +28,10 @@ package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.xml.bind.annotation.*;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,18 +44,18 @@ import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
 @XmlTransient
 public class PersonOrEntityAndBusinessType {
 
-    public static final String FIRST_NAME = "FirstName";
-    public static final String BIRTH_NAME = "BirthName";
+    private static final String FIRST_NAME = "FirstName";
+    private static final String BIRTH_NAME = "BirthName";
     private static final String FULLNAME = "FullName";;
-    public static final String GIVEN_NAME = "GivenName";
-    public static final String TAG_GENDER = "Gender";
-    public static final String BIRTH_DATE = "BirthDate";
-    public static final String BIRTH_PLACE = "BirthPlace";
-    public static final String DEATH_DATE = "DeathDate";
-    public static final String DEATH_PLACE = "DeathPlace";
-    public static final String NATIONALITY = "Nationality";
-    public static final String TAG_CORPNAME = "Corpname";
-    public static final String IDENTIFIER = "Identifier";
+    private static final String GIVEN_NAME = "GivenName";
+    private static final String TAG_GENDER = "Gender";
+    private static final String BIRTH_DATE = "BirthDate";
+    private static final String BIRTH_PLACE = "BirthPlace";
+    private static final String DEATH_DATE = "DeathDate";
+    private static final String DEATH_PLACE = "DeathPlace";
+    private static final String NATIONALITY = "Nationality";
+    private static final String TAG_CORPNAME = "Corpname";
+    private static final String IDENTIFIER = "Identifier";
     private static final String FUNCTION = "Function";
     private static final String ACTIVITY = "Activity";
     private static final String POSITION = "Position";
