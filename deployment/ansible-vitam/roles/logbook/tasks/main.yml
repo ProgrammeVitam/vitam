@@ -54,7 +54,8 @@
     enabled: "yes"
     state: "started"
   with_items:
-    - vitam-traceability-lfc.timer
+    - vitam-traceability-lfc-objectgroup.timer
+    - vitam-traceability-lfc-unit.timer
     - vitam-traceability-operations.timer
     - vitam-traceability-audit.timer
   when: ( primary_site | lower == "true" ) and
@@ -67,7 +68,8 @@
     enabled: "no"
     state: "stopped"
   with_items:
-    - vitam-traceability-lfc.timer
+    - vitam-traceability-lfc-objectgroup.timer
+    - vitam-traceability-lfc-unit.timer
     - vitam-traceability-operations.timer
     - vitam-traceability-audit.timer
   when: ( primary_site | lower == "false" ) or

@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.administration.audit.core.TraceabilityAuditConfiguration;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
@@ -52,7 +53,6 @@ public class CallTraceabilityAudit {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallTraceabilityAudit.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_SECURISATION_NAME = "traceabilityAudit.conf";
-    private static final String LC_TYPE = "LOGBOOK_LC_SECURISATION";
     private static final String OP_TYPE = "STP_OP_SECURISATION";
 
     /**
@@ -60,7 +60,7 @@ public class CallTraceabilityAudit {
      * @throws InvalidParseOperationException if json data not well-formed
      * @throws LogbookClientServerException if logbook server is unreachable
      */
-    public static void main(String[] args) throws InvalidParseOperationException, LogbookClientServerException {
+    public static void main(String[] args) {
         platformSecretConfiguration();
         try {
             File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
@@ -72,7 +72,8 @@ public class CallTraceabilityAudit {
                 conf.getTenants().forEach((v) -> {
                     Integer i = Integer.parseInt(v);
                     auditByTenantId(i, nbDay, times, OP_TYPE);
-                    auditByTenantId(i, nbDay, times, LC_TYPE);
+                    auditByTenantId(i, nbDay, times, Contexts.UNIT_LFC_TRACEABILITY.getEventType());
+                    auditByTenantId(i, nbDay, times, Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
                 });
             });
             thread.start();

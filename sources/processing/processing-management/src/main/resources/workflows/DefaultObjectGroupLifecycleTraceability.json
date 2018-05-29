@@ -1,14 +1,14 @@
 {
-  "id": "DefaultLifecycleTraceability",
-  "name": "Default Lifecycle Traceability",
-  "identifier": "LOGBOOK_LC_SECURISATION",
+  "id": "DefaultObjectGroupLifecycleTraceability",
+  "name": "Default ObjectGroup Lifecycle Traceability",
+  "identifier": "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY",
   "typeProc": "TRACEABILITY",
-  "comment": "Default logbook traceability for lifecycles Workflow V1",
+  "comment": "Default logbook traceability for object group lifecycles Workflow V1",
   "lifecycleLog": "DISABLED",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_PREPARE_LC_TRACEABILITY",
+      "stepName": "STP_PREPARE_OG_LFC_TRACEABILITY",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
@@ -16,7 +16,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "PREPARE_LC_TRACEABILITY",
+            "actionKey": "PREPARE_OG_LFC_TRACEABILITY",
             "behavior": "BLOCKING",
             "out": [
               {
@@ -51,24 +51,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_UNITS_CREATE_SECURED_FILE",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "LIST_IN_DIRECTORY",
-        "element": "UnitsWithoutLevel"
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "UNITS_CREATE_SECURED_FILE",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_GLOBAL_SECURISATION",
+      "stepName": "STP_OG_TRACEABILITY_FINALIZATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
@@ -76,7 +59,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "FINALIZE_LC_TRACEABILITY",
+            "actionKey": "FINALIZE_OG_LFC_TRACEABILITY",
             "behavior": "BLOCKING",
             "in": [
               {

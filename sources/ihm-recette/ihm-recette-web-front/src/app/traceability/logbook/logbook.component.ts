@@ -41,14 +41,25 @@ export class LogbookComponent extends PageComponent {
       })
   }
 
-  launchTraceabilityLFC() {
-    this.logbookService.launchTraceabilityLFC()
+  launchTraceabilityUnitLfc() {
+    this.logbookService.launchTraceabilityUnitLfc()
       .subscribe(() => {
         this.messages = [];
-        this.messages.push({severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des cycles de vie'});
+        this.messages.push({severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des cycles de vie des unités archivistiques'});
       }, () => {
         this.messages = [];
-        this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des cycles de vie`});
+        this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des cycles de vie des unités archivistiques`});
+      })
+  }
+
+  launchTraceabilityObjectGroupLfc() {
+    this.logbookService.launchTraceabilityObjectGroupLfc()
+      .subscribe(() => {
+        this.messages = [];
+        this.messages.push({severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des cycles de vie des groupes d\'objets'});
+      }, () => {
+        this.messages = [];
+        this.messages.push({severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des cycles de vie des groupes d\'objets`});
       })
   }
 

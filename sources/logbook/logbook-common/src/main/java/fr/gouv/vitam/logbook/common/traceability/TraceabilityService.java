@@ -131,12 +131,13 @@ public class TraceabilityService {
                 String previousMonthDate = helper.getPreviousMonthStartDate();
                 String previousYearDate = helper.getPreviousYearStartDate();
                 long size = zipFile.length();
+                boolean maxEntriesReached = helper.getMaxEntriesReached();
 
                 event =
                     new TraceabilityEvent(helper.getTraceabilityType(), startDate, endDate, rootHash, timestampToken,
                         previousDate,
                         previousMonthDate, previousYearDate, numberOfLine, fileName, size,
-                        VitamConfiguration.getDefaultDigestType());
+                        VitamConfiguration.getDefaultDigestType(), maxEntriesReached);
 
                 helper.saveEvent(event);
 

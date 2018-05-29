@@ -26,15 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
-
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -80,11 +71,13 @@ import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
-import fr.gouv.vitam.worker.core.handler.FinalizeLifecycleTraceabilityActionHandler;
+import fr.gouv.vitam.worker.core.handler.FinalizeObjectGroupLifecycleTraceabilityActionHandler;
+import fr.gouv.vitam.worker.core.handler.FinalizeUnitLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.GenerateAuditReportActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
-import fr.gouv.vitam.worker.core.handler.ListLifecycleTraceabilityActionHandler;
+import fr.gouv.vitam.worker.core.handler.ListObjectGroupLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
+import fr.gouv.vitam.worker.core.handler.ListUnitLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareAuditActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareStorageInfoActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
@@ -93,6 +86,15 @@ import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
 import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.common.LocalDateUtil.now;
 
 
 /**
@@ -194,10 +196,14 @@ public class WorkerImpl implements Worker {
         actions.put(PrepareAuditActionHandler.getId(),
             new PrepareAuditActionHandler());
 
-        actions.put(ListLifecycleTraceabilityActionHandler.getId(),
-            new ListLifecycleTraceabilityActionHandler());
-        actions.put(FinalizeLifecycleTraceabilityActionHandler.getId(),
-            new FinalizeLifecycleTraceabilityActionHandler());
+        actions.put(ListUnitLifecycleTraceabilityActionHandler.getId(),
+            new ListUnitLifecycleTraceabilityActionHandler());
+        actions.put(ListObjectGroupLifecycleTraceabilityActionHandler.getId(),
+            new ListObjectGroupLifecycleTraceabilityActionHandler());
+        actions.put(FinalizeUnitLifecycleTraceabilityActionHandler.getId(),
+            new FinalizeUnitLifecycleTraceabilityActionHandler());
+        actions.put(FinalizeObjectGroupLifecycleTraceabilityActionHandler.getId(),
+            new FinalizeObjectGroupLifecycleTraceabilityActionHandler());
 
         actions.put(GenerateAuditReportActionHandler.getId(),
             new GenerateAuditReportActionHandler());

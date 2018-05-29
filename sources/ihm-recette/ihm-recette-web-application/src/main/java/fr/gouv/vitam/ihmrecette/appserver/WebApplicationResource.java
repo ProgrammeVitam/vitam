@@ -381,25 +381,52 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * launch the traceabiity for lifecycles
+     * launch the traceability for unit lifecycles
      *
      * @param xTenantId the tenant id
      * @return the response of the request
      * @throws LogbookClientServerException if logbook internal resources exception occurred
      */
     @POST
-    @Path("/lifecycles/traceability")
+    @Path("/lifecycles/units/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceabilityLFC(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
+    public Response traceabilityLfcUnit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
         throws LogbookClientServerException {
 
         try (final LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
             RequestResponseOK result;
             try {
-                // TODO add tenantId as param
                 VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
-                result = logbookOperationsClient.traceabilityLFC();
+                result = logbookOperationsClient.traceabilityLfcUnit();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error("The reporting json can't be created", e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .build();
+            }
+            return Response.status(Status.OK).entity(result).build();
+        }
+    }
+
+    /**
+     * launch the traceability for object group lifecycles
+     *
+     * @param xTenantId the tenant id
+     * @return the response of the request
+     * @throws LogbookClientServerException if logbook internal resources exception occurred
+     */
+    @POST
+    @Path("/lifecycles/objectgroups/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceabilityLfcObjectGroup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
+        throws LogbookClientServerException {
+
+        try (final LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
+            RequestResponseOK result;
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+                result = logbookOperationsClient.traceabilityLfcObjectGroup();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("The reporting json can't be created", e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR)

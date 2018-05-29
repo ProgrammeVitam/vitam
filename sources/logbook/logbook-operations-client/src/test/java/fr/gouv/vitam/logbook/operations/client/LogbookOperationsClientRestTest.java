@@ -44,6 +44,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -181,9 +182,16 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/lifecycles/traceability")
+        @Path("/lifecycles/units/traceability")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response traceabilityLFC() {
+        public Response traceabilityLfcUnit() {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/lifecycles/objectgroups/traceability")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response traceabilityLfcObjectGroup() {
             return expectedResponse.post();
         }
 
@@ -309,27 +317,22 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    public void traceabilityLFC() throws Exception {
+    public void traceabilityLfcUnit() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(mock.post())
-            .thenReturn(
-                Response.status(Status.OK).entity(
-                    "{" + "    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evType\" : \"PROCESS_SIP_UNITARY\"," +
-                        "    \"evDateTime\" : \"2016-10-27T13:37:05.646\"," + "    \"evDetData\" : null," +
-                        "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
-                        "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdApp\" : null," + "    \"evIdAppSession\" : null," +
-                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdExt\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
-                        "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
-                        "    \"_tenant\" : 0" + "}")
-                    .build());
-        client.traceabilityLFC();
+            .thenReturn(Response.status(Status.OK).entity(
+                new RequestResponseOK<String>().addResult("guid1")).build());
+        client.traceabilityLfcObjectGroup();
     }
 
+    @Test
+    public void traceabilityLfcObjectGroup() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(mock.post())
+            .thenReturn(Response.status(Status.OK).entity(
+                new RequestResponseOK<String>().addResult("guid1")).build());
+        client.traceabilityLfcObjectGroup();
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumentWhenUpdateThenReturnIllegalArgumentException() throws Exception {

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.operations.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -42,7 +41,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 /**
@@ -189,21 +187,29 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     RequestResponseOK traceability() throws LogbookClientServerException, InvalidParseOperationException;
-    
+
     /**
-     * Call traceability logbook lifecycles <br>
-     * <br>
+     * Starts Unit logbook lifecycle traceability
      *
      * @return logbook lifecycles as String
      * @throws LogbookClientServerException
      * @throws InvalidParseOperationException
      */
-    RequestResponseOK traceabilityLFC() throws LogbookClientServerException, InvalidParseOperationException;
-    
+    RequestResponseOK traceabilityLfcUnit() throws LogbookClientServerException, InvalidParseOperationException;
+
     /**
-     * 
+     * Starts Object Group logbook lifecycle traceability
+     *
+     * @return logbook lifecycles as String
+     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponseOK traceabilityLfcObjectGroup() throws LogbookClientServerException, InvalidParseOperationException;
+
+    /**
+     *
      * Reindex a collection with parameters
-     * 
+     *
      * @param indexParam reindexation parameters
      * @return JsonObject containing information about the newly created index
      * @throws LogbookClientServerException
@@ -213,9 +219,9 @@ public interface LogbookOperationsClient extends BasicClient {
         throws InvalidParseOperationException, LogbookClientServerException;
 
     /**
-     * 
+     *
      * Switch indexes
-     * 
+     *
      * @param switchIndexParam switch index parameters
      * @return JsonObject containing information about the newly created index
      * @throws LogbookClientServerException
