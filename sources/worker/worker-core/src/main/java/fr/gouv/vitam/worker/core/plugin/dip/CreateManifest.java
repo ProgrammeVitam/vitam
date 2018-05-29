@@ -243,7 +243,9 @@ public class CreateManifest extends ActionHandler {
         for (JsonNode node : nodes) {
             multimap.put(node.asText(), id);
         }
-        originatingAgencies.add(result.get(VitamFieldsHelper.originatingAgency()).asText());
+        if(result.has(VitamFieldsHelper.originatingAgency())) {
+            originatingAgencies.add(result.get(VitamFieldsHelper.originatingAgency()).asText());
+        }
         JsonNode jsonNode1 = result.get(VitamFieldsHelper.object());
         if (jsonNode1 != null) {
             ogs.put(id, jsonNode1.asText());
