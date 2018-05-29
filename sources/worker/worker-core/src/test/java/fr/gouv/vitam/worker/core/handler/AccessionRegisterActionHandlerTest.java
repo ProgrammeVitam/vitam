@@ -28,6 +28,7 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
@@ -108,7 +109,9 @@ public class AccessionRegisterActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
                 .setCurrentStep("currentStep").setContainerName(guid.getId());
-        handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
+        String objectId = "manifest";
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
 
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
@@ -146,10 +149,10 @@ public class AccessionRegisterActionHandlerTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
@@ -212,10 +215,10 @@ public class AccessionRegisterActionHandlerTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
@@ -261,10 +264,10 @@ public class AccessionRegisterActionHandlerTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
@@ -305,10 +308,10 @@ public class AccessionRegisterActionHandlerTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =
@@ -337,10 +340,10 @@ public class AccessionRegisterActionHandlerTest {
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
-        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
         accessionRegisterHandler =

@@ -121,7 +121,7 @@ public class CheckHeaderActionHandlerTest {
     @RunWithCustomExecutor
     public void testHandlerWorking()
         throws XMLStreamException, IOException, ProcessingException {
-        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId");
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
         PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Map<String, Object> sedaMap = new HashMap<>();
@@ -173,7 +173,7 @@ public class CheckHeaderActionHandlerTest {
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
 
-        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId");
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
         PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(utils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -211,7 +211,7 @@ public class CheckHeaderActionHandlerTest {
         throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
 
-        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId");
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
         PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(utils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 

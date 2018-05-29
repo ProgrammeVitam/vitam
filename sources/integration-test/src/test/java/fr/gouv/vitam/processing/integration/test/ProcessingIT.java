@@ -315,7 +315,6 @@ public class ProcessingIT {
 
     private static ElasticsearchTestConfiguration config = null;
 
-    private final static String DUMMY_REQUEST_ID = "reqId";
     private static boolean imported = false;
     private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
 
@@ -943,8 +942,8 @@ public class ProcessingIT {
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
         JsonNode logbookNode = logbookResult.get("$results").get(0);
-        assertEquals(logbookNode.get("events").get(6).get("outDetail").asText(),
-            "CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
+        assertThat(logbookNode.get("events").get(6).get("outDetail").asText())
+            .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
     }
 
     @RunWithCustomExecutor
@@ -1173,8 +1172,9 @@ public class ProcessingIT {
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+
+        ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -2293,9 +2293,9 @@ public class ProcessingIT {
 
         List<Document> events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleUnits).get("events");
 
-        List<Document> lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
+        List<Document> lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
             .collect(Collectors.toList());
-        assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
+        assertThat(Iterables.getOnlyElement(lifeCycles).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
 
 
 
@@ -2310,9 +2310,10 @@ public class ProcessingIT {
         events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleGots).get("events");
 
 
-        lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.OBJECT_GROUP_UPDATE.OK"))
+        lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.OBJECT_GROUP_UPDATE.OK"))
             .collect(Collectors.toList());
-        assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase("diff");
+        assertThat(lifeCycles).hasSize(1);
+        assertThat(Iterables.getOnlyElement(lifeCycles).getString(EVENT_DETAILS)).containsIgnoringCase("diff");
 
 
         try {

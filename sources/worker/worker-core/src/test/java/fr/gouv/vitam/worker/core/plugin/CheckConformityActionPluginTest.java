@@ -27,7 +27,27 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -49,24 +69,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 @RunWith(PowerMockRunner.class)
@@ -162,7 +164,10 @@ public class CheckConformityActionPluginTest {
         // assertNotNull(objectGroup);
         plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+        String objectId = "objectId";
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);
@@ -188,7 +193,10 @@ public class CheckConformityActionPluginTest {
 
         plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
-        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+        String objectId = "objectId";
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);
@@ -213,7 +221,11 @@ public class CheckConformityActionPluginTest {
         plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objectName2");
-        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+
+        String objectId = "objectId";
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);
@@ -241,7 +253,11 @@ public class CheckConformityActionPluginTest {
         plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objectName3");
-        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+
+        String objectId = "objectId";
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
         handlerIO.addInIOParameters(in);

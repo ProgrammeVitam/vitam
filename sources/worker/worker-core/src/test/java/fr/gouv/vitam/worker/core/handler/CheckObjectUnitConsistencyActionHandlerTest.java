@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -35,15 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -62,10 +54,16 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -107,11 +105,13 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
     @Test
     public void givenObjectUnitConsistencyCheckWhenNotFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseOK()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        InvalidParseOperationException, IOException, ProcessingException {
+        throws  ProcessingException {
         final HandlerIOImpl action;
         final List<IOParameter> in;
-        action = new HandlerIOImpl(OBJ, "workerId");
+        String objectId = "objectId";
+        action = new HandlerIOImpl(OBJ, "workerId", newArrayList(objectId));
+        action.setCurrentObjectId(objectId);
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
@@ -121,8 +121,8 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action.addOutIOParameters(in);
         final Map<String, Object> map = new HashMap<>();
         map.put("id9", "id8");
-        action.addOuputResult(0, map, false);
-        action.addOuputResult(1, map, false);
+        action.addOutputResult(0, map, false);
+        action.addOutputResult(1, map, false);
         action.reset();
         action.addInIOParameters(in);
 
@@ -138,18 +138,20 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
     @Test
     public void givenObjectUnitConsistencyCheckWhenFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseKO()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        InvalidParseOperationException, IOException, ProcessingException {
+        throws InvalidParseOperationException, IOException, ProcessingException {
         final HandlerIOImpl action;
         final List<IOParameter> in;
-        action = new HandlerIOImpl(OBJ, "workerId");
+        String objectId = "objectId";
+        action = new HandlerIOImpl(OBJ, "workerId", newArrayList(objectId));
+        action.setCurrentObjectId(objectId);
+
         in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file1")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file2")));
         action.reset();
         action.addOutIOParameters(in);
-        action.addOuputResult(0, JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OG_AU)), false);
-        action.addOuputResult(1,
+        action.addOutputResult(0, JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OG_AU)), false);
+        action.addOutputResult(1,
             JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_ID_TO_GUID_MAP)), false);
         action.reset();
         action.addInIOParameters(in);
@@ -167,10 +169,9 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
     @Test(expected = ProcessingException.class)
     public void givenObjectUnitConsistencyWithEmptyHandlerIOThrowsException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        InvalidParseOperationException, IOException, ProcessingException {
+        throws ProcessingException {
 
-        final HandlerIO action = new HandlerIOImpl("", "");
+        final HandlerIO action = new HandlerIOImpl("", "", newArrayList());
         handler = new CheckObjectUnitConsistencyActionHandler();
         handler.execute(params, action);
     }

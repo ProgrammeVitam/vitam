@@ -38,8 +38,11 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -78,7 +81,7 @@ public class VerifyTimeStampActionHandlerTest {
     private static final String TOKEN_FAKE = "VerifyTimeStamp/token_fake.tsp";
 
     private static final String FAKE_URL = "http://localhost:8080";
-    private HandlerIOImpl action;
+    private HandlerIOImpl handlerIO;
     private GUID guid;
     private WorkerParameters params;
     private static final Integer TENANT_ID = 0;
@@ -108,12 +111,14 @@ public class VerifyTimeStampActionHandlerTest {
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        action = new HandlerIOImpl(workspaceClient, guid.getId(), "workerId");
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(workspaceClient, guid.getId(), "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
     }
 
     @After
     public void end() {
-        action.partialClose();
+        handlerIO.partialClose();
     }
 
     @Test
@@ -124,10 +129,10 @@ public class VerifyTimeStampActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
 
@@ -138,7 +143,7 @@ public class VerifyTimeStampActionHandlerTest {
             "token.tsp")))
                 .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
 
-        final ItemStatus response = verifyTimeStampActionHandler.execute(params, action);
+        final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
@@ -154,17 +159,17 @@ public class VerifyTimeStampActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp"))).thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
 
-        final ItemStatus response = verifyTimeStampActionHandler.execute(params, action);
+        final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -176,10 +181,10 @@ public class VerifyTimeStampActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
         final InputStream tokenFile =
@@ -190,7 +195,7 @@ public class VerifyTimeStampActionHandlerTest {
             "token.tsp")))
                 .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
 
-        final ItemStatus response = verifyTimeStampActionHandler.execute(params, action);
+        final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
             .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());

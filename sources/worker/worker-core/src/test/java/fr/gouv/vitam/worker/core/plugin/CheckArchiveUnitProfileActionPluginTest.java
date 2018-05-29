@@ -27,7 +27,25 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -51,32 +69,17 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.assertj.core.util.Lists;
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -128,7 +131,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
     private List<IOParameter> out;
     private List<IOParameter> in;
 
-    private HandlerIOImpl action;
+    private HandlerIOImpl handlerIO;
     private GUID guid = GUIDFactory.newGUID();
 
     private final WorkerParameters params =
@@ -172,12 +175,13 @@ public class CheckArchiveUnitProfileActionPluginTest {
 
         plugin = new CheckArchiveUnitProfileActionPlugin(adminManagementClientFactory);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId");
-
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
 
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId.json")));
-        action.addOutIOParameters(out);
+        handlerIO.addOutIOParameters(out);
 
         in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/GUID_TO_ARCHIVE_ID_MAP.json")));
@@ -185,7 +189,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
                 PropertiesUtils.getResourceAsStream(GUID_MAP_JSON);
         when(workspaceClient.getObject(anyObject(), eq("Maps/GUID_TO_ARCHIVE_ID_MAP.json")))
                 .thenReturn(Response.status(Status.OK).entity(guidMapInfo).build());
-        action.addInIOParameters(in);
+        handlerIO.addInIOParameters(in);
 
         File tempFolder = temporaryFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", tempFolder.getAbsolutePath());
@@ -193,7 +197,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
 
     @After
     public void clean() {
-        action.partialClose();
+        handlerIO.partialClose();
     }
 
     @Test
@@ -202,7 +206,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
         PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
 
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
@@ -212,7 +216,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
@@ -222,7 +226,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitFinal).build());
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
@@ -233,7 +237,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalid).build());
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
             .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(
             CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
@@ -246,7 +250,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidXml).build());
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchema));
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
                 CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name()));
@@ -259,7 +263,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidRuleStartDate).build());
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomStartDate));
-        ItemStatus response = plugin.execute(params, action);
+        ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
                 CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name()));
@@ -272,7 +276,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDate).build());
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomStartDate));
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
                 CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name()));
@@ -286,7 +290,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchemaWithDescription));
 
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertThat(response.getGlobalOutcomeDetailSubcode())
             .isEqualTo(CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
@@ -300,7 +304,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         when(adminManagementClient.findArchiveUnitProfiles(anyObject()))
                 .thenReturn(createArchiveUnitProfile(archiveUnitSchemaCustomDescriptionLevel));
 
-        final ItemStatus response = plugin.execute(params, action);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertThat(response.getGlobalOutcomeDetailSubcode())
                 .isEqualTo(CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());

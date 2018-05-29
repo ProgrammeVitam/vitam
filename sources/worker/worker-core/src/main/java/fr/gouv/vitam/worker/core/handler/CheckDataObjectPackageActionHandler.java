@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -138,7 +137,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-
 
         resetItemStatusMeter(itemStatus);
 

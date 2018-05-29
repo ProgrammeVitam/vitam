@@ -46,15 +46,7 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -82,6 +74,15 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -97,7 +98,7 @@ public class VerifyMerkleTreeActionHandlerTest {
     private static final String OPERATIONS_WRONG_DATES_JSON = "operations_wrong_dates.json";
 
     private static final String FAKE_URL = "http://localhost:8080";
-    private HandlerIOImpl action;
+    private HandlerIOImpl handlerIO;
     private GUID guid;
     private WorkerParameters params;
     private static final Integer TENANT_ID = 0;
@@ -144,12 +145,14 @@ public class VerifyMerkleTreeActionHandlerTest {
         PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
         PowerMockito.when(storageClientFactory.getClient()).thenReturn(storageClient);
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
     }
 
     @After
     public void end() {
-        action.partialClose();
+        handlerIO.partialClose();
     }
 
     @Test
@@ -160,10 +163,10 @@ public class VerifyMerkleTreeActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         final InputStream operationsJson =
@@ -177,7 +180,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
                 .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
-        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, action);
+        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -189,10 +192,10 @@ public class VerifyMerkleTreeActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY_WRONG_ROOT), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY_WRONG_ROOT), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         final InputStream operationsJson =
@@ -206,7 +209,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
                 .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
-        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, action);
+        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyMerkleTreeActionHandler.getId())
             .getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_SAVED_HASH").getGlobalStatus());
@@ -222,10 +225,10 @@ public class VerifyMerkleTreeActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         final InputStream operationsJson =
@@ -239,7 +242,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
                 .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
-        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, action);
+        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyMerkleTreeActionHandler.getId())
             .getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_SAVED_HASH").getGlobalStatus());
@@ -255,10 +258,10 @@ public class VerifyMerkleTreeActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         final InputStream operationsJson =
@@ -272,7 +275,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
                 .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
-        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, action);
+        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -284,12 +287,12 @@ public class VerifyMerkleTreeActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(FAKE_DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(FAKE_DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
-        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, action);
+        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -301,16 +304,16 @@ public class VerifyMerkleTreeActionHandlerTest {
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             DATA_FILE)))
                 .thenThrow(new ContentAddressableStorageNotFoundException(DATA_FILE + " not found"));
-        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, action);
+        final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 

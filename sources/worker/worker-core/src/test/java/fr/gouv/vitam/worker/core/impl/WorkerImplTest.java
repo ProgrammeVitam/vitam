@@ -33,15 +33,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.util.Lists;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -60,6 +51,14 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.assertj.core.util.Lists;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 public class WorkerImplTest {
 
@@ -96,7 +95,7 @@ public class WorkerImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenStepIsNullThenThrowsIllegalArgumentException()
-            throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
+            throws IllegalArgumentException, ProcessingException,
             ContentAddressableStorageServerException {
         workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         workerImpl.run(
@@ -157,8 +156,8 @@ public class WorkerImplTest {
         final StatusCode status = StatusCode.OK;
         itemStatus.increment(status);
 
-        when(actionHandler.execute(anyObject(), anyObject()))
-                .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+        when(actionHandler.executeList(anyObject(), anyObject()))
+            .thenReturn(Lists.newArrayList(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus)));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
                 .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
@@ -188,8 +187,8 @@ public class WorkerImplTest {
         final StatusCode status = StatusCode.FATAL;
         itemStatus.increment(status);
 
-        when(actionHandler.execute(anyObject(), anyObject()))
-                .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+        when(actionHandler.executeList(anyObject(), anyObject()))
+            .thenReturn(Lists.newArrayList(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus)));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
                 .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
@@ -220,8 +219,8 @@ public class WorkerImplTest {
         final StatusCode status = StatusCode.FATAL;
         itemStatus.increment(status);
 
-        when(actionHandler.execute(anyObject(), anyObject()))
-                .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+        when(actionHandler.executeList(anyObject(), anyObject()))
+            .thenReturn(Lists.newArrayList(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus)));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
                 .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(

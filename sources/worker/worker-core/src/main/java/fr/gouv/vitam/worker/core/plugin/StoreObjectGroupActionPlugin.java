@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -173,7 +172,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         // Get objectGroup objects ids
         mapOfObjects.jsonOG = handlerIO.getJsonFromWorkspace(
             IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
-        handlerIO.addOuputResult(OG_OUT_RANK, mapOfObjects.jsonOG, true, false);
+        handlerIO.addOutputResult(OG_OUT_RANK, mapOfObjects.jsonOG, true, false);
 
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup

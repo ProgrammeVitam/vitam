@@ -60,6 +60,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -144,8 +145,11 @@ public class FinalizeUnitLifecycleTraceabilityActionHandlerTest {
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
+        String objectId = "objectId";
         handlerIO =
-            new HandlerIOImpl(workspaceClient, "FinalizeUnitLifecycleTraceabilityActionHandlerTest", "workerId");
+            new HandlerIOImpl(workspaceClient, "FinalizeUnitLifecycleTraceabilityActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/lastOperation.json")));
@@ -175,8 +179,8 @@ public class FinalizeUnitLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenFilesNotInSubFoldersWhenExecuteThenReturnResponseFATAL() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKUnit));
@@ -194,8 +198,8 @@ public class FinalizeUnitLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenLogbookNotFoundWhenExecuteThenReturnResponseFATAL() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKUnit));
@@ -214,8 +218,8 @@ public class FinalizeUnitLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenNoLifecycleWhenExecuteThenReturnResponseOKWithNoZipCreated() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION_EMPTY), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION_EMPTY), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -244,8 +248,8 @@ public class FinalizeUnitLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenNothingSpecialWhenExecuteThenReturnResponseOK() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))

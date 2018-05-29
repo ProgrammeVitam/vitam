@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
@@ -38,16 +39,6 @@ import java.util.List;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.events.XMLEvent;
-
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -73,6 +64,15 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
@@ -95,7 +95,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private HandlerIOImpl action;
+    private HandlerIOImpl handlerIO;
     private List<IOParameter> in;
     private List<IOParameter> out;
     private GUID guid;
@@ -118,7 +118,9 @@ public class TransferNotificationActionHandlerATROKFileTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
 
         PowerMockito.mockStatic(ValidationXsdUtils.class);
         PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
@@ -127,21 +129,21 @@ public class TransferNotificationActionHandlerATROKFileTest {
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file" + i)));
         }
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        action.addOuputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
-        action.addOuputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
-        action.addOuputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
-        action.addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
-        action.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
-        action.reset();
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
+        handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
+        handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
+        handlerIO.addOutputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.addOutputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.reset();
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/responseReply.xml")));
     }
 
     @After
     public void clean() {
-        action.partialClose();
+        handlerIO.partialClose();
     }
 
     @Test
@@ -150,17 +152,17 @@ public class TransferNotificationActionHandlerATROKFileTest {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
             final InputStream xmlFile;
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-            action.reset();
-            action.addInIOParameters(in);
-            action.addOutIOParameters(out);
+            handlerIO.reset();
+            handlerIO.addInIOParameters(in);
+            handlerIO.addOutIOParameters(out);
             WorkerParameters parameters =
                 params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
             final ItemStatus response = handler
-                .execute(parameters, action);
+                .execute(parameters, handlerIO);
 
             try {
-                xmlFile = action.getInputStreamFromWorkspace(out.get(0).getUri().getPath());
+                xmlFile = handlerIO.getInputStreamFromWorkspace(out.get(0).getUri().getPath());
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
                 throw new ProcessingException(e);
             }

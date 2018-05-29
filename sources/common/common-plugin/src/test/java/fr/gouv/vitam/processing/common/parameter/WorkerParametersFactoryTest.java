@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.google.common.collect.Lists;
+
 import org.junit.Test;
 
 public class WorkerParametersFactoryTest {

@@ -28,6 +28,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -144,7 +146,10 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         when(logbookOperationsClientFactory.getClient())
             .thenReturn(logbookOperationsClient);
 
-        handlerIO = new HandlerIOImpl(workspaceClient, "ListUnitLifecycleTraceabilityActionHandlerTest", "workerId");
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(workspaceClient, "ListUnitLifecycleTraceabilityActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         // mock later ?
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,

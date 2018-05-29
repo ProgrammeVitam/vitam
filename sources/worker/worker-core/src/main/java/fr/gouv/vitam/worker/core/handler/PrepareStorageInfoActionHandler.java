@@ -26,9 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import java.io.File;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -44,8 +47,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-
-import java.io.File;
 
 /**
  * PrepareStorageInfoActionHandler Handler.<br>
@@ -113,7 +114,7 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
         // create json file
         JsonHandler.writeAsFile(storageInfo, tempFile);
         // put file in workspace
-        handlerIO.addOuputResult(STORAGE_INFO_OUT_RANK, tempFile, true, false);
+        handlerIO.addOutputResult(STORAGE_INFO_OUT_RANK, tempFile, true, false);
     }
 
     @Override

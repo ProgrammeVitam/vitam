@@ -216,7 +216,7 @@ public class CreateManifest extends ActionHandler {
                 throw new ProcessingException(e);
             }
 
-            handlerIO.addOuputResult(MANIFEST_XML_RANK, manifestFile, true, false);
+            handlerIO.addOutputResult(MANIFEST_XML_RANK, manifestFile, true, false);
 
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException(e);
@@ -267,8 +267,8 @@ public class CreateManifest extends ActionHandler {
         }
 
         // put file in workspace
-        handlerIO.addOuputResult(GUID_TO_PATH_RANK, guidToPathFile, true, false);
-        handlerIO.addOuputResult(BINARIES_RANK, binaryListFile, true, false);
+        handlerIO.addOutputResult(GUID_TO_PATH_RANK, guidToPathFile, true, false);
+        handlerIO.addOutputResult(BINARIES_RANK, binaryListFile, true, false);
     }
 
     @Override
