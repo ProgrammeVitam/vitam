@@ -1368,7 +1368,7 @@ Ce fichier va être obtenu de la manière suivante :
 **additional_information.txt :**
 Le fichier json Operations/traceabilityInformation.json va être utilisé pour construire le fichier de la manière suivante : 
 
-- numberOfElement : nombre de cycles de vie traités
+- numberOfElements : nombre de cycles de vie traités
 - startDate : startDate (soit égale à LocalDateTime.MIN, soit à la plus petite date des cycles de vie traités)
 - endDate : plus grande date des cycles de vie traités.
 

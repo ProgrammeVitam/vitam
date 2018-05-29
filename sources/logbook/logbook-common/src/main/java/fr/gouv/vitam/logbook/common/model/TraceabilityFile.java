@@ -53,6 +53,9 @@ public class TraceabilityFile implements AutoCloseable {
     private static final String COMPUTING_INFORMATION_FILENAME = "computing_information.txt";
     private static final String MEKLE_TREE_FILENAME = "merkleTree.json";
     private static final String TIMESTAMP_FILENAME = "token.tsp";
+    static final String SECURISATION_VERSION_LABEL = "securisationVersion";
+    private static final String SECURISATION_VERSION = "V1";
+
 
     private static final byte[] LINE_SEPARATOR = "\n".getBytes();
 
@@ -149,11 +152,13 @@ public class TraceabilityFile implements AutoCloseable {
         ZipArchiveEntry entry;
         entry = new ZipArchiveEntry(ADDITIONAL_INFORMATION_FILENAME);
         archive.putArchiveEntry(entry);
-        archive.write(String.format("numberOfElement=%d", numberOfLine).getBytes());
+        archive.write(String.format("numberOfElements=%d", numberOfLine).getBytes());
         archive.write(LINE_SEPARATOR);
         archive.write(String.format("startDate=%s", startDate).getBytes());
         archive.write(LINE_SEPARATOR);
         archive.write(String.format("endDate=%s", endDate).getBytes());
+        archive.write(LINE_SEPARATOR);
+        archive.write((SECURISATION_VERSION_LABEL+"="+SECURISATION_VERSION).getBytes());
         archive.write(LINE_SEPARATOR);
         archive.closeArchiveEntry();
     }
