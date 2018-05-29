@@ -127,6 +127,8 @@ public class AdminManagementRepositoryServiceTest {
         accessionRegister.setId(id);
         accessionRegister.setOriginatingAgency("FRAN_NP_005568");
         accessionRegister.setSubmissionAgency("FRAN_NP_005061");
+        accessionRegister.setAcquisitionInformation("Versement");
+        accessionRegister.setLegalStatus("Public Archives");
         accessionRegister.setArchivalAgreement("archivalAgreement");
         accessionRegister.setStartDate("2016-11-04T21:40:47.912+01:00");
         accessionRegister.setEndDate("2016-11-04T21:40:47.912+01:00");

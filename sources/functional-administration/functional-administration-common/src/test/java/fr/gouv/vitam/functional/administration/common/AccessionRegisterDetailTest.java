@@ -52,7 +52,9 @@ public class AccessionRegisterDetailTest {
             .setTotalObjectGroups(initialValue)
             .setTotalObjects(initialValue)
             .setTotalUnits(initialValue)
-            .setOperationIds(ids);
+            .setOperationIds(ids)
+            .setAcquisitionInformation(TEST)
+            .setLegalStatus(TEST);
 
         assertEquals(id, register.get("_id"));
         assertEquals(id, register.getOriginatingAgency());
@@ -61,6 +63,8 @@ public class AccessionRegisterDetailTest {
         assertEquals(initialValue, register.getTotalUnits());
         assertEquals(initialValue, register.getTotalObjects());
         assertEquals(LocalDateUtil.getFormattedDateForMongo(DATE), register.getEndDate());
+        assertEquals(TEST, register.getAcquisitionInformation());
+        assertEquals(TEST, register.getLegalStatus());
 
         final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("accession-register.json");

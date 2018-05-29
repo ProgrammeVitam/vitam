@@ -671,7 +671,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         accessionRegisterDetail.setId(model.getId()).setOriginatingAgency(model.getOriginatingAgency())
             .setSubmissionAgency(model.getSubmissionAgency())
             .setArchivalAgreement(model.getArchivalAgreement()).setEndDate(model.getEndDate())
-            .setStartDate(model.getStartDate());
+            .setStartDate(model.getStartDate())
+            .setAcquisitionInformation(model.getAcquisitionInformation())
+            .setLegalStatus(model.getLegalStatus());
         if (model.isSymbolic() != null)
             accessionRegisterDetail.setSymbolic(model.isSymbolic());
         if (model.getStatus() != null) {
