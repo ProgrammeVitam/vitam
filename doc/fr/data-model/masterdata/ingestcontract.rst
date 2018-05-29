@@ -58,6 +58,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
       "ArchiveProfiles": [
           "ArchiveProfile8"
       ],
+      "CheckParentLink": "ACTIVE",
       "LinkParentId":
         "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq",
       "_tenant": 0,
@@ -145,6 +146,12 @@ Détail des champs de la collection IngestContract
   * Liste des valeurs autorisées : true, false
   * Peut être vide
   * Cardinalité : 0-1
+
+**"CheckParentLink":** 
+
+  * Il s'agit d'une chaîne de caractères.
+  * Peut être ACTIVE ou INACTIVE
+  * Cardinalité : 1-1
 
 **"LinkParentId":** point de rattachement automatique des SIP en application de ce contrat correspondant à l'identifiant d’une unité archivistique d'un plan de classement ou d'un arbre de positionnement.
   
