@@ -150,6 +150,7 @@ public final class DslQueryHelper {
     private static final String REQUEST_FACET_PREFIX = "requestFacet";
     private static final String EXISTS = "$exists";
     private static final String MISSING = "$missing";
+    private static final String LANGUAGE = "Language";
 
     private static final String FACET_WITH_OBJECT = "FacetWithObject";
     private static final String FACET_WITHOUT_OBJECT = "FacetWithoutObject";
@@ -670,7 +671,10 @@ public final class DslQueryHelper {
                         default:
                             if (requestFacetItem.getField().startsWith(TITLE) ||
                                 requestFacetItem.getField().startsWith(DESCRIPTION)) {
-                                andQuery.add(exists(requestFacetItem.getValue()));
+                                andQuery.add(exists(requestFacetItem.getField()));
+                            }
+                            if (requestFacetItem.getField().startsWith(LANGUAGE)) {
+                                andQuery.add(eq(requestFacetItem.getField(), requestFacetItem.getValue()));
                             }
                             if (requestFacetItem.getValue().equalsIgnoreCase(FACET_WITH_OBJECT)) {
                                 andQuery.add(exists(requestFacetItem.getField()));
