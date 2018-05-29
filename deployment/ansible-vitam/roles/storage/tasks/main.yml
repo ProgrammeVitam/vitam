@@ -7,6 +7,8 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
+  tags:
+    - update_vitam_configuration  
   notify:
     - restart service
 
