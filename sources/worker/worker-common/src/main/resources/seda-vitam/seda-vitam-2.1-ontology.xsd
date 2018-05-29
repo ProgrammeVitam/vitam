@@ -52,9 +52,7 @@
     <!-- Level description -->
     <xsd:group name="LevelGroup">
         <xsd:sequence>
-            <!-- Redefined by VITAM -->
-            <!-- xsd:element name="DescriptionLevel" type="LevelType" minOccurs="0" maxOccurs="1"-->
-            <xsd:element name="DescriptionLevel" type="LevelType" minOccurs="1" maxOccurs="1">
+            <xsd:element name="DescriptionLevel" type="LevelType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>Niveau de description au sens de la norme ISAD (G). Indique si l’ArchiveUnit correspond à un fonds, 
                         à un sous-fonds, à une classe, à une série organique, à une sous-série organique, à un dossier, à un sous-dossier ou à une pièce.</xsd:documentation>
@@ -85,9 +83,7 @@
     <!-- Title description -->
     <xsd:group name="TitleGroup">
         <xsd:sequence>
-            <!-- Redefined by VITAM -->
-            <!-- xsd:element name="Title" type="TextType" minOccurs="0" maxOccurs="unbounded"-->
-            <xsd:element name="Title" type="TextType" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="Title" type="TextType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Intitulé de l'ArchiveUnit.</xsd:documentation>
                     <xsd:documentation>Références : DC.Title ead.unittitle</xsd:documentation>
