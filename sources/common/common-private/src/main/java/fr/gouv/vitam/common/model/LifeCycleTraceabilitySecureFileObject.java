@@ -59,6 +59,11 @@ public class LifeCycleTraceabilitySecureFileObject {
     @JsonProperty("hOGDocsStorage")
     private List<ObjectGroupDocumentHash> objectGroupDocumentHashList;
 
+    private List<String> up;
+    private String idGot;
+    private String idUnit;
+
+
     /**
      * set lastEvtIdProc
      */
@@ -143,16 +148,16 @@ public class LifeCycleTraceabilitySecureFileObject {
      *
      * Constructor to set the attributes for lfc tracibility file lines
      *
-     * @param lastEvtIdProc
-     * @param lastEvTypeProc
-     * @param lastEvDateTime
-     * @param lfcId
-     * @param metadataType
-     * @param version
-     * @param lastEvtOutcome
-     * @param hashLFC
-     * @param hashMetadata
-     * @param hashGlobalFromStorage
+     * @param lastEvtIdProc lastEvtIdProc
+     * @param lastEvTypeProc lastEvTypeProc
+     * @param lastEvDateTime lastEvDateTime
+     * @param lfcId lfcId
+     * @param metadataType metadataType
+     * @param version version
+     * @param lastEvtOutcome lastEvtOutcome
+     * @param hashLFC hashLFC
+     * @param hashMetadata hashMetadata
+     * @param hashGlobalFromStorage hashGlobalFromStorage
      */
     public LifeCycleTraceabilitySecureFileObject(String lastEvtIdProc, String lastEvTypeProc, String lastEvDateTime, String lfcId, MetadataType metadataType,
                                                  int version, String lastEvtOutcome, String hashLFC, String hashMetadata,
@@ -277,4 +282,46 @@ public class LifeCycleTraceabilitySecureFileObject {
         return objectGroupDocumentHashList;
     }
 
+
+    /**
+     * getter for up
+     **/
+    public List<String> getUp() {
+        return up;
+    }
+
+    /**
+     * setter for up
+     **/
+    public void setUp(List<String> up) {
+        this.up = up;
+    }
+
+    /**
+     * getter for idGot
+     **/
+    public String getIdGot() {
+        return idGot;
+    }
+
+    /**
+     * setter for idGot
+     **/
+    public void setIdGot(String idGot) {
+        this.idGot = idGot;
+    }
+
+    /**
+     * getter for idUnit
+     **/
+    public String getIdUnit() {
+        return idUnit;
+    }
+
+    /**
+     * setter for idUnit
+     **/
+    public void setIdUnit(String idUnit) {
+        this.idUnit = idUnit;
+    }
 }

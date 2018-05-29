@@ -83,7 +83,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -95,6 +97,8 @@ import static org.mockito.Mockito.when;
 
 public class CreateUnitSecureFileActionPluginTest {
 
+    public static final String PARENT = "aeaqaaaaaqhgausqab7boak55nw5uzaaaadq";
+    public static final String GOT = "aebaaaaaaqhgausqab7boak55nw5k3qaaaaq";
     CreateUnitSecureFileActionPlugin plugin;
     private static final Integer TENANT_ID = 0;
     private static final String UNIT_LFC_1 = "CreateUnitSecureFileActionPlugin/lfc_unit1.json";
@@ -212,7 +216,7 @@ public class CreateUnitSecureFileActionPluginTest {
         String fileAsString = getSavedWorkspaceObject(SedaConstants.LFC_UNITS_FOLDER + "/" + guidUnit + ".json");
         assertNotNull(fileAsString);
         //units data.txt file have only 9 separators, objects 10
-        assertEquals(9, StringUtils.countMatches(fileAsString, ","));
+        assertEquals(11, StringUtils.countMatches(fileAsString, ","));
         // check hash for LFC and for MD and global lfc+md from storage
         ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_MD));
         unit.remove(Arrays
@@ -237,6 +241,10 @@ public class CreateUnitSecureFileActionPluginTest {
                 expectedMDLFCGlobalHashFromStorage,
                 null
             );
+        List<String> up = new ArrayList<>();
+        up.add(PARENT);
+        lfcTraceSecFileDataLineExpected.setUp(up);
+        lfcTraceSecFileDataLineExpected.setIdGot(GOT);
 
         String expected = new String(
             CanonicalJsonFormatter.serializeToByteArray(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected)),

@@ -216,7 +216,7 @@ public class CreateObjectSecureFileActionPluginTest {
         assertNotNull(fileAsString);
         System.out.println(fileAsString);
         //got have 11 objects and the last one is an Array with the elements ==> 13 json separators (ie ',')
-        assertEquals(13, StringUtils.countMatches(fileAsString, ","));
+        assertEquals(14, StringUtils.countMatches(fileAsString, ","));
 
         // check hash for LFC and for MD
         ObjectNode got = (ObjectNode) JsonHandler.getFromInputStream(
@@ -241,7 +241,10 @@ public class CreateObjectSecureFileActionPluginTest {
                 gotMDHash,
                 expectedMDLFCGlobalHashFromStorage,
                 null
+
             );
+
+        lfcTraceSecFileDataLineExpected.setIdUnit("aeaqaaaaaahgausqab7boak55jcmttqaaaaq");
         //add object documents (qualifiers->version)
         List<ObjectGroupDocumentHash> objectGroupDocumentHashToList = new ArrayList<>();
 
@@ -255,8 +258,7 @@ public class CreateObjectSecureFileActionPluginTest {
         String expected = new String(
             CanonicalJsonFormatter.serializeToByteArray(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected)),
             StandardCharsets.UTF_8);
-        assertEquals(expected,
-            fileAsString);
+        assertEquals(expected, fileAsString);
 
     }
 
