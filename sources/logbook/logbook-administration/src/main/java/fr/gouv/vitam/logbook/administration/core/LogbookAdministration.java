@@ -48,7 +48,7 @@ public class LogbookAdministration {
     private final TimestampGenerator timestampGenerator;
 
     private final File tmpFolder;
-    private final int operationTraceabilityOverlapDelayInSeconds;
+    private final int operationTraceabilityTemporizationDelayInSeconds;
 
     @VisibleForTesting //
     LogbookAdministration(LogbookOperations logbookOperations,
@@ -57,7 +57,7 @@ public class LogbookAdministration {
         this.logbookOperations = logbookOperations;
         this.timestampGenerator = timestampGenerator;
         this.tmpFolder = tmpFolder;
-        this.operationTraceabilityOverlapDelayInSeconds =
+        this.operationTraceabilityTemporizationDelayInSeconds =
             validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
     }
 
@@ -96,7 +96,8 @@ public class LogbookAdministration {
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, operationTraceabilityOverlapDelayInSeconds);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid,
+                operationTraceabilityTemporizationDelayInSeconds);
 
         TraceabilityService generator =
             new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);

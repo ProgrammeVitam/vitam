@@ -56,10 +56,11 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     private List<LogbookEvent> alertEvents;
 
     /**
-     * The overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
-     * due to clock difference.
+     * Temporization delay (in seconds) for recent logbook operation events.
+     * Freshly created operation events are not secured right away to avoid missing events "not yet
+     * commited" or with "server clock difference".
      */
-    private Integer operationTraceabilityOverlapDelay;
+    private Integer operationTraceabilityTemporizationDelay;
 
     /**
      * Temporization delay (in seconds) for recent logbook lifecycle events.
@@ -300,20 +301,19 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * Gets the overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
-     * due to clock difference.
+     * Gets the temporization delay (in seconds) for recent logbook operation events.
      *
-     * @return The overlap delay (in seconds).
+     * @return The temporization delay (in seconds).
      */
-    public Integer getOperationTraceabilityOverlapDelay() {
-        return operationTraceabilityOverlapDelay;
+    public Integer getOperationTraceabilityTemporizationDelay() {
+        return operationTraceabilityTemporizationDelay;
     }
 
     /**
-     * Sets the overlap delay (in seconds) for logbook operation traceability events.
+     * Sets the temporization delay (in seconds) for recent logbook operation events.
      */
-    public void setOperationTraceabilityOverlapDelay(Integer operationTraceabilityOverlapDelay) {
-        this.operationTraceabilityOverlapDelay = operationTraceabilityOverlapDelay;
+    public void setOperationTraceabilityTemporizationDelay(Integer operationTraceabilityTemporizationDelay) {
+        this.operationTraceabilityTemporizationDelay = operationTraceabilityTemporizationDelay;
     }
 
     /**

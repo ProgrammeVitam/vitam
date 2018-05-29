@@ -178,7 +178,7 @@ public class LogbookResource extends ApplicationStatusResource {
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
 
         logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
-            configuration.getOperationTraceabilityOverlapDelay());
+            configuration.getOperationTraceabilityTemporizationDelay());
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());

@@ -8,6 +8,8 @@ db = db.getSiblingDB('logbook')
 db.LogbookOperation.createIndex( { "_tenant" : 1 , "evDateTime" : 1 , "evTypeProc" : 1 , "events.evDateTime" : 1 , "events.outDetail" : 1 } )
 db.LogbookOperation.createIndex( { "_tenant" : 1 , "events.evType" : 1 } )
 db.LogbookOperation.createIndex( { "_tenant" : 1 , "evIdProc" : 1 } )
+db.LogbookOperation.createIndex( { "_tenant" : 1 , "_lastPersistedDate": 1 })
+db.LogbookOperation.createIndex( { "_lastPersistedDate" : 1} )
 
 //db.LogbookLifeCycleUnit.createIndex( { "_id" : 1 , "_tenant" : 1 , "evIdProc" : 1 , "events.evIdProc" : 1 } )
 db.LogbookLifeCycleUnit.createIndex( { "_tenant" : 1 , "events.evIdProc" : 1 } )
