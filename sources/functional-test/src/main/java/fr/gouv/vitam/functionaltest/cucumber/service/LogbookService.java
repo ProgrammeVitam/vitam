@@ -97,8 +97,22 @@ public class LogbookService {
                 assertThat(last.getEvType()).as("last event is type %s, but %s was expected.",
                     last.getEvType(), actual.getEvType()).isEqualTo(actual.getEvType());
             }
-            assertThat(last.getOutcome()).as("last event has status %s, but %s was expected. Event name is: %s",
-                last.getOutcome(), status, last.getEvType()).isEqualTo(status);
+            
+            if (status.contains("|")) {
+                String[] statuses = status.split("\\|");
+                boolean atLeastOneOK = false;
+                for (String currStatus : statuses) {
+                    atLeastOneOK = last.getOutcome().equals(currStatus);
+                    if (atLeastOneOK) {
+                        break;
+                    }
+                }
+                assertThat(atLeastOneOK).as("last event has status %s, but %s was expected. Event name is: %s",
+                    last.getOutcome(), status, last.getEvType()).isEqualTo(true);
+            } else {
+                assertThat(last.getOutcome()).as("last event has status %s, but %s was expected. Event name is: %s",
+                    last.getOutcome(), status, last.getEvType()).isEqualTo(status);
+            }
 
         } else {
             LOGGER.error(
