@@ -53,22 +53,22 @@ public class LogbookAdministration {
     @VisibleForTesting //
     LogbookAdministration(LogbookOperations logbookOperations,
         TimestampGenerator timestampGenerator, File tmpFolder,
-        Integer operationTraceabilityOverlapDelay) {
+        Integer operationTraceabilityTemporizationDelay) {
         this.logbookOperations = logbookOperations;
         this.timestampGenerator = timestampGenerator;
         this.tmpFolder = tmpFolder;
         this.operationTraceabilityTemporizationDelayInSeconds =
-            validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
+            validateAndGetTraceabilityTemporizationDelay(operationTraceabilityTemporizationDelay);
     }
 
-    private static int validateAndGetTraceabilityOverlapDelay(Integer operationTraceabilityOverlapDelay) {
-        if (operationTraceabilityOverlapDelay == null) {
+    private static int validateAndGetTraceabilityTemporizationDelay(Integer operationTraceabilityTemporizationDelay) {
+        if (operationTraceabilityTemporizationDelay == null) {
              return 0;
         }
-        if (operationTraceabilityOverlapDelay < 0) {
-            throw new IllegalArgumentException("Operation traceability overlap delay cannot be negative");
+        if (operationTraceabilityTemporizationDelay < 0) {
+            throw new IllegalArgumentException("Operation traceability temporization delay cannot be negative");
         }
-        return operationTraceabilityOverlapDelay;
+        return operationTraceabilityTemporizationDelay;
     }
 
     /**
