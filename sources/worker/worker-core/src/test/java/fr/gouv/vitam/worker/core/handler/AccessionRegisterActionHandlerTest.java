@@ -38,15 +38,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -55,7 +48,10 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
@@ -74,6 +70,11 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class AccessionRegisterActionHandlerTest {
     private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP_obj.json";
@@ -136,9 +137,7 @@ public class AccessionRegisterActionHandlerTest {
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
             .thenReturn(originatingAgencies);
 
-        when(adminManagementClient.getAccessionRegisterDetailRaw(anyObject(), anyObject()))
-            .thenReturn(
-                VitamCodeHelper.toVitamError(VitamCode.REFERENTIAL_NOT_FOUND, "where no fund has gone before..."));
+
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -156,6 +155,10 @@ public class AccessionRegisterActionHandlerTest {
         accessionRegisterHandler =
             new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
         assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+
+        RequestResponse<AccessionRegisterDetailModel> res = new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
+        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+            .thenReturn(res);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);

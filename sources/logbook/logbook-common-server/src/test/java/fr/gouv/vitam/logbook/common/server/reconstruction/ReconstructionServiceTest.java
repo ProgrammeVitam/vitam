@@ -316,7 +316,9 @@ public class ReconstructionServiceTest {
         model.setLogbookOperation(new Document("_id", id));
         model.getAccessionRegisters()
             .add(JsonHandler
-                .toJsonNode(new AccessionRegisterDetailModel().setId("aehaaaaaaagvm7jmaalysalbwplb56aaaaaq")
+                .toJsonNode(new AccessionRegisterDetailModel()
+                    .setIdentifier("Identifier")
+                    .setOperationGroup("OP_GROUP").setId("aehaaaaaaagvm7jmaalysalbwplb56aaaaaq")
                     .setOriginatingAgency("OriginatingAgency").addOperationsId(id)));
         model.setOffset(offset);
         return model;

@@ -54,6 +54,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -585,6 +586,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.CREATED).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
+            if (DbRequestSingle.checkInsertOrUpdate(e)) {
+                // Accession register detail already exists in database
+                return Response.status(Status.CONFLICT).entity(Status.CONFLICT).build();
+            }
             return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
         } catch (final Exception e) {
             LOGGER.error(e);

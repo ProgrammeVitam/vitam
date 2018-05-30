@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.core;
 
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPI;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
@@ -88,6 +87,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
@@ -104,6 +104,14 @@ public class MetaDataImpl implements MetaData {
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
+    public static final String ORIGINATING_AGENCY = "originatingAgency";
+    public static final String OPI = "opi";
+    public static final String QUALIFIER_VERSION_OPI = "qualifierVersionOpi";
+    public static final String TOTAL_SIZE = "totalSize";
+    public static final String TOTAL_OBJECT = "totalObject";
+    public static final String LIST_GOT = "listGOT";
+    public static final String TOTAL_GOT = "totalGOT";
+    public static final String COUNT = "count";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
@@ -161,11 +169,11 @@ public class MetaDataImpl implements MetaData {
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document("$and", Arrays.asList(new Document(OPI, operationId),
+            new Document("$match", new Document("$and", Arrays.asList(new Document(MetadataDocument.OPI, operationId),
                 new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
             new Document("$unwind", "$" + ORIGINATING_AGENCIES),
             new Document("$group",
-                new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))),
+                new Document(ID, "$" + ORIGINATING_AGENCIES).append(COUNT, new Document("$sum", 1)))),
             Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
@@ -180,52 +188,25 @@ public class MetaDataImpl implements MetaData {
                 new Document("$unwind", "$" + QUALIFIERS),
                 new Document("$unwind", "$" + QUALIFIERS + ".versions"),
                 new Document("$unwind", "$" + ORIGINATING_AGENCIES),
-                new Document("$match", new Document(QUALIFIERS + ".versions._opi", operationId)),
-                new Document("$group", new Document(ID, "$" + ORIGINATING_AGENCIES)
-                    .append("totalSize", new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
-                    .append("totalObject", new Document("$sum", 1))
-                    .append("listGOT", new Document("$addToSet", "$_id"))),
-                new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)
-                    .append("totalGOT", new Document("$size", "$listGOT")))),
+                new Document("$group",
+                    new Document(ID, new Document(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCIES)
+                        .append(OPI, "$" + MetadataDocument.OPI)
+                        .append(QUALIFIER_VERSION_OPI, "$" + QUALIFIERS + ".versions._opi"))
+                        .append(TOTAL_SIZE, new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
+                        .append(TOTAL_OBJECT, new Document("$sum", 1))
+                        .append(LIST_GOT, new Document("$addToSet", "$_id"))),
+                new Document("$project", new Document(ID, 1)
+                    .append(TOTAL_SIZE, 1)
+                    .append(TOTAL_OBJECT, 1)
+                    .append(TOTAL_GOT, new Document("$size", "$listGOT"))
+                    /*.append(TOTAL_GOT,
+                        new Document("$cond", Arrays
+                            .asList(new Document("$ne", new Document("$" + OPI, "$" + QUALIFIER_VERSION_OPI)), 0,
+                                new Document("$size", "$listGOT"))))*/
+                )
+                ),
                 Document.class);
         return Lists.newArrayList(aggregate.iterator());
-    }
-
-
-    @Override
-    public  Set<String> selectAllOperationsByOperationId(String operationId) {
-        AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document("$and", Arrays.asList(new Document(OPI, operationId),
-                new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
-            new Document("$unwind", "$" + OPS),
-            new Document("$group", new Document(ID, null).append("listOps", new Document("$addToSet", "$" + OPS))),
-            new Document("$project", new Document("_id", 0).append("listOps", 1))),
-            Document.class);
-        List<Document> unitOps = Lists.newArrayList(aggregate.iterator());
-
-
-        aggregate =
-            MetadataCollections.OBJECTGROUP.getCollection().aggregate(Arrays.asList(
-                new Document("$match", new Document(OPS, operationId)),
-                new Document("$unwind", "$" + OPS),
-                new Document("$group", new Document(ID, null).append("listOps", new Document("$addToSet", "$" + OPS))),
-                new Document("$project", new Document("_id", 0).append("listOps", 1))),
-                Document.class);
-        List<Document> gotOps = Lists.newArrayList(aggregate.iterator());
-
-
-        Set<String> ops = new HashSet<>();
-        if (!unitOps.isEmpty()) {
-            Document d = unitOps.iterator().next();
-            ops.addAll(d.get("listOps", Set.class));
-        }
-
-        if (!gotOps.isEmpty()) {
-            Document d = gotOps.iterator().next();
-            ops.addAll(d.get("listOps", Set.class));
-        }
-
-        return ops;
     }
 
     @Override

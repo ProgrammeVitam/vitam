@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import java.util.ArrayList;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+
 import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -65,6 +65,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgencyPK;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -781,21 +782,6 @@ public class MetadataResource extends ApplicationStatusResource {
         }
     }
 
-
-    @Path("accession-registers/ops-sps/{operationId}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @GET
-    public Response selectAllOperationsByOperationId(
-        @PathParam("operationId") String operationId) {
-
-        Set<String> document = metaDataImpl.selectAllOperationsByOperationId(operationId);
-
-        RequestResponseOK<String> responseOK = new RequestResponseOK<>();
-        responseOK.addAllResults(new ArrayList<>(document)).setHttpCode(Status.OK.getStatusCode());
-
-        return responseOK.toResponse();
-    }
-
     @Path("accession-registers/units/{operationId}")
     @Produces(MediaType.APPLICATION_JSON)
     @GET
@@ -806,8 +792,8 @@ public class MetadataResource extends ApplicationStatusResource {
         responseOK.setHttpCode(Status.OK.getStatusCode());
         for (Document doc : documents) {
             UnitPerOriginatingAgency upoa = new UnitPerOriginatingAgency();
-            upoa.setId(doc.getString("_id"));
-            upoa.setCount(doc.getInteger("count"));
+            upoa.setId(doc.getString(ID));
+            upoa.setCount(doc.getInteger(MetaDataImpl.COUNT));
             responseOK.addResult(upoa);
         }
 
@@ -824,15 +810,21 @@ public class MetadataResource extends ApplicationStatusResource {
         responseOK.setHttpCode(Status.OK.getStatusCode());
         for (Document doc : documents) {
             ObjectGroupPerOriginatingAgency ogpoa = new ObjectGroupPerOriginatingAgency();
-            ogpoa.setOriginatingAgency(doc.getString("_id"));
+            Document id = doc.get(ID, Document.class);
 
-            Number totalGOT = doc.get("totalGOT", Number.class);
+            ObjectGroupPerOriginatingAgencyPK pk =
+                new ObjectGroupPerOriginatingAgencyPK(id.getString(MetaDataImpl.ORIGINATING_AGENCY),
+                    id.getString(MetaDataImpl.OPI), id.getString(MetaDataImpl.QUALIFIER_VERSION_OPI));
+
+            ogpoa.setId(pk);
+
+            Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
             ogpoa.setNumberOfGOT(totalGOT.longValue());
 
-            Number totalObject = doc.get("totalObject", Number.class);
+            Number totalObject = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
             ogpoa.setNumberOfObject(totalObject.longValue());
 
-            Number totalSize = doc.get("totalSize", Number.class);
+            Number totalSize = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
             ogpoa.setSize(totalSize.longValue());
 
             responseOK.addResult(ogpoa);

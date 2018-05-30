@@ -27,7 +27,6 @@
 package fr.gouv.vitam.metadata.api;
 
 import java.util.List;
-import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -78,12 +77,6 @@ public interface MetaData {
      */
     List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
 
-    /**
-     * Get all ops where ops contains the given operation id
-     * @param operationId
-     * @return collection of ops
-     */
-    Set<String> selectAllOperationsByOperationId(String operationId);
 
     /**
      * Search UNITs by Select {@link Select}Query

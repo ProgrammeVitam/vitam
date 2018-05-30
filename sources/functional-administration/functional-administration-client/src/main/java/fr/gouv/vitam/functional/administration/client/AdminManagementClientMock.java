@@ -78,7 +78,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 /**
  * Mock client implementation for AdminManagement
  */
-class AdminManagementClientMock extends AbstractMockClient implements AdminManagementClient {
+public class AdminManagementClientMock extends AbstractMockClient implements AdminManagementClient {
     private static final String STREAM_IS_A_MANDATORY_PARAMETER = "stream is a mandatory parameter";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
@@ -263,6 +263,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
         detailBuider.setId(id)
             .setTenant(0)
+            .setIdentifier("Identifier")
+            .setOperationGroup("OP_GROUP")
             .setOriginatingAgency("FRAN_NP_005568")
             .setSubmissionAgency("FRAN_NP_005061")
             .setArchivalAgreement("Something")
@@ -292,6 +294,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
             detailBuider.setId(operationId)
                 .setTenant(0)
+                .setIdentifier("Identifier")
+                .setOperationGroup("OP_GROUP")
                 .setOriginatingAgency(originatingAgency)
                 .setSubmissionAgency("FRAN_NP_005061")
                 .setArchivalAgreement("Something")

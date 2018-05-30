@@ -28,9 +28,7 @@
 package fr.gouv.vitam.metadata.client;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -405,39 +403,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public Set<String> selectAllOperationsByOperationId(String operationId)
-        throws MetaDataClientServerException {
-        Response response = null;
-
-        try {
-            response =
-                performRequest(HttpMethod.GET, "/accession-registers/units/" + operationId, null, null,
-                    MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
-
-            RequestResponse<String> requestResponse = RequestResponse.parseFromResponse(response, String.class);
-            if (requestResponse.isOk()) {
-                RequestResponseOK<String> requestResponseOK = (RequestResponseOK<String>) requestResponse;
-
-                return new HashSet<>(requestResponseOK.getResults());
-            } else {
-                VitamError vitamError = (VitamError) requestResponse;
-                LOGGER
-                    .error("find operations and originating agencies failed, http code is {}, error is {}",
-                        vitamError.getCode(),
-                        vitamError.getErrors());
-                throw new MetaDataClientServerException(vitamError.getDescription());
-            }
-
-        } catch (VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR, e);
-            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
     public List<ObjectGroupPerOriginatingAgency> selectAccessionRegisterOnObjectByOperationId(String operationId)
         throws MetaDataClientServerException {
         Response response = null;
@@ -448,17 +413,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                     MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
 
-            RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
+            RequestResponse<ObjectGroupPerOriginatingAgency> requestResponse =
+                RequestResponse.parseFromResponse(response, ObjectGroupPerOriginatingAgency.class);
             if (requestResponse.isOk()) {
-                RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+                RequestResponseOK<ObjectGroupPerOriginatingAgency> requestResponseOK =
+                    (RequestResponseOK<ObjectGroupPerOriginatingAgency>) requestResponse;
 
-                List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies = new ArrayList<>();
-                for (JsonNode jsonNode : requestResponseOK.getResults()) {
-                    objectGroupPerOriginatingAgencies
-                        .add(JsonHandler.getFromJsonNode(jsonNode, ObjectGroupPerOriginatingAgency.class));
-                }
-
-                return objectGroupPerOriginatingAgencies;
+                return requestResponseOK.getResults();
             } else {
                 VitamError vitamError = (VitamError) requestResponse;
                 LOGGER
@@ -468,7 +429,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataClientServerException(vitamError.getDescription());
             }
 
-        } catch (VitamClientInternalException | InvalidParseOperationException e) {
+        } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {

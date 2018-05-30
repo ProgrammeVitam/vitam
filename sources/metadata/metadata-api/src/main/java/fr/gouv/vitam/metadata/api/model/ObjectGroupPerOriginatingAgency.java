@@ -1,11 +1,14 @@
 package fr.gouv.vitam.metadata.api.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * ObjectGroupPerOriginatingAgency class describing ObjectGroup
  */
 public class ObjectGroupPerOriginatingAgency {
 
-    private String originatingAgency;
+    @JsonProperty("_id")
+    private ObjectGroupPerOriginatingAgencyPK id;
 
     private long numberOfObject;
 
@@ -23,34 +26,35 @@ public class ObjectGroupPerOriginatingAgency {
     /**
      * Constructor
      *
-     * @param originatingAgency the originating agency
+     * @param id             the aggregation id
      * @param numberOfObject the number of object
-     * @param numberOfGOT the number of GoT
-     * @param size the size
+     * @param numberOfGOT    the number of GoT
+     * @param size           the size
      */
-    public ObjectGroupPerOriginatingAgency(String originatingAgency, long numberOfObject, long numberOfGOT, long size) {
-        this.originatingAgency = originatingAgency;
+    public ObjectGroupPerOriginatingAgency(ObjectGroupPerOriginatingAgencyPK id, long numberOfObject, long numberOfGOT,
+        long size) {
+        this.id = id;
         this.numberOfObject = numberOfObject;
         this.numberOfGOT = numberOfGOT;
         this.size = size;
     }
 
     /**
-     * getOriginatingAgency
+     * get aggregation id
      *
-     * @return originatingAgency
+     * @return id
      */
-    public String getOriginatingAgency() {
-        return originatingAgency;
+    public ObjectGroupPerOriginatingAgencyPK getId() {
+        return id;
     }
 
     /**
-     * setOriginatingAgency
+     * set id
      *
-     * @param originatingAgency
+     * @param id
      */
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
+    public void setId(ObjectGroupPerOriginatingAgencyPK id) {
+        this.id = id;
     }
 
     /**
