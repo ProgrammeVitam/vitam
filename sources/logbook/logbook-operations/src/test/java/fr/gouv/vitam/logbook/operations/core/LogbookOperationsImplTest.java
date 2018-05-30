@@ -42,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -204,11 +205,12 @@ public class LogbookOperationsImplTest {
     }
 
     @Test
-    public void selectAfterDateTest() throws Exception {
+    public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
         Mockito.reset(mongoDbAccess);
         Mockito.doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(anyObject(), anyBoolean());
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
-        MongoCursor cursor = logbookOperationsImpl.selectOperationsPersistedAfterDate(LocalDateTime.now());
+        MongoCursor cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(LocalDateTime.now(),
+            LocalDateUtil.now());
         assertNotNull(cursor);
         assertTrue(cursor.hasNext());
     }

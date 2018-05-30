@@ -114,10 +114,11 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(LocalDateTime date)
+    public MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(LocalDateTime startDate,
+        LocalDateTime endDate)
         throws LogbookDatabaseException,
         LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
-        return logbookOperations.selectOperationsPersistedAfterDate(date);
+        return logbookOperations.selectOperationsByLastPersistenceDateInterval(startDate, endDate);
     }
 
     @Override

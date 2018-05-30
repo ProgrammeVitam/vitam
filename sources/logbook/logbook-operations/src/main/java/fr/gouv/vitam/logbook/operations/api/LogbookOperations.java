@@ -135,19 +135,20 @@ public interface LogbookOperations {
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
-     * Select all logbook operations entries after a given date
+     * Select all logbook operations entries persisted within provided interval
      *
-     * @param date the select request in format of JsonNode
+     * @param startDate the start date
+     * @param endDate the end date
      * @return the Closeable MongoCursor of LogbookOperation
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      * @throws InvalidCreateOperationException if the query could not be created
      */
-    MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(LocalDateTime date)
+    MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(LocalDateTime startDate,
+        LocalDateTime endDate)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
         InvalidCreateOperationException;
-
 
     /**
      * Find One logbook TraceabilityOperation after a given date

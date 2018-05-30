@@ -3,6 +3,7 @@ package fr.gouv.vitam.common.json;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -13,9 +14,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CanonicalJsonFormatterTest {
 
     @Test
-    public void serialize() throws Exception {
-        String inputJson = "json_canocalization/test_input.json";
-        String expectedOutput = "json_canocalization/expected_output.json";
+    public void whenSerializeCheckBinaryData() throws Exception {
+
+        String inputJson = "json_canonicalization/test_input.json";
+        String expectedOutput = "json_canonicalization/expected_output.json";
         try (InputStream is = PropertiesUtils.getResourceAsStream(inputJson);
             InputStream expectedInputStream = PropertiesUtils.getResourceAsStream(expectedOutput)) {
             JsonNode jsonNode = JsonHandler.getFromInputStream(is);
@@ -23,6 +25,16 @@ public class CanonicalJsonFormatterTest {
             InputStream resultInputStream = CanonicalJsonFormatter.serialize(jsonNode);
             assertThat(IOUtils.contentEquals(resultInputStream, expectedInputStream)).isTrue();
         }
+    }
+
+    @Test
+    public void whenSerializeCheckDataParsing() throws Exception {
+
+        String inputJson = "json_canonicalization/test_input.json";
+        JsonNode initialJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(inputJson));
+        JsonNode canonicalJson = JsonHandler.getFromInputStream(CanonicalJsonFormatter.serialize(initialJson));
+
+        JsonAssert.assertJsonEquals(initialJson.toString(), canonicalJson.toString());
     }
 
 

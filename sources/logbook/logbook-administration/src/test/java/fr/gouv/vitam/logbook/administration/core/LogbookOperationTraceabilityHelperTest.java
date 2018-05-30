@@ -39,7 +39,7 @@ import static org.mockito.Mockito.mock;
 public class LogbookOperationTraceabilityHelperTest {
 
     private static final String LOGBOOK_OPERATION_WITH_TOKEN = "/logbookOperationWithToken.json";
-    public static final Integer OPERATION_TRACEABILITY_OVERLAP_DELAY = 300;
+    public static final Integer OPERATION_TRACEABILITY_TEMPORIZATION_DELAY = 300;
     private static final String FILE_NAME = "0_operations_20171031_151118.zip";
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-10-31T15:11:15.405";
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
@@ -63,7 +63,7 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -84,7 +84,7 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -93,11 +93,16 @@ public class LogbookOperationTraceabilityHelperTest {
         given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(logbookOperation);
 
         // When
+        LocalDateTime beforeInit = LocalDateUtil.now();
         helper.initialize();
+        LocalDateTime afterInit = LocalDateUtil.now();
 
         // Then
         assertThat(helper.getTraceabilityStartDate()).isEqualTo(LocalDateUtil
-            .getFormattedDateForMongo(LOGBOOK_OPERATION_EVENT_DATE.minusSeconds(OPERATION_TRACEABILITY_OVERLAP_DELAY)));
+            .getFormattedDateForMongo(LOGBOOK_OPERATION_EVENT_DATE));
+        assertThat(LocalDateUtil.parseMongoFormattedDate(helper.getTraceabilityEndDate()))
+            .isAfterOrEqualTo(beforeInit.minusSeconds(OPERATION_TRACEABILITY_TEMPORIZATION_DELAY))
+            .isBeforeOrEqualTo(afterInit.minusSeconds(OPERATION_TRACEABILITY_TEMPORIZATION_DELAY));
     }
 
     @Test
@@ -108,7 +113,7 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         given(logbookOperations.findLastTraceabilityOperationOK()).willReturn(null);
 
@@ -128,14 +133,14 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
         MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsPersistedAfterDate(any())).willReturn(cursor);
+        given(logbookOperations.selectOperationsByLastPersistenceDateInterval(any(), any())).willReturn(cursor);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -158,14 +163,14 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
         MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsPersistedAfterDate(any())).willReturn(cursor);
+        given(logbookOperations.selectOperationsByLastPersistenceDateInterval(any(), any())).willReturn(cursor);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -177,7 +182,7 @@ public class LogbookOperationTraceabilityHelperTest {
         file.close();
 
         // Then
-        assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5764);
+        assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5764L);
     }
 
     @Test
@@ -188,7 +193,7 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         // When
         String date = helper.getPreviousStartDate();
@@ -207,7 +212,7 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
@@ -233,14 +238,14 @@ public class LogbookOperationTraceabilityHelperTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
 
         LogbookOperationTraceabilityHelper helper =
-            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_OVERLAP_DELAY);
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, OPERATION_TRACEABILITY_TEMPORIZATION_DELAY);
 
         InputStream stream = getClass().getResourceAsStream(LOGBOOK_OPERATION_WITH_TOKEN);
         JsonNode jsonNode = JsonHandler.getFromInputStream(stream);
         LogbookOperation logbookOperation = new LogbookOperation(jsonNode);
         MongoCursor<LogbookOperation> cursor = getMongoCursorFor(logbookOperation);
 
-        given(logbookOperations.selectOperationsPersistedAfterDate(any())).willReturn(cursor);
+        given(logbookOperations.selectOperationsByLastPersistenceDateInterval(any(), any())).willReturn(cursor);
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 

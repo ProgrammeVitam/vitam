@@ -99,7 +99,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
     private final LogbookOperations logbookOperations;
     private final GUID operationID;
-    private final int delay;
+    private final int temporizationDelayInSeconds;
 
     private List<String> expectedLogbookId = null;
     private LogbookOperation lastTraceabilityOperation = null;
@@ -121,13 +121,13 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     /**
      * @param logbookOperations used to search the operation to secure
      * @param operationID guid of the traceability operation
-     * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
+     * @param temporizationDelayInSeconds temporization delay (in seconds) for recent logbook operation events.
      */
     public LogbookOperationTraceabilityHelper(LogbookOperations logbookOperations,
-        GUID operationID, int overlapDelayInSeconds) {
+        GUID operationID, int temporizationDelayInSeconds) {
         this.logbookOperations = logbookOperations;
         this.operationID = operationID;
-        this.delay = overlapDelayInSeconds;
+        this.temporizationDelayInSeconds = temporizationDelayInSeconds;
     }
 
     @Override
@@ -153,12 +153,11 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
                 throw new TraceabilityException("Could not parse last traceability operation information", e);
             }
 
-            LocalDateTime lastStartDate = LocalDateUtil.parseMongoFormattedDate(traceabilityEvent.getEndDate());
-            startDate = lastStartDate.minusSeconds(delay);
+            startDate = LocalDateUtil.parseMongoFormattedDate(traceabilityEvent.getEndDate());
             expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
         this.traceabilityStartDate = startDate;
-        this.traceabilityEndDate = LocalDateUtil.now();
+        this.traceabilityEndDate = LocalDateUtil.now().minusSeconds(temporizationDelayInSeconds);
     }
 
     @Override
@@ -166,7 +165,8 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         throws IOException, TraceabilityException {
         MongoCursor<LogbookOperation> mongoCursor;
         try {
-            mongoCursor = logbookOperations.selectOperationsPersistedAfterDate(traceabilityStartDate);
+            mongoCursor = logbookOperations
+                .selectOperationsByLastPersistenceDateInterval(traceabilityStartDate, traceabilityEndDate);
         } catch (LogbookDatabaseException | LogbookNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new TraceabilityException(e);
         }
