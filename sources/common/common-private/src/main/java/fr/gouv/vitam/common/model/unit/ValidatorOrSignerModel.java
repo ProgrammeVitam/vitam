@@ -28,8 +28,6 @@ package fr.gouv.vitam.common.model.unit;
 
 import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -41,8 +39,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Class representing a Signer or a Validator
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(namespace = NAMESPACE_URI)
-public class ValidatorOrSignerModel extends AgentTypeModel {
+@XmlType(namespace = NAMESPACE_URI, propOrder = {
+    "firstName",
+    "birthName",
+    "fullName",
+    "givenName",
+    "gender",
+    "birthDate",
+    "birthPlace",
+    "deathDate",
+    "deathPlace",
+    "nationalities",
+    "corpname",
+    "identifiers",
+    "signingTime",
+    "validationTime",
+    "function",
+    "activity",
+    "position",
+    "role",
+    "mandate"
+})
+public class ValidatorOrSignerModel extends PersonOrEntityAndBusinessType {
 
     @JsonProperty("SigningTime")
     @XmlElement(name = "SigningTime", namespace = NAMESPACE_URI)
@@ -52,6 +70,10 @@ public class ValidatorOrSignerModel extends AgentTypeModel {
     @XmlElement(name = "ValidationTime", namespace = NAMESPACE_URI)
     private String validationTime;
 
+    /**
+     * When updated : not forget to update XmlType.propOrder annotation to fix properties order
+     * This avoid duplicating properties declaration between this class and his superclass AgentTypeModel
+     */
     public ValidatorOrSignerModel() {
     }
 

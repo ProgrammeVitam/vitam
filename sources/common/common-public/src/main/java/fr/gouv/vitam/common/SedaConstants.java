@@ -142,6 +142,11 @@ public class SedaConstants {
 
 
     /**
+     * Tag of RelatedObjectReference
+     */
+    public static final String TAG_RELATED_OBJECT_REFERENCE = "RelatedObjectReference";
+
+    /**
      * Tag of DataObjectReferenceId
      */
     public static final String TAG_DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
@@ -245,9 +250,9 @@ public class SedaConstants {
 
     // XML Tags used in SEDA
     /**
-     * tag of ArchiveTransferReply
+     * tag of ArchiveDeliveryRequestReply
      */
-    public static final String TAG_ARCHIVE_TRANSFER_REPLY = "ArchiveTransferReply";
+    public static final String TAG_ARCHIVE_DELIVERY_REQUEST_REPLY = "ArchiveDeliveryRequestReply";
     public static final String TAG_COMMENT = "Comment";
     /**
      * tag of Rules

@@ -83,6 +83,11 @@ public class TransformJsonTreeToListOfXmlElement {
 
         for (Object key : map.keySet()) {
             Object value = map.get(key);
+            //skip vitam technical metadata (_opi,..)
+            if(key.toString().startsWith("#")){
+               continue;
+            }
+
             if (value instanceof String) {
                 final String str = (String) value;
                 Element childElement =
