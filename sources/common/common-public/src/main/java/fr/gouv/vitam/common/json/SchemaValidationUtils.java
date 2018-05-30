@@ -39,6 +39,9 @@ import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
+import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -61,6 +64,8 @@ import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEn
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ModelConstants;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 
 /**
  * SchemaValidationUtils
@@ -519,4 +524,49 @@ public class SchemaValidationUtils {
         }
         return isThereAType;
     }
+
+    /**
+     * 
+     * @param archiveUnit the archive Unit to be changed
+     * @param ontologyModelMap the map containing ontology fields to be changed
+     */
+    public void loopAndReplaceInJson(JsonNode archiveUnit, Map<String, OntologyModel> ontologyModelMap) {
+        final Iterator<Entry<String, JsonNode>> iterator = archiveUnit.fields();
+        while (iterator.hasNext()) {
+            final Entry<String, JsonNode> entry = iterator.next();
+            String key = entry.getKey();
+            JsonNode value = entry.getValue();
+            if (!ontologyModelMap.containsKey(key) && value != null && (value.isObject() || value.isArray())) {
+                loopAndReplaceInJson(value, ontologyModelMap);
+            } else if (ontologyModelMap.containsKey(key)) {
+                replaceProperFieldWithType(value, ontologyModelMap.get(key));
+            }
+        }
+    }
+
+    /**
+     * Change the type of field for long double and boolean
+     * 
+     * @param archiveUnitFragment
+     * @param ontology
+     */
+    private void replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology) {
+        if (archiveUnitFragment.isArray()) {
+            ArrayNode copy = ((ArrayNode) archiveUnitFragment).deepCopy();
+            for (int i = 0; i < copy.size(); i++) {
+                if (OntologyType.DOUBLE == ontology.getType()) {
+                    ((ArrayNode) archiveUnitFragment).set(i, new DoubleNode(Double.parseDouble(copy.get(i).asText())));
+                } else if (OntologyType.LONG == ontology.getType()) {
+                    ((ArrayNode) archiveUnitFragment).set(i, new LongNode(Long.parseLong(copy.get(i).asText())));
+                } else if (OntologyType.BOOLEAN == ontology.getType()) {
+                    if ("true".equals(copy.get(i).asText())) {
+                        ((ArrayNode) archiveUnitFragment).set(i, BooleanNode.TRUE);
+                    } else if ("false".equals(copy.get(i).asText())) {
+                        ((ArrayNode) archiveUnitFragment).set(i, BooleanNode.FALSE);
+                    }
+                }
+            }
+        }
+    }
+
 }

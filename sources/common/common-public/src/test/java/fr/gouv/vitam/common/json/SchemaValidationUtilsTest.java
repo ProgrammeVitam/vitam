@@ -31,20 +31,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 
 public class SchemaValidationUtilsTest {
 
@@ -52,6 +57,7 @@ public class SchemaValidationUtilsTest {
     private static final String AU_INVALID_JSON_FILE = "archive-unit_Invalid.json";
     private static final String AU_INVALID_DATE_JSON_FILE = "archive-unit_date_Invalid.json";
     private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";
+    public static final String JSON_FILE_WITH_REPLACEABLE_FIELDS = "archive_unit_for_replacement.json";
     private static final String AU_SAME_DATES_JSON_FILE = "archive_unit_same_dates.json";
     private static final String OBJECT_BIRTH_PLACE_JSON_FILE = "object_birth_place_archive_unit.json";
     private static final String STRING_BIRTH_PLACE_JSON_FILE = "string_birth_place_archive_unit.json";
@@ -287,6 +293,8 @@ public class SchemaValidationUtilsTest {
         assertNull(extractFields.get("Management"));
     }
 
+
+
     @Test
     public void valid_Ontologies() throws Exception {
         // Given
@@ -390,6 +398,30 @@ public class SchemaValidationUtilsTest {
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_SAME_DATES_JSON_FILE))
                 .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
+    }
+
+
+    @Test
+    public void loopAndReplaceInJsonTests() throws Exception {
+        // Given
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
+        ontologyModelMap.put("extNumber", new OntologyModel().setType(OntologyType.LONG));
+        ontologyModelMap.put("extBoolean", new OntologyModel().setType(OntologyType.BOOLEAN));
+        JsonNode jsonArcUnit =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(JSON_FILE_WITH_REPLACEABLE_FIELDS));
+        JsonNode jsonOriginArcUnit = jsonArcUnit.deepCopy();
+        schemaValidation.loopAndReplaceInJson(jsonArcUnit, ontologyModelMap);
+        jsonArcUnit.get("ArchiveUnit").get("extNumber").forEach((j) -> assertTrue(j.isLong()));
+        jsonArcUnit.get("ArchiveUnit").get("extBoolean").forEach((j) -> assertTrue(j.isBoolean()));
+
+        try {
+            ((ArrayNode) jsonOriginArcUnit.get("ArchiveUnit").get("extNumber")).set(0, new TextNode("TEXT"));
+            schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit, ontologyModelMap);
+            fail("Should fail");
+        } catch (NumberFormatException e) {
+            // do nothing
+        }
     }
 
 }

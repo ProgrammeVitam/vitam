@@ -1,0 +1,48 @@
+{
+  "ArchiveUnit": {
+    "ArchiveUnitProfile": "SCHEMA_4588_NUMBER",
+    "_id": "aeaqaaaaaeft6q5aaa5jkaldvppkkzqaaaaq",
+    "#management": {},
+    "DescriptionLevel": "RecordGrp",
+    "Title": "1_Saint Denis Université",
+    "Description": "Cette unité de description ne porte aucune règle propre et hérite donc de la règle de ManagementMetadata, à savoir ACC-00002 avec StartDate au 01/01/2000",
+    "StartDate": "2017-04-04T08:07:06",
+    "EndDate": "2017-04-04T08:07:06",
+    "extBoolean": [
+      "true",
+      "false"
+    ],
+    "extNumber": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "extString": [
+      "g1String"
+    ],
+    "Management": {
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00002",
+            "StartDate": "2000-01-01"
+          }
+        ]
+      }
+    },
+    "_storage": {
+      "_nbc": 1,
+      "offerIds": [
+        "offer-fs-1.service.consul"
+      ],
+      "strategyId": "default"
+    }
+  },
+  "_work": {
+    "_up": [],
+    "RulesToApply": [
+      "ACC-00002;"
+    ]
+  }
+}

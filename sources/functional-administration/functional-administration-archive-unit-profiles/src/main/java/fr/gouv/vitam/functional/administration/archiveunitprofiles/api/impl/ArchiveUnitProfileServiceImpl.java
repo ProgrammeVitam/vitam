@@ -667,10 +667,10 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         fieldsCorrelation.put(OntologyType.BOOLEAN, Arrays.asList(new String[] {"boolean", "string"}));
         fieldsCorrelation.put(OntologyType.DATE, Arrays.asList(new String[] {"string"}));
         fieldsCorrelation.put(OntologyType.KEYWORD,
-            Arrays.asList(new String[] {"string", "number", "null", "array", "object"}));
+            Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
         fieldsCorrelation.put(OntologyType.TEXT,
-            Arrays.asList(new String[] {"string", "number", "null", "array", "object"}));
-        fieldsCorrelation.put(OntologyType.DOUBLE, Arrays.asList(new String[] {"number"}));
+            Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
+        fieldsCorrelation.put(OntologyType.DOUBLE, Arrays.asList(new String[] {"number", "integer"}));
         fieldsCorrelation.put(OntologyType.LONG, Arrays.asList(new String[] {"number"}));
 
         if (ontologyList.containsKey(field)) {
