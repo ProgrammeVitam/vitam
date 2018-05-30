@@ -29,8 +29,8 @@ package fr.gouv.vitam.metadata.core;
 
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPI;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
 
@@ -46,8 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -55,7 +53,6 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
@@ -96,6 +93,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
+import org.bson.Document;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -172,6 +170,8 @@ public class MetaDataImpl implements MetaData {
         return Lists.newArrayList(aggregate.iterator());
     }
 
+
+
     @Override
     public List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId) {
         AggregateIterable<Document> aggregate =
@@ -189,6 +189,43 @@ public class MetaDataImpl implements MetaData {
                     .append("totalGOT", new Document("$size", "$listGOT")))),
                 Document.class);
         return Lists.newArrayList(aggregate.iterator());
+    }
+
+
+    @Override
+    public  Set<String> selectAllOperationsByOperationId(String operationId) {
+        AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
+            new Document("$match", new Document("$and", Arrays.asList(new Document(OPI, operationId),
+                new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
+            new Document("$unwind", "$" + OPS),
+            new Document("$group", new Document(ID, null).append("listOps", new Document("$addToSet", "$" + OPS))),
+            new Document("$project", new Document("_id", 0).append("listOps", 1))),
+            Document.class);
+        List<Document> unitOps = Lists.newArrayList(aggregate.iterator());
+
+
+        aggregate =
+            MetadataCollections.OBJECTGROUP.getCollection().aggregate(Arrays.asList(
+                new Document("$match", new Document(OPS, operationId)),
+                new Document("$unwind", "$" + OPS),
+                new Document("$group", new Document(ID, null).append("listOps", new Document("$addToSet", "$" + OPS))),
+                new Document("$project", new Document("_id", 0).append("listOps", 1))),
+                Document.class);
+        List<Document> gotOps = Lists.newArrayList(aggregate.iterator());
+
+
+        Set<String> ops = new HashSet<>();
+        if (!unitOps.isEmpty()) {
+            Document d = unitOps.iterator().next();
+            ops.addAll(d.get("listOps", Set.class));
+        }
+
+        if (!gotOps.isEmpty()) {
+            Document d = gotOps.iterator().next();
+            ops.addAll(d.get("listOps", Set.class));
+        }
+
+        return ops;
     }
 
     @Override

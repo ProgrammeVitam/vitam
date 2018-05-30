@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -39,12 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.exception.VitamDBException;
-import org.bson.Document;
-import org.elasticsearch.ElasticsearchParseException;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -55,6 +52,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -70,6 +68,8 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import org.bson.Document;
+import org.elasticsearch.ElasticsearchParseException;
 
 /**
  * Units resource REST API
@@ -399,7 +399,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * @param selectRequest the select request in JsonNode format
-     * @param unitId the unit id to get
+     * @param unitId        the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -414,7 +414,7 @@ public class MetadataResource extends ApplicationStatusResource {
      * Update unit by query and path parameter unit_id
      *
      * @param updateRequest the update request
-     * @param unitId the id of unit to be update
+     * @param unitId        the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -779,6 +779,21 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
+    }
+
+
+    @Path("accession-registers/ops-sps/{operationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @GET
+    public Response selectAllOperationsByOperationId(
+        @PathParam("operationId") String operationId) {
+
+        Set<String> document = metaDataImpl.selectAllOperationsByOperationId(operationId);
+
+        RequestResponseOK<String> responseOK = new RequestResponseOK<>();
+        responseOK.addAllResults(new ArrayList<>(document)).setHttpCode(Status.OK.getStatusCode());
+
+        return responseOK.toResponse();
     }
 
     @Path("accession-registers/units/{operationId}")

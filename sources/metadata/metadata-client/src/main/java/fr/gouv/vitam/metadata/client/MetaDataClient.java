@@ -28,9 +28,9 @@
 package fr.gouv.vitam.metadata.client;
 
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -178,6 +178,16 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
+        throws MetaDataClientServerException;
+
+    /**
+     *
+     * Get all operations of all unit/got having in there opi/ops the given operation id
+     * @param operationId
+     * @return ops (operations)
+     * @throws MetaDataClientServerException
+     */
+    Set<String> selectAllOperationsByOperationId(String operationId)
         throws MetaDataClientServerException;
 
     /**

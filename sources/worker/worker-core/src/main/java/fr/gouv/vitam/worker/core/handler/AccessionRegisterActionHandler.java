@@ -28,15 +28,17 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -131,68 +133,160 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 LOGGER.debug("Params: " + params);
             }
 
+
+
+            String originatingAgency;
+            String submissionAgency = null;
+            String acquisitionInformation = null;
+            String legalStatus = null;
+            String archivalAgreement = null;
+
+            final JsonNode sedaParameters =
+                JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
+                    .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+
+            if (sedaParameters != null) {
+                final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+                if (dataObjectNode != null) {
+
+                    final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+                    if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
+                        submissionAgency = nodeSubmission.asText();
+                    }
+
+                    final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
+                        originatingAgency = nodeOrigin.asText();
+                    } else {
+                        throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
+                    }
+
+                    final JsonNode nodeAcquisitionInformation =
+                        dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+                    if (nodeAcquisitionInformation != null &&
+                        !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
+                        acquisitionInformation = nodeAcquisitionInformation.asText();
+                    }
+
+                    final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
+                    if (nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())) {
+                        legalStatus = nodeLegalStatus.asText();
+                    }
+
+
+                } else {
+                    throw new ProcessingException("No DataObjectPackage found");
+                }
+
+                final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+                if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
+                    archivalAgreement = archivalArchivalAgreement.asText();
+                }
+            } else {
+                throw new ProcessingException("No ArchiveTransfer found");
+            }
+
+
             // operation id
             String operationId = params.getContainerName();
 
-            List<UnitPerOriginatingAgency> agencies =
-                metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId);
-
-            if (agencies == null || agencies.isEmpty()) {
-                return itemStatus.increment(StatusCode.OK);
-            }
-
-            List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies =
-                metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId);
-
-            ImmutableMap<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencyImmutableMap =
-                Maps.uniqueIndex(objectGroupPerOriginatingAgencies,
-                    ObjectGroupPerOriginatingAgency::getOriginatingAgency);
+            final Set<String> ops = metaDataClient.selectAllOperationsByOperationId(operationId);
+            // TODO filter only on Ingest operations
+            Set<String> ingestOperations = ops;
             ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
             ArrayNode arrayInformation = JsonHandler.createArrayNode();
-            for (UnitPerOriginatingAgency agency : agencies) {
-                final AccessionRegisterDetailModel register = generateAccessionRegister(params,
-                    objectGroupPerOriginatingAgencyImmutableMap
-                        .getOrDefault(agency.getId(), new ObjectGroupPerOriginatingAgency()),
-                    agency, tenantId);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
-                        register.getOriginatingAgency());
+            for (String ingestOperation : ingestOperations) {
+                List<UnitPerOriginatingAgency> unitPerOriginatingAgencies =
+                    metaDataClient.selectAccessionRegisterOnUnitByOperationId(ingestOperation);
+
+                if (unitPerOriginatingAgencies == null) {
+                    unitPerOriginatingAgencies = new ArrayList<>();
                 }
-                VitamThreadUtils.getVitamSession().setContractId(VitamConstants.EVERY_ORIGINATING_AGENCY);
-                try {
-                    RequestResponse<JsonNode> response =
-                        adminClient.getAccessionRegisterDetailRaw(operationId, agency.getId());
-                    if (response.isOk()) {
-                        RequestResponseOK<JsonNode> responseOK =
-                            (RequestResponseOK<JsonNode>) response;
-                        if (responseOK.getResults().size() > 0) {
-                            LOGGER.warn(String.format(
-                                "Step already executed, this is a replayed step for this operation : %s .",
-                                operationId));
-                            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-                            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-                        }
-                    } else {
-                        LOGGER.warn(String.format(
-                            "Couldnt check accession register for this operation : %s . Lets continue anyways.",
-                            operationId));
+
+                List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies =
+                    metaDataClient.selectAccessionRegisterOnObjectByOperationId(ingestOperation);
+
+                if (objectGroupPerOriginatingAgencies == null) {
+                    objectGroupPerOriginatingAgencies = new ArrayList<>();
+                }
+
+
+                if (unitPerOriginatingAgencies.isEmpty() && objectGroupPerOriginatingAgencies.isEmpty()) {
+                    return itemStatus.increment(StatusCode.OK);
+                }
+
+                Map<String, UnitPerOriginatingAgency> unitPerOriginatingAgenciesMap = new HashMap<>();
+                Map<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgenciesMap = new HashMap<>();
+
+                for (UnitPerOriginatingAgency o : unitPerOriginatingAgencies) {
+                    unitPerOriginatingAgenciesMap.put(o.getId(), o);
+                }
+
+                for (ObjectGroupPerOriginatingAgency o : objectGroupPerOriginatingAgencies) {
+                    objectGroupPerOriginatingAgenciesMap.put(o.getOriginatingAgency(), o);
+                }
+
+
+
+                Set<String> agencies = Stream.concat(unitPerOriginatingAgenciesMap.keySet().stream(),
+                    objectGroupPerOriginatingAgenciesMap.keySet().stream()).collect(
+                    Collectors.toSet());
+
+
+                for (String agency : agencies) {
+                    final AccessionRegisterDetailModel register = generateAccessionRegister(params,
+                        objectGroupPerOriginatingAgenciesMap
+                            .getOrDefault(agency, new ObjectGroupPerOriginatingAgency()),
+                        unitPerOriginatingAgenciesMap.getOrDefault(agency, new UnitPerOriginatingAgency(agency, 0)),
+                        originatingAgency,
+                        submissionAgency,
+                        acquisitionInformation,
+                        legalStatus,
+                        archivalAgreement,
+                        tenantId);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
+                            register.getOriginatingAgency());
                     }
-                } catch (VitamClientException e) {
-                    LOGGER.warn(String.format(
-                        "Couldnt check accession register for this operation : %s . Lets continue anyways.",
-                        operationId));
+
+                    // TODO: 5/29/18 if createorUpdateAccessionRegister fail then already executed
+                    if (ingestOperation.equals(operationId)) {
+                        VitamThreadUtils.getVitamSession().setContractId(VitamConstants.EVERY_ORIGINATING_AGENCY);
+                        try {
+                            RequestResponse<JsonNode> response =
+                                adminClient.getAccessionRegisterDetailRaw(ingestOperation, agency);
+                            if (response.isOk()) {
+                                RequestResponseOK<JsonNode> responseOK =
+                                    (RequestResponseOK<JsonNode>) response;
+                                if (responseOK.getResults().size() > 0) {
+                                    LOGGER.warn(String.format(
+                                        "Step already executed, this is a replayed step for this operation : %s .",
+                                        ingestOperation));
+                                    itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+                                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                                }
+                            } else {
+                                LOGGER.warn(String.format(
+                                    "Couldnt check accession register for this operation : %s . Lets continue anyways.",
+                                    operationId));
+                            }
+                        } catch (VitamClientException e) {
+                            LOGGER.warn(String.format(
+                                "Couldnt check accession register for this operation : %s . Lets continue anyways.",
+                                operationId));
+                        }
+                    }
+
+                    // ugly hack > using raw and non raw method
+                    ObjectNode jsonNodeRegister = (ObjectNode) JsonHandler.toJsonNode(register);
+                    jsonNodeRegister.put("_id", register.getId());
+                    jsonNodeRegister.put("_tenant", tenantId);
+                    jsonNodeRegister.put("_v", 0);
+                    jsonNodeRegister.remove("#id");
+                    arrayInformation.addPOJO(jsonNodeRegister);
+                    adminClient.createorUpdateAccessionRegister(register);
                 }
-
-                // ugly hack > using raw and non raw method
-                ObjectNode jsonNodeRegister = (ObjectNode) JsonHandler.toJsonNode(register);
-                jsonNodeRegister.put("_id", register.getId());
-                jsonNodeRegister.put("_tenant", tenantId);
-                jsonNodeRegister.put("_v", 0);
-                jsonNodeRegister.remove("#id");
-                arrayInformation.addPOJO(jsonNodeRegister);
-                adminClient.createorUpdateAccessionRegister(register);
             }
-
             if (arrayInformation.size() > 0) {
                 evDetDataInformation.set(VOLUMETRY, arrayInformation);
                 itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
@@ -225,72 +319,29 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params,
-        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, UnitPerOriginatingAgency agency, int tenantId)
-        throws ProcessingException {
-        try {
+        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency,
+        UnitPerOriginatingAgency unitPerOriginatingAgency,
+        String originatingAgency,
+        String submissionAgency,
+        String acquisitionInformation,
+        String legalStatus,
+        String archivalAgreement,
+        int tenantId) {
 
-            final JsonNode sedaParameters =
-                JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
-                    .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-            String originalAgency = agency.getId();
-            String submissionAgency;
-            String archivalAgreement = "ArchivalAgreementUnknow";
-            String acquisitionInformation = null, legalStatus = null;
+        String unitAgency = unitPerOriginatingAgency.getId();
 
-            boolean symbolic;
+        boolean symbolic = !originatingAgency.equals(unitAgency);
 
-            if (sedaParameters != null) {
-                final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
-                if (dataObjectNode != null) {
-
-                    final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
-                    if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
-                        submissionAgency = nodeSubmission.asText();
-                    } else {
-                        submissionAgency = originalAgency;
-                    }
-
-                    final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-                    if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
-                        symbolic = !nodeOrigin.asText().equals(originalAgency);
-                    } else {
-                        throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
-                    }
-
-                    final JsonNode nodeAcquisitionInformation =
-                        dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
-                    if (nodeAcquisitionInformation != null &&
-                        !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
-                        acquisitionInformation = nodeAcquisitionInformation.asText();
-                    }
-
-                    final JsonNode nodeLegalStatus = dataObjectNode.get(SedaConstants.TAG_LEGALSTATUS);
-                    if (nodeLegalStatus != null && !Strings.isNullOrEmpty(nodeLegalStatus.asText())) {
-                        legalStatus = nodeLegalStatus.asText();
-                    }
-
-
-                } else {
-                    throw new ProcessingException("No DataObjectPackage found");
-                }
-
-                final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
-                if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
-                    archivalAgreement = archivalArchivalAgreement.asText();
-                }
-            } else {
-                throw new ProcessingException("No ArchiveTransfer found");
-            }
-
-            // TODO P0 get size manifest.xml in local
-            // TODO P0 extract this information from first parsing
-            return mapParamsToAccessionRegisterDetailModel(params,
-                originalAgency, submissionAgency, archivalAgreement, acquisitionInformation, legalStatus, agency,
-                objectGroupPerOriginatingAgency, tenantId, symbolic);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Inputs/outputs are not correct", e);
-            throw new ProcessingException(e);
+        if (Strings.isNullOrEmpty(submissionAgency)) {
+            submissionAgency = unitAgency;
         }
+
+        // TODO P0 get size manifest.xml in local
+        // TODO P0 extract this information from first parsing
+        return mapParamsToAccessionRegisterDetailModel(params,
+            unitAgency, submissionAgency, archivalAgreement, acquisitionInformation, legalStatus,
+            unitPerOriginatingAgency,
+            objectGroupPerOriginatingAgency, tenantId, symbolic);
     }
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
