@@ -86,6 +86,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.Symbolic;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -112,6 +113,8 @@ public class MetaDataImpl implements MetaData {
     public static final String LIST_GOT = "listGOT";
     public static final String TOTAL_GOT = "totalGOT";
     public static final String COUNT = "count";
+    public static final String SP = "sp";
+    public static final String SYMBLOIC = "symbloic";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
@@ -189,24 +192,85 @@ public class MetaDataImpl implements MetaData {
                 new Document("$unwind", "$" + QUALIFIERS + ".versions"),
                 new Document("$unwind", "$" + ORIGINATING_AGENCIES),
                 new Document("$group",
-                    new Document(ID, new Document(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCIES)
-                        .append(OPI, "$" + MetadataDocument.OPI)
-                        .append(QUALIFIER_VERSION_OPI, "$" + QUALIFIERS + ".versions._opi"))
+                    new Document(ID,
+                        new Document(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCIES)
+                            .append(OPI, "$" + MetadataDocument.OPI)
+                            .append(SP, "$" + MetadataDocument.ORIGINATING_AGENCY)
+                            .append(QUALIFIER_VERSION_OPI, "$" + QUALIFIERS + ".versions._opi"))
                         .append(TOTAL_SIZE, new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
                         .append(TOTAL_OBJECT, new Document("$sum", 1))
                         .append(LIST_GOT, new Document("$addToSet", "$_id"))),
-                new Document("$project", new Document(ID, 1)
-                    .append(TOTAL_SIZE, 1)
-                    .append(TOTAL_OBJECT, 1)
-                    .append(TOTAL_GOT, new Document("$size", "$listGOT"))
-                    /*.append(TOTAL_GOT,
-                        new Document("$cond", Arrays
-                            .asList(new Document("$ne", new Document("$" + OPI, "$" + QUALIFIER_VERSION_OPI)), 0,
-                                new Document("$size", "$listGOT"))))*/
-                )
+                new Document("$project",
+                    new Document(ID, 1)
+                        .append(TOTAL_SIZE, 1)
+                        .append(TOTAL_OBJECT, 1)
+                        .append(TOTAL_GOT, new Document("$size", "$listGOT")))
                 ),
                 Document.class);
-        return Lists.newArrayList(aggregate.iterator());
+
+
+
+        List<Document> documents = Lists.newArrayList(aggregate.iterator());
+
+        Map<String, Map<Symbolic, Document>> map = new HashMap<>();
+
+        for (Document doc : documents) {
+
+            Document id = doc.get(ID, Document.class);
+
+
+            String opi = id.getString(MetaDataImpl.OPI);
+            String _sp = id.getString(MetaDataImpl.SP);
+            String qualifierVersionOpi = id.getString(MetaDataImpl.QUALIFIER_VERSION_OPI);
+            String agency = id.getString(MetaDataImpl.ORIGINATING_AGENCY);
+
+
+            doc.put(QUALIFIER_VERSION_OPI, qualifierVersionOpi);
+            doc.put(ORIGINATING_AGENCY, agency);
+            // Count only object but not GOTs
+            if (!opi.equals(qualifierVersionOpi)) {
+                doc.put(MetaDataImpl.TOTAL_GOT, 0l);
+            }
+
+            boolean symbolic = false;
+            if (!_sp.equals(agency)) {
+                symbolic = true;
+            }
+            doc.put(MetaDataImpl.SYMBLOIC, symbolic);
+
+
+            Map<Symbolic, Document> subMap =
+                map.getOrDefault(qualifierVersionOpi, new HashMap<>());
+
+            if (subMap.isEmpty()) {
+                map.put(qualifierVersionOpi, subMap);
+            }
+
+            Symbolic key = new Symbolic(agency, symbolic);
+            Document ino = subMap.get(key);
+            if (null == ino) {
+                subMap.put(key, doc);
+            } else {
+                // After un-count GOT where opi != qualifierVersionOpi
+                // Sum all ObjectGroupPerOriginatingAgency of the same agency
+                Number totalGOT_doc = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
+                Number totalGOT_ino = ino.get(MetaDataImpl.TOTAL_GOT, Number.class);
+
+                Number totalObject_doc = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
+                Number totalObject_ino = ino.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
+
+                Number totalSize_doc = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
+                Number totalSize_ino = ino.get(MetaDataImpl.TOTAL_SIZE, Number.class);
+
+                ino.put(MetaDataImpl.TOTAL_GOT, totalGOT_doc.longValue() + totalGOT_ino.longValue());
+                ino.put(MetaDataImpl.TOTAL_OBJECT, totalObject_doc.longValue() + totalObject_ino.longValue());
+                ino.put(MetaDataImpl.TOTAL_SIZE, totalSize_doc.longValue() + totalSize_ino.longValue());
+            }
+
+            doc.remove(ID);
+        }
+
+        return documents;
     }
 
     @Override

@@ -71,7 +71,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgencyPK;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -520,10 +519,10 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         RequestResponseOK<ObjectGroupPerOriginatingAgency> requestResponseOK =
             new RequestResponseOK<>();
         requestResponseOK.addResult(
-            new ObjectGroupPerOriginatingAgency(new ObjectGroupPerOriginatingAgencyPK("sp1", "op1", "op1"), 3, 2,
+            new ObjectGroupPerOriginatingAgency("op1", false, "sp1", 3, 2,
                 2000));
         requestResponseOK.addResult(
-            new ObjectGroupPerOriginatingAgency(new ObjectGroupPerOriginatingAgencyPK("sp2", "op1", "op1"), 4, 1,
+            new ObjectGroupPerOriginatingAgency("op1", true, "sp2", 4, 1,
                 3400));
 
         when(mock.get())
@@ -535,9 +534,9 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
         // Then
         assertThat(unitPerOriginatingAgencies).hasSize(2)
-            .extracting("id.originatingAgency", "id.opi", "id.qualifierVersionOpi", "numberOfObject", "numberOfGOT",
+            .extracting("operation", "symbolic", "agency", "numberOfObject", "numberOfGOT",
                 "size")
-            .contains(tuple("sp1", "op1", "op1", 3L, 2L, 2000L), tuple("sp2", "op1", "op1", 4L, 1L, 3400L));
+            .contains(tuple("op1", false, "sp1", 3L, 2L, 2000L), tuple("op1", true, "sp2", 4L, 1L, 3400L));
     }
 
     @Test

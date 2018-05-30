@@ -65,7 +65,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgencyPK;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -809,25 +808,23 @@ public class MetadataResource extends ApplicationStatusResource {
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());
         for (Document doc : documents) {
-            ObjectGroupPerOriginatingAgency ogpoa = new ObjectGroupPerOriginatingAgency();
-            Document id = doc.get(ID, Document.class);
+            ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency = new ObjectGroupPerOriginatingAgency();
 
-            ObjectGroupPerOriginatingAgencyPK pk =
-                new ObjectGroupPerOriginatingAgencyPK(id.getString(MetaDataImpl.ORIGINATING_AGENCY),
-                    id.getString(MetaDataImpl.OPI), id.getString(MetaDataImpl.QUALIFIER_VERSION_OPI));
+            objectGroupPerOriginatingAgency.setOperation(doc.getString(MetaDataImpl.QUALIFIER_VERSION_OPI));
+            objectGroupPerOriginatingAgency.setAgency(doc.getString(MetaDataImpl.ORIGINATING_AGENCY));
 
-            ogpoa.setId(pk);
+            objectGroupPerOriginatingAgency.setSymbolic(doc.getBoolean(MetaDataImpl.SYMBLOIC));
 
             Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
-            ogpoa.setNumberOfGOT(totalGOT.longValue());
+            objectGroupPerOriginatingAgency.setNumberOfGOT(totalGOT.longValue());
 
             Number totalObject = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
-            ogpoa.setNumberOfObject(totalObject.longValue());
+            objectGroupPerOriginatingAgency.setNumberOfObject(totalObject.longValue());
 
             Number totalSize = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
-            ogpoa.setSize(totalSize.longValue());
+            objectGroupPerOriginatingAgency.setSize(totalSize.longValue());
 
-            responseOK.addResult(ogpoa);
+            responseOK.addResult(objectGroupPerOriginatingAgency);
         }
 
         return responseOK.toResponse();

@@ -54,12 +54,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -70,6 +66,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -134,6 +131,7 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -243,7 +241,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the file format
      *
-     * @param headers http headers
+     * @param headers   http headers
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
@@ -395,8 +393,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
 
             try {
-                rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules,
-                    notUsedDeletedRules, notUsedUpdatedRules);
+                rulesManagerFileImpl
+                    .checkFile(document, errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit,
+                        insertRules,
+                        notUsedDeletedRules, notUsedUpdatedRules);
             } catch (FileRulesUpdateException exc) {
                 LOGGER.warn("used Rules ({}) want to be updated",
                     usedUpdatedRules != null ? usedUpdatedRules.toString() : "");
@@ -441,7 +441,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the rules file
      *
-     * @param headers http headers
+     * @param headers     http headers
      * @param rulesStream as InputStream
      * @return Response jersey response
      */
@@ -481,7 +481,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * findRuleByID : find the rules details based on a given Id
      *
-     * @param ruleId path param as String
+     * @param ruleId  path param as String
      * @param request the request
      * @return Response jersey response
      */
@@ -588,7 +588,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             if (DbRequestSingle.checkInsertOrUpdate(e)) {
                 // Accession register detail already exists in database
-                return Response.status(Status.CONFLICT).entity(Status.CONFLICT).build();
+                VitamError ve = new VitamError(Status.CONFLICT.name()).setHttpCode(Status.CONFLICT.getStatusCode())
+                    .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                    .setState("code_vitam")
+                    .setMessage(Status.CONFLICT.getReasonPhrase())
+                    .setDescription("Document already exists in database");
+
+                return Response.status(Status.CONFLICT).entity(ve).build();
             }
             return Response.status(Status.PRECONDITION_FAILED).entity(Status.PRECONDITION_FAILED).build();
         } catch (final Exception e) {
@@ -672,7 +678,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve accession register detail based on a given dsl query
      *
      * @param documentId
-     * @param select as String the query to find the accession register
+     * @param select     as String the query to find the accession register
      * @return Response jersey Response
      */
     @Path("accession-register/detail/{id}")

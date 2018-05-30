@@ -1,20 +1,22 @@
 package fr.gouv.vitam.metadata.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * ObjectGroupPerOriginatingAgency class describing ObjectGroup
  */
 public class ObjectGroupPerOriginatingAgency {
 
-    @JsonProperty("_id")
-    private ObjectGroupPerOriginatingAgencyPK id;
+    private String operation;
+
+    private boolean symbolic;
+
+    private String agency;
 
     private long numberOfObject;
 
     private long numberOfGOT;
 
     private long size;
+
 
     /**
      * Constructor
@@ -26,35 +28,28 @@ public class ObjectGroupPerOriginatingAgency {
     /**
      * Constructor
      *
-     * @param id             the aggregation id
+     * @param operation      the operation id
      * @param numberOfObject the number of object
      * @param numberOfGOT    the number of GoT
      * @param size           the size
      */
-    public ObjectGroupPerOriginatingAgency(ObjectGroupPerOriginatingAgencyPK id, long numberOfObject, long numberOfGOT,
+    public ObjectGroupPerOriginatingAgency(String operation, boolean symbolic, String agency, long numberOfObject, long numberOfGOT,
         long size) {
-        this.id = id;
+        this.operation = operation;
+        this.agency = agency;
         this.numberOfObject = numberOfObject;
         this.numberOfGOT = numberOfGOT;
         this.size = size;
+        this.symbolic = symbolic;
     }
 
-    /**
-     * get aggregation id
-     *
-     * @return id
-     */
-    public ObjectGroupPerOriginatingAgencyPK getId() {
-        return id;
+
+    public String getOperation() {
+        return operation;
     }
 
-    /**
-     * set id
-     *
-     * @param id
-     */
-    public void setId(ObjectGroupPerOriginatingAgencyPK id) {
-        this.id = id;
+    public void setOperation(String operation) {
+        this.operation = operation;
     }
 
     /**
@@ -111,4 +106,19 @@ public class ObjectGroupPerOriginatingAgency {
         this.size = size;
     }
 
+    public boolean isSymbolic() {
+        return symbolic;
+    }
+
+    public void setSymbolic(boolean symbolic) {
+        this.symbolic = symbolic;
+    }
+
+    public String getAgency() {
+        return agency;
+    }
+
+    public void setAgency(String agency) {
+        this.agency = agency;
+    }
 }
