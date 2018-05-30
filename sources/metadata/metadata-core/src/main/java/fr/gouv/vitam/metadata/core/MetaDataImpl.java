@@ -114,7 +114,7 @@ public class MetaDataImpl implements MetaData {
     public static final String TOTAL_GOT = "totalGOT";
     public static final String COUNT = "count";
     public static final String SP = "sp";
-    public static final String SYMBLOIC = "symbloic";
+    public static final String SYMBOLIC = "symbolic";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
@@ -236,7 +236,7 @@ public class MetaDataImpl implements MetaData {
             if (!_sp.equals(agency)) {
                 symbolic = true;
             }
-            doc.put(MetaDataImpl.SYMBLOIC, symbolic);
+            doc.put(MetaDataImpl.SYMBOLIC, symbolic);
 
 
             Map<Symbolic, Document> subMap =

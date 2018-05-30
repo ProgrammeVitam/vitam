@@ -26,6 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -42,7 +51,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -50,15 +58,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
 public class MongoDbAccessMetadataImplTest {
 
@@ -93,7 +92,6 @@ public class MongoDbAccessMetadataImplTest {
 
     static int port;
     static MongoDbAccessMetadataImpl mongoDbAccess;
-    static MongoDbAccessMetadataFactory mongoDbAccessFactory;
     private static ElasticsearchTestConfiguration config = null;
 
     @Rule
@@ -202,8 +200,15 @@ public class MongoDbAccessMetadataImplTest {
 
         // Then
         assertThat(documents).containsExactlyInAnyOrder(
-            new Document("_id", "sp1").append("totalSize", 320).append("totalGOT", 2).append("totalObject", 5),
-            new Document("_id", "sp2").append("totalSize", 380).append("totalGOT", 3).append("totalObject", 6));
+            new Document("originatingAgency", "sp1")
+                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq").append("symbolic", true)
+                .append("totalSize", 120).append("totalGOT", 1).append("totalObject", 2),
+            new Document("originatingAgency", "sp1")
+                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq").append("symbolic", false)
+                .append("totalSize", 200).append("totalGOT", 1).append("totalObject", 3),
+            new Document("originatingAgency", "sp2")
+                .append("qualifierVersionOpi", "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq").append("symbolic", false)
+                .append("totalSize", 380).append("totalGOT", 3).append("totalObject", 6));
     }
 
 }

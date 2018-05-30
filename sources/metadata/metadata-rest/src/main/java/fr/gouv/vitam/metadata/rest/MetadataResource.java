@@ -813,7 +813,7 @@ public class MetadataResource extends ApplicationStatusResource {
             objectGroupPerOriginatingAgency.setOperation(doc.getString(MetaDataImpl.QUALIFIER_VERSION_OPI));
             objectGroupPerOriginatingAgency.setAgency(doc.getString(MetaDataImpl.ORIGINATING_AGENCY));
 
-            objectGroupPerOriginatingAgency.setSymbolic(doc.getBoolean(MetaDataImpl.SYMBLOIC));
+            objectGroupPerOriginatingAgency.setSymbolic(doc.getBoolean(MetaDataImpl.SYMBOLIC));
 
             Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
             objectGroupPerOriginatingAgency.setNumberOfGOT(totalGOT.longValue());

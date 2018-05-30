@@ -131,7 +131,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             }
 
 
-
             String originatingAgency;
             String submissionAgency = null;
             String acquisitionInformation = null;
@@ -250,6 +249,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
             ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
             ArrayNode arrayInformation = JsonHandler.createArrayNode();
+            boolean alreadyExecuted = false;
+            boolean mayBeRestartAfterFatal = false;
             for (String currentOperation : allConcernedOperations) {
 
 
@@ -306,28 +307,42 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                     jsonNodeRegister.put("_tenant", tenantId);
                     jsonNodeRegister.put("_v", 0);
                     jsonNodeRegister.remove("#id");
-                    arrayInformation.addPOJO(jsonNodeRegister);
                     RequestResponse<AccessionRegisterDetailModel> resp =
                         adminClient.createorUpdateAccessionRegister(register);
 
-                    // TODO: 5/30/18 Should we check this, as if Accession Register detail already exists, for (agency:operation, we do not recreate it
+                    // If already exists in database
                     if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {
+                        // If the current ingest operation and the accession register detail already exists, then already executed
                         if (currentOperation.equals(ingestOperationId)) {
                             LOGGER.warn(String.format(
                                 "Step already executed, this is a replayed step for this operation : %s .",
                                 currentOperation));
-                            //itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-                            //return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                            alreadyExecuted = true;
                         }
+                    } else {
+                        if (currentOperation.equals(ingestOperationId)) {
+                            // In case where 2 agency (we created detail for one, then fatal occus
+                            // for the second because of database issue.
+                            // after restart step, the first one will be conflict, the second will be created.
+                            // We should not consider the step as already executed
+                            mayBeRestartAfterFatal = true;
+                        }
+                        // For reconstruction, add only created one, ignore conflict one
+                        arrayInformation.addPOJO(jsonNodeRegister);
                     }
                 }
             }
-            if (arrayInformation.size() > 0) {
-                evDetDataInformation.set(VOLUMETRY, arrayInformation);
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
-            }
+            if (alreadyExecuted && !mayBeRestartAfterFatal) {
+                // Only if all originating agency
+                itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+            } else {
 
-            itemStatus.increment(StatusCode.OK);
+                if (arrayInformation.size() > 0) {
+                    evDetDataInformation.set(VOLUMETRY, arrayInformation);
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
+                }
+                itemStatus.increment(StatusCode.OK);
+            }
         } catch (ProcessingException | AdminManagementClientServerException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             itemStatus.increment(StatusCode.KO);

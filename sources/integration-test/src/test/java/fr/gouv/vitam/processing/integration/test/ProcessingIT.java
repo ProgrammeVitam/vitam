@@ -71,6 +71,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -418,6 +419,15 @@ public class ProcessingIT {
 
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
+
+        // Ensure index unique
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
+            .createIndex(new Document("OriginatingAgency", 1).append("Identifier", 1).append("_tenant", 1),
+                new IndexOptions().unique(true));
+
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+            .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
+
 
     }
 
