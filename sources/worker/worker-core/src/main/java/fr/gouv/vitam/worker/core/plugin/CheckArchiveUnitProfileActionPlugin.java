@@ -26,13 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
@@ -45,10 +56,13 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -57,12 +71,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 
 /**
  * CheckArchiveUnitProfile Plugin.<br>
@@ -82,6 +90,10 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
     private static final String ARCHIVE_UNIT_PROFILE_SCHEMA = "ArchiveUnitProfileSchema";
 
     private static final int GUID_MAP_RANK = 0;
+
+    private static final int UNIT_OUT_RANK = 0;
+
+    private boolean isUpdateJsonMandatory = false;
 
     private final AdminManagementClientFactory adminManagementClientFactory;
 
@@ -128,8 +140,8 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                 String unitId = "";
                 if (guidMapTmpFile != null) {
                     guidSystemArchiveUnit = JsonHandler.getMapFromInputStream(guidMapTmpFile);
-                     unitId = (String) guidSystemArchiveUnit.get(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT)
-                             .get(SedaConstants.PREFIX_ID).asText());
+                    unitId = (String) guidSystemArchiveUnit.get(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT)
+                        .get(SedaConstants.PREFIX_ID).asText());
                 }
 
                 archiveUnitProfileIdentifier =
@@ -140,23 +152,36 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                 schemaValidationStatus = checkAUAgainstAUProfileSchema(itemStatus, infoNode, archiveUnit,
                     archiveUnitProfileIdentifier);
 
+                if (isUpdateJsonMandatory) {
+                    handlerIO.addOuputResult(UNIT_OUT_RANK, archiveUnit, true, false);
+                }
+
                 switch (schemaValidationStatus.getValidationStatus()) {
                     case VALID:
                         itemStatus.increment(StatusCode.OK);
                         return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID,
                             itemStatus);
                     case NOT_JSON_FILE:
-                        itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_AU_PROFILE.name());
-                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId, schemaValidationStatus);
-                        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
+                        itemStatus.setGlobalOutcomeDetailSubcode(
+                            CheckArchiveUnitProfileSchemaStatus.INVALID_AU_PROFILE.name());
+                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId,
+                            schemaValidationStatus);
+                        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
+                            itemStatus);
                     case NOT_AU_JSON_VALID:
-                        itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
-                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId, schemaValidationStatus);
-                        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
+                        itemStatus
+                            .setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT.name());
+                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId,
+                            schemaValidationStatus);
+                        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
+                            itemStatus);
                     case NOT_FOUND:
-                        itemStatus.setGlobalOutcomeDetailSubcode(CheckArchiveUnitProfileSchemaStatus.PROFILE_NOT_FOUND.name());
-                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId, schemaValidationStatus);
-                        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
+                        itemStatus.setGlobalOutcomeDetailSubcode(
+                            CheckArchiveUnitProfileSchemaStatus.PROFILE_NOT_FOUND.name());
+                        fillItemStatus(itemStatus, infoNode, archiveUnitProfileIdentifier, unitId,
+                            schemaValidationStatus);
+                        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
+                            itemStatus);
                 }
             } else {
                 itemStatus.increment(StatusCode.OK);
@@ -183,7 +208,7 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
     }
 
     private void fillItemStatus(ItemStatus itemStatus, ObjectNode infoNode, String archiveUnitProfileIdentifier,
-                                String unitId, SchemaValidationStatus schemaValidationStatus) {
+        String unitId, SchemaValidationStatus schemaValidationStatus) {
         infoNode.put(SedaConstants.TAG_ARCHIVE_UNIT, unitId);
         infoNode.put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, archiveUnitProfileIdentifier);
         infoNode.put(SedaConstants.EV_DET_TECH_DATA, schemaValidationStatus.getValidationMessage());
@@ -208,6 +233,10 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
 
                 try {
                     SanityChecker.checkJsonAll(archiveUnit);
+                    if (archiveUnitProfile.getFields() != null && archiveUnitProfile.getFields().size() > 0) {
+                        handleExternalOntologies(archiveUnit, archiveUnitProfile.getFields(), adminClient, itemStatus,
+                            validator);
+                    }
                 } catch (InvalidParseOperationException e) {
                     itemStatus.setGlobalOutcomeDetailSubcode(
                         CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.toString());
@@ -227,6 +256,60 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             return new SchemaValidationStatus("File is not a valid json file",
                 SchemaValidationStatus.SchemaValidationStatusEnum.NOT_JSON_FILE);
         } catch (Exception e) {
+            LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
+            itemStatus.increment(StatusCode.FATAL);
+            throw new ProcessingException(e);
+        }
+    }
+
+    private void handleExternalOntologies(JsonNode archiveUnit, List<String> fields,
+        AdminManagementClient adminClient, ItemStatus itemStatus, SchemaValidationUtils validator)
+        throws ProcessingException {
+        Select selectOntologies = new Select();
+        Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
+        Map<String, OntologyModel> finalOntologyModelMapToCheck = new HashMap<String, OntologyModel>();
+        try {
+            selectOntologies.setQuery(QueryHelper.and().add(QueryHelper.eq(OntologyModel.TAG_ORIGIN, "EXTERNAL"))
+                .add(QueryHelper.in(OntologyModel.TAG_TYPE, OntologyType.DOUBLE.getType(),
+                    OntologyType.BOOLEAN.getType(),
+                    OntologyType.LONG.getType())));
+            RequestResponse<OntologyModel> responseOntologies =
+                adminClient.findOntologies(selectOntologies.getFinalSelect());
+            if (responseOntologies.isOk() &&
+                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
+                List<OntologyModel> ontologyModelList =
+                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+                ontologyModelMap =
+                    ontologyModelList.stream().collect(Collectors.toMap(OntologyModel::getIdentifier,
+                        c -> c));
+            } else {
+                // no external ontology, nothing to do
+                return;
+            }
+            for (String fieldToBeChecked : fields) {
+                if (ontologyModelMap.containsKey(fieldToBeChecked)) {
+                    finalOntologyModelMapToCheck.put(fieldToBeChecked, ontologyModelMap.get(fieldToBeChecked));
+                }
+            }
+            if (finalOntologyModelMapToCheck.size() > 0) {
+                try {
+                    // that means a transformation could be done so we need to process the full json
+                    JsonNode originalArchiveUnit = archiveUnit.deepCopy();
+                    validator.loopAndReplaceInJson(archiveUnit, finalOntologyModelMapToCheck);
+                    final String unitBeforeUpdate = JsonHandler.prettyPrint(originalArchiveUnit);
+                    final String unitAfterUpdate = JsonHandler.prettyPrint(archiveUnit);
+                    List<String> diff = VitamDocument.getUnifiedDiff(unitAfterUpdate, unitBeforeUpdate);
+                    if (diff.size() > 0) {
+                        isUpdateJsonMandatory = true;
+                    }
+                } catch (Exception e) {
+                    // archive unit could not be transformed, so the error would be thrown later by the schema
+                    // validation verification
+                    LOGGER.error("Archive unit could not be transformed", e);
+                }
+            }
+        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
+            InvalidParseOperationException e) {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(StatusCode.FATAL);
             throw new ProcessingException(e);

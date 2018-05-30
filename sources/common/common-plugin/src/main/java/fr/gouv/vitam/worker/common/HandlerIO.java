@@ -10,6 +10,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -266,7 +267,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ProcessingException
      */
     void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete,
-                                 boolean asyncIO)
+        boolean asyncIO)
         throws ProcessingException;
 
     /**
@@ -278,11 +279,12 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException
      */
     void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
-                                     InputStream uploadedInputStream, boolean asyncIO)
+        InputStream uploadedInputStream, boolean asyncIO)
         throws ContentAddressableStorageException;
 
     /**
      * compress list of file or directory in a specific output file
+     * 
      * @param output path of the zip file
      * @param inputFiles list of file or directory to zip
      * @throws ContentAddressableStorageException
