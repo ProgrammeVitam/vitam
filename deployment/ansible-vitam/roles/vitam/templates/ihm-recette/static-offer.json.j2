@@ -1,12 +1,13 @@
+{% if vitam.storageofferdefault.https_enabled==true %}
+    {% set protocol = 'https' %}
+{% else %}
+    {% set protocol = 'http' %}
+{% endif %}
 [
 {% for item in vitam_strategy %}
 {
-    "id" : "{{ item.name }}.service.{{ consul_domain }}",
-    {% if vitam.storageofferdefault.https_enabled==true %}
-    "baseUrl" : "https://{{ item.name }}.service.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
-    {% else %}
-    "baseUrl" : "http://{{ item.name }}.service.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
-    {% endif %}
+    "id" : "{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}",
+    "baseUrl" : "{{ protocol }}://{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}:{{ vitam.storageofferdefault.port_service }}",
     "parameters" : {
         {% if vitam.storageofferdefault.https_enabled==true %}
         "keyStore-keyPath": "{{vitam_folder_conf}}/keystore_storage.p12",
