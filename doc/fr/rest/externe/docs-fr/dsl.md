@@ -654,7 +654,7 @@ Les commandes de la Facet peuvent être :
 | $terms               | nom du champ, nombre et ordre des résulats | Répartition selon des valeurs textuelles du champ                             |
 | $date_range          | nom de champ,  format, ranges              | Répartition selon les dates selon un intervalle défini "ranges"       |
 | $filters             | requêtes de filtre                         | Répartition selon les requêtes définies (même format qu'une $query)        |
-								   
+
 ### Opérateur $terms : répartition selon des valeurs textuelles du champ
 
 **Format :**
@@ -662,8 +662,7 @@ Les commandes de la Facet peuvent être :
 
 **Exemple :**
 Recherche la répartition de tous les résultats de recherche pour les 3 valeurs les plus utilisées du champ DescriptionLevel :
-```json
-{ "$name": "facet_desclevel", "$terms" : { "$field" : "DescriptionLevel", "$size" : 3, "$order" : "ASC"  } }
+- `{ "$name": "facet_desclevel", "$terms" : { "$field" : "DescriptionLevel", "$size" : 3, "$order" : "ASC"  } }`
 
 ### Opérateur $date_range :
 
@@ -672,6 +671,7 @@ Recherche la répartition de tous les résultats de recherche pour les 3 valeurs
 
 **Exemple :**
 Recherche du nombre de résultats pour une date EndDate située entre 2010 et 2018 et une EndDate supèrieure à 1900 :
+
 ```json
  "$facets": [
     {"$name": "EndDate",
@@ -693,8 +693,8 @@ Recherche du nombre de résultats pour une date EndDate située entre 2010 et 20
       }
     }
   ]
+```
 
-								   
 ### Opérateur $filters : Répartition selon les requêtes définies
 
 **Format :**
@@ -702,6 +702,7 @@ Recherche du nombre de résultats pour une date EndDate située entre 2010 et 20
 
 **Exemple :**
 Recherche la répartition des résultat pour la présence d'un champ titre en français et la présence d'un champ titre en anglais :
+
 ```json
 { "$name": "facet_title_langs", "$filters" : {
       "$query_filters": [
@@ -720,6 +721,7 @@ Recherche la répartition des résultat pour la présence d'un champ titre en fr
       ]
     }
   }
+```
 
 ### Notes sur les opérateurs
 
@@ -776,7 +778,7 @@ Une réponse est composée de plusieurs parties :
     { "#id": "GUID3", "Title": "titre 3" }
   ],
   "$facetResults": [
-    { 
+    {
       "name" : "facet_desclevel",
       "buckets": [
         {

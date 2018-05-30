@@ -1,64 +1,9 @@
-Cette partie va essayer de montrer quelques exemples d'usages du DSL dans différentes conditions.
+Voici d'autres exemples d'utilisation du DSL
 
-# Cas du SIP 1069_OK_RULES_COMPLEXE_COMPLETE.zip
-
-- Je cherche l'AU dont le titre est Botzaris (Title = Botzaris)
-
-```json
-{
-  "$roots": [],
-  "$query": [
-    { "$match": { "Title": "Botzaris" } }
-  ],
-  "$filter": {
-    "$orderby": { "TransactedDate": 1 }
-  },
-  "$projection": { }
-}
-```
-
-- Je cherche les AU qui ne seront pas communicables au 01/01/2018 (= les AU qui ont une AccesRule avec une EndDate postérieure au 01/01/2018)
-
-```json
-{
-  "$roots": [],
-  "$query": [
-    { "$gt": { "#management.AccessRule.Rules.EndDate": "2018-01-01" } }
-  ],
-  "$filter": {
-    "$orderby": { "TransactedDate": 1 }
-  },
-  "$projection": {
-    "$fields": { "#id": 1, "Title": 1 }
-  }
-}
-```
-
-- Je cherche les AU qui ont une AppraisalRule avec sort final = Destroy
-
-```json
-{
-  "$roots": [],
-  "$query": [
-    { "$eq": { "#management.AppraisalRule.FinalAction": "Destroy" } }
-  ],
-  "$filter": {
-    "$orderby": {
-      "TransactedDate": 1
-    },
-    "$limit": 100
-  },
-  "$projection": {
-    "$fields": {
-    	"$rules" : 1, "Title" : 1
-    }
-  }
-}
-```
 
 # Cas du SIP Mercier.zip
 
-- Je cherche dans le dossier Sénat (Title = Sénat), les discours prononcés lors de la relative au défenseur des droits (Title = défenseur). 
+- Je cherche dans le dossier Sénat (Title = Sénat), les discours prononcés lors de la relative au défenseur des droits (Title = défenseur).
 **Recherche mono-requête**
 
 Chercher l'AU avec pour titre "Sénat"

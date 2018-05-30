@@ -1,8 +1,8 @@
 #%RAML 1.0
 
-title: API-Vitam - Introduction
+title: API-Vitam - DSL
 version: v1
-baseUri: https://api.vitam.gouv.fr/{version}
+baseUri: https://api.vitam.gouv.fr/dsl/{version}
 protocols: [ HTTPS ]
 
 uses:
@@ -18,11 +18,14 @@ types:
     type: string
 
 documentation:
-  - title: Avertissements
-    content: !include docs-fr/avertissement.md
-
   - title: Licence
     content: !include docs-fr/license.md
 
-  - title: Conventions REST Générales
-    content: !include docs-fr/standard.md
+  - title: DSL Vitam
+    content: !include docs-fr/dsl.md
+
+  - title: Manipulation des règles de gestion
+    content: !include docs-fr/regles-gestion.md
+
+  - title: Exemple DSL Vitam
+    content: !include docs-fr/exemple-dsl.md

@@ -26,6 +26,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
   {
       "_id": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
       "OriginatingAgency": "FRAN_NP_009734",
+      "Identifier": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
+      "OperationGroup": "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq",
       "SubmissionAgency": "FRAN_NP_009734",
       "AcquisitionInformation": "AcquisitionInformation0"
       "LegalStatus": "Private Archive"
@@ -98,6 +100,16 @@ On récupère la valeur FRAN_NP_051314
 
   * Il s'agit d'une chaîne de caractères.
   * Cardinalité : 0-1
+
+**"Identifier":** identifiant d'une opération d'entrée
+
+    * Il s'agit soit de l'identifiant de l'opération ayant versé les archives recensées dans ce détail du registre des fonds, soit d'une opération d'entrée précédente concernée par l'entrée. Par exemple en cas de rattachement d'une nouvelle unité archivistique AU1 à une autre AU2 déjà existante dans le système, on aura dans ce champ l'identifiant correspondant à l'opération de l'AU1 dans un des documents Mongo et l'identifiant de l'entrée de l'AU2 dans un autre.
+    * Cardinalité 1-1
+
+**"OperationGroup":** : identifiant de l'opération d'entrée ayant versé les archives recensées dans ce détail du registre des fonds
+
+    * Dans le cas de SIP faisant des rattachements (par exemple une nouvelle AU à une AU existante), il s'agira toujours de l'identifiant de l'opération de l'entrée en cours (celle générant ces documents Mongo)
+    * Cardinalité 1-1
 
 **"SubmissionAgency":** contient l'identifiant du service versant.
 
