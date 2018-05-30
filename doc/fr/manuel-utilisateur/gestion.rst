@@ -7,13 +7,13 @@ Cette partie décrit les fonctionnalités permettant de gérer les archives cons
 Audit 
 =====
 
-L'audit est une action d'évaluation, de vérification, contrôle et correction permettant de s'assurer que l'état de la plateforme est toujours conforme à ses exigences de qualité et de sécurité.
+L'audit est une action d'évaluation, de vérification, de contrôle et de correction permettant de s'assurer que l'état de la plateforme est toujours conforme à ses exigences de qualité et de sécurité.
 
-Pour lancer un audit, l'utilisateur survole le menu "Gestion des Archives", puis sélectionne "Audit".
+Pour lancer un audit, l'utilisateur clique le menu "Gestion des Archives", puis sélectionne "Audit".
 
 |
-
 .. image:: images/menu_audit.png
+
 
 Lancement d'un audit de l'existence des objets
 -----------------------------------------------
@@ -22,7 +22,7 @@ Un audit de l'existence des objets se lance sur un service producteur ou sur un 
 
 * Il n'y a pas d'incohérence sur la stratégie de stockage. L'audit vérifie que la liste des offres de stockage définies dans le groupe d'objets est bien la même que celle définie dans la stratégie de stockage
 
-* Tous les objets ont leurs copies. L'audit vérifie que tous les fichiers correspondant aux objets existent sur les offres déclarées, avec un nombre de copie spécifié par la stratégie de stockage
+* Tous les objets ont leurs copies. L'audit vérifie que tous les fichiers correspondant aux objets existent sur les offres déclarées, avec le nombre de copie spécifié par la stratégie de stockage
 
 Pour débuter l'audit, il suffit de sélectionner comme type "Tenant" ou "Service producteur". L'audit du tenant prend automatiquement comme valeur le tenant en cours.
 Celui du service producteur demande de sélectionner un service producteur dans la liste. Cette liste est construite à partir des services producteurs ayant déjà effectué une entrée dans la solution logicielle Vitam.
@@ -32,7 +32,7 @@ Il faut ensuite cocher le type d'audit désiré, ici "Audit de l'existence des o
 
 .. image:: images/detail_audit.png
 
-Comme pour toutes les opérations, l'avancement de l'audit peut être suivi via journal des opérations.
+Comme pour toutes les opérations, le résultat de l'audit est consultable via journal des opérations.
 
 
 Lancement d'un audit de l'intégrité des objets
@@ -47,7 +47,8 @@ L'audit de l'existence des objets se lance depuis le menu "Gestion des archives"
 
 .. image:: images/detail_audit_int.png
 
-Une fois l'audit lancé, une fenêtre modale s'ouvre pour en informer l'utilisateur, l'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.
+Une fois l'audit lancé, une fenêtre modale s'ouvre pour en informer l'utilisateur, le résultat de l'audit est consultable via journal des opérations.
+
 
 
 Lancement d'un audit de cohérence
@@ -65,18 +66,19 @@ L'audit de cohérence des objets se lance via la fonctionnalité du panier, et p
 .. image:: images/detail_audit_coherence.png
 
 
-Une fois l'audit lancé, une fenêtre modale s'ouvre pour en informer l'utilisateur, l'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.
+Une fois l'audit lancé, une fenêtre modale s'ouvre pour en informer l'utilisateur, et le résultat de l'audit est consultable via journal des opérations.
+
 
 
 Résultat et rapport d'audit
 ============================
 
-Le résultat de l'audit est disponible dans le journal des opérations ainsi que le rapport d'audit généré. Pour les consulter, l'utilisateur doit retourner dans le journal des opérations et cliquer sur "Informations complémentaires" puis sélectionner le champ "Rapport". Une colonne "Rapport" apparait dans le détail de l'opération d'audit et il peut être téléchargé en cliquant sur l'icône de téléchargement. 
+Le résultat de l'audit est disponible dans le journal des opérations ainsi que le rapport d'audit généré. Pour les consulter, l'utilisateur doit aller dans le journal des opérations et cliquer sur "Informations complémentaires" puis sélectionner le champ "Rapport". Une colonne "Rapport" apparaît dans le détail de l'opération d'audit et le rapport peut être téléchargé en cliquant sur l'icône de téléchargement. 
 
 Ce rapport détaille l'état de la plateforme : 
 
 * Tout d'abord en listant l'ensemble des opérations d'entrées associées à un groupe d'objet ayant été audité (en succès ou échec)
 * Puis l'ensemble des objets pour lesquels l'audit a rencontré un échec. 
-* La structure de ce rapport est détaillée dans le document modèle de données, alors que les différents statuts possibles sont décrits dans la documentation du workflow d'audit.
+* La structure de ce rapport est détaillée dans le document modèle de données, les différents statuts possibles sont décrits dans la documentation "modèle de workflow" dans la partie liée aux audits. 
 
 Ce rapport est formaté de telle manière à faciliter son intégration dans des systèmes d'information, il n'a pas pour objet principal d'être lu par un humain tel quel, même si cela reste possible.
