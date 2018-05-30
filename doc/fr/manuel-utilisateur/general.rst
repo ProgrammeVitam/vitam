@@ -13,7 +13,7 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 
 .. image:: images/menu_general.png
 
-Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages.
+Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages et accessibles en cliquant sur la flêche au dessous du titre de la section  permettant de naviguer sur les différentes pages.
 
 Fil d'Ariane
 ============
@@ -22,9 +22,9 @@ Le fil d'Ariane est un élément qui permet de visualiser le chemin d'accès à 
 
 .. image:: images/ariane.png
 
-La racine est toujours inactive (sans lien), elle correspond au nom du menu où est située la page.
+La racine est toujours inactive (sans lien), elle correspond au nom du sous-menu où est située la page.
 
-Suite à la racine, les pages parentes sont listées et sont séparées par un chevron et, contrairement à la racine, elles sont toutes cliquables.
+Après la racine, les pages parentes sont listées et sont séparées par un chevron et, contrairement à la racine, elles sont toutes cliquables.
 Un clic sur un lien redirige sur la page idoine.
 
 
@@ -33,9 +33,9 @@ Titre des pages
 
 Le titre de la page est visible sur les onglets des navigateurs Internet. Il correspond au dernier noeud du fil d'Ariane, précédé du mot "VITAM". Par exemple :
 
-- Transfert de SIP et plan de classement Vitam.
-- Recherche d'archives Vitam.
-- Journal des opérations
+- Vitam_transfert de SIP et plan de classement Vitam.
+- Vitam_Recherche d'archives Vitam.
+- Vitam_Journal des opérations
 
 |
 
@@ -46,7 +46,7 @@ Le titre de la page est visible sur les onglets des navigateurs Internet. Il cor
 Flèche Retour en haut de page
 =============================
 
-- Pour toutes les pages , un bouton " Retour en haut de page " permet de retourner tout en haut de la page en cliquant sur l'icone. 
+- Pour toutes les pages, un bouton "Retour en haut de page" permet de retourner tout en haut de la page en cliquant sur l'icone. 
 
 
 .. image:: images/fleche.png
@@ -61,7 +61,7 @@ Deux types de formulaire sont utilisés dans la solution logicielle Vitam :
 - Des formulaires de recherche globale
 - Des formulaires de recherche avancée
 
-Chaque formulaire est doté d'un bouton "Rechercher" et "Effacer". Le bouton "Rechercher" permet d'effectuer une recherche correspondant aux valeurs que vous avez entrées. Et en cliquant sur le bouton "Effacer", toutes les valeurs saisies dans les champs du formulaire sont effacées et les résultats sont ré-initialisés.
+Chaque formulaire est doté d'un bouton "Rechercher" et "Effacer". Le bouton "Rechercher" permet d'effectuer une recherche correspondant aux valeurs entrées par l'utilisateur. Et en cliquant sur le bouton "Effacer", toutes les valeurs saisies dans les champs du formulaire sont effacées et les résultats sont ré-initialisés.
 
 Formulaire de recherche globale
 -------------------------------
@@ -115,32 +115,33 @@ A partir de là, il est possible de choisir les options (colonnes) que l'on souh
    :scale: 50
 
 
-Un clic sur cette même case, désélectionne toutes les options préalablement sélectionnées et masque les colonnes associées.
+Un clic sur cette même case désélectionne toutes les options préalablement sélectionnées et masque les colonnes associées.
 
 Visualisation des listes des écrans de détail
 =============================================
 
 Trois types d'écran de détail comportant des listes sont disponibles :
 
-- Détail d'une opérations
-- Détail du journal du cycle de vie d'une l'unité archivistique
+- Détail d'une opération
+- Détail du journal du cycle de vie d'une unité archivistique
 - Détail du journal du cycle de vie d'un groupe d'objets
 
-Les couleurs de fonds et des polices ont été adaptées en fonction des statuts OK, KO, FATAL et WARNING.
+Les couleurs de fond et des polices ont été adaptées en fonction des statuts OK, KO, FATAL et WARNING.
 
-Pour le cas OK, les lignes s'affichent avec des couleurs neutres, le texte est affiché en noir, et un pictogramme vert est présent. 
+Pour le cas OK, les lignes s'affichent avec des couleurs neutres, le texte est affiché en noir et un pictogramme vert est présent. 
 
 .. image:: images/casOK.png
 
-Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte est affiché en noir et un pictogramme en forme croix est présent.
-
-.. image:: images/entree_ko.png
 
 Pour les cas WARNING, la ligne ne change pas de couleur mais le texte est affiché en orange et un pictogramme de point d'exclamation est présent.
 
 
 .. image:: images/entree_warn.png
 
+
+Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte est affiché en noir et un pictogramme en forme croix est présent.
+
+.. image:: images/entree_ko.png
 
 Modification
 -------------
@@ -158,7 +159,7 @@ Certains champs possèdent un système d'étiquettes ou tags permettant d'ajoute
 .. image:: images/update_tag.png
    :scale: 50
 
-Une fois les modifications effectuées, vous pouvez soit les annuler en cliquant sur "Annuler" et tous les champs reviennent à leur état initial soit enregistrer les modifications en cliquant sur "Sauvegarder", les champs modifiés sont alors mis à jour et enregistrés dans la solution logicielle Vitam.
+Une fois les modifications effectuées, l'utilisateur peut soit les annuler en cliquant sur "Annuler" et tous les champs reviennent à leur état initial soit enregistrer les modifications en cliquant sur "Sauvegarder", les champs modifiés sont alors mis à jour et enregistrés dans la solution logicielle Vitam.
 
 
 .. image:: images/general_modif.png
@@ -174,7 +175,7 @@ Les dates et heures sont affichées soit au format jour-mois-année heures:minut
 .. image:: images/date_heure.png
    :scale: 50
 
-L'heure affichée s'adapte au fuseau horaire défini dans les paramétrages du poste de consultation.
+L'heure affichée s'adapte au fuseau horaire défini dans les paramétrages du poste de consultation de l'utilisateur. 
 
 Dans le cas où aucune heure n'est renseignée dans l'enregistrement, il est par défaut indiqué sur l'interface 00:00, et ceci quel que soit le fuseau horaire.
 
@@ -186,15 +187,15 @@ La solution logicielle Vitam permet d'importer des fichiers ou des dossiers comp
 Les formats acceptés sont: 
 
 * Pour les entrées : .zip, .tar,  .tar.gz, .tar.bz2 et tar.gz2. 
-* Pour les contextes, les contrats d'entrée, les contrats d'accès, les notices de profils d'archivage: Json 
+* Pour les contextes, les contrats d'entrée, les contrats d'accès, les notices de profils d'archivage, les ontologies, les profils d'unité archivistiques: Json 
 * Pour les référentiels des services agents, les réferentiels des règles de gestion : CSV
 * Pour les référentiels des formats: xml
 * Pour les profils d'archivage: rng ou xsd
 
 Il existe deux façons d'importer un fichier ou dossier :
 
-- De façon classique en sélectionnant son fichier ou dossier via l'interface de votre navigateur en cliquant sur le lien "sélectionner un fichier"
-- De façon plus intuitive en faisant glisser le fichier ou dossier de votre ordinateur à la page d'import. Pour cela le fichier ou dossier doit être déplacé dans la zone grisée de téléchargement.
+- De façon classique en sélectionnant le fichier ou dossier via l'interface du navigateur de l'utilisateur en cliquant sur le lien "sélectionner un fichier"
+- De façon plus intuitive en faisant glisser le fichier ou dossier de l'ordinateur à la page d'import. Pour cela le fichier ou dossier doit être déplacé dans la zone grisée de téléchargement en cliquant sur le fichier, et en le faisant glisser vers la zone de téléchargement 
 
 |
 
@@ -212,21 +213,22 @@ Dans les deux cas, le nom du fichier ou dossier s'inscrit en bas de la zone de t
 Référentiels
 -------------
 
-Le processus d'import du référentiel se décrit comme ceci :
+Le processus d'import d'un référentiel se décrit comme ceci :
 
 - aller sur l'interface d'import du référentiel à importer
 - cliquer sur le bouton "sélectionner un fichier" ou faire glisser le fichier sur l'espace de téléchargement
-- le fichier sélectionné doit être au bon format
 - cliquer sur le bouton "Importer"
 - le système vérifie l'intégrité et la cohérence du fichier
 
-A partir de cet écra, il est possible d'accèder à l'import d'autres référentiels. Un menu déroulant permet en effet de sélectionner un référentiel à importer. 
+A partir de cet écran, il est possible d'accèder à l'import d'autres référentiels. Un menu déroulant permet en effet de sélectionner la catégorie de référentiel à importer. 
 
 .. image:: images/Menu_Referentiels.png
 
 A l'issue de ce contrôle, deux cas sont possibles :
 
-- En cas d'erreur de fichier : la solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
+- En cas d'erreur de fichier : la solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.Le détail des erreurs au moment de l'import pour les référentiels sont détaillées dans les sections correspondantes. 
+
+Note: les erreurs communes pour tous les référentiels sont liées au format du fichier, et au fait que certaines données obligatoires ne sont pas présentes. 
 
 |
 
