@@ -79,6 +79,7 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 public class IndexObjectGroupActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionPlugin.class);
     private static final String OG_INDEXATION = "OG_INDEXATION";
+    private static final String AGENCY_CHECK = "AGENCY_CHECK";
 
     private static final int OG_INPUT_RANK = 0;
     private HandlerIO handlerIO;
@@ -133,8 +134,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         final String objectName = params.getObjectName();
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             final ObjectNode json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
-            handleExistingObjectGroup(json, metadataClient, params);
-            itemStatus.increment(StatusCode.OK);
+            handleExistingObjectGroup(json, metadataClient, params, itemStatus);
         } catch (final MetaDataAlreadyExistException e) {
             throw new StepAlreadyExecutedException("Object " + objectName + " already processed", e);
         } catch (final MetaDataException | VitamClientException e) {
@@ -144,7 +144,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         }
     }
 
-    private void handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient, WorkerParameters params)
+    private void handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient, WorkerParameters params, ItemStatus itemStatus)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, MetadataInvalidSelectException,
         MetaDataClientServerException, InvalidParseOperationException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, InvalidCreateOperationException, VitamClientException {
@@ -157,6 +157,18 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
             JsonNode ogInDB = null;
             if (requestResponse.isOk()) {
                 ogInDB = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
+                //compare the OriginatingAgency to the originating of the ObjectGroup. If differents then KO
+                String originatingAgency = json.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
+                String ogOriginatingAgency = "";
+                if (ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY) != null) {
+                    ogOriginatingAgency = ogInDB.get(SedaConstants.PREFIX_ORIGINATING_AGENCY).asText();
+                }
+
+                if (originatingAgency != null && !originatingAgency.equals(ogOriginatingAgency)) {
+                    itemStatus.increment(StatusCode.KO);
+                    itemStatus.setGlobalOutcomeDetailSubcode(AGENCY_CHECK);
+                    return;
+                }
             }
 
             if (ogInDB != null) {
@@ -172,12 +184,14 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                         .getFinalUpdate();
 
                 metadataClient.updateObjectGroupById(newUpdateQuery, ogInDB.get(ID).asText());
-
+                itemStatus.increment(StatusCode.OK);
                 return;
             }
         }
+
         final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
         metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
+        itemStatus.increment(StatusCode.OK);
         return;
     }
 
