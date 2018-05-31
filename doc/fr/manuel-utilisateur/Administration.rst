@@ -997,24 +997,24 @@ NB : Suite au téléchargement de l'arbre, un temps d'attente est nécessaire, c
 
 .. image:: images/import_arbre.png
 
+Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
 
 Si l'utilisateur tente d'importer un arbre dans un format non conforme, alors le système empêche le téléchargement et une fenêtre modale s'ouvre indiquant que le fichier est invalide.
 
-Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
-
-Toute opération d'entrée d'un arbre de positionnement (succès, avertissement et erreur technique ou métier) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
+Toute opération d'entrée (succès, avertissement et erreur technique ou métier) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
 Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.1.
 Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend les informations suivantes :
 
 - Date : date d'émission de l'ATR
-- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuées à la demande de transfert par la solution logicielle Vitam
+- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
 - ArchivalAgreement : contrat d'entrée
-- CodeListVersion : la liste des référentiels utilisés
+- CodeListVersion : liste des référentiels utilisés
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
+- MessageRequestIdentifier: identifiant de la demande
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge de l'arbre.
-- ArchivalAgency : service d'archives
+- ArchivalAgency : identifiant du service d'archives
 - TransferringAgency : service de transfert d'archives
 
 En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès ainsi que la liste des problèmes rencontrés :
@@ -1026,10 +1026,19 @@ En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR e
 La notification comprend ensuite la liste des erreurs rencontrées (échec ou avertissement), au niveau des unités archivistiques sous la forme de blocs <event>.
 
 
+Consulter un arbre de positionnement
+------------------------------------
+
+Il est possible de consulter un arbre de positionnement importé dans la solution Vitam, de la même façon que pour les unités archivistiques: via par exemple un identifiant récupéré sur l' ATR lors de l'entrée de l'arbre de positionnement. 
+La page de recherche permet d'effectuer des recherches avancées, notamment au niveau de l'identifiant, afin de pouvoir accéder au détail. 
+
+
+
+
 Journal des opérations
 ======================
 
-Pour consulter le journal des opérations, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Journal des opérations".
+Pour consulter le journal des opérations, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Journal des opérations".
 
 
 .. image:: images/menu_jdo.png
@@ -1047,8 +1056,9 @@ Ces catégories d'opérations sont :
 - Préservation (pas encore développé)
 - Sécurisation
 - Vérification (pas encore développé)
+- Sauvegarde des écritures
 
-Par défaut, l'ensemble des opérations s'affiche, de la date d'opération la plus récente à la plus ancienne.
+Par défaut, l'ensemble des opérations effectuées s'affiche, de la date d'opération la plus récente à la plus ancienne.
 
 
 Recherche d'opérations
@@ -1061,7 +1071,7 @@ Par défaut, les opérations sont affichées sous le formulaire de recherche et 
 
 NB : Il est impossible d'effectuer une recherche croisée par identifiant et catégorie d'opération.
 
-Pour initier la recherche, l'utilisateur saisit un critère de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondants à la recherche.
+Pour initier la recherche, l'utilisateur saisit un critère de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondant à la recherche.
 
 
 .. image:: images/rechch_jdo.png
@@ -1072,11 +1082,11 @@ Consultation des résultats
 
 Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
-- la catégorie de l'opération
-- l'opération (le type de l'opération)
-- la date de début d'opération
-- le statut de l'opération (en cours, erreur, succès, avertissement)
-- Le message de l'opération
+- catégorie de l'opération
+- opération (le type de l'opération)
+- date de début d'opération
+- statut de l'opération (en cours, erreur, succès, avertissement)
+- message de l'opération indiquant le début de l'opération
 
 
 .. image:: images/res_jdo.png
@@ -1099,6 +1109,7 @@ Liste des informations supplémentaires disponibles :
 - Identifiant de l'application
 - Identifiant de la transaction
 - Rapport
+- Fichier d'origine
 
 L'utilisateur a la possibilité d'afficher toutes les colonnes supplémentaires en cliquant sur la coche située tout en haut de la liste. Un clic hors de ces champs ferme la liste.
 
@@ -1115,7 +1126,7 @@ Le détail est composé de deux parties, le descriptif global de l'opération qu
 
 .. image:: images/desc_jdo.png
 
-Puis, les processus constituant le détail de l'opération qui sont présentés sous forme de liste comportant, pour chaque événement, les éléments suivants :
+Puis les processus constituant le détail de l'opération qui sont présentés sous forme de liste comportant, pour chaque événement, les éléments suivants :
 
 - le nom de l'étape
 - la date à laquelle l'étape a été effectuée
@@ -1137,36 +1148,35 @@ Cette partie décrit les fonctionnalités de la page “Gestion des opérations�
 Recherche d'une opération
 -------------------------
 
-Pour consulter et rechercher une opération, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Gestion des opérations".
+Pour consulter et rechercher une opération, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Gestion des opérations".
 
 
 .. image:: images/menu_gestion.png
 
-Par défaut, les opérations d’entrée sont classées par ordre ante chronologique selon leur date d'entrée et seules les opérations en cours de traitement sont affichées sur cet écran.
+Par défaut, les opérations sont classées par ordre ante chronologique selon leur date et seules les opérations en cours de traitement sont affichées sur cet écran.
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
 - Identifiant : identifiant unique de l’opération d’entrée
-- Catégorie : indique le type d’opération ( process )
+- Process: indique le type d’opération
+- Dates de début : date de début de l'opération
 - Statut : statut actuel de l'opération
 - Etats : état actuel de l'opération
-- Dernière étape : dernière étape à laquelle le workflow s'est arrêté
-- Dates de début : date de début de l'opération
 - Dates de fin : date de fin de l'opération
-
+- Dernière étape : dernière étape à laquelle le workflow s'est arrêté
 NB : Il est impossible d'effectuer une recherche croisée par identifiant et tout autre champ.
 
 
 .. image:: images/rechch_gestion.png
 
 
-Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
+Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
 - Identifiant de la demande d'entrée : identifiant unique de l’opération
 - Catégorie de l’opération : indique le type d’opération
 	- Entrée : indique une opération d’entrée normale
 	- Entrée test : indique une opération d’entrée en test à blanc
-- Date de l’entrée : date à laquelle l’entrée a été soumise à la solution logicielle Vitam
+- Date [de l’entrée] : date à laquelle l’entrée a été soumise à la solution logicielle Vitam
 - Mode d’exécution : indique le mode d’exécution choisi, celui-ci peut être
 	- Continu
 	- Pas à pas
@@ -1188,10 +1198,10 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 .. image:: images/res_gestion.png
 
-Utilisation du mode pas à pas
------------------------------
+Utilisation du mode pas à pas pour les entrées 
+----------------------------------------------
 
-Lorsque l’entrée est réalisée en mode d’exécution pas à pas, l’utilisateur doit alors utiliser les boutons d’actions disponibles afin de faire avancer son traitement.
+Lorsque l’entrée est réalisée en mode d’exécution pas à pas, l’utilisateur doit alors utiliser les boutons d’action disponibles afin de faire avancer son traitement.
 Les boutons disponibles sont :
 
 - Suivant : permet de passer à l’étape suivante du workflow - lorsqu’une étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
@@ -1205,7 +1215,7 @@ Opérations de sécurisation
 ===========================
 
 La sécurisation des journaux permet de garantir la valeur probante des archives prises en charge dans la solution logicielle Vitam.
-Les éléments de valeur probante apportés par la solution Vitam sont détaillés dans la documentation liée à la valeur probante.
+Les éléments de valeur probante apportés par la solution Vitam sont détaillés dans la documentation "valeur probante".
 
 Le fichier produit par une opération de sécurisation des journaux est appelé un "journal sécurisé".
 
@@ -1218,7 +1228,7 @@ Les administrateurs ont la possibilité d'accéder aux fonctionnalités suivante
 Recherche de journaux sécurisés
 --------------------------------
 
-Pour accéder à la page de “Opérations de sécurisation”, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Opérations de sécurisation".
+Pour accéder à la page de “Opérations de sécurisation”, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Opérations de sécurisation".
 
 
 .. image:: images/menu_secu.png
@@ -1229,9 +1239,10 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Identifiant : identifiant de l'opération recherchée sur l'IHM
 - Date de début et date de fin : intervalle de dates permettant de rechercher sur les dates du premier et du dernier journal pris en compte dans l'opération de sécurisation
 - Type de journal sécurisé : liste déroulante permettant de sélectionner le type de journal sécurisé à afficher.
-	* Journal des écritures
-	* Journal des opérations
-	* Journaux des cycles de vie
+	* Journal des écritures (correspondant au type : STORAGE) 
+	* Journal des opérations (correspondant au type : OPERATIONS)  
+	* Journaux des cycles de vie des unités archivistiques 
+        * Journaux des cycles de vie des groupes d'objets
 
 |
 
@@ -1245,8 +1256,8 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Télécharger : icône permettant de télécharger le journal sécurisé. En cliquant sur ce symbole, le journal est téléchargé sous forme de zip. Le nom de ce fichier correspond à la valeur du champ FileName du dernier event du journal de l'opération.
 
 |
-
     .. image:: images/res_secu.png
+
 
 Détail d'un journal sécurisé
 ----------------------------
@@ -1264,7 +1275,7 @@ Pour accéder au détail d'un journal sécurisé, l'utilisateur clique sur la li
 - Sécurisation
     - Algorithme de hashage : indique l'algorithme utilisé
     - Date du tampon d'horodatage
-    - CA signataire : l'autorité de certification
+    - CA signature : l'autorité de certification
 - Hash de l'arbre de Merkle
 
 |
@@ -1275,9 +1286,9 @@ Pour accéder au détail d'un journal sécurisé, l'utilisateur clique sur la li
 Vérification d'un journal sécurisé
 ----------------------------------
 
-En cliquant sur le bouton "Lancer la vérification", la solution logicielle Vitam vérifie que les informations de l'arbre de hashage sont à la fois conformes au contenu du journal sécurisé et aux journaux disponibles dans la solution logicielle Vitam.
+En cliquant sur le bouton "Lancer la vérification", la solution logicielle Vitam vérifie que les informations de l'arbre de hashage sont à la fois conformes au contenu du journal sécurisé et aux journaux disponibles dans la solution logicielle Vitam. Le tableau détaille les étapes du processus de vérification. 
 
-Une fois l'opération terminée, son détail est affiché. Il est également disponible dans le Journal des opérations.
+Une fois l'opération terminée, son détail est affiché dans une partie "Rapport de vérification". Il est également disponible dans le Journal des opérations.
 Le téléchargement du fichier lié à la sécurisation peut être realisé via le détail de l'opération.
 
 
@@ -1287,24 +1298,28 @@ Fonctionnalités présentes sur le tenant d'administration uniquement
 
 Les fonctionnalités suivantes ne sont disponibles que sur le tenant d'administration de la solution logicielle Vitam, qui est configurable et dont le numéro dépend du paramétrage de la plateforme. Les opérations d'import de référentiels trans-tenant ne sont journalisées que sur ce tenant d'administration.
 
-Import du référentiel des formats
-=================================
+Référentiel des formats
+=======================
 
-Pour accéder à l'écran d'import du référentiel, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des formats".
+
+Import des référentiels
+-----------------------
+
+Pour accéder à l'écran d'import du référentiel, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des formats".
 
 
 .. image:: images/menu_formats.png
 
-L'import du référentiel ne peut être effectué sans le fichier PRONOM. Pour cela, l'utilisateur peut récupérer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
+Le référentiel à importer est le fichier PRONOM que l'utilisateur peut récupérer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
 
 - http://www.nationalarchives.gov.uk
 - Section "PRONOM" > "DROID signature files"
 
-Pour importer un référentiel des formats, l'administration:
+Pour importer un référentiel des formats, l'administrateur:
 
 - Accède à l'écran d'import du référentiel des formats
 - Clique sur le bouton "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement
-- Sélectionne le fichier .xml PRONOM récupéré précédemment
+- Sélectionne le fichier .xml PRONOM récupéré précédemment ou le fait glisser dans la zone spécifique au téléchargement 
 - Clique sur le bouton "Importer"
 
 |
@@ -1326,19 +1341,30 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas 
 - En cas de succès : la solution logicielle Vitam indique à l'utilisateur que son fichier est valide et lui propose d'importer définitivement le fichier. L'utilisateur peut ainsi accepter l'import définitif et le référentiel des formats est créé à partir des informations contenues dans le fichier XML soumis.
 
 
-Import de contextes applicatifs
-===============================
+Modification du référentiel des formats
+---------------------------------------
+
+Il n'est pas possible de modifier un référentiel des formats via l'IHM, il n'y a pas de bouton "Modifier" affiché. 
+Mais il est possible de re-importer un fichier afin de modifier les informations. 
+
+
+
+Contextes applicatifs
+=====================
+
+Import des contextes applicatifs
+---------------------------------
 
 L'import de contextes applicatifs est une fonctionnalité réservée au tenant d'administration et pour un utilisateur ayant des droits d'administration. La structure et les valeurs des contextes sont décrites dans la documentation du modèle de données.
 
-L'administrateur devra au préalable construire son contexte applicatif, prenant la fomre d'un fichier CSV, plusieurs critères doivent être respectés :
+L'administrateur devra au préalable construire son contexte applicatif, sous la forme d'un fichier CSV, comportant les champs suivants: 
 
 - identifiant
 - nom du contexte
 - identifiant unique donné au contexte
 - version du contexte
 - identifiant du profil de sécurité associé au contexte
-- contrôle sur les tenants
+- contrôle sur les tenants: détail des tenants régis par ce contexte
 - statut « Actif » ou « Inactif »
 - date de création du contexte
 - dernière date de modification du contexte
@@ -1351,7 +1377,7 @@ Un bloc Permissions détaille le périmètre du contexte, tenant par tenant. Il 
 
 La structure et les valeurs des contextes applicatifs sont décrites dans la documentation "Gestion des habilitations".
 
-Pour importer un contexte, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contextes applicatifs".
+Pour importer un contexte, l'utilisateur clique sur  le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contextes applicatifs".
 
 |
 
@@ -1374,7 +1400,13 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
-**Modifier un contexte applicatif**
+
+Modifier un contexte applicatif
+-------------------------------
+
+
+**Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.**
+
 
 Il est possible de modifier un contexte applicatif depuis l'écran du détail en cliquant sur le bouton "Modifier". L'interface permet la modification de plusieurs champs du contexte, ainsi que de changer ses permissions (actif/inactif).
 
@@ -1384,12 +1416,12 @@ L'administrateur a la possibilité d'activer / désactiver un contexte en cliqua
 
 *Activation / désactivation du contrôle des permissions*
 
-L'administrateur a la possibilité d'activer / désactiver le contrôle du contexte en cliquant sur le bouton 'Actif" ou " Inactif".
+L'administrateur a la possibilité d'activer / désactiver le contrôle du contexte en cliquant sur le bouton "Actif" ou "Inactif".
 
 *Tenants*
 
 Il est possible d'ajouter ou supprimer des tenants concernés par le contexte en sélectionnant un identifiant de tenant en haut à droite et en cliquant sur "Ajouter". Il est impossible d'ajouter un tenant qui se trouve déjà dans la liste des tenants de ce contexte.
-Pour supprimer un tenant, il suffit de cliquer sur le bouton supprimer correspondant au tenant à retirer, et de valider cette suppression en utilisant le bouton "enregistrer".
+Pour supprimer un tenant, il suffit de cliquer sur le bouton supprimer correspondant au tenant à retirer, et de valider cette suppression en utilisant le bouton "Enregistrer".
 Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des contrats d'accès et des contrats d'entrée par un système de tag.
 
 |
@@ -1398,4 +1430,141 @@ Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des cont
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contexte.
 
-Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.
+
+Ontologie
+=========
+
+
+L’ontologie référence l’ensemble des vocabulaires ou métadonnées acceptés et indexés dans la solution logicielle Vitam. Elle se compose :
+- des vocabulaires conformes au SEDA, inclus par défaut,
+- des vocabulaires propres à la solution logicielle Vitam, inclus par défaut,
+- de vocabulaires non gérés par les deux précédents et ajoutés pour répondre à un besoin particulier.
+
+Pour chacun de ces vocabulaires, elle définit un nom et type d’indexation particulier (par exemple, texte, décimal, entier).
+Les ontologies peuvent être utiliséés facultativement par des profils d'archivage, des profils d’unité archivistique et des unités archivistiques. Elles permettent :
+- d’identifier et de contrôler les vocabulaires entrant dans la solution logicielle Vitam,
+- d’identifier les vocabulaires qui font l’objet d’une indexation par le moteur de recherche.
+
+
+Importer une ontologie
+----------------------
+
+L'import d'un fichier JSON déclarant des métadonnées est une fonctionnalité réservée à un utilisateur ayant des droits d'administration.
+
+L'utilisateur construit au prélable le fichier au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
+
+    - Identifiant ( obligatoire - "Identifier"): l'identifiant pour le vocabulaire externe doit : être unique, ne pas commencer par "_" ou "#" et ne pas contenir d'espace
+    - Intitulé API ( obligatoire - "ApiField" ) 
+    - Intitulé XML ( obligatoire - "SedaField" ) 
+    - Origine interne ou externe ( obligatoire -"Origin": "INTERNAL" / "EXTERNAL" )
+    - Type: Type du vocabulaire ( obligatoire ) : valeur à choisir parmi la liste:  Text, Keyword, Date, Long, Double, Boolean, Geo-point, Enumération de valeur
+-Traduction du vocabulaire (obligatoire - "ShortName")
+-Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
+    - Description ( Facultative ) 
+    - Date de création ( Facultative ) 
+
+Note: Compatibilité des modifications possibles concernant les types de vocabulaires : 
+	- Text -> Keyword, Text
+	- Keyword -> Keyword, Text
+	- Date -> Keyword, Text
+	- Long -> Keyword, Text, Double
+	- Double -> Keyword, Text
+	- Boolean -> Keyword, Text
+	- Geo-point -> Keyword, Text
+	- Enumération de valeur -> Keyword, Text
+
+
+
+Pour importer un fichier JSON, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des ontologies".
+
+
+.. image:: images/menu_import_ontologie.png
+
+
+L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
+
+
+.. image:: images/import_ontologie.png
+
+
+Une fenêtre modale indique alors soit :
+
+- Les ontologies ont bien été importées
+- Échec de l’import du fichier, pouvant être causé par :
+	- le fait que les identifiants déclarés existent déjà
+        - le fait que l'intitulé XML déclaré existe déjà
+        - le fait que l'identifiant commence par un "_" ou un"#" ou contient des espaces
+        - le fait que le type déclaré ne soit pas valide ( parmi la liste des valeurs permises ) 
+- le fait que la collection déclarée ne soit pas valide ( parmi la liste des valeurs permises ) 
+- le fait que l'origine déclarée soit interne
+	- le fait que le fichier soit invalide (mauvais format ou champ obligatoire absent)
+
+Cette opération est journalisée et disponible dans le Journal des opérations.
+
+
+
+Recherche d' une ontologie
+--------------------------
+
+Pour consulter et rechercher les documents types, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Ontologies".
+
+Par défaut, les ontologies sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+- Intitulé : permet d’effectuer une recherche exacte sur les noms des vocabulaires de l'ontologie disponibles dans la solution logicielle Vitam.
+- Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de l'ontologie.
+
+NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. 
+
+
+.. image:: images/recherche_ontologie.png
+
+
+Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des notices est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
+
+- Intitulé
+- Traduction
+- Identifiant
+- Description
+- Collections
+- Type d'indexation
+
+
+Détail d'une ontologie
+----------------------
+
+Pour accéder au détail d'une ontologie, l'utilisateur clique sur la ligne souhaitée. La page "Détail de l'ontologie" contient les informations suivantes :
+
+- Identifiant
+- Intitulé
+- Description
+- Traduction
+- Tenant
+- Type
+- Date de création
+- Dernière modification
+- Contexte de création
+- Collections
+
+
+Modifier une ontologie
+----------------------
+
+
+**Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.**
+
+Il est possible de modifier les ontologies en re-important un fichier, et non via l' IHM. 
+
+
+Note: en re-important le fichier JSON , il est possible de modifier les types de vocabulaire, mais seulement certaines combinaisons sont autorisées: 
+	- Text -> Keyword, Text
+	- Keyword -> Keyword, Text
+	- Date -> Keyword, Text
+	- Long -> Keyword, Text, Double
+	- Double -> Keyword, Text
+	- Boolean -> Keyword, Text
+	- Geo-point -> Keyword, Text
+	- Enumération de valeur -> Keyword, Text
+
+
