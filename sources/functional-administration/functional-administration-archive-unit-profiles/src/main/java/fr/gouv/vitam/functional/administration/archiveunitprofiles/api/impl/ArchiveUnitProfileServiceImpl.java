@@ -670,8 +670,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
         fieldsCorrelation.put(OntologyType.TEXT,
             Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
-        fieldsCorrelation.put(OntologyType.DOUBLE, Arrays.asList(new String[] {"number", "integer"}));
-        fieldsCorrelation.put(OntologyType.LONG, Arrays.asList(new String[] {"number"}));
+        fieldsCorrelation.put(OntologyType.DOUBLE, Arrays.asList(new String[] {"number"}));
+        fieldsCorrelation.put(OntologyType.LONG, Arrays.asList(new String[] {"number", "integer"}));
 
         if (ontologyList.containsKey(field)) {
             OntologyModel checkedField = ontologyList.get(field);
