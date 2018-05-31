@@ -28,7 +28,7 @@
     "@ngx-translate/http-loader": "^2.0.0",
     "angular2-cookie": "^1.2.6",
     "angular2-file-drop": "^0.2.0",
-    "chart.js": "^2.7.0",
+    "chart.js": "^2.7.2",
     "class-transformer": "^0.1.7",
     "core-js": "^2.4.1",
     "cuint": "^0.2.2",
@@ -41,7 +41,7 @@
     "zone.js": "^0.8.4"
   },
   "devDependencies": {
-    "@angular/cli": "^1.6.0",
+    "@angular/cli": "^1.7.0",
     "@angular/compiler-cli": "^5.1.0",
     "@angular/language-service": "^5.1.0",
     "@types/jasmine": "2.5.45",
