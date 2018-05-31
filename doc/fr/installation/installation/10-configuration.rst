@@ -88,6 +88,8 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
      :language: ini
      :linenos:
 
+.. note:: Dans le cadre d'une installation avec au moins une offre "swift", il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et le mot de passe de connexion "swift" associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre swift "offer-swift-1".
+
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-keystores.example
