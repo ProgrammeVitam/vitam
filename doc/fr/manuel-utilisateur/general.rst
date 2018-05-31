@@ -245,7 +245,7 @@ Note: les erreurs communes pour tous les référentiels sont liées au format du
 Gestion des erreurs techniques
 ==============================
 
-En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers d'un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
+En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers d'un message généraliste et lui donne des informations à transmettre à son administrateur technique.
 
 |
 
@@ -254,9 +254,9 @@ En cas d'erreur technique non gérée par le système, une fenêtre pop-up avert
 Tenants
 =======
 
-Le tenant correspond à un espace réservé à une entité utilisatrice. Par exemple, un lot d'archives versé dans le tenant numéro deux ne sera pas consultable depuis les autres tenants.
+Le tenant correspond à un espace réservé à une entité utilisatrice. Par exemple, un lot d'archives versé sur le tenant numéro deux ne sera pas consultable depuis les autres tenants.
 
-Il est obligatoire de sélectioner un tenant. Certaines références et certaines opérations d'administration peuvent être trans-tenants ( les Formats et les contextes par exemple ) 
+Il est obligatoire de sélectioner un tenant lors de la connection. Certaines références et certaines opérations d'administration peuvent être trans-tenants ( les Formats et les contextes par exemple ) 
 
 Le tenant d'administration permet de réaliser les opérations qui concernent plusieurs tenants, notamment l'import du réferentiel des formats, des contextes, leur purge, leur journalisation,...
 
@@ -265,48 +265,33 @@ Le tenant d'administration permet de réaliser les opérations qui concernent pl
 Créer une Sélection : Panier 
 ============================
 
-Afin d'appliquer une action sur plusieurs unités archivistiques provenant d'un ou plusieurs services producteurs différents, il est possible de créer une sélection, accessible sous la forme d'un panier. 
+Il est possible de créer une sélection, accessible sous la forme d'un panier afin d'appliquer une action sur plusieurs unités archivistiques provenant d'un ou plusieurs services producteurs.
 
-
-Créer une sélection: 
---------------------
-
-- La sélection se créée via le détail des unités archistiques: une section " Ajouter au panier", et un radio bouton permet de sélectionner la partie à insérer dans la sélection: 
-
-	* L'unité archivistique  
-	* L'unité archivistique et sa descendance 
-	* L'ensemble de l'entrée 
-
-- un Click sur le bouton " Ajouter au panier " permet d'ajouter le choix à la sélection existante. Un pop-up de confirmation s'affiche lors de l'ajout à la sélection. 
-
-.. image:: images/panier_selection.png
-
-
-Note: il est possible de créer une sélection d'unités archivistiques provenant de services producteurs différents. 
-
-
-Accès au Panier: 
+Accès au panier: 
 ----------------
 
-- L'accès au Panier se fait via le Menu principal , un icône et un texte " Mon panier ", sous le bouton "Déconnexion" . 
+L'accès au Panier se fait via le Menu principal , une icône "Mon panier" est affichée, sous le bouton "Déconnexion" . 
 
 
 .. image:: images/panier_acces.png
 
 
-Note: lorsque l'utilisateur utilise le même navigateur, il est possible de se retrouver la sélection lors d'une déconnection - reconnection. 
+Note: lorsque l'utilisateur utilise le même navigateur, il est possible de se retrouver la sélection lors d'une déconnexion - reconnexion, après avoir sélectionné le contrat d'accès qui permet d'avoir accès aux unités archivistiques 
 
 
-Note: même si le panier est vide, l'utilisateur a quand même accès à la page liée à la sélection.
+Note: même si le panier est vide, l'utilisateur a quand même accès à la page liée "panier"
+
+
 
 Visualisation du Panier: 
 ------------------------
 
-- L'affichage du panier permet de visualiser sous la forme d'un tableau, l'ensemble des unités archivistiques sélectionnées ainsi que leur descendance si celle ci a été sélectionnée aussi. Le tableau offre une pagination permettant de passer d'une partie de la liste à l'autre. 
+- L'affichage du panier permet de visualiser sous la forme d'un tableau, l'ensemble des unités archivistiques sélectionnées ainsi que leur descendance si celle ci a été sélectionnée aussi. Le tableau offre une pagination permettant de passer d'une page à l'autre. 
 
-- Les nombres d'unités archivistiques présentes dans le panier, ainsi que celles qui sont sélectionnées sont affichés. 
+- Le nombre d'unités archivistiques présentes dans le panier est affiché. 
 
 - Les informations affichées sont les suivantes : 
+        - La première colonne indique si l'unité archivistique a été sélectionnée avec sa descendance, et un clic sur l' icône permet de plier et de déplier la liste, afin d'afficher les unités archivistiques. Les unités archivistiques déscendantes sont affichées en italiques. 
 	- Intitulé
 	- Service Producteur
 	- Type
@@ -314,58 +299,81 @@ Visualisation du Panier:
 	- Date la plus récente
 	- Objet(s) disponible(s)
 	- Cycle de vie
+        - La dernière colonne permet de sélectionner / désélectionner l'unité archivistique ainsi que sa descendance.
 
 
 .. image:: images/panier_liste.png
 
-- La première colonne indique si l'unité archivistique a été sélectionnée avec sa descendance, et un click sur les icônes permettent de plier et de déplier la liste, afin d'afficher toute la sélection. Les unités archivistiques déscendantes sont affichées en italiques. 
-
-- La dernière colonne permet de sélectionner / désélectionner l'unité archivistique ainsi que sa descendance.
 
 
 .. image:: images/panier_descendance.png
 
 
-Note: un click sur chaque ligne, excepté sur la 1ere colonne, et celle destinée à la sélection , permet d'afficher le détail de l'unité archivistique, de la même façon que via la page de recherche. 
+Note: un clic sur chaque ligne permet de retourner à la page de détail de l'unité archivistique, de la même façon que via la page de recherche. 
 
 
-Appliquer une action sur la sélection
--------------------------------------
-
-- Actuellement, plusieurs actions sont possibles : Exporter le panier sous la forme d'un DIP, supprimer le panier, ou bien effectuer un audit de cohérence.
-
-
-.. image:: images/panier_totalite.png
-
-
-- Ces actions peuvent soit être effectuées sur la totalité des unités archivistiques du panier, soit seulement sur celles que l'on va sélectionner en utilisant les côches de sélection dans la dernière colonne. 
-
-
-.. image:: images/panier_selection_coche.png
-
-
-Note: si aucune unité archivistique n'est sélectionnée, les boutons correspondants aux actions relatives seulement à la sélection seront grisés, et les actions seront seulement disponibles pour la totalité du panier. 
+Note: les unités archivistiques de la descendance ne sont pas sélectionnables individuellement. 
 
 
 
-Supprimer une unité archivistique de la sélection: 
+Créer une sélection et retirer des Unités archivistiques de la sélection: 
+-------------------------------------------------------------------------
+
+La sélection s'effectue via le détail des unités archivistiques: une section "Ajouter au panier", et un bouton radio permet de sélectionner la partie à insérer dans la sélection: 
+
+	* L'unité archivistique  
+	* L'unité archivistique et sa descendance 
+	* L'ensemble de l'entrée 
+
+Un bouton " Ajouter au panier " permet d'ajouter le ou les éléments voulus au panier. Un pop-up de confirmation s'affiche lors de l'ajout à la sélection. 
+
+.. image:: images/panier_selection.png
+
+
+Note: il est possible de créer une sélection d'unités archivistiques provenant de services producteurs différents. 
+
+
+
+Retirer une unité archivistique de la sélection: 
 --------------------------------------------------
 
 
-- La suppression de l'unité archivistique de la sélection s'effectue via les 2 boutons " Supprimer la sélection" ou bien " Supprimer le panier" 
+Le retrait d'une unité archivistique de la sélection s'effectue via l'action "vider le panier"
 
-- Un pop-up de confirmation s'affiche pour valider la suppression du panier 
+Un pop-up de confirmation s'affiche pour valider la suppression du panier 
 
-- Les unités archivistiques sont cependant toujours disponibles sur le tenant, et accessible via la page de recherche.
+Les unités archivistiques sont cependant toujours disponibles sur le tenant, et accessibles via la page de recherche.
 
 
 
 Ajouter une unité archivistique à la sélection: 
 -----------------------------------------------
 
-- Le bouton " Ajouter des unités archivistiques " permet d'accèder directement à la page de recherche, afin d'ajouter des unités archivistiques à la sélection. 
+Le bouton "Ajouter des unités archivistiques" permet d'accèder directement à la page de recherche, afin d'ajouter des unités archivistiques à la sélection. 
 
 .. image:: images/panier_ajouter.png
+
+
+
+Appliquer une action sur la sélection
+-------------------------------------
+
+Actuellement, plusieurs actions sont possibles : exporter le panier sous la forme d'un DIP, vider le panier, ou bien effectuer un audit de cohérence sur les unités archivistiques.
+
+
+.. image:: images/panier_totalite.png
+
+
+Ces actions peuvent soit être effectuées sur la totalité des unités archivistiques du panier, soit seulement sur celles que l'on sélectionne en utilisant les coches de sélection dans la dernière colonne. 
+
+
+.. image:: images/panier_selection_coche.png
+
+
+Note: si aucune unité archivistique n'est sélectionnée, les boutons correspondants aux actions relatives à la sélection uniquement seront grisés, et les actions seront uniquement disponibles pour la totalité du panier. 
+
+
+
 
 
 
