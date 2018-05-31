@@ -34,7 +34,7 @@ Vérification de la non existence d'objets CHECK_NO_OBJECT (CheckDataObjectPacka
 
 + **Règle** : Vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert de l'arbre de positionnement.
 
-+ **Statuts** :
+  + **Statuts** :
 
     - OK : aucun objet numérique n'est présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.OK=Succès de la vérification de l'absence d'objet)
 

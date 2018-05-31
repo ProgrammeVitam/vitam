@@ -4,21 +4,21 @@ Workflow d'import d'un référentiel des vocabulaires de l'ontologie
 Introduction
 ============
 
-Cette section décrit le processus permettant d'importer des vocabulaires de l'ontologie. Cette opération n'est réalisable que sur le tenant d'administration.  
+Cette section décrit le processus permettant d'importer des vocabulaires de l'ontologie. Cette opération n'est réalisable que sur le tenant d'administration.
 
 Processus d'import et mise à jour des vocabulaires de l'ontologie (vision métier)
 =================================================================================
 
-Le processus d'import d'une ontologie permet d'ajouter des vocabulaires qui seront utilisés dans les documents types (Profil d'unité archivistique). 
+Le processus d'import d'une ontologie permet d'ajouter des vocabulaires qui seront utilisés dans les documents types (Profil d'unité archivistique).
 
 Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
-Import des métadonnées d'une ontologie IMPORT_ONTOLOGY (OntologyServiceImpl.java) 
+Import des métadonnées d'une ontologie IMPORT_ONTOLOGY (OntologyServiceImpl.java)
 ---------------------------------------------------------------------------------
 
 * Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
 
- 
+
   + **Règle** : l'ontologie répond aux exigences suivantes :
  
     + Le fichier est au format Json.
@@ -26,15 +26,15 @@ Import des métadonnées d'une ontologie IMPORT_ONTOLOGY (OntologyServiceImpl.ja
     + Les données suivantes sont obligatoires :
 
 	      * Le champ "Identifier" est peuplé d'une chaîne de caractères
-	      * Le champ "Type" est peuplé par une valeur comprise dans la liste : 
-				- Text 
+	      * Le champ "Type" est peuplé par une valeur comprise dans la liste :
+				- Text
 				- Keyword
-				- Date 
+				- Date
 				- Long
-				- Double 
-				- Boolean 
+				- Double
+				- Boolean
 				- Geo-point
-				- Enumération de valeur 
+				- Enumération de valeur
 	      * Le champ "Origin" est peuplé par la valeur "EXTERNAL" ou "INTERNAL". (L'INTERNAL correspond à l'ontologie interne de VITAM embarquée dans la solution)
 	   
       + Les données suivantes sont facultatives:

@@ -1,5 +1,5 @@
-Workflow d'import d'un référentiel des documents types (Profil d'unité archivistique)
-#####################################################################################
+Workflow d'import d'un référentiel des documents types
+######################################################
 
 Introduction
 ============
@@ -13,12 +13,12 @@ Le processus d'import d'un document type (profil d'unité archivistique) permet 
 
 Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
-Import des métadonnées d'un document type (profil d'unité archivistique) IMPORT_ARCHIVEUNITPROFILE (ArchiveUnitProfileServiceImpl.java) 
+Import des métadonnées d'un document type (profil d'unité archivistique) IMPORT_ARCHIVEUNITPROFILE (ArchiveUnitProfileServiceImpl.java)
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 * Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
 
- 
+
   + **Règle** : le document type (Profil d'unité archivistique) répond aux exigences suivantes :
 
     + Les données suivantes sont obligatoirement remplies :
@@ -51,9 +51,9 @@ Import des métadonnées d'un document type (profil d'unité archivistique) IMPO
 
     - IDENTIFIER DUPLICATION : L'identifiant est déjà utilisé ( IMPORT_ARCHIVEUNITPROFILE.IDENTIFIER_DUPLICATION.KO=Echec de l'import : l'identifiant est déjà utilisé ) 
 
-    - EMPTY REQUIRED FIELD : Au moins un des champs obligatoires n'est pas renseigné ( IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO=Echec de l'import : au moins un des champs obligatoires n'est pas renseigné ) 
+    - EMPTY REQUIRED FIELD : Au moins un des champs obligatoires n'est pas renseigné ( IMPORT_ARCHIVEUNITPROFILE.EMPTY_REQUIRED_FIELD.KO=Echec de l'import : au moins un des champs obligatoires n'est pas renseigné )
 
-    - INVALID JSON SCHEMA : Schéma JSON invalide ( IMPORT_ARCHIVEUNITPROFILE.INVALID_JSON_SCHEMA.KO=Echec de l'import : schéma JSON non valide) 
+    - INVALID JSON SCHEMA : Schéma JSON invalide ( IMPORT_ARCHIVEUNITPROFILE.INVALID_JSON_SCHEMA.KO=Echec de l'import : schéma JSON non valide)
 
 
 Mise à jour d'un document type (Profil d'unité archivistique) UPDATE_ARCHIVEUNITPROFILE (ArchiveUnitProfileManager.java)
