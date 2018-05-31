@@ -79,7 +79,7 @@ Affiner la recherche
 Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents filtres (FACET). Pour accéder à ces filtres, l’utilisateur doit déplier le bloc « Affiner la recherche » en cliquant sur le pictogramme « plus » situé à droite de l’écran.
 
 L’utilisateur peut filtrer les résultats de recherche en sélectionnant un des filtres proposés: 
-- Niveau de description
+**Niveau de description**
 	- Item : Article File  = Document
 	- SubGrp =  Groupe d'articles
 	- RecordGrp = Sous-groupe d'articles
@@ -89,12 +89,12 @@ L’utilisateur peut filtrer les résultats de recherche en sélectionnant un de
 	- Class = Classe
 	- Subfonds = Sous-fonds
 	- Fonds = Fonds
-- Service producteur
-- Date de début
-- Date de fin
-- Titre par langue
-- Langue
-- Unités archivistiques avec ou sans objets 
+**Service producteur**
+**Date de début**
+**Date de fin**
+**Titre par langue**
+**Langue**
+**Unités archivistiques avec ou sans objets**
 
 Pour lancer cette opération, la ou les facet(s) concernée(s) doivent être cochée(s) et l’utilisateur doit cliquer sur « rechercher » dans le bloc « affiner la recherche ». Pour lancer une nouvelle facet, l’utilisateur peut « rafraichir » ses précédents résultats en cliquant sur « effacer », sélectionner une autre facet et lancer l’opération en cliquant sur « rechercher ». Au clic, sur une des occurrences de la facet, l’utilisateur visualise, dans le bloc de « résultats », la liste des unités archivistiques correspondant à sa demande. 
 
@@ -291,18 +291,15 @@ Chaque objet est listé dans une ligne du tableau. Les colonnes affichent les in
 
 Un clic sur le pictogramme situé à droite de l'objet permet de consulter l'ensemble des métadonnées.
 
-|
-
 .. image:: images/au_got.png
-|
 
 .. image:: images/au_got_detail.png
 
-En ce qui concerne les références à des objets physiques, les colonnes n'affichent que l'information suivante :
 
-- Usage
+Note: 
+En ce qui concerne les références à des objets physiques, seul l'usage sera affiché dans les colonnes du tableau. 
 
-Les unités disponibles sont celles répertoriées par l'UNECE.
+Les codes des unités disponibles sont celles répertoriées par l'UNECE.
 
 
 **Rattachement des Unité archivistiques à un Groupe d'Objet Technique (GOT)**
