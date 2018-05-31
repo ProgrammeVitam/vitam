@@ -65,6 +65,14 @@ public class DbRequestResult implements VitamAutoCloseable {
         diffs = new HashMap<>();
     }
 
+    public DbRequestResult(DbRequestResult requestResult) {
+        count = requestResult.count;
+        total = requestResult.total;
+        diffs = new HashMap<>(requestResult.diffs);
+        limit = requestResult.limit;
+        offset = requestResult.offset;
+    }
+
     /**
      * @return the count
      */
