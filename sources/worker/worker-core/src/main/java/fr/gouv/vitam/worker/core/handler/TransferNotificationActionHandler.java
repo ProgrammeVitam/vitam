@@ -340,50 +340,38 @@ public class TransferNotificationActionHandler extends ActionHandler {
         if (infoATR != null) {
             archiveTransferReply.setArchivalAgreement(
                 buildIdentifierType(
-
                     (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
                         ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue()
                         : ""
                 )
             );
+        }
+        
+        CodeListVersionsType codeListVersions = objectFactory.createCodeListVersionsType();
+        archiveTransferReply.setCodeListVersions(codeListVersions);
 
-            if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
-                CodeListVersionsType codeListVersions = objectFactory.createCodeListVersionsType();
-                archiveTransferReply.setCodeListVersions(codeListVersions);
+        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null && 
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null) {
+            codeListVersions.setReplyCodeListVersion(buildCodeType(
+                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION).textValue()));
+        } else {
+            codeListVersions.setReplyCodeListVersion(buildCodeType(""));
+        }
 
-                codeListVersions.setReplyCodeListVersion(
-                    buildCodeType(
-                        (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null)
-                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
-                            .textValue()
-                            : ""
-                    )
-                );
+        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null && 
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null) {
+            codeListVersions.setMessageDigestAlgorithmCodeListVersion(buildCodeType(
+                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()));
+        } else {
+            codeListVersions.setMessageDigestAlgorithmCodeListVersion(buildCodeType(""));
+        }
 
-                codeListVersions.setMessageDigestAlgorithmCodeListVersion(
-                    buildCodeType(
-                        (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null)
-                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()
-                            : ""
-                    )
-                );
-
-                codeListVersions.setFileFormatCodeListVersion(
-                    buildCodeType(
-                        (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) != null)
-                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                            .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
-                            .textValue()
-                            : ""
-                    )
-                );
-            }
-
+        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null && 
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) != null) {
+            codeListVersions.setFileFormatCodeListVersion(buildCodeType(
+                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION).textValue()));
+        } else {
+            codeListVersions.setFileFormatCodeListVersion(buildCodeType(""));
         }
 
         archiveTransferReply.setReplyCode(statusPrefix + workflowStatus.name());
@@ -655,13 +643,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         ArchiveUnitType archiveUnit = objectFactory.createArchiveUnitType();
         DescriptiveMetadataContentType descMetadataContent = objectFactory.createDescriptiveMetadataContentType();
-        ArchiveUnitType.Management archiveUnitMgmt = objectFactory.createArchiveUnitTypeManagement();
-
-        if(logbookLifeCycleUnitEvents != null && !logbookLifeCycleUnitEvents.isEmpty()){
-            archiveUnitMgmt.setLogBook(new ManagementMetadataType.LogBook());
-            archiveUnit.setManagement(archiveUnitMgmt);
-        }
-
+        
         if (!systemGuidArchiveUnitId.isEmpty() &&
             logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID) != null &&
             systemGuidArchiveUnitId
@@ -675,15 +657,26 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()
             );
         }
+        
+        archiveUnit.setContent(descMetadataContent);
 
-        for (final Document document : logbookLifeCycleUnitEvents) {
-            archiveUnitMgmt.getLogBook().getEvent().add(
-                (ManagementMetadataType.LogBook.Event)
-                    buildEventByContainerType(document, SedaConstants.TAG_ARCHIVE_UNIT, statusToBeChecked, null)
-            );
+        ArchiveUnitType.Management archiveUnitMgmt = objectFactory.createArchiveUnitTypeManagement();
+
+        if(logbookLifeCycleUnitEvents != null && !logbookLifeCycleUnitEvents.isEmpty()){
+            ManagementMetadataType.LogBook logbook = new ManagementMetadataType.LogBook();
+            for (final Document document : logbookLifeCycleUnitEvents) {
+                EventType eventObject = buildEventByContainerType(document, SedaConstants.TAG_ARCHIVE_UNIT, statusToBeChecked, null);
+                if (eventObject != null) {
+                    logbook.getEvent().add((ManagementMetadataType.LogBook.Event) eventObject);
+                }
+            }
+
+            if (!logbook.getEvent().isEmpty()) {
+                archiveUnitMgmt.setLogBook(logbook);
+            }
         }
 
-        archiveUnit.setContent(descMetadataContent);
+        archiveUnit.setManagement(archiveUnitMgmt);
 
         return archiveUnit;
 
