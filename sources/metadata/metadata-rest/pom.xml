@@ -169,6 +169,22 @@
 							</resources>
 						</configuration>
 					</execution>
+					<execution>
+						<id>copy-script-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/script</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/script</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 
 				</executions>
 			</plugin>
@@ -192,6 +208,72 @@
 				<artifactId>rpm-maven-plugin</artifactId>
 				<configuration>
 					<disabled>false</disabled>
+					<licence>CeCILL 2.1</licence>
+					<distribution>Vitam Project</distribution>
+					<group>Application/Archiving</group>
+					<packager>Vitam Package Team</packager>
+					<defineStatements/>
+					<targetOS>linux</targetOS>
+					<requires>
+						<require>systemd</require>
+						<require>java-1.8.0</require>
+						<require>vitam-user-${unix.user}</require>
+					</requires>
+					<defaultDirMode>750</defaultDirMode>
+					<defaultFileMode>640</defaultFileMode>
+					<defaultUsername>${unix.user}</defaultUsername>
+					<defaultGroupname>${unix.group}</defaultGroupname>
+					<mappings>
+						<mapping>
+							<directory>/vitam/lib/${unix.name}</directory>
+							<artifact/>
+							<dependency/>
+						</mapping>
+						<mapping>
+							<directory>/vitam/conf/${unix.name}</directory>
+							<sources>
+								<source>
+									<location>${project.build.directory}/conf</location>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<directory>/vitam/script/${unix.name}</directory>
+							<!-- OMA : change to 750 and change directive if not correct
+														<defaultFileMode>640</defaultFileMode>
+							-->
+							<filemode>750</filemode>
+							<username>${unix.user}</username>
+							<groupname>${unix.user}</groupname>
+							<sources>
+								<source>
+									<location>${project.build.directory}/script</location>
+								</source>
+							</sources>
+						</mapping>
+						<mapping>
+							<directory>/usr/lib/systemd/system/</directory>
+							<filemode>644</filemode>
+							<username>root</username>
+							<groupname>root</groupname>
+							<directoryIncluded>false</directoryIncluded>
+							<sources>
+								<source>
+									<location>${project.build.directory}/systemd</location>
+								</source>
+							</sources>
+						</mapping>
+					</mappings>
+					<!-- Systemd hook scriptlets -->
+					<postinstallScriptlet>
+						<script>%systemd_post vitam-${unix.name}.service</script>
+					</postinstallScriptlet>
+					<preremoveScriptlet>
+						<script>%systemd_preun vitam-${unix.name}.service vitam-metadata-reconstruction.timer vitam-metadata-reconstruction.service vitam-metadata-store-graph.timer vitam-metadata-store-graph.service</script>
+					</preremoveScriptlet>
+					<postremoveScriptlet>
+						<script>%systemd_postun vitam-${unix.name}.service vitam-metadata-reconstruction.timer vitam-metadata-reconstruction.service vitam-metadata-store-graph.timer vitam-metadata-store-graph.service</script>
+					</postremoveScriptlet>
 				</configuration>
 			</plugin>
 

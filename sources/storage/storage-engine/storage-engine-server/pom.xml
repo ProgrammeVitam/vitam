@@ -284,10 +284,10 @@
 						<script>%systemd_post vitam-${unix.name}.service</script>
 					</postinstallScriptlet>
 					<preremoveScriptlet>
-						<script>%systemd_preun vitam-${unix.name}.service</script>
+						<script>%systemd_preun vitam-${unix.name}.service vitam-storage-log-backup.timer vitam-storage-log-backup.service vitam-storage-log-traceability.timer vitam-storage-log-traceability.service</script>
 					</preremoveScriptlet>
 					<postremoveScriptlet>
-						<script>%systemd_postun vitam-${unix.name}.service</script>
+						<script>%systemd_postun vitam-${unix.name}.service vitam-storage-log-backup.timer vitam-storage-log-backup.service vitam-storage-log-traceability.timer vitam-storage-log-traceability.service</script>
 					</postremoveScriptlet>
 				</configuration>
 			</plugin>
