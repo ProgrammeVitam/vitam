@@ -81,14 +81,14 @@ public class DbRequestHelper {
      * @param parser
      * @param list       list of Ids
      * @param scores     can be null, containing scores
-     * @return MongoCursor<VitamDocument<?>>
+     * @return MongoCursor<VitamDocument < ?>>
      * @throws InvalidParseOperationException  when query is not correct
      * @throws InvalidCreateOperationException
      */
     @SuppressWarnings("unchecked")
     public static MongoCursor<VitamDocument<?>> selectMongoDbExecuteThroughFakeMongoCursor(
         VitamCollection collection, RequestParserSingle parser, List<String> list, List<Float> scores)
-        throws InvalidParseOperationException, InvalidCreateOperationException, VitamDBException {
+        throws InvalidParseOperationException, VitamDBException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
         final Bson projection = selectToMongoDb.getFinalProjection();
         final boolean isIdIncluded = selectToMongoDb.idWasInProjection();
