@@ -73,7 +73,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
@@ -150,6 +149,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
@@ -285,7 +285,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private String linkParentId = null;
 
-    private  Map<String, Boolean>  isThereManifestRelatedReferenceRemained;
+    private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
 
     private static JAXBContext jaxbContext;
 
@@ -316,8 +316,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance());
     }
 
-    @VisibleForTesting
-    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -383,7 +383,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 guidToLifeCycleParameters, existingUnitGuids, params.getLogbookTypeProcess(),
                 params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
                 dataObjectIdToGuid, unitIdToSetOfRuleId,
-                workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup, isThereManifestRelatedReferenceRemained);
+                workflowUnitType, originatingAgencies, existingGOTs, existingUnitIdWithExistingObjectGroup,
+                isThereManifestRelatedReferenceRemained);
             unmarshaller.setListener(listener);
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
@@ -511,6 +512,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     SUBTASK_ATTACHEMENT_LINK);
             }
             globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingObjectLinkingException e) {
+            if (e.getUnitGuid() != null && e.getObjectGroupId() != null) {
+                updateDetailItemStatus(globalCompositeItemStatus,
+                    getMessageItemStatusGOTLinkingException(e.getUnitGuid(), e.getObjectGroupId()),
+                    SUBTASK_ATTACHEMENT_LINK);
+            }
+            globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException | WorkerspaceQueueException e) {
             e.printStackTrace();
             LOGGER.debug("ProcessingException", e);
@@ -566,6 +574,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return JsonHandler.unprettyPrint(error);
     }
 
+    private String getMessageItemStatusGOTLinkingException(final String unitGuid, final String got) {
+        ObjectNode error = JsonHandler.createObjectNode();
+        error.put(SedaConstants.TAG_ARCHIVE_UNIT, unitGuid);
+        error.put(SedaConstants.TAG_DATA_OBJECT_REFERENCEID, got);
+        return JsonHandler.unprettyPrint(error);
+    }
+
     private String getMessageItemStatusAULinkingException(final String unitGuid, final String unitIngestContractGuid) {
         ObjectNode error = JsonHandler.createObjectNode();
         error.put(SedaConstants.TAG_ARCHIVE_UNIT, unitGuid);
@@ -586,7 +601,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params parameters of workspace server
+     * @param params                    parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @param workflowUnitType
      * @throws ProcessingException throw when can't read or extract element from SEDA
@@ -1050,7 +1065,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     /**
-     *
      * @param logbookLifeCycleClient
      * @param containerId
      * @param evDetData
@@ -1215,7 +1229,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
 
-                if(isThereManifestRelatedReferenceRemained.get(unitId) != null && isThereManifestRelatedReferenceRemained.get(unitId)) {
+                if (isThereManifestRelatedReferenceRemained.get(unitId) != null &&
+                    isThereManifestRelatedReferenceRemained.get(unitId)) {
                     postReplaceInternalReferenceForRelatedObjectReference(archiveUnit);
                 }
                 // Write to new File
@@ -1254,11 +1269,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
         archiveUnitNode.set(SedaConstants.STORAGE, storageInfo);
     }
+
     /**
      * <p>Finalize filling of sytemGUID for all reference items of RelatedObjectReference (RelationGroup) instead of internal seda id (defined in manifest).<br>
-     *     not set yet by first pass call (one parsing) in method
-     *  {@link fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener#replaceInternalReferenceForRelatedObjectReference(String, DescriptiveMetadataModel)}
+     * not set yet by first pass call (one parsing) in method
+     * {@link fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener#replaceInternalReferenceForRelatedObjectReference(String, DescriptiveMetadataModel)}
      * </p>
+     *
      * @param archiveUnit
      * @throws InvalidParseOperationException if json serialization fail
      */
@@ -1271,7 +1288,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (archiveUnitNode.has(SedaConstants.TAG_RELATED_OBJECT_REFERENCE) &&
             archiveUnitNode.get(SedaConstants.TAG_RELATED_OBJECT_REFERENCE) instanceof ObjectNode) {
             archiveUnitRelatedObjectReference =
-                JsonHandler.getFromJsonNode(archiveUnitNode.get(SedaConstants.TAG_RELATED_OBJECT_REFERENCE), DescriptiveMetadataContentType.RelatedObjectReference.class);
+                JsonHandler.getFromJsonNode(archiveUnitNode.get(SedaConstants.TAG_RELATED_OBJECT_REFERENCE),
+                    DescriptiveMetadataContentType.RelatedObjectReference.class);
 
             fillArchiveUnitReference(archiveUnitRelatedObjectReference.getIsVersionOf());
             fillArchiveUnitReference(archiveUnitRelatedObjectReference.getReplaces());
@@ -1279,7 +1297,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             fillArchiveUnitReference(archiveUnitRelatedObjectReference.getIsPartOf());
             fillArchiveUnitReference(archiveUnitRelatedObjectReference.getReferences());
 
-            ObjectNode archiveUnitRelatedObjectReferenceNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitRelatedObjectReference);
+            ObjectNode archiveUnitRelatedObjectReferenceNode =
+                (ObjectNode) JsonHandler.toJsonNode(archiveUnitRelatedObjectReference);
             archiveUnitNode.set(SedaConstants.TAG_RELATED_OBJECT_REFERENCE, archiveUnitRelatedObjectReferenceNode);
         }
 
@@ -1344,7 +1363,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit archiveUnit
+     * @param archiveUnit      archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1396,9 +1415,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode global management node
+     * @param globalMgtRuleNode          global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType category of rule
+     * @param ruleType                   category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -2161,7 +2180,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2489,7 +2508,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid guid of data object
+     * @param guid       guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2645,9 +2664,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Method that will check au meant to be attached to in the manifest are sons of the au declared in the ingest
      * contract
-     * 
+     *
      * @throws ProcessingUnitLinkingException in case the sip declares an attachment to a unit that is not a children of
-     *         the unit declared in ingest contract
+     *                                        the unit declared in ingest contract
      */
     private void checkIngestContractWithAttachmentGuid(ArrayNode attachmentNode)
         throws ProcessingUnitLinkingException {
