@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
 import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
@@ -479,14 +478,14 @@ public class EvidenceService {
             auditParameters.setMetadataType(metadataType);
 
             // Get metadata from DB
-            JsonNode metadata = getMetadata(id, metadataType);
+            JsonNode metadata = getRawMetadata(id, metadataType);
 
 
             StoredInfoResult mdOptimisticStorageInfo = fromMetadataJson(metadata);
             auditParameters.setMdOptimisticStorageInfo(mdOptimisticStorageInfo);
 
             // Get lifecycle from DB
-            JsonNode lifecycle = getLifeCycle(id, metadataType);
+            JsonNode lifecycle = getRawLifeCycle(id, metadataType);
 
             int lfcVersion = lifecycle.get(LogbookDocument.VERSION).asInt();
             auditParameters.setLfcVersion(lfcVersion);
@@ -544,14 +543,14 @@ public class EvidenceService {
         return auditParameters;
     }
 
-    private JsonNode getLifeCycle(String id, MetadataType metadataType)
+    private JsonNode getRawLifeCycle(String id, MetadataType metadataType)
         throws EvidenceAuditException {
 
         switch (metadataType) {
             case UNIT:
-                return getUnitLifeCycle(id);
+                return getRawUnitLifeCycle(id);
             case OBJECTGROUP:
-                return getObjectGroupLifeCycle(id);
+                return getRawObjectGroupLifeCycle(id);
             default:
                 throw new IllegalStateException("Unsupported metadata type " + metadataType);
         }
@@ -561,22 +560,16 @@ public class EvidenceService {
      * @param unitId the unit id
      * @return unit lifecycle as json
      */
-    private JsonNode getUnitLifeCycle(String unitId) throws EvidenceAuditException {
+    private JsonNode getRawUnitLifeCycle(String unitId) throws EvidenceAuditException {
 
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
 
-            Select query = new Select();
-            query.setQuery(eq(LogbookMongoDbName.objectIdentifier.getDbname(), unitId));
-
-            JsonNode unitLFC = logbookLifeCyclesClient
-                .selectUnitLifeCycleById(unitId, query.getFinalSelect(), LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
-            return unitLFC.get(TAG_RESULTS).get(0);
+            return logbookLifeCyclesClient.getRawUnitLifeCycleById(unitId);
 
         } catch (LogbookClientNotFoundException e) {
             throw new EvidenceAuditException(EvidenceStatus.KO,
                 String.format("No such lifecycle unit found '%s'", unitId), e);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | LogbookClientException e) {
+        } catch (InvalidParseOperationException | LogbookClientException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL, "An error occurred during unit lifecycle retrieval",
                 e);
         }
@@ -586,37 +579,30 @@ public class EvidenceService {
      * @param objectGroupId the object group id
      * @return Object group lifecycle as json
      */
-    private JsonNode getObjectGroupLifeCycle(String objectGroupId) throws EvidenceAuditException {
+    private JsonNode getRawObjectGroupLifeCycle(String objectGroupId) throws EvidenceAuditException {
 
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
 
-            Select query = new Select();
-            query.setQuery(eq(LogbookMongoDbName.objectIdentifier.getDbname(), objectGroupId));
-
-            JsonNode objectGroupLFC = logbookLifeCyclesClient
-                .selectObjectGroupLifeCycleById(objectGroupId, query.getFinalSelect(),
-                    LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
-            return objectGroupLFC.get(TAG_RESULTS).get(0);
+            return logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId);
 
         } catch (LogbookClientNotFoundException e) {
             throw new EvidenceAuditException(EvidenceStatus.KO,
                 String.format("No such lifecycle object group found '%s'", objectGroupId), e);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | LogbookClientException e) {
+        } catch (InvalidParseOperationException | LogbookClientException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL,
                 "An error occurred during object group lifecycle retrieval",
                 e);
         }
     }
 
-    private JsonNode getMetadata(String id, MetadataType metadataType)
+    private JsonNode getRawMetadata(String id, MetadataType metadataType)
         throws EvidenceAuditException {
 
         switch (metadataType) {
             case UNIT:
-                return getUnitMetadata(id);
+                return getRawUnitMetadata(id);
             case OBJECTGROUP:
-                return getObjectGroupMetadata(id);
+                return getRawObjectGroupMetadata(id);
             default:
                 throw new IllegalStateException("Unsupported metadata type " + metadataType);
         }
@@ -626,7 +612,7 @@ public class EvidenceService {
      * @param unitId id
      * @return unit metadata as json
      */
-    private JsonNode getUnitMetadata(String unitId) throws EvidenceAuditException {
+    private JsonNode getRawUnitMetadata(String unitId) throws EvidenceAuditException {
         MetaDataClient metaDataClient = metaDataClientFactory.getClient();
 
         RequestResponse<JsonNode> requestResponse;
@@ -649,7 +635,7 @@ public class EvidenceService {
      * @param objectGroupId id
      * @return object group metadata as json
      */
-    private JsonNode getObjectGroupMetadata(String objectGroupId) throws EvidenceAuditException {
+    private JsonNode getRawObjectGroupMetadata(String objectGroupId) throws EvidenceAuditException {
         MetaDataClient metaDataClient = metaDataClientFactory.getClient();
 
         RequestResponse<JsonNode> requestResponse;

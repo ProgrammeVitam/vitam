@@ -40,6 +40,7 @@ import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -155,14 +156,28 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
-     * returns the raw version of unit life cycle
+     * Gets a list of raw unit life cycles by last persisted date
      *
-     * @param queryDsl dsl query
-     * @return the unit life cycles
+     * @param startDate the selection start date
+     * @param endDate the selection end date
+     * @param limit the max limit
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCyclesRaw(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate, int limit)
+        throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * Gets a list of raw object group life cycles by last persisted date
+     *
+     * @param startDate the selection start date
+     * @param endDate the selection end date
+     * @param limit the max limit
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate, int limit)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the object group life cycle
@@ -214,7 +229,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-    
+
         }
      * </code>
      * </pre>
@@ -243,7 +258,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-    
+
         }
      * </code>
      * </pre>
@@ -400,8 +415,30 @@ public interface LogbookLifeCyclesClient extends BasicClient {
         throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException;
 
     /**
+     * returns the raw unit life cycle
+     *
+     * @param id the id to retrieve
+     * @return the unit life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode getRawUnitLifeCycleById(String id)
+        throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * returns the raw object group life cycle
+     *
+     * @param id the id to retrieve
+     * @return the object group life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode getRawObjectGroupLifeCycleById(String id)
+        throws LogbookClientException, InvalidParseOperationException;
+
+    /**
      * Create lifecycle objectgroup
-     * 
+     *
      * @param logbookLifeCycleRaws list of lifecycle objectgroup as jsons
      * @throws LogbookClientBadRequestException
      * @throws LogbookClientServerException
@@ -411,7 +448,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
 
     /**
      * Create lifecycle unit
-     * 
+     *
      * @param logbookLifeCycleRaws list of lifecycle unit as jsons
      * @throws LogbookClientBadRequestException
      * @throws LogbookClientServerException

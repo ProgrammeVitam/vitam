@@ -26,23 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assume.assumeTrue;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -64,6 +47,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -80,6 +64,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -95,6 +80,24 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assume.assumeTrue;
 
 @RunWithCustomExecutor
 public class LogbookResourceTest {
@@ -128,6 +131,8 @@ public class LogbookResourceTest {
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String OBJECT_GROUP_LFC_TRACEABILITY_URI = "/lifecycles/units/traceability";
     private static final String UNIT_LFC_TRACEABILITY_URI = "/lifecycles/objectgroups/traceability";
+    private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/unitlifecycles/bylastpersisteddate";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/objectgrouplifecycles/bylastpersisteddate";
     private static final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
     private static int databasePort;
@@ -251,7 +256,8 @@ public class LogbookResourceTest {
         workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
             (WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)"))
-            .willReturn(WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+            .willReturn(WireMock.aResponse().withStatus(201)
+                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         workspaceInstanceRule.stubFor(WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
             (WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         processingInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
@@ -322,6 +328,40 @@ public class LogbookResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersAppend)
             .post(OBJECT_GROUP_LFC_TRACEABILITY_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public final void testGetRawUnitLifecyclesByLastPersistedDate() throws InvalidParseOperationException {
+
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2018-02-20T11:14:54.872",
+            "2018-02-20T11:14:54.872",
+            1000
+        );
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .get(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public final void testGetRawObjectGroupLifecyclesByLastPersistedDate() throws InvalidParseOperationException {
+
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2018-02-20T11:14:54.872",
+            "2018-02-20T11:14:54.872",
+            1000
+        );
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .get(OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
             .then()
             .statusCode(Status.OK.getStatusCode());
     }

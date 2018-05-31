@@ -26,41 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.Arrays;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -68,7 +36,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -89,6 +57,29 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -195,21 +186,14 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
 
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID))
+            .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.UNIT.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(unit).build());
+            .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenReturn(getStoredInfoResult());
@@ -230,17 +214,8 @@ public class StoreMetaDataUnitActionPluginTest {
 
     @Test
     public void givenMetadataClientAndLogbookLifeCycleClientWhenSearchUnitWithLFCThenReturnOK() throws Exception {
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
-
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID)).thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -250,7 +225,7 @@ public class StoreMetaDataUnitActionPluginTest {
         assertEquals(unit.get("_id").asText(), UNIT_GUID);
 
         // select lfc
-        JsonNode lfc = plugin.retrieveLogbookLifeCycleById(UNIT_GUID, DataCategory.UNIT, logbookClient);
+        JsonNode lfc = plugin.getRawLogbookLifeCycleById(UNIT_GUID, DataCategory.UNIT, logbookClient);
         assertNotNull(lfc);
         assertEquals(lfc.get("_id").asText(), UNIT_GUID);
 
@@ -279,9 +254,8 @@ public class StoreMetaDataUnitActionPluginTest {
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
             .getUnitByIdRaw(anyObject());
 
-        when(logbookClient.selectUnitLifeCycleById(anyObject(), anyObject(),
-            eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawUnitLifeCycleById(anyObject()))
+            .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -301,9 +275,8 @@ public class StoreMetaDataUnitActionPluginTest {
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
             .getUnitByIdRaw(UNIT_GUID);
 
-        when(logbookClient.selectUnitLifeCycleById(anyObject(), anyObject(),
-            eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawUnitLifeCycleById(anyObject()))
+            .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -323,7 +296,7 @@ public class StoreMetaDataUnitActionPluginTest {
         when(metadataClient.getUnitByIdRaw(anyObject())).thenReturn(unitResponse);
 
         Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookClient)
-            .selectUnitLifeCycleById(anyObject(), anyObject(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
+            .getRawUnitLifeCycleById(anyObject());
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -341,21 +314,13 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
-
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID))
+            .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.UNIT.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(unit).build());
+            .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
             .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
@@ -376,21 +341,13 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
-
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, UNIT_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(
-            logbookClient.selectUnitLifeCycleById(UNIT_GUID, constructQuery, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID))
+            .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.UNIT.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(unit).build());
+            .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
             .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());

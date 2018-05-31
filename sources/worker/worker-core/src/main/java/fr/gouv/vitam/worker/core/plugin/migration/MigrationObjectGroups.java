@@ -29,11 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.migration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -50,7 +46,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -69,10 +64,8 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.StoreMetaDataObjectGroupActionPlugin;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import javax.ws.rs.NotFoundException;
 import java.io.File;
 import java.io.InputStream;
 
@@ -144,7 +137,7 @@ public class MigrationObjectGroups extends ActionHandler {
             MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(objectGroupMetadata);
 
             //// get lfc
-            JsonNode lfc = retrieveLogbookLifeCycleById(objectGroupId);
+            JsonNode lfc = getRawObjectGroupLifeCycleById(objectGroupId);
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(objectGroupMetadata, lfc);
@@ -210,36 +203,20 @@ public class MigrationObjectGroups extends ActionHandler {
     }
 
     /**
-     * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
+     * retrieve the raw LFC for the object group
      *
      * @param idDocument document uuid
-     * @return the LFC of the giving document from logbook
+     * @return the raw LFC
      * @throws ProcessingException if no result found or error during parsing response from logbook client
      */
-    private JsonNode retrieveLogbookLifeCycleById(String idDocument)
+    private JsonNode getRawObjectGroupLifeCycleById(String idDocument)
         throws ProcessingException {
-        JsonNode jsonResponse;
         try {
             LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient();
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(OB_ID, idDocument));
-            ObjectNode queryDsl = parser.getRequest().getFinalSelect();
-            jsonResponse = client.selectObjectGroupLifeCycleById(idDocument, queryDsl,
-                LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-            if (jsonResponse == null) {
-                throw new ProcessingException(LIFE_CYCLE_NOT_FOUND);
-            }
-
-        } catch (final InvalidParseOperationException | LogbookClientException | InvalidCreateOperationException e) {
+            return client.getRawObjectGroupLifeCycleById(idDocument);
+        } catch (final InvalidParseOperationException | LogbookClientException e) {
             throw new ProcessingException(e);
         }
-        if (jsonResponse.get($RESULTS) == null || jsonResponse.get($RESULTS).size() == 0) {
-            LOGGER.error(LIFE_CYCLE_NOT_FOUND);
-            throw new ProcessingException(LIFE_CYCLE_NOT_FOUND);
-        }
-        return jsonResponse.get($RESULTS).get(0);
     }
 
     private LogbookLifeCycleObjectGroupParameters createParameters(GUID eventIdentifierProcess,

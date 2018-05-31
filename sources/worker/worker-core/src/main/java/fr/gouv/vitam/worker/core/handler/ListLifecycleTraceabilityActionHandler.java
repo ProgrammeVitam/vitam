@@ -29,12 +29,10 @@ package fr.gouv.vitam.worker.core.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -59,14 +57,11 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper.INITIAL_START_DATE;
 
@@ -86,12 +81,14 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
 
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final int batchSize;
 
     /**
      * Empty constructor ListLifecycleTraceabilityActionPlugin
      */
     public ListLifecycleTraceabilityActionHandler() {
-        this(LogbookLifeCyclesClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance());
+        this(LogbookLifeCyclesClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(),
+            VitamConfiguration.getBatchSize());
     }
 
     /**
@@ -99,9 +96,10 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
      */
     @VisibleForTesting
     ListLifecycleTraceabilityActionHandler(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory, int batchSize) {
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.batchSize = batchSize;
     }
 
     protected void selectAndExportLifecycles(int temporizationDelayInSeconds,
@@ -118,94 +116,78 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
         LocalDateTime traceabilityEndDate = LocalDateUtil.now()
             .minusSeconds(temporizationDelayInSeconds);
 
-        boolean maxEntriesReached;
-        int nbEntries = 0;
+        LocalDateTime selectionStartDate = traceabilityStartDate;
+        LocalDateTime selectionEndDate = traceabilityEndDate;
+
+        boolean maxEntriesReached = false;
+        int nbExportedEntries = 0;
         LocalDateTime maxEntryLastPersistedDate = traceabilityStartDate;
 
         // List / export metadata
         try (LogbookLifeCyclesClient logbookLifeCyclesClient =
             logbookLifeCyclesClientFactory.getClient()) {
 
-            // First, select all LFC ids
-            List<String> lfcIds = selectUnitLifecycleIds(logbookLifeCyclesClient, traceabilityStartDate,
-                traceabilityEndDate, lifecycleTraceabilityMaxEntries);
+            Set<String> lastBatchIds = new HashSet<>();
 
-            maxEntriesReached = lfcIds.size() == lifecycleTraceabilityMaxEntries;
+            while (true) {
 
-            if (!lfcIds.isEmpty()) {
+                int remaining = lifecycleTraceabilityMaxEntries - nbExportedEntries;
+                if (remaining == 0) {
+                    maxEntriesReached = true;
+                    break;
+                }
 
-                // Load LFCs by page
-                for (List<String> lfcIdPartition : Lists.partition(lfcIds, VitamConfiguration.getBatchSize())) {
+                int limit = Math.min(batchSize, remaining);
+                List<JsonNode> rawLifecycles =
+                    getRawLifecyclesByLastPersistedDate(selectionStartDate, selectionEndDate, logbookLifeCyclesClient,
+                        limit);
 
-                    List<JsonNode> metadata =
-                        getUnitLifecycleList(traceabilityEndDate, logbookLifeCyclesClient, lfcIdPartition);
+                Set<String> currentBatchIds = new HashSet<>();
 
-                    for (JsonNode item : metadata) {
+                for (JsonNode item : rawLifecycles) {
 
-                        exportToWorkspace(handlerIO, item, workspaceMetadataFolder);
+                    // Skip entry if already proceeded in last bulk
+                    String itemId = item.get(LogbookDocument.ID).textValue();
+                    if (lastBatchIds.contains(itemId)) {
+                        continue;
+                    }
+                    currentBatchIds.add(itemId);
 
-                        nbEntries++;
+                    exportToWorkspace(handlerIO, item, workspaceMetadataFolder);
 
-                        String entryLastPersistedDateStr = item.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
-                        LocalDateTime entryLastPersistedDate = LocalDateUtil.parseMongoFormattedDate(entryLastPersistedDateStr);
-                        if (entryLastPersistedDate.isAfter(maxEntryLastPersistedDate)) {
-                            maxEntryLastPersistedDate = entryLastPersistedDate;
-                        }
+                    nbExportedEntries++;
+
+                    String entryLastPersistedDateStr = item.get(LogbookDocument.LAST_PERSISTED_DATE).asText();
+                    LocalDateTime entryLastPersistedDate =
+                        LocalDateUtil.parseMongoFormattedDate(entryLastPersistedDateStr);
+                    if (entryLastPersistedDate.isAfter(maxEntryLastPersistedDate)) {
+                        maxEntryLastPersistedDate = entryLastPersistedDate;
                     }
                 }
+
+                if (rawLifecycles.size() < limit) {
+                    // No more entries to proceed. Done
+                    break;
+                }
+
+                // Mark current bulk ids for next bulk
+                lastBatchIds = currentBatchIds;
+                selectionStartDate = maxEntryLastPersistedDate;
             }
         }
 
-        if(maxEntriesReached) {
+        if (maxEntriesReached) {
             // Override end date if max entries reached
             traceabilityEndDate = maxEntryLastPersistedDate;
         }
 
-        exportTraceabilityInformation(handlerIO, traceabilityStartDate, traceabilityEndDate, nbEntries, maxEntriesReached);
+        exportTraceabilityInformation(handlerIO, traceabilityStartDate, traceabilityEndDate, nbExportedEntries,
+            maxEntriesReached);
     }
 
-    private List<String> selectUnitLifecycleIds(LogbookLifeCyclesClient logbookLifeCyclesClient,
-        LocalDateTime startDate,
-        LocalDateTime endDate, int maxEntries)
-        throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-
-        List<String> lfcIds = new ArrayList<>();
-
-        final Select select = new Select();
-
-        select.setQuery(
-            and()
-                .add(gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)))
-                .add(lte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(endDate))));
-        select.addOrderByAscFilter(VitamFieldsHelper.lastPersistedDate());
-        select.addUsedProjection(VitamFieldsHelper.id());
-        select.setLimitFilter(0, maxEntries);
-
-        List<JsonNode> results = selectLifecycles(logbookLifeCyclesClient, select);
-        for (JsonNode node : results) {
-            lfcIds.add(node.get(LogbookDocument.ID).asText());
-        }
-
-        return lfcIds;
-    }
-
-    private List<JsonNode> getUnitLifecycleList(LocalDateTime traceabilityEndDate,
-        LogbookLifeCyclesClient logbookLifeCyclesClient, List<String> idList)
-        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
-        final Select select = new Select();
-
-        // Select lifecycles by ids
-        // Double check last persisted date in case of concurrent update
-        select.setQuery(
-            and()
-                .add(in(VitamFieldsHelper.id(), idList.toArray(new String[0])))
-                .add(lte(VitamFieldsHelper.lastPersistedDate(),
-                    LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate))));
-
-        return selectLifecycles(logbookLifeCyclesClient, select);
-    }
-
-    abstract protected List<JsonNode> selectLifecycles(LogbookLifeCyclesClient logbookLifeCyclesClient, Select select)
+    abstract protected List<JsonNode> getRawLifecyclesByLastPersistedDate(LocalDateTime startDate,
+        LocalDateTime endDate,
+        LogbookLifeCyclesClient logbookLifeCyclesClient, int limit)
         throws LogbookClientException, InvalidParseOperationException;
 
     private LocalDateTime getTraceabilityOperationStartDate(LogbookOperation lastTraceabilityOperation)
@@ -254,7 +236,7 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
         handlerIO.transferJsonToWorkspace(workspaceMetadataFolder, metadataId + JSON_EXTENSION,
             item, true, asyncIO);
     }
-    
+
     private void exportTraceabilityInformation(
         HandlerIO handlerIO,
         LocalDateTime traceabilityStartDate,

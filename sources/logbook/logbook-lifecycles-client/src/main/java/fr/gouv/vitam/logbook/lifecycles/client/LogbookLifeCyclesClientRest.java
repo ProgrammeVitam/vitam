@@ -26,20 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -47,6 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -56,10 +49,19 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
+import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * LogbookLifeCyclesClient REST implementation
@@ -72,10 +74,13 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     // For Lifecycles under operations
     private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
-    private static final String UNIT_LIFECYCLES_RAW_URL = "/unitlifecyclesraw";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL = "/raw/objectgrouplifecycles/bulk";
     private static final String UNIT_LIFECYCLES_RAW_BULK_URL = "/raw/unitlifecycles/bulk";
+    private static final String UNIT_LIFECYCLES_RAW_BY_ID_URL = "/raw/unitlifecycles/byid/";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL = "/raw/objectgrouplifecycles/byid/";
+    private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/unitlifecycles/bylastpersisteddate";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/objectgrouplifecycles/bylastpersisteddate";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
 
@@ -332,21 +337,51 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public JsonNode selectUnitLifeCyclesRaw(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
+    public List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
+        int limit) throws LogbookClientException, InvalidParseOperationException {
+
+        return getRawLifecyclesByLastPersistedDate(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL,
+            startDate, endDate, limit);
+    }
+
+    @Override
+    public List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate,
+        LocalDateTime endDate, int limit) throws LogbookClientException, InvalidParseOperationException {
+
+        return getRawLifecyclesByLastPersistedDate(OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL,
+            startDate, endDate, limit);
+    }
+
+    private List<JsonNode> getRawLifecyclesByLastPersistedDate(String uri, LocalDateTime startDate,
+        LocalDateTime endDate,
+        int limit)
+        throws InvalidParseOperationException, LogbookClientException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_RAW_URL, null,
-                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+            RawLifecycleByLastPersistedDateRequest
+                request = new RawLifecycleByLastPersistedDateRequest(
+                LocalDateUtil.getFormattedDateForMongo(startDate),
+                LocalDateUtil.getFormattedDateForMongo(endDate),
+                limit);
+            JsonNode requestJsonNode = JsonHandler.toJsonNode(request);
+
+            response = performRequest(HttpMethod.GET, uri, null,
+                requestJsonNode, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+
+            RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response, JsonNode.class);
+            if (!requestResponse.isOk()) {
+                VitamError error = (VitamError) requestResponse;
+                throw new LogbookClientException(error.getDescription());
+            }
+
+            return ((RequestResponseOK<JsonNode>) requestResponse).getResults();
+
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -784,6 +819,62 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode getRawUnitLifeCycleById(String id)
+        throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        try {
+
+            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_RAW_BY_ID_URL + id, null,
+                null, null, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+            JsonNode jsonResponse = JsonHandler.getFromString(response.readEntity(String.class));
+
+            return jsonResponse.get("$results").get(0);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode getRawObjectGroupLifeCycleById(String id)
+        throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        try {
+
+            response = performRequest(HttpMethod.GET, OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL + id, null,
+                null, null, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+            JsonNode jsonResponse = JsonHandler.getFromString(response.readEntity(String.class));
+
+            return jsonResponse.get("$results").get(0);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);

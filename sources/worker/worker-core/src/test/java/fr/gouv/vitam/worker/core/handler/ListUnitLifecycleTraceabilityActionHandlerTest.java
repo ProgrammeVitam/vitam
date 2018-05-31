@@ -58,6 +58,8 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -75,8 +77,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -91,6 +95,11 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
     private static final Integer TENANT_ID = 0;
 
     private static final String HANDLER_ID = "PREPARE_UNIT_LFC_TRACEABILITY";
+
+    private static final String LFC_UNITS_BIG_1_JSON =
+        "ListUnitLifecycleTraceabilityActionHandler/lfc_units_big_part1.json";
+    private static final String LFC_UNITS_BIG_2_JSON =
+        "ListUnitLifecycleTraceabilityActionHandler/lfc_units_big_part2.json";
 
     private static final String LFC_UNITS_JSON = "ListUnitLifecycleTraceabilityActionHandler/lfc_units.json";
     private static final String LAST_TRACEABILITY_JSON =
@@ -153,12 +162,13 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         assertEquals(ListUnitLifecycleTraceabilityActionHandler.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode unitsLFC =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON));
+        final List<JsonNode> unitsLFC = IteratorUtils.toList(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).elements());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
+        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
+            .thenReturn(unitsLFC);
         reset(logbookOperationsClient);
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
@@ -175,7 +185,7 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         int temporizationDelayInSeconds = 300;
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, 100000);
         ListUnitLifecycleTraceabilityActionHandler handler = new ListUnitLifecycleTraceabilityActionHandler(
-            logbookLifeCyclesClientFactory, logbookOperationsClientFactory);
+            logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         LocalDateTime snapshot1 = LocalDateUtil.now();
@@ -215,12 +225,13 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         assertEquals(ListUnitLifecycleTraceabilityActionHandler.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode unitsLFC =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON));
+        final List<JsonNode> unitsLFC = IteratorUtils.toList(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).elements());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
+        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
+            .thenReturn(unitsLFC);
         reset(logbookOperationsClient);
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
@@ -238,7 +249,7 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         int maxEntries = 3;
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, maxEntries);
         ListUnitLifecycleTraceabilityActionHandler handler = new ListUnitLifecycleTraceabilityActionHandler(
-            logbookLifeCyclesClientFactory, logbookOperationsClientFactory);
+            logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -279,12 +290,12 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject()))
+        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
             .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
 
         WorkerParameters params = createExecParams(300, 100000);
         ListUnitLifecycleTraceabilityActionHandler handler = new ListUnitLifecycleTraceabilityActionHandler(
-            logbookLifeCyclesClientFactory, logbookOperationsClientFactory);
+            logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -301,12 +312,13 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode unitsLFC =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON));
+        final List<JsonNode> unitsLFC = IteratorUtils.toList(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LFC_UNITS_JSON)).elements());
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject())).thenReturn(unitsLFC);
+        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
+            .thenReturn(unitsLFC);
         reset(logbookOperationsClient);
         when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
 
@@ -315,7 +327,7 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
 
         WorkerParameters params = createExecParams(300, 100000);
         ListUnitLifecycleTraceabilityActionHandler handler = new ListUnitLifecycleTraceabilityActionHandler(
-            logbookLifeCyclesClientFactory, logbookOperationsClientFactory);
+            logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -332,7 +344,7 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
         reset(logbookLifeCyclesClient);
-        when(logbookLifeCyclesClient.selectUnitLifeCyclesRaw(anyObject()))
+        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(any(), any(), anyInt()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
         final JsonNode lastTraceability =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
@@ -341,7 +353,7 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
 
         WorkerParameters params = createExecParams(300, 100000);
         ListUnitLifecycleTraceabilityActionHandler handler = new ListUnitLifecycleTraceabilityActionHandler(
-            logbookLifeCyclesClientFactory, logbookOperationsClientFactory);
+            logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -350,13 +362,78 @@ public class ListUnitLifecycleTraceabilityActionHandlerTest {
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenMultipleLifecyclesWhenExecuteWithMultiSelectQueriesThenReturnResponseOK() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertEquals(ListUnitLifecycleTraceabilityActionHandler.getId(), HANDLER_ID);
+        handlerIO.addOutIOParameters(out);
+
+        final List<JsonNode> unitsLFC1 = IteratorUtils.toList(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LFC_UNITS_BIG_1_JSON)).elements());
+        final List<JsonNode> unitsLFC2 = IteratorUtils.toList(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LFC_UNITS_BIG_2_JSON)).elements());
+
+        final JsonNode lastTraceability =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        reset(logbookLifeCyclesClient);
+
+        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(
+            eq(LocalDateUtil.parseMongoFormattedDate("2018-05-16T12:32:30.051")), any(), eq(10)))
+            .thenReturn(unitsLFC1);
+        when(logbookLifeCyclesClient.getRawUnitLifecyclesByLastPersistedDate(
+            eq(LocalDateUtil.parseMongoFormattedDate("2018-05-20T00:00:00.010")), any(), eq(10)))
+            .thenReturn(unitsLFC2);
+        reset(logbookOperationsClient);
+        when(logbookOperationsClient.selectOperation(anyObject())).thenReturn(lastTraceability);
+
+        for (JsonNode jsonNode : ListUtils.union(unitsLFC1, unitsLFC2)) {
+            saveWorkspacePutObject(
+                UpdateWorkflowConstants.UNITS_FOLDER + "/" + jsonNode.get("_id").asText() + ".json");
+        }
+        saveWorkspacePutObject("Operations/lastOperation.json");
+        saveWorkspacePutObject("Operations/traceabilityInformation.json");
+
+        int temporizationDelayInSeconds = 300;
+        WorkerParameters params = createExecParams(temporizationDelayInSeconds, 100000);
+        ListUnitLifecycleTraceabilityActionHandler handler = new ListUnitLifecycleTraceabilityActionHandler(
+            logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
+
+        // When
+        LocalDateTime snapshot1 = LocalDateUtil.now();
+        ItemStatus response = handler.execute(params, handlerIO);
+        LocalDateTime snapshot2 = LocalDateUtil.now();
+
+        // Than
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+        for (JsonNode jsonNode : ListUtils.union(unitsLFC1, unitsLFC2)) {
+            assertNotNull(getSavedWorkspaceObject(
+                UpdateWorkflowConstants.UNITS_FOLDER + "/" + jsonNode.get("_id").asText() + ".json"));
+        }
+        assertNotNull(getSavedWorkspaceObject("Operations/lastOperation.json"));
+        JsonNode traceabilityInformation = getSavedWorkspaceObject("Operations/traceabilityInformation.json");
+        assertNotNull(traceabilityInformation);
+        assertThat(traceabilityInformation.get("nbEntries").asLong()).isEqualTo(13);
+        assertThat(traceabilityInformation.get("startDate").asText()).isEqualTo("2018-05-16T12:32:30.051");
+        assertThat(LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("endDate").asText()))
+            .isAfterOrEqualTo(snapshot1.minusSeconds(temporizationDelayInSeconds))
+            .isBeforeOrEqualTo(snapshot2.minusSeconds(temporizationDelayInSeconds));
+        assertThat(traceabilityInformation.get("maxEntriesReached").asBoolean()).isFalse();
+        assertEquals(13, getNumberOfSavedObjectInWorkspace(UpdateWorkflowConstants.UNITS_FOLDER));
+        assertEquals(2, getNumberOfSavedObjectInWorkspace("Operations"));
+    }
+
     private WorkerParameters createExecParams(int temporizationDelayInSeconds, int maxEntries) {
         return WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY)
-                .putParameterValue(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds, Integer.toString(temporizationDelayInSeconds))
-                .putParameterValue(WorkerParameterName.lifecycleTraceabilityMaxEntries, Integer.toString(maxEntries));
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY)
+            .putParameterValue(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds,
+                Integer.toString(temporizationDelayInSeconds))
+            .putParameterValue(WorkerParameterName.lifecycleTraceabilityMaxEntries, Integer.toString(maxEntries));
     }
 
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {

@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -43,8 +42,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -67,7 +64,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -75,10 +71,8 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.List;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
@@ -89,7 +83,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -161,9 +154,7 @@ public class EvidenceServiceTest {
         RequestResponseOK<JsonNode> response1 = new RequestResponseOK<JsonNode>().addResult(unitMd);
 
         when(metaDataClient.getUnitByIdRaw("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq")).thenReturn(response1);
-        when(logbookLifeCyclesClient
-            .selectUnitLifeCycleById(eq("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"), any(),
-                eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleById("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"))
             .thenReturn(liceCycle);
 
         JsonNode select = getSelectlogbookLCsecure();
@@ -219,9 +210,7 @@ public class EvidenceServiceTest {
         RequestResponseOK<JsonNode> response1 = new RequestResponseOK<JsonNode>().addResult(unitMd);
 
         when(metaDataClient.getUnitByIdRaw("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq")).thenReturn(response1);
-        when(logbookLifeCyclesClient
-            .selectUnitLifeCycleById(eq("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"), any(),
-                eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleById("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"))
             .thenReturn(liceCycle);
 
         JsonNode select = getSelectlogbookLCsecure();

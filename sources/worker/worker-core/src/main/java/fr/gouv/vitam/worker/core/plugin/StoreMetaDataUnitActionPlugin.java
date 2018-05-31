@@ -124,7 +124,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
 
             //// get lfc
-            JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
+            JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);

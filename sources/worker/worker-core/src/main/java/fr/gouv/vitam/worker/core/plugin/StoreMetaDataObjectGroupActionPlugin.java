@@ -124,7 +124,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             MetadataDocumentHelper.removeComputedGraphFieldsFromObjectGroup(got);
 
             //// get lfc
-            JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
+            JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(got, lfc);

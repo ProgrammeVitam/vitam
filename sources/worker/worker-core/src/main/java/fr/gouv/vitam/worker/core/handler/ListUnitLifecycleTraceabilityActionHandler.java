@@ -29,19 +29,15 @@ package fr.gouv.vitam.worker.core.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamKoRuntimeException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -51,7 +47,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
-import java.util.Collections;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -76,8 +72,8 @@ public class ListUnitLifecycleTraceabilityActionHandler extends ListLifecycleTra
     @VisibleForTesting
     ListUnitLifecycleTraceabilityActionHandler(
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
-        super(logbookLifeCyclesClientFactory, logbookOperationsClientFactory);
+        LogbookOperationsClientFactory logbookOperationsClientFactory, int batchSize) {
+        super(logbookLifeCyclesClientFactory, logbookOperationsClientFactory, batchSize);
     }
 
     @Override
@@ -109,17 +105,12 @@ public class ListUnitLifecycleTraceabilityActionHandler extends ListLifecycleTra
             itemStatus);
     }
 
-    protected List<JsonNode> selectLifecycles(LogbookLifeCyclesClient logbookLifeCyclesClient, Select select)
+    @Override
+    protected List<JsonNode> getRawLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
+        LogbookLifeCyclesClient logbookLifeCyclesClient, int limit)
         throws LogbookClientException, InvalidParseOperationException {
-        try {
-
-            JsonNode jsonNode = logbookLifeCyclesClient.selectUnitLifeCyclesRaw(select.getFinalSelect());
-            return RequestResponseOK.getFromJsonNode(jsonNode).getResults();
-
-        } catch (LogbookClientNotFoundException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return Collections.EMPTY_LIST;
-        }
+        return logbookLifeCyclesClient
+            .getRawUnitLifecyclesByLastPersistedDate(startDate, endDate, limit);
     }
 
     /**
