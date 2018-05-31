@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
@@ -243,8 +244,9 @@ public class CreateManifest extends ActionHandler {
         for (JsonNode node : nodes) {
             multimap.put(node.asText(), id);
         }
-        if(result.has(VitamFieldsHelper.originatingAgency())) {
-            originatingAgencies.add(result.get(VitamFieldsHelper.originatingAgency()).asText());
+        Optional<JsonNode> originatingAgency = Optional.ofNullable(result.get(VitamFieldsHelper.originatingAgency()));
+        if(originatingAgency.isPresent()) {
+            originatingAgencies.add(originatingAgency.get().asText());
         }
         JsonNode jsonNode1 = result.get(VitamFieldsHelper.object());
         if (jsonNode1 != null) {
