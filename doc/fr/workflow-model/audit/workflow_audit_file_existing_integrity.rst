@@ -31,7 +31,7 @@ Enfin, il sécurise les journaux de cycle de vie qui ont été modifiés.
 Processus de préparation de l'audit (STP_PREPARE_AUDIT)
 =======================================================
 
-Création de la liste des groupes d'objets (LIST_OBJECTGROUP_ID - PrepareAuditActionHandler.java)
+Création de la liste des groupes d'objets LIST_OBJECTGROUP_ID (PrepareAuditActionHandler.java)
 ------------------------------------------------------------------------------------------------
 
 * **Règle** : Création de la liste des groupes d'objets à auditer
@@ -41,35 +41,35 @@ Création de la liste des groupes d'objets (LIST_OBJECTGROUP_ID - PrepareAuditAc
 	* FATAL : Une erreur technique est survenue lors de la création de la liste (LIST_OBJECTGROUP_ID.FATAL=Erreur fatale lors de la création de la liste des groupes d'objets à auditer)
 
 Processus d'éxecution de l'audit (STP_AUDIT)
-===================================================
+============================================
 
-Audit de la vérification des objets AUDIT_CHECK_OBJECT - AuditCheckObjectPlugin.java
-------------------------------------------------------------------------------------
+Audit de la vérification des objets AUDIT_CHECK_OBJECT (AuditCheckObjectPlugin.java)
+--------------------------------------------------------------------------------------
 
-* **Règle** : Tâche technique pour organiser et lancer l'action d'audit. A la fin de l'audit de chaque groupe d'objets en KO, la mise à jour en base de son journal de cycle de vie est faite.
+* **Règle** : Tâche technique pour organiser et lancer l'action d'audit de la vérification des objets. A la fin de l'audit de chaque groupe d'objets en KO, la mise à jour en base de son journal du cycle de vie est faite.
 * **Type** : bloquant
 * **Statuts** :
-	* OK : l'action d'audit s'est terminée en OK (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.OK=Succès de l'audit de l'existence des objets)
-	* KO : l'action d'audit s'est terminée en KO (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.KO=Echec de l'audit de l'existence des objets : au moins un objet demandé n'existe pas ou des stratégies de stockage sont incohérentes avec les offres déclarées)
-	* FATAL : une erreur technique est survenue lors du lancement de l'action d'audit (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.FATAL=Erreur fatale lors de l'audit de l'existence des objets)
+	* OK : l'action d'audit de la vérification des objets s'est terminée en OK (AUDIT_CHECK_OBJECT.OK=Succès de l'audit de la vérification des objets)
+	* KO : l'action d'audit de la vérification des objets s'est terminée en KO (AUDIT_CHECK_OBJECT.KO=Échec de l'audit de la vérification des objets : au moins un objet demandé n'existe pas ou des stratégies de stockage sont incohérentes avec les offres déclarées)
+	* FATAL : une erreur technique est survenue lors du lancement de l'action d'audit (AUDIT_CHECK_OBJECT.FATAL=Erreur fatale lors de l'audit de la vérification des objets)
 
-Audit de l'existence des objets (AUDIT_FILE_EXISTING - CheckExistenceObjectPlugin.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Audit de l'existence des objets AUDIT_FILE_EXISTING (CheckExistenceObjectPlugin.java)
+-------------------------------------------------------------------------------------
 
-* **Règle** : Vérification que, pour chaque groupe d'objets audités
+* **Règle** : Audit de l'existence des objets permettant la vérification de chaque groupe d'objets audités
 	* La stratégie de stockage du groupe d'objets est conforme à celle du moteur de stockage
-	* Les fichiers correspondant aux objets, déclarés dans le groupe d'objet, existent bien sous le même nom dans les offres de stockage
+	* Les fichiers correspondant aux objets, déclarés dans le groupe d'objets, existent bien sous le même nom dans les offres de stockage
 * **Type** : bloquant
 * **Statuts** :
-	* OK : tous les objets de tous les groupes d'objet audités existent bien sur les offres de stockage (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.OK=Succès de l'audit de l'existence de fichiers )
+	* OK : tous les objets de tous les groupes d'objets audités existent bien sur les offres de stockage (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.OK=Succès de l'audit de l'existence de fichiers )
 	* KO : au moins un objet n'existe pas pour au moins un groupe objets (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.KO=Echec de l'audit de l'existence de fichiers)
 	* Warning : il n'y a aucun objet à auditer (cas par exemple d'un producteur sans objets) (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.WARNING=Avertissement lors de l'audit de l'existence des objets : au moins un groupe d'objets n'a pas d'objet binaire à vérifier)
 	* FATAL : une erreur technique est survenue lors de l'audit de l'existence des objets (AUDIT_CHECK_OBJECT.AUDIT_FILE_EXISTING.FATAL=Erreur fatale lors de l'audit de l'existence des objets)
 
-Audit de l'intégrité des objets (AUDIT_CHECK_OBJECT.AUDIT_FILE_INTEGRITY - CheckIntegrityObjectPlugin.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Audit de l'intégrité des objets AUDIT_CHECK_OBJECT.AUDIT_FILE_INTEGRITY (CheckIntegrityObjectPlugin.java)
+-----------------------------------------------------------------------------------------------------------
 
-* **Règle** : Vérification que, pour chaque groupe d'objets audités
+* **Règle** : Audit de l'intégrité des objets permettant la vérification de chaque groupe d'objets audités
 	* L'objet existe bien (voir "AUDIT_FILE_EXISTING")
 	* L'empreinte de l'objet enregistrée en base de données est la même pour chaque objet que celle obtenue par l'offre de stockage, recalculée à la demande de l'audit
 * **Type** : bloquant
@@ -85,11 +85,11 @@ Audit de l'intégrité des objets (AUDIT_CHECK_OBJECT.AUDIT_FILE_INTEGRITY - Che
 Processus de finalisation de l'audit (STP_FINALISE_AUDIT)
 =========================================================
 
-Notification de la fin d'audit (REPORT_AUDIT - GenerateAuditReportActionHandler.java)
+Notification de la fin d'audit REPORT_AUDIT (GenerateAuditReportActionHandler.java)
 -------------------------------------------------------------------------------------
 
 * **Règle** : génération du rapport d'audit
 * **Type** : bloquant
 * **Statuts** :
-	* OK : le rapport a été créé avec succès (REPORT_AUDIT.OK=Succès de la notification de la fin de l'audit Detail)
+	* OK : le rapport a été créé avec succès (REPORT_AUDIT.OK=Succès de la notification de la fin de l'audit)
 	* FATAL : Une erreur technique est survenue lors de la création du rapport d'audit (REPORT_AUDIT.OK.FATAL=Erreur fatale lors de la notification de la fin de l'audit)

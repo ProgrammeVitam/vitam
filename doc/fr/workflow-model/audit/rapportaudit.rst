@@ -88,7 +88,7 @@ Exemple de JSON : rapport d'audit KO
 
 
 Partie "Master"
-=================================================
+===============
 
 La partie "master", c'est à dire le bloc à la racine du rapport (sans indentation) est composé des champs suivants :
 
@@ -107,7 +107,7 @@ Mais aussi :
 - "auditWarning": la liste des éléments singuliers détectés qui ont provoqué un warning de l'audit
 
 Liste des opérations auditées ("source")
-=================================================
+========================================
 
 La liste des opérations auditées est une liste d'identifiant d'opérations d'ingest. Il s'agit des opérations à l'origine de la création des groupes d'objets qui ont été audités. Chaque groupe n'a par nature qu'une et une seule opération à l'origine de sa création. En partant de ces opérations, il est donc possible de retrouver l'ensemble des groupes d'objets qui ont été audités.
 
@@ -117,21 +117,21 @@ Cette partie est construite autour des champs suivants :
 
 - "#tenant": identifiant du tenant sur lequel l'opération s'est déroulée
 - "OriginatingAgency": identifiant du service producteur relatif à cette opération
-- "evIdProc": identifiant de l'opération étant à l'origine de la création du groupe d'objet audité
+- "evIdProc": identifiant de l'opération étant à l'origine de la création du groupe d'objets audité
 
 Liste des anomalies détectées générant un KO ("auditKO")
-=================================================================================
+========================================================
 
-Cette liste détaille l'ensemble des objets qui ont rencontré un KO lors de l'auditKO. Chaque objet possède son bloc, ayant les champs suivants :
+Cette liste détaille l'ensemble des objets qui ont rencontré un KO lors de l'audit KO. Chaque objet possède son bloc, ayant les champs suivants :
 
-- "IdOp": identifiant de l'opération étant à l'origine de la création du groupe d'objet auquel appartient l'objet KO audité
-- "IdGOT": identifiant du groupe d'objet audité, possédant l'objet KO
+- "IdOp": identifiant de l'opération étant à l'origine de la création du groupe d'objets auquel appartient l'objet KO audité
+- "IdGOT": identifiant du groupe d'objets audité, possédant l'objet KO
 - "IdObj": identifiant de l'objet KO
-- "Usage": usage de l'objet KO dans son groupe d'objet
+- "Usage": usage de l'objet KO dans son groupe d'objets
 - "OriginatingAgency": service producteur de référence de l'objet
 - "OutDetail": clé correspondant à l'audit qui a déclenché le KO, reprise du journal des opérations. Par exemple pour un audit de l'existence des fichiers, la clé est "LFC.AUDIT_FILE_EXISTING.KO"
 
 Liste des éléments singuliers générant un avertissement ("auditWarning")
-=================================================================================
+========================================================================
 
-Cette liste décrit les identifiant des services producteurs ayant généré un avertissement. Dans le cas de l'audit de l'existence des fichiers, une alerte correspond au fait qu'un service producteur n'a aucun objet à auditer. Cette liste est donc l'ensemble des services producteurs concernés par l'audit mais dont il n'existe aucun objet à auditer.
+Cette liste décrit les identifiants des services producteurs ayant généré un avertissement. Dans le cas de l'audit de l'existence des fichiers, une alerte correspond au fait qu'un service producteur n'a aucun objet à auditer. Cette liste est donc l'ensemble des services producteurs concernés par l'audit mais dont il n'existe aucun objet à auditer.

@@ -43,7 +43,7 @@ Chaque action peut avoir les modèles d'exécutions suivants (toutes les étapes
 
 - Bloquant
 
-    * Si une action bloquante est identifiée en erreur, le workflow est alors arrêté en erreur. Seules actions nécessaire à l'arrête du workflow sont alors éxecutées.
+    * Si une action bloquante est identifiée en erreur, le workflow est alors arrêté en erreur. Seules les actions nécessaire à l'arrêt du workflow sont alors éxecutées.
 
 - Non bloquant
 

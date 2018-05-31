@@ -12,8 +12,8 @@ Processus de mise à jour des unités archivistiques (vision métier)
 Le processus de mise à jour des unités archivistiques est lancé lors d'une mise à jour de n'importe quelle métadonnée d'une unité archivistique. Un certain nombre d'étapes et actions sont journalisées dans le journal des opérations.
 Les étapes et actions associées ci-dessous décrivent ce processus de mise à jour (clé et description de la clé associée dans le journal des opérations).
 
-Mise à jour des unités archivistiques (STP_UPDATE_UNIT)
-=======================================================
+Mise à jour des unités archivistiques STP_UPDATE_UNIT (AccessInternalModuleImpl.java)
+=====================================================================================
 
 La fin du processus peut prendre plusieurs statuts :
 
@@ -25,8 +25,8 @@ La fin du processus peut prendre plusieurs statuts :
 
   + FATAL : une erreur technique est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT.FATAL = Erreur fatale lors du processus de mise à jour des métadonnées de l''unité archivistique)
 
-Vérification des règles de gestion (UNIT_METADATA_UPDATE_CHECK_RULES)
----------------------------------------------------------------------
+Vérification des règles de gestion UNIT_METADATA_UPDATE_CHECK_RULES (AccessInternalModuleImpl.java)
+---------------------------------------------------------------------------------------------------
 
 + **Règle** : vérification des règles de gestion
 
@@ -40,7 +40,7 @@ Vérification des règles de gestion (UNIT_METADATA_UPDATE_CHECK_RULES)
 
     - FATAL : une erreur technique est survenue lors de la création du rapport (UNIT_METADATA_UPDATE_CHECK_RULES.FATAL = Erreur fatale lors de la génération du rapport d'analyse du référentiel des règles de gestion)
 
-Indexation des métadonnées (UNIT_METADATA_UPDATE)
+Indexation des métadonnées UNIT_METADATA_UPDATE (ArchiveUnitUpdateUtils.java)
 ---------------------------------------------------------------------
 
   + **Règle** : Indexation des métadonnées des unités archivistiques dans les bases internes de la solution logicielle Vitam, c'est à dire le titre des unités, leurs descriptions, leurs dates extrêmes, etc. C'est également dans cette tâche que le journal du cycle de vie est enregistré dans la base de données.
@@ -55,6 +55,7 @@ Indexation des métadonnées (UNIT_METADATA_UPDATE)
 
     - FATAL : une erreur technique est survenue lors de l'indexation des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE.FATAL = Erreur fatale lors de la mise à jour des métadonnées des unités archivistiques)
 
+
 Enregistrement du journal du cycle de vie des unités archivistiques
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -63,7 +64,7 @@ Sécurisation en base des journaux du cycle de vie des unités archivistiques (a
 Cette action n'est pas journalisée.
 
 
-Écriture des métadonnées de l'unité archivistique sur l'offre de stockage (UNIT_METADATA_STORAGE)
+Écriture des métadonnées de l'unité archivistique sur l'offre de stockage UNIT_METADATA_STORAGE (AccessInternalModuleImpl.java)
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
   + **Règle** : Sauvegarde des métadonnées des unités archivistiques sur les offres de stockage en fonction de la stratégie de stockage.(Pas d'évènements stockés dans le journal de cycle de vie)

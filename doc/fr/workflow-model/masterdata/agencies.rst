@@ -12,10 +12,9 @@ Processus d'import  et mise à jour d'un référentiel de services agents (STP_I
 L'import d'un référentiel de services agent permet de vérifier le formalisme de ce dernier, notamment que les données obligatoires sont bien présentes pour chacun des agents. Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape. Cet import concerne aussi bien l'import initial (pas de services agents pré-existant) que la mise à jour du référentiel.
 
 
-Import d'un référentiel de services agents (STP_IMPORT_AGENCIES)
-----------------------------------------------------------------
+Import d'un référentiel de services agents STP_IMPORT_AGENCIES (AgenciesService.java)
+-------------------------------------------------------------------------------------
 
-  + **Type** :  bloquant
 
   + **Règle** :  le fichier remplit les conditions suivantes :
 
@@ -28,6 +27,7 @@ Import d'un référentiel de services agents (STP_IMPORT_AGENCIES)
 
     * l'identifiant doit être unique
 
+  + **Type** :  bloquant
 
   + **Status** :
 
@@ -40,12 +40,14 @@ Import d'un référentiel de services agents (STP_IMPORT_AGENCIES)
 
     - FATAL : une erreur technique est survenue lors de l'import du référentiel des services agents (STP_IMPORT_AGENCIES.FATAL=Erreur fatale lors du processus d'import du référentiel des service agents)
 
-Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_CONTRACT)
+Vérification des contrats utilisés STP_IMPORT_AGENCIES.USED_CONTRACT
 ----------------------------------------------------------------------
 
-  + **Type** :  bloquant
+ 
 
   + **Règle** :  contrôle des contrats utilisant des services agents modifiés
+
+  + **Type** :  bloquant
 
   + **Status** :
 
@@ -57,12 +59,14 @@ Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_CONTRACT)
 
     - FATAL : une erreur technique est survenue lors de la vérification des services agents utilisés dans les contrats d'accès (STP_IMPORT_AGENCIES.USED_CONTRACT.FATAL=Erreur fatale lors du processus de vérification des services agents utilisés dans les contrats d'accès)
 
-Vérification des unités archivistiques (STP_IMPORT_AGENCIES.USED_AU)
----------------------------------------------------------------------
+Vérification des unités archivistiques STP_IMPORT_AGENCIES.USED_AU
+------------------------------------------------------------------
 
-  + **Type** :  bloquant
+ 
 
   + **Règle** :  contrôle des unités archivistiques référençant des serivces agents modifiés
+
+  + **Type** :  bloquant  
 
   + **Status** :
 
@@ -74,12 +78,14 @@ Vérification des unités archivistiques (STP_IMPORT_AGENCIES.USED_AU)
 
     - FATAL : une erreur technique est survenue lors de la vérification des services agents utilisés par les unités archivistiques (STP_IMPORT_AGENCIES.USED_AU.FATAL=Erreur fatale lors du processus de vérification des services agents utilisés par les unités archivistiques)
 
-Création du rapport au format JSON (STP_AGENCIES_REPORT)
---------------------------------------------------------
+Création du rapport au format JSON STP_AGENCIES_REPORT (AgenciesService.java)
+-----------------------------------------------------------------------------
 
-  + **Type** :  bloquant
+
 
   + **Règle** :  création du rapport d'import de référentiel des services agent
+
+  + **Type** :  bloquant
 
   + **Status** :
 
@@ -89,12 +95,14 @@ Création du rapport au format JSON (STP_AGENCIES_REPORT)
 
     - FATAL : une erreur technique est survenue lors de la création du rapport d'import du référentiel des services agents (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de génération du rapport d'import du référentiel des services agents)
 
-Sauvegarde du CSV d'import (STP_IMPORT_AGENCIES_BACKUP_CSV)
-------------------------------------------------------------
+Sauvegarde du CSV d'import STP_IMPORT_AGENCIES_BACKUP_CSV (AgenciesService.java)
+--------------------------------------------------------------------------------
 
-  + **Type** :  bloquant
+
 
   + **Règle** : sauvegarde de fichier d'import de référentiel des services agent
+
+  + **Type** :  bloquant
 
   + **Status** :
 
@@ -104,10 +112,12 @@ Sauvegarde du CSV d'import (STP_IMPORT_AGENCIES_BACKUP_CSV)
 
     - FATAL : une erreur technique est survenue lors de la sauvegarde de fichier d'import de référentiel des services agent (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de sauvegarde du fichier d''import de référentiel des services agents)
 
-Sauvegarde d'une copie de la base de donnée (STP_BACKUP_AGENCIES)
-------------------------------------------------------------------
+Sauvegarde d'une copie de la base de donnée STP_BACKUP_AGENCIES (AgenciesService.java)
+--------------------------------------------------------------------------------------
 
   + **Règle** : création d'une copie de la base de données contenant le référentiel des services agents
+
+  + **Type** :  bloquant
 
   + **Status** :
 
@@ -132,8 +142,8 @@ Lorsqu'un nouveau référentiel est importé, la solution logicielle Vitam gén�
   - "InsertAgencies" : contient les identifiants des services agents ajoutés
   - "UpdatedAgencies" : liste les identifiants des services agents modifiés
   - "UsedAgencies By Contrat" : liste les identifiants des services agents modifiés qui sont utilisés par des contrats d'accès
-  - "UsedAgencies By AU" : liste les identifiants des services agents modifiés qui sont utilisés dans des unités archivistique
-  - "UsedAgencies to Delete" : liste les identifiants des services agents supprimés qui sont utilisés dans des unités archivistique
+  - "UsedAgencies By AU" : liste les identifiants des services agents modifiés qui sont utilisés dans des unités archivistiques
+  - "UsedAgencies to Delete" : liste les identifiants des services agents supprimés qui sont utilisés dans des unités archivistiques
 
 **Exemple 1 : modification et ajout d'un service agent**
 

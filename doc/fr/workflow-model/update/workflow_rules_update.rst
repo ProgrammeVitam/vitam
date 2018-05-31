@@ -32,7 +32,7 @@ Distribution sur REF -> GUID/PROCESSING/updatedRules.json
 
     - OK : le fichier listant les entrées (qu'il soit vide ou non) a bien été créé (LIST_RUNNING_INGESTS.OK=Succès de l'établissement de la liste des processus d'entrée en cours).
 
-    - KO : la liste des entrées en cours n'a pas pu être récupéré, ou alors la liste des ingests n'a pas pu être enregistrée sur le workspace (LIST_RUNNING_INGESTS.KO=Échec de l'établissement de la liste des processus d'entrée en cours)
+    - KO : la liste des entrées en cours n'a pas pu être récupéré, ou alors la liste des entrées n'a pas pu être enregistrée sur le workspace (LIST_RUNNING_INGESTS.KO=Échec de l'établissement de la liste des processus d'entrée en cours)
 
     - FATAL : une erreur technique est survenue lors du listage des entrées  (LIST_RUNNING_INGESTS.FATAL=Erreur fatale lors de l'établissement de la liste des processus d'entrée en cours)
 
