@@ -26,119 +26,40 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api.model;
 
+import java.util.Objects;
+
 /**
- * ObjectGroupPerOriginatingAgency class describing ObjectGroup
+ * Used as key map
  */
-public class ObjectGroupPerOriginatingAgency {
-
-    private String operation;
-
-    private boolean symbolic;
+public class Symbolic {
 
     private String agency;
-
-    private long numberOfObject;
-
-    private long numberOfGOT;
-
-    private long size;
-
+    private boolean symbolic;
 
     /**
      * Constructor
-     */
-    public ObjectGroupPerOriginatingAgency() {
-        // empty constructor
-    }
-
-    /**
-     * Constructor
-     * @param operation operation id
-     * @param symbolic is agency symbolic or not
      * @param agency originating agency
-     * @param numberOfObject total of objects in the objects groups
-     * @param numberOfGOT total of objects groups
-     * @param size size of al objects
+     * @param symbolic true symbolic agency
      */
-    public ObjectGroupPerOriginatingAgency(String operation, boolean symbolic, String agency, long numberOfObject, long numberOfGOT,
-        long size) {
-        this.operation = operation;
+    public Symbolic(String agency, boolean symbolic) {
         this.agency = agency;
-        this.numberOfObject = numberOfObject;
-        this.numberOfGOT = numberOfGOT;
-        this.size = size;
         this.symbolic = symbolic;
     }
 
-
     /**
      * Getter
-     * @return operation id
+     * @return agency
      */
-    public String getOperation() {
-        return operation;
+    public String getAgency() {
+        return agency;
     }
 
     /**
      * Setter
-     * @param operation
+     * @param agency
      */
-    public void setOperation(String operation) {
-        this.operation = operation;
-    }
-
-    /**
-     * getNumberOfObject
-     *
-     * @return numberOfObject
-     */
-    public long getNumberOfObject() {
-        return numberOfObject;
-    }
-
-    /**
-     * setNumberOfObject
-     *
-     * @param numberOfObject
-     */
-    public void setNumberOfObject(long numberOfObject) {
-        this.numberOfObject = numberOfObject;
-    }
-
-    /**
-     * getNumberOfGOT
-     *
-     * @return numberOfGOT
-     */
-    public long getNumberOfGOT() {
-        return numberOfGOT;
-    }
-
-    /**
-     * setNumberOfGOT
-     *
-     * @param numberOfGOT
-     */
-    public void setNumberOfGOT(long numberOfGOT) {
-        this.numberOfGOT = numberOfGOT;
-    }
-
-    /**
-     * getSize
-     *
-     * @return size
-     */
-    public long getSize() {
-        return size;
-    }
-
-    /**
-     * setSize
-     *
-     * @param size
-     */
-    public void setSize(long size) {
-        this.size = size;
+    public void setAgency(String agency) {
+        this.agency = agency;
     }
 
     /**
@@ -157,19 +78,18 @@ public class ObjectGroupPerOriginatingAgency {
         this.symbolic = symbolic;
     }
 
-    /**
-     * Getter
-     * @return agency
-     */
-    public String getAgency() {
-        return agency;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Symbolic) {
+            Symbolic ss = (Symbolic) obj;
+            return Objects.equals(symbolic, ss.symbolic) && Objects.equals(agency, ss.agency);
+        }
+
+        return false;
     }
 
-    /**
-     * Setter
-     * @param agency
-     */
-    public void setAgency(String agency) {
-        this.agency = agency;
+    @Override
+    public int hashCode() {
+        return Objects.hash(agency, symbolic);
     }
 }

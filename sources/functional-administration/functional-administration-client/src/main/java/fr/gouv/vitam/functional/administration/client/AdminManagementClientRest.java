@@ -38,7 +38,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -502,7 +501,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
-        throws DatabaseConflictException, AccessionRegisterException, AdminManagementClientServerException {
+        throws AccessionRegisterException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
         Response response = null;
         try {
@@ -514,6 +513,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case CREATED:
                     LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
                     break;
+                case CONFLICT:
+                    // When Accession Register detail already exists
+                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    break;
+
                 case PRECONDITION_FAILED:
                     LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
                     throw new AccessionRegisterException("File format error");
@@ -663,12 +667,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     private AccessionRegisterDetail mappingDetailModelToDetail(AccessionRegisterDetailModel model) {
+        ParametersChecker.checkParameter("Parameter identifier is required", model.getIdentifier());
+        ParametersChecker.checkParameter("Parameter originatingAgency is required", model.getOriginatingAgency());
         AccessionRegisterDetail accessionRegisterDetail = new AccessionRegisterDetail();
         RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel();
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
         RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
-        accessionRegisterDetail.setId(model.getId()).setOriginatingAgency(model.getOriginatingAgency())
+        accessionRegisterDetail.setId(model.getId())
+            .setOriginatingAgency(model.getOriginatingAgency())
+            .setIdentifier(model.getIdentifier())
+            .setOperationGroup(model.getOperationGroup())
             .setSubmissionAgency(model.getSubmissionAgency())
             .setArchivalAgreement(model.getArchivalAgreement()).setEndDate(model.getEndDate())
             .setStartDate(model.getStartDate())
@@ -1581,7 +1590,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    @Override public RequestResponse<OntologyModel> findOntologies(JsonNode query) throws InvalidParseOperationException, AdminManagementClientServerException {
+    @Override public RequestResponse<OntologyModel> findOntologies(JsonNode query)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", query);
         Response response = null;
         try {

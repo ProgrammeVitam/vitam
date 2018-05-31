@@ -48,11 +48,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -76,6 +72,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
 
 public class MetaDataClientRestTest extends VitamJerseyTest {
     protected MetaDataClientRest client;
@@ -520,8 +518,12 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         // Given
         RequestResponseOK<ObjectGroupPerOriginatingAgency> requestResponseOK =
             new RequestResponseOK<>();
-        requestResponseOK.addResult(new ObjectGroupPerOriginatingAgency("sp1", 3, 2, 2000));
-        requestResponseOK.addResult(new ObjectGroupPerOriginatingAgency("sp2", 4, 1, 3400));
+        requestResponseOK.addResult(
+            new ObjectGroupPerOriginatingAgency("op1", false, "sp1", 3, 2,
+                2000));
+        requestResponseOK.addResult(
+            new ObjectGroupPerOriginatingAgency("op1", true, "sp2", 4, 1,
+                3400));
 
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(JsonHandler.writeAsString(requestResponseOK)).build());
@@ -532,8 +534,9 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
 
         // Then
         assertThat(unitPerOriginatingAgencies).hasSize(2)
-            .extracting("originatingAgency", "numberOfObject", "numberOfGOT", "size")
-            .contains(tuple("sp1", 3L, 2L, 2000L), tuple("sp2", 4L, 1L, 3400L));
+            .extracting("operation", "symbolic", "agency", "numberOfObject", "numberOfGOT",
+                "size")
+            .contains(tuple("op1", false, "sp1", 3L, 2L, 2000L), tuple("op1", true, "sp2", 4L, 1L, 3400L));
     }
 
     @Test

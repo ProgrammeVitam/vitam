@@ -30,7 +30,6 @@ package fr.gouv.vitam.metadata.core;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPI;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
 
@@ -46,8 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -55,7 +52,6 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
@@ -90,12 +86,15 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.Symbolic;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
+import org.bson.Document;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -106,6 +105,16 @@ public class MetaDataImpl implements MetaData {
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
+    public static final String ORIGINATING_AGENCY = "originatingAgency";
+    public static final String OPI = "opi";
+    public static final String QUALIFIER_VERSION_OPI = "qualifierVersionOpi";
+    public static final String TOTAL_SIZE = "totalSize";
+    public static final String TOTAL_OBJECT = "totalObject";
+    public static final String LIST_GOT = "listGOT";
+    public static final String TOTAL_GOT = "totalGOT";
+    public static final String COUNT = "count";
+    public static final String SP = "sp";
+    public static final String SYMBOLIC = "symbolic";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
 
     /**
@@ -163,14 +172,16 @@ public class MetaDataImpl implements MetaData {
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
         AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
-            new Document("$match", new Document("$and", Arrays.asList(new Document(OPI, operationId),
+            new Document("$match", new Document("$and", Arrays.asList(new Document(MetadataDocument.OPI, operationId),
                 new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
             new Document("$unwind", "$" + ORIGINATING_AGENCIES),
             new Document("$group",
-                new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))),
+                new Document(ID, "$" + ORIGINATING_AGENCIES).append(COUNT, new Document("$sum", 1)))),
             Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
+
+
 
     @Override
     public List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId) {
@@ -180,15 +191,86 @@ public class MetaDataImpl implements MetaData {
                 new Document("$unwind", "$" + QUALIFIERS),
                 new Document("$unwind", "$" + QUALIFIERS + ".versions"),
                 new Document("$unwind", "$" + ORIGINATING_AGENCIES),
-                new Document("$match", new Document(QUALIFIERS + ".versions._opi", operationId)),
-                new Document("$group", new Document(ID, "$" + ORIGINATING_AGENCIES)
-                    .append("totalSize", new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
-                    .append("totalObject", new Document("$sum", 1))
-                    .append("listGOT", new Document("$addToSet", "$_id"))),
-                new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)
-                    .append("totalGOT", new Document("$size", "$listGOT")))),
+                new Document("$group",
+                    new Document(ID,
+                        new Document(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCIES)
+                            .append(OPI, "$" + MetadataDocument.OPI)
+                            .append(SP, "$" + MetadataDocument.ORIGINATING_AGENCY)
+                            .append(QUALIFIER_VERSION_OPI, "$" + QUALIFIERS + ".versions._opi"))
+                        .append(TOTAL_SIZE, new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
+                        .append(TOTAL_OBJECT, new Document("$sum", 1))
+                        .append(LIST_GOT, new Document("$addToSet", "$_id"))),
+                new Document("$project",
+                    new Document(ID, 1)
+                        .append(TOTAL_SIZE, 1)
+                        .append(TOTAL_OBJECT, 1)
+                        .append(TOTAL_GOT, new Document("$size", "$listGOT")))
+                ),
                 Document.class);
-        return Lists.newArrayList(aggregate.iterator());
+
+
+
+        List<Document> documents = Lists.newArrayList(aggregate.iterator());
+
+        Map<String, Map<Symbolic, Document>> map = new HashMap<>();
+
+        for (Document doc : documents) {
+
+            Document id = doc.get(ID, Document.class);
+
+
+            String opi = id.getString(MetaDataImpl.OPI);
+            String _sp = id.getString(MetaDataImpl.SP);
+            String qualifierVersionOpi = id.getString(MetaDataImpl.QUALIFIER_VERSION_OPI);
+            String agency = id.getString(MetaDataImpl.ORIGINATING_AGENCY);
+
+
+            doc.put(QUALIFIER_VERSION_OPI, qualifierVersionOpi);
+            doc.put(ORIGINATING_AGENCY, agency);
+            // Count only object but not GOTs
+            if (!opi.equals(qualifierVersionOpi)) {
+                doc.put(MetaDataImpl.TOTAL_GOT, 0l);
+            }
+
+            boolean symbolic = false;
+            if (!_sp.equals(agency)) {
+                symbolic = true;
+            }
+            doc.put(MetaDataImpl.SYMBOLIC, symbolic);
+
+
+            Map<Symbolic, Document> subMap =
+                map.getOrDefault(qualifierVersionOpi, new HashMap<>());
+
+            if (subMap.isEmpty()) {
+                map.put(qualifierVersionOpi, subMap);
+            }
+
+            Symbolic key = new Symbolic(agency, symbolic);
+            Document ino = subMap.get(key);
+            if (null == ino) {
+                subMap.put(key, doc);
+            } else {
+                // After un-count GOT where opi != qualifierVersionOpi
+                // Sum all ObjectGroupPerOriginatingAgency of the same agency
+                Number totalGOT_doc = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
+                Number totalGOT_ino = ino.get(MetaDataImpl.TOTAL_GOT, Number.class);
+
+                Number totalObject_doc = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
+                Number totalObject_ino = ino.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
+
+                Number totalSize_doc = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
+                Number totalSize_ino = ino.get(MetaDataImpl.TOTAL_SIZE, Number.class);
+
+                ino.put(MetaDataImpl.TOTAL_GOT, totalGOT_doc.longValue() + totalGOT_ino.longValue());
+                ino.put(MetaDataImpl.TOTAL_OBJECT, totalObject_doc.longValue() + totalObject_ino.longValue());
+                ino.put(MetaDataImpl.TOTAL_SIZE, totalSize_doc.longValue() + totalSize_ino.longValue());
+            }
+
+            doc.remove(ID);
+        }
+
+        return documents;
     }
 
     @Override

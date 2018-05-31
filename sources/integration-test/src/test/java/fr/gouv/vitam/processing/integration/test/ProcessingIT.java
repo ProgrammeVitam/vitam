@@ -59,18 +59,6 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -83,7 +71,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
-
+import com.mongodb.client.model.IndexOptions;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -183,6 +171,16 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Processing integration test
@@ -421,6 +419,15 @@ public class ProcessingIT {
 
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
+
+        // Ensure index unique
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
+            .createIndex(new Document("OriginatingAgency", 1).append("Identifier", 1).append("_tenant", 1),
+                new IndexOptions().unique(true));
+
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+            .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
+
 
     }
 
@@ -799,6 +806,8 @@ public class ProcessingIT {
             logbookClient.update(newLogbookOperationParameters);
 
             AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
+            register.setIdentifier("Identifier");
+            register.setOperationGroup("OP_GROUP");
             register.setOriginatingAgency("Vitam");
             register.setTotalObjects(new RegisterValueDetailModel(1, 0, 0));
             register.setTotalObjectsGroups(new RegisterValueDetailModel(1, 0, 0));

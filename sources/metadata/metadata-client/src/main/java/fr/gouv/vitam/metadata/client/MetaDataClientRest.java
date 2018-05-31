@@ -413,17 +413,13 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                     MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
 
-            RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
+            RequestResponse<ObjectGroupPerOriginatingAgency> requestResponse =
+                RequestResponse.parseFromResponse(response, ObjectGroupPerOriginatingAgency.class);
             if (requestResponse.isOk()) {
-                RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+                RequestResponseOK<ObjectGroupPerOriginatingAgency> requestResponseOK =
+                    (RequestResponseOK<ObjectGroupPerOriginatingAgency>) requestResponse;
 
-                List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies = new ArrayList<>();
-                for (JsonNode jsonNode : requestResponseOK.getResults()) {
-                    objectGroupPerOriginatingAgencies
-                        .add(JsonHandler.getFromJsonNode(jsonNode, ObjectGroupPerOriginatingAgency.class));
-                }
-
-                return objectGroupPerOriginatingAgencies;
+                return requestResponseOK.getResults();
             } else {
                 VitamError vitamError = (VitamError) requestResponse;
                 LOGGER
@@ -433,7 +429,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataClientServerException(vitamError.getDescription());
             }
 
-        } catch (VitamClientInternalException | InvalidParseOperationException e) {
+        } catch (VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {

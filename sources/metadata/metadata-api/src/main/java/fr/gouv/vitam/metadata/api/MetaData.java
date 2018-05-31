@@ -28,11 +28,7 @@ package fr.gouv.vitam.metadata.api;
 
 import java.util.List;
 
-import fr.gouv.vitam.common.exception.VitamDBException;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
@@ -40,12 +36,14 @@ import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import org.bson.Document;
 
 /**
  * MetaData interface for database operations
@@ -78,6 +76,7 @@ public interface MetaData {
      * @return the list of documents
      */
     List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
+
 
     /**
      * Search UNITs by Select {@link Select}Query

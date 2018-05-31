@@ -28,19 +28,21 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -48,15 +50,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -131,113 +130,16 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 LOGGER.debug("Params: " + params);
             }
 
-            // operation id
-            String operationId = params.getContainerName();
 
-            List<UnitPerOriginatingAgency> agencies =
-                metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId);
-
-            if (agencies == null || agencies.isEmpty()) {
-                return itemStatus.increment(StatusCode.OK);
-            }
-
-            List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies =
-                metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId);
-
-            ImmutableMap<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencyImmutableMap =
-                Maps.uniqueIndex(objectGroupPerOriginatingAgencies,
-                    ObjectGroupPerOriginatingAgency::getOriginatingAgency);
-            ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
-            ArrayNode arrayInformation = JsonHandler.createArrayNode();
-            for (UnitPerOriginatingAgency agency : agencies) {
-                final AccessionRegisterDetailModel register = generateAccessionRegister(params,
-                    objectGroupPerOriginatingAgencyImmutableMap
-                        .getOrDefault(agency.getId(), new ObjectGroupPerOriginatingAgency()),
-                    agency, tenantId);
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
-                        register.getOriginatingAgency());
-                }
-                VitamThreadUtils.getVitamSession().setContractId(VitamConstants.EVERY_ORIGINATING_AGENCY);
-                try {
-                    RequestResponse<JsonNode> response =
-                        adminClient.getAccessionRegisterDetailRaw(operationId, agency.getId());
-                    if (response.isOk()) {
-                        RequestResponseOK<JsonNode> responseOK =
-                            (RequestResponseOK<JsonNode>) response;
-                        if (responseOK.getResults().size() > 0) {
-                            LOGGER.warn(String.format(
-                                "Step already executed, this is a replayed step for this operation : %s .",
-                                operationId));
-                            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-                            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-                        }
-                    } else {
-                        LOGGER.warn(String.format(
-                            "Couldnt check accession register for this operation : %s . Lets continue anyways.",
-                            operationId));
-                    }
-                } catch (VitamClientException e) {
-                    LOGGER.warn(String.format(
-                        "Couldnt check accession register for this operation : %s . Lets continue anyways.",
-                        operationId));
-                }
-
-                // ugly hack > using raw and non raw method
-                ObjectNode jsonNodeRegister = (ObjectNode) JsonHandler.toJsonNode(register);
-                jsonNodeRegister.put("_id", register.getId());
-                jsonNodeRegister.put("_tenant", tenantId);
-                jsonNodeRegister.put("_v", 0);
-                jsonNodeRegister.remove("#id");
-                arrayInformation.addPOJO(jsonNodeRegister);
-                adminClient.createorUpdateAccessionRegister(register);
-            }
-
-            if (arrayInformation.size() > 0) {
-                evDetDataInformation.set(VOLUMETRY, arrayInformation);
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
-            }
-
-            itemStatus.increment(StatusCode.OK);
-        } catch (ProcessingException | AdminManagementClientServerException e) {
-            LOGGER.error("Inputs/outputs are not correct", e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Can not parse register", e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (AccessionRegisterException | DatabaseConflictException e) {
-            LOGGER.error("Can not create func register", e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (MetaDataClientServerException e) {
-            LOGGER.error("unable to call metadata Client", e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-
-        LOGGER.debug("TransferNotificationActionHandler response: " + itemStatus.getGlobalStatus());
-        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-    }
-
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
-            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
-        }
-    }
-
-    private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params,
-        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, UnitPerOriginatingAgency agency, int tenantId)
-        throws ProcessingException {
-        try {
+            String originatingAgency;
+            String submissionAgency = null;
+            String acquisitionInformation = null;
+            String legalStatus = null;
+            String archivalAgreement = null;
 
             final JsonNode sedaParameters =
                 JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
                     .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-            String originalAgency = agency.getId();
-            String submissionAgency;
-            String archivalAgreement = "ArchivalAgreementUnknow";
-            String acquisitionInformation = null, legalStatus = null;
-
-            boolean symbolic;
 
             if (sedaParameters != null) {
                 final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
@@ -246,13 +148,11 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                     final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                     if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
                         submissionAgency = nodeSubmission.asText();
-                    } else {
-                        submissionAgency = originalAgency;
                     }
 
                     final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                     if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
-                        symbolic = !nodeOrigin.asText().equals(originalAgency);
+                        originatingAgency = nodeOrigin.asText();
                     } else {
                         throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
                     }
@@ -282,48 +182,257 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 throw new ProcessingException("No ArchiveTransfer found");
             }
 
-            // TODO P0 get size manifest.xml in local
-            // TODO P0 extract this information from first parsing
-            return mapParamsToAccessionRegisterDetailModel(params,
-                originalAgency, submissionAgency, archivalAgreement, acquisitionInformation, legalStatus, agency,
-                objectGroupPerOriginatingAgency, tenantId, symbolic);
-        } catch (InvalidParseOperationException e) {
+
+            // Operation id
+            String ingestOperationId = params.getContainerName();
+
+
+            List<ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencies =
+                metaDataClient.selectAccessionRegisterOnObjectByOperationId(ingestOperationId);
+
+            Map<String, Map<String, Map<Boolean, ObjectGroupPerOriginatingAgency>>> map = new HashMap<>();
+
+            if (objectGroupPerOriginatingAgencies == null || objectGroupPerOriginatingAgencies.isEmpty()) {
+                map.put(ingestOperationId, new HashMap<>());
+            } else {
+
+                for (ObjectGroupPerOriginatingAgency o : objectGroupPerOriginatingAgencies) {
+                    String qualifierVersionOpi = o.getOperation();
+                    String agency = o.getAgency();
+                    Boolean symbolic = o.isSymbolic();
+
+
+                    // For the current qualifierVersionOpi create a subMap of agency:ObjectGroupPerOriginatingAgency
+                    Map<String, Map<Boolean, ObjectGroupPerOriginatingAgency>> opMap =
+                        map.getOrDefault(qualifierVersionOpi, new HashMap<>());
+
+                    if (opMap.isEmpty()) {
+                        map.put(qualifierVersionOpi, opMap);
+                    }
+
+                    Map<Boolean, ObjectGroupPerOriginatingAgency> agencyMap =
+                        opMap.getOrDefault(qualifierVersionOpi, new HashMap<>());
+
+                    if (agencyMap.isEmpty()) {
+                        opMap.put(agency, agencyMap);
+                    }
+
+                    // We are in the context of ObjectGroupPerOriginatingAgency of qualifierVersionOpi
+                    ObjectGroupPerOriginatingAgency ino = agencyMap.get(symbolic);
+                    if (null == ino) {
+                        agencyMap.put(symbolic, o);
+                    } else {
+                        // After un-count GOT where opi != qualifierVersionOpi
+                        // Sum all ObjectGroupPerOriginatingAgency of the same agency
+                        ino.setNumberOfGOT(ino.getNumberOfGOT() + o.getNumberOfGOT());
+                        ino.setNumberOfObject(ino.getNumberOfObject() + o.getNumberOfObject());
+                        ino.setSize(ino.getSize() + o.getSize());
+                    }
+                }
+            }
+
+
+            Set<String> allConcernedOperationSet = new HashSet<>(map.keySet());
+            allConcernedOperationSet.remove(ingestOperationId);
+            // Start by the current operation
+            List<String> allConcernedOperations = new ArrayList<>();
+            allConcernedOperations.add(ingestOperationId);
+            allConcernedOperations.addAll(allConcernedOperationSet);
+
+
+            List<UnitPerOriginatingAgency> unitPerOriginatingAgencies =
+                metaDataClient.selectAccessionRegisterOnUnitByOperationId(ingestOperationId);
+            if (unitPerOriginatingAgencies == null) {
+                unitPerOriginatingAgencies = new ArrayList<>();
+            }
+
+
+            ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
+            ArrayNode arrayInformation = JsonHandler.createArrayNode();
+            boolean alreadyExecuted = false;
+            boolean mayBeRestartAfterFatal = false;
+            for (String currentOperation : allConcernedOperations) {
+
+
+                Map<String, UnitPerOriginatingAgency> unitPerOriginatingAgenciesMap = new HashMap<>();
+
+                if (currentOperation.equals(ingestOperationId)) {
+                    for (UnitPerOriginatingAgency o : unitPerOriginatingAgencies) {
+                        unitPerOriginatingAgenciesMap.put(o.getId(), o);
+                    }
+                }
+
+                Map<String, Map<Boolean, ObjectGroupPerOriginatingAgency>> objectGroupPerOriginatingAgenciesMap =
+                    map.getOrDefault(currentOperation, new HashMap<>());
+
+
+                if (unitPerOriginatingAgenciesMap.isEmpty() && objectGroupPerOriginatingAgenciesMap.isEmpty()) {
+                    return itemStatus.increment(StatusCode.OK);
+                }
+
+                Set<String> agencies = Stream.concat(unitPerOriginatingAgenciesMap.keySet().stream(),
+                    objectGroupPerOriginatingAgenciesMap.keySet().stream()).collect(
+                    Collectors.toSet());
+
+
+                for (String agency : agencies) {
+                    final AccessionRegisterDetailModel register = generateAccessionRegister(params,
+                        ingestOperationId, currentOperation,
+                        objectGroupPerOriginatingAgenciesMap
+                            .getOrDefault(agency, new HashMap<>()),
+                        unitPerOriginatingAgenciesMap.getOrDefault(agency, new UnitPerOriginatingAgency(agency, 0)),
+                        originatingAgency,
+                        submissionAgency,
+                        acquisitionInformation,
+                        legalStatus,
+                        archivalAgreement,
+                        tenantId);
+
+                    if (null == register) {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug(
+                                "All count equals to 0 => register not created for Originating Agency: " + agency);
+                        }
+                        continue;
+                    }
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
+                            register.getOriginatingAgency());
+                    }
+
+                    // ugly hack > using raw and non raw method
+                    ObjectNode jsonNodeRegister = (ObjectNode) JsonHandler.toJsonNode(register);
+                    jsonNodeRegister.put("_id", register.getId());
+                    jsonNodeRegister.put("_tenant", tenantId);
+                    jsonNodeRegister.put("_v", 0);
+                    jsonNodeRegister.remove("#id");
+                    RequestResponse<AccessionRegisterDetailModel> resp =
+                        adminClient.createorUpdateAccessionRegister(register);
+
+                    // If already exists in database
+                    if (resp.getStatus() == javax.ws.rs.core.Response.Status.CONFLICT.getStatusCode()) {
+                        // If the current ingest operation and the accession register detail already exists, then already executed
+                        if (currentOperation.equals(ingestOperationId)) {
+                            LOGGER.warn(String.format(
+                                "Step already executed, this is a replayed step for this operation : %s .",
+                                currentOperation));
+                            alreadyExecuted = true;
+                        }
+                    } else {
+                        if (currentOperation.equals(ingestOperationId)) {
+                            // In case where 2 agency (we created detail for one, then fatal occus
+                            // for the second because of database issue.
+                            // after restart step, the first one will be conflict, the second will be created.
+                            // We should not consider the step as already executed
+                            mayBeRestartAfterFatal = true;
+                        }
+                        // For reconstruction, add only created one, ignore conflict one
+                        arrayInformation.addPOJO(jsonNodeRegister);
+                    }
+                }
+            }
+            if (alreadyExecuted && !mayBeRestartAfterFatal) {
+                // Only if all originating agency
+                itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+            } else {
+
+                if (arrayInformation.size() > 0) {
+                    evDetDataInformation.set(VOLUMETRY, arrayInformation);
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
+                }
+                itemStatus.increment(StatusCode.OK);
+            }
+        } catch (ProcessingException | AdminManagementClientServerException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
-            throw new ProcessingException(e);
+            itemStatus.increment(StatusCode.KO);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Can not parse register", e);
+            itemStatus.increment(StatusCode.KO);
+        } catch (AccessionRegisterException | DatabaseConflictException e) {
+            LOGGER.error("Can not create func register", e);
+            itemStatus.increment(StatusCode.KO);
+        } catch (MetaDataClientServerException e) {
+            LOGGER.error("unable to call metadata Client", e);
+            itemStatus.increment(StatusCode.FATAL);
+        }
+
+        LOGGER.debug("TransferNotificationActionHandler response: " + itemStatus.getGlobalStatus());
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
+            throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
 
-    private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
-        String originalAgency, String submissionAgency, String archivalAgreement, String acquisitionInformation,
-        String legalStatus, UnitPerOriginatingAgency agency,
-        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId, boolean symbolic) {
+    private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params,
+        String ingestOperation, String currentOperation,
+        Map<Boolean, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgency,
+        UnitPerOriginatingAgency unitPerOriginatingAgency,
+        String originatingAgency,
+        String submissionAgency,
+        String acquisitionInformation,
+        String legalStatus,
+        String archivalAgreement,
+        int tenantId) {
+
+        String unitAgency = unitPerOriginatingAgency.getId();
+
+        boolean symbolicUnit = !originatingAgency.equals(unitAgency);
+
+        if (Strings.isNullOrEmpty(submissionAgency)) {
+            submissionAgency = unitAgency;
+        }
+
+        // TODO P0 get size manifest.xml in local
+        // TODO P0 extract this information from first parsing
+
 
         RegisterValueDetailModel totalObjectsGroups, totalUnits, totalObjects, objectSize;
 
-        if (!symbolic) {
-            totalObjectsGroups =
-                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(), 0,
-                    objectGroupPerOriginatingAgency.getNumberOfGOT());
-            totalUnits =
-                new RegisterValueDetailModel(agency.getCount(), 0, agency.getCount());
-            totalObjects =
-                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(), 0,
-                    objectGroupPerOriginatingAgency.getNumberOfObject());
-            objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(), 0,
-                objectGroupPerOriginatingAgency.getSize());
-        } else {
-            totalObjectsGroups =
-                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(),
-                    objectGroupPerOriginatingAgency.getNumberOfGOT(), 0, true);
-            totalUnits =
-                new RegisterValueDetailModel(agency.getCount(),
-                    agency.getCount(), 0, true);
-            totalObjects =
-                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(),
-                    objectGroupPerOriginatingAgency.getNumberOfObject(), 0, true);
-            objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(),
-                objectGroupPerOriginatingAgency.getSize(), 0, true);
+        int unitCount = unitPerOriginatingAgency.getCount();
+
+
+        ObjectGroupPerOriginatingAgency symbolicGots =
+            objectGroupPerOriginatingAgency.getOrDefault(Boolean.TRUE, new ObjectGroupPerOriginatingAgency());
+        ObjectGroupPerOriginatingAgency notSymbolicGots =
+            objectGroupPerOriginatingAgency.getOrDefault(Boolean.FALSE, new ObjectGroupPerOriginatingAgency());
+
+
+        long nbGot_symbolic = symbolicGots.getNumberOfGOT();
+        long nbObject_symbolic = symbolicGots.getNumberOfObject();
+        long size_symbolic = symbolicGots.getSize();
+
+        long nbGot_not_symbolic = notSymbolicGots.getNumberOfGOT();
+        long nbObject_not_symbolic = notSymbolicGots.getNumberOfObject();
+        long size_not_symbolic = notSymbolicGots.getSize();
+
+
+        if (0 == unitCount &&
+            0l == nbGot_symbolic &&
+            0l == nbObject_symbolic &&
+            0l == size_symbolic &&
+            0l == nbGot_not_symbolic &&
+            0l == nbObject_not_symbolic &&
+            0l == size_not_symbolic) {
+            // Do not create accession register detail
+            return null;
         }
+
+        if (!symbolicUnit) {
+            totalUnits = new RegisterValueDetailModel(unitCount, 0, unitCount);
+        } else {
+            totalUnits = new RegisterValueDetailModel(unitCount, unitCount, 0, true);
+        }
+
+
+        totalObjectsGroups = new RegisterValueDetailModel(nbGot_not_symbolic, nbGot_symbolic);
+        totalObjects = new RegisterValueDetailModel(nbObject_not_symbolic, nbObject_symbolic);
+        objectSize = new RegisterValueDetailModel(size_not_symbolic, size_symbolic);
+
 
         String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
@@ -331,7 +440,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
         return new AccessionRegisterDetailModel()
             .setId(guid.toString())
-            .setOriginatingAgency(originalAgency)
+            .setIdentifier(currentOperation)
+            .setOriginatingAgency(unitAgency)
             .setSubmissionAgency(submissionAgency)
             .setArchivalAgreement(archivalAgreement)
             .setAcquisitionInformation(acquisitionInformation)
@@ -344,7 +454,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setTotalUnits(totalUnits)
             .setTotalObjects(totalObjects)
             .setObjectSize(objectSize)
-            .setSymbolic(symbolic)
+            .setSymbolic(symbolicUnit)
+            .setOperationGroup(ingestOperation)
             .addOperationsId(params.getContainerName());
     }
 

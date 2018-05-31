@@ -84,7 +84,6 @@ public class AccessionRegisterDetailModel {
 
     /**
      * Legal Status
-
      */
     @JsonProperty("LegalStatus")
     private String LegalStatus;
@@ -136,6 +135,20 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty("ObjectSize")
     private RegisterValueDetailModel ObjectSize;
+
+
+    /**
+     * Identifier or creation of the accessionRegisterDetail
+     */
+    @JsonProperty("Identifier")
+    private String identifier;
+
+
+    /**
+     * Operation that created a group of accession register. Should be in operationsIds
+     */
+    @JsonProperty("OperationGroup")
+    private String operationGroup;
 
     /**
      * Linked ingest operation id
@@ -278,9 +291,9 @@ public class AccessionRegisterDetailModel {
     /**
      * set LegalStatus
      */
-    public AccessionRegisterDetailModel  setLegalStatus(String legalStatus) {
+    public AccessionRegisterDetailModel setLegalStatus(String legalStatus) {
         LegalStatus = legalStatus;
-        return  this;
+        return this;
     }
 
     /**
@@ -408,6 +421,46 @@ public class AccessionRegisterDetailModel {
      */
     public AccessionRegisterDetailModel setObjectSize(RegisterValueDetailModel objectSize) {
         ObjectSize = objectSize;
+        return this;
+    }
+
+
+    /**
+     * Get identifier
+     *
+     * @return identifier
+     */
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * Set identifier
+     *
+     * @param identifier
+     */
+    public AccessionRegisterDetailModel setIdentifier(String identifier) {
+        this.identifier = identifier;
+        return this;
+    }
+
+    /**
+     * Get the operation group
+     *
+     * @return operationGroup
+     */
+    public String getOperationGroup() {
+        return operationGroup;
+    }
+
+
+    /**
+     * Set the operation group
+     *
+     * @param operationGroup
+     */
+    public AccessionRegisterDetailModel setOperationGroup(String operationGroup) {
+        this.operationGroup = operationGroup;
         return this;
     }
 

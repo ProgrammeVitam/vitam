@@ -30,7 +30,6 @@ package fr.gouv.vitam.metadata.client;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;

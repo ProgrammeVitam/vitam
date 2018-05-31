@@ -51,16 +51,29 @@ public class RegisterValueDetailModel {
 
     /**
      * Constructor without fields
-     * 
+     *
      * use for jackson
      */
-    public RegisterValueDetailModel() {}
+    public RegisterValueDetailModel() {
+    }
+
+
+    /**
+     * @param ingested
+     * @param attached
+     */
+    public RegisterValueDetailModel(long ingested, long attached) {
+        this.ingested = ingested;
+        this.remained = ingested - getDeleted();
+        this.attached = attached;
+        this.symbolicRemained = attached - getDetached();
+    }
 
     /**
      * Constructor using fields
-     * 
+     *
      * @param ingested number of objects
-     * @param deleted number of deleted object
+     * @param deleted  number of deleted object
      * @param remained number of remaining object
      */
     public RegisterValueDetailModel(long ingested, long deleted, long remained) {
@@ -71,15 +84,14 @@ public class RegisterValueDetailModel {
 
     /**
      * Constructor using fields
-     * 
-     * @param total number of objects
-     * @param deleted number of deleted object
-     * @param remained number of remaining object
+     *
+     * @param total         number of objects
+     * @param deleted       number of deleted object
+     * @param remained      number of remaining object
      * @param totalSymbolic number of symbolic object
-     * @param attached number of attached object
-     * @param detached number of detached object
-     * @param symbolic if the register is symbolic
-     * 
+     * @param attached      number of attached object
+     * @param detached      number of detached object
+     * @param symbolic      if the register is symbolic
      */
     public RegisterValueDetailModel(long totalSymbolic, long attached, long detached, boolean symbolic) {
         if (symbolic) {
@@ -90,7 +102,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @return ingested
      */
     public long getIngested() {
@@ -98,7 +109,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @param ingested value to set field
      * @return this
      */
@@ -108,7 +118,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @return deleted value to set field
      */
     public long getDeleted() {
@@ -116,7 +125,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @param deleted value to set field
      * @return this
      */
@@ -126,7 +134,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @return remained
      */
     public long getRemained() {
@@ -134,7 +141,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @param remained value to set field
      * @return this
      */
@@ -144,7 +150,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @return attached
      */
     public long getAttached() {
@@ -152,7 +157,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @param attached value to set field
      * @return this
      */
@@ -162,7 +166,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @return detached
      */
     public long getDetached() {
@@ -170,7 +173,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @param detached value to set field
      * @return this
      */
@@ -180,7 +182,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @return symbolicRemained
      */
     public long getSymbolicRemained() {
@@ -188,7 +189,6 @@ public class RegisterValueDetailModel {
     }
 
     /**
-     * 
      * @param symbolicRemained value to set field
      * @return this
      */

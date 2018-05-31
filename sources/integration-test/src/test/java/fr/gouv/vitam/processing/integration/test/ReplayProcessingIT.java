@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.mongodb.client.model.IndexOptions;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -90,6 +91,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -118,6 +120,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -272,6 +275,13 @@ public class ReplayProcessingIT {
 
         AdminManagementClientFactory
             .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+        // Ensure index unique
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
+            .createIndex(new Document("OriginatingAgency", 1).append("Identifier", 1).append("_tenant", 1),
+                new IndexOptions().unique(true));
+
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+            .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
     }
 
     @AfterClass

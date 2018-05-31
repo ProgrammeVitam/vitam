@@ -31,7 +31,6 @@ import static fr.gouv.vitam.functional.administration.common.server.FunctionalAd
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
-
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
@@ -82,10 +81,11 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
             registerDetail.getOriginatingAgency());
-        // store accession register detail
+        // Store accession register detail
         try {
             mongoAccess.insertDocument(JsonHandler.toJsonNode(registerDetail),
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
+
         } catch (final InvalidParseOperationException | SchemaValidationException e) {
             LOGGER.info("Create register detail Error", e);
             throw new ReferentialException(e);

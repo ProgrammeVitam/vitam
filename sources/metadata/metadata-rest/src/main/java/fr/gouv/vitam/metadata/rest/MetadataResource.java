@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -39,12 +41,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.exception.VitamDBException;
-import org.bson.Document;
-import org.elasticsearch.ElasticsearchParseException;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -55,6 +52,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -70,6 +68,8 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import org.bson.Document;
+import org.elasticsearch.ElasticsearchParseException;
 
 /**
  * Units resource REST API
@@ -399,7 +399,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * @param selectRequest the select request in JsonNode format
-     * @param unitId the unit id to get
+     * @param unitId        the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -414,7 +414,7 @@ public class MetadataResource extends ApplicationStatusResource {
      * Update unit by query and path parameter unit_id
      *
      * @param updateRequest the update request
-     * @param unitId the id of unit to be update
+     * @param unitId        the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -791,8 +791,8 @@ public class MetadataResource extends ApplicationStatusResource {
         responseOK.setHttpCode(Status.OK.getStatusCode());
         for (Document doc : documents) {
             UnitPerOriginatingAgency upoa = new UnitPerOriginatingAgency();
-            upoa.setId(doc.getString("_id"));
-            upoa.setCount(doc.getInteger("count"));
+            upoa.setId(doc.getString(ID));
+            upoa.setCount(doc.getInteger(MetaDataImpl.COUNT));
             responseOK.addResult(upoa);
         }
 
@@ -808,19 +808,23 @@ public class MetadataResource extends ApplicationStatusResource {
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());
         for (Document doc : documents) {
-            ObjectGroupPerOriginatingAgency ogpoa = new ObjectGroupPerOriginatingAgency();
-            ogpoa.setOriginatingAgency(doc.getString("_id"));
+            ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency = new ObjectGroupPerOriginatingAgency();
 
-            Number totalGOT = doc.get("totalGOT", Number.class);
-            ogpoa.setNumberOfGOT(totalGOT.longValue());
+            objectGroupPerOriginatingAgency.setOperation(doc.getString(MetaDataImpl.QUALIFIER_VERSION_OPI));
+            objectGroupPerOriginatingAgency.setAgency(doc.getString(MetaDataImpl.ORIGINATING_AGENCY));
 
-            Number totalObject = doc.get("totalObject", Number.class);
-            ogpoa.setNumberOfObject(totalObject.longValue());
+            objectGroupPerOriginatingAgency.setSymbolic(doc.getBoolean(MetaDataImpl.SYMBOLIC));
 
-            Number totalSize = doc.get("totalSize", Number.class);
-            ogpoa.setSize(totalSize.longValue());
+            Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
+            objectGroupPerOriginatingAgency.setNumberOfGOT(totalGOT.longValue());
 
-            responseOK.addResult(ogpoa);
+            Number totalObject = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
+            objectGroupPerOriginatingAgency.setNumberOfObject(totalObject.longValue());
+
+            Number totalSize = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
+            objectGroupPerOriginatingAgency.setSize(totalSize.longValue());
+
+            responseOK.addResult(objectGroupPerOriginatingAgency);
         }
 
         return responseOK.toResponse();
