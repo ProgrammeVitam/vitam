@@ -218,6 +218,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String FINAL_ACTION_KEY = "FinalAction";
     private static final String INHERITANCE_KEY = "Inheritance";
     private static final String PREVENT_INHERITANCE_KEY = "PreventInheritance";
+    private static final String PREVENT_RULES_ID_KEY = "PreventRulesId";
     private static final String MANAGEMENT_PREFIX = MANAGEMENT_KEY + '.';
     private static final String RULES_PREFIX = '.' + RULES_KEY;
     private static final String FINAL_ACTION_PREFIX = '.' + FINAL_ACTION_KEY;
@@ -227,7 +228,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ID_DOC_EMPTY = "idDocument is empty";
     private static final String UNSUPPORTED_CATEGORY = "Unsupported category ";
     private static final String ERROR_CODE = "errorCode";
-    private static final String RULE_TYPE = "RuleType";    
+    private static final String RULE_TYPE = "RuleType";
 
     /**
      * AccessModuleImpl constructor
@@ -1101,8 +1102,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         for (String category : VitamConstants.getSupportedRules()) {
             ArrayNode rulesForCategory = null;
             JsonNode categoryNode = management.get(category);
+            JsonNode fullupdatedInheritanceNode = null;
             JsonNode updatedPreventInheritanceNode = null;
-
+            JsonNode updatedPreventRulesNode = null;
             if (categoryNode != null) {
                 rulesForCategory = (ArrayNode) categoryNode.get(RULES_KEY);
             }
@@ -1120,7 +1122,16 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
                     JsonNode classificationOwner =
                         updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
-                    updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
+                    fullupdatedInheritanceNode = updatedCategoryRules.get(category).get(INHERITANCE_KEY);
+                    updatedPreventInheritanceNode =
+                        updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_INHERITANCE_KEY) != null
+                            ? updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_INHERITANCE_KEY)
+                            : updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
+
+                    updatedPreventRulesNode =
+                        updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_RULES_ID_KEY) != null
+                            ? updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_RULES_ID_KEY)
+                            : updatedCategoryRules.get(category).get(PREVENT_RULES_ID_KEY);
                     // Check for update (and delete) rules (rules at least present in DB)
                     ArrayNode updatedRules =
                         checkUpdatedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
@@ -1134,16 +1145,27 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     updatedRules.addAll(createdRules);
 
                     // size = 0 and updatedPreventInheritanceNode==null means this category is empty -> lets unset rules
-                    if (updatedRules.size() != 0 || updatedPreventInheritanceNode != null) {
+                    if (updatedRules.size() != 0 || fullupdatedInheritanceNode != null ||
+                        updatedPreventInheritanceNode != null || updatedPreventRulesNode != null) {
                         if (updatedRules.size() != 0) {
                             action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
                             if (finalAction != null) {
                                 action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
                             }
                         }
+                        if (fullupdatedInheritanceNode != null) {
+                            action.put(MANAGEMENT_PREFIX + category + "." + INHERITANCE_KEY,
+                                fullupdatedInheritanceNode);
+                        }
                         if (updatedPreventInheritanceNode != null) {
-                            action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX,
+                            action.put(
+                                MANAGEMENT_PREFIX + category + "." + INHERITANCE_KEY + "." + PREVENT_INHERITANCE_KEY,
                                 updatedPreventInheritanceNode);
+                        }
+                        if (updatedPreventRulesNode != null) {
+                            action.put(
+                                MANAGEMENT_PREFIX + category + "." + INHERITANCE_KEY + "." + PREVENT_RULES_ID_KEY,
+                                updatedPreventRulesNode);
                         }
                         if (classificationLevel != null) {
                             action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
@@ -1177,7 +1199,18 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL);
                 JsonNode classificationOwner =
                     updatedCategoryRules.get(category).get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER);
-                updatedPreventInheritanceNode = updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
+                fullupdatedInheritanceNode = updatedCategoryRules.get(category).get(INHERITANCE_KEY);
+
+                updatedPreventInheritanceNode =
+                    updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_INHERITANCE_KEY) != null
+                        ? updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_INHERITANCE_KEY)
+                        : updatedCategoryRules.get(category).get(PREVENT_INHERITANCE_KEY);
+
+                updatedPreventRulesNode =
+                    updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_RULES_ID_KEY) != null
+                        ? updatedCategoryRules.get(category).get(INHERITANCE_KEY + "." + PREVENT_RULES_ID_KEY)
+                        : updatedCategoryRules.get(category).get(PREVENT_RULES_ID_KEY);
+
                 ArrayNode createdRules =
                     checkAddedRules(category, null, rulesForUpdatedCategory, finalAction);
 
@@ -1187,9 +1220,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
                 }
 
+                if (fullupdatedInheritanceNode != null) {
+                    action.put(MANAGEMENT_PREFIX + category + "." + INHERITANCE_KEY,
+                        fullupdatedInheritanceNode);
+                }
                 if (updatedPreventInheritanceNode != null) {
-                    action.put(MANAGEMENT_PREFIX + category + PREVENT_INHERITANCE_PREFIX,
+                    action.put(MANAGEMENT_PREFIX + category + "." + INHERITANCE_KEY + "." + PREVENT_INHERITANCE_KEY,
                         updatedPreventInheritanceNode);
+                }
+                if (updatedPreventRulesNode != null) {
+                    action.put(MANAGEMENT_PREFIX + category + "." + INHERITANCE_KEY + "." + PREVENT_RULES_ID_KEY,
+                        updatedPreventRulesNode);
                 }
                 if (classificationLevel != null) {
                     action.put(MANAGEMENT_PREFIX + category + "." + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL,
@@ -1436,7 +1477,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private boolean checkInheritancePrevention(JsonNode categoryNode) {
         JsonNode inheritance = categoryNode.get(INHERITANCE_KEY);
         return inheritance != null &&
-            (inheritance.get("PreventRulesId") != null || inheritance.get(PREVENT_INHERITANCE_KEY) != null);
+            (inheritance.get(PREVENT_RULES_ID_KEY) != null || inheritance.get(PREVENT_INHERITANCE_KEY) != null);
     }
 
     private boolean checkEndDateInRule(JsonNode rule) {
