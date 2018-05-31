@@ -182,6 +182,9 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 throw new ProcessingException("No ArchiveTransfer found");
             }
 
+            if (Strings.isNullOrEmpty(submissionAgency)) {
+                submissionAgency = originatingAgency;
+            }
 
             // Operation id
             String ingestOperationId = params.getContainerName();
@@ -382,10 +385,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         String unitAgency = unitPerOriginatingAgency.getId();
 
         boolean symbolicUnit = !originatingAgency.equals(unitAgency);
-
-        if (Strings.isNullOrEmpty(submissionAgency)) {
-            submissionAgency = unitAgency;
-        }
 
         // TODO P0 get size manifest.xml in local
         // TODO P0 extract this information from first parsing
