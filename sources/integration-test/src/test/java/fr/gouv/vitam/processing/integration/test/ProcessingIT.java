@@ -198,8 +198,8 @@ public class ProcessingIT {
     private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
     private static final int DATABASE_PORT = 12346;
-    private static final long SLEEP_TIME = 100l;
-    private static final long NB_TRY = 4800; // equivalent to 4 minutes
+    private static final long SLEEP_TIME = 5000l;
+    private static final long NB_TRY = 180; // equivalent to 15 minutes
     private static final String SIP_FILE_WRONG_DATE = "integration-processing/SIP_INGEST_WRONG_DATE.zip";
     private static final String SIP_KO_AU_REF_OBJ =
         "integration-processing/KO_SIP_1986_unit_declare_IDobjet_au_lieu_IDGOT.zip";

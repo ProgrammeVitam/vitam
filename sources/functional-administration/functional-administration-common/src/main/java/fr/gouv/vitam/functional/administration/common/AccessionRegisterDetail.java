@@ -45,6 +45,8 @@ import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDetail> {
 
     private static final long serialVersionUID = 3439757375656161919L;
+    private static final String ACQUISITION_INFORMATION = "AcquisitionInformation";
+    private static final String LEGAL_STATUS = "LegalStatus";
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String SUBMISSION_AGENCY = "SubmissionAgency";
     private static final String ARCHIVALAGREEMENT = "ArchivalAgreement";
@@ -108,6 +110,38 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     @Override
     public VitamDocument<AccessionRegisterDetail> newInstance(JsonNode content) {
         return new AccessionRegisterDetail(content);
+    }
+
+    /**
+     * @return String
+     */
+    public String getAcquisitionInformation() {
+        return getString(ACQUISITION_INFORMATION);
+    }
+
+    /**
+     * @param acquisitionInformation to set
+     * @return AccessionRegisterDetail
+     */
+    public AccessionRegisterDetail setAcquisitionInformation(String acquisitionInformation) {
+        append(ACQUISITION_INFORMATION, acquisitionInformation);
+        return this;
+    }
+
+    /**
+     * @return String
+     */
+    public String getLegalStatus() {
+        return getString(LEGAL_STATUS);
+    }
+
+    /**
+     * @param legalStatus to set
+     * @return AccessionRegisterDetail
+     */
+    public AccessionRegisterDetail setLegalStatus(String legalStatus) {
+        append(LEGAL_STATUS, legalStatus);
+        return this;
     }
 
     /**

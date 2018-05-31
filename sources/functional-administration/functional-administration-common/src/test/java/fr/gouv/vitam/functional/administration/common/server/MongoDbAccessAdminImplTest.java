@@ -130,6 +130,8 @@ public class MongoDbAccessAdminImplTest {
     private static final String FILEFORMAT_PUID_2 = "x-fmt/44";
     private static final String FILEFORMAT_PUID_3 = "x-fmt/55";
     private static final String AGENCY = "Agency";
+    private static final String AQUISITION_INFORMATION = "AcquisitionInformation";
+    private static final String LEGAL_STATUS = "LegalStatus";
     private static final Integer TENANT_ID = 0;
     
     private static final String DEFAULT_DATE = "2018-04-05T13:34:40.234";
@@ -244,7 +246,9 @@ public class MongoDbAccessAdminImplTest {
             .setEndDate("2017-01-01")
             .setTotalObjectGroups(initialValue)
             .setTotalObjects(initialValue)
-            .setTotalUnits(initialValue);
+            .setTotalUnits(initialValue)
+            .setAcquisitionInformation(AQUISITION_INFORMATION)
+            .setLegalStatus(LEGAL_STATUS);
 
         contract = createContract();
 
