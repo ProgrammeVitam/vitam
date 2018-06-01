@@ -11,4 +11,4 @@ vitam_folder_tmp: "{{ vitam_defaults.folder.root_path }}/tmp/{{ vitam_struct.vit
 
 base_url: "{{ vitam_struct|client_url }}"
 
-my_new_list: []
+offer_conf_types: []
