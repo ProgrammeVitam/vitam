@@ -438,6 +438,10 @@ public class SedaConstants {
      */
     public static final String TAG_RULE_CLASSIFICATION_OWNER = "ClassificationOwner";
     /**
+     * tag of ClassificationAudience
+     */
+    public static final String TAG_RULE_CLASSIFICATION_AUDIENCE = "ClassificationAudience";
+    /**
      * tag of ClassificationReassessingDate
      */
     public static final String TAG_RULE_REASSESSING_DATE = "ClassificationReassessingDate";

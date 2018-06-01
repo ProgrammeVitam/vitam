@@ -1444,6 +1444,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
             ruleCategoryModel
                 .setClassificationOwner(globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_OWNER).asText());
         }
+        if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE)) {
+            ruleCategoryModel
+                .setClassificationAudience(globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE).asText());
+        }
         JsonNode finalAction = globalMgtRuleNode.get(SedaConstants.TAG_RULE_FINAL_ACTION);
         if (finalAction != null && ruleCategoryModel.getFinalAction() == null) {
             ruleCategoryModel.setFinalAction(finalAction.asText());
