@@ -39,7 +39,6 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.exception.VitamSyncException;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncServiceImpl;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;

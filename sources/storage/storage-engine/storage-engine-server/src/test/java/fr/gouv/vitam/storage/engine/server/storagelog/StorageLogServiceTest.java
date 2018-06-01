@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl.STORAGE_LOG_DIR;
+import static fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory.STORAGE_LOG_DIR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -64,24 +64,26 @@ public class StorageLogServiceTest {
 
     private static final int TENANTS = 3;
 
-    private StorageLogService storageLogService;
+    private StorageLogProvider storageLogService;
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Before
     public void setUp() throws IOException {
         folder.create();
-
         List<Integer> tenants = new ArrayList<>();
+
         for (int i = 0; i < TENANTS; i++) {
             tenants.add(i);
         }
-
-        storageLogService = new StorageLogServiceImpl(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
+        storageLogService = StorageLogFactory.getInstance(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
+        storageLogService.initializeStorageLogs(Paths.get(folder.getRoot().getAbsolutePath()));
     }
 
     @After
     public void cleanUp() {
+
         storageLogService.close();
         folder.delete();
     }

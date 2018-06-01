@@ -52,38 +52,46 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
-public class StorageLogServiceImpl implements StorageLogService {
+public class StorageLogFactory implements StorageLogProvider {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogServiceImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogFactory.class);
 
     private static final String FILENAME_PATTERN_CREATION_DATE_GROUP = "CreationDate";
     private static final Pattern FILENAME_PATTERN = Pattern.compile("^\\d+_(?<CreationDate>\\d+)_.*$");
-
     public static final String STORAGE_LOG_DIR = "storage-log";
     private static final String PARAMS_CANNOT_BE_NULL = "Params cannot be null";
 
+    private static StorageLogProvider instance;
     private final List<Integer> tenants;
-    private final Path storageLogPath;
+    private Path storageLogPath;
     private final Map<Integer, StorageLogAppender> storageLogAppenders;
     private final Map<Integer, Object> lockers;
 
-    public StorageLogServiceImpl(List<Integer> tenants, Path basePath) throws IOException {
-
+    /**
+     * Constructor.
+     *
+     * @param tenants
+     * @param basePath
+     * @throws IOException
+     */
+    private StorageLogFactory(List<Integer> tenants, Path basePath) throws IOException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, tenants, basePath);
-
         this.tenants = tenants;
-
-        this.storageLogPath = createStoragePathDirectory(basePath);
-
         this.storageLogAppenders = new HashMap<>();
-        for (Integer tenant : tenants) {
-            storageLogAppenders.put(tenant, createAppender(tenant));
-        }
-
         this.lockers = new HashMap<>();
-        for (Integer tenant : tenants) {
-            this.lockers.put(tenant, new Object());
+        initializeStorageLogs(basePath);
+    }
+
+    /**
+     * get Thread-Safe instance instance. <br/>
+     *
+     * @return the instance.
+     */
+    public static synchronized StorageLogProvider getInstance(List<Integer> tenants, Path basePath) throws IOException {
+        if (instance == null) {
+            instance = new StorageLogFactory(tenants, basePath);
         }
+        return instance;
     }
 
     /**
@@ -94,12 +102,11 @@ public class StorageLogServiceImpl implements StorageLogService {
      * @throws IOException thrown on IO error
      */
     private Path createStoragePathDirectory(Path basePath) throws IOException {
+
         Path storageLogPath = basePath.resolve(STORAGE_LOG_DIR);
         if (!Files.exists(storageLogPath)) {
             Files.createDirectories(storageLogPath);
         }
-
-        checkExistingStorageLogFiles(storageLogPath);
 
         return storageLogPath;
     }
@@ -110,12 +117,14 @@ public class StorageLogServiceImpl implements StorageLogService {
      * @param storageLogPath
      * @throws IOException thrown on IO error
      */
-    private void checkExistingStorageLogFiles(Path storageLogPath) throws IOException {
+    private boolean existsStorageLogFiles(Path storageLogPath) throws IOException {
         try (Stream<Path> list = Files.list(storageLogPath)) {
             List<Path> exitingFiles = list.collect(Collectors.toList());
             if (!exitingFiles.isEmpty()) {
                 LOGGER.warn("Existing storage log files found: " + exitingFiles.toString());
+                return true;
             }
+            return false;
         }
     }
 
@@ -165,6 +174,20 @@ public class StorageLogServiceImpl implements StorageLogService {
             storageLogAppenders.put(tenant, createAppender(tenant));
 
             return storageLogToBackup;
+        }
+    }
+
+    @Override
+    public void initializeStorageLogs(Path basePath) throws IOException {
+        storageLogPath = createStoragePathDirectory(basePath);
+
+        if (!existsStorageLogFiles(basePath.resolve(STORAGE_LOG_DIR))) {
+            for (Integer tenant : tenants) {
+                storageLogAppenders.put(tenant, createAppender(tenant));
+            }
+            for (Integer tenant : tenants) {
+                this.lockers.put(tenant, new Object());
+            }
         }
     }
 

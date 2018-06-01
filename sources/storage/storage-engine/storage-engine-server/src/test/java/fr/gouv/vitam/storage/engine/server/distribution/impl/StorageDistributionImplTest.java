@@ -46,6 +46,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogProvider;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -82,7 +83,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -115,8 +116,8 @@ public class StorageDistributionImplTest {
         list.add(1);
 
         folder.create();
-        StorageLogServiceImpl storageLogService =
-            new StorageLogServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
+        StorageLogProvider storageLogService =
+            StorageLogFactory.getInstance(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService);
         //LogbookLifeCyclesClientFactory.changeMode(null);

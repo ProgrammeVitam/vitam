@@ -28,7 +28,6 @@
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,9 +80,9 @@ public class StorageLogAdministration {
     private static final String STP_OP_SECURISATION = "STORAGE_BACKUP";
 
     private static final String STRATEGY_ID = "default";
-    final StorageLogService storageLogService;
+    final StorageLogProvider storageLogService;
 
-    public StorageLogAdministration(StorageLogService storageLogService) {
+    public StorageLogAdministration(StorageLogProvider storageLogService) {
         this.storageLogService = storageLogService;
     }
 
