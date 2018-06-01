@@ -384,7 +384,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
         String unitAgency = unitPerOriginatingAgency.getId();
 
-        boolean symbolicUnit = !originatingAgency.equals(unitAgency);
 
         // TODO P0 get size manifest.xml in local
         // TODO P0 extract this information from first parsing
@@ -393,7 +392,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         RegisterValueDetailModel totalObjectsGroups, totalUnits, totalObjects, objectSize;
 
         int unitCount = unitPerOriginatingAgency.getCount();
-
 
         ObjectGroupPerOriginatingAgency symbolicGots =
             objectGroupPerOriginatingAgency.getOrDefault(Boolean.TRUE, new ObjectGroupPerOriginatingAgency());
@@ -410,22 +408,30 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         long size_not_symbolic = notSymbolicGots.getSize();
 
 
-        if (0 == unitCount &&
-            0l == nbGot_symbolic &&
-            0l == nbObject_symbolic &&
-            0l == size_symbolic &&
-            0l == nbGot_not_symbolic &&
-            0l == nbObject_not_symbolic &&
-            0l == size_not_symbolic) {
+        boolean zeroSymbolic = 0l == nbGot_symbolic && 0l == nbObject_symbolic && 0l == size_symbolic;
+        boolean zeroNonSymbolic = 0l == nbGot_not_symbolic && 0l == nbObject_not_symbolic && 0l == size_not_symbolic;
+        boolean zeroUnit = unitCount == 0;
+
+        if (zeroUnit && zeroNonSymbolic && zeroSymbolic) {
             // Do not create accession register detail
             return null;
         }
 
-        if (!symbolicUnit) {
+
+        boolean isSymbolic;
+
+        if (zeroUnit) {
+            isSymbolic = !zeroSymbolic;
+        } else {
+            isSymbolic = !originatingAgency.equals(unitAgency);
+        }
+
+        if (!isSymbolic) {
             totalUnits = new RegisterValueDetailModel(unitCount, 0, unitCount);
         } else {
             totalUnits = new RegisterValueDetailModel(unitCount, unitCount, 0, true);
         }
+
 
 
         totalObjectsGroups = new RegisterValueDetailModel(nbGot_not_symbolic, nbGot_symbolic);
@@ -453,7 +459,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setTotalUnits(totalUnits)
             .setTotalObjects(totalObjects)
             .setObjectSize(objectSize)
-            .setSymbolic(symbolicUnit)
+            .setSymbolic(isSymbolic)
             .setOperationGroup(ingestOperation)
             .addOperationsId(params.getContainerName());
     }
