@@ -1,13 +1,43 @@
 ---
 
+- name: Reset my_new_list
+  set_fact:
+    my_new_list: []
+
+- name: Get list of elements from hosts-mongos-offer
+  set_fact:
+    my_new_list: "{{ my_new_list + [hostvars[item]['mongo_cluster_name']] }}"
+  with_items:
+    - "{{groups['hosts-mongos-offer']}}"
+
 - name: Check associated mongos for offer
   fail: msg="No mongo 's' database associated for this offer"
-  when: offer_conf not in hostvars[groups['hosts-mongos-offer']['mongo_cluster_name']
+  when: offer_conf not in my_new_list
+
+- name: Reset my_new_list
+  set_fact:
+    my_new_list: []
+
+- name: Get list of elements from hosts-mongos-offer
+  set_fact:
+    my_new_list: "{{ my_new_list + [hostvars[item]['mongo_cluster_name']] }}"
+  with_items:
+    - "{{groups['hosts-mongoc-offer']}}"
 
 - name: Check associated mongoc for offer
   fail: msg="No mongo 'c' database associated for this offer"
-  when: offer_conf not in hostvars[groups['hosts-mongoc-offer']['mongo_cluster_name']
+  when: offer_conf not in my_new_list
+
+- name: Reset my_new_list
+  set_fact:
+    my_new_list: []
+
+- name: Get list of elements from hosts-mongod-offer
+  set_fact:
+    my_new_list: "{{ my_new_list + [hostvars[item]['mongo_cluster_name']] }}"
+  with_items:
+    - "{{groups['hosts-mongod-offer']}}"
 
 - name: Check associated mongod for offer
   fail: msg="No mongo 'd' database associated for this offer"
-  when: offer_conf not in hostvars[groups['hosts-mongod-offer']['mongo_cluster_name']
+  when: offer_conf not in my_new_list
