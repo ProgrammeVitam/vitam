@@ -93,6 +93,10 @@ public class OntologyManager {
 
     private LogbookOperationsClient logbookClient;
 
+    private static final String TENANT_ID = "tenant";
+    private static final String IDENTIFIER = "Identifier";
+
+
     public OntologyManager(LogbookOperationsClient logbookClient, GUID eip, Map<String, List<ErrorReportOntologies>> errors) {
         this.logbookClient = logbookClient;
         this.eip = eip;
@@ -390,7 +394,10 @@ public class OntologyManager {
                 while (iter.hasNext()) {
                     isUsed = true;
                     final ArchiveUnitProfile archiveUnitProfile = iter.next();
-                    documentTypesNode.add(archiveUnitProfile.getIdentifier());
+                    ObjectNode valueNode = JsonHandler.createObjectNode();
+                    valueNode.put(IDENTIFIER, archiveUnitProfile.getIdentifier());
+                    valueNode.put(TENANT_ID, archiveUnitProfile.getTenantId());
+                    documentTypesNode.add(valueNode);
                 }
                 if (isUsed) {
                     return Optional.of(OntologyValidator.RejectionCause.rejectUsedByDocumentTypeInDatabase(ontology, JsonHandler.unprettyPrint(documentTypesNode)));
