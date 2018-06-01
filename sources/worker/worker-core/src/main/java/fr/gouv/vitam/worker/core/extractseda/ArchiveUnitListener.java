@@ -29,12 +29,13 @@ package fr.gouv.vitam.worker.core.extractseda;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OPERATIONS;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITTYPE;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -96,6 +97,7 @@ import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
+import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
@@ -120,6 +122,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -171,7 +174,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Map<String, Boolean> isThereManifestRelatedReferenceRemained;
 
     /**
-     * 
      * @param handlerIO
      * @param archiveUnitTree
      * @param unitIdToGuid
@@ -205,7 +207,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         Map<String, String> objectGroupIdToGuid,
         Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
         List<String> originatingAgencies, Map<String, JsonNode> existingGOTs,
-        Map<String, String> existingUnitIdWithExistingObjectGroup, Map<String, Boolean> isThereManifestRelatedReferenceRemained) {
+        Map<String, String> existingUnitIdWithExistingObjectGroup,
+        Map<String, Boolean> isThereManifestRelatedReferenceRemained) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
         this.dataObjectIdToObjectGroupId = dataObjectIdToObjectGroupId;
@@ -373,15 +376,17 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
     /**
      * fill sytemGUID for all item of RelatedObjectReference (RelationGroup) instead of internal seda id (defined in manifest).
+     *
      * @param archiveUnitId
      * @param descriptiveMetadataModel
      */
     private void replaceInternalReferenceForRelatedObjectReference(String archiveUnitId,
-        DescriptiveMetadataModel descriptiveMetadataModel){
+        DescriptiveMetadataModel descriptiveMetadataModel) {
 
-        if (descriptiveMetadataModel.getRelatedObjectReference() != null ){
+        if (descriptiveMetadataModel.getRelatedObjectReference() != null) {
 
-            DescriptiveMetadataContentType.RelatedObjectReference relatedObjReference = descriptiveMetadataModel.getRelatedObjectReference();
+            DescriptiveMetadataContentType.RelatedObjectReference relatedObjReference =
+                descriptiveMetadataModel.getRelatedObjectReference();
 
             fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getIsVersionOf());
             fillDataObjectOrArchiveUnitReference(archiveUnitId, relatedObjReference.getReplaces());
@@ -394,12 +399,12 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private void fillDataObjectOrArchiveUnitReference(String archiveUnitId,
         List<DataObjectOrArchiveUnitReferenceType> dataObjectOrArchiveUnitReference) {
 
-        for(DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
+        for (DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
 
             String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
 
-            if(archiveUnitRefId != null) {
-                if(unitIdToGuid.containsKey(archiveUnitRefId)){
+            if (archiveUnitRefId != null) {
+                if (unitIdToGuid.containsKey(archiveUnitRefId)) {
                     relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
                 } else {
                     isThereManifestRelatedReferenceRemained.put(archiveUnitId, true);
@@ -408,7 +413,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             DataObjectRefType dataObjectRefType = relatedObjectReferenceItem.getDataObjectReference();
 
-            if(dataObjectRefType != null) {
+            if (dataObjectRefType != null) {
                 if (dataObjectRefType.getDataObjectReferenceId() != null) {
                     String dataObjecRefId = dataObjectRefType.getDataObjectReferenceId();
                     if (dataObjectIdToGuid.containsKey(dataObjecRefId)) {
@@ -487,11 +492,23 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             existingUnitGuids.add(existingArchiveUnitGuid);
             if (unitInDB.get("#object") != null && unitInDB.get("#object").asText() != null) {
                 existingUnitIdWithExistingObjectGroup.put(existingArchiveUnitGuid, unitInDB.get("#object").asText());
+            } else {
+                DataObjectReference dataObjectReference =
+                    archiveUnitMapper.mapDataObjectReference(archiveUnitType);
+                if (null != dataObjectReference) {
+                    String got = dataObjectReference.getDataObjectGroupReferenceId();
+                    LOGGER.error("Linking object (" + got + ") not allowed for unit (" + existingArchiveUnitGuid +
+                        ") without ObjectGroup");
+                    throw new ProcessingObjectLinkingException(
+                        "Linking object (" + got + ") not allowed for unit (" + existingArchiveUnitGuid +
+                            ") without ObjectGroup",
+                        existingArchiveUnitGuid, got);
+                }
             }
+
             if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
                 LOGGER.error("Linking not allowed  {}", existingArchiveUnitGuid);
                 throw new ProcessingUnitLinkingException("Linking Unauthorized ");
-
             }
 
             // Do not get originating agencies of holding
@@ -797,7 +814,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
@@ -834,7 +851,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
 
     /**
-     * @param metadataName field in the archive unit
+     * @param metadataName  field in the archive unit
      * @param metadataValue the value
      * @param archiveUnitId
      * @return
@@ -875,10 +892,10 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * Load data of an existing archive unit by its vitam id.
      *
      * @param existingUnitGuidOrKeyValue guid of existing archive unit or key value that identify uniquely the AU
-     * @param archiveUnitId xml id of archive unit
+     * @param archiveUnitId              xml id of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException thrown if a metadata exception occured
+     * @throws ProcessingException             thrown if a metadata exception occured
      */
     private JsonNode loadExistingArchiveUnit(boolean searchByGuid, String existingUnitGuidOrKeyValue,
         SelectMultiQuery selectMultiQuery,
@@ -931,7 +948,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * @param objectGroupId guid of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException thrown if a metadata exception occured
+     * @throws ProcessingException             thrown if a metadata exception occured
      */
     private JsonNode loadExistingObjectGroup(String objectGroupId) {
 
@@ -984,7 +1001,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
     /**
      * Set the ingest contract name
-     * 
+     *
      * @param contractName
      */
     public void setIngestContract(String contractName) {
@@ -993,7 +1010,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
     /**
      * addIngestContractRoot
-     * 
+     *
      * @param selectMultiQuery
      */
     private void addIngestContractRoot(SelectMultiQuery selectMultiQuery) {

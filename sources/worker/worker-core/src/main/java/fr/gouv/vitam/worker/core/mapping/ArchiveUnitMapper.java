@@ -111,7 +111,7 @@ public class ArchiveUnitMapper {
         return archiveUnitRoot;
     }
 
-    private DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType) {
+    public DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType) {
         List<DataObjectReference> objectReferences =
             archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()
                 .filter(item -> item instanceof JAXBElement)
