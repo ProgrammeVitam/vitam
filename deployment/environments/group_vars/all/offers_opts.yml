@@ -26,7 +26,7 @@ vitam_offers:
     swiftDomain: domaine
     # swiftUser : identifiant de l'utilisateur
     swiftUser: utilisateur
-    # swiftPassword: sould be set in vault-vitam.yml (encrypted)
+    # swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
     # swiftProjectName : nom du projet openstack
     swiftProjectName: monTenant
     # swiftUrl: optional variable to force the swift URL
@@ -37,12 +37,12 @@ vitam_offers:
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0
   #    swiftDomain: domain
   #    swiftUser: user
-  #    swiftPassword: password
+  #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   # example_swift_v3:
   #    provider: openstack-swift-v3
   #    swiftKeystoneAuthUrl: https://keystone/v3
   #    swiftDomain: domaine
   #    swiftUser: user
-  #    swiftPassword: password
+  #    swiftPassword: has to be set in vault-vitam.yml (encrypted) with same structure => DO NOT COMMENT OUT
   #    swiftProjectName: monTenant
   #    projectName: monTenant
