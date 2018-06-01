@@ -179,9 +179,8 @@ public class FileRulesModel {
 
     @Override
     public String toString() {
-        return "id=" + id + ", tenant=" + tenant + ", ruleId=" + ruleId + ", ruleType=" + ruleType +
+        return "ruleId=" + ruleId + ", ruleType=" + ruleType +
             ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
-            ", ruleMeasurement=" + ruleMeasurement + ", creationDate=" + creationDate + ", updateDate=" + updateDate +
-            ", version=" + version;
+            ", ruleMeasurement=" + ruleMeasurement;
     }
 }
