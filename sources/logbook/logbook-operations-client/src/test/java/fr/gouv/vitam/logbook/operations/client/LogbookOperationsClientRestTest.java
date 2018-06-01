@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -39,12 +41,14 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -195,6 +199,13 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @GET
+        @Path("/lifecycles/traceability/check/{id}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkLifecycleTraceabilityStatus(@PathParam("id") String operationId) {
+            return expectedResponse.get();
+        }
+
         @POST
         @Path("/operations")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -333,6 +344,21 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
                 new RequestResponseOK<String>().addResult("guid1")).build());
         client.traceabilityLfcObjectGroup();
     }
+
+    @Test
+    public void checkLifecycleTraceabilityWorkflowStatus() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(
+                new RequestResponseOK<LifecycleTraceabilityStatus>().addResult(
+                    new LifecycleTraceabilityStatus(true, "MY_STATUS", true)
+                )).build());
+        LifecycleTraceabilityStatus lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus("id");
+        assertTrue(lifecycleTraceabilityStatus.isCompleted());
+        assertEquals(lifecycleTraceabilityStatus.getOutcome(), "MY_STATUS");
+        assertTrue(lifecycleTraceabilityStatus.isMaxEntriesReached());
+    }
+
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumentWhenUpdateThenReturnIllegalArgumentException() throws Exception {

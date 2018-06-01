@@ -26,30 +26,22 @@
  */
 package fr.gouv.vitam.logbook.administration.main;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.configuration.SecureConfiguration;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -161,30 +153,25 @@ public class CallTraceabilityLFC {
                 operationId = runLfcTraceability(tenantId, traceabilityType, client);
 
                 // Await for termination (polling the logbook server)
-                LogbookOperation logbookOperation;
-                Integer timeSleep = 1000;
+                LifecycleTraceabilityStatus lifecycleTraceabilityStatus;
+                int timeSleep = 1000;
                 do {
 
                     Thread.sleep(timeSleep);
                     timeSleep = Math.min(timeSleep * 2, 60000);
 
-                    Select select = new Select();
-                    JsonNode operation = client.selectOperationById(operationId, select.getFinalSelect());
-                    RequestResponseOK<LogbookOperation> logbookOperationRequestResponseOK =
-                        RequestResponseOK.getFromJsonNode(operation, LogbookOperation.class);
-                    logbookOperation = logbookOperationRequestResponseOK.getFirstResult();
+                    lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus(operationId);
 
-                } while (isRunning(logbookOperation));
+                    LOGGER.info("Traceability operation status for tenant {}, operationId {}, status {})",
+                        tenantId, operationId, lifecycleTraceabilityStatus.toString());
 
-                return needAnotherRun(logbookOperation);
+                } while (!lifecycleTraceabilityStatus.isCompleted());
+
+                return lifecycleTraceabilityStatus.isMaxEntriesReached();
             }
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Error when securing Tenant  :  " + tenantId, e);
-        } catch (LogbookClientException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(
-                "Error when pulling on Tenant : " + tenantId + " for operationId: " + operationId, e);
         } catch (InterruptedException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -228,46 +215,6 @@ public class CallTraceabilityLFC {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the Application Server", e);
         }
-    }
-
-    private static boolean needAnotherRun(LogbookOperation operation) {
-        List<LogbookEventOperation> events = operation.getEvents();
-        LogbookEventOperation lastEvent = events.get(events.size() - 1);
-
-        try {
-            switch (lastEvent.getOutcome()) {
-                case "OK":
-
-                    TraceabilityEvent event = JsonHandler.getFromString(operation.getEvDetData(), TraceabilityEvent.class);
-
-                    LOGGER.info(String.format("Traceability operation {} succeeded. maxEntriesReached={}", operation.getId(),
-                        event.getMaxEntriesReached()));
-
-                    return event.getMaxEntriesReached();
-                case "WARNING":
-                case "KO":
-                case "FATAL":
-                    LOGGER.warn("Traceability operation failed with status {} ({})", lastEvent.getOutcome(),
-                        operation.getId());
-                    return false;
-                default:
-                    LOGGER.warn("Unknown outcome {} ({})", lastEvent.getOutcome(), operation.getId());
-                    return false;
-            }
-        } catch (InvalidParseOperationException e) {
-            throw new IllegalStateException(" Error while parsing evDetData from operation id: " + operation.getId(),
-                e);
-        }
-    }
-
-    private static boolean isRunning(LogbookOperation operation) {
-        List<LogbookEventOperation> events = operation.getEvents();
-        LogbookEventOperation lastEvent = null;
-        if (!CollectionUtils.isEmpty(events)) {
-            lastEvent = events.get(events.size() - 1);
-        }
-
-        return lastEvent == null || !lastEvent.getEvType().equals(operation.getEvType());
     }
 
     private static String getOperationId(RequestResponseOK response, int tenant) {

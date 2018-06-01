@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -67,6 +68,7 @@ import fr.gouv.vitam.logbook.administration.core.LogbookAdministration;
 import fr.gouv.vitam.logbook.administration.core.LogbookLFCAdministration;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
@@ -2010,6 +2012,44 @@ public class LogbookResource extends ApplicationStatusResource {
 
         } catch (VitamException e) {
             LOGGER.error("unable to generate traceability log", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(new RequestResponseOK()
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                .build();
+        }
+    }
+
+    /**
+     * Runs unit lifecycle traceability
+     *
+     * @param operationId the process id
+     * @return the response with a specific HTTP status
+     */
+    @GET
+    @Path("/lifecycles/traceability/check/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkLifecycleTraceabilityStatus(@PathParam("id") String operationId) {
+
+        try {
+            LifecycleTraceabilityStatus status = logbookLFCAdministration.checkLifecycleTraceabilityStatus(operationId);
+
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<LifecycleTraceabilityStatus>()
+                    .addResult(status)
+                    .setHits(1, 0, 1)
+                    .setHttpCode(Status.OK.getStatusCode()))
+                .build();
+        } catch (final LogbookNotFoundException | WorkflowNotFoundException exc) {
+            LOGGER.debug(exc);
+            return Response.status(Status.NOT_FOUND)
+                .entity(new VitamError(Status.NOT_FOUND.name()).setHttpCode(Status.NOT_FOUND.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(Status.NOT_FOUND.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (VitamException | InvalidCreateOperationException e) {
+            LOGGER.error("unable to check lifecycle traceability status", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(new RequestResponseOK()
                     .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))

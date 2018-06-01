@@ -58,6 +58,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 
@@ -75,6 +76,7 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
+    private static final String LFC_TRACEABILITY_CHECK_STATUS_URI = "/lifecycles/traceability/check/";
     private final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
@@ -358,6 +360,39 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
             return RequestResponse.parseRequestResponseOk(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public LifecycleTraceabilityStatus checkLifecycleTraceabilityWorkflowStatus(String operationId) throws LogbookClientServerException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            response = performRequest(HttpMethod.GET, LFC_TRACEABILITY_CHECK_STATUS_URI + operationId,
+                headers, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+
+            JsonNode jsonNode = response.readEntity(JsonNode.class);
+
+            RequestResponseOK<LifecycleTraceabilityStatus> requestResponse =
+                RequestResponseOK.getFromJsonNode(jsonNode, LifecycleTraceabilityStatus.class);
+
+            return requestResponse.getFirstResult();
+
         } catch (final VitamClientInternalException e) {
             LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
