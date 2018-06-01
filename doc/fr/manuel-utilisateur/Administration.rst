@@ -529,6 +529,7 @@ Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet d
 
 
 * Restriction par nœud inaccessible
+
 Un contrat peut restreindre l'accès à la consultation à partir de certains noeuds, grâce à l'option "Noeud inaccessible". Pour cela il faut déclarer l'identifiant de l'unité archivistique dans le champs, et toutes les unités archivistiques de la descendance ne seront pas disponibles à la consultation.
 
 
@@ -853,12 +854,13 @@ L'utilisateur construit au prélable le fichier au format JSON. Plusieurs critè
     - Intitulé XML ( obligatoire - "SedaField" ) 
     - Origine interne ou externe ( obligatoire -"Origin": "INTERNAL" / "EXTERNAL" )
     - Type du vocabulaire ( obligatoire -  "Type" ) : valeur à choisir parmi la liste:  Text, Keyword, Date, Long, Double, Boolean, Geo-point, Enumération de valeur
--Traduction du vocabulaire (obligatoire - "ShortName")
--Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
+    - Traduction du vocabulaire (obligatoire - "ShortName")
+    - Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
     - Description ( Facultative ) 
     - Date de création ( Facultative ) 
 
-Note : Compatibilité des modifications possible concernant les types de vocabulaires : 
+Note : Compatibilité des modifications possible concernant les types de vocabulaires :
+
 	- Text -> Keyword, Text
 	- Keyword -> Keyword, Text
 	- Date -> Keyword, Text

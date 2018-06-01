@@ -78,8 +78,10 @@ Affiner la recherche
 --------------------
 Un utilisateur peut également affiner sa recherche de résultats en sélectionnant différents filtres (FACET). Pour accéder à ces filtres, l’utilisateur doit déplier le bloc « Affiner la recherche » en cliquant sur le pictogramme « plus » situé à droite de l’écran.
 
-L’utilisateur peut filtrer les résultats de recherche en sélectionnant un des filtres proposés: 
+L’utilisateur peut filtrer les résultats de recherche en sélectionnant un des filtres proposés:
+
 **Niveau de description**
+
 	- Item : Article File  = Document
 	- SubGrp =  Groupe d'articles
 	- RecordGrp = Sous-groupe d'articles
@@ -89,11 +91,17 @@ L’utilisateur peut filtrer les résultats de recherche en sélectionnant un de
 	- Class = Classe
 	- Subfonds = Sous-fonds
 	- Fonds = Fonds
+
 **Service producteur**
+
 **Date de début**
+
 **Date de fin**
+
 **Titre par langue**
+
 **Langue**
+
 **Unités archivistiques avec ou sans objets**
 
 Pour lancer cette opération, la ou les facet(s) concernée(s) doivent être cochée(s) et l’utilisateur doit cliquer sur « rechercher » dans le bloc « affiner la recherche ». Pour lancer une nouvelle facet, l’utilisateur peut « rafraichir » ses précédents résultats en cliquant sur « effacer », sélectionner une autre facet et lancer l’opération en cliquant sur « rechercher ». Au clic, sur une des occurrences de la facet, l’utilisateur visualise, dans le bloc de « résultats », la liste des unités archivistiques correspondant à sa demande. 
@@ -315,9 +323,12 @@ Ces possibilités sont gérées et autorisées par le contrat d'entrée.
 
 Pour procéder à cette opération, il est nécesssaire d'avoir : 
 cette / ces  option(s) active(s) dans le contrat d'entrée et la balise <UpdateOperation><SystemId> intégrée dans le manifest (cf. Modèle de données)
- <Management>
- <UpdateOperation><SystemId>GUID du GOT à compléter</SystemId></UpdateOperation>
- </Management>
+
+.. code-block:: xml
+
+  <Management>
+    <UpdateOperation><SystemId>GUID du GOT à compléter</SystemId></UpdateOperation>
+  </Management>
 
 .. image:: images/rattachement_got.png
 
