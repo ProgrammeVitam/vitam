@@ -74,7 +74,7 @@ La modification d'un contrat d'accès doit suivre les mêmes règles que celles 
 
 
 Sauvegarde du JSON STP_BACKUP_INGEST_CONTRACT (IngestContractImpl.java)
------------------------------------------------
+-----------------------------------------------------------------------
 
 Cette tâche est appellée que ce soit en import initial ou en modification.
 

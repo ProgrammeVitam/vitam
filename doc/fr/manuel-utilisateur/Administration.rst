@@ -41,7 +41,7 @@ La recherche par intitulé peut être approximative : chaîne de caractères ave
 
 -PUID (identifiant unique du format dans PRONOM) : permet d'effectuer une recherche exacte sur l'identifiant d'un format
 
-NB : Il est impossible d'effectuer une recherche croisée par PUID et intitulé.
+.. note:: Il est impossible d'effectuer une recherche croisée par PUID et intitulé.
 
 
 .. image:: images/rechch_formats.png
@@ -149,7 +149,7 @@ Par défaut, les règles de gestion sont affichées sous le formulaire de recher
 
 Pour effectuer une recherche précise, on utilise le champ "Intitulé" ou le champ "Type".
 
-NB : La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+.. note::  La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 |
 
@@ -249,7 +249,8 @@ Pour consulter et rechercher les services agents, l’utilisateur clique sur le 
 
 Par défaut, les  services agents sont affichés sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
 Pour effectuer une recherche précise, on utilise les champs « Intitulé », « Identifiant » et/ou « Description »
-NB : La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+
+.. note:: La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 
 .. image:: images/menu_services_agents_4.png
@@ -335,7 +336,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Intitulé : permet d'effectuer une recherche approchante sur les intitulés des contrats d'entrée disponibles dans la solution logicielle
 - Identifiant : permet d'effectuer une recherche exacte sur l'identifiant d'un contrat
 
-NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 
 .. image:: images/rechch_ce.png
@@ -454,7 +455,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Intitulé : permet d'effectuer une recherche approchante sur les intitulés des contrats d'accès disponibles dans la solution logicielle Vitam
 - Identifiant : permet d'effectuer une recherche exacte sur l'identifiant d'un contrat
 
-NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 |
 
@@ -575,7 +576,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
     - Date de création
     - Dernière modification
 
-NB : une coche indique la présence d'au moins un contrat lié à ce contexte, une croix indique qu'aucun contrat n'est lié à ce contexte. 
+.. note:: une coche indique la présence d'au moins un contrat lié à ce contexte, une croix indique qu'aucun contrat n'est lié à ce contexte. 
 
 Le bouton "Informations supplémentaires" permet d'afficher des informations supplémentaires sur les contextes applicatifs. Il suffit de cocher dans la liste les informations voulues.
 
@@ -667,7 +668,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Intitulé : permet d’effectuer une recherche approchante sur les noms des notices descriptives de profils d'archivage disponibles dans la solution logicielle Vitam.
 - Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de profils d'archivage.
 
-NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 
 .. image:: images/rechch_profil.png
@@ -794,7 +795,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Intitulé : permet d’effectuer une recherche approchante sur les noms des notices descriptives de profils d'archivage disponibles dans la solution logicielle Vitam.
 - Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de profils d'archivage.
 
-NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
+.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 
 .. image:: images/recherche_doctype.png
@@ -912,7 +913,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Intitulé : permet d’effectuer une recherche exacte sur les noms des vocabulaires de l'ontologie disponibles dans la solution logicielle Vitam.
 - Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de l'ontologie.
 
-NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. 
+.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. 
 
 
 .. image:: images/recherche_ontologie.png
@@ -994,7 +995,7 @@ Les informations visibles à l'écran sont :
 
 Une barre de progression affiche l’avancement du téléchargement de l'arbre dans la solution Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
-NB : Suite au téléchargement de l'arbre, un temps d'attente est nécessaire, correspondant au traitement de l'arbre par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
+.. note:: Suite au téléchargement de l'arbre, un temps d'attente est nécessaire, correspondant au traitement de l'arbre par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
 
 .. image:: images/import_arbre.png
@@ -1071,7 +1072,7 @@ Par défaut, les opérations sont affichées sous le formulaire de recherche et 
 - Identifiant : identifiant de l'opération donné par le système
 - Catégories d'opération : présentées sous forme de liste triée alphabétiquement, elles permettent à l'utilisateur de sélectionner une catégorie d'opération
 
-NB : Il est impossible d'effectuer une recherche croisée par identifiant et catégorie d'opération.
+.. note:: Il est impossible d'effectuer une recherche croisée par identifiant et catégorie d'opération.
 
 Pour initier la recherche, l'utilisateur saisit un critère de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondant à la recherche.
 
@@ -1166,7 +1167,8 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Etats : état actuel de l'opération
 - Dates de fin : date de fin de l'opération
 - Dernière étape : dernière étape à laquelle le workflow s'est arrêté
-NB : Il est impossible d'effectuer une recherche croisée par identifiant et tout autre champ.
+
+.. note:: Il est impossible d'effectuer une recherche croisée par identifiant et tout autre champ.
 
 
 .. image:: images/rechch_gestion.png
@@ -1460,12 +1462,13 @@ L'utilisateur construit au prélable le fichier au format JSON. Plusieurs critè
     - Intitulé XML ( obligatoire - "SedaField" ) 
     - Origine interne ou externe ( obligatoire -"Origin": "INTERNAL" / "EXTERNAL" )
     - Type: Type du vocabulaire ( obligatoire ) : valeur à choisir parmi la liste:  Text, Keyword, Date, Long, Double, Boolean, Geo-point, Enumération de valeur
--Traduction du vocabulaire (obligatoire - "ShortName")
--Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
+    - Traduction du vocabulaire (obligatoire - "ShortName")
+    - Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
     - Description ( Facultative ) 
     - Date de création ( Facultative ) 
 
-Note: Compatibilité des modifications possibles concernant les types de vocabulaires : 
+Note: Compatibilité des modifications possibles concernant les types de vocabulaires :
+
 	- Text -> Keyword, Text
 	- Keyword -> Keyword, Text
 	- Date -> Keyword, Text
@@ -1517,7 +1520,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Intitulé : permet d’effectuer une recherche exacte sur les noms des vocabulaires de l'ontologie disponibles dans la solution logicielle Vitam.
 - Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de l'ontologie.
 
-NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. 
+.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. 
 
 
 .. image:: images/recherche_ontologie.png

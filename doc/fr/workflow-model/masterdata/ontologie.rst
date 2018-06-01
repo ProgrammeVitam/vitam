@@ -45,39 +45,37 @@ Import des métadonnées d'une ontologie IMPORT_ONTOLOGY (OntologyServiceImpl.ja
 	      * Le champ "ShortName" correspond au champ traduction, il est peuplé par une chaîne de valeur
 	      * Le champ "Collections" indique la collection dans laquelle le vocabulaire est rataché. ex : "Unit"
 
-Exemple ontologie :
+	Exemple ontologie :
 
-	[ {
-	  "Identifier" : "AcquiredDate",
-	  "SedaField" : "AcquiredDate",
-	  "ApiField" : "AcquiredDate",
-	  "Description" : "unit-es-mapping.json",
-	  "Type" : "DATE",
-	  "Origin" : "INTERNAL",
-	  "ShortName" : "AcquiredDate",
-	  "Collections" : [ "Unit" ]
-	}, {
-	  "Identifier" : "BirthDate",
-	  "SedaField" : "BirthDate",
-	  "ApiField" : "BirthDate",
-	  "Description" : "unit-es-mapping.json",
-	  "Type" : "DATE",
-	  "Origin" : "INTERNAL",
-	  "ShortName" : "BirthDate",
-	  "Collections" : [ "Unit" ]
-	}]
+	.. code-block:: json
 
+		[ {
+		"Identifier" : "AcquiredDate",
+		"SedaField" : "AcquiredDate",
+		"ApiField" : "AcquiredDate",
+		"Description" : "unit-es-mapping.json",
+		"Type" : "DATE",
+		"Origin" : "INTERNAL",
+		"ShortName" : "AcquiredDate",
+		"Collections" : [ "Unit" ]
+		}, {
+		"Identifier" : "BirthDate",
+		"SedaField" : "BirthDate",
+		"ApiField" : "BirthDate",
+		"Description" : "unit-es-mapping.json",
+		"Type" : "DATE",
+		"Origin" : "INTERNAL",
+		"ShortName" : "BirthDate",
+		"Collections" : [ "Unit" ]
+		}]
 
 
 
   + **Statuts** :
 
     - OK : les règles ci-dessus sont respectées (IMPORT_ONTOLOGY.OK=Succés du processus d'import de l'ontologie)
-
     - KO : une des règles ci-dessus n'a pas été respectée (IMPORT_ONTOLOGY.KO=Echec du processus d'import de l'ontologie)
-
     - FATAL : une erreur technique est survenue lors de la vérification de l'import de l'ontologie (IMPORT_ONTOLOGY.FATAL=Erreur fatale lors du processus d'import de l'ontologie)
-
     - WARNING : Avertissement lors du processus d'import de l'ontologie ( IMPORT_ONTOLOGY.WARNING=Avertissement lors du processus d'import de l'ontologie )
 
  

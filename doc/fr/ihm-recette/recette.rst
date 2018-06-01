@@ -23,7 +23,7 @@ Accès
 
 L'accès à l'IHM de recette s'effectue par un chemin différent de l'IHM démo. Par défaut, son adresse est :
 
-**addresse_de_votre_serveur/ihm-recette/#/admin/collection 
+*addresse_de_votre_serveur*/ihm-recette/#/admin/collection
 
 Contrairement à l'IHM de démo, la sélection de tenants se fait une fois connecté. La page de connexion ne contient donc  qu'un champ "Identifiant" et un champ "Mot de passe".
 
