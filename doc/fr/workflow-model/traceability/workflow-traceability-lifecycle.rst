@@ -35,8 +35,8 @@ La fin du processus peut prendre plusieurs statuts :
 Préparation des listes des cycles de vie
 ----------------------------------------
 
-- **Étape 1** - STP_PREPARE_OG_LFC_TRACEABILITY -  distribution sur REF
-***********************************************************************
+**Étape 1** - STP_PREPARE_OG_LFC_TRACEABILITY -  distribution sur REF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Liste cycles de vie à sécuriser - PREPARE_OG_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
@@ -55,8 +55,8 @@ Préparation des listes des cycles de vie
     - FATAL : une erreur technique est survenue (PREPARE_LC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie des groupes d'objets)
 
 
-- **Étape 2** - STP_OG_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans ObjectGroup
-*************************************************************************************************************
+**Étape 2** - STP_OG_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans ObjectGroup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Traitement des journaux du cycle de vie des groupes d'objets - OG_CREATE_SECURED_FILE
 
@@ -93,8 +93,8 @@ Préparation des listes des cycles de vie
 
 
 
-- **Étape 3** - STP_OG_TRACEABILITY_FINALIZATION -  distribution sur REF
-************************************************************************
+**Étape 3** - STP_OG_TRACEABILITY_FINALIZATION -  distribution sur REF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Finalisation de la sécurisation - FINALIZE_OG_LFC_TRACEABILITY - fichier présent dans : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
@@ -161,8 +161,8 @@ La fin du processus peut prendre plusieurs statuts :
 Préparation des listes des cycles de vie
 ----------------------------------------
 
-- **Étape 1** - STP_PREPARE_UNIT_LFC_TRACEABILITY -  distribution sur REF
-*************************************************************************
+**Étape 1** - STP_PREPARE_UNIT_LFC_TRACEABILITY -  distribution sur REF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
@@ -181,8 +181,9 @@ Préparation des listes des cycles de vie
     - FATAL : une erreur technique est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
 
 
-- **Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
-****************************************************************************************************************
+**Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * Traitement des journaux du cycle de vie pour les unités archivistiques - UNITS_CREATE_SECURED_FILE
 
   + **Type** : bloquant
@@ -203,7 +204,8 @@ Préparation des listes des cycles de vie
 
 Il s'agit du même contrôle que l'étape 2
 
-- **Étape 4** -  STP_UNIT_TRACEABILITY_FINALIZATION -  distribution sur REF
+**Étape 4** -  STP_UNIT_TRACEABILITY_FINALIZATION -  distribution sur REF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Finalisation de la sécurisation -FINALIZE_UNIT_LFC_TRACEABILITY  - fichier présent dans : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 

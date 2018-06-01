@@ -7,7 +7,7 @@ Introduction
 Cette section décrit le processus (workflow) permettant d'importer un documents type.
 
 Processus d'import et mise à jour d'un document type (Profil d'unité archivistique) (vision métier)
-====================================================================
+===================================================================================================
 
 Le processus d'import d'un document type (profil d'unité archivistique) permet à la fois de vérifier qu'il contient les informations minimales obligatoires, de vérifier la cohérence de l'ensemble des informations, et de lui affecter des élements peuplés automatiquement.
 
@@ -57,13 +57,11 @@ Import des métadonnées d'un document type (profil d'unité archivistique) IMPO
 
 
 Mise à jour d'un document type (Profil d'unité archivistique) UPDATE_ARCHIVEUNITPROFILE (ArchiveUnitProfileManager.java)
------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 
     - OK : les règles ci-dessus sont respectées (UPDATE_ARCHIVEUNITPROFILE.OK=Succès du processus de mise à jour du document type)
-
     - KO : une des règles ci-dessus n'a pas été respectée (UPDATE_ARCHIVEUNITPROFILE.KO=Échec du processus d'import du document type)
-
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du document type (UPDATE_ARCHIVEUNITPROFILE.FATAL=Erreur fatale lors du processus de mise à jour du document type)
 
 
@@ -79,7 +77,6 @@ Cette tâche est appellée que ce soit en import initial ou lors de la modificat
   + **Statuts** :
 
       - OK : une copie de la base de donnée nouvellement importée est enregistrée (BACKUP_ARCHIVEUNITPROFILE.OK = Succès du processus de sauvegarde des document types)
-
       - KO : Echech du processus de sauvegarde du document type (BACKUP_ARCHIVEUNITPROFILE.KO = Echec du processus de sauvegarde des document types)
 
 

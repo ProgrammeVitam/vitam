@@ -11,7 +11,6 @@ L'audit est une action d'évaluation, de vérification, de contrôle et de corre
 
 Pour lancer un audit, l'utilisateur clique le menu "Gestion des Archives", puis sélectionne "Audit".
 
-|
 .. image:: images/menu_audit.png
 
 

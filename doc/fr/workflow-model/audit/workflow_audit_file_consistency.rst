@@ -100,7 +100,7 @@ Processus de finalisation de l'audit et généretion du rapport final (STP_EVIDE
 
 
 Création du rapport de l'audit de cohérence EVIDENCE_AUDIT_FINALIZE (EvidenceAuditFinalize.java)
------------------------
+------------------------------------------------------------------------------------------------
 
 * **Règle** : Tâche consistant à créer le rapport permettant de comparer les signatures extraites des fichiers sécurisés avec les données de la base de données et de l'offre de stockage. 
 * **Type** : bloquant

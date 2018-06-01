@@ -6,11 +6,7 @@ En prérequis, les certificats et les autorités de certification doivent être 
 
 .. caution:: Avant de lancer le script de génération des stores, il est nécessaire de modifier le vault contenant les mots de passe des stores: ``environments/group_vars/all/vault-keystores.yml``, décrit dans la section :ref:`pkiconfsection`.
 
-Lancer le script :
-
-.. code-block:: console
-
-   ./generate_stores.sh
+Lancer le script : ``./generate_stores.sh``
 
 Ce script génère sous ``environments/keystores`` les stores (jks / p12) associés pour un bon fonctionnement dans VITAM.
 

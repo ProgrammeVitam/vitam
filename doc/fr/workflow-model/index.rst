@@ -8,7 +8,7 @@
    introduction
    audit/_toc
    dip/_toc_dip
-   ingest/_toc_ingest
+   ingests/_toc_ingest
    masterdata/_toc
    traceability/_toc_traceability
    update/_toc_update

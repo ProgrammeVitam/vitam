@@ -21,7 +21,8 @@ Génération des certificats
 
 Les certificats générés doivent prendre en compte des alias "web" (subjectAltName).
 
-Le subjectAltName des certificats serveurs (deployment/environments/certs/server/hosts/*) doit contenir le nom dns du service sur consul.
+Le *subjectAltName* des certificats serveurs (``deployment/environments/certs/server/hosts/*``) doit contenir le nom dns du service sur consul.
+
 Exemple avec un cas standard: <composant_vitam>.service.consul.
 Ce qui donne pour le certificat serveur de access-external par exemple:
 
@@ -64,12 +65,11 @@ Pour modifier/créer un vault ansible, se référer à la documentation sur `cet
 Intégration d'une application externe (cliente)
 -----------------------------------------------
 
-Dans le cas d'ajout de certificats :term:`SIA` externes
+Dans le cas d'ajout de certificats :term:`SIA` externes :
 
-* Déposer le certificat (.crt) de l'application client dans ``environments/certs/client-external/clients/external/``
-* Déposer les CA du certificat de l'application (.crt) dans ``environments/certs/client-external/ca/``
-* Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s)  (sous forme répertoire/fichier.crt, exemple: ``external/mon_sia.crt``)
-dans  la directive ``admin_context_certs`` pour que ceux-ci soient ajoutés aux profils de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
+    * Déposer le certificat (.crt) de l'application client dans ``environments/certs/client-external/clients/external/``
+    * Déposer les CA du certificat de l'application (.crt) dans ``environments/certs/client-external/ca/``
+    * Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s)  (sous forme répertoire/fichier.crt, exemple: ``external/mon_sia.crt``) dans  la directive ``admin_context_certs`` pour que ceux-ci soient ajoutés aux profils de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
 
 .. include:: swift.rst
 

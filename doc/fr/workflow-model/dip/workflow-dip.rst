@@ -49,7 +49,7 @@ Processus de création du DIP et de son déplacement vers l'offre de stockage (S
 ================================================================================================
 
 Stockage du bordereau compressé (STORE_MANIFEST - StoreDIP.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------------------------------------------
 
 + **Règle** : Création du DIP et de son déplacement vers l'offre de stockage
 

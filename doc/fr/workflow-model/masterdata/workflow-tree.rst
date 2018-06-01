@@ -18,29 +18,25 @@ La fin du processus peut prendre plusieurs statuts :
 * **Statuts** :
 
   + OK : l'arbre de positionnement a été importé (HOLDINGSCHEME.OK = Succès de l'import de l'arbre de positionnement)
-
   + KO : l'arbre de positionnement n'a pas été importé (HOLDINGSCHEME.KO = Échec de l'import de l'arbre de positionnement)
-
   + FATAL : une erreur technique est survenue lors de l'import de l'arbre de positionnement (HOLDINGSCHEME.FATAL = Erreur fatale lors de l'import de l'arbre de positionnement)
 
   Les étapes et tâches associées ci-dessous décrivent ce processus d'import (clé et description de la clé associée dans le journal des opérations), non encore abordées dans la description de l'entrée d'un SIP.
 
 
 Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE (CheckDataObjectPackageActionHandler.java)
-------------------------------------------------------------------------------------------------------- 
+-------------------------------------------------------------------------------------------------------
 
-* Vérification de la non existence d'objets CHECK_NO_OBJECT (CheckDataObjectPackageActionHandler)
-*************************************************************************************************
+Vérification de la non existence d'objets CHECK_NO_OBJECT (CheckDataObjectPackageActionHandler)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  + **Règle** : vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert de l'arbre de positionnement
++ **Règle** : Vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert de l'arbre de positionnement.
 
-  + **Statuts** :
++ **Statuts** :
 
-    - OK : aucun objet numérique n'est présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.OK=Succès de la vérification de l'absence d'objet)
-
-    - KO : des objets numériques sont présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.KO=Échec de la vérification de l'absence d'objet : objet(s) trouvé(s))
-
-    - FATAL : une erreur technique est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d'objet)
+  - OK : aucun objet numérique n'est présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.OK=Succès de la vérification de l'absence d'objet)
+  - KO : des objets numériques sont présent dans le bordereau de transfert (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.KO=Échec de la vérification de l'absence d'objet : objet(s) trouvé(s))
+  - FATAL : une erreur technique est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d'objet)
 
 
 Structure du Workflow
