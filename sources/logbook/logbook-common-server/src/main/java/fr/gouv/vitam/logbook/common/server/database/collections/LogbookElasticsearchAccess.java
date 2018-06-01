@@ -33,7 +33,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -43,16 +52,6 @@ import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
-
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 
 /**
  * ElasticSearch model with MongoDB as main database with management of index and index entries
@@ -168,23 +167,34 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             .actionGet().getVersion() > 1;
     }
 
+
+    public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
+        final QueryBuilder query,
+        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
+        throws LogbookException {
+
+        return search(collection, tenantId, query, filter, sorts, offset, limit, false);
+    }
+
     /**
      * Search entries in the ElasticSearch index.
      *
-     * @param collection collection of index
-     * @param tenantId   tenant Id
-     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *                   values" : [list of id] } }"
-     * @param filter     the filter
-     * @param sorts      the list of sort
-     * @param offset     the offset
-     * @param limit      the limit
+     * @param collection  collection of index
+     * @param tenantId    tenant Id
+     * @param query       as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *                    values" : [list of id] } }"
+     * @param filter      the filter
+     * @param sorts       the list of sort
+     * @param offset      the offset
+     * @param limit       the limit
+     * @param fetchSource default false; True if we want to fetch source
      * @return a structure as SearchResponse
      * @throws LogbookException thrown of an error occurred while executing the request
      */
     public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
         final QueryBuilder query,
-        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
+        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit,
+        boolean fetchSource)
         throws LogbookException {
         final String type = getTypeUnique(collection);
 
@@ -192,6 +202,10 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             client.prepareSearch(getAliasName(collection, tenantId)).setSearchType(SearchType.DEFAULT)
                 .setTypes(type).setExplain(false).setFrom(offset)
                 .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);
+
+        if (fetchSource) {
+            request.setFetchSource(fetchSource);
+        }
 
         if (sorts != null) {
             sorts.stream().forEach(sort -> request.addSort(sort));
