@@ -7,6 +7,9 @@
 - include_tasks: check_strategies_offers.yml
   when:  inventory_hostname in groups['hosts-storage-engine']
 
+- include_tasks: check_offers_mongo.yml
+  when:  inventory_hostname in groups['hosts-storage-offer-default']
+
 # FIXME : will need more testing to be sure it is mandatory here
 - name: install openjdk from jessie-backports only when Debian
   apt:
