@@ -748,57 +748,33 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws AccessInternalException if unable to find the unit or it's lfc
      */
     private JsonNode getUnitRawWithLfc(String idUnit) throws AccessInternalException {
-        try {
-            // get metadata
-            JsonNode jsonResponse = selectMetadataRawDocumentById(idUnit, DataCategory.UNIT);
-            JsonNode unit = extractNodeFromResponse(jsonResponse, ARCHIVE_UNIT_NOT_FOUND);
-            MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
+        // get metadata
+        JsonNode jsonResponse = selectMetadataRawDocumentById(idUnit, DataCategory.UNIT);
+        JsonNode unit = extractNodeFromResponse(jsonResponse, ARCHIVE_UNIT_NOT_FOUND);
+        MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
 
-            // get lfc
-            Select query = new Select();
-            query.setQuery(QueryHelper.eq("obId", idUnit));
-            ObjectNode constructQuery = query.getFinalSelect();
-            jsonResponse = retrieveLogbookLifeCycleById(constructQuery, idUnit, DataCategory.UNIT);
-            JsonNode lfc = extractNodeFromResponse(jsonResponse, LIFE_CYCLE_NOT_FOUND);
+        // get lfc
+        JsonNode lfc = getRawUnitLifeCycleById(idUnit);
 
-            // get doc with lfc
-            return MetadataStorageHelper.getUnitWithLFC(unit, lfc);
-        } catch (final InvalidCreateOperationException e) {
-            LOGGER.error(e);
-            throw new AccessInternalException(e);
-        }
+        // get doc with lfc
+        return MetadataStorageHelper.getUnitWithLFC(unit, lfc);
     }
 
     /**
-     * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
+     * retrieve raw unit LFC
      *
      * @param idDocument document uuid
-     * @param dataCategory accepts UNIT or OBJECTGROUP
-     * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
      */
-    private JsonNode retrieveLogbookLifeCycleById(JsonNode jsonQuery, String idDocument, DataCategory dataCategory)
+    private JsonNode getRawUnitLifeCycleById(String idDocument)
         throws AccessInternalExecutionException {
-        JsonNode jsonNode;
-
-        ParametersChecker.checkParameter(DATA_CATEGORY, dataCategory);
         ParametersChecker.checkParameter(ID_DOC_EMPTY, idDocument);
 
         try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            switch (dataCategory) {
-                case UNIT:
-                    jsonNode = logbookClient.selectUnitLifeCycleById(idDocument, jsonQuery,
-                        LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-                    break;
-                default:
-                    throw new IllegalArgumentException(UNSUPPORTED_CATEGORY + dataCategory);
-            }
+            return logbookClient.getRawUnitLifeCycleById(idDocument);
         } catch (final InvalidParseOperationException | LogbookClientException e) {
-            LOGGER.error(e);
             throw new AccessInternalExecutionException(e);
         }
-
-        return jsonNode;
     }
 
     /**

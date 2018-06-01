@@ -27,9 +27,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -438,14 +435,10 @@ public class MetadataManagementIT {
             .isEqualTo(unit_with_graph_0_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
-        lifecycleResponse =
-            lifecycleClient.selectUnitLifeCycleById(unit_with_graph_0_guid,
-                getSelectQueryProjectionSimple(unit_with_graph_0_guid).getFinalSelect());
+        lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unit_with_graph_0_guid);
         assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("$results")).isNotNull();
-        assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(unit_with_graph_0_guid);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unit_with_graph_0_guid);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(5);
 
         metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
         assertThat(metadataResponse.isOk()).isTrue();
@@ -454,14 +447,10 @@ public class MetadataManagementIT {
             .isEqualTo(unit_with_graph_1_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
-        lifecycleResponse =
-            lifecycleClient.selectUnitLifeCycleById(unit_with_graph_1_guid,
-                getSelectQueryProjectionSimple(unit_with_graph_1_guid).getFinalSelect());
+        lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unit_with_graph_1_guid);
         assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("$results")).isNotNull();
-        assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(unit_with_graph_1_guid);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(4);
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unit_with_graph_1_guid);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(4);
 
 
         // 2. Reconstruct object group
@@ -486,13 +475,10 @@ public class MetadataManagementIT {
         assertThat(first.get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectObjectGroupLifeCycleById(got_with_graph_0_guid,
-                getSelectQueryProjectionSimple(got_with_graph_0_guid).getFinalSelect());
+            lifecycleClient.getRawObjectGroupLifeCycleById(got_with_graph_0_guid);
         assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("$results")).isNotNull();
-        assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(got_with_graph_0_guid);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(got_with_graph_0_guid);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(8);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
         assertThat(metadataResponse.isOk()).isTrue();
@@ -502,13 +488,10 @@ public class MetadataManagementIT {
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectObjectGroupLifeCycleById(got_with_graph_1_guid,
-                getSelectQueryProjectionSimple(got_with_graph_1_guid).getFinalSelect());
+            lifecycleClient.getRawObjectGroupLifeCycleById(got_with_graph_1_guid);
         assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("$results")).isNotNull();
-        assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(got_with_graph_1_guid);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(got_with_graph_1_guid);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(8);
 
         // 3. Rest offset and relaunch reconstruct for unit and got
         offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0L);
@@ -545,14 +528,10 @@ public class MetadataManagementIT {
             .isEqualTo(unit_with_graph_2_guid);
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
-        lifecycleResponse =
-            lifecycleClient.selectUnitLifeCycleById(unit_with_graph_2_guid,
-                getSelectQueryProjectionSimple(unit_with_graph_2_guid).getFinalSelect());
+        lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unit_with_graph_2_guid);
         assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("$results")).isNotNull();
-        assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(unit_with_graph_2_guid);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(5);
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unit_with_graph_2_guid);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(5);
 
         metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_2_guid);
         assertThat(metadataResponse.isOk()).isTrue();
@@ -562,13 +541,10 @@ public class MetadataManagementIT {
         assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
 
         lifecycleResponse =
-            lifecycleClient.selectObjectGroupLifeCycleById(got_with_graph_2_guid,
-                getSelectQueryProjectionSimple(got_with_graph_2_guid).getFinalSelect());
+            lifecycleClient.getRawObjectGroupLifeCycleById(got_with_graph_2_guid);
         assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("$results")).isNotNull();
-        assertThat(lifecycleResponse.get("$results").size()).isEqualTo(1);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_id").asText()).isEqualTo(got_with_graph_2_guid);
-        assertThat(lifecycleResponse.get("$results").get(0).get("_v").asInt()).isEqualTo(8);
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(got_with_graph_2_guid);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(8);
 
         // 5. Reconstruct nothing for unit and got
         reconstructionItems = new ArrayList<>();
@@ -1405,13 +1381,6 @@ public class MetadataManagementIT {
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
         MetadataCollections.OBJECTGROUP.getCollection().insertMany(gots);
-    }
-
-
-    private Select getSelectQueryProjectionSimple(String guid) throws InvalidCreateOperationException {
-        Select select = new Select();
-        select.setQuery(QueryHelper.eq("obId", guid));
-        return select;
     }
 
     private void createInWorkspace(String container, String fileName, String extention, String file, DataCategory type)

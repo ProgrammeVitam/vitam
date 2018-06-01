@@ -27,22 +27,13 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -57,13 +48,8 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(StoreMetadataObjectActionHandler.class);
 
-    private static final String UNIT_KEY = "unit";
-    private static final String GOT_KEY = "got";
-    private static final String LFC_KEY = "lfc";
-    private static final String OB_ID = "obId";
     private static final String $RESULTS = "$results";
     private static final String DOCUMENT_NOT_FOUND = "Document not found";
-    private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
 
     /**
      * selectMetadataDocumentById, Retrieve Metadata Document from DB
@@ -107,45 +93,25 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
     }
 
     /**
-     * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
+     * retrieve the Raw LFC for the metadata document (Unit or Got)
      *
      * @param idDocument document uuid
      * @param dataCategory accepts UNIT or OBJECT_GROUP
-     * @param loogbookClient LogbookLifeCyclesClient to use
-     * @return the LFC of the giving document from logbook
+     * @param logbookClient LogbookLifeCyclesClient to use
+     * @return the raw LFC
      * @throws ProcessingException if no result found or error during parsing response from logbook client
      */
-    protected JsonNode retrieveLogbookLifeCycleById(String idDocument, DataCategory dataCategory,
-        LogbookLifeCyclesClient loogbookClient)
+    protected JsonNode getRawLogbookLifeCycleById(String idDocument, DataCategory dataCategory,
+        LogbookLifeCyclesClient logbookClient)
         throws VitamException {
-        JsonNode jsonResponse = null;
-        try {
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(OB_ID, idDocument));
-            ObjectNode queryDsl = parser.getRequest().getFinalSelect();
-
-            switch (dataCategory) {
-                case UNIT:
-                    jsonResponse = loogbookClient.selectUnitLifeCycleById(idDocument, queryDsl,
-                        LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-                    break;
-                case OBJECTGROUP:
-                    jsonResponse = loogbookClient.selectObjectGroupLifeCycleById(idDocument, queryDsl,
-                        LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported category " + dataCategory);
-            }
-        } catch (final InvalidCreateOperationException e) {
-            LOGGER.error(e);
-        } catch (final InvalidParseOperationException | LogbookClientException e) {
-            LOGGER.error(e);
-            throw e;
+        switch (dataCategory) {
+            case UNIT:
+                return logbookClient.getRawUnitLifeCycleById(idDocument);
+            case OBJECTGROUP:
+                return logbookClient.getRawObjectGroupLifeCycleById(idDocument);
+            default:
+                throw new IllegalArgumentException("Unsupported category " + dataCategory);
         }
-
-        return extractNodeFromResponse(jsonResponse, LIFE_CYCLE_NOT_FOUND);
     }
 
     /**

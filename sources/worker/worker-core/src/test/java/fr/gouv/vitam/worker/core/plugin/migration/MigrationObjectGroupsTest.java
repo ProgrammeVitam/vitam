@@ -7,7 +7,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -93,8 +92,7 @@ public class MigrationObjectGroupsTest {
             .getFromInputStream(getClass().getResourceAsStream("/migration/LFCObjectGroupResponse.json"),
                 JsonNode.class);
 
-        when(logbookLifeCyclesClient.selectObjectGroupLifeCycleById(eq(guid.getId()), any(JsonNode.class),
-            eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
+        when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(guid.getId()))
             .thenReturn(lfcResponse);
 
         //WHEN

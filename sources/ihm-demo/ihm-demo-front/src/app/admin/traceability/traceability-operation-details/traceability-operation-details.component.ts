@@ -27,7 +27,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
         () => ({'width': '250px'}), false),
       ColumnDefinition.makeStaticColumn('endDate', 'Date fin', DateService.handleDateWithTime,
         () => ({'width': '250px'}), false),
-      ColumnDefinition.makeStaticColumn('numberOfElement', 'Nombre d\'opération', undefined,
+      ColumnDefinition.makeStaticColumn('numberOfElements', 'Nombre d\'opérations', undefined,
         () => ({'width': '700px'}), false),
     ], 'file': [
       ColumnDefinition.makeStaticColumn('fileName', 'Nom fichier', undefined,
@@ -98,7 +98,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
     evDetData.logType = details.LogType;
     evDetData.startDate = details.StartDate;
     evDetData.endDate = details.EndDate;
-    evDetData.numberOfElement = details.NumberOfElement;
+    evDetData.numberOfElements = details.NumberOfElements;
     evDetData.digestAlgorithm = details.DigestAlgorithm;
     evDetData.fileName = details.FileName;
     evDetData.fileSize = details.Size;

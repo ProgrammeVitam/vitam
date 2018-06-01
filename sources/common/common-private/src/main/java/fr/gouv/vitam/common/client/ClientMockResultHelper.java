@@ -66,7 +66,7 @@ public class ClientMockResultHelper {
             "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
             "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
-    private static final String UNIT_RAW =
+    public static final String UNIT_RAW =
         "{   \"_id\": \"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"," + 
         "    \"DescriptionLevel\": \"Item\"," + 
         "    \"Title\": \"Title test\"," + 
@@ -89,7 +89,7 @@ public class ClientMockResultHelper {
         "    \"_storage\": {\"_nbc\": 1,\"strategyId\": \"default\",\"offerIds\": [\"localhost\"]}" + 
         "}";
 
-    private static final String GOT_RAW =
+    public static final String GOT_RAW =
         "{\"_id\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," + 
         "    \"_profil\": \"\"," + 
         "    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," + 

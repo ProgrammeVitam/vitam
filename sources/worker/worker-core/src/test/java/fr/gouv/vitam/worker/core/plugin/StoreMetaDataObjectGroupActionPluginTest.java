@@ -54,13 +54,9 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -68,7 +64,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -201,17 +196,10 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store objectGroup");
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID)).thenReturn(oGResponse);
 
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawObjectGroupLifeCycleById(OG_GUID))
+            .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
@@ -236,16 +224,9 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .setObjectName(OG_GUID_2 + ".json")
                 .setCurrentStep("Store objectGroup");
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID_2)).thenReturn(oGResponse);
 
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID_2));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID_2, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
+        when(logbookClient.getRawObjectGroupLifeCycleById(OG_GUID_2))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
@@ -273,17 +254,10 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
     @Test
     public void givenMetadataClientAndLogbookLifeCycleClientWhenSearchUnitWithLFCThenReturnOK() throws Exception {
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID)).thenReturn(oGResponse);
 
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawObjectGroupLifeCycleById(OG_GUID))
+            .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -294,7 +268,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         assertEquals(og.get("_id").asText(), OG_GUID);
 
         // select lfc
-        JsonNode lfc = plugin.retrieveLogbookLifeCycleById(OG_GUID, DataCategory.OBJECTGROUP, logbookClient);
+        JsonNode lfc = plugin.getRawLogbookLifeCycleById(OG_GUID, DataCategory.OBJECTGROUP, logbookClient);
         assertNotNull(lfc);
         assertEquals(lfc.get("_id").asText(), OG_GUID);
 
@@ -322,9 +296,8 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
             .getObjectGroupByIdRaw(OG_GUID);
 
-        when(logbookClient.selectObjectGroupLifeCycleById(anyObject(), anyObject(),
-            eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawObjectGroupLifeCycleById(anyObject()))
+            .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -343,7 +316,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID)).thenReturn(oGResponse);
 
         Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookClient)
-            .selectObjectGroupLifeCycleById(anyObject(), anyObject(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
+            .getRawObjectGroupLifeCycleById(anyObject());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -361,16 +334,9 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store unit");
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID)).thenReturn(oGResponse);
 
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
+        when(logbookClient.getRawObjectGroupLifeCycleById(OG_GUID))
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -396,17 +362,10 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store unit");
 
-        SelectMultiQuery query = new SelectMultiQuery();
-        ObjectNode constructQuery = query.getFinalSelect();
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID)).thenReturn(oGResponse);
 
-        SelectParserSingle parser = new SelectParserSingle();
-        parser.parse(constructQuery);
-        parser.addCondition(QueryHelper.eq(OB_ID, OG_GUID));
-        constructQuery = parser.getRequest().getFinalSelect();
-        when(logbookClient.selectObjectGroupLifeCycleById(OG_GUID, constructQuery,
-            LifeCycleStatusCode.LIFE_CYCLE_COMMITTED))
-                .thenReturn(lfcResponse);
+        when(logbookClient.getRawObjectGroupLifeCycleById(OG_GUID))
+            .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))

@@ -343,6 +343,7 @@ public class AccessInternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(BODY_TEST).when()
             .get("/units/" + ID_UNIT).then()
@@ -355,6 +356,7 @@ public class AccessInternalResourceImplTest {
     public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() {
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body("")
             .when()
@@ -392,6 +394,7 @@ public class AccessInternalResourceImplTest {
     public void given_pathWithId_when_get_SelectByID() {
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(BODY_TEST)
             .when()
@@ -406,6 +409,7 @@ public class AccessInternalResourceImplTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
             .get("/units/" + ID_UNIT).then()

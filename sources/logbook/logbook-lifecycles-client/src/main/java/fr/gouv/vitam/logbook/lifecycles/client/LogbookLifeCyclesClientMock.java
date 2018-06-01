@@ -28,7 +28,6 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -54,7 +53,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 
-import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -169,9 +168,25 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectUnitLifeCyclesRaw(JsonNode queryDsl) throws InvalidParseOperationException {
-        LOGGER.debug("Select request with id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
-        return ClientMockResultHelper.getLogbookLifecycle();
+    public JsonNode getRawUnitLifeCycleById(String id) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public JsonNode getRawObjectGroupLifeCycleById(String id) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate, int limit) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate,
+        LocalDateTime endDate,
+        int limit) {
+        throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
@@ -201,7 +216,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public RequestResponse unitLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws InvalidParseOperationException {
-       return new RequestResponseOK().addResult(JsonHandler.createObjectNode());
+        return new RequestResponseOK().addResult(JsonHandler.createObjectNode());
     }
 
     private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
