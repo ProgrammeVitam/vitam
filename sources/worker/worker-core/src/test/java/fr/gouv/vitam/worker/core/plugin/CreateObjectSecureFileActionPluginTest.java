@@ -26,8 +26,42 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -51,6 +85,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
@@ -65,37 +100,6 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 public class CreateObjectSecureFileActionPluginTest {
 
@@ -110,7 +114,8 @@ public class CreateObjectSecureFileActionPluginTest {
     private String guidOg = "aebaaaaaaahgausqab7boak55jchzyqaaaaq";
 
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -124,12 +129,17 @@ public class CreateObjectSecureFileActionPluginTest {
             .setObjectName(guidOg + ".json").setCurrentStep("currentStep")
             .setContainerName(guid.getId())
             .setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
-    @Mock private WorkspaceClient workspaceClient;
-    @Mock private MetaDataClient metadataClient;
-    @Mock private MetaDataClientFactory metadataClientFactory;
+    @Mock
+    private WorkspaceClient workspaceClient;
+    @Mock
+    private MetaDataClient metadataClient;
+    @Mock
+    private MetaDataClientFactory metadataClientFactory;
 
-    @Mock private StorageClientFactory storageClientFactory;
-    @Mock private StorageClient storageClient;
+    @Mock
+    private StorageClientFactory storageClientFactory;
+    @Mock
+    private StorageClient storageClient;
 
     public CreateObjectSecureFileActionPluginTest() {
         // do nothing
@@ -155,8 +165,8 @@ public class CreateObjectSecureFileActionPluginTest {
         reset(metadataClient);
         when(workspaceClient.getObject(anyObject(),
             eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + guidOg + ".json")))
-            .thenThrow(
-                new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
+                .thenThrow(
+                    new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
         final ItemStatus response = plugin.execute(params, handler);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
@@ -172,7 +182,7 @@ public class CreateObjectSecureFileActionPluginTest {
         final InputStream object1 = PropertiesUtils.getResourceAsStream(OBJECT_LFC_1);
         when(workspaceClient.getObject(anyObject(),
             eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + guidOg + ".json")))
-            .thenReturn(Response.status(Status.OK).entity(object1).build());
+                .thenReturn(Response.status(Status.OK).entity(object1).build());
         when(metadataClient.selectObjectGrouptbyId(anyObject(), anyObject()))
             .thenReturn(objectGroupFound);
         when(metadataClient.getObjectGroupByIdRaw(anyObject()))
@@ -186,8 +196,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
         final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidOg, "",
             expectedMDLFCGlobalHashFromStorage, 17011, "file_owner",
-            LocalDateUtil.getString(LocalDateTime.now()), LocalDateUtil.getString(LocalDateTime.now())
-        );
+            LocalDateUtil.getString(LocalDateTime.now()), LocalDateUtil.getString(LocalDateTime.now()));
 
         final ObjectNode objectInformationResult = JsonHandler.createObjectNode();
 
@@ -204,7 +213,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 
-        //Test with same global digest for all storage offers
+        // Test with same global digest for all storage offers
         storageMDResult.setDigest(expectedMDLFCGlobalHashFromStorage);
         objectInformationResult.set(offerIds[0], JsonHandler.toJsonNode(storageMDResult));
         objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
@@ -215,8 +224,8 @@ public class CreateObjectSecureFileActionPluginTest {
         String fileAsString = getSavedWorkspaceObject(SedaConstants.LFC_OBJECTS_FOLDER + "/" + guidOg + ".json");
         assertNotNull(fileAsString);
         System.out.println(fileAsString);
-        //got have 11 objects and the last one is an Array with the elements ==> 13 json separators (ie ',')
-        assertEquals(14, StringUtils.countMatches(fileAsString, ","));
+        // got have 11 objects and the last one is an Array with the elements ==> 13 json separators (ie ',')
+        assertEquals(15, StringUtils.countMatches(fileAsString, ","));
 
         // check hash for LFC and for MD
         ObjectNode got = (ObjectNode) JsonHandler.getFromInputStream(
@@ -226,6 +235,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
         JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_LFC_1));
         final String gotLFCHash = generateExpectedDigest(lfc);
+        final String gotLFCHashEvents = generateExpectedDigest(lfc.get(LogbookDocument.EVENTS));
 
 
         final LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLineExpected =
@@ -238,6 +248,7 @@ public class CreateObjectSecureFileActionPluginTest {
                 0,
                 "OK",
                 gotLFCHash,
+                gotLFCHashEvents,
                 gotMDHash,
                 expectedMDLFCGlobalHashFromStorage,
                 null
@@ -245,7 +256,7 @@ public class CreateObjectSecureFileActionPluginTest {
             );
 
         lfcTraceSecFileDataLineExpected.setIdUnit("aeaqaaaaaahgausqab7boak55jcmttqaaaaq");
-        //add object documents (qualifiers->version)
+        // add object documents (qualifiers->version)
         List<ObjectGroupDocumentHash> objectGroupDocumentHashToList = new ArrayList<>();
 
         objectGroupDocumentHashToList.add(

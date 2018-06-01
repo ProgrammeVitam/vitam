@@ -1104,6 +1104,7 @@ public class IngestInternalIT {
             // check evDetData of checkManifest event
             JsonNode checkManifestEvent = lfc.get(LogbookDocument.EVENTS).get(0);
             assertTrue(checkManifestEvent.get("evType").asText().equals("LFC.CHECK_MANIFEST"));
+            assertNotNull(checkManifestEvent.get("_lastPersistedDate"));
             assertTrue(
                 checkManifestEvent.get("evDetData").asText().equals("{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}"));
         } catch (final Exception e) {
