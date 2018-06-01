@@ -31,7 +31,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
@@ -69,12 +69,13 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty("SubmissionAgency")
     private String submissionAgency;
-    // TODO date object
+
     /**
      * archival agreement identifier
      */
     @JsonProperty("ArchivalAgreement")
     private String archivalAgreement;
+
     /**
      * end date
      */
@@ -122,6 +123,20 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty("ObjectSize")
     private RegisterValueDetailModel ObjectSize;
+
+
+    /**
+     * Identifier or creation of the accessionRegisterDetail
+     */
+    @JsonProperty("Identifier")
+    private String identifier;
+
+
+    /**
+     * Operation that created a group of accession register. Should be in operationsIds
+     */
+    @JsonProperty("OperationGroup")
+    private String operationGroup;
 
     /**
      * Linked ingest operation id
@@ -363,6 +378,46 @@ public class AccessionRegisterDetailModel {
         return this;
     }
 
+
+    /**
+     * Get identifier
+     *
+     * @return identifier
+     */
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * Set identifier
+     *
+     * @param identifier
+     */
+    public AccessionRegisterDetailModel setIdentifier(String identifier) {
+        this.identifier = identifier;
+        return this;
+    }
+
+    /**
+     * Get the operation group
+     *
+     * @return operationGroup
+     */
+    public String getOperationGroup() {
+        return operationGroup;
+    }
+
+
+    /**
+     * Set the operation group
+     *
+     * @param operationGroup
+     */
+    public AccessionRegisterDetailModel setOperationGroup(String operationGroup) {
+        this.operationGroup = operationGroup;
+        return this;
+    }
+
     public List<String> getOperationsIds() {
         return operationsIds;
     }
@@ -375,6 +430,16 @@ public class AccessionRegisterDetailModel {
      */
     public AccessionRegisterDetailModel setOperationsIds(List<String> operationsIds) {
         this.operationsIds = operationsIds;
+        if (null != operationsIds && operationsIds.size() > 0) {
+            String operationsId = operationsIds.iterator().next();
+            if (Strings.isNullOrEmpty(identifier)) {
+                identifier = operationsId;
+            }
+
+            if (Strings.isNullOrEmpty(operationGroup)) {
+                operationGroup = operationsId;
+            }
+        }
         return this;
     }
 
@@ -387,6 +452,13 @@ public class AccessionRegisterDetailModel {
     public AccessionRegisterDetailModel addOperationsId(String operationsId) {
         if (operationsIds == null) {
             operationsIds = new ArrayList<>();
+            if (Strings.isNullOrEmpty(identifier)) {
+                identifier = operationsId;
+            }
+
+            if (Strings.isNullOrEmpty(operationGroup)) {
+                operationGroup = operationsId;
+            }
         }
         operationsIds.add(operationsId);
         return this;
