@@ -48,7 +48,7 @@
               "type": "string",
               "index": "not_analyzed"
             },
-            "NumberOfElement": {
+            "NumberOfElements": {
               "type": "long",
               "index": "analyzed"
             },

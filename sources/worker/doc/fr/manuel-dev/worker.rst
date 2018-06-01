@@ -1371,6 +1371,7 @@ Le fichier json Operations/traceabilityInformation.json va être utilisé pour c
 - numberOfElements : nombre de cycles de vie traités
 - startDate : startDate (soit égale à LocalDateTime.MIN, soit à la plus petite date des cycles de vie traités)
 - endDate : plus grande date des cycles de vie traités.
+- securisationVersion : version du format du fichier de traçabilité
 
 **computing_information.txt :**
 Ce fichier va être rempli de la manière suivante :
