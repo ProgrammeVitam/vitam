@@ -26,10 +26,18 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
@@ -61,13 +69,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.StorageClientUtil;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
-
 
 /**
  * CreateSecureFileAction Plugin.
@@ -80,7 +81,8 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
     private final MetaDataClientFactory metaDataClientFactory;
     private final StorageClientFactory storageClientFactory;
 
-    @VisibleForTesting CreateSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory,
+    @VisibleForTesting
+    CreateSecureFileActionPlugin(MetaDataClientFactory metaDataClientFactory,
         StorageClientFactory storageClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.storageClientFactory = storageClientFactory;
@@ -107,20 +109,21 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             String finalEvDateTime = lastEvent.get(LogbookMongoDbName.eventDateTime.getDbname()).asText();
 
             final String hashLFC = generateDigest(lifecycle);
+            final String hashLFCEvents = generateDigest(events);
 
             lfcTraceSecFileDataLine = new LifeCycleTraceabilitySecureFileObject(
                 finalEventIdProc,
                 finalEventTypeProc,
                 finalEvDateTime,
-                lifecycle.get(LogbookDocument.ID).asText(),//_id not from DSL but from lifecycle
+                lifecycle.get(LogbookDocument.ID).asText(), // _id not from DSL but from lifecycle
                 null,
                 lifecycle.get(LogbookDocument.VERSION).asInt(),
                 finalOutcome,
                 hashLFC,
+                hashLFCEvents,
                 null,
                 null,
-                null
-            );
+                null);
 
             String lfcAndMetadataGlobalHashFromStorage;
             String hashMetaData;
@@ -133,7 +136,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 metadataType = MetadataType.UNIT;
                 MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
 
-                if(unit.get(OG)!=null){
+                if (unit.get(OG) != null) {
                     lfcTraceSecFileDataLine.setIdGot(unit.get(OG).textValue());
                 }
 
