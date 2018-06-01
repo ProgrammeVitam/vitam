@@ -754,6 +754,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
+        RequestResponseOK response = new RequestResponseOK<>();
 
         IngestContractManager manager = new IngestContractManager(logbookClient, metaDataClient, eip);
 
@@ -780,6 +781,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         }
 
         Map<String, List<String>> updateDiffs;
+
         try {
             JsonNode linkParentNode = queryDsl.findValue(IngestContractModel.LINK_PARENT_ID);
             if (linkParentNode != null) {
@@ -821,8 +823,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 return error;
             }
+
             DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
             updateDiffs = result.getDiffs();
+            response.addResult(new DbRequestResult(result))
+                .setTotal(result.getTotal())
+                .setQuery(queryDsl)
+                .setHttpCode(Response.Status.OK.getStatusCode());
+
             result.close();
 
             functionalBackupService.saveCollectionAndSequence(
@@ -851,7 +859,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         }
 
         manager.logUpdateSuccess(ingestContractModel.getId(), identifier, updateDiffs.get(ingestContractModel.getId()));
-        return new RequestResponseOK<>();
+        return response;
     }
 
     private static VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {

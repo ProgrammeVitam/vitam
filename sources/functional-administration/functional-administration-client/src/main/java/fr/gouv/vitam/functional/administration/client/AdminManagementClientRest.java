@@ -1069,7 +1069,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<ProfileModel>().setHttpCode(Status.OK.getStatusCode());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Profile not found with id: " + id);
             }
@@ -1209,13 +1209,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<AccessContractModel>().setHttpCode(Status.OK.getStatusCode());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Access contract not found with id: " + id);
             }
-
             return RequestResponse.parseFromResponse(response, AccessContractModel.class);
-
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -1235,7 +1233,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<IngestContractModel>().setHttpCode(Status.OK.getStatusCode());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Ingest contract not found with id: " + id);
             }
@@ -1266,8 +1264,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 LOGGER.error(reason);
                 throw new ReferentialException("Referential Error: " + reason);
             }
-
-
             return status;
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -1286,16 +1282,15 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT_URI + id, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
+
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                return new RequestResponseOK<ContextModel>().setHttpCode(Status.OK.getStatusCode());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class);
             } else if (status == Status.NOT_FOUND) {
                 throw new ReferentialNotFoundException("Context not found with id: " + id);
             }
-
             return RequestResponse.parseFromResponse(response, ContextModel.class);
-
-        } catch (VitamClientInternalException e) {
+        } catch (VitamClientInternalException | InvalidParseOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {

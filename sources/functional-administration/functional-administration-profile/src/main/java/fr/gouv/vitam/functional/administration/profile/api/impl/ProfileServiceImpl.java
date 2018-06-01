@@ -463,6 +463,8 @@ public class ProfileServiceImpl implements ProfileService {
         GUID eip = GUIDReader.getGUID(operationId);
         final ProfileManager manager = new ProfileManager(logbookClient, eip);
         Map<String, List<String>> updateDiffs;
+        RequestResponseOK response = new RequestResponseOK<>();
+
         manager.logStarted(PROFILES_UPDATE_EVENT, profileModel.getId());
 
         if (jsonDsl == null || !jsonDsl.isObject()) {
@@ -507,6 +509,10 @@ public class ProfileServiceImpl implements ProfileService {
         try {
             try (DbRequestResult result = mongoAccess.updateData(jsonDsl, FunctionalAdminCollections.PROFILE)) {
                 updateDiffs = result.getDiffs();
+                response.addResult(new DbRequestResult(result))
+                    .setTotal(result.getTotal())
+                    .setQuery(jsonDsl)
+                    .setHttpCode(Response.Status.OK.getStatusCode());
             }
 
             List<String> diff = updateDiffs.get(profileModel.getId());
@@ -537,7 +543,7 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         manager.logSuccess(PROFILES_UPDATE_EVENT, profileModel.getId(), wellFormedJson);
-        return new RequestResponseOK().setHttpCode(Response.Status.OK.getStatusCode());
+        return response;
     }
 
     /**

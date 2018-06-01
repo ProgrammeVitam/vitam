@@ -1,32 +1,31 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
-import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
@@ -359,8 +358,15 @@ public class ContextServiceImpl implements ContextService {
         }
 
         String diff = null;
+        RequestResponseOK response = new RequestResponseOK<>();
+
         try {
             DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT);
+
+            response.addResult(new DbRequestResult(result))
+                .setTotal(result.getTotal())
+                .setQuery(queryDsl)
+                .setHttpCode(Response.Status.OK.getStatusCode());
 
             List<String> updates = null;
             // if at least one change was applied
@@ -398,8 +404,8 @@ public class ContextServiceImpl implements ContextService {
 
             return getVitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem(), e.getMessage(),
                 StatusCode.KO)
-                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                    .setMessage(UPDATE_KO);
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .setMessage(UPDATE_KO);
         } catch (final Exception e) {
             LOGGER.error(e);
             final String err = "Update context error > " + e.getMessage();
@@ -415,7 +421,7 @@ public class ContextServiceImpl implements ContextService {
         // logbook success event
         manager.logUpdateSuccess(contextModel.getId(), diff);
 
-        return new RequestResponseOK<>();
+        return response;
     }
 
     private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
@@ -445,7 +451,7 @@ public class ContextServiceImpl implements ContextService {
             // Init validator
             validators = new HashMap<ContextValidator, String>() {{
                 put(createMandatoryParamsValidator(), EMPTY_REQUIRED_FIELD);
-                put(securityProfileIdentifierValidator(),SECURITY_PROFILE_NOT_FOUND);
+                put(securityProfileIdentifierValidator(), SECURITY_PROFILE_NOT_FOUND);
                 put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
                 put(checkContract(), UNKNOWN_VALUE);
             }};
@@ -587,7 +593,7 @@ public class ContextServiceImpl implements ContextService {
         }
 
         private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters,
-                                         String KOEventType) {
+            String KOEventType) {
             if (null != errorsDetails && !errorsDetails.isEmpty()) {
                 try {
                     final ObjectNode object = JsonHandler.createObjectNode();
@@ -678,7 +684,8 @@ public class ContextServiceImpl implements ContextService {
                     final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
                     if (exist) {
                         return Optional
-                            .of(ContextValidator.ContextRejectionCause.rejectDuplicatedInDatabase(context.getIdentifier()));
+                            .of(ContextValidator.ContextRejectionCause
+                                .rejectDuplicatedInDatabase(context.getIdentifier()));
                     }
                 }
                 return Optional.empty();
