@@ -11,7 +11,7 @@ Celui-ci est défini dans le fichier “DefaultCheckTraceability.json” (situé
 Processus de contrôle d'intégrité d'un journal sécurisé (vision métier)
 =======================================================================
 
-Le processus de contrôle d'intégrité débute lorsqu'un identifiant d'opération de sécurisation des journaux d'opération, des journaux de cycles de vie, ou du journal des écritures est soumis au service de contrôle d'intégrité des journaux sécurisés. Le service permet de récupérer le journal sécurisé, d'en extraire son contenu et de valider que son contenu n'a pas été altéré.
+Le processus de contrôle d'intégrité débute lorsqu'un identifiant d'opération de sécurisation des journaux d'opération, des journaux du cycles de vie, ou du journal des écritures est soumis au service de contrôle d'intégrité des journaux sécurisés. Le service permet de récupérer le journal sécurisé, d'en extraire son contenu et de valider que son contenu n'a pas été altéré.
 
 Pour cela, il calcule un arbre de Merkle à partir des journaux d'opérations que contient le journal sécurisé, puis en calcule un second à partir des journaux correspondants disponibles dans la solution logicielle Vitam. Une comparaison est ensuite effectuée entre ces deux arbres et celui contenu dans les métadonnées du journal sécurisé.
 
@@ -20,8 +20,8 @@ Ensuite, dans une dernière étape, le tampon d'horodatage est vérifié et vali
 Processus de préparation de la  vérification des journaux sécurisés (STP_PREPARE_TRACEABILITY_CHECK)
 ====================================================================================================
 
-PREPARE_TRACEABILITY_CHECK (PrepareTraceabilityCheckProcessActionHandler.java)
-------------------------------------------------------------------------------
+Préparation de la vérification des journaux sécurisés PREPARE_TRACEABILITY_CHECK (PrepareTraceabilityCheckProcessActionHandler.java)
+------------------------------------------------------------------------------------------------------------------------------------
 
 * **Règle** : vérification que l'opération donnée en entrée est de type TRACEABILITY. Récupération du zip associé à cette opération et extraction de son contenu.
 * **Type** : bloquant
@@ -33,8 +33,8 @@ PREPARE_TRACEABILITY_CHECK (PrepareTraceabilityCheckProcessActionHandler.java)
 Processus de vérification de l'arbre de Merkle (STP_MERKLE_TREE)
 ================================================================
 
-CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
-------------------------------------------------------
+Vérification de l'arbre de MERKLECHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
+---------------------------------------------------------------------------------------
 
 * **Règle** : Recalcul de l'arbre de Merkle des journaux contenus dans le journal sécurisé, calcul d'un autre arbre à partir des journaux indexés correspondants et vérification que tous deux correspondent à celui stocké dans les métadonnées du journal sécurisé
 * **Type** : bloquant
@@ -45,7 +45,7 @@ CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
 
 **La tâche contient les traitements suivants**
 
-* Comparaison de l'arbre de MERKLE avec le Hash enregistré
+Comparaison de l'arbre de MERKLE avec le Hash enregistré
 	* **Règle** : Vérification que l'arbre de Merkle calculé à partir des journaux contenus dans le journal sécurisé est identique à celui stocké dans les métadonnées du journal sécurisé
 	* **Type** : bloquant
 	* **Statuts** :
@@ -64,11 +64,11 @@ CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
 		* KO : l'arbre de Merkle des journaux indexés ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.KO=Échec de la comparaison de l'arbre de MERKLE avec le Hash indexé)
 		* FATAL : une erreur technique est survenue lors de la comparaison l'arbre de Merkle des journaux indexés et de celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.FATAL=Erreur fatale lors de la comparaison de l'arbre de MERKLE avec le Hash indexé)
 
-PRocesus de vérification de l'horodatage (STP_VERIFY_STAMP)
+Procesus de vérification de l'horodatage (STP_VERIFY_STAMP)
 ===========================================================
 
-VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
-----------------------------------------------------
+Vérification et validation du tampon d'horodatage VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
+------------------------------------------------------------------------------------------------------
 
 * **Règle** : Vérification et validation du tampon d'horodatage.
 * **Type** : bloquant
@@ -97,6 +97,7 @@ VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
 	* **Status** :
 		* OK : le tampon est validé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.OK=Succès de la validation du tampon d'horodatage)
 		* KO : le tampon est invalidé (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.KO=Échec de la validation du tampon d'horodatage)
+		* FATAL : Erreur technique lors de la validation du tampon d'horodatage (VERIFY_TIMESTAMP.VALIDATE_TOKEN_TIMESTAMP.FATAL=Erreur fatale lors de la validation du tampon d''horodatage)
 
 D'une façon synthétique, le workflow est décrit de cette façon :
 

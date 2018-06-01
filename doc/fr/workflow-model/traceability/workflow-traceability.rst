@@ -1,10 +1,10 @@
-Workflow de création d'un journal sécurisé
-##########################################
+Workflow de création d'un journal sécurisé des groupes d'objets et des unités archivistiques 
+############################################################################################
 
 Introduction
 ============
 
-Cette section décrit le processus (workflow) de sécurisation des journaux mis en place dans la solution logicielle Vitam.
+Cette section décrit le processus (workflow) de sécurisation des journaux mis en place dans la solution logicielle Vitam pour les groupes d'objets et les unités archivistiques.
 
 Celui-ci est défini dans le fichier "LogbookAdministration.java" ( situé ici: sources/logbook/logbook-administration/src/main/java/fr/gouv/vitam/logbook/administration/core/)
 

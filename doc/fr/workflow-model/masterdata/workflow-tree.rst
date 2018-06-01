@@ -26,12 +26,13 @@ La fin du processus peut prendre plusieurs statuts :
   Les étapes et tâches associées ci-dessous décrivent ce processus d'import (clé et description de la clé associée dans le journal des opérations), non encore abordées dans la description de l'entrée d'un SIP.
 
 
-Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
-------------------------------------------------------------
+Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE (CheckDataObjectPackageActionHandler.java)
+------------------------------------------------------------------------------------------------------- 
 
-* Vérification de la non existence d'objets (CHECK_NO_OBJECT)
+* Vérification de la non existence d'objets CHECK_NO_OBJECT (CheckDataObjectPackageActionHandler)
+*************************************************************************************************
 
-  + **Règle** : vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert du plan
+  + **Règle** : vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert de l'arbre de positionnement
 
   + **Statuts** :
 
@@ -41,10 +42,12 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 
     - FATAL : une erreur technique est survenue lors de la vérification de la non existence d'objet numérique (CHECK_DATAOBJECTPACKAGE.CHECK_NO_OBJECT.FATAL=Erreur fatale lors de la vérification de l'absence d'objet)
 
-.. image:: images/Workflow_HoldingScheme.jpg
-    :align: center
 
 Structure du Workflow
 =====================
 
 Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultHoldingSchemeWorkflow.json". Ce fichier est disponible à sources/processing/processing-management/src/main/resources/workflows.
+
+.. image:: images/Workflow_HoldingScheme.jpg
+    :align: center
+

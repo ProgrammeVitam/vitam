@@ -13,14 +13,13 @@ Le processus d'import d'un profil d'archivage permet à la fois de vérifier qu'
 
 Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
-Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
--------------------------------------------------------------------------
+Import des métadonnées d'un profil d'archivage STP_IMPORT_PROFILE_JSON (ProfileServiceImpl.java)
+------------------------------------------------------------------------------------------------
 
-* Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
-
-  + **Type** : bloquant
 
   + **Règle** : le profil d'archivage répond aux exigences suivantes :
+
+* Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
 
     + Les données suivantes sont obligatoirement remplies :
 
@@ -33,6 +32,8 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
       * Le champ "Description" est peuplé avec une chaîne de caractères
       * Le champ "Status" est peuplé avec la valeur ACTIVE ou la valeur INACTIVE
 
+  + **Type** : bloquant
+
   + **Statuts** :
 
     - OK : les règles ci-dessus sont respectées (STP_IMPORT_PROFILE_JSON.OK=Succès du processus d'import du profil d'archivage)
@@ -41,9 +42,7 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors du processus d'import du profil d'archivage)
 
-    - STARTED : Début du processus d'import du profil d'archivage ( STP_IMPORT_PROFILE_JSON.STARTED=Début du processus d'import du profil d''archivage ) 
-
-    - WARNING : Avertissement lors du processus d'import du profil d''archivage ( STP_IMPORT_PROFILE_JSON.WARNING=Avertissement lors du processus d'import du profil )  d''archivage
+    - WARNING : Avertissement lors du processus d'import du profil d'archivage ( STP_IMPORT_PROFILE_JSON.WARNING=Avertissement lors du processus d'import du profil )  d'archivage
 
     - IDENTIFIER DUPLICATION : L'identifiant est déjà utilisé ( STP_IMPORT_PROFILE_JSON.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé ) 
 
@@ -51,8 +50,8 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
 
 
 
-Import du profil d'archivage (STP_IMPORT_PROFILE_FILE)
--------------------------------------------------------
+Import du profil d'archivage STP_IMPORT_PROFILE_FILE (ProfileServiceImpl.java)
+------------------------------------------------------------------------------
 
 
 * Vérification de la concordance entre le fichier importé dans un profil et le format décrit dans la métadonnée "Format"
@@ -69,14 +68,14 @@ Import du profil d'archivage (STP_IMPORT_PROFILE_FILE)
 
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_FILE.FATAL=Erreur fatale lors du processus d'import du profil d'archivage (fichier xsd ou rng))
 
-Mise à jour d'un profil d'archivage (STP_UPDATE_PROFILE_JSON)
-----------------------------------------------------------------------
+Mise à jour d'un profil d'archivage STP_UPDATE_PROFILE_JSON (ProfileServiceImpl.java)
+-------------------------------------------------------------------------------------
 
 La modification d'un profil d'archivage doit suivre les mêmes règles que celles décrites pour la création. L'association d'un fichier de profil avec les métadonnées d'un profil provoque également une opération de mise à jour du profil d'archivage.
 La modification doit suivre les mêmes règles que celles décrites pour la création. La clé de l'événement est "STP_UPDATE_PROFILE_JSON", entraînant des statuts STP_UPDATE_PROFILE_JSON.OK, STP_UPDATE_PROFILE_JSON.KO et STP_UPDATE_PROFILE_JSON.FATAL sur les mêmes contrôles que l'import.
 
-Sauvegarde du JSON (BACKUP_PROFILE)
------------------------------------------------
+Sauvegarde du JSON BACKUP_PROFILE (ProfileServiceImpl.java)
+-----------------------------------------------------------
 
 Cette tâche est appellée que ce soit en import initial ou lors de la modification des métadonnées de profils
 
