@@ -58,6 +58,8 @@ public class MigrationObjectGroupPrepareTest {
         given(handlerIO.getNewLocalFile("chainedFile_1.json")).willReturn(chainedFile1);
 
         MigrationObjectGroupPrepare migrationGotPrepare = new MigrationObjectGroupPrepare(metaDataClientFactory, 2);
+        File file = tempFolder.newFile();
+        when(handlerIO.getNewLocalFile("migrationObjectsListIds")).thenReturn(file);
 
         //WHEN
         ItemStatus execute = migrationGotPrepare.execute(defaultWorkerParameters, handlerIO);

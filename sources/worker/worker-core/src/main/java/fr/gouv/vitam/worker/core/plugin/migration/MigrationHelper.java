@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -90,13 +91,15 @@ class MigrationHelper {
      * @param folder        the workspace folder to save into
      * @param bachSize
      */
-    static void createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(final ScrollSpliterator<JsonNode> scrollRequest,
+    static List<String> createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(final ScrollSpliterator<JsonNode> scrollRequest,
         final HandlerIO handler, final String folder, int bachSize) {
 
         final AtomicInteger itemCounter = new AtomicInteger(0);
         final AtomicInteger chainedFileCounter = new AtomicInteger(0);
 
         final List<String> identifierLists = new ArrayList<>();
+        final List<String> totalIdentifierLists = new ArrayList<>();
+
 
         StreamSupport.stream(scrollRequest, false).forEach(
             item -> {
@@ -111,9 +114,11 @@ class MigrationHelper {
                 final String identifier = item.get(ID).asText();
                 // add to the list
                 identifierLists.add(identifier);
+                totalIdentifierLists.add(identifier);
             });
 
         createAndSaveChainedFiles(chainedFileCounter, identifierLists, handler, folder, true);
+        return totalIdentifierLists;
     }
 
     private static void createAndSaveChainedFiles(final AtomicInteger chainedFileCounter,
@@ -149,5 +154,17 @@ class MigrationHelper {
             LOGGER.error(e);
             throw new VitamRuntimeException(e);
         }
+    }
+
+    static boolean checkMigrationEvents(JsonNode lfc, String eventType ) {
+        JsonNode lastEvent = null;
+        if (lfc!=null && lfc.get("events")!= null  ){
+
+            lastEvent =  ((ArrayNode) lfc.get("events")).get(((ArrayNode) lfc.get("events")).size() - 1);
+        }
+        if (lastEvent != null && !lastEvent.get("evType").asText().equals(eventType)) {
+            return true;
+        }
+        return false;
     }
 }

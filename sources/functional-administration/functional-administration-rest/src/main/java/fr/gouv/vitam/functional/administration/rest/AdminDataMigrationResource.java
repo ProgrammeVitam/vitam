@@ -30,21 +30,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
@@ -53,6 +48,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -80,9 +76,10 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import java.util.HashMap;
+import java.util.List;
+
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.eq;
-import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.status;
@@ -93,18 +90,19 @@ import static javax.ws.rs.core.Response.status;
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 
-public class DataMigrationResource {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataMigrationResource.class);
+public class AdminDataMigrationResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminDataMigrationResource.class);
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private ProcessingManagementClientFactory processingManagementClientFactory;
     private WorkspaceClientFactory workspaceClientFactory;
     private static String DATA_MIGRATION = "DATA_MIGRATION";
 
 
-    DataMigrationResource() {
+    AdminDataMigrationResource() {
         logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
         processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
         workspaceClientFactory = WorkspaceClientFactory.getInstance();
+
     }
 
     /**
@@ -115,7 +113,7 @@ public class DataMigrationResource {
      * @param workspaceClientFactory            workspaceClientFactory
      */
     @VisibleForTesting
-    public DataMigrationResource(
+    public AdminDataMigrationResource(
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
         WorkspaceClientFactory workspaceClientFactory) {
@@ -123,6 +121,9 @@ public class DataMigrationResource {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
     }
+
+
+
 
     /**
      * Migration Api
@@ -141,6 +142,12 @@ public class DataMigrationResource {
         ParametersChecker.checkParameter("TenantId is mandatory", xTenantId);
 
         int tenant = Integer.parseInt(xTenantId);
+        return migrateTo(tenant);
+    }
+
+    public Response migrateTo(Integer tenant) {
+        ParametersChecker.checkParameter("TenantId is mandatory", tenant);
+
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
