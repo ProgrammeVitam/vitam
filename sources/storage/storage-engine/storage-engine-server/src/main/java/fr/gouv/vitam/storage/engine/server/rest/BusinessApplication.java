@@ -40,8 +40,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogProvider;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -77,7 +77,7 @@ public class BusinessApplication extends Application {
             StorageResource storageResource = new StorageResource(storageConfiguration);
             singletons.add(storageResource);
 
-            final StorageLogService storageLogService = new StorageLogServiceImpl(VitamConfiguration.getTenants(),
+            final StorageLogProvider storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
                 Paths.get(storageConfiguration.getLoggingDirectory()));
 
             final StorageDistribution distribution =

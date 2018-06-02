@@ -107,7 +107,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogProvider;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookOutcome;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
@@ -158,7 +158,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     // FOR JUNIT TEST ONLY (TODO P1: review WorkspaceClientFactory to offer a
     // mocked WorkspaceClient)
     private final WorkspaceClient mockedWorkspaceClient;
-    private StorageLogService storageLogService;
+    private StorageLogProvider storageLogService;
 
 
 
@@ -168,7 +168,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param configuration     the configuration of the storage
      * @param storageLogService
      */
-    public StorageDistributionImpl(StorageConfiguration configuration, StorageLogService storageLogService) {
+    public StorageDistributionImpl(StorageConfiguration configuration, StorageLogProvider storageLogService) {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
         urlWorkspace = configuration.getUrlWorkspace();
         WorkspaceClientFactory.changeMode(urlWorkspace);
@@ -192,7 +192,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param wkClient   a custom instance of workspace client
      * @param digestType a custom digest
      */
-    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digestType, StorageLogService storageLogService) {
+    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digestType, StorageLogProvider storageLogService) {
         urlWorkspace = null;
         millisecondsPerKB = 100;
         mockedWorkspaceClient = wkClient;

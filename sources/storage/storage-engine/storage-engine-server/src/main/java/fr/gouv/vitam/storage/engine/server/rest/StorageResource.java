@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.engine.server.rest;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -40,7 +39,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -104,8 +102,8 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogAdministration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogException;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogService;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogProvider;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -126,7 +124,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private final TraceabilityStorageService traceabilityLogbookService;
     private final TimestampGenerator timestampGenerator;
 
-    private StorageLogService storageLogService;
+    private StorageLogProvider storageLogService;
     private StorageLogAdministration storageLogAdministration;
     private StorageTraceabilityAdministration traceabilityLogbookAdministration;
     /**
@@ -136,7 +134,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      */
     public StorageResource(StorageConfiguration configuration) {
         try {
-            storageLogService = new StorageLogServiceImpl(VitamConfiguration.getTenants(),
+            storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
                 Paths.get(configuration.getLoggingDirectory()));
             distribution = new StorageDistributionImpl(configuration, storageLogService);
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
@@ -177,7 +175,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param configuration the storage configuration to be applied
      * @param service       the logbook service
      */
-    public StorageResource(StorageConfiguration configuration, StorageLogService service) {
+    public StorageResource(StorageConfiguration configuration, StorageLogProvider service) {
         this.storageLogService = service;
         distribution = new StorageDistributionImpl(configuration, storageLogService);
         WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
