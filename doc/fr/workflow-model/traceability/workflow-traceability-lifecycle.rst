@@ -288,7 +288,6 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 
   .. figure:: images/workflow_lfc_unit_traceability.png
-
     :align: center
 
     Diagramme d'activité du workflow de sécurisation des cycles de vie des unités archivistiques
