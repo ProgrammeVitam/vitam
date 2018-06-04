@@ -102,6 +102,66 @@ Préparation des listes des cycles de vie
 
   + **Règle** : récupération des différents fichiers générés aux étapes 1 et 2 puis calcul du tampon d'horodatage
 
+Cette section décrit le processus (workflow) permettant la sécurisation des journaux du cycle de vie mis en place dans la solution logicielle Vitam des unités archivistiques.
+Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultUnitLifecycleTraceability.json".
+Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/workflows.
+
+Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des unités archivistiques. 
+
+
+Processus de sécurisation des journaux des cycles de vie des unités archivistiques  (vision métier)
+====================================================================================================
+
+Le processus de sécurisation des journaux des cycles de vie consiste en la création d'un fichier .zip contenant l'ensemble des journaux du cycle de vie à sécuriser, ainsi que le tampon d'horodatage.
+
+Ce fichier zip est ensuite enregistré sur les offres de stockage, en fonction de la stratégie de stockage.
+
+Sécurisation des journaux du cycle de vie  des unités archivistiques LOGBOOK_UNIT_LFC_TRACEABILITY (LogbookLFCAdministration.java)
+==================================================================================================================================
+
+La fin du processus peut prendre plusieurs statuts :
+
+* **Statuts** :
+
+  + OK : les journaux du cycle de vie ont été sécurisés (LOGBOOK_UNIT_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des unités archivistiques)
+
+  + WARNING : il n'y pas de nouveaux journaux à sécuriser depuis la dernière sécurisation (LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
+
+  + KO : pas de cas KO
+
+  + FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (LOGBOOK_UNIT_LFC_TRACEABILITY.FATAL = Erreur fatale lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
+
+Préparation des listes des cycles de vie
+----------------------------------------
+
+- **Étape 1** - STP_PREPARE_UNIT_LFC_TRACEABILITY -  distribution sur REF
+*************************************************************************
+
+* Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
+
+ 
+
+  + **Règle** : récupération des journaux des cycles de vie à sécuriser et récupération des informations concernant les dernières opérations de sécurisation.
+  
+  + **Type** : bloquant
+
+  + **Statuts** :
+
+    - OK : les fichiers des cycles de vie ont été exportés (dans UnitsWithoutLevel et ObjectGroup) ainsi que les informations concernant les dernières opérations de sécurisation (PREPARE_UNIT_LFC_TRACEABILITY.OK=Succès du listage des journaux du cycle de vie)
+
+    - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un cycle de vie (PREPARE_UNIT_LFC_TRACEABILITY.KO=Échec du listage des journaux du cycle de vie)
+
+    - FATAL : une erreur technique est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
+
+
+- **Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
+****************************************************************************************************************
+* Traitement des journaux du cycle de vie pour les unités archivistiques - UNITS_CREATE_SECURED_FILE
+
+  + **Type** : bloquant
+
+=======
+
   + **Type** : bloquant
 
   + **Statuts** :
@@ -116,7 +176,7 @@ Préparation des listes des cycles de vie
 Note: 
 D'une façon synthétique, le workflow est décrit de cette façon :
 
-  .. figure:: images/workflow_lfc_traceability.png
+  .. figure:: images/workflow_lfc_og_traceability.png
     :align: center
 
     Diagramme d'activité du workflow de sécurisation des cycles de vie des groupes d'objets
@@ -222,8 +282,10 @@ Il s'agit du même contrôle que l'étape 2
     - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_LC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie)
 
 D'une façon synthétique, le workflow est décrit de cette façon :
+/home/edith/vitam/doc/fr/workflow-model/traceability/
 
-  .. figure:: images/workflow_lfc_traceability.png
+  .. figure:: images/workflow_lfc_unit_traceability.png
+
     :align: center
 
     Diagramme d'activité du workflow de sécurisation des cycles de vie des unités archivistiques

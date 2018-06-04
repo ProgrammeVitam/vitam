@@ -74,8 +74,11 @@ Import des métadonnées d'une ontologie IMPORT_ONTOLOGY (OntologyServiceImpl.ja
   + **Statuts** :
 
     - OK : les règles ci-dessus sont respectées (IMPORT_ONTOLOGY.OK=Succés du processus d'import de l'ontologie)
+
     - KO : une des règles ci-dessus n'a pas été respectée (IMPORT_ONTOLOGY.KO=Echec du processus d'import de l'ontologie)
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import de l'ontologie (IMPORT_ONTOLOGY.FATAL=Erreur fatale lors du processus d'import de l'ontologie)
+
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import de l'ontologie (IMPORT_ONTOLOGY.FATAL=Erreur fatale lors du processus d'import de l'ontologie)
+
     - WARNING : Avertissement lors du processus d'import de l'ontologie ( IMPORT_ONTOLOGY.WARNING=Avertissement lors du processus d'import de l'ontologie )
 
  
@@ -84,6 +87,20 @@ Mise à jour d'une ontologie
 
 La modification d'une ontologie s'effectue par ré-import du fichier Json. Le nouvel import annule et remplace l'ontologie précédente. Ce ré-import observe les règles décrites dans le processus d'import, décrit plus haut.  
 
+Note : la mise à jour des vocabulaires de l'ontologie doit respecter certaines règles de compatibilité concernant la valeur du "Type":
+
+		- Le champ Type Text peut être modifié en Keyword, Text
+		- Le champ Type Keyword peut être modifié en Keyword, Text
+		- Le champ Type Date peut être modifié en Keyword, Text
+		- Le champ Type Long peut être modifié en Keyword, Text, Double
+		- Le champ Type Double peut être modifié en Keyword, Text
+		- Le champ Type Boolean peut être modifié en Keyword, Text
+		- Le champ Type Geo-point peut être modifié en Keyword, Text
+		- Le champ Type Enumération de valeur peut être modifié en Keyword, Text
+
+
+
+
 
  + **Statuts** :
 
@@ -91,7 +108,7 @@ La modification d'une ontologie s'effectue par ré-import du fichier Json. Le no
 
     - KO : une des règles ci-dessus n'a pas été respectée (IMPORT_ONTOLOGY.KO=Echec du processus d'import de l'ontologie)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import de l'ontologie (IMPORT_ONTOLOGY.FATAL=Erreur fatale lors du processus d'import de l'ontologie)
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import de l'ontologie (IMPORT_ONTOLOGY.FATAL=Erreur fatale lors du processus d'import de l'ontologie)
 
     - WARNING : Avertissement lors du processus d'import de l'ontologie ( IMPORT_ONTOLOGY.WARNING=Avertissement lors du processus d'import de l'ontologie )
 

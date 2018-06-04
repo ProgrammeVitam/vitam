@@ -32,7 +32,7 @@ Import d'un profil de sécurité STP_IMPORT_SECURITY_PROFILE (SecurityProfileSer
 
     - KO : une des règles ci-dessus n'est pas respectée (STP_IMPORT_SECURITY_PROFILE.KO=Échec du processus d'import du profil de sécurité)
 
-    - FATAL : une erreur technique est survenue lors de l'import du profil de sécurité (STP_IMPORT_SECURITY_PROFILE.FATAL=Erreur fatale lors du processus d'import du profil de sécurité)
+    - FATAL : une erreur fatale est survenue lors de l'import du profil de sécurité (STP_IMPORT_SECURITY_PROFILE.FATAL=Erreur fatale lors du processus d'import du profil de sécurité)
 
 Mise à jour d'un profil de sécurité STP_UPDATE_SECURITY_PROFILE (SecurityProfileService.java)
 ---------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ La modification d'un profil de sécurité doit suivre les mêmes règles que cel
 
     - KO : une des règles ci-dessus n'est pas respectée (STP_UPDATE_SECURITY_PROFILE.KO=Échec du processus de mise à jour du profil de sécurité)
 
-    - FATAL : une erreur technique est survenue lors de l'import du profil de sécurité (STP_UPDATE_SECURITY_PROFILE.FATAL=Erreur fatale lors du processus de mise à jour du profil de sécurité)
+    - FATAL : une erreur fatale est survenue lors de l'import du profil de sécurité (STP_UPDATE_SECURITY_PROFILE.FATAL=Erreur fatale lors du processus de mise à jour du profil de sécurité)
 
 
 Sauvegarde du JSON STP_BACKUP_SECURITY_PROFILE (SecurityProfileService.java)
@@ -61,4 +61,4 @@ Cette tâche est appellée que ce soit en import initial ou en modification.
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_SECURITY_PROFILE.FATAL = Erreur fatale lors du processus de sauvegarde des profils de sécurité)
+      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_SECURITY_PROFILE.FATAL = Erreur fatale lors du processus de sauvegarde des profils de sécurité)

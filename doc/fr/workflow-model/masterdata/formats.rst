@@ -26,4 +26,4 @@ Import d'un référentiel de formats STP_REFERENTIAL_FORMAT_IMPORT (ReferentialF
 
     - KO : la condition ci-dessus n'est pas respectée (STP_REFERENTIAL_FORMAT_IMPORT.KO=Échec du processus d'import du référentiel des formats)
 
-    - FATAL : une erreur technique est survenue lors de l'import du référentiel des formats (STP_REFERENTIAL_FORMAT_IMPORT.FATAL=Erreur fatale lors du processus d'import du référentiel des formats)
+    - FATAL : une erreur fatale est survenue lors de l'import du référentiel des formats (STP_REFERENTIAL_FORMAT_IMPORT.FATAL=Erreur fatale lors du processus d'import du référentiel des formats)
