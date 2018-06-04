@@ -34,7 +34,7 @@ D'une façon synthétique, voici la place du plugin dans l'architecture Vitam :
 1.2 Définition du plugin VITAM
 ------------------------------
 
-Un plugin au sens VITAM propose une liste d'action(s) à réaliser sur un type spécifique d'objet.
+Un plugin au sens VITAM propose une liste d'action(s) à réaliser sur un ou plusieurs objets de même type.
 A l'heure actuelle, un plugin ne peut être ajouté qu'à froid. Un redémarrage de la plateforme est nécessaire pour prendre en considération l'ajout d'un nouveau plugin à un workflow existant.
 Au démarrage, le serveur worker charge tous les  plugins ainsi que leurs fichiers de properties.
 La liste des plugins à charger est déclarée dans un fichier de configuration du Worker : 
@@ -43,7 +43,8 @@ La liste des plugins à charger est déclarée dans un fichier de configuration 
    :language: javascript
    :linenos:
 
-Le plugin doit implémenter la classe ActionHandler et doit surcharger la méthode execute() prenant en paramètres : 
+Le plugin doit implémenter la classe ActionHandler et doit surcharger soit la méthode ``execute()`` pour un traitement unitaire, soit la méthode ``executeAll()`` pour un traitemement de masse.
+Un plugin prend en paramètres :
 - WorkerParameters : objet contenant une liste de paramètres permettant d'exécuter des actions variées. Voici une liste non exhaustive des paramètres : url du service workspace, nom de l'étape en cours, container sur lequel l'action est exécutée, identifiant du process, url du service metadata, l'id de l'objet sur lequel on veut effectuer un traitement, etc... 
 - HandlerIO qui a pour charge d'assurer la liaison avec le Workspace et la mémoire entre les différents traitements. Il permet de passer une liste d'input permettant le traitement du plugin.
  
@@ -322,7 +323,7 @@ Si l'on se trouve dans un plugin devant traiter une liste d'objets (ex : groupes
     itemStatus.setSubTaskStatus(monObjet.getObjectId(), itemStatus);
   }
 
-En fin de execute(), le plugin doit donc retourner l'objet ItemStatus instancié.
+En fin de ``execute()``, le plugin doit donc retourner l'objet ItemStatus instancié.
 
 .. code-block:: java
 
@@ -443,7 +444,14 @@ Pour information, le fichier de configuration plugins.json se trouve dans le ré
 ----------------------
 
 Maintenant le plugin déclaré, il convient enfin de coder le plugin à proprement parler. 
-Pour ceci il faut donc créer unc classe CheckManifestCustomXSD.java qui doit implémenter la classe ActionHandler et notamment surcharger la méthode execute().
+Pour ceci, il faut donc créer une classe CheckManifestCustomXSD.java qui doit implémenter la classe ActionHandler et notamment surcharger la méthode ``execute()`` pour un plugin unitaire
+ou la méthode ``executeAll()`` pour un traitemement de masse.
+
+Le choix de faire un plugin unitaire ou traitement de masse dépend de l'action à réaliser par le plugin. Si cette action comporte des modifications massives en base de données
+(par exmeple mise à jour d'unité archivistique), alors le traitement de masse est à envisager pour profiter au mieux des performances de la base de données.
+
+A contrario, si le traitement est par exemple une transformation de fichier, alors le plugin unitaire est plus adapté.
+
 Il faut, à minima l'arborescence suivante : 
 
 /src/main/java/mon/package/plugin/CheckManifestCustomXSD.java
