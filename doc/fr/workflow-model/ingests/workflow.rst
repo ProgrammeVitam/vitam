@@ -119,7 +119,7 @@ Vérification de l'en-tête du bordereau de transfert CHECK_HEADER (CheckHeaderA
 La tâche check_header contient les traitements suivants :
 *********************************************************
 
-* Vérification de la présence et contrôle des services agents (CHECK_AGENT).
+Vérification de la présence et contrôle des services agents (CHECK_AGENT).
 ****************************************************************************
 
 Cette tâche est exécutée si la valeur IN de checkOriginatingAgency est true.
@@ -134,13 +134,13 @@ Cette tâche est exécutée si la valeur IN de checkOriginatingAgency est true.
 
       - KO :
 
-		- Cas 1 : aucun service producteur n'est déclaré dans la balise dédiée dans le bordereau de transfert (CHECK_HEADER.CHECK_AGENT.EMPTY_REQUIRED_FIELD.KO= Échec de la vérification de la présence et du contrôle des services agents : champ obligatoire vide)
-		- Cas 2 : le service producteur et/ou le service versant déclaré dans le SIP n'est pas connue du référentiel des services agents (CHECK_HEADER.CHECK_AGENT.UNKNOWN.KO= Échec de la vérification de la présence et du contrôle des services agents : services agents inconnus du référentiel des services agents)
-		- Cas 3 : la balise permettant de déclarer un service producteur est absente du bordereau de tranfert (CHECK_HEADER.CHECK_AGENT.KO=Échec de la vérification de la présence et du contrôle des services agents)
+        - Cas 1 : aucun service producteur n'est déclaré dans la balise dédiée dans le bordereau de transfert (CHECK_HEADER.CHECK_AGENT.EMPTY_REQUIRED_FIELD.KO= Échec de la vérification de la présence et du contrôle des services agents : champ obligatoire vide)
+        - Cas 2 : le service producteur et/ou le service versant déclaré dans le SIP n'est pas connue du référentiel des services agents (CHECK_HEADER.CHECK_AGENT.UNKNOWN.KO= Échec de la vérification de la présence et du contrôle des services agents : services agents inconnus du référentiel des services agents)
+        - Cas 3 : la balise permettant de déclarer un service producteur est absente du bordereau de tranfert (CHECK_HEADER.CHECK_AGENT.KO=Échec de la vérification de la présence et du contrôle des services agents)
 
       - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle des services agents (CHECK_HEADER.CHECK_AGENT.FATAL=Erreur fatale lors de la vérification de la présence et du contrôle des services agents)
 
-* Vérification de la présence et contrôle du contrat d'entrée (CHECK_CONTRACT_INGEST)
+Vérification de la présence et contrôle du contrat d'entrée (CHECK_CONTRACT_INGEST)
 *************************************************************************************
 
 Cette tâche est exécutée si la valeur IN de checkContract est true.
@@ -164,7 +164,7 @@ Cette tâche est exécutée si la valeur IN de checkContract est true.
 		- Cas 7 : Erreur lors de la récupération du contexte applicatif (CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTEXT_CHECK_ERROR.KO=Échec de la vérification de la présence et du contrôle du contexte applicatif)
     - FATAL : une erreur fatale est survenue lors de la vérification de la présence et du contrôle du contrat d'entrée ou du contexte applicatif (CHECK_HEADER.CHECK_CONTRACT_INGEST.FATAL=Erreur fatale lors de la vérification de la présence et du contrôle du contrat d'entrée ou du contexte applicatif)
 
-* Vérification de la relation entre le contrat d'entrée et le profil d'archivage (CHECK_IC_AP_RELATION)
+Vérification de la relation entre le contrat d'entrée et le profil d'archivage (CHECK_IC_AP_RELATION)
 *******************************************************************************************************
 
 Cette tâche est exécutée si la valeur IN de checkProfile est true.
@@ -183,7 +183,7 @@ Cette tâche est exécutée si la valeur IN de checkProfile est true.
 
     - FATAL : une erreur technique est survenue lors de la vérification de la relation entre le contrat d'entrée et le profil d'archivage (CHECK_HEADER.CHECK_IC_AP_RELATION.FATAL = Erreur fatale lors de la vérification de la relation entre le contrat d'entrée et le profil d'archivage)
 
-* Vérification de la conformité du bordereau de transfert par le profil d'archivage (CHECK_ARCHIVEPROFILE)
+Vérification de la conformité du bordereau de transfert par le profil d'archivage (CHECK_ARCHIVEPROFILE)
 **********************************************************************************************************
 
   + **Règle** : le bordereau de transfert du SIP doit être conforme aux exigences du profil d'archivage. Si aucun profil SEDA ne s'applique au SIP, ce traitement est ignoré.
@@ -209,7 +209,7 @@ Vérification du contenu du bordereau CHECK_DATAOBJECTPACKAGE (CheckDataObjectPa
 La tâche CHECK_DATAOBJECTPACKAGE contient plusieurs traitements.
 ****************************************************************
 
-* Vérification des usages des groupes d'objets CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION (CheckVersionActionHandler.java)
+Vérification des usages des groupes d'objets CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION (CheckVersionActionHandler.java)
 *****************************************************************************************************************************************
 
     + **Règle** : Tous les objets décrits dans le bordereau de transfert du SIP doivent déclarer un usage conforme à la liste des usages acceptés dans la solution logicielle Vitam ainsi qu'un numéro de version respectant la norme de ce champ
@@ -230,7 +230,7 @@ La tâche CHECK_DATAOBJECTPACKAGE contient plusieurs traitements.
       - FATAL : une erreur technique est survenue lors du contrôle des usages déclarés dans le bordereau de transfert pour les objets contenus dans le SIP (CHECK_MANIFEST_DATAOBJECT_VERSION.FATAL = Erreur fatale lors de la vérification des usages des objets)
 
 
-* Vérification du nombre d'objets CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java)
+Vérification du nombre d'objets CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java)
 ******************************************************************************************************
 
     + **Règle** : Le nombre d'objets binaires reçus dans la solution logicielle Vitam doit être strictement égal au nombre d'objets binaires déclaré dans le manifeste du SIP
@@ -249,7 +249,7 @@ La tâche CHECK_DATAOBJECTPACKAGE contient plusieurs traitements.
 
       - FATAL : une erreur technique est survenue lors de la vérification du nombre d'objets (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.FATAL = Erreur fatale lors de la vérification du nombre d'objets)
 
-* Vérification de la cohérence du bordereau de transfert CHECK_MANIFEST (ExtractSedaActionHandler.java)
+Vérification de la cohérence du bordereau de transfert CHECK_MANIFEST (ExtractSedaActionHandler.java)
 *********************************************************************************************************
 
     + **Règle** : Création des journaux du cycle de vie des unités archivistiques et des groupes d'objets, extraction des unités archivistiques, objets binaires et objets physiques, vérification de la présence de récursivités dans les arborescences des unités archivistiques et création de l'arbre d'ordre d'indexation, extraction des métadonnées contenues dans la balise ManagementMetadata du bordereau de transfert pour le calcul des règles de gestion, vérification de la validité du rattachement des unités du SIP aux unités présentes dans la solution logicielle Vitam si demandé, détection des problèmes d'encodage dans le bordereau de transfert et vérification que les objets ne font pas référence directement à des unités si ces objets possèdent des groupes d'objets.
@@ -271,7 +271,7 @@ La tâche CHECK_DATAOBJECTPACKAGE contient plusieurs traitements.
       - FATAL : une erreur fatale est survenue lors de la vérification de la cohérence du bordereau, par exemple les journaux du cycle de vie n'ont pu être créés (CHECK_MANIFEST.FATAL = Erreur fatale lors du contrôle de cohérence du bordereau de transfert)
 
 
-* Vérification de la cohérence entre objets, groupes d'objets et unités archivistiques CHECK_CONSISTENCY (CheckObjectUnitConsistencyActionHandler.java)
+Vérification de la cohérence entre objets, groupes d'objets et unités archivistiques CHECK_CONSISTENCY (CheckObjectUnitConsistencyActionHandler.java)
 *******************************************************************************************************************************************************
 
     + **Règle** : Vérification que chaque objet ou groupe d'objets est référencé par une unité archivistique, rattachement à un groupe d'objets pour les objets sans groupe d'objets mais référencés par une unité archivistique, création de la table de concordance (MAP) pour les identifiants des objets et des unités archivistiques du SIP et génération de leurs identifiants Vitam (GUID)
@@ -313,7 +313,7 @@ Vérification de l'intégrité des objets CHECK_DIGEST (CheckConformityActionPlu
   - FATAL : une erreur technique est survenue lors de la vérification de l'intégrité des objets binaires, par exemple lorsque l'algorithme est inconnu (CHECK_DIGEST.FATAL = Erreur fatale lors de la vérification de l'empreinte des objets)
 
 Identification des formats (OG_OBJECTS_FORMAT_CHECK - FormatIdentificationActionPlugin.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+********************************************************************************************
 
 + **Règle** :  Identification des formats de chaque objet binaire présent dans le SIP, afin de garantir une information homogène. Cette action met en œuvre un outil d'identification prenant l'objet en entrée et fournissant des informations de format en sortie. Ces informations sont comparées avec les formats enregistrés dans le référentiel des formats interne à la solution logicielle Vitam et avec celles déclarées dans le bordereau de transfert. En cas d'incohérence entre la déclaration dans le SIP et le format identifié, le SIP sera accepté, générant un avertissement. La solution logicielle Vitam se servira alors des informations qu'elle a identifiées et non de celles fournies dans le SIP
 
@@ -399,7 +399,7 @@ Vérification du niveau de classification CHECK_CLASSIFICATION_LEVEL (CheckClass
 
 
 Application des règles de gestion et calcul des dates d'échéances UNITS_RULES_COMPUTE (UnitsRulesComputePlugin.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+********************************************************************************************************************
 
 + **Règle** : Calcul des dates d'échéances des unités archivistiques du SIP. Pour les unités racines, c'est à dire les unités déclarées dans le SIP et n'ayant aucun parent dans l'arborescence, la solution logicielle Vitam utilise les règles de gestion incluses dans le bloc Management de chacune de ces unités ainsi que celles présentes dans le bloc ManagementMetadata. La solution logicielle Vitam effectue également ce calcul pour les autres unités archivistiques du SIP possédant des règles de gestion déclarées dans leurs balises Management, sans prendre en compte le ManagementMetadata. Le référentiel utilisé pour ces calculs est le référentiel des règles de gestion de la solution logicielle Vitam.
 
@@ -421,7 +421,7 @@ Processus de vérification préalable à la prise en charge (STP_STORAGE_AVAILAB
 =========================================================================================
 
 Vérification de la disponibilité de toutes les offres de stockage (STORAGE_AVAILABILITY_CHECK - CheckStorageAvailabilityActionHandler.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------------------------------------------------------------------------------------------------------
 
 + **Règle** :  Vérification de la disponibilité des offres de stockage et de l'espace disponible pour y stocker le contenu du SIP compte tenu de la taille des objets à stocker
 
@@ -460,7 +460,7 @@ Processus d'écriture et indexation des objets et groupes d'objets (STP_OBJ_STOR
 ===================================================================================
 
 Ecriture des objets sur l'offre de stockage OBJ_STORAGE (StoreObjectActionHandler.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------------------------------------------------
 
 + **Règle** : Ecriture des objets contenus dans le SIP sur les offres de stockage en fonction de la stratégie de stockage applicable
 
@@ -478,7 +478,7 @@ Ecriture des objets sur l'offre de stockage OBJ_STORAGE (StoreObjectActionHandle
 
 
 Indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION - IndexObjectGroupActionPlugin.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------------------------------------------------------
 
 + **Règle** : Indexation des métadonnées des groupes d'objets dans les bases internes de la solution logicielle Vitam, comme la taille des objets, les métadonnées liées aux formats (Type MIME, PUID, etc.), l'empreinte des objets, etc.
 
@@ -573,7 +573,7 @@ Ecriture des métadonnées de l'unité archivistique sur l'offre de stockage UNI
   - FATAL : une erreur technique est survenue lors de la sécurisation du journal du cycle de vie (COMMIT_LIFE_CYCLE_OBJECT_GROUP.FATAL = Erreur fatale lors de l'enregistrement des journaux du cycle de vie des groupes d'objets)
 
 Processus de mise à jour du groupe d'objets (STP_UPDATE_OBJECT_GROUP)
-====================================================================
+=====================================================================
 
 Création du différentiel OBJECT_GROUP_UPDATE (UpdateObjectGroupPlugin.java)
 ---------------------------------------------------------------------------
@@ -590,7 +590,7 @@ Création du différentiel OBJECT_GROUP_UPDATE (UpdateObjectGroupPlugin.java)
   - FATAL : une erreur technique est survenue (OBJECT_GROUP_UPDATE.FATAL = )
 
 Etablissement de la liste des objets (OBJECTS_LIST_EMPTY)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------------------
 
 + **Règle** : Etablissement de la liste des objets pré existante dans le groupe d'objet technique avant le rattachement à l'unité archivistique. Si aucun rattachement n'est déclaré dans le bordereau de transfert, alors cette tâche est OK.
 
@@ -622,7 +622,7 @@ Processus de finalisation de l'entrée (STP_INGEST_FINALISATION)
 ===============================================================
 
 Notification de la fin de l'opération d'entrée ATR_NOTIFICATION (TransferNotificationActionHandler.java)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------------------------------------------------------------------
 
 + **Règle** : Génération de la notification de réponse (ArchiveTransferReply ou ATR) une fois toutes les étapes passées, en succès, avertissement ou échec, puis écriture de cette notification dans l'offre de stockage et envoi au service versant.
 
