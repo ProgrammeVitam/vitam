@@ -58,12 +58,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -95,6 +97,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
@@ -102,6 +105,7 @@ import static org.junit.Assume.assumeTrue;
 @RunWithCustomExecutor
 public class LogbookResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
+    private static final String LIFECYCLES_TRACEABILITY_CHECK = "/lifecycles/traceability/check/";
 
     @Rule
     @ClassRule
@@ -686,4 +690,46 @@ public class LogbookResourceTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckLifecycleTraceabilityStatus_NotFound() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        processingInstanceRule.stubFor(WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(404)));
+
+        // call the endpoint logbook check coherence
+        given().contentType(ContentType.JSON).
+            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(LIFECYCLES_TRACEABILITY_CHECK + "unkownid")
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckLifecycleTraceabilityStatus_CompletedWithWarn() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        String operationId = "mockId";
+
+        processingInstanceRule.stubFor(WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
+            (WireMock.aResponse()
+                .withStatus(200)
+                .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED.name())
+                .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.WARNING.name())));
+
+        // call the endpoint logbook check coherence
+        JsonNode responseJson = given().contentType(ContentType.JSON).
+            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(LIFECYCLES_TRACEABILITY_CHECK + operationId)
+            .then().statusCode(Status.OK.getStatusCode())
+            .extract().body().as(JsonNode.class);
+
+        LifecycleTraceabilityStatus status =
+            JsonHandler.getFromJsonNode(responseJson.get("$results").get(0), LifecycleTraceabilityStatus.class);
+
+        assertThat(status.isCompleted()).isTrue();
+        assertThat(status.getOutcome()).isEqualTo("COMPLETED.WARNING");
+        assertThat(status.isMaxEntriesReached()).isFalse();
+    }
 }

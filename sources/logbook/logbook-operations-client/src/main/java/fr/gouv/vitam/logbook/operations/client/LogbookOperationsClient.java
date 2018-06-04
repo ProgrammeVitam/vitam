@@ -39,6 +39,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 import javax.ws.rs.core.Response;
@@ -207,7 +208,17 @@ public interface LogbookOperationsClient extends BasicClient {
     RequestResponseOK traceabilityLfcObjectGroup() throws LogbookClientServerException, InvalidParseOperationException;
 
     /**
+     * Check life cycle traceability status (unit  / got)
      *
+     * @param processId the process id
+     * @return lifecycle traceability status
+     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
+     */
+    LifecycleTraceabilityStatus checkLifecycleTraceabilityWorkflowStatus(String processId)
+        throws LogbookClientServerException, InvalidParseOperationException;
+
+    /**
      * Reindex a collection with parameters
      *
      * @param indexParam reindexation parameters
@@ -219,7 +230,6 @@ public interface LogbookOperationsClient extends BasicClient {
         throws InvalidParseOperationException, LogbookClientServerException;
 
     /**
-     *
      * Switch indexes
      *
      * @param switchIndexParam switch index parameters
@@ -239,6 +249,4 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws VitamException
      */
     Response checkLogbookCoherence() throws VitamException;
-
-
 }

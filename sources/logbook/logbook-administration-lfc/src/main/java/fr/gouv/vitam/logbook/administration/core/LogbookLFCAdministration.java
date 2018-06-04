@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.logbook.administration.core;
 
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -34,20 +37,28 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -60,6 +71,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response.Status;
+import java.util.List;
 
 /**
  * Business class for Logbook LFC Administration (traceability)
@@ -97,7 +109,8 @@ public class LogbookLFCAdministration {
             lifecycleTraceabilityMaxEntries);
     }
 
-    private static int validateAndGetLifecycleTraceabilityTemporizationDelay(Integer lifecycleTraceabilityTemporizationDelay) {
+    private static int validateAndGetLifecycleTraceabilityTemporizationDelay(
+        Integer lifecycleTraceabilityTemporizationDelay) {
         if (lifecycleTraceabilityTemporizationDelay == null) {
             return 0;
         }
@@ -240,5 +253,44 @@ public class LogbookLFCAdministration {
         }
     }
 
+    /**
+     * Check lifecycle traceability status
+     *
+     * @param operationId the process id
+     * @return the lifecycle traceability status
+     */
+    public LifecycleTraceabilityStatus checkLifecycleTraceabilityStatus(String operationId)
+        throws VitamException, InvalidCreateOperationException {
 
+        try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
+
+            ItemStatus processStatus = processManagementClient.getOperationProcessStatus(operationId);
+
+            boolean isCompleted = (processStatus.getGlobalState() == ProcessState.COMPLETED);
+            boolean isOK = processStatus.getGlobalStatus() == StatusCode.OK;
+
+            LifecycleTraceabilityStatus lifecycleTraceabilityStatus = new LifecycleTraceabilityStatus();
+            lifecycleTraceabilityStatus.setCompleted(isCompleted);
+            lifecycleTraceabilityStatus.setOutcome(processStatus.getGlobalState().name() + "." + processStatus.getGlobalStatus().name());
+
+            if (isCompleted && isOK) {
+
+                Select selectQuery = new Select();
+                selectQuery.setQuery(QueryHelper.eq(LogbookMongoDbName.eventIdentifier.getDbname(), operationId));
+                List<LogbookOperation> operations
+                    = logbookOperations.select(selectQuery.getFinalSelect());
+
+                if (operations.isEmpty()) {
+                    throw new LogbookNotFoundException("Could not find logbook operation " + operationId);
+                }
+
+                String evDetData = operations.get(0).getString(LogbookDocument.EVENT_DETAILS);
+                TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
+
+                lifecycleTraceabilityStatus.setMaxEntriesReached(traceabilityEvent.getMaxEntriesReached());
+            }
+
+            return lifecycleTraceabilityStatus;
+        }
+    }
 }
