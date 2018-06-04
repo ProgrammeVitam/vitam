@@ -49,6 +49,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -95,6 +99,23 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 public class ExtractSedaActionHandlerTest {
 
+    private static final String INGEST_CONTRACT_MASTER_MANDATORY_FALSE =
+        "checkMasterMandatoryInOGAndAttachmentInOG/IngestContractMasterMandatoryIsFalse.json";
+    private static final String INGEST_CONTRACT_MASTER_MANDATORY_TRUE =
+        "checkMasterMandatoryInOGAndAttachmentInOG/IngestContractMasterMandatoryIsTrue.json";
+    private static final String INGEST_CONTRACT_EVERYDATAOBJECTVERSION_FALSE =
+        "checkMasterMandatoryInOGAndAttachmentInOG/IngestContractEveryDataObjectVersionIsFalse.json";
+    private static final String INGEST_CONTRACT_EVERYDATAOBJECTVERSION_TRUE =
+        "checkMasterMandatoryInOGAndAttachmentInOG/IngestContractEveryDataObjectVersionIsTrue.json";
+    private static final String INGEST_CONTRACT_NO_CHECK =
+        "checkMasterMandatoryInOGAndAttachmentInOG/IngestContractNoCheck.json";
+    private static final String MANIFEST_WITHOUT_BINARY_OR_PHYSICAL =
+        "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupDontContainMaster.xml";
+    private static final String MANIFEST_WITH_BINARYMASTER =
+        "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachementToExistingOne.xml";
+    private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES =
+    "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnail.xml";
+    private static final String UNIT_ATTACHED_DB_RESPONSE = "extractSedaActionHandler/addLink/_Unit_CHILD.json";
     private ExtractSedaActionHandler handler;
 
     private static final String HANDLER_ID = "CHECK_MANIFEST";
@@ -116,7 +137,8 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_REFNONRULEID_MULT_PREVENTINHERITANCE =
         "extractSedaActionHandler/refnonruleid_multiple_and_preventinheritence.xml";
     private static final String SIP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_PHYSICAL_DATA_OBJECT.xml";
-    private static final String SIP_GROUP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_WRAPPED_PHYSICAL_DATA_OBJECT.xml";
+    private static final String SIP_GROUP_PHYSICAL_DATA_OBJECT =
+        "extractSedaActionHandler/SIP_WRAPPED_PHYSICAL_DATA_OBJECT.xml";
     private static final String SIP_WITH_SPECIAL_CHARACTERS =
         "extractSedaActionHandler/SIP_WITH_SPECIAL_CHARACTERS.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
@@ -161,6 +183,12 @@ public class ExtractSedaActionHandlerTest {
     private MetaDataClientFactory metadataClientFactory;
 
     @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
+
+    @Mock
+    private AdminManagementClient adminManagementClient;
+
+    @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
     @Mock
@@ -176,8 +204,9 @@ public class ExtractSedaActionHandlerTest {
         LogbookOperationsClientFactory.changeMode(null);
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        handler = new ExtractSedaActionHandler(metadataClientFactory, logbookLifeCyclesClientFactory);
-
+        handler = new ExtractSedaActionHandler(metadataClientFactory, logbookLifeCyclesClientFactory,
+            adminManagementClientFactory);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
@@ -241,6 +270,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -261,6 +291,7 @@ public class ExtractSedaActionHandlerTest {
 
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(OK_EHESS_LIGHT);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         handlerIO.addOutIOParameters(out);
@@ -275,6 +306,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithEmptyTextTypeThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(EMPTY_TEXT_TYPE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -291,6 +323,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestMercierWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(MERCIER);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -306,6 +339,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRulesWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_RULES);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -321,6 +355,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestArboRulesMDWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_ARBO_RULES_MD);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -333,11 +368,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipWithBdoWithoutGoWhenReadSipThenDetectBdoWithoutGo()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void givenSipWithBdoWithoutGoWhenReadSipThenDetectBdoWithoutGo() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok1.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -351,11 +384,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenReadSuccess()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -367,10 +398,9 @@ public class ExtractSedaActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenSipFctTestWithBdoWithGoWithArchiveUnitReferenceBDOWhenReadSipThenThrowException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok3-listBDO.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -381,11 +411,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipWithBdoWithGoWithArchiveUnitNotReferenceGoWhenReadSipThenReadSuccess()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void givenSipWithBdoWithGoWithArchiveUnitNotReferenceGoWhenReadSipThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -397,10 +425,9 @@ public class ExtractSedaActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenSipWithDoubleBMThenFatal()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+        throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -411,11 +438,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipTransformToUsage_1ThenSuccess()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void givenSipTransformToUsage_1ThenSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_BM_TC.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -426,11 +451,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenThrowException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenThrowException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-err2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
@@ -442,13 +465,11 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithMngMdAndAuWithMngtWhenExtractSedaThenReadSuccess()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void givenManifestWithMngMdAndAuWithMngtWhenExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok1.xml"));
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         handlerIO.addOutIOParameters(out);
@@ -462,11 +483,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_not_fill_unitIdToSetOfRuleId_when_rules_has_no_ruleid()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void should_not_fill_unitIdToSetOfRuleId_when_rules_has_no_ruleid() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal =
             new FileInputStream(PropertiesUtils.findFile("sip_with_rules_without_rule_id.xml"));
 
@@ -483,11 +502,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithMngMdAndAuTreeWhenExtractSedaThenReadSuccess()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void givenManifestWithMngMdAndAuTreeWhenExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok2.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -500,11 +517,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_manifest_with_arbo1()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void given_manifest_with_arbo1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("SIP_ARBO.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -522,11 +537,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_manifest_with_arbo2()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    public void given_manifest_with_arbo2() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("SIP_ARBO2.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -556,11 +569,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_manifest_with_simple_metadata()
-        throws ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, FileNotFoundException {
+    public void given_manifest_with_simple_metadata() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("SIP_with_metadata_simple.xml"));
 
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -573,11 +584,9 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_manifest_with_signature_in_content()
-        throws ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, FileNotFoundException {
+    public void given_manifest_with_signature_in_content() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal =
             new FileInputStream(PropertiesUtils.findFile("SIP_with_signature_in_content.xml"));
 
@@ -603,10 +612,9 @@ public class ExtractSedaActionHandlerTest {
     // TODO : US 1686 test for add link between 2 existing units
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithUpdateLinkExtractSedaThenReadSuccess()
-        throws VitamException, IOException {
+    public void givenManifestWithUpdateLinkExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_LINK));
         JsonNode child = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_CHILD.json"));
@@ -630,7 +638,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadSuccess()
         throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
@@ -649,9 +657,8 @@ public class ExtractSedaActionHandlerTest {
     @RunWithCustomExecutor
     public void givenManifestWithIngestContractContainsAUInThePlan() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_TEST));
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
         when(metadataClient.selectUnitbyId(any(), eq("LinkParentId"))).thenReturn(parent);
@@ -670,7 +677,7 @@ public class ExtractSedaActionHandlerTest {
         throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
         JsonNode parent = JsonHandler
@@ -768,7 +775,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestPhysicalDataObjectExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_PHYSICAL_DATA_OBJECT);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -784,7 +791,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithGroupAndPhysicalDataObjectExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_GROUP_PHYSICAL_DATA_OBJECT);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -801,7 +808,7 @@ public class ExtractSedaActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_RULES_INHERITANCE);
         JsonNode parent = JsonHandler
@@ -820,8 +827,7 @@ public class ExtractSedaActionHandlerTest {
     public void should_test_extract_seda_with_multi_value_field() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal =
             PropertiesUtils.getResourceAsStream("seda_multivalue.xml");
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -832,13 +838,175 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
+    private void prepareResponseOKForAdminManagementClientFindIngestContracts(String ingestContractName)
+        throws FileNotFoundException, fr.gouv.vitam.common.exception.InvalidParseOperationException,
+        AdminManagementClientServerException {
+        final InputStream ingestContractInputStream =
+            PropertiesUtils.getResourceAsStream(ingestContractName);
+        RequestResponseOK responseOK =
+            new RequestResponseOK()
+                .addResult(JsonHandler.getFromInputStream(ingestContractInputStream, IngestContractModel.class));
+        when(adminManagementClient.findIngestContracts(anyObject())).thenReturn(responseOK);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_for_objectGroup_when_master_is_not_present_then_ok() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITHOUT_BINARY_OR_PHYSICAL);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_for_objectGroup_when_master_is_not_present_then_ko() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITHOUT_BINARY_OR_PHYSICAL);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_TRUE);
+        // When
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_for_objectGroup_when_attachment_objectGroup_to_an_existing_one_then_ko()
+        throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_BINARYMASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_EVERYDATAOBJECTVERSION_FALSE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
+        // When
+        when(metadataClient.selectUnitbyId(any(), eq("aeaqaaaaaafla2gpab4wualdfinpdziaaaaq")))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_dataObjectVersion_when_binary_is_attached_to_existing_objectGroup_then_ko()
+        throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_BINARYMASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_EVERYDATAOBJECTVERSION_FALSE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
+        // When
+        when(metadataClient.selectUnitbyId(any(), eq("aeaqaaaaaafla2gpab4wualdfinpdziaaaaq")))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_dataObjectVersion_when_binary_is_attached_to_existing_objectGroup_then_ok()
+        throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_AND_USAGES);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
+        // When
+        when(metadataClient.selectUnitbyId(any(), eq("aeaqaaaaaafla2gpab4wualdfinpdziaaaaq")))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_in_case_of_attachment_when_exist_then_ko() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_BINARYMASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
+        // When
+        when(metadataClient.selectUnitbyId(any(), eq("aeaqaaaaaafla2gpab4wualdfinpdziaaaaq")))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_in_case_of_attachment_when_exist_then_ok() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_BINARYMASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(
+            INGEST_CONTRACT_EVERYDATAOBJECTVERSION_TRUE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
+        // When
+        when(metadataClient.selectUnitbyId(any(), eq("aeaqaaaaaafla2gpab4wualdfinpdziaaaaq")))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
     @Test
     @RunWithCustomExecutor
     public void should_test_extract_seda_with_keyword_type() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream sedaLocal =
             PropertiesUtils.getResourceAsStream("sip_with_keyword_type.xml");
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -854,7 +1022,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRefIdInheritanceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         AdminManagementClientFactory.changeMode(null);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFID_RULES_INHERITANCE);
@@ -875,7 +1043,7 @@ public class ExtractSedaActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_PREVENTINHERITANCE);
         JsonNode parent = JsonHandler
@@ -895,11 +1063,12 @@ public class ExtractSedaActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_MULT_PREVENTINHERITANCE);
         JsonNode parent = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
+        // When
         when(metadataClient.selectUnitbyId(any(), eq("LinkParentId"))).thenReturn(parent);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
@@ -915,7 +1084,7 @@ public class ExtractSedaActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
 
-        AdminManagementClientFactory.changeMode(null);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_RULES_COMPLEXE);
         JsonNode parent = JsonHandler
@@ -935,6 +1104,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithSpecialCharactersWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_WITH_SPECIAL_CHARACTERS);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -950,6 +1120,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithMultiCommentWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(OK_MULTI_COMMENT);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -970,6 +1141,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithSignatureWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(OK_SIGNATURE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -985,6 +1157,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithRulesWithoutIdWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(OK_RULES_WOUT_ID);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -1001,6 +1174,7 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithCycleWhenExecuteThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(KO_CYCLE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))

@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -91,7 +92,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, SedaUtilsFactory.class, AdminManagementClientFactory.class})
+@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, SedaUtilsFactory.class,
+    AdminManagementClientFactory.class})
 public class CheckDataObjectPackageActionHandlerTest {
     CheckDataObjectPackageActionHandler handler = new CheckDataObjectPackageActionHandler();
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
@@ -110,16 +112,16 @@ public class CheckDataObjectPackageActionHandlerTest {
     private static final Integer TENANT_ID = 0;
     private final List<URI> uriListWorkspaceOK = new ArrayList<>();
     private final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                    .setUrlMetadata("http://localhost:8083")
-                    .setObjectNameList(Lists.newArrayList("objectName.json"))
-                    .setObjectName("objectName.json").setCurrentStep("currentStep")
-                    .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
-                    .setContainerName("ExtractSedaActionHandlerTest");
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
+            .setContainerName("ExtractSedaActionHandlerTest");
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -160,27 +162,30 @@ public class CheckDataObjectPackageActionHandlerTest {
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
         out.add(
-                new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
         out.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
         out.add(
-                new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
+        out.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
         out.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+            .setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/GUID_TO_ARCHIVE_ID_MAP.json")));
 
         in = new ArrayList<>();
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
+            .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
+        out.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
 
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -200,20 +205,21 @@ public class CheckDataObjectPackageActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(CheckDataObjectPackageActionHandler.getId());
         final InputStream seda_arborescence =
-                PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
+            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         final InputStream storageInfo =
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
-                .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
         when(workspaceClient.getObject(anyObject(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         when(adminManagementClient.findIngestContractsByID(Matchers.anyString()))
-                .thenReturn(ClientMockResultHelper.getIngestContracts());
+            .thenReturn(ClientMockResultHelper.getIngestContracts());
+        when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
         final ItemStatus response = handler.execute(params, action);
@@ -221,9 +227,9 @@ public class CheckDataObjectPackageActionHandlerTest {
 
         in = new ArrayList<>();
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
+            .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
         in.add(new IOParameter()
-                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
         action.reset();
@@ -233,8 +239,8 @@ public class CheckDataObjectPackageActionHandlerTest {
         Map<String, Map<String, String>> versionMap = new HashMap<>();
         final Map<String, String> invalidVersionMap = new HashMap<>();
         final Map<String, String> validVersionMap = new HashMap<>();
-        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
-        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
+        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION, invalidVersionMap);
+        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION, validVersionMap);
 
         Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         final ItemStatus response2 = handler.execute(params, action);

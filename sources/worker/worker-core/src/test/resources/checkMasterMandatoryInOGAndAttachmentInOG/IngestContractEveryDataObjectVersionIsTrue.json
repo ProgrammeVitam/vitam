@@ -1,0 +1,22 @@
+{
+  "#id": "aefqaaaaaah5bytdaa3fcaldoklkorqaaaaq",
+  "#tenant": 0,
+  "#version": 0,
+  "Name": "ContratEntree_MasterIsMandatory_false_002",
+  "Identifier": "ContratEntree_MasterIsMandatory_false_002",
+  "Description": "Contrat Vitam 0",
+  "Status": "ACTIVE",
+  "CreationDate": "2018-05-18T09:31:05.909",
+  "LastUpdate": "2018-05-18T09:31:05.909",
+  "ActivationDate": "2018-05-18T09:31:05.909",
+  "CheckParentLink": "INACTIVE",
+  "MasterMandatory": true,
+  "EveryDataObjectVersion": true,
+  "DataObjectVersion": [
+    "BinaryMaster",
+    "Dissemination",
+    "Thumbnail",
+    "TextContent",
+    "PhysicalMaster"
+  ]
+}

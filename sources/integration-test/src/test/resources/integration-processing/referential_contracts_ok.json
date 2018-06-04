@@ -7,23 +7,26 @@
     "LastUpdate": "10/12/2016",
     "CreationDate": "10/12/2016",
     "ActivationDate": "10/12/2016",
+    "EveryDataObjectVersion": true,
     "DeactivationDate": "10/12/2016"
   },
   {
-  "Name": "ArchivalAgreement0",
-  "Identifier": "ArchivalAgreement0",
-  "Description": "aDescription of the contract",
-  "Status": "ACTIVE",
-  "LastUpdate": "10/12/2016",
-  "CreationDate": "10/12/2016",
-  "ActivationDate": "10/12/2016",
-  "DeactivationDate": "10/12/2016"
-},
+    "Name": "ArchivalAgreement0",
+    "Identifier": "ArchivalAgreement0",
+    "Description": "aDescription of the contract",
+    "Status": "ACTIVE",
+    "EveryDataObjectVersion": true,
+    "LastUpdate": "10/12/2016",
+    "CreationDate": "10/12/2016",
+    "ActivationDate": "10/12/2016",
+    "DeactivationDate": "10/12/2016"
+  },
   {
     "Name": "ArchivalAgreement1",
     "Identifier": "ArchivalAgreement1",
     "Description": "aDescription of the contract",
     "Status": "ACTIVE",
+    "EveryDataObjectVersion": true,
     "LastUpdate": "10/12/2016",
     "CreationDate": "10/12/2016",
     "ActivationDate": "10/12/2016",
@@ -34,6 +37,7 @@
     "Identifier": "ArchivalAgreement0Test",
     "Description": "aDescription of the contract",
     "Status": "ACTIVE",
+    "EveryDataObjectVersion": true,
     "LastUpdate": "10/12/2016",
     "CreationDate": "10/12/2016",
     "ActivationDate": "10/12/2016",
@@ -44,6 +48,7 @@
     "Identifier": "aName 2",
     "Description": "aDescription of the contract 2",
     "Status": "ACTIVE",
+    "EveryDataObjectVersion": true,
     "LastUpdate": "10/12/2016",
     "CreationDate": "10/12/2016",
     "ActivationDate": "10/12/2016",
@@ -54,6 +59,7 @@
     "Identifier": "ArchivalAgreementWithPlan",
     "Description": "aDescription of the contract 2",
     "Status": "ACTIVE",
+    "EveryDataObjectVersion": true,
     "LastUpdate": "10/12/2016",
     "CreationDate": "10/12/2016",
     "ActivationDate": "10/12/2016",
@@ -64,6 +70,7 @@
     "Identifier": "IC_WITH_PROFILE",
     "Description": "aDescription of the contract 2",
     "Status": "ACTIVE",
+    "EveryDataObjectVersion": true,
     "LastUpdate": "10/12/2016",
     "CreationDate": "10/12/2016",
     "ActivationDate": "10/12/2016",
@@ -73,3 +80,4 @@
     ]
   }
 ]
+
