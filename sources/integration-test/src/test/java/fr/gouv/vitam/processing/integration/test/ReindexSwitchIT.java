@@ -302,6 +302,7 @@ public class ReindexSwitchIT {
     }
 
     private void flush() {
+        LOGGER.error("----------- ReindexSwithIT clearWorkflow");
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 

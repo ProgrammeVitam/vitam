@@ -614,6 +614,8 @@ public class LogbookCheckConsistencyIT {
      * import files.
      */
     private void importFiles() {
+
+        LOGGER.error("----------- LogbookCheckConsistency clearWorkflow");
         ProcessDataAccessImpl.getInstance().clearWorkflow();
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));

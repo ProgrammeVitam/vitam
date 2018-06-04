@@ -302,6 +302,7 @@ public class PausedProcessingIT {
     }
 
     private void flush() {
+        LOGGER.error("----------- PausedProcessingIT clearWorkflow");
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 

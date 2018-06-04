@@ -303,6 +303,7 @@ public class PauseOnFatalProcessingIT {
     }
 
     private void flush() {
+        LOGGER.error("----------- PauseOnFatalProcessingIT clearWorkflow");
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 

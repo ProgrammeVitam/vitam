@@ -322,6 +322,7 @@ public class ReplayProcessingIT {
     }
 
     private void flush() {
+        LOGGER.error("----------- ReplayProcessingIT clearWorkflow");
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 

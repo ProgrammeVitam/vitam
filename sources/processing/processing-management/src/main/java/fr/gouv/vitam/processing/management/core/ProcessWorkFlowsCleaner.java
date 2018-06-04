@@ -26,7 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -36,12 +40,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
-
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
@@ -65,7 +63,9 @@ public class ProcessWorkFlowsCleaner implements Runnable {
     }
 
 
-    @Override public void run() {
+    @Override
+    public void run() {
+        LOGGER.error("clean old completed workflows");
         timeLimit = LocalDateTime.now().minusHours(period);
         this.cleanProcessingByTenants();
     }

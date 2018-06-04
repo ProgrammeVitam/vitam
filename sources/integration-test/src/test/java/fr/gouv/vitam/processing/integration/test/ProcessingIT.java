@@ -513,9 +513,9 @@ public class ProcessingIT {
     private void tryImportFile() {
         VitamThreadUtils.getVitamSession().setContractId("aName");
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
-
+        LOGGER.error("++++++++ tryImportFile....");
         if (!imported) {
+            flush();
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importFormat(
@@ -594,6 +594,7 @@ public class ProcessingIT {
     }
 
     private void flush() {
+        LOGGER.error("----------- ProcessingIT clearWorkflow");
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 
@@ -2820,8 +2821,6 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowSIPContractProdService() throws Exception {
-        flush();
-
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         final String containerName = createOperationContainer();

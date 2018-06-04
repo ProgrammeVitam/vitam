@@ -127,7 +127,8 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         if (!WORKFLOWS_LIST.containsKey(tenantId) || WORKFLOWS_LIST.get(tenantId) == null ||
             !WORKFLOWS_LIST.get(tenantId).containsKey(processId)) {
             throw new WorkflowNotFoundException(
-                PROCESS_DOES_NOT_EXIST + " > Tenant (" + tenantId + ")" + ". Process (" + processId + ")");
+                PROCESS_DOES_NOT_EXIST + " > Tenant (" + tenantId + ")" + ". Process (" + processId + ") map = " +
+                    WORKFLOWS_LIST.keySet());
         } else {
             return WORKFLOWS_LIST.get(tenantId).get(processId);
         }

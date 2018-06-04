@@ -472,6 +472,7 @@ public class IngestInternalIT {
     }
 
     private void flush() {
+        LOGGER.error("----------- IngestInternalIT clearWorkflow");
         ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 
