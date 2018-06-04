@@ -134,8 +134,8 @@ La fin du processus peut prendre plusieurs statuts :
 Préparation des listes des cycles de vie
 ----------------------------------------
 
-- **Étape 1** - STP_PREPARE_UNIT_LFC_TRACEABILITY -  distribution sur REF
-*************************************************************************
+**Étape 1** - STP_PREPARE_UNIT_LFC_TRACEABILITY -  distribution sur REF
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
@@ -154,8 +154,9 @@ Préparation des listes des cycles de vie
     - FATAL : une erreur technique est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
 
 
-- **Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
-****************************************************************************************************************
+**Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * Traitement des journaux du cycle de vie pour les unités archivistiques - UNITS_CREATE_SECURED_FILE
 
   + **Type** : bloquant
@@ -285,7 +286,6 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 /home/edith/vitam/doc/fr/workflow-model/traceability/
 
   .. figure:: images/workflow_lfc_unit_traceability.png
-
     :align: center
 
     Diagramme d'activité du workflow de sécurisation des cycles de vie des unités archivistiques
