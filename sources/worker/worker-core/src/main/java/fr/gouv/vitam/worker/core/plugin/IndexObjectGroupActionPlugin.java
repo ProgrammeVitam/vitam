@@ -36,6 +36,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.SedaConstants;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -172,6 +174,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
             }
 
             if (ogInDB != null) {
+                ObjectNode infoNode = JsonHandler.createObjectNode();
                 ArrayNode originQualifiers = (ArrayNode) ogInDB.get(QUALIFIERS);
                 ArrayNode newQualifiers = (ArrayNode) json.get(QUALIFIERS);
                 // lets create an update query
@@ -180,10 +183,13 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                 JsonNode newUpdateQuery =
                     query
                         .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()),
-                            generateQualifiersUpdate(originQualifiers, newQualifiers))
+                            generateQualifiersUpdate(originQualifiers, newQualifiers, infoNode))
                         .getFinalUpdate();
 
                 metadataClient.updateObjectGroupById(newUpdateQuery, ogInDB.get(ID).asText());
+
+                String evDevDetailData = JsonHandler.unprettyPrint(infoNode);
+                itemStatus.setEvDetailData(evDevDetailData);
                 itemStatus.increment(StatusCode.OK);
                 return;
             }
@@ -191,15 +197,16 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
 
         final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
         metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
+
         itemStatus.increment(StatusCode.OK);
-        return;
     }
 
-    private Action generateQualifiersUpdate(ArrayNode originQualifiers, ArrayNode newQualifiers)
+    private Action generateQualifiersUpdate(ArrayNode originQualifiers, ArrayNode newQualifiers, ObjectNode infoNode)
         throws InvalidCreateOperationException {
         ArrayNode finalQualifiers = originQualifiers.deepCopy();
         Map<String, JsonNode> action = new HashMap<>();
         HashMap<String, ArrayNode> listOrigin = new HashMap<String, ArrayNode>();
+        ObjectNode updatedQualifiers = JsonHandler.createObjectNode();
         for (int i = 0; i < originQualifiers.size(); i++) {
             JsonNode qualifierNode = originQualifiers.get(i);
             listOrigin.put(qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText(),
@@ -220,13 +227,19 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                             SedaConstants.TAG_DO_VERSION,
                             current.get(SedaConstants.PREFIX_QUALIFIER).asText() + "_" + nbCopy);
                         currentArray.add(qualifierNode.get(SedaConstants.TAG_VERSIONS).get(0));
+
+                        IntNode version = new IntNode(nbCopy);
+                        updatedQualifiers.set(current.get(SedaConstants.PREFIX_QUALIFIER).asText(), version);
                         break;
                     }
                 }
             } else {
                 finalQualifiers.add(qualifierNode);
+
+                updatedQualifiers.set(qualifType, new IntNode(1));
             }
         }
+        infoNode.set("updatedQualifiers", updatedQualifiers);
         action.put(PROJECTIONARGS.QUALIFIERS.exactToken(), finalQualifiers);
         return new SetAction(action);
     }
