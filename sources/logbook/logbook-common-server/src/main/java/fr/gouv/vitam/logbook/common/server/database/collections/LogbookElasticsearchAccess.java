@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -167,45 +168,31 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             .actionGet().getVersion() > 1;
     }
 
-
-    public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
-        final QueryBuilder query,
-        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
-        throws LogbookException {
-
-        return search(collection, tenantId, query, filter, sorts, offset, limit, false);
-    }
-
     /**
      * Search entries in the ElasticSearch index.
      *
-     * @param collection  collection of index
-     * @param tenantId    tenant Id
-     * @param query       as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *                    values" : [list of id] } }"
-     * @param filter      the filter
-     * @param sorts       the list of sort
-     * @param offset      the offset
-     * @param limit       the limit
-     * @param fetchSource default false; True if we want to fetch source
+     * @param collection collection of index
+     * @param tenantId   tenant Id
+     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *                   values" : [list of id] } }"
+     * @param filter     the filter
+     * @param sorts      the list of sort
+     * @param offset     the offset
+     * @param limit      the limit
      * @return a structure as SearchResponse
      * @throws LogbookException thrown of an error occurred while executing the request
      */
     public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
         final QueryBuilder query,
-        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit,
-        boolean fetchSource)
+        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
         throws LogbookException {
         final String type = getTypeUnique(collection);
 
         final SearchRequestBuilder request =
             client.prepareSearch(getAliasName(collection, tenantId)).setSearchType(SearchType.DEFAULT)
                 .setTypes(type).setExplain(false).setFrom(offset)
+                .setFetchSource(VitamDocument.ES_FILTER_OUT, null)
                 .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);
-
-        if (fetchSource) {
-            request.setFetchSource(fetchSource);
-        }
 
         if (sorts != null) {
             sorts.stream().forEach(sort -> request.addSort(sort));
