@@ -29,7 +29,7 @@ La fin du processus peut prendre plusieurs statuts :
 Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE (CheckDataObjectPackageActionHandler.java)
 -------------------------------------------------------------------------------------------------------
 
-* Vérification de la non existence d'objets CHECK_NO_OBJECT (CheckDataObjectPackageActionHandler)
+Vérification de la non existence d'objets CHECK_NO_OBJECT (CheckDataObjectPackageActionHandler)
 *************************************************************************************************
 
 + **Règle** : Vérification qu'il n'y a pas d'objet numérique dans le bordereau de transfert de l'arbre de positionnement.
