@@ -13,18 +13,19 @@ Le processus d'import d'un contrat d'accès permet à la fois de vérifier qu'il
 
 Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
-Import d'un contrat d'accès STP_IMPORT_ACCESS_CONTRACT (AccessContractImpl.java)
---------------------------------------------------------------------------------
+Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
+----------------------------------------------------------
 
 * Vérification de la présence des informations minimales obligatoires, de la cohérence des informations et affecter des données aux champs peuplés par la solution logicielle Vitam.
 
+  + **Type** : bloquant
 
   + **Règle** : vérification et enregistrement du contrat
 
   + Les données suivantes sont obligatoirement remplies :
 
     * Le champ "Name" est peuplé d'une chaîne de caractères
-    * Le champ "Identifier" est peuplé d'une chaîne de caractères si le référentiel des contrats d'accès est configuré en mode esclave sur le tenant sélectionné, sinon il est automatiquement complété par la solution logicielle Vitam.
+    * Le champ "Identifier" est peuplé d'une chaîne de caractères si le référentiel des contrats d'accès est configuré en mode esclave sur le tenant sélectionné
 
   + Les données suivantes optionnelles, si elles sont remplies, le sont en respectant les règles énoncées pour chacune :
 
@@ -63,7 +64,7 @@ Import d'un contrat d'accès STP_IMPORT_ACCESS_CONTRACT (AccessContractImpl.java
 Mise à jour d'un contrat d'accès STP_UPDATE_ACCESS_CONTRACT (AdminExternalClientRest.java)
 ------------------------------------------------------------------------------------------
 
-La modification d'un contrat d'accès doit suivre les mêmes règles que celles décrites pour la création. 
+La modification d'un contrat d'accès doit suivre les mêmes règles que celles décrites pour la création.
 
     - OK : le contrat répond aux exigences des règles (STP_UPDATE_ACCESS_CONTRACT.OK=Succès du processus de mise à jour du contrat d'accès)
 
@@ -88,4 +89,4 @@ Cette tâche est appellée que ce soit en import initial ou en modification.
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_ACCESS_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'accès)
+      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_ACCESS_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'accès)

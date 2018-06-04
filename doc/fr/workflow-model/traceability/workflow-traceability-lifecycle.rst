@@ -8,7 +8,7 @@ Cette section décrit le processus (workflow) permettant la sécurisation des jo
 Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultObjectGroupLifecycleTraceability.json".
 Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/workflows.
 
-Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des groupes d'objets. 
+Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des groupes d'objets.
 
 Processus de sécurisation des journaux des cycles de vie (vision métier)
 ========================================================================
@@ -40,10 +40,10 @@ Préparation des listes des cycles de vie
 
 * Liste cycles de vie à sécuriser - PREPARE_OG_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
- 
+
 
   + **Règle** : récupération des journaux des cycles de vie à sécuriser et récupération des informations concernant les dernières opérations de sécurisation.
-  
+
   + **Type** : bloquant
 
   + **Statuts** :
@@ -60,12 +60,12 @@ Préparation des listes des cycles de vie
 
 * Traitement des journaux du cycle de vie des groupes d'objets - OG_CREATE_SECURED_FILE
 
- 
+
 
   + **Règle** : application de l'algorithme pour créer les fichiers sécurisés des journaux du cycle de vie des groupes d'objets, journal par journal, et génèration du fichier sécurisé.
- 
+
   + **Type** : bloquant
- 
+
   + **Statuts** :
 
     - OK : le fichier sécurisé pour le journal du cycle de vie en cours a été généré (STP_OG_CREATE_SECURED_FILE.OK=Succès du processus de sécurisation des groupes d'objets)
@@ -79,10 +79,10 @@ Préparation des listes des cycles de vie
 * Vérification de la liste des éléments à traiter (OBJECTS_LIST_EMPTY)
 
 
-  
+
 
   + **Règle** : vérification de la présence ou non d'objets à traiter. Cette action ne s'inscrit dans le journal des opérations uniquement dans les cas fatal et warning.
-  
+
   + **Type** : non applicable
 
   + **Statuts** :
@@ -98,7 +98,7 @@ Préparation des listes des cycles de vie
 
 * Finalisation de la sécurisation - FINALIZE_OG_LFC_TRACEABILITY - fichier présent dans : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
- 
+
 
   + **Règle** : récupération des différents fichiers générés aux étapes 1 et 2 puis calcul du tampon d'horodatage
 
@@ -106,7 +106,7 @@ Cette section décrit le processus (workflow) permettant la sécurisation des jo
 Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultUnitLifecycleTraceability.json".
 Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/workflows.
 
-Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des unités archivistiques. 
+Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des unités archivistiques.
 
 
 Processus de sécurisation des journaux des cycles de vie des unités archivistiques  (vision métier)
@@ -139,10 +139,10 @@ Préparation des listes des cycles de vie
 
 * Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
- 
+
 
   + **Règle** : récupération des journaux des cycles de vie à sécuriser et récupération des informations concernant les dernières opérations de sécurisation.
-  
+
   + **Type** : bloquant
 
   + **Statuts** :
@@ -165,6 +165,8 @@ Préparation des listes des cycles de vie
 
   + **Type** : bloquant
 
+  + **Règle** : application de l'algorithme pour créer les fichiers sécurisés des cycles de vie des unités archivistiques, journal par journal, et génèration du fichier sécurisé.
+
   + **Statuts** :
 
     - OK : le fichier zip final a été créé et sauvegarder sur les offres de stockage (FINALIZE_OG_LFC_TRACEABILITY.OK=Succès de la sécurisation des journaux du cycle de vie des groupes d'objets)
@@ -174,7 +176,7 @@ Préparation des listes des cycles de vie
     - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_OG_LFC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
 
-Note: 
+Note:
 D'une façon synthétique, le workflow est décrit de cette façon :
 
   .. figure:: images/workflow_lfc_og_traceability.png
@@ -194,7 +196,7 @@ Cette section décrit le processus (workflow) permettant la sécurisation des jo
 Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultUnitLifecycleTraceability.json".
 Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/workflows.
 
-Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des unités archivistiques. 
+Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des unités archivistiques.
 
 
 Processus de sécurisation des journaux des cycles de vie des unités archivistiques  (vision métier)
@@ -227,10 +229,10 @@ Préparation des listes des cycles de vie
 
 * Liste cycles de vie à sécuriser - PREPARE_UNIT_LFC_TRACEABILITY - fichier out : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
- 
+
 
   + **Règle** : récupération des journaux des cycles de vie à sécuriser et récupération des informations concernant les dernières opérations de sécurisation.
-  
+
   + **Type** : bloquant
 
   + **Statuts** :
@@ -268,11 +270,11 @@ Il s'agit du même contrôle que l'étape 2
 **Étape 4** -  STP_UNIT_TRACEABILITY_FINALIZATION -  distribution sur REF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Finalisation de la sécurisation -FINALIZE_UNIT_LFC_TRACEABILITY  - fichier présent dans : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
+* Finalisation de la sécurisation - FINALIZE_LC_TRACEABILITY - fichier présent dans : GUID/Operations/lastOperation.json & Operations/traceabilityInformation.json
 
   + **Type** : bloquant
 
-  + **Règle** : récupération des différents fichiers générés aux étapes 1 et 2 puis calcul du tampon d'horodatage
+  + **Règle** : récupération des différents fichiers générés aux étapes 2 et 3 puis calcul du tampon d'horodatage
 
   + **Statuts** :
 
@@ -283,9 +285,10 @@ Il s'agit du même contrôle que l'étape 2
     - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_LC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie)
 
 D'une façon synthétique, le workflow est décrit de cette façon :
-/home/edith/vitam/doc/fr/workflow-model/traceability/
+
 
   .. figure:: images/workflow_lfc_unit_traceability.png
+
     :align: center
 
     Diagramme d'activité du workflow de sécurisation des cycles de vie des unités archivistiques
