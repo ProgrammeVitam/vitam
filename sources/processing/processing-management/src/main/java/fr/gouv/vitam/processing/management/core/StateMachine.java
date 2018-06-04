@@ -28,9 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
-
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -44,7 +43,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -746,7 +744,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         try {
-            dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+            dataManagement.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                 operationId, processWorkflow);
             return true;
         } catch (InvalidParseOperationException | ProcessingStorageWorkspaceException e) {
@@ -756,7 +754,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 Thread.sleep(5000);
             } catch (InterruptedException e1) {}
             try {
-                dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                dataManagement.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                     operationId, processWorkflow);
                 return true;
             } catch (InvalidParseOperationException | ProcessingStorageWorkspaceException ex) {

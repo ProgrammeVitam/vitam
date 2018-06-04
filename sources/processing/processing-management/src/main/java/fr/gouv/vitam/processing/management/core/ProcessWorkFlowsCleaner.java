@@ -88,11 +88,11 @@ public class ProcessWorkFlowsCleaner implements Runnable {
             if (isCleaneable(element.getValue())) {
                 try {
                     processDataManagement
-                        .removeProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                        .removeProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                             element.getKey().toString());
                 } catch (Exception e) {
-                    LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}", String.valueOf
-                        (ServerIdentity.getInstance().getServerId()), element.getKey().toString(), e);
+                    LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}",
+                        VitamConfiguration.getWorkspaceWorkflowsFolder(), element.getKey().toString(), e);
                 }
                 /**
                  *remove from workFlowList

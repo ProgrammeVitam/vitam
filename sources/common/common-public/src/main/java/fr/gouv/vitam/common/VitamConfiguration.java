@@ -156,6 +156,7 @@ public class VitamConfiguration {
      */
     private static String vitamTmpFolderDefault = "/vitam/data/tmp";
 
+    private static String workspaceWorkflowsFolder = "workflows";
 
 
     private static Integer vitamCleanPeriod = 1;
@@ -1918,5 +1919,13 @@ public class VitamConfiguration {
      */
     public static void setMigrationBulkSize(int migrationBulkSize) {
         VitamConfiguration.migrationBulkSize = migrationBulkSize;
+    }
+
+    public static String getWorkspaceWorkflowsFolder() {
+        return workspaceWorkflowsFolder;
+    }
+
+    public static void setWorkspaceWorkflowsFolder(String workspaceWorkflowsFolder) {
+        VitamConfiguration.workspaceWorkflowsFolder = workspaceWorkflowsFolder;
     }
 }
