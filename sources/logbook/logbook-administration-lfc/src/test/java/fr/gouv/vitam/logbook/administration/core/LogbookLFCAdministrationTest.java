@@ -11,6 +11,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,7 +24,9 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import org.junit.After;
@@ -71,7 +74,8 @@ public class LogbookLFCAdministrationTest {
 
     private static final String DATABASE_HOST = "localhost";
     private static final String DATABASE_NAME = "vitam-test";
-    private static final Integer LIFECYCLE_TRACEABILITY_OVERLAP_DELAY = 300;
+    private static final Integer TEMPORIZATION_DELAY = 300;
+    private static final Integer MAX_ENTRIES = 100_000;
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -93,8 +97,6 @@ public class LogbookLFCAdministrationTest {
 
     private static final Integer tenantId = 0;
     static final List<Integer> tenantList = Arrays.asList(0);
-
-    private static final String LC_TYPE = "LOGBOOK_LC_SECURISATION";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -173,17 +175,23 @@ public class LogbookLFCAdministrationTest {
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
-                workspaceClientFactory, LIFECYCLE_TRACEABILITY_OVERLAP_DELAY);
+                workspaceClientFactory, TEMPORIZATION_DELAY, MAX_ENTRIES);
 
         // When
-        GUID operationGuid = logbookAdministration.generateSecureLogbookLFC();
+        GUID operationGuid = logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
         assertNotNull(operationGuid);
 
         ArgumentCaptor<ProcessingEntry> processingEntryArgumentCaptor = ArgumentCaptor.forClass(ProcessingEntry.class);
         verify(processingManagementClient).initVitamProcess(anyString(), processingEntryArgumentCaptor.capture());
+
+        assertThat(processingEntryArgumentCaptor.getValue().getWorkflow())
+            .isEqualTo("LOGBOOK_UNIT_LFC_TRACEABILITY");
         assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
-            get(WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds.name())).isEqualTo(
-                LIFECYCLE_TRACEABILITY_OVERLAP_DELAY.toString());
+            get(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name())).isEqualTo(
+                TEMPORIZATION_DELAY.toString());
+        assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
+            get(WorkerParameterName.lifecycleTraceabilityMaxEntries.name())).isEqualTo(
+            MAX_ENTRIES.toString());
     }
 
     @Test
@@ -197,15 +205,13 @@ public class LogbookLFCAdministrationTest {
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
-                workspaceClientFactory, LIFECYCLE_TRACEABILITY_OVERLAP_DELAY);
+                workspaceClientFactory, TEMPORIZATION_DELAY, MAX_ENTRIES);
 
         try {
-            logbookAdministration.generateSecureLogbookLFC();
+            logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
             fail("should throw an exception");
         } catch (VitamClientException e) {
-
         }
-
     }
 
     @Test
@@ -216,6 +222,7 @@ public class LogbookLFCAdministrationTest {
         reset(workspaceClient);
         reset(processingManagementClient);
         doNothing().when(workspaceClient).createContainer(anyString());
+        AlertService alertService = mock(AlertService.class);
 
         doNothing().when(processingManagementClient).initVitamProcess(anyString(), any());
         RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
@@ -225,17 +232,23 @@ public class LogbookLFCAdministrationTest {
 
         LogbookLFCAdministration logbookAdministration =
                 new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
-                        workspaceClientFactory, LIFECYCLE_TRACEABILITY_OVERLAP_DELAY);
+                        workspaceClientFactory, TEMPORIZATION_DELAY, MAX_ENTRIES);
 
         for (int i=0; i<23; i++) {
-            logbookAdministration.generateSecureLogbookLFC();
+            logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
+            logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.ObjectGroup);
         }
 
         LogbookAuditAdministration logbookAuditAdministration =
                 new LogbookAuditAdministration(logbookOperations);
-        assertEquals(23, logbookAuditAdministration.auditTraceability(LC_TYPE, 1, 24));
+        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
+        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
 
-        logbookAdministration.generateSecureLogbookLFC();
-        assertEquals(24, logbookAuditAdministration.auditTraceability(LC_TYPE, 1, 24));
+        logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
+
+        assertEquals(24, logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
+        verify(alertService, never()).createAlert(anyString());
+        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
+        verify(alertService, never()).createAlert(anyString());
     }
 }

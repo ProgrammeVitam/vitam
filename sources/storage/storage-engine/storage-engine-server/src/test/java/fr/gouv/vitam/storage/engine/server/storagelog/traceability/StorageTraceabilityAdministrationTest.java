@@ -261,7 +261,7 @@ public class StorageTraceabilityAdministrationTest {
         return event;
     }
 
-    private void validateFile(Path path, int numberOfElement, String previousHash)
+    private void validateFile(Path path, int numberOfElements, String previousHash)
         throws IOException, ArchiveException {
         try (ArchiveInputStream archiveInputStream =
             new ArchiveStreamFactory()
@@ -271,7 +271,7 @@ public class StorageTraceabilityAdministrationTest {
 
             assertThat(entry.getName()).isEqualTo("data.txt");
             byte[] bytes = IOUtils.toByteArray(archiveInputStream);
-            assertThat(new String(bytes)).hasLineCount(numberOfElement);
+            assertThat(new String(bytes)).hasLineCount(numberOfElements);
 
             entry = archiveInputStream.getNextEntry();
             assertThat(entry.getName()).isEqualTo("merkleTree.json");
@@ -290,7 +290,7 @@ public class StorageTraceabilityAdministrationTest {
             assertThat(entry.getName()).isEqualTo("additional_information.txt");
             properties = new Properties();
             properties.load(archiveInputStream);
-            assertThat(properties.getProperty("numberOfElement")).contains(Integer.toString(numberOfElement));
+            assertThat(properties.getProperty("numberOfElements")).contains(Integer.toString(numberOfElements));
         }
     }
 

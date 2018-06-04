@@ -18,7 +18,8 @@ let response = Observable.of({status : 200});
 
 const LogbookServiceStub = {
   launchTraceability: () => response,
-  launchTraceabilityLFC: () => response
+  launchTraceabilityUnitLfc: () => response,
+  launchTraceabilityObjectGroupLfc: () => response
 };
 
 describe('LogbookComponent', () => {

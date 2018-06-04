@@ -121,8 +121,9 @@
       "stepName": "STP_UNIT_CHECK_AND_PROCESS",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "Units"
+        "kind": "LIST_ORDERING_IN_FILE",
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "type": "Units"
       },
       "actions": [
         {
@@ -144,8 +145,9 @@
       "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "Units"
+        "kind": "LIST_ORDERING_IN_FILE",
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "type": "Units"
       },
       "actions": [
         {
@@ -171,8 +173,9 @@
       "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "Units"
+        "kind": "LIST_ORDERING_IN_FILE",
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "type": "Units"
       },
       "actions": [
         {
@@ -184,7 +187,8 @@
         {
           "action": {
             "actionKey": "UNIT_METADATA_STORAGE",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]

@@ -283,6 +283,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * compress list of file or directory in a specific output file
+     *
      * @param output path of the zip file
      * @param inputFiles list of file or directory to zip
      * @throws ContentAddressableStorageException

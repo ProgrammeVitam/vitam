@@ -31,6 +31,7 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -67,7 +68,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param vitamContext the vitam context
-     * @param rules the input stream to be checked
+     * @param rules        the input stream to be checked
      * @return response including InputStream
      * @throws VitamClientException
      */
@@ -80,7 +81,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param vitamContext the vitam context
-     * @param formats the input stream to be checked
+     * @param formats      the input stream to be checked
      * @return response including InputStream
      * @throws VitamClientException
      */
@@ -89,10 +90,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * Find formats.
-     * 
      *
      * @param vitamContext the vitam context
-     * @param select select query
+     * @param select       select query
      * @return list of formats
      * @throws VitamClientException
      */
@@ -101,10 +101,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * Find rules.
-     * 
      *
      * @param vitamContext the vitam context
-     * @param select select query
+     * @param select       select query
      * @return list of rules
      * @throws VitamClientException
      */
@@ -113,10 +112,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * Find entry contracts.
-     * 
      *
      * @param vitamContext the vitam context
-     * @param select select query
+     * @param select       select query
      * @return list of ingest contrats
      * @throws VitamClientException
      */
@@ -127,7 +125,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * Find access contracts.
-     * 
      *
      * @param vitamContext the vitam context
      * @param select select query
@@ -141,10 +138,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * Find contexts.
-     * 
      *
      * @param vitamContext the vitam context
-     * @param select select query
+     * @param select       select query
      * @return list of contexts
      * @throws VitamClientException
      */
@@ -153,10 +149,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * Find profiles.
-     * 
      *
      * @param vitamContext the vitam context
-     * @param select select query
+     * @param select       select query
      * @return list of profiles
      * @throws VitamClientException
      */
@@ -179,10 +174,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Get the accession register details matching the given query
      *
-     *
      * @param vitamContext the vitam context
-     * @param id the id of accession register
-     * @param query The DSL Query as a JSON Node
+     * @param id           the id of accession register
+     * @param query        The DSL Query as a JSON Node
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -205,7 +199,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <li>A field has an invalid format</li>
      * <li>One or many contracts elready exist in the database</li>
      * </ul>
-     * 
      *
      * @param vitamContext the vitam context
      * @param ingestContracts as InputStream
@@ -696,25 +689,15 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
-     * launch a traceability audit for the unit
+     * launch a traceability audit for the request
      *
-     * @param vitamContext the vitam context
-     * @param unitId the unit id
-     * @return Vitam response
-     * @throws VitamClientException
+     * @param vitamContext the vitamContext
+     * @param queryDsl     the queryDsl
+     * @return RequestResponse
+     * @throws VitamClientException The Exception
      */
-    RequestResponse unitEvidenceAudit(VitamContext vitamContext, String unitId)
+    RequestResponse evidenceAudit(VitamContext vitamContext, JsonNode queryDsl)
         throws VitamClientException;
 
-    /**
-     * launch a traceability audit for the object group
-     *
-     * @param vitamContext the vitam context
-     * @param objectGroupId the object group id
-     * @return Vitam response
-     * @throws VitamClientException
-     */
-    RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId)
-        throws VitamClientException;
 
 }

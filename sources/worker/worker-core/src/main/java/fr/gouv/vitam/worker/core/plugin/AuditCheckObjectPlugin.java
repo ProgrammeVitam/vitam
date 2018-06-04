@@ -129,11 +129,6 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     }
 
-    @Override
-    public boolean lfcHandledInternally(){
-        return true;
-    }
-
     /**
      * write LFC for KO tasks
      * 

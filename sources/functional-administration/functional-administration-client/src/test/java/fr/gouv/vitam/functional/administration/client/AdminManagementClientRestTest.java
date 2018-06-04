@@ -445,20 +445,13 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/evidenceaudit/unit/{id}")
+        @Path("/evidenceaudit")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
+        public Response checkEvidenceAudit( String query) {
             return expectedResponse.post();
         }
 
-        @POST
-        @Path("/evidenceaudit/objects/{id}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
-            return expectedResponse.post();
-        }
     }
 
 
@@ -1156,26 +1149,16 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
     @Test
     @RunWithCustomExecutor
-    public void unitEvidenceAuditTest()
+    public void evidenceAuditTest()
         throws ReferentialException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.post()).thenReturn(Response.status(Status.OK)
             .build());
-        RequestResponse<JsonNode> resp = client.unitEvidenceAudit("ID");
+        RequestResponse<JsonNode> resp = client.evidenceAudit(new Select().getFinalSelect());
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
     }
 
-    @Test
-    @RunWithCustomExecutor
-    public void objectGroupEvidenceAuditTest()
-        throws ReferentialException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(mock.post()).thenReturn(Response.status(Status.OK)
-            .build());
-        RequestResponse<JsonNode> resp = client.objectGroupEvidenceAudit("ID");
-        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
-    }
 
 }

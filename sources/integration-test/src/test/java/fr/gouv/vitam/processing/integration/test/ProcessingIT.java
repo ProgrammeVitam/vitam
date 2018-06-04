@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -78,6 +79,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -256,7 +258,6 @@ public class ProcessingIT {
     private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String UPD8_AU_WORKFLOW = "UPDATE_RULES_ARCHIVE_UNITS";
-    private static String LFC_TRACEABILITY_WORKFLOW = "LOGBOOK_LC_SECURISATION";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
@@ -512,11 +513,11 @@ public class ProcessingIT {
                 assertNotNull(logbookResult.get("$results").get(0).get("evDetData"));
                 assertTrue(JsonHandler.writeAsString(logbookResult.get("$results").get(0).get("evDetData"))
                     .contains("jeu_donnees_OK_regles_CSV_regles"));
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
-                    });
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
                 client.createProfiles(profileModelList);
 
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
@@ -545,13 +546,14 @@ public class ProcessingIT {
 
 
                 // Import Security Profile
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importSecurityProfiles(JsonHandler
                     .getFromFileAsTypeRefence(
                         PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
-                        new TypeReference<List<SecurityProfileModel>>() {
-                        }));
+                        new TypeReference<List<SecurityProfileModel>>() {}));
 
                 // Import Context
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importContexts(JsonHandler
                     .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
                         new TypeReference<List<ContextModel>>() {
@@ -590,6 +592,7 @@ public class ProcessingIT {
      *
      * @throws Exception
      */
+    @RunWithCustomExecutor
     @Test
     public void testTryWithSiegfried() throws Exception {
         final String CONFIG_SIEGFRIED_PATH_REAL =
@@ -1595,7 +1598,25 @@ public class ProcessingIT {
 
     }
 
+    private String createOperationContainer(String action, LogbookTypeProcess logbookTypeProcess)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid, action, logbookTypeProcess);
 
+        return containerName;
+    }
+    private String createOperationContainer()
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        createLogbookOperation(operationGuid, objectGuid);
+
+        return objectGuid.getId();
+    }
     // Status Warn
     @RunWithCustomExecutor
     @Test
@@ -2710,6 +2731,7 @@ public class ProcessingIT {
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
@@ -2720,6 +2742,7 @@ public class ProcessingIT {
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
 
         wait(containerName);
@@ -2943,6 +2966,7 @@ public class ProcessingIT {
         processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName,
             WORFKLOW_NAME);
         // wait a little bit
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
         RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
             LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());

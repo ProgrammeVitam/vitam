@@ -5,6 +5,31 @@ case "$1" in
     if [ -x /bin/systemctl ]; then
       systemctl --no-reload disable vitam-${unix.name}.service >/dev/null 2>&1 || true
       systemctl stop vitam-${unix.name}.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-logbook-reconstruction.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-logbook-reconstruction.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-logbook-reconstruction.service >/dev/null 2>&1 || true
+      systemctl stop vitam-logbook-reconstruction.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-traceability-audit.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-audit.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-traceability-audit.service >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-audit.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-traceability-lfc-objectgroup.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-lfc-objectgroup.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-traceability-lfc-objectgroup.service >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-lfc-objectgroup.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-traceability-lfc-unit.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-lfc-unit.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-traceability-lfc-unit.service >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-lfc-unit.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-traceability-operations.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-operations.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-traceability-operations.service >/dev/null 2>&1 || true
+      systemctl stop vitam-traceability-operations.service >/dev/null 2>&1 || true
     fi
     ;;
 

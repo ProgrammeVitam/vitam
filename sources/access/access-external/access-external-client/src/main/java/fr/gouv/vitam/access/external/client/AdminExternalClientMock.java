@@ -411,14 +411,9 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
-
     @Override
-    public RequestResponse unitEvidenceAudit(VitamContext vitamContext, String unitId) {
-        return ClientMockResultHelper.getUnitEvidenceAudit(Status.OK.getStatusCode());
+    public RequestResponse evidenceAudit(VitamContext vitamContext,JsonNode queryDsl) {
+        return ClientMockResultHelper.getEvidenceAudit(Status.OK.getStatusCode());
     }
 
-    @Override
-    public RequestResponse objectGroupEvidenceAudit(VitamContext vitamContext, String objectGroupId) {
-        return ClientMockResultHelper.getObjectGroupEvidenceAudit(Status.OK.getStatusCode());
-    }
 }

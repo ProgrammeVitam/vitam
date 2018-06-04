@@ -366,4 +366,42 @@ public interface LogbookLifeCycles {
     void bulk(LogbookCollections collections, String idOp,
         List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
         throws DatabaseException;
+
+    /**
+     * Gets a list of raw unit life cycles by request
+     *
+     * @param startDate the selection start date
+     * @param endDate the selection end date
+     * @param limit the max limit
+     */
+    List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate, int limit)
+        throws InvalidParseOperationException;
+
+    /**
+     * Gets a list of raw object group life cycles by request
+     *
+     * @param startDate the selection start date
+     * @param endDate the selection end date
+     * @param limit the max limit
+     */
+    List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate, int limit)
+        throws InvalidParseOperationException;
+
+    /**
+     * returns the raw version of unit life cycle
+     *
+     * @param id the id to retrieve
+     * @return the unit life cycle
+     */
+    JsonNode getRawUnitLifeCycleById(String id)
+        throws LogbookNotFoundException, InvalidParseOperationException;
+
+    /**
+     * returns the raw version of object group life cycle
+     *
+     * @param id the id to retrieve
+     * @return the object group life cycle
+     */
+    JsonNode getRawObjectGroupLifeCycleById(String id)
+        throws LogbookNotFoundException, InvalidParseOperationException;
 }

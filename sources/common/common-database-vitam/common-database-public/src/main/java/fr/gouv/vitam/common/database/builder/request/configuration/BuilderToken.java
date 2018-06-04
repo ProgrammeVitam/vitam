@@ -70,7 +70,7 @@ public abstract class BuilderToken {
      * Global model
      *
      */
-    public static enum GLOBAL {
+    public  enum GLOBAL {
 
         /**
          * Roots part (departure of the request)
@@ -634,7 +634,7 @@ public abstract class BuilderToken {
      * Specific values for Filter arguments
      *
      */
-    public static enum FILTERARGS {
+    public  enum FILTERARGS {
         /**
          * Cache could be used for this request
          */
@@ -710,7 +710,7 @@ public abstract class BuilderToken {
      * Update model
      *
      */
-    public static enum UPDATEACTION {
+    public  enum UPDATEACTION {
         /**
          * $set : { name : value, name : value, ... }
          */
@@ -781,7 +781,7 @@ public abstract class BuilderToken {
      * Update Args model
      *
      */
-    public static enum UPDATEACTIONARGS {
+    public  enum UPDATEACTIONARGS {
         /**
          * Update argument
          */
@@ -807,7 +807,7 @@ public abstract class BuilderToken {
      * Action Filter model
      *
      */
-    public static enum MULTIFILTER {
+    public  enum MULTIFILTER {
         /**
          * True to allow multiple update if multiple elements are found through the QUERY, else False will return an
          * error if multiple elements are found. $mult : true/false

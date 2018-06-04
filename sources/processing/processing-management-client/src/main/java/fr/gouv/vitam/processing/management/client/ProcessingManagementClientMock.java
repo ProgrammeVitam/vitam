@@ -213,7 +213,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             .setWorkerGroupId("DefaultWorker")
             .setStepName("STP_OG_CHECK_AND_TRANSFORME")
             .setBehavior(ProcessBehavior.BLOCKING)
-            .setDistribution(new Distribution().setKind(DistributionKind.LIST).setElement("ObjectGroup"))
+            .setDistribution(new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).setElement("ObjectGroup"))
             .setActions(actions));
 
         workflow.setId("DefaultIngestWorkflow");

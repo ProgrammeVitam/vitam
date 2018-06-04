@@ -26,18 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.processing;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-
-import fr.gouv.vitam.common.model.processing.Action;
-import fr.gouv.vitam.common.model.processing.Distribution;
-import fr.gouv.vitam.common.model.processing.DistributionKind;
-import fr.gouv.vitam.common.model.processing.ProcessBehavior;
-import fr.gouv.vitam.common.model.processing.Step;
 
 public class StepTest {
 
@@ -50,8 +45,8 @@ public class StepTest {
         assertEquals("DefaultWorker", new Step().getWorkerGroupId());
         assertEquals(true, new Step().getActions().isEmpty());
         assertEquals(DistributionKind.REF, new Step().getDistribution().getKind());
-        assertEquals(DistributionKind.LIST,
-            new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST))
+        assertEquals(DistributionKind.LIST_ORDERING_IN_FILE,
+            new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE))
                 .getDistribution().getKind());
 
         final List<Action> actions = new ArrayList<>();
@@ -62,4 +57,25 @@ public class StepTest {
         assertEquals(false, new Step().setActions(actions).getActions().isEmpty());
     }
 
+    @Test
+    public void should_not_log_id_we_distribute_only_one_element() {
+        // Given
+        Distribution distribution = new Distribution();
+        distribution.setKind(DistributionKind.REF);
+
+        Action action = new Action();
+        action.setActionDefinition(
+            new ActionDefinition("actionKey", ProcessBehavior.NOBLOCKING, null, new ArrayList<>(),
+                new ArrayList<>()));
+        ArrayList<Action> actions = new ArrayList<>();
+        actions.add(action);
+        Step step = new Step(null, "workerId", "stepName", ProcessBehavior.NOBLOCKING, distribution, actions);
+        step.defaultLifecycleLog(LifecycleState.ENABLED);
+
+        // When
+        boolean lifecycleEnabled = action.getActionDefinition().lifecycleEnabled();
+
+        // Then
+        assertThat(lifecycleEnabled).isFalse();
+    }
 }

@@ -46,6 +46,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -103,6 +104,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     private final LogbookLifeCyclesClientHelper helper;
 
     private AsyncWorkspaceTransfer asyncWorkspaceTransfer;
+
+    private boolean needRefresh = false;
 
     /**
      * Constructor with local root path
@@ -370,7 +373,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Resources file
      *
      * @param objectName object name
-     * @param optional   if file is optional
+     * @param optional if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional
      */

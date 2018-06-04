@@ -56,6 +56,11 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
+import java.util.Map.Entry;
+
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
+import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
+
 
 /**
  * Single Request Parser (common base): [ {query}, {filter} ] or { $query : query, $filter : filter }
@@ -164,6 +169,10 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
+
+            // Check valid variable names first
+            parseOrderByFilter(rootNode);
+
             request.setFilter(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(

@@ -56,16 +56,23 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     private List<LogbookEvent> alertEvents;
 
     /**
-     * The overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
-     * due to clock difference.
+     * Temporization delay (in seconds) for recent logbook operation events.
+     * Freshly created operation events are not secured right away to avoid missing events "not yet
+     * commited" or with "server clock difference".
      */
-    private Integer operationTraceabilityOverlapDelay;
+    private Integer operationTraceabilityTemporizationDelay;
 
     /**
-     * The overlap delay (in seconds) for logbook lifecyle traceability events. Used to catch up possibly missed events
-     * due to clock difference.
+     * Temporization delay (in seconds) for recent logbook lifecycle events.
+     * Freshly created lifecycle events are not secured right away to avoid missing events "not yet
+     * commited" or with "server clock difference".
      */
-    private Integer lifecycleTraceabilityOverlapDelay;
+    private Integer lifecycleTraceabilityTemporizationDelay;
+
+    /**
+     * Max event count to select during a single logbook lifecycle traceability workflow.
+     */
+    private Integer lifecycleTraceabilityMaxEntries;
 
     /**
      * Disable purge for temp LFC (used for coherence check)
@@ -293,34 +300,46 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     }
 
     /**
-     * Gets the overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
-     * due to clock difference.
-     * @return The overlap delay (in seconds).
+     * Gets the temporization delay (in seconds) for recent logbook operation events.
+     *
+     * @return The temporization delay (in seconds).
      */
-    public Integer getOperationTraceabilityOverlapDelay() {
-        return operationTraceabilityOverlapDelay;
+    public Integer getOperationTraceabilityTemporizationDelay() {
+        return operationTraceabilityTemporizationDelay;
     }
 
     /**
-     * Sets the overlap delay (in seconds) for logbook operation traceability events.
+     * Sets the temporization delay (in seconds) for recent logbook operation events.
      */
-    public void setOperationTraceabilityOverlapDelay(Integer operationTraceabilityOverlapDelay) {
-        this.operationTraceabilityOverlapDelay = operationTraceabilityOverlapDelay;
+    public void setOperationTraceabilityTemporizationDelay(Integer operationTraceabilityTemporizationDelay) {
+        this.operationTraceabilityTemporizationDelay = operationTraceabilityTemporizationDelay;
     }
 
     /**
-     * Gets the overlap delay (in seconds) for logbook lifecyle traceability events. Used to catch up possibly missed events
-     * due to clock difference.
-     * @return The overlap delay (in seconds).
+     * Gets temporization delay (in seconds) for recent logbook lifecycle events
      */
-    public Integer getLifecycleTraceabilityOverlapDelay() {
-        return lifecycleTraceabilityOverlapDelay;
+    public Integer getLifecycleTraceabilityTemporizationDelay() {
+        return lifecycleTraceabilityTemporizationDelay;
     }
 
     /**
-     * Sets the overlap delay (in seconds) for logbook lifecycle traceability events.
+     * Sets temporization delay (in seconds) for recent logbook lifecycle events
      */
-    public void setLifecycleTraceabilityOverlapDelay(Integer lifecycleTraceabilityOverlapDelay) {
-        this.lifecycleTraceabilityOverlapDelay = lifecycleTraceabilityOverlapDelay;
+    public void setLifecycleTraceabilityTemporizationDelay(Integer lifecycleTraceabilityTemporizationDelay) {
+        this.lifecycleTraceabilityTemporizationDelay = lifecycleTraceabilityTemporizationDelay;
+    }
+
+    /**
+     * Gets max event count to select during a single logbook lifecycle traceability workflow.
+     */
+    public Integer getLifecycleTraceabilityMaxEntries() {
+        return lifecycleTraceabilityMaxEntries;
+    }
+
+    /**
+     * Sets max event count to select during a single logbook lifecycle traceability workflow.
+     */
+    public void setLifecycleTraceabilityMaxEntries(Integer lifecycleTraceabilityMaxEntries) {
+        this.lifecycleTraceabilityMaxEntries = lifecycleTraceabilityMaxEntries;
     }
 }

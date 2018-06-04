@@ -14,7 +14,6 @@
 	<modules>
 		<module>functional-administration-common</module>
 		<module>functional-administration-format</module>
-		<module>functional-administration-evidence</module>
 
 		<module>functional-administration-rest</module>
 		<module>functional-administration-client</module>

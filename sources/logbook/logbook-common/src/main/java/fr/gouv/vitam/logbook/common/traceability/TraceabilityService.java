@@ -64,6 +64,7 @@ public class TraceabilityService {
     private final LogbookTraceabilityHelper helper;
     private final File tmpFolder;
     private final DateTimeFormatter formatter;
+    private static final String SECURISATION_VERSION = "V1";
 
     private File zipFile = null;
     private String uri = null;
@@ -99,7 +100,8 @@ public class TraceabilityService {
         TraceabilityEvent event;
 
         // Call createZipFile
-        String fileName = createZipFile(tenantId, LocalDateUtil.parseMongoFormattedDate(helper.getTraceabilityEndDate()));
+        String fileName =
+            createZipFile(tenantId, LocalDateUtil.parseMongoFormattedDate(helper.getTraceabilityEndDate()));
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
 
@@ -131,12 +133,13 @@ public class TraceabilityService {
                 String previousMonthDate = helper.getPreviousMonthStartDate();
                 String previousYearDate = helper.getPreviousYearStartDate();
                 long size = zipFile.length();
+                boolean maxEntriesReached = helper.getMaxEntriesReached();
 
                 event =
                     new TraceabilityEvent(helper.getTraceabilityType(), startDate, endDate, rootHash, timestampToken,
                         previousDate,
                         previousMonthDate, previousYearDate, numberOfLine, fileName, size,
-                        VitamConfiguration.getDefaultDigestType());
+                        VitamConfiguration.getDefaultDigestType(), maxEntriesReached, SECURISATION_VERSION);
 
                 helper.saveEvent(event);
 

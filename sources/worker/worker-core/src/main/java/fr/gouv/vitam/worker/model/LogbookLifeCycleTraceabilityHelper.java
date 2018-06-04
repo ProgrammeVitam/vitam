@@ -2,9 +2,6 @@ package fr.gouv.vitam.worker.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -20,17 +17,10 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
-import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -44,10 +34,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.bouncycastle.util.Strings;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -57,20 +46,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventTypeProcess;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
-public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHelper {
+public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHelper {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(LogbookLifeCycleTraceabilityHelper.class);
 
     private static final String DEFAULT_STRATEGY = "default";
-    private static final String ZIP_NAME = "LogbookLifecycles";
     private static final String LOGBOOK = "logbook";
-    private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
-    private static final String EVENT_TYPE_PROC = eventTypeProcess.getDbname();
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
     private static final String HANDLER_ID = "FINALIZE_LC_TRACEABILITY";
@@ -83,6 +67,8 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     private final LogbookOperationsClient logbookOperationsClient;
     private final ItemStatus itemStatus;
     private final String operationID;
+
+    private final WorkspaceClientFactory workspaceClientFactory;
 
     private LogbookOperation lastTraceabilityOperation = null;
     private List<String> expectedLogbookId = null;
@@ -99,19 +85,23 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     private byte[] previousTimestampToken = null;
     private byte[] previousMonthTimestampToken = null;
     private byte[] previousYearTimestampToken = null;
+    private boolean maxEntriesReached;
 
     /**
-     * @param handlerIO               Workflow Input/Output of the traceability event
+     * @param handlerIO Workflow Input/Output of the traceability event
      * @param logbookOperationsClient used to search the operation to secure
-     * @param itemStatus              used by workflow, event must be updated here
-     * @param operationID             of the current traceability process
+     * @param itemStatus used by workflow, event must be updated here
+     * @param operationID of the current traceability process
+     * @param workspaceClientFactory
      */
     public LogbookLifeCycleTraceabilityHelper(HandlerIO handlerIO, LogbookOperationsClient logbookOperationsClient,
-        ItemStatus itemStatus, String operationID) {
+        ItemStatus itemStatus, String operationID,
+        WorkspaceClientFactory workspaceClientFactory) {
         this.handlerIO = handlerIO;
         this.logbookOperationsClient = logbookOperationsClient;
         this.itemStatus = itemStatus;
         this.operationID = operationID;
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     @Override
@@ -146,26 +136,8 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
             LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("startDate").asText());
         this.traceabilitytEndDate =
             LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("endDate").asText());
-    }
-
-    @Override
-    public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file) throws IOException, TraceabilityException {
-
-        file.initStoreLog();
-        try {
-            List<URI> uriListLFCObjectsWorkspace =
-                handlerIO.getUriList(handlerIO.getContainerName(), SedaConstants.LFC_OBJECTS_FOLDER);
-            extractAppendToFinalFile(uriListLFCObjectsWorkspace, file, algo, SedaConstants.LFC_OBJECTS_FOLDER);
-
-            List<URI> uriListLFCUnitsWorkspace =
-                handlerIO.getUriList(handlerIO.getContainerName(), SedaConstants.LFC_UNITS_FOLDER);
-            extractAppendToFinalFile(uriListLFCUnitsWorkspace, file, algo, SedaConstants.LFC_UNITS_FOLDER);
-
-        } catch (ProcessingException e) {
-            throw new TraceabilityException(e);
-        } finally {
-            file.closeStoreLog();
-        }
+        this.maxEntriesReached
+            = traceabilityInformation.get("maxEntriesReached").asBoolean();
     }
 
     @Override
@@ -199,13 +171,18 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
+    public boolean getMaxEntriesReached() {
+        return maxEntriesReached;
+    }
+
+    @Override
     public void storeAndDeleteZip(Integer tenant, File zipFile,
         String fileName, String uri, TraceabilityEvent event)
         throws TraceabilityException {
 
         final ItemStatus subItemStatusSecurisationStorage = new ItemStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE);
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
-            final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             workspaceClient.createContainer(fileName);
             workspaceClient.putObject(fileName, uri, inputStream);
@@ -241,11 +218,6 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public TraceabilityType getTraceabilityType() {
-        return TraceabilityType.LIFECYCLE;
-    }
-
-    @Override
     public String getStepName() {
         return HANDLER_ID;
     }
@@ -253,11 +225,6 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     @Override
     public String getTimestampStepName() {
         return HANDLER_SUB_ACTION_TIMESTAMP;
-    }
-
-    @Override
-    public String getZipName() {
-        return ZIP_NAME;
     }
 
     @Override
@@ -276,15 +243,8 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public Long getDataSize() throws TraceabilityException {
-        if (traceabilityInformation != null &&
-            traceabilityInformation.get("numberUnitLifecycles") != null &&
-            traceabilityInformation.get("numberObjectLifecycles") != null) {
-
-            return traceabilityInformation.get("numberUnitLifecycles").asLong() +
-                traceabilityInformation.get("numberObjectLifecycles").asLong();
-        }
-        return 0L;
+    public long getDataSize() {
+        return traceabilityInformation.get("nbEntries").asLong();
     }
 
     @Override
@@ -348,26 +308,21 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
      * @param algo
      * @param rootFolder
      * @return
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageServerException
-     * @throws IOException
      * @throws TraceabilityException
      */
-    private void extractAppendToFinalFile(List<URI> listOfFiles, TraceabilityFile traceabilityFile, MerkleTreeAlgo algo,
+    protected void extractAppendToFinalFile(List<URI> listOfFiles, TraceabilityFile traceabilityFile,
+        MerkleTreeAlgo algo,
         String rootFolder)
         throws TraceabilityException {
         try {
             for (final URI uriWorkspace : listOfFiles) {
                 try (InputStream lifecycleIn =
-                    handlerIO.getInputStreamFromWorkspace(rootFolder + "/" + uriWorkspace.getPath());) {
+                    handlerIO.getInputStreamFromWorkspace(rootFolder + "/" + uriWorkspace.getPath())) {
 
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    org.apache.commons.io.IOUtils.copy(lifecycleIn, baos);
-                    byte[] bytes = baos.toByteArray();
-                    String lifecycleDataStr = Strings.fromByteArray(bytes);
+                    byte[] bytes = IOUtils.toByteArray(lifecycleIn);
 
                     traceabilityFile.storeLog(bytes);
-                    algo.addLeaf(lifecycleDataStr);
+                    algo.addLeaf(bytes);
                 }
             }
 
@@ -402,7 +357,7 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
                     previousMonthStartDate = oneMonthBeforeTraceabilityEvent.getStartDate();
                 }
             }
-        } catch (LogbookNotFoundException | LogbookDatabaseException | InvalidCreateOperationException | LogbookClientException e) {
+        } catch (InvalidCreateOperationException | LogbookClientException e) {
             throw new TraceabilityException(e);
         }
 
@@ -451,8 +406,7 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     private LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
-        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
-        InvalidParseOperationException, LogbookClientException {
+        throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         try {
             RequestResponseOK<JsonNode> requestResponseOK =
                 RequestResponseOK.getFromJsonNode(
@@ -467,16 +421,6 @@ public class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHe
         return null;
     }
 
-    private Select generateSelectLogbookOperation(LocalDateTime date) throws InvalidCreateOperationException {
-        final Select select = new Select();
-        final Query query = QueryHelper.gt(EVENT_DATE_TIME, date.toString());
-        final Query type = QueryHelper.eq(EVENT_TYPE_PROC, LogbookTypeProcess.TRACEABILITY.name());
-        final Query findEvent = QueryHelper
-            .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
-                "LOGBOOK_LC_SECURISATION.OK");
-        select.setQuery(QueryHelper.and().add(query, type, findEvent));
-        select.setLimitFilter(0, 1);
-        return select;
-    }
+    protected abstract Select generateSelectLogbookOperation(LocalDateTime date) throws InvalidCreateOperationException;
 
 }

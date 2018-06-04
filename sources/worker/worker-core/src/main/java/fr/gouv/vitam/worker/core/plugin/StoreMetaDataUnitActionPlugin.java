@@ -154,10 +154,5 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
         }
     }
 
-    @Override
-    public boolean lfcHandledInternally() {
-        // De not update LFC upon LFC storage (it would make stored version obsolete...)
-        return true;
-    }
 
 }

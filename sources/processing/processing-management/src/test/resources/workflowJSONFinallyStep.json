@@ -1,28 +1,53 @@
 {
-	"id": "workflowJSONFinallyStep",
-	"identifier":"workflowJSONFinallyStep",
-	"name":"name",
-	"typeProc":"typeProc",
-	"comment":"traitement en deux macro étapes",
-	"steps":
-	[
-	{
-	"workerGroupId" :"workerGroupID",
-		"stepName":"Traiter_archives",
-		"behavior": "BLOCKING",
-		"actions":[
-		{"action":{"actionKey": "extractContentAction", "behavior": "NOBLOCKING"}},
-		{"action":{"actionKey": "storeAction", "behavior": "NOBLOCKING"}},
-		{"action":{"actionKey": "saveInDataBaseAction", "behavior": "NOBLOCKING"}}
-		]
-	},
-	{
-		"workerGroupId" :"workerGroupID",
-		"stepName":"Finalisation ATR",
-		"behavior": "FINALLY",
-		"actions":[
-			{"action":{"actionKey": "generateATR", "behavior": "NOBLOCKING"}}
-		]
-	}
-	]
+  "id": "workflowJSONFinallyStep",
+  "identifier": "workflowJSONFinallyStep",
+  "name": "name",
+  "typeProc": "typeProc",
+  "comment": "traitement en deux macro étapes",
+  "steps": [
+    {
+      "workerGroupId": "workerGroupID",
+      "stepName": "Traiter_archives",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "extractContentAction",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "storeAction",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "saveInDataBaseAction",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "workerGroupID",
+      "stepName": "Finalisation ATR",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "generateATR",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    }
+  ]
 }

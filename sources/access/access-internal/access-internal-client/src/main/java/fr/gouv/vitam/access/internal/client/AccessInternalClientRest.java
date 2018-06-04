@@ -82,11 +82,12 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String LOGBOOK_CHECK = "/traceability/check";
 
     private static final String CHECKS_OPERATION_TRACEABILITY_OK = "Checks operation traceability is OK";
-    public static final String OBJECTS = "objects/";
-    public static final String DIPEXPORT = "dipexport/";
-    public static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
+    private static final String OBJECTS = "objects/";
+    private static final String DIPEXPORT = "dipexport/";
+    private static final String UNITS = "units/";
+    private static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
         "[Consistency ERROR] : An internal data consistency error has been detected !";
-    public static final String UNITS = "units";
+    private static final String ILLEGAL_ENTRY_PARAMETER = "Illegal Entry Parameter";
 
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);
@@ -135,7 +136,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "units/" + idUnit, null, selectQuery,
+            response = performRequest(HttpMethod.GET, UNITS + idUnit, null, selectQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -168,7 +169,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, "units/" + unitId, null, updateQuery,
+            response = performRequest(HttpMethod.PUT, UNITS + unitId, null, updateQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
@@ -293,7 +294,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
@@ -321,7 +322,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
@@ -350,7 +351,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
@@ -379,7 +380,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
@@ -409,7 +410,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error("Illegal Entry Parameter");
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
@@ -508,7 +509,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "units/" + idUnit, null, queryDsl,
+            response = performRequest(HttpMethod.GET, UNITS + idUnit, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
             return response;
         } catch (final VitamClientInternalException e) {

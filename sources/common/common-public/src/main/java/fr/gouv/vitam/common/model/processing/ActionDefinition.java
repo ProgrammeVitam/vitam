@@ -28,15 +28,15 @@ package fr.gouv.vitam.common.model.processing;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 /**
- *
  * ActionDefinition class This class is used to define an action It has for the moment 2 fields actionKey and actionType
- *
  */
-@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonIgnoreProperties
 public class ActionDefinition {
 
     @JsonProperty("actionKey")
@@ -45,15 +45,37 @@ public class ActionDefinition {
     @JsonProperty("behavior")
     private ProcessBehavior behavior;
 
+    @JsonProperty("lifecycleLog")
+    private LifecycleState lifecycleState;
+
     @JsonProperty("in")
     private List<IOParameter> in;
+
     @JsonProperty("out")
     private List<IOParameter> out;
 
+    public ActionDefinition() {
+    }
+
+    @JsonCreator
+    public ActionDefinition(
+        @JsonProperty("actionKey") String actionKey,
+        @JsonProperty("behavior") ProcessBehavior behavior,
+        @JsonProperty("lifecycleLog") LifecycleState lifecycleState,
+        @JsonProperty("in") List<IOParameter> in,
+        @JsonProperty("out") List<IOParameter> out) {
+        this.actionKey = actionKey;
+        this.behavior = behavior;
+        this.lifecycleState = lifecycleState;
+        this.in = in;
+        this.out = out;
+    }
+
     /**
-     *
      * @return actionKey the action key
      */
+
+
     public String getActionKey() {
         if (actionKey == null) {
             return "";
@@ -73,8 +95,7 @@ public class ActionDefinition {
     }
 
     /**
-     *
-     * @return ({ProcessBehavior}) Type of action object or bean
+     * @return ({ ProcessBehavior }) Type of action object or bean
      */
     public ProcessBehavior getBehavior() {
         return behavior;
@@ -101,7 +122,6 @@ public class ActionDefinition {
 
     /**
      * @param in the in to set
-     *
      * @return this Action
      */
     public ActionDefinition setIn(List<IOParameter> in) {
@@ -118,7 +138,6 @@ public class ActionDefinition {
 
     /**
      * @param out the out to set
-     *
      * @return this Action
      */
     public ActionDefinition setOut(List<IOParameter> out) {
@@ -126,6 +145,20 @@ public class ActionDefinition {
         return this;
     }
 
+    public LifecycleState getLifecycleState() {
+        return lifecycleState;
+    }
 
+    public void setLifecycleState(LifecycleState lifecycleState) {
+        this.lifecycleState = lifecycleState;
+    }
+
+    public boolean lifecycleEnabled() {
+        return lifecycleState.isEnabled();
+    }
+
+    public void defaultLifecycleLog(LifecycleState defaultLifecycleLog) {
+        lifecycleState = MoreObjects.firstNonNull(lifecycleState, defaultLifecycleLog);
+    }
 
 }

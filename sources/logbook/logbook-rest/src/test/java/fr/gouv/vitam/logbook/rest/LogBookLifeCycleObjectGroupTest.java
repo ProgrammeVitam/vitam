@@ -26,29 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -72,6 +52,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -82,6 +63,25 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import net.javacrumbs.jsonunit.JsonAssert;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assume.assumeTrue;
 
 /**
  *
@@ -111,6 +111,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
     private static final String LIFE_OBJECT_GROUP_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
     private static final String LIFE_OBJECT_GROUP_URI = "/operations/{id_op}/objectgrouplifecycles";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL = "/raw/objectgrouplifecycles/byid/";
 
     private static int databasePort;
     private static int serverPort;
@@ -266,7 +267,8 @@ public class LogBookLifeCycleObjectGroupTest {
     }
 
     @Test
-    public final void given_lifeCycleObjectGroup_when_create_thenReturn_created() throws InvalidParseOperationException {
+    public final void given_lifeCycleObjectGroup_when_create_thenReturn_created()
+        throws InvalidParseOperationException {
         // Creation OK
 
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
@@ -484,5 +486,47 @@ public class LogBookLifeCycleObjectGroupTest {
             .statusCode(Status.CREATED.getStatusCode());
     }
 
+    @Test
+    public void testGetRawObjectGroupLifecycleById_OK() throws Exception {
 
+        // Given
+        JsonNode json = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaaef6ys5absnuala7t4lfmiaaabq.json"));
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .body(Collections.singletonList(json))
+            .when()
+            .post("/raw/objectgrouplifecycles/bulk")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+
+        // When / Then
+        RequestResponseOK response = given()
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .get(OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL + "aebaaaaaaaef6ys5absnuala7t4lfmiaaabq")
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().as(RequestResponseOK.class);
+
+        String expectedJson = JsonHandler.unprettyPrint(json);
+        String actualJson = JsonHandler.unprettyPrint(JsonHandler.toJsonNode(response.getFirstResult()));
+
+        JsonAssert.assertJsonEquals(expectedJson, actualJson);
+    }
+
+    @Test
+    public void testGetRawObjectGroupLifecycleById_NotFound() throws Exception {
+
+        // Given : Empty DB
+
+        // When / Then
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .get(OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL + "aebaaaaaaaef6ys5absnuala7t4lfmiaaaaa")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
 }

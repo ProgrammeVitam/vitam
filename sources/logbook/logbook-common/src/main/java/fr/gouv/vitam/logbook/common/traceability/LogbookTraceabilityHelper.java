@@ -116,7 +116,7 @@ public interface LogbookTraceabilityHelper {
      * @return the number of items secured in traceabilityIterator
      * @throws TraceabilityException if the traceabilityIterator isn't yet initialized
      */
-    Long getDataSize() throws TraceabilityException;
+    long getDataSize() throws TraceabilityException;
 
     /**
      * Get the last traceability (in logbook) event and return the timestampToken of the entry
@@ -185,4 +185,8 @@ public interface LogbookTraceabilityHelper {
      */
     void saveEmpty(Integer tenantId) throws TraceabilityException;
 
+    /**
+     * @return true if max entries reached (unit & object group lifecycle traceability operation are limited in size)
+     */
+    boolean getMaxEntriesReached();
 }

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.common.model;
 
 import static fr.gouv.vitam.common.PropertiesUtils.getResourceAsStream;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.SECURISATION_VERSION_LABEL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -86,8 +87,10 @@ public class TraceabilityFileTest {
         Properties prop = new Properties();
         prop.load(stream);
         assertThat(prop.getProperty("startDate")).isEqualTo("2016-11-21T16:19:13.469");
-        assertThat(prop.getProperty("numberOfElement")).isEqualTo("1");
+        assertThat(prop.getProperty("numberOfElements")).isEqualTo("1");
         assertThat(prop.getProperty("endDate")).isEqualTo("2016-11-21T16:19:14.469");
+        assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo("V1");
+
     }
 
 }

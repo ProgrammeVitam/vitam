@@ -480,7 +480,6 @@ public class IngestInternalIT {
 
         VitamThreadUtils.getVitamSession().setContractId(contractId);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -508,6 +507,7 @@ public class IngestInternalIT {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                     new TypeReference<List<IngestContractModel>>() {});
 
@@ -523,12 +523,14 @@ public class IngestInternalIT {
                 client.importAccessContracts(accessContractModelList);
 
                 // Import Security Profile
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importSecurityProfiles(JsonHandler
                     .getFromFileAsTypeRefence(
                         PropertiesUtils.getResourceFile("integration-ingest-internal/security_profile_ok.json"),
                         new TypeReference<List<SecurityProfileModel>>() {}));
 
                 // Import Context
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importContexts(JsonHandler
                     .getFromFileAsTypeRefence(
                         PropertiesUtils.getResourceFile("integration-ingest-internal/contexts.json"),
@@ -852,6 +854,7 @@ public class IngestInternalIT {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             tryImportFile();
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;

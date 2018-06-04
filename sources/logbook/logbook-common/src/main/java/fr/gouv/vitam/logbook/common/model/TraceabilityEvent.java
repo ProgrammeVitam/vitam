@@ -76,7 +76,7 @@ public class TraceabilityEvent {
     /**
      * Number of securised elements
      */
-    private long numberOfElement;
+    private long numberOfElements;
 
     /**
      * name of the secure archive in the storage
@@ -87,11 +87,20 @@ public class TraceabilityEvent {
      * Total size of the ZIP entry
      */
     private long size;
+    /**
+     * securisationVersion
+     */
+    private String securisationVersion;
 
     /**
      * Digest Algorithm
      */
     private DigestType digestAlgorithm;
+
+    /**
+     * Max entries reached (unit & object group lifecycle traceability operation are limited in size)
+     */
+    private boolean maxEntriesReached;
 
     /**
      * Empty constructor for Jackson
@@ -103,23 +112,23 @@ public class TraceabilityEvent {
     /**
      * Constructor 
      * 
-     * @param logType
-     * @param startDate
-     * @param endDate
-     * @param hash
-     * @param timeStampToken
-     * @param previousLogbookTraceabilityDate
-     * @param minusOneMonthLogbookTraceabilityDate
-     * @param minusOneYearLogbookTraceabilityDate
-     * @param numberOfElement
-     * @param fileName
-     * @param size
-     * @param digestAlgorithm
+     * @param logType logType
+     * @param startDate startDate
+     * @param endDate endDate
+     * @param hash  hash
+     * @param timeStampToken timeStampToken
+     * @param previousLogbookTraceabilityDate previousLogbookTraceabilityDate
+     * @param minusOneMonthLogbookTraceabilityDate minusOneMonthLogbookTraceabilityDate
+     * @param minusOneYearLogbookTraceabilityDate minusOneYearLogbookTraceabilityDate
+     * @param numberOfElements numberOfElements
+     * @param fileName fileName
+     * @param size size
+     * @param digestAlgorithm digestAlgorithm
      */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash,
         byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
-        String minusOneYearLogbookTraceabilityDate, long numberOfElement, String fileName, long size,
-        DigestType digestAlgorithm) {
+        String minusOneYearLogbookTraceabilityDate, long numberOfElements, String fileName, long size,
+        DigestType digestAlgorithm, boolean maxEntriesReached, String securisationVersion ) {
         this.logType = logType;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -128,10 +137,13 @@ public class TraceabilityEvent {
         this.minusOneMonthLogbookTraceabilityDate = minusOneMonthLogbookTraceabilityDate;
         this.minusOneYearLogbookTraceabilityDate = minusOneYearLogbookTraceabilityDate;
         this.timeStampToken = timeStampToken;
-        this.numberOfElement = numberOfElement;
+        this.numberOfElements = numberOfElements;
         this.fileName = fileName;
         this.size = size;
         this.digestAlgorithm = digestAlgorithm;
+        this.maxEntriesReached = maxEntriesReached;
+        this.securisationVersion = securisationVersion;
+
     }
 
     /**
@@ -156,10 +168,11 @@ public class TraceabilityEvent {
     }
 
     /**
-     * @return numberOfElement
+     *  getter of numberOfElements
+     * @return numberOfElements
      */
-    public long getNumberOfElement() {
-        return numberOfElement;
+    public long getNumberOfElements() {
+        return numberOfElements;
     }
 
     /**
@@ -216,5 +229,26 @@ public class TraceabilityEvent {
      */
     public DigestType getDigestAlgorithm() {
         return digestAlgorithm;
+    }
+
+    /**
+     * @return true if max entries has been reached (unit & object group lifecycle traceability operation are limited in size)
+     */
+    public boolean getMaxEntriesReached() {
+        return maxEntriesReached;
+    }
+
+    /**
+     * getter for securisationVersion
+     **/
+    public String getSecurisationVersion() {
+        return securisationVersion;
+    }
+
+    /**
+     * setter for securisationVersion
+     **/
+    public void setSecurisationVersion(String securisationVersion) {
+        this.securisationVersion = securisationVersion;
     }
 }

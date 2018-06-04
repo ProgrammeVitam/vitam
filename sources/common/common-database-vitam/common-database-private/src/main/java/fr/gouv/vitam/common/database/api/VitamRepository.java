@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,8 +34,10 @@ import java.util.Optional;
 import org.bson.Document;
 
 import com.mongodb.client.FindIterable;
-
+import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 /**
  * This repository is a specification of vitam data management
@@ -141,7 +144,16 @@ public interface VitamRepository {
      * @throws DatabaseException in case error with database occurs
      */
     Optional<Document> findByIdentifier(String identifier) throws DatabaseException;
-    
+
+    /**
+     * Find collection of document by there id and return only projection fields
+     *
+     * @param ids list of documents id
+     * @param projection the fields wanted in the result
+     * @return An iterable of documents
+     */
+    FindIterable<Document> findDocuments(Collection<String> ids, Bson projection);
+
     /**
      * Return iterable over document for the given collection for a specific tenant
      *
@@ -168,4 +180,15 @@ public interface VitamRepository {
      * @return iterable over document for the given collection
      */
     FindIterable<Document> findDocuments(int mongoBatchSize);
+
+
+
+    /**
+     * Return iterable over document for the given collection
+     *
+     * @param query          the mongo query to be executed
+     * @param mongoBatchSize mongoBatchSize
+     * @return iterable over document for the given collection
+     */
+    FindIterable<Document> findDocuments(Bson query, int mongoBatchSize);
 }

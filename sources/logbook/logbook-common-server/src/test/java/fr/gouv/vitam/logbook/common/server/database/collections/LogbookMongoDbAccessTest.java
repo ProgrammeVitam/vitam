@@ -664,7 +664,7 @@ public class LogbookMongoDbAccessTest {
             assertTrue(cursor.hasNext());
             final LogbookLifeCycle lifeCycle = cursor.next();
             assertNotNull(lifeCycle);
-            assertEquals(4, lifeCycle.getLifeCycles(true).size());
+            assertEquals(5, lifeCycle.getLifeCycles(true).size());
             assertEquals(2, lifeCycle.getLifeCycles(false).size());
         }
         // full
@@ -675,14 +675,14 @@ public class LogbookMongoDbAccessTest {
             assertTrue(cursor.hasNext());
             final LogbookLifeCycle lifeCycle = cursor.next();
             assertNotNull(lifeCycle);
-            assertEquals(4, lifeCycle.getLifeCycles(true).size());
+            assertEquals(5, lifeCycle.getLifeCycles(true).size());
             assertEquals(2, lifeCycle.getLifeCycles(false).size());
         }
 
 
         LogbookLifeCycleUnit lifeCycle = mongoDbAccess.getLogbookLifeCycleUnit(oi2);
         assertNotNull(lifeCycle);
-        assertEquals(4, lifeCycle.getLifeCycles(true).size());
+        assertEquals(5, lifeCycle.getLifeCycles(true).size());
         assertEquals(2, lifeCycle.getLifeCycles(false).size());
         lifeCycle = mongoDbAccess.getLogbookLifeCycleUnit(oi2);
         assertNotNull(lifeCycle);
@@ -939,7 +939,7 @@ public class LogbookMongoDbAccessTest {
         }
         LogbookLifeCycleObjectGroup lifeCycle = mongoDbAccess.getLogbookLifeCycleObjectGroup(oi);
         assertNotNull(lifeCycle);
-        assertEquals(4, lifeCycle.getLifeCycles(true).size());
+        assertEquals(5, lifeCycle.getLifeCycles(true).size());
         assertEquals(2, lifeCycle.getLifeCycles(false).size());
         lifeCycle = mongoDbAccess.getLogbookLifeCycleObjectGroup(
             parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), oi);

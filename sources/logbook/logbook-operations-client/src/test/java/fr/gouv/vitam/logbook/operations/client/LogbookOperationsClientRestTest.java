@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -39,11 +41,14 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -181,10 +186,24 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/lifecycles/traceability")
+        @Path("/lifecycles/units/traceability")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response traceabilityLFC() {
+        public Response traceabilityLfcUnit() {
             return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/lifecycles/objectgroups/traceability")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response traceabilityLfcObjectGroup() {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/lifecycles/traceability/check/{id}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkLifecycleTraceabilityStatus(@PathParam("id") String operationId) {
+            return expectedResponse.get();
         }
 
         @POST
@@ -309,25 +328,35 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    public void traceabilityLFC() throws Exception {
+    public void traceabilityLfcUnit() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(mock.post())
-            .thenReturn(
-                Response.status(Status.OK).entity(
-                    "{" + "    \"_id\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evId\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evType\" : \"PROCESS_SIP_UNITARY\"," +
-                        "    \"evDateTime\" : \"2016-10-27T13:37:05.646\"," + "    \"evDetData\" : null," +
-                        "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
-                        "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdApp\" : null," + "    \"evIdAppSession\" : null," +
-                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdExt\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
-                        "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
-                        "    \"_tenant\" : 0" + "}")
-                    .build());
-        client.traceabilityLFC();
+            .thenReturn(Response.status(Status.OK).entity(
+                new RequestResponseOK<String>().addResult("guid1")).build());
+        client.traceabilityLfcObjectGroup();
+    }
+
+    @Test
+    public void traceabilityLfcObjectGroup() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(mock.post())
+            .thenReturn(Response.status(Status.OK).entity(
+                new RequestResponseOK<String>().addResult("guid1")).build());
+        client.traceabilityLfcObjectGroup();
+    }
+
+    @Test
+    public void checkLifecycleTraceabilityWorkflowStatus() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(
+                new RequestResponseOK<LifecycleTraceabilityStatus>().addResult(
+                    new LifecycleTraceabilityStatus(true, "MY_STATUS", true)
+                )).build());
+        LifecycleTraceabilityStatus lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus("id");
+        assertTrue(lifecycleTraceabilityStatus.isCompleted());
+        assertEquals(lifecycleTraceabilityStatus.getOutcome(), "MY_STATUS");
+        assertTrue(lifecycleTraceabilityStatus.isMaxEntriesReached());
     }
 
 

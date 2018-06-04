@@ -71,14 +71,10 @@ import org.mockito.InOrder;
 public class ProcessEngineImplTest {
     public static final String FAKE_CONTEXT = "FakeContext";
     private ProcessEngine processEngine;
-    private IEventsState stateMachine;
     private WorkerParameters workParams;
-    private ItemStatus response;
-    private ProcessMonitoringImpl processMonitoring;
     private ProcessDistributor processDistributor;
     private static final Integer TENANT_ID = 0;
     private static final String WORKFLOW_FILE = "workflowJSONv1.json";
-    private static final String WORKFLOW_WITH_FINALLY_STEP = "workflowJSONFinallyStep.json";
 
     private ProcessDataAccess processData;
 
@@ -98,7 +94,6 @@ public class ProcessEngineImplTest {
             .setLogbookTypeProcess(LogbookTypeProcess.INGEST_TEST);
 
         processDistributor = mock(ProcessDistributor.class);
-        processMonitoring = ProcessMonitoringImpl.getInstance();
 
         processData = ProcessDataAccessImpl.getInstance();
         processEngine =

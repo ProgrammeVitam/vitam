@@ -26,31 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -77,6 +55,7 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -91,6 +70,25 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import net.javacrumbs.jsonunit.JsonAssert;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assume.assumeTrue;
 
 /**
  *
@@ -121,6 +119,7 @@ public class LogBookLifeCycleUnitTest {
     private static final String FAKE_OBG_LF_ID = "1";
     private static final String SELECT_UNIT_BY_ID_URI = "/unitlifecycles/" + FAKE_UNIT_LF_ID;
     private static final String SELECT_OBG_BY_ID_URI = "/objectgrouplifecycles/" + FAKE_OBG_LF_ID;
+    private static final String UNIT_LIFECYCLES_RAW_BY_ID_URL = "/raw/unitlifecycles/byid/";
 
     private static int databasePort;
     private static int serverPort;
@@ -626,4 +625,47 @@ public class LogBookLifeCycleUnitTest {
             .statusCode(Status.CREATED.getStatusCode());
     }
 
+    @Test
+    public void testGetRawUnitLifecycleById_OK() throws Exception {
+
+        // Given
+        JsonNode json = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_unit_raw_aeaqaaaaaaef6ys5absnuala7tya75iaaacq.json"));
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(Collections.singletonList(json))
+            .when()
+            .post("/raw/unitlifecycles/bulk")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+
+        // When / Then
+        RequestResponseOK response = given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .get(UNIT_LIFECYCLES_RAW_BY_ID_URL + "aeaqaaaaaaef6ys5absnuala7tya75iaaacq")
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract().body().as(RequestResponseOK.class);
+
+        String expectedJson = JsonHandler.unprettyPrint(json);
+        String actualJson = JsonHandler.unprettyPrint(JsonHandler.toJsonNode(response.getFirstResult()));
+
+        JsonAssert.assertJsonEquals(expectedJson, actualJson);
+    }
+
+    @Test
+    public void testGetRawUnitLifecycleById_NotFound() throws Exception {
+
+        // Given : Empty DB
+
+        // When / Then
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .get(UNIT_LIFECYCLES_RAW_BY_ID_URL + "aeaqaaaaaaef6ys5absnuala7tya75iaaaaa")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
 }

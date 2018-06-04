@@ -31,9 +31,12 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
@@ -50,6 +53,7 @@ import javax.ws.rs.core.Response;
 import fr.gouv.vitam.common.error.VitamError;
 import org.jhades.JHades;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -301,6 +305,12 @@ public class FunctionalAdminIT {
         }
     }
 
+    @Before
+    public void setUp() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
+
+    }
+
     @Test
     @RunWithCustomExecutor
     public final void testUploadDownloadProfileFile() throws Exception {
@@ -427,6 +437,7 @@ public class FunctionalAdminIT {
         assertThat(contractModel).isNotNull();
         assertThat(contractModel.getStatus().equals("ACTIVE"));
         String contractToUpdate = contractModel.getIdentifier();
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         // do an update
         UpdateMultiQuery updateQuery = new UpdateMultiQuery();
@@ -460,6 +471,7 @@ public class FunctionalAdminIT {
         updateQuery.addActions(new SetAction("Status", "INACTIVE"));
         RequestResponse response = ingestContract.updateContract("wrongId", updateQuery.getFinalUpdate());
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
+        VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         updateQuery = new UpdateMultiQuery();
         updateQuery.addActions(new SetAction("LinkParentId", "invalid_id"));

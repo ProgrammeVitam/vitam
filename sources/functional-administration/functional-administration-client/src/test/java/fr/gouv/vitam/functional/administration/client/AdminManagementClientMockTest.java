@@ -444,15 +444,11 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
-    public void unitEvidenceAuditTest() throws Exception {
-        RequestResponse<JsonNode> resp = client.unitEvidenceAudit("ID");
+    public void evidenceAuditTest() throws Exception {
+        RequestResponse<JsonNode> resp = client.evidenceAudit(new Select().getFinalSelect());
         assertTrue(resp.isOk());
     }
 
-    @Test
-    public void objectGroupEvidenceAuditTest() throws Exception {
-        RequestResponse<JsonNode> resp = client.objectGroupEvidenceAudit("ID");
-        assertTrue(resp.isOk());
-    }
+
 
 }
