@@ -1089,8 +1089,193 @@
                     "type": "keyword"
                   }
                 }
+              },
+              "ClassificationLevel": {
+                "type": "keyword"
+              },
+              "ClassificationOwner": {
+                "type": "text"
+              },
+              "ClassificationReassessingDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              },
+              "NeedReassessingAuthorization": {
+                "type": "boolean"
               }
             }
+          }
+        }
+      },
+      "Transmitter": {
+        "properties": {
+          "BirthPlace": {
+            "properties": {
+              "Geogname": {
+                "type": "text"
+              },
+              "Address": {
+                "type": "text"
+              },
+              "PostalCode": {
+                "type": "keyword"
+              },
+              "City": {
+                "type": "text"
+              },
+              "Region": {
+                "type": "text"
+              },
+              "Country": {
+                "type": "text"
+              }
+            }
+          },
+          "BirthDate": {
+            "type": "date",
+            "format": "strict_date_optional_time"
+          },
+          "DeathPlace": {
+            "properties": {
+              "Geogname": {
+                "type": "text"
+              },
+              "Address": {
+                "type": "text"
+              },
+              "PostalCode": {
+                "type": "keyword"
+              },
+              "City": {
+                "type": "text"
+              },
+              "Region": {
+                "type": "text"
+              },
+              "Country": {
+                "type": "text"
+              }
+            }
+          },
+          "GivenName": {
+            "type": "text"
+          },
+          "BirthName": {
+            "type": "text"
+          },
+          "FirstName": {
+            "type": "text"
+          },
+          "Gender": {
+            "type": "text"
+          },
+          "Nationality": {
+            "type": "text"
+          },
+          "DeathDate": {
+            "type": "date",
+            "format": "strict_date_optional_time"
+          },
+          "Identifier": {
+            "type": "keyword"
+          },
+          "Function": {
+            "type": "keyword"
+          },
+          "Activity": {
+            "type": "keyword"
+          },
+          "Position": {
+            "type": "text"
+          },
+          "Role": {
+            "type": "text"
+          }
+        }
+      },
+      "Sender": {
+        "properties": {
+          "BirthPlace": {
+            "properties": {
+              "Geogname": {
+                "type": "text"
+              },
+              "Address": {
+                "type": "text"
+              },
+              "PostalCode": {
+                "type": "keyword"
+              },
+              "City": {
+                "type": "text"
+              },
+              "Region": {
+                "type": "text"
+              },
+              "Country": {
+                "type": "text"
+              }
+            }
+          },
+          "BirthDate": {
+            "type": "date",
+            "format": "strict_date_optional_time"
+          },
+          "DeathPlace": {
+            "properties": {
+              "Geogname": {
+                "type": "text"
+              },
+              "Address": {
+                "type": "text"
+              },
+              "PostalCode": {
+                "type": "keyword"
+              },
+              "City": {
+                "type": "text"
+              },
+              "Region": {
+                "type": "text"
+              },
+              "Country": {
+                "type": "text"
+              }
+            }
+          },
+          "GivenName": {
+            "type": "text"
+          },
+          "BirthName": {
+            "type": "text"
+          },
+          "FirstName": {
+            "type": "text"
+          },
+          "Gender": {
+            "type": "text"
+          },
+          "Nationality": {
+            "type": "text"
+          },
+          "DeathDate": {
+            "type": "date",
+            "format": "strict_date_optional_time"
+          },
+          "Identifier": {
+            "type": "keyword"
+          },
+          "Function": {
+            "type": "keyword"
+          },
+          "Activity": {
+            "type": "keyword"
+          },
+          "Position": {
+            "type": "text"
+          },
+          "Role": {
+            "type": "text"
           }
         }
       },
