@@ -66,19 +66,19 @@ public class StorageLogServiceTest {
 
     private StorageLogProvider storageLogService;
 
+    private List<Integer> tenants;
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Before
     public void setUp() throws IOException {
         folder.create();
-        List<Integer> tenants = new ArrayList<>();
+        tenants = new ArrayList<>();
 
         for (int i = 0; i < TENANTS; i++) {
             tenants.add(i);
         }
-        storageLogService = StorageLogFactory.getInstance(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
-        storageLogService.initializeStorageLogs(Paths.get(folder.getRoot().getAbsolutePath()));
     }
 
     @After
@@ -91,6 +91,7 @@ public class StorageLogServiceTest {
     @Test()
     public void appendTest() throws Exception {
 
+        storageLogService = StorageLogFactory.getInstance(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
         storageLogService.append(0, buildStorageParameters("tenant0-param1"));
         storageLogService.append(1, buildStorageParameters("tenant1-param1"));
         storageLogService.append(0, buildStorageParameters("tenant0-param2"));
@@ -116,6 +117,9 @@ public class StorageLogServiceTest {
 
     @Test()
     public void rotateLogsTest() throws IOException {
+
+        storageLogService = StorageLogFactory.getInstance(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
+        storageLogService.initializeStorageLogs(Paths.get(folder.getRoot().getAbsolutePath()));
 
         // Given / when
         LocalDateTime date1 = LocalDateUtil.now();
@@ -167,6 +171,9 @@ public class StorageLogServiceTest {
          * Wait for "TEST_DURATION_IN_MILLISECONDS" and stop threads
          * Ensure that all messages have been logged
          */
+
+        storageLogService = StorageLogFactory.getInstance(tenants, Paths.get(folder.getRoot().getAbsolutePath()));
+        storageLogService.initializeStorageLogs(Paths.get(folder.getRoot().getAbsolutePath()));
 
         int TEST_DURATION_IN_MILLISECONDS = 5000;
         int INTERVAL_BETWEEN_LOG_ROTATION = 100;
