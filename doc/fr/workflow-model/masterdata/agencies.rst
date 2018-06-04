@@ -38,7 +38,7 @@ Import d'un référentiel de services agents STP_IMPORT_AGENCIES (AgenciesServic
         - Cas 1 : une information concernant les services agents est manquante (Identifier, Name, Description) (STP_IMPORT_AGENCIES.KO=Échec du processus d'import du référentiel des services agents). De plus le rapport d'import du référentiel contiendra la clé "STP_IMPORT_AGENCIES_MISSING_INFORMATIONS".
         - Cas 2 : un service agent qui était présent dans la base a été supprimé (STP_IMPORT_AGENCIES.DELETION.KO=Échec du processus d'import du référentiel des services agents : Des services agents supprimés sont présents dans le référentiel des services agents)
 
-    - FATAL : une erreur technique est survenue lors de l'import du référentiel des services agents (STP_IMPORT_AGENCIES.FATAL=Erreur fatale lors du processus d'import du référentiel des service agents)
+    - FATAL : une erreur fatale est survenue lors de l'import du référentiel des services agents (STP_IMPORT_AGENCIES.FATAL=Erreur fatale lors du processus d'import du référentiel des service agents)
 
 Vérification des contrats utilisés STP_IMPORT_AGENCIES.USED_CONTRACT
 ----------------------------------------------------------------------
@@ -57,7 +57,7 @@ Vérification des contrats utilisés STP_IMPORT_AGENCIES.USED_CONTRACT
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la vérification des services agents utilisés dans les contrats d'accès (STP_IMPORT_AGENCIES.USED_CONTRACT.FATAL=Erreur fatale lors du processus de vérification des services agents utilisés dans les contrats d'accès)
+    - FATAL : une erreur fatale est survenue lors de la vérification des services agents utilisés dans les contrats d'accès (STP_IMPORT_AGENCIES.USED_CONTRACT.FATAL=Erreur fatale lors du processus de vérification des services agents utilisés dans les contrats d'accès)
 
 Vérification des unités archivistiques STP_IMPORT_AGENCIES.USED_AU
 ------------------------------------------------------------------
@@ -76,7 +76,7 @@ Vérification des unités archivistiques STP_IMPORT_AGENCIES.USED_AU
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la vérification des services agents utilisés par les unités archivistiques (STP_IMPORT_AGENCIES.USED_AU.FATAL=Erreur fatale lors du processus de vérification des services agents utilisés par les unités archivistiques)
+    - FATAL : une erreur fatale est survenue lors de la vérification des services agents utilisés par les unités archivistiques (STP_IMPORT_AGENCIES.USED_AU.FATAL=Erreur fatale lors du processus de vérification des services agents utilisés par les unités archivistiques)
 
 Création du rapport au format JSON STP_AGENCIES_REPORT (AgenciesService.java)
 -----------------------------------------------------------------------------
@@ -93,7 +93,7 @@ Création du rapport au format JSON STP_AGENCIES_REPORT (AgenciesService.java)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la création du rapport d'import du référentiel des services agents (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de génération du rapport d'import du référentiel des services agents)
+    - FATAL : une erreur fatale est survenue lors de la création du rapport d'import du référentiel des services agents (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de génération du rapport d'import du référentiel des services agents)
 
 Sauvegarde du CSV d'import STP_IMPORT_AGENCIES_BACKUP_CSV (AgenciesService.java)
 --------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ Sauvegarde du CSV d'import STP_IMPORT_AGENCIES_BACKUP_CSV (AgenciesService.java)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la sauvegarde de fichier d'import de référentiel des services agent (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de sauvegarde du fichier d''import de référentiel des services agents)
+    - FATAL : une erreur fatale est survenue lors de la sauvegarde de fichier d'import de référentiel des services agent (STP_AGENCIES_REPORT.FATAL=Erreur fatale lors du processus de sauvegarde du fichier d''import de référentiel des services agents)
 
 Sauvegarde d'une copie de la base de donnée STP_BACKUP_AGENCIES (AgenciesService.java)
 --------------------------------------------------------------------------------------
@@ -125,7 +125,7 @@ Sauvegarde d'une copie de la base de donnée STP_BACKUP_AGENCIES (AgenciesServic
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la création d'une copie de la base de données contenant le référentiel des services agent (STP_BACKUP_AGENCIES.FATAL = Erreur fatale lors du processus de sauvegarde du référentiel des services agents)
+    - FATAL : une erreur fatale est survenue lors de la création d'une copie de la base de données contenant le référentiel des services agent (STP_BACKUP_AGENCIES.FATAL = Erreur fatale lors du processus de sauvegarde du référentiel des services agents)
 
 Structure du rapport d'administration du référentiel des services agents
 ========================================================================

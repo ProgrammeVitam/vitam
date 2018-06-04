@@ -39,7 +39,7 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 
     - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_INGEST_CONTRACT.KO=Échec du processus d'import du contrat d'entrée)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
 
     - STARTED : Début du processus d'import du contrat d'entrée ( STP_IMPORT_INGEST_CONTRACT.STARTED=Début du processus d'import du contrat d'entrée ) 
 
@@ -73,4 +73,4 @@ Cette tâche est appellée que ce soit en import initial ou en modification.
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_INGEST_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'entrée)
+      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_INGEST_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'entrée)

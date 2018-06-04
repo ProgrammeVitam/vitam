@@ -40,7 +40,7 @@ Import des métadonnées d'un profil d'archivage STP_IMPORT_PROFILE_JSON (Profil
 
     - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_PROFILE_JSON.KO=Échec du processus d'import du profil d'archivage)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors du processus d'import du profil d'archivage)
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors du processus d'import du profil d'archivage)
 
     - WARNING : Avertissement lors du processus d'import du profil d'archivage ( STP_IMPORT_PROFILE_JSON.WARNING=Avertissement lors du processus d'import du profil )  d'archivage
 
@@ -66,7 +66,7 @@ Import du profil d'archivage STP_IMPORT_PROFILE_FILE (ProfileServiceImpl.java)
 
     - KO : le fichier importé n'est pas au même format que celui décrit dans le champ "Format" (STP_IMPORT_PROFILE_FILE.KO=Échec du processus d'import du profil d'archivage (fichier xsd ou rng))
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_FILE.FATAL=Erreur fatale lors du processus d'import du profil d'archivage (fichier xsd ou rng))
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_FILE.FATAL=Erreur fatale lors du processus d'import du profil d'archivage (fichier xsd ou rng))
 
 Mise à jour d'un profil d'archivage STP_UPDATE_PROFILE_JSON (ProfileServiceImpl.java)
 -------------------------------------------------------------------------------------
@@ -89,4 +89,4 @@ Cette tâche est appellée que ce soit en import initial ou lors de la modificat
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (BACKUP_PROFILE.FATAL = Erreur fatale lors du processus de sauvegarde des profils)
+      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (BACKUP_PROFILE.FATAL = Erreur fatale lors du processus de sauvegarde des profils)

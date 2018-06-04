@@ -4,7 +4,7 @@ Workflow d'import d'un référentiel des documents types (Profil d'unité archiv
 Introduction
 ============
 
-Cette section décrit le processus (workflow) permettant d'importer un documents type.
+Cette section décrit le processus (workflow) permettant d'importer un documents type (Profil d'unité archivistique).
 
 Processus d'import et mise à jour d'un document type (Profil d'unité archivistique) (vision métier)
 ===================================================================================================
@@ -19,7 +19,7 @@ Import des métadonnées d'un document type (profil d'unité archivistique) IMPO
 * Vérification de la présence des informations minimales, de la cohérence des informations et affectation des données aux champs peuplés par la solution logicielle Vitam.
 
  
-  + **Règle** : le document type répond aux exigences suivantes :
+  + **Règle** : le document type (Profil d'unité archivistique) répond aux exigences suivantes :
 
     + Les données suivantes sont obligatoirement remplies :
 
@@ -43,7 +43,7 @@ Import des métadonnées d'un document type (profil d'unité archivistique) IMPO
 
     - KO : une des règles ci-dessus n'a pas été respectée (IMPORT_ARCHIVEUNITPROFILE.KO=Échec du processus d'import du document type)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du document type (IMPORT_ARCHIVEUNITPROFILE.FATAL=Erreur fatale lors du processus d'import du du document type)
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du document type (IMPORT_ARCHIVEUNITPROFILE.FATAL=Erreur fatale lors du processus d'import du du document type)
 
     - STARTED : Début du processus d'import du document type ( IMPORT_ARCHIVEUNITPROFILE.STARTED=Début du processus d'import du document type ) 
 
@@ -61,8 +61,10 @@ Mise à jour d'un document type (Profil d'unité archivistique) UPDATE_ARCHIVEUN
 
 
     - OK : les règles ci-dessus sont respectées (UPDATE_ARCHIVEUNITPROFILE.OK=Succès du processus de mise à jour du document type)
+
     - KO : une des règles ci-dessus n'a pas été respectée (UPDATE_ARCHIVEUNITPROFILE.KO=Échec du processus d'import du document type)
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du document type (UPDATE_ARCHIVEUNITPROFILE.FATAL=Erreur fatale lors du processus de mise à jour du document type)
+
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du document type (UPDATE_ARCHIVEUNITPROFILE.FATAL=Erreur fatale lors du processus de mise à jour du document type)
 
 
 Sauvegarde du JSON BACKUP_ARCHIVEUNITPROFILE (ArchiveUnitProfileManager.java)
@@ -77,6 +79,7 @@ Cette tâche est appellée que ce soit en import initial ou lors de la modificat
   + **Statuts** :
 
       - OK : une copie de la base de donnée nouvellement importée est enregistrée (BACKUP_ARCHIVEUNITPROFILE.OK = Succès du processus de sauvegarde des document types)
+
       - KO : Echech du processus de sauvegarde du document type (BACKUP_ARCHIVEUNITPROFILE.KO = Echec du processus de sauvegarde des document types)
 
 

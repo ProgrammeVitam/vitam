@@ -46,7 +46,7 @@ Import d'un contrat d'accès STP_IMPORT_ACCESS_CONTRACT (AccessContractImpl.java
 
     - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_ACCESS_CONTRACT.KO=Échec du processus d'import du contrat d'accès)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat d'accès (STP_IMPORT_ACCESS_CONTRACT.FATAL=Erreur fatale lors du processus d'import du contrat d'accès)
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat d'accès (STP_IMPORT_ACCESS_CONTRACT.FATAL=Erreur fatale lors du processus d'import du contrat d'accès)
 
     - WARNING: Avertissement lors du processus d'import du contrat d'accès ( STP_IMPORT_ACCESS_CONTRACT.WARNING=Avertissement lors du processus d'import du contrat d'accès )
 
@@ -69,7 +69,7 @@ La modification d'un contrat d'accès doit suivre les mêmes règles que celles 
 
     - KO : une des règles ci-dessus n'a pas été respectée (STP_UPDATE_ACCESS_CONTRACT.KO=Échec du processus de mise à jour du contrat d'accès)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat d'accès (STP_UPDATE_ACCESS_CONTRACT.FATAL=Erreur fatale lors du processus de mise à jour du contrat d''accès)
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat d'accès (STP_UPDATE_ACCESS_CONTRACT.FATAL=Erreur fatale lors du processus de mise à jour du contrat d''accès)
 
 
 
@@ -88,4 +88,4 @@ Cette tâche est appellée que ce soit en import initial ou en modification.
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_ACCESS_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'accès)
+      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_ACCESS_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'accès)

@@ -23,7 +23,7 @@ La fin du processus peut prendre plusieurs statuts :
 
   + KO : le référentiel des règles de gestion n'a pas été importé (STP_IMPORT_RULES.KO = Échec du processus d'import du référentiel des règles de gestion)
 
-  + FATAL : une erreur technique est survenue lors de l'import du référentiel des règles de gestion (STP_IMPORT_RULES.FATAL = Erreur fatale lors du processus d'import du référentiel des règles de gestion)
+  + FATAL : une erreur fatale est survenue lors de l'import du référentiel des règles de gestion (STP_IMPORT_RULES.FATAL = Erreur fatale lors du processus d'import du référentiel des règles de gestion)
 
 
 Création du rapport RULES_REPORT (RulesManagerFileImpl.java)
@@ -39,7 +39,7 @@ Création du rapport RULES_REPORT (RulesManagerFileImpl.java)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la création du rapport (RULES_REPORT.FATAL = Erreur fatale lors de la génération du rapport d'analyse du référentiel des règles de gestion)
+    - FATAL : une erreur fatale est survenue lors de la création du rapport (RULES_REPORT.FATAL = Erreur fatale lors de la génération du rapport d'analyse du référentiel des règles de gestion)
 
 Contrôle des règles de gestion CHECK_RULES (UnitsRulesComputePlugin.java)
 -------------------------------------------------------------------------
@@ -89,7 +89,7 @@ De plus le fichier rempli les conditions suivantes :
       * Des règles supprimées sont actuellement utilisées (STP_IMPORT_RULES_DELETE_USED_RULES.KO = Des régles supprimées sont actuellement utilisées)
       * Des durées sont inférieures ou égales aux durées minimales autorisées dans la configuration de la plateforme (STP_IMPORT_RULES_RULEDURATION_EXCEED.KO = Echec lors du contrôle de sécurité des règles de gestion. Les durées des règles de gestion doivent être supérieures ou égales aux durées minimales requises par le tenant)
 
-    - FATAL : une erreur technique est survenue lors du contrôle des règles de gestion (CHECK_RULES.FATAL=Erreur fatale lors du contrôle de la conformité du fichier de règles de gestion)
+    - FATAL : une erreur fatale est survenue lors du contrôle des règles de gestion (CHECK_RULES.FATAL=Erreur fatale lors du contrôle de la conformité du fichier de règles de gestion)
 
 
 Persistance des données en base COMMIT_RULES (RulesManagerFileImpl.java)
@@ -103,7 +103,7 @@ Persistance des données en base COMMIT_RULES (RulesManagerFileImpl.java)
 
     - OK : les données sont persistées en base (COMMIT_RULES=OK=Succès de la persistance des données en base
 
-    - FATAL : une erreur technique est survenue lors de la persistance des données en base (COMMIT_RULES.FATAL=Erreur fatale lors de la persistance des données en base)
+    - FATAL : une erreur fatale est survenue lors de la persistance des données en base (COMMIT_RULES.FATAL=Erreur fatale lors de la persistance des données en base)
 
 
 Processus d'enregistrement du fichier d'import du référentiel des règles de gestion STP_IMPORT_RULES_BACKUP_CSV (RulesManagerFileImpl.java)
@@ -119,7 +119,7 @@ Processus d'enregistrement du fichier d'import du référentiel des règles de g
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de l'enregistrement du CSV d'import (STP_IMPORT_RULES_BACKUP_CSV.FATAL = Erreur fatale lors du processus d'enregistrement du fichier d'import du référentiel des règles de gestion)
+    - FATAL : une erreur fatale est survenue lors de l'enregistrement du CSV d'import (STP_IMPORT_RULES_BACKUP_CSV.FATAL = Erreur fatale lors du processus d'enregistrement du fichier d'import du référentiel des règles de gestion)
 
 Sauvegarde du JSON STP_IMPORT_RULES_BACKUP (RulesManagerFileImpl.java)
 ----------------------------------------------------------------------
@@ -134,7 +134,7 @@ Sauvegarde du JSON STP_IMPORT_RULES_BACKUP (RulesManagerFileImpl.java)
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_IMPORT_RULES_BACKUP.FATAL=Erreur fatale lors du processus de sauvegarde du référentiel des règles de gestion)
+    - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_IMPORT_RULES_BACKUP.FATAL=Erreur fatale lors du processus de sauvegarde du référentiel des règles de gestion)
 
 
 Structure du rapport d'administration du référentiel des règles de gestion

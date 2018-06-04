@@ -39,7 +39,7 @@ Import d'un référentiel des contextes STP_IMPORT_CONTEXT (ContextServiceImpl.j
 
     - KO : une des règles ci-dessus n'est pas respectée (STP_IMPORT_CONTEXT.KO=Échec du processus d'import du contexte)
 
-    - FATAL : une erreur technique est survenue lors de l'import du contexte (STP_IMPORT_CONTEXT.FATAL=Erreur fatale lors du processus d'import du contexte)
+    - FATAL : une erreur fatale est survenue lors de l'import du contexte (STP_IMPORT_CONTEXT.FATAL=Erreur fatale lors du processus d'import du contexte)
 
     - IDENTIFIER DPLICATION : L'identifiant est déjà utilisé ( STP_IMPORT_CONTEXT.IDENTIFIER_DUPLICATION.KO=Echec de l'import : l'identifiant est déjà utilisé ) 
 
@@ -59,7 +59,7 @@ Mise à jour d'un contexte applicatif STP_UPDATE_CONTEXT (ContextServiceImpl.jav
 
     - KO : une des règles ci-dessus n'est pas respectée (STP_UPDATE_CONTEXT.KO=Échec du processus mise à jour du contexte)
 
-    - FATAL : une erreur technique est survenue lors de l'import du contexte (STP_UPDATE_CONTEXT.FATAL=Erreur fatale lors du processus de mise à jour du contexte)
+    - FATAL : une erreur fatale est survenue lors de l'import du contexte (STP_UPDATE_CONTEXT.FATAL=Erreur fatale lors du processus de mise à jour du contexte)
 
 
 
@@ -78,4 +78,4 @@ Cette tâche est appellée que ce soit en import initial ou en modification.
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_CONTEXT.FATAL = Erreur fatale lors du processus de sauvegarde des contextes)
+      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_CONTEXT.FATAL = Erreur fatale lors du processus de sauvegarde des contextes)
