@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -177,7 +177,7 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
             ProcessDataManagement processDataManagement = WorkspaceProcessDataManagement.getInstance();
             try {
                 Map<String, ProcessWorkflow> processWorkflows = processDataManagement.getProcessWorkflowFor(tenantId,
-                    String.valueOf(ServerIdentity.getInstance().getServerId()));
+                    VitamConfiguration.getWorkspaceWorkflowsFolder());
                 if (processWorkflows.isEmpty()) {
                     return new ArrayList<>(0);
                 }
