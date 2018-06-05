@@ -1,7 +1,9 @@
 Migration R6 vers R7
 ####################
 
-Dans le cadre d'une montée de version de :term:`VITAM`, il est nécessaire d'appliquer un `playbook` de migration de données.
+.. caution:: la migration n'est possible qu'en partant de la version la plus récente de la version "R6" (1.0.3).
+
+Dans le cadre d'une montée de version de :term:`VITAM` depuis la version 1.0.3 (version la plus récente de la "R6"), il est nécessaire d'appliquer un `playbook` de migration de données.
 
 
 Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
