@@ -117,7 +117,6 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -764,7 +763,6 @@ public class ProcessingLFCTraceabilityIT {
 
     private void tryImportFile() {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -826,11 +824,6 @@ public class ProcessingLFCTraceabilityIT {
             }
             imported = true;
         }
-    }
-
-    private void flush() {
-        LOGGER.error("----------- ProcessingLFCTraceabilityIT clearWorkflow");
-        ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 
     private void wait(String operationId) {

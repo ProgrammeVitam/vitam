@@ -110,7 +110,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -321,11 +320,6 @@ public class ReplayProcessingIT {
         }
     }
 
-    private void flush() {
-        LOGGER.error("----------- ReplayProcessingIT clearWorkflow");
-        ProcessDataAccessImpl.getInstance().clearWorkflow();
-    }
-
     private void wait(String operationId) {
         int nbTry = 0;
         while (!processingClient.isOperationCompleted(operationId)) {
@@ -342,7 +336,6 @@ public class ReplayProcessingIT {
 
     private void tryImportFile() {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {

@@ -158,7 +158,6 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -515,7 +514,6 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         LOGGER.error("++++++++ tryImportFile....");
         if (!imported) {
-            flush();
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importFormat(
@@ -541,7 +539,8 @@ public class ProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                    });
                 client.createProfiles(profileModelList);
 
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
@@ -556,14 +555,16 @@ public class ProcessingIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {});
+                    new TypeReference<List<IngestContractModel>>() {
+                    });
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
                 // import access contract
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                    });
                 client.importAccessContracts(accessContractModelList);
 
 
@@ -572,18 +573,21 @@ public class ProcessingIT {
                 client.importSecurityProfiles(JsonHandler
                     .getFromFileAsTypeRefence(
                         PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
-                        new TypeReference<List<SecurityProfileModel>>() {}));
+                        new TypeReference<List<SecurityProfileModel>>() {
+                        }));
 
                 // Import Context
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importContexts(JsonHandler
                     .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
-                        new TypeReference<List<ContextModel>>() {}));
+                        new TypeReference<List<ContextModel>>() {
+                        }));
 
                 // Import Archive Unit Profile
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.createArchiveUnitProfiles(JsonHandler
-                    .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-ingest-internal/archive-unit-profile.json"),
+                    .getFromFileAsTypeRefence(
+                        PropertiesUtils.getResourceFile("integration-ingest-internal/archive-unit-profile.json"),
                         new TypeReference<List<ArchiveUnitProfileModel>>() {
                         }));
             } catch (final Exception e) {
@@ -591,11 +595,6 @@ public class ProcessingIT {
             }
             imported = true;
         }
-    }
-
-    private void flush() {
-        LOGGER.error("----------- ProcessingIT clearWorkflow");
-        ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 
     private void wait(String operationId) {
@@ -679,7 +678,8 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -852,7 +852,7 @@ public class ProcessingIT {
                 "{\n  \"Vitam\" : {\n    \"OK\" : 1,\n    \"KO\" : 0,\n    \"WARNING\" : 0\n  }\n}");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowIngestContractUnknow() throws Exception {
@@ -1151,7 +1151,7 @@ public class ProcessingIT {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         final String containerName = createOperationContainer();
-        
+
         // workspace client dezip SIP in workspace
         RestAssured.port = PORT_SERVICE_WORKSPACE;
         RestAssured.basePath = WORKSPACE_PATH;
@@ -1503,6 +1503,7 @@ public class ProcessingIT {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
+
     @RunWithCustomExecutor
     @Test
     public void testworkFlowAudit() throws Exception {
@@ -1517,7 +1518,8 @@ public class ProcessingIT {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
 
-        workspaceClient.putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
+        workspaceClient
+            .putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
 
         processingClient.initVitamProcess(Contexts.EVIDENCE_AUDIT.name(), containerName, "EVIDENCE_AUDIT");
         // When
@@ -1708,7 +1710,7 @@ public class ProcessingIT {
         // 5. we now update the ingest contract, we set the check to ACTIVE and the link parent id takes id1 value
         updateIngestContractLinkParentId("ArchivalAgreement0", idUnit, "ACTIVE");
 
-        
+
         // 6. ingest here should be ok, we link the correct id (referenced in the ingest contract) to the sip
         final String containerName3 = createOperationContainer();
 
@@ -1745,7 +1747,7 @@ public class ProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow3.getStatus());
         assertNotNull(processWorkflow3.getSteps());
 
-        
+
         // 6. ingest here should be KO, we link an incorrect id (not a child of the referenced au in the ingest contract) into the sip        
         final String containerName4 = createOperationContainer();
         RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -1782,7 +1784,7 @@ public class ProcessingIT {
         assertNotNull(operation);
         assertNotNull(operation.first());
         assertTrue(operation.first().toString().contains("CHECK_MANIFEST_WRONG_ATTACHMENT_LINK.KO"));
-        
+
         // 7. we now put che check as inactive for the ingest contract
         updateIngestContractLinkParentId("ArchivalAgreement0", "", "INACTIVE");
 
@@ -1812,7 +1814,7 @@ public class ProcessingIT {
         assertNotNull(processWorkflow5);
         assertEquals(ProcessState.COMPLETED, processWorkflow5.getState());
         assertEquals(StatusCode.WARNING, processWorkflow5.getStatus());
-        
+
         try {
             Files.delete(new File(zipPath).toPath());
             Files.delete(new File(zipPath2).toPath());
@@ -3234,7 +3236,8 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -3499,17 +3502,18 @@ public class ProcessingIT {
 
         //AgentType fullname field
 
-        List<Object> addressees = (List<Object>)unitToAssert.get("Addressee");
+        List<Object> addressees = (List<Object>) unitToAssert.get("Addressee");
         assertThat(addressees).isNotNull().isNotEmpty();
 
-        Document addressee = (Document)addressees.get(0);
-        assertThat(addressee.get("FullName")).isEqualTo("Iulius Caesar Divus");;
+        Document addressee = (Document) addressees.get(0);
+        assertThat(addressee.get("FullName")).isEqualTo("Iulius Caesar Divus");
+        ;
 
         //sender
-        List<Object> senders = (List<Object>)unitToAssert.get("Sender");
+        List<Object> senders = (List<Object>) unitToAssert.get("Sender");
         assertThat(senders).isNotNull().isNotEmpty();
 
-        Document sender = (Document)senders.get(0);
+        Document sender = (Document) senders.get(0);
         final List<String> mandates = ((List<String>) sender.get("Mandate"));
 
         assertThat(sender.get("GivenName")).isEqualTo("Alexander");
@@ -3518,7 +3522,7 @@ public class ProcessingIT {
         assertThat(mandates.get(1)).isEqualTo("Mandataire_2");
 
         //transmitter
-        List<Object> transmitters = (List<Object>)unitToAssert.get("Transmitter");
+        List<Object> transmitters = (List<Object>) unitToAssert.get("Transmitter");
         assertThat(senders).isNotNull().isNotEmpty();
 
         Document transmitter = (Document) transmitters.get(0);
@@ -3527,17 +3531,18 @@ public class ProcessingIT {
         assertThat(functions.get(0)).isEqualTo("Service de transmission");
 
         //Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf
-        MongoIterable<Document> gots = db.getCollection("ObjectGroup").find(Filters.eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
+        MongoIterable<Document> gots = db.getCollection("ObjectGroup")
+            .find(Filters.eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
         final Document bdoWithMetadataJson = gots.first();
 
-        List<Object> qualifiers  = (List<Object>)bdoWithMetadataJson.get("_qualifiers");
+        List<Object> qualifiers = (List<Object>) bdoWithMetadataJson.get("_qualifiers");
         assertThat(qualifiers).isNotNull().isNotEmpty();
 
-        List<Object> versions = (List<Object>)((Document)qualifiers.get(0)).get("versions");
+        List<Object> versions = (List<Object>) ((Document) qualifiers.get(0)).get("versions");
         assertThat(versions).isNotNull().isNotEmpty();
         Document version = (Document) versions.get(0);
         assertThat(version).isNotNull().isNotEmpty();
-        Document fileInfo = (Document)version.get("FileInfo");
+        Document fileInfo = (Document) version.get("FileInfo");
         assertNotNull(fileInfo);
         assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00.000+02:00");
         assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");

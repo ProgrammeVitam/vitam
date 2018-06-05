@@ -471,11 +471,6 @@ public class IngestInternalIT {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
     }
 
-    private void flush() {
-        LOGGER.error("----------- IngestInternalIT clearWorkflow");
-        ProcessDataAccessImpl.getInstance().clearWorkflow();
-    }
-
     private void wait(String operationId) {
         int nbTry = 0;
         ProcessingManagementClient processingClient =
@@ -496,7 +491,6 @@ public class IngestInternalIT {
 
         VitamThreadUtils.getVitamSession().setContractId(contractId);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {

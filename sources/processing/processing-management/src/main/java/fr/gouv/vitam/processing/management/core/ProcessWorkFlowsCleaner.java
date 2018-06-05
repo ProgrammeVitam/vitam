@@ -65,7 +65,6 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.error("clean old completed workflows");
         timeLimit = LocalDateTime.now().minusHours(period);
         this.cleanProcessingByTenants();
     }
