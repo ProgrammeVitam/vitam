@@ -2,13 +2,13 @@
 Configuration de l'environnement de développement
 =====
 
-Voici comment préparez votre environnement de deéveloppement afin de pouvoir coder, démarrer les micros services, débugger...
+Voici comment préparez votre environnement de développement afin de pouvoir coder, démarrer les micros services, débugger...
 
 ------------------------------
 1. Prérequis
 ------------------------------
 L'installation du poste de travail a été faite (installation de GIT, Maven, Docker, IntelliJ...)
-Assurez-vous que le plugin lfs pour GIT a été installé. Dans le cas contraire voici la ligne de commande à lancer :
+Assurez-vous que le plugin lfs pour GIT a été installé pour vous permettre la récupération des fichiers SIP (.zip) du projet vitam-itests. Dans le cas contraire voici la ligne de commande à lancer :
 
 Ubuntu :
 
@@ -19,7 +19,7 @@ CentOS :
 ``$ sudo yum install git-lfs``
 
 ------------------------------
-2. Récupèrer le code source
+2. Récupérez le code source
 ------------------------------
 Placez-vous dans le dossier ou vous voulez mettre le code source Vitam sur lequel vous allez travailler :
 
@@ -32,10 +32,10 @@ Placez-vous dans le dossier ou vous voulez mettre le code source Vitam sur leque
 *Remarque : toutes les lignes de commande ``cd`` des points suivants supposent que vous êtes dans votre dossier de travail*
 
 ------------------------------
-3. Démarrer Docker
+3. Démarrez Docker
 ------------------------------
 
-Déplacer vous dans le dossier suivant et exécuter la commande ``run_cots.sh``
+Déplacez vous dans le dossier suivant et exécuter la commande ``run_cots.sh``
 
 ``$ cd vitam/dev-deployment``
 
@@ -93,10 +93,10 @@ Déplacer vous dans le dossier suivant et exécuter la commande ``run_cots.sh``
 7. Lancez IntelliJ
 ------------------------------
 
-Et installer le plugin "Multirun".
+Et installez le plugin "Multirun".
 
 ------------------------------------------------------------
-8. Importer le project Vitam dans IntelliJ
+8. Importez le project Vitam dans IntelliJ
 ------------------------------------------------------------
 
 En utilisant le menu Import Project puis sélectionnez ``vitam/sources/pom.xml``
@@ -104,8 +104,9 @@ En utilisant le menu Import Project puis sélectionnez ``vitam/sources/pom.xml``
 ------------------------------------------------------------
 9. Initialisez la configuration
 ------------------------------------------------------------
-Télécharger le fichier ``runConfiguration.zip`` et extraire le fichier dans le dossier ~/vitam/sources/.idea (automatiquement créé par IntelliJ)
+Copiez le dossier ``vitam-conf-dev/intellig-conf/runConfigurations`` dans le dossier ``vitam/sources/.idea`` (automatiquement créé par IntelliJ)
 Redémarrez IntelliJ.
+
 
 *(XX. Ajouter le XML snippet: ``vitam/logback/vitam-logback.xml`` par exemple dans votre dossier ``HOME``)*
 
@@ -114,7 +115,7 @@ Redémarrez IntelliJ.
 ------------------------------------------------------------------------------------------
 
 	- Dans le menu déroulant des configurations de debug/run d'IntelliJ > Edit Configurations...
-	- Dans la boite de dialogue Run/Debug Configuration dépliez l'item "Application" et selectionner je premier projet.
+	- Dans la boite de dialogue Run/Debug Configuration dépliez l'item "Application" et selectionnez le premier projet.
 	- Modifiez les champs :
 		- VM options (vérifie le chemin de l'option ``-Dlogback.configurationFile=`` qui doit pointer vers le fichier vitam-logback.xml précédent)
 		- Program arguments
@@ -123,11 +124,11 @@ Redémarrez IntelliJ.
 ------------------------------
 11. Dossier de travail:
 ------------------------------
-Exexuter le commade suivante :
+Exécutez le commade suivante :
 
 ``$ sudo chmod -R ugo+w /vitam``
 
-Dans ``/vitam/data/storage`` creez le fichier ``offer-fs-1.service.consul`` contenant la ligne suivante ``fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl``
+Dans ``/vitam/data/storage`` créez le fichier ``offer-fs-1.service.consul`` contenant la ligne suivante ``fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl``
 
 ------------------------------------------------------------
 12. initialisation de la base de données :
@@ -140,7 +141,7 @@ $ ./init_data_vitam.sh
 Puis dans IntelliJ : lancer "launch cucumber_init"
 
 ------------------------------------------------------------
-13. Démarrer les services dans IntelliJ
+13. Démarrez les services dans IntelliJ
 ------------------------------------------------------------
 
 Dans le menu déroulant des configurations de debug/run d'IntelliJ selectionnez vitamIhm
@@ -160,7 +161,7 @@ $ cd vitam/sources/ihm-recette/ihm-recette-web-front/
 $ npm run start
 
 ------------------------------
-15. Utiliser Vitam
+15. Utilisez Vitam
 ------------------------------
 
 - Transfert SIP et plan de classement http://localhost:4201
