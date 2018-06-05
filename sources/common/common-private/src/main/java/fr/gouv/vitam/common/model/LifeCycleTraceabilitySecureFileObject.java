@@ -59,10 +59,11 @@ public class LifeCycleTraceabilitySecureFileObject {
     private String hashGlobalFromStorage;
     @JsonProperty("hOGDocsStorage")
     private List<ObjectGroupDocumentHash> objectGroupDocumentHashList;
-
+    @JsonProperty("up")
     private List<String> up;
+    @JsonProperty("idOG")
     private String idGot;
-    private String idUnit;
+
 
 
     /**
@@ -330,17 +331,4 @@ public class LifeCycleTraceabilitySecureFileObject {
         this.idGot = idGot;
     }
 
-    /**
-     * getter for idUnit
-     **/
-    public String getIdUnit() {
-        return idUnit;
-    }
-
-    /**
-     * setter for idUnit
-     **/
-    public void setIdUnit(String idUnit) {
-        this.idUnit = idUnit;
-    }
 }
