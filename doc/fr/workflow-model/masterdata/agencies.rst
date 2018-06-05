@@ -21,9 +21,9 @@ Import d'un référentiel de services agents STP_IMPORT_AGENCIES (AgenciesServic
     * il est au format CSV
     * les informations suivantes sont toutes décrites dans l'ordre exact pour chacun des services agents :
 
-      - Identifier
-      - Name
-      - Description (optionnel)
+    - Identifier
+    - Name
+    - Description (optionnel)
 
     * l'identifiant doit être unique
 
@@ -35,8 +35,8 @@ Import d'un référentiel de services agents STP_IMPORT_AGENCIES (AgenciesServic
 
     - KO :
 
-        - Cas 1 : une information concernant les services agents est manquante (Identifier, Name, Description) (STP_IMPORT_AGENCIES.KO=Échec du processus d'import du référentiel des services agents). De plus le rapport d'import du référentiel contiendra la clé "STP_IMPORT_AGENCIES_MISSING_INFORMATIONS".
-        - Cas 2 : un service agent qui était présent dans la base a été supprimé (STP_IMPORT_AGENCIES.DELETION.KO=Échec du processus d'import du référentiel des services agents : Des services agents supprimés sont présents dans le référentiel des services agents)
+      - Cas 1 : une information concernant les services agents est manquante (Identifier, Name, Description) (STP_IMPORT_AGENCIES.KO=Échec du processus d'import du référentiel des services agents). De plus le rapport d'import du référentiel contiendra la clé "STP_IMPORT_AGENCIES_MISSING_INFORMATIONS".
+      - Cas 2 : un service agent qui était présent dans la base a été supprimé (STP_IMPORT_AGENCIES.DELETION.KO=Échec du processus d'import du référentiel des services agents : Des services agents supprimés sont présents dans le référentiel des services agents)
 
     - FATAL : une erreur fatale est survenue lors de l'import du référentiel des services agents (STP_IMPORT_AGENCIES.FATAL=Erreur fatale lors du processus d'import du référentiel des service agents)
 

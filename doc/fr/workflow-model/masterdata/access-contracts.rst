@@ -89,4 +89,4 @@ Cette tâche est appellée que ce soit en import initial ou en modification.
 
       - KO : pas de cas KO
 
-      - FATAL : une erreur technique est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_ACCESS_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'accès)
+      - FATAL : une erreur fatale est survenue lors de la copie de la base de donnée nouvellement importée (STP_BACKUP_ACCESS_CONTRACT.FATAL = Erreur fatale lors du processus de sauvegarde des contrats d'accès)
