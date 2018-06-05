@@ -254,8 +254,9 @@ public class CreateObjectSecureFileActionPluginTest {
                 null
 
             );
-
-        lfcTraceSecFileDataLineExpected.setIdUnit("aeaqaaaaaahgausqab7boak55jcmttqaaaaq");
+        List<String> auUp = new ArrayList<>();
+        auUp.add("aeaqaaaaaahgausqab7boak55jcmttqaaaaq");
+        lfcTraceSecFileDataLineExpected.setUp(auUp);
         // add object documents (qualifiers->version)
         List<ObjectGroupDocumentHash> objectGroupDocumentHashToList = new ArrayList<>();
 
