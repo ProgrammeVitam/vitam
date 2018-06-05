@@ -26,8 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.ServerIdentity;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -36,12 +39,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
-
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
@@ -89,11 +86,11 @@ public class ProcessWorkFlowsCleaner implements Runnable {
             if (isCleaneable(element.getValue())) {
                 try {
                     processDataManagement
-                        .removeProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                        .removeProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                             element.getKey().toString());
                 } catch (Exception e) {
-                    LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}", String.valueOf
-                        (ServerIdentity.getInstance().getServerId()), element.getKey().toString(), e);
+                    LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}",
+                        VitamConfiguration.getWorkspaceWorkflowsFolder(), element.getKey().toString(), e);
                 }
                 /**
                  *remove from workFlowList
