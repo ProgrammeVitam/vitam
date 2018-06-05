@@ -173,6 +173,22 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         return new GraphComputeResponse(3, 3);
     }
 
+    /**
+     * Update units Bulk.
+     *
+     * @param updateQuery
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     */
+    @Override public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
+        return ClientMockResultHelper
+            .getMetaDataResult();
+    }
+
     @Override
     public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateChainedFileName,
         String objectGroupsToUpdateChainedFileName) {

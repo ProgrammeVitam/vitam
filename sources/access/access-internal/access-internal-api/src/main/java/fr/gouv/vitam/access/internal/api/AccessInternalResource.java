@@ -112,7 +112,7 @@ public interface AccessInternalResource extends VitamResource {
     /**
      * update archive units by Id with Json query
      *
-     * @param dslQuery  DSK, null not allowed
+     * @param dslQuery  DSL, null not allowed
      * @param unitId    units identifier
      * @param requestId request identifier
      * @return a archive unit result list
@@ -137,5 +137,13 @@ public interface AccessInternalResource extends VitamResource {
      * @return response
      */
     Response getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup);
+
+    /**
+     * Mass update of archive units with Json query
+     *
+     * @param dslQuery  DSL, null not allowed
+     * @return the response
+     */
+    Response massUpdateUnits(JsonNode dslQuery);
 
 }

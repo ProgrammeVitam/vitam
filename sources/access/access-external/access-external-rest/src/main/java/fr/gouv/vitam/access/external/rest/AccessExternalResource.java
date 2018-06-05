@@ -102,7 +102,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * Constructor
-     *
      * @param secureEndpointRegistry endpoint list registry
      */
     public AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
@@ -112,7 +111,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * List secured resource end points
-     *
      * @return response
      */
     @Path("/")
@@ -130,7 +128,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * get a DIP by dsl query
-     *
      * @param queryJson the query to get units
      * @return Response
      */
@@ -199,7 +196,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * get units list by query
-     *
      * @param queryJson the query to get units
      * @return Response
      */
@@ -230,7 +226,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * Performs a reclassification workflow.
-     *
      * @param queryJson List of reclassification DSL queries.
      * @return Response
      */
@@ -263,7 +258,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * get units list by query
-     *
      * @param id operationId correponding to the current dip
      * @return Response
      */
@@ -287,7 +281,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * get units list by query based on identifier
-     *
      * @param queryJson query as String
      * @param idUnit the id of archive unit to get
      * @return Archive Unit
@@ -334,13 +327,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    /**
-     * update archive units by Id with Json query
-     *
-     * @param queryJson the update query (null not allowed)
-     * @param idUnit units identifier
-     * @return a archive unit result list
-     */
     @PUT
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -401,7 +387,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * Retrieve Object group list by query based on identifier of the unit
-     *
      * @param headers the http header defined parameters of request
      * @param unitId the id of archive unit
      * @param queryJson the query to get object
@@ -465,7 +450,6 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
     /**
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     *
      * @param headers the http header defined parameters of request
      * @param unitId the id of archive unit
      * @return response
@@ -516,6 +500,61 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .entity(getErrorStream(
                     VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
                         e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
+        }
+    }
+
+    /**
+     * Mass update of archive units with json query.
+     * @param queryJson the mass_update query (null not allowed)
+     * @return
+     */
+    @POST
+    @Path("/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "units:update", description = "Mise à jour en masse des unités archivistiques")
+    public Response massUpdateUnits(@Dsl(DslSchema.MASS_UPDATE) JsonNode queryJson) {
+        Status status;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
+            updateParserMultiple.parse(queryJson);
+            UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
+            RequestResponse<JsonNode> response = client.updateUnits(updateMultiQuery.getFinalUpdate());
+
+            if (!response.isOk() && response instanceof VitamError) {
+                VitamError error = (VitamError) response;
+                return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR, error.getMessage(),
+                    error);
+            }
+            return Response.status(Status.OK).entity(response).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Internal request error ", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (NoWritingPermissionException e) {
+            LOGGER.error("Writing permission invalid", e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_MASS_UPDATE_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         }
     }

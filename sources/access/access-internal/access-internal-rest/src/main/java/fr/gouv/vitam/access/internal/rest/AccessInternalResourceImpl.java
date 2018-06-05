@@ -40,7 +40,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalPermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
@@ -49,7 +48,12 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.model.DataType;
+import fr.gouv.vitam.common.database.parser.query.helper.CheckSpecifiedFieldHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -58,8 +62,10 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -90,6 +96,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -124,7 +131,6 @@ import java.util.Set;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
-
 /**
  * AccessResourceImpl implements AccessResource
  */
@@ -142,10 +148,20 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String UNITS = "units";
     private static final String RESULTS = "$results";
 
+    private static final String STP_MASS_UPDATE_UNIT = "STP_MASS_UPDATE_UNIT";
+    private static final String STP_MASS_UPDATE_UNIT_DESC = "STP_MASS_UPDATE_UNIT_DESC";
+    private static final String MASS_UPDATE = "MASS_UPDATE";
+    private static final String UNITS_URI = "/units";
+
+    /**
+     * Access contract
+     */
+    private static final String ACCESS_CONTRACT = "AccessContract";
+    private static final String REQUEST_IS_NOT_AN_UPDATE_OPERATION = "Request is not an update operation";
+
     // DIP
     private DipService unitDipService;
     private DipService objectDipService;
-
 
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
     private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
@@ -515,9 +531,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final AccessInternalRuleExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             return buildErrorResponse(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES, e.getMessage());
-        } catch (final AccessInternalPermissionException e) {
+        } catch (final UpdatePermissionException e) {
             LOGGER.error(e.getMessage(), e);
-            return buildErrorResponse(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_PERMISSION, e.getMessage());
+            return buildErrorResponse(VitamCode.UPDATE_UNIT_PERMISSION, e.getMessage());
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = INTERNAL_SERVER_ERROR;
@@ -717,6 +733,85 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @PathParam("id_object_group") String idObjectGroup) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
         return asyncObjectStream(multipleMap, idObjectGroup, false);
+    }
+
+    @Override
+    @POST
+    @Path(UNITS_URI)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response massUpdateUnits(JsonNode queryDsl) {
+
+        LOGGER.debug("Start mass updating archive units with Dsl query {}", queryDsl);
+        Status status;
+        try {
+            // Check sanity of json
+            SanityChecker.checkJsonAll(queryDsl);
+
+            // Check the writing rights
+            if (!VitamThreadUtils.getVitamSession().getContract().getWritingPermission()) {
+                status = Status.UNAUTHORIZED;
+                return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
+            }
+
+            final RequestParserMultiple parser = RequestParserHelper.getParser(queryDsl);
+            if (!(parser instanceof UpdateParserMultiple)) {
+                parser.getRequest().reset();
+                throw new IllegalArgumentException(REQUEST_IS_NOT_AN_UPDATE_OPERATION);
+            }
+
+            String masterEvType = CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT) ?
+                    STP_MASS_UPDATE_UNIT :
+                    STP_MASS_UPDATE_UNIT_DESC;
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                // Init logbook operation
+                final LogbookOperationParameters initParameters =
+                        LogbookParametersFactory.newLogbookOperationParameters(
+                                GUIDReader.getGUID(operationId),
+                                masterEvType,
+                                GUIDReader.getGUID(operationId),
+                                LogbookTypeProcess.MASS_UPDATE,
+                                StatusCode.STARTED,
+                                VitamLogbookMessages.getCodeOp(masterEvType, StatusCode.STARTED),
+                                GUIDReader.getGUID(operationId));
+
+                // Add access contract rights
+                ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+                rightsStatementIdentifier
+                        .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
+                initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                        rightsStatementIdentifier.toString());
+                logbookOperationsClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+                workspaceClient
+                        .putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+                processingClient.initVitamProcess(Contexts.MASS_UPDATE.name(), operationId, MASS_UPDATE);
+
+                RequestResponse<JsonNode> requestResponse =
+                        processingClient.executeOperationProcess(operationId, MASS_UPDATE, Contexts.MASS_UPDATE.name(),
+                                ProcessAction.RESUME.getValue());
+                return requestResponse.toResponse();
+            } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |
+                    LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
+                LOGGER.error("An error occured while mass updating archive units", e);
+                return Response.status(INTERNAL_SERVER_ERROR)
+                        .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            }
+        } catch (InvalidParseOperationException | BadRequestException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+
+        } catch (VitamException e) {
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }
     }
 
     private VitamError getErrorEntity(Status status, String message) {

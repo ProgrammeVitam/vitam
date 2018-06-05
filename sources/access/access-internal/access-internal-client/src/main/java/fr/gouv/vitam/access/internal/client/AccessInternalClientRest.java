@@ -195,6 +195,39 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
+    @Override public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        NoWritingPermissionException, AccessUnauthorizedException {
+        ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, UNITS, null, updateQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                try {
+                    return RequestResponse.parseVitamError(response);
+                } catch (final InvalidParseOperationException e) {
+                    LOGGER.info("Cant parse error as vitamError, throw a new exception");
+                }
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
+            }
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException,

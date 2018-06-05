@@ -92,7 +92,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * MetaDataResource constructor
-     *
      * @param metaData
      */
     public MetadataResource(MetaData metaData) {
@@ -102,7 +101,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Insert unit with json request
-     *
      * @param insertRequest the insert request in JsonNode format
      * @return Response
      */
@@ -175,7 +173,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Insert unit with json request
-     *
      * @param jsonNodes the insert request in JsonNode format
      * @return Response
      */
@@ -252,8 +249,61 @@ public class MetadataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Update unit with json request
+     * @param updateQuery the insert request in JsonNode format
+     * @return Response
+     */
+    @Path("units/updatebulk")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateUnitBulk(JsonNode updateQuery) {
+        Status status;
+        RequestResponse<JsonNode> result;
+        try {
+            result = metaData.updateUnits(updateQuery);
+        } catch (final VitamDBException | MetaDataExecutionException ve) {
+            LOGGER.error(ve);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(ve.getMessage()))
+                .build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (final MetaDataDocumentSizeException e) {
+            LOGGER.error(e);
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+        RequestResponseOK responseOK = new RequestResponseOK(updateQuery);
+        responseOK.setHits(1, 0, 1)
+            .setHttpCode(Status.OK.getStatusCode());
+
+        return Response.status(Status.OK)
+            .entity(result)
+            .build();
+    }
+
+    /**
      * Select unit with json request
-     *
      * @param request the request in JsonNode format
      * @return Response
      */
@@ -267,7 +317,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * select units list by query
-     *
      * @param selectRequest
      * @return
      */
@@ -330,7 +379,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Flush Unit index
-     *
      * @return Response
      */
     @Path("units")
@@ -358,7 +406,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Select objectgroups with json request
-     *
      * @param request the request in JsonNode format
      * @return Response
      */
@@ -372,7 +419,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * select units list by query
-     *
      * @param selectRequest
      * @return
      */
@@ -435,7 +481,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Flush ObjectGroup index
-     *
      * @return Response
      */
     @Path("objectgroups")
@@ -463,7 +508,7 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * @param selectRequest the select request in JsonNode format
-     * @param unitId        the unit id to get
+     * @param unitId the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -476,9 +521,8 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Update unit by query and path parameter unit_id
-     *
      * @param updateRequest the update request
-     * @param unitId        the id of unit to be update
+     * @param unitId the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      */
     @Path("units/{id_unit}")
@@ -628,7 +672,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Create unit with json request
-     *
      * @param insertRequest the insert query
      * @return the Response
      */
@@ -691,7 +734,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Get ObjectGroup
-     *
      * @param selectRequest the request
      * @param objectGroupId the objectGroup ID to get
      * @return a response with the select query and the required object group (can be empty)
@@ -720,7 +762,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Get ObjectGroup
-     *
      * @param updateRequest the query to update the objectgroup
      * @param objectGroupId the objectGroup ID to get
      * @return a response with the select query and the required object group (can be empty)
@@ -896,7 +937,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Reindex a collection
-     *
      * @param indexParameters parameters specifying what to reindex
      * @return Response response
      */
@@ -942,7 +982,6 @@ public class MetadataResource extends ApplicationStatusResource {
 
     /**
      * Switch indexes
-     *
      * @param switchIndexParameters
      * @return Response response
      */

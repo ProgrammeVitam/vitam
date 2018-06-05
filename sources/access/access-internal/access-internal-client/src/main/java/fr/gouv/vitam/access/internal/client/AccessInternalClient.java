@@ -50,14 +50,13 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Select Units
-     *
      * @param selectQuery the query used to select units
      * @return a response containing a json node object including DSL queries and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
-     * @throws BadRequestException                   if empty query is found
+     * @throws BadRequestException if empty query is found
      */
     RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
@@ -65,12 +64,11 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * select Unit By Id
-     *
      * @param sqlQuery the query to be executed
-     * @param id       the id of the unit
+     * @param id the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      */
@@ -80,12 +78,11 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * update Unit By Id
-     *
      * @param updateQuery the query to be executed as an update
-     * @param unitId      the id of the unit
+     * @param unitId the id of the unit
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      * @throws AccessInternalRuleExecutionException
@@ -95,13 +92,26 @@ public interface AccessInternalClient extends MockOrRestClient {
         AccessInternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException;
 
     /**
+     * Mass update of archive units with dsl query.
+     * @param updateQuery the query to be executed to update archive units
+     * @return
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws AccessInternalClientNotFoundException if the requested unit does not exist
+     * @throws AccessUnauthorizedException
+     * @throws AccessInternalRuleExecutionException
+     */
+    RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
+        throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
+        AccessUnauthorizedException;
+
+    /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
-     *
      * @param selectObjectQuery the query to be executed
-     * @param objectId          the Id of the ObjectGroup
+     * @param objectId the Id of the ObjectGroup
      * @return a response containing a json node object including DSL queries, context and results
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
      */
@@ -111,13 +121,12 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Retrieve an Object data as an input stream
-     *
-     * @param objectGroupId     the Id of the ObjectGroup
-     * @param usage             the requested usage
-     * @param version           the requested version of the usage
+     * @param objectGroupId the Id of the ObjectGroup
+     * @param usage the requested usage
+     * @param version the requested version of the usage
      * @return Response containing InputStream for the object data
-     * @throws InvalidParseOperationException        if the query is not well formatted
-     * @throws AccessInternalClientServerException   if the server encountered an exception
+     * @throws InvalidParseOperationException if the query is not well formatted
+     * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
      */
@@ -128,7 +137,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectOperation
-     *
      * @param select
      * @return a response containing a json node
      * @throws LogbookClientException
@@ -140,9 +148,8 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectOperationbyId
-     *
      * @param processId ID of the operation
-     * @param queryDsl  query to be executed
+     * @param queryDsl query to be executed
      * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -153,7 +160,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectUnitLifeCycleById
-     *
      * @param idUnit
      * @param queryDsl query to be executed
      * @return a response containing a json node
@@ -166,7 +172,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectUnitLifeCycleById
-     *
      * @param queryDsl
      * @return a response containing a json node
      * @throws LogbookClientException
@@ -178,7 +183,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * selectObjectGroupLifeCycleById
-     *
      * @param idObject
      * @param queryDsl query to be executed
      * @return a response containing a json node
@@ -191,7 +195,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Checks operation traceability
-     *
      * @param query to be executed
      * @return a response containing a json node
      * @throws LogbookClientServerException
@@ -221,7 +224,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Retrieve object group by id with XML format (DIP)
-     *
      * @param queryDsl the given query dsl
      * @param objectId the given object group id
      * @return unit with a xml representation
@@ -232,7 +234,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Retrieve object group by unit id with XML format (DIP)
-     *
      * @param queryDsl the given query dsl
      * @param unitId the given object group id
      * @return unit with a xml representation
@@ -259,7 +260,6 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * Performs a reclassification workflow.
-     *
      * @param reclassificationRequest List of attachment and detachment operations in unit graph.
      * @return Response
      */

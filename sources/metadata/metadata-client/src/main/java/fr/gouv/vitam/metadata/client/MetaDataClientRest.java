@@ -657,4 +657,47 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             consumeAnyEntityAndClose(response);
         }
     }
+
+    /**
+     * Update units Bulk.
+     *
+     * @param updateQuery
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws MetaDataExecutionException
+     * @throws MetaDataNotFoundException
+     */
+    @Override
+    public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataDocumentSizeException, MetaDataClientServerException {
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), updateQuery);
+        } catch (final IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/units/updatebulk", null, updateQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
+                throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
+            } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new IllegalArgumentException(ErrorMessage.INVALID_METADATA_VALUE.getMessage());
+            }
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
+    }
 }

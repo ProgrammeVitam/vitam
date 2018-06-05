@@ -466,7 +466,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Post used because Angular not support Get with body
      *
-     * @param request the request
+     * @param request       the request
      * @param xhttpOverride the use of http override POST method
      * @param sessionId     the id of session
      * @param options       the option for creating query to find logbook
@@ -802,8 +802,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         break;
                                     case HTTP_PUT:
                                         if (StringUtils.isBlank(objectID)) {
-                                            throw new InvalidParseOperationException(
-                                                "Unit ID should be filled.");
+                                            result = client.massUpdateUnits(getVitamContext(request), criteria);
                                         } else {
                                             result = client
                                                 .updateUnitbyId(getVitamContext(request),

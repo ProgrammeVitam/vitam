@@ -30,9 +30,6 @@ package fr.gouv.vitam.common.model;
  * Enumeration of the Vitam Facet types. <br/>
  */
 public enum FacetType {
-    /**
-     * Basic authentication level.
-     */
     TERMS,
     DATE_RANGE,
     FILTERS;

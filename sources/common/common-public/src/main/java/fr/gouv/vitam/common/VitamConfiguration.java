@@ -175,8 +175,6 @@ public class VitamConfiguration {
      */
     private static Integer readTimeout = 86400000;
 
-
-
     /**
      * Max total concurrent clients
      */
@@ -364,6 +362,10 @@ public class VitamConfiguration {
      * Max queue in ES
      */
     private static int numberEsQueue = 5000;
+    /**
+     * Threshold for distribution
+     */
+    private static Long distributionThreshold = 100000L;
     /**
      * Default OriginatingAgency for DIP export with multiple originating agencies
      */
@@ -763,6 +765,9 @@ public class VitamConfiguration {
         }
         if (null != parameters.getNumberEsQueue()) {
             setNumberEsQueue(parameters.getNumberEsQueue());
+        }
+        if (null != parameters.getDistributionThreshold()) {
+            setDistributionThreshold(parameters.getDistributionThreshold());
         }
         if (null != parameters.getCacheControlDelay()) {
             setCacheControlDelay(parameters.getCacheControlDelay());
@@ -1778,7 +1783,6 @@ public class VitamConfiguration {
      *
      * @return numberEsQueue
      */
-
     public static Integer getNumberEsQueue() {
         return numberEsQueue;
     }
@@ -1792,6 +1796,23 @@ public class VitamConfiguration {
         VitamConfiguration.numberEsQueue = numberEsQueue;
     }
 
+    /**
+     * Getter for distributionThreshold;
+     *
+     * @return distributionThreshold
+     */
+    public static Long getDistributionThreshold() {
+        return distributionThreshold;
+    }
+
+    /**
+     * Setter for distributionThreshold;
+     *
+     * @param distributionThreshold
+     */
+    public static void setDistributionThreshold(Long distributionThreshold) {
+        VitamConfiguration.distributionThreshold = distributionThreshold;
+    }
 
     /**
      * Getter for default OriginatingAgency for DIP export OriginatingAgency conflict
@@ -1808,7 +1829,7 @@ public class VitamConfiguration {
     /**
      * Setter for default OriginatingAgency for DIP export OriginatingAgency conflict
      *
-     * @param default originatingAgency for export
+     * @param defaultOriginatingAgencyForExport originatingAgency for export
      */
     public static void setDefaultOriginatingAgencyByTenant(Map<Integer, String> defaultOriginatingAgencyForExport) {
         VitamConfiguration.defaultOriginatingAgencyByTenant = defaultOriginatingAgencyForExport;

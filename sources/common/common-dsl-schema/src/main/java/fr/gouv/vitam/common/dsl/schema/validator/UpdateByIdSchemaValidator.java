@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.Validator;
-import fr.gouv.vitam.common.dsl.schema.meta.ValidatorEngine;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;

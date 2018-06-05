@@ -80,9 +80,9 @@ public class StorageLogAdministration {
     private static final String STP_OP_SECURISATION = "STORAGE_BACKUP";
 
     private static final String STRATEGY_ID = "default";
-    final StorageLogProvider storageLogService;
+    final StorageLog storageLogService;
 
-    public StorageLogAdministration(StorageLogProvider storageLogService) {
+    public StorageLogAdministration(StorageLog storageLogService) {
         this.storageLogService = storageLogService;
     }
 

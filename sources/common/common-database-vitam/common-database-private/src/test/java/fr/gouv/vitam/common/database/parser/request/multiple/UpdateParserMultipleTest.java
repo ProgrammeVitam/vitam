@@ -204,7 +204,7 @@ public class UpdateParserMultipleTest {
             update.addActions(pop("mavar14", -1), pull("mavar15", 1, 2));
 
             final UpdateParserMultiple request2 = new UpdateParserMultiple();
-            request2.parse(update.getFinalUpdate());
+            request2.parse(exampleBothEsMd.deepCopy());
             assertNotNull(request2);
             final List<Query> query1 = request1.getRequest().getQueries();
             final List<Query> query2 = request2.getRequest().getQueries();

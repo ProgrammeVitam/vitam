@@ -261,6 +261,15 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
+        @Override
+        @POST
+        @Path("/units")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response massUpdateUnits(JsonNode queryDsl) {
+            return expectedResponse.put();
+        }
+
         // Functionalities related to TRACEABILITY operation
 
         @POST

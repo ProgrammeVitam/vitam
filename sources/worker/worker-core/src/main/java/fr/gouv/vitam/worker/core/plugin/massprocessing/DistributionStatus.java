@@ -24,34 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.storagelog;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 /**
- * Storage log provider. It describes methods to be implemented.
+ * Enumeration of distribution status
  */
-public interface StorageLogProvider extends VitamAutoCloseable {
+public enum DistributionStatus {
 
     /**
-     * Add a storage log entry.
-     *
-     * @param parameters the entry parameters
-     * @throws IOException if an error is encountered
+     * indicates the successful without warning
      */
-    void append(Integer tenant, StorageLogbookParameters parameters) throws IOException;
+    OK,
 
     /**
-     * Rotate log file, and return previous log information
-     *
-     * @param tenantId
+     * indicates successful with a general warning
      */
-    List<LogInformation> rotateLogFile(Integer tenantId) throws IOException;
+    WARNING,
 
-    void initializeStorageLogs(Path basePath) throws IOException;
+    /**
+     * indicates the failed execution of the action
+     */
+    KO,
+
+    /**
+     * indicates a critical error such as technical Exception
+     */
+    FATAL;
+
+    /**
+     * Constructor. <br/>
+     */
+    DistributionStatus() {
+    }
+
+    /**
+     * getDistributionStatusLevel
+     *
+     * @return Distribution Status Level
+     */
+    public int getDistributionStatusLevel() {
+        return ordinal();
+    }
 }

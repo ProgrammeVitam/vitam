@@ -57,7 +57,8 @@ import java.io.IOException;
  */
 public class EndpointPermissionAuthorizationFilter implements ContainerRequestFilter {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EndpointPermissionAuthorizationFilter.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(EndpointPermissionAuthorizationFilter.class);
 
     private final String permission;
 
@@ -75,18 +76,20 @@ public class EndpointPermissionAuthorizationFilter implements ContainerRequestFi
 
     /**
      * Contructor for tests
+     *
      * @param permission
      * @param adminManagementClient
      */
     @VisibleForTesting
     public EndpointPermissionAuthorizationFilter(String permission,
-                                       AdminManagementClient adminManagementClient) {
+        AdminManagementClient adminManagementClient) {
         this.permission = permission;
         this.adminManagementClient = adminManagementClient;
     }
 
     /**
      * Checks authorization filter based of the current security profile permission set.
+     *
      * @param requestContext the invocation context
      * @throws IOException
      */
@@ -99,7 +102,7 @@ public class EndpointPermissionAuthorizationFilter implements ContainerRequestFi
 
             // Get security profile by identifier stored in VitamSession
             RequestResponse<SecurityProfileModel> securityProfileResponse =
-                    adminManagementClient.findSecurityProfileByIdentifier(securityProfileIdentifier);
+                adminManagementClient.findSecurityProfileByIdentifier(securityProfileIdentifier);
 
             SecurityProfileModel securityProfile;
             if (securityProfileResponse.isOk()) {
@@ -108,8 +111,8 @@ public class EndpointPermissionAuthorizationFilter implements ContainerRequestFi
                 LOGGER.error("Could not retrieve security profile by identifier " + securityProfileIdentifier);
                 VitamError vitamError = (VitamError) securityProfileResponse;
                 requestContext.abortWith(
-                        Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                                .build());
+                    Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
+                        .build());
                 return;
             }
 
@@ -121,7 +124,7 @@ public class EndpointPermissionAuthorizationFilter implements ContainerRequestFi
 
             // Check for matching security profile permission
             if (securityProfile.getPermissions() != null
-                    && securityProfile.getPermissions().contains(permission)) {
+                && securityProfile.getPermissions().contains(permission)) {
                 LOGGER.debug("Access granted with permission " + permission);
                 return;
             }
@@ -130,15 +133,15 @@ public class EndpointPermissionAuthorizationFilter implements ContainerRequestFi
             throw new VitamSecurityException("Access denied.");
 
         } catch (InvalidParseOperationException |
-                AdminManagementClientServerException |
-                ReferentialNotFoundException |
-                VitamSecurityException e) {
+            AdminManagementClientServerException |
+            ReferentialNotFoundException |
+            VitamSecurityException e) {
             LOGGER.error("An error occured during authorization filter check", e);
-            final VitamError vitamError = generateVitamError(e);
+            final VitamError vitamError = generateVitamError(e, permission);
 
             requestContext.abortWith(
-                    Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                            .build());
+                Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
+                    .build());
             return;
         }
     }
@@ -147,21 +150,38 @@ public class EndpointPermissionAuthorizationFilter implements ContainerRequestFi
      * Generate Vitam Error
      *
      * @param e
+     * @param permission
      * @return
      */
-    private VitamError generateVitamError(Exception e) {
-        final VitamError vitamError =
-                new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
+    private VitamError generateVitamError(Exception e, String permission) {
+        final VitamError vitamError;
 
         String description = e.getMessage();
         if (Strings.isNullOrEmpty(description)) {
             description = StringUtils.getClassName(e);
         }
-        vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
+
+        if (!org.apache.commons.lang3.StringUtils.isBlank(permission) && permission.equals("units:update")) {
+            vitamError =
+                new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_AUTHORIZATION_REJECTED));
+
+            vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
+                .setMessage(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_AUTHORIZATION_REJECTED.getMessage())
+                .setDescription(description)
+                .setState(VitamCode.INTERNAL_SECURITY_MASS_UPDATE_AUTHORIZATION_REJECTED.name())
+                .setHttpCode(
+                    VitamCode.INTERNAL_SECURITY_MASS_UPDATE_AUTHORIZATION_REJECTED.getStatus().getStatusCode());
+        } else {
+            vitamError =
+                new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
+
+            vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
                 .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
                 .setDescription(description)
                 .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())
                 .setHttpCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getStatus().getStatusCode());
+        }
+
         return vitamError;
     }
 

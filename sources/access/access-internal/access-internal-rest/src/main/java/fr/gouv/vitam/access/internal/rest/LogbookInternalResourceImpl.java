@@ -177,7 +177,6 @@ public class LogbookInternalResourceImpl {
 
     /**
      * GET with request in body
-     *
      * @param query DSL as String
      * @return Response contains a list of logbook operation
      */
@@ -216,7 +215,6 @@ public class LogbookInternalResourceImpl {
 
     /**
      * gets the unit life cycle based on its id
-     *
      * @param unitLifeCycleId the unit life cycle id
      * @param queryDsl the query
      * @return the unit life cycle
@@ -249,7 +247,6 @@ public class LogbookInternalResourceImpl {
 
     /**
      * gets the unit life cycle based on its id
-     *
      * @param queryDsl dsl query containing obId
      * @return the unit life cycle
      */
@@ -285,7 +282,6 @@ public class LogbookInternalResourceImpl {
 
     /**
      * gets the object group life cycle based on its id
-     *
      * @param objectGroupLifeCycleId the object group life cycle id
      * @param queryDsl the query
      * @return the object group life cycle
@@ -341,7 +337,6 @@ public class LogbookInternalResourceImpl {
 
     /**
      * Checks a traceability operation based on a given DSLQuery
-     * 
      * @param query the DSLQuery used to find the traceability operation to validate
      * @return The verification report == the logbookOperation
      * @throws LogbookClientNotFoundException
@@ -523,7 +518,7 @@ public class LogbookInternalResourceImpl {
 
     private DataCategory getDataCategory(TraceabilityEvent traceabilityEvent) {
 
-        if(traceabilityEvent.getLogType() == null) {
+        if (traceabilityEvent.getLogType() == null) {
             throw new IllegalStateException("Missing traceability event type");
         }
 

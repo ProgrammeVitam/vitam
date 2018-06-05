@@ -93,6 +93,7 @@ public class ItemStatus {
     }
 
     /**
+     * Constructor.
      * @param message
      * @param itemId
      * @param statusMeter
@@ -120,7 +121,6 @@ public class ItemStatus {
 
     /**
      * Constructor
-     *
      * @param itemId
      */
     public ItemStatus(String itemId) {
@@ -140,7 +140,6 @@ public class ItemStatus {
 
     /**
      * @param message the message to set
-     *
      * @return this
      */
     public ItemStatus setMessage(String message) {
@@ -161,7 +160,6 @@ public class ItemStatus {
 
     /**
      * @param itemId the itemId to set
-     *
      * @return this
      */
     public ItemStatus setItemId(String itemId) {
@@ -182,7 +180,6 @@ public class ItemStatus {
 
     /**
      * @param statusCode the statusCode to increment
-     *
      * @return this
      */
     public ItemStatus increment(StatusCode statusCode) {
@@ -192,7 +189,6 @@ public class ItemStatus {
     /**
      * @param statusCode the statusCode to increment
      * @param increment
-     *
      * @return this
      */
     public ItemStatus increment(StatusCode statusCode, int increment) {
@@ -209,7 +205,6 @@ public class ItemStatus {
     /**
      * @param itemStatus1 the statusCode to increment
      * @param itemStatus2
-     *
      * @return this
      */
     protected ItemStatus increment(ItemStatus itemStatus1, ItemStatus itemStatus2) {
@@ -223,7 +218,7 @@ public class ItemStatus {
         itemStatus1.setGlobalStatus(
             itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1 ? itemStatus1.getGlobalStatus()
                 : itemStatus2.getGlobalStatus());
-        
+
         // update itemStatus
         Set<String> keySet1 = itemStatus1.getItemsStatus().keySet();
         Set<String> keySet2 = itemStatus2.getItemsStatus().keySet();
@@ -236,7 +231,8 @@ public class ItemStatus {
             }
         }
 
-        if (itemStatus2.getGlobalOutcomeDetailSubcode() != null && itemStatus1.getGlobalOutcomeDetailSubcode() == null) {
+        if (itemStatus2.getGlobalOutcomeDetailSubcode() != null &&
+            itemStatus1.getGlobalOutcomeDetailSubcode() == null) {
             itemStatus1.setGlobalOutcomeDetailSubcode(itemStatus2.getGlobalOutcomeDetailSubcode());
         }
 
@@ -253,7 +249,6 @@ public class ItemStatus {
 
     /**
      * @param globalStatus the globalStatus to set
-     *
      * @return this
      */
     private ItemStatus setGlobalStatus(StatusCode globalStatus) {
@@ -270,8 +265,8 @@ public class ItemStatus {
     }
 
     /**
-     * @Deprecated use getData(Sting key)
      * @return
+     * @Deprecated use getData(Sting key)
      */
     @Deprecated
     public Map<String, Object> getData() {
@@ -337,7 +332,6 @@ public class ItemStatus {
     /**
      * @param itemId
      * @param statusDetails
-     *
      * @return this
      */
     public ItemStatus setItemsStatus(String itemId, ItemStatus statusDetails) {
@@ -376,7 +370,6 @@ public class ItemStatus {
 
     /**
      * @param compositeItemStatus
-     *
      * @return this
      */
     public ItemStatus setItemsStatus(ItemStatus compositeItemStatus) {
@@ -421,7 +414,6 @@ public class ItemStatus {
 
     /**
      * Get the global state
-     * 
      * @return globalState as type ProcessState
      */
     public ProcessState getGlobalState() {
@@ -430,7 +422,6 @@ public class ItemStatus {
 
     /**
      * @param globalState the golbal state to set
-     *
      * @return this
      */
     public ItemStatus setGlobalState(ProcessState globalState) {
@@ -440,7 +431,6 @@ public class ItemStatus {
     }
 
     /**
-     *
      * @param blocking True if the step or handler is blocking
      * @return True if this item shall stop the Step or Handler
      */
@@ -460,7 +450,6 @@ public class ItemStatus {
     /**
      * @param taskId the taskId to set
      * @param taskStatus the taskStatus to set
-     *
      * @return this
      */
     public ItemStatus setSubTaskStatus(String taskId, ItemStatus taskStatus) {
@@ -484,7 +473,6 @@ public class ItemStatus {
 
     /**
      * set EvDetailData
-     *
      * @param evDetailData
      * @return this
      */
@@ -563,13 +551,12 @@ public class ItemStatus {
 
     /**
      * Set the value of the specified statusCode in this statusMeter
-     *
      * @param statusCode
      * @param value
      */
 
     public void setStatusMeterValue(StatusCode statusCode, Integer value) {
-        this.statusMeter.set(statusCode.getStatusLevel(),value);
+        this.statusMeter.set(statusCode.getStatusLevel(), value);
     }
 
     /**
@@ -577,7 +564,7 @@ public class ItemStatus {
      */
     public void reinitStatusMeter() {
         for (int i = 0; i < this.statusMeter.size(); i++) {
-            this.statusMeter.set(i,0);
+            this.statusMeter.set(i, 0);
         }
 
     }

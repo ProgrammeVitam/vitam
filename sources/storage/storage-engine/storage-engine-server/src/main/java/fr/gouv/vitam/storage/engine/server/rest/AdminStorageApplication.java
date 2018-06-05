@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogProvider;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
@@ -75,7 +75,7 @@ public class AdminStorageApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
 
-            final StorageLogProvider storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
+            final StorageLog storageLogService = StorageLogFactory.getInstance(VitamConfiguration.getTenants(),
                 Paths.get(storageConfiguration.getLoggingDirectory()));
 
             final StorageDistribution distribution =

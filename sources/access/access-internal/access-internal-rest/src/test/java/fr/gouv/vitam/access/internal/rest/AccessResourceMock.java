@@ -154,4 +154,16 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 
+    /**
+     * Mass update of archive units with Json query
+     *
+     * @param dslQuery  DSL, null not allowed
+     * @return the response
+     */
+    @POST
+    @Path("/units")
+    public Response massUpdateUnits(JsonNode dslQuery) {
+        return Response.status(200).entity("{\"units\" = \"OK_MockUnits\"}").build();
+    }
+
 }

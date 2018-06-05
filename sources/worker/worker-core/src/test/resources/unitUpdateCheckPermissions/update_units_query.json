@@ -1,0 +1,22 @@
+{
+  "$query": [
+    {
+      "$match": {
+        "Title": "monSIP"
+      }
+    }
+  ],
+  "$action": [
+    {
+      "$set": {
+        "#management.AccessRule.Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "2000-01-01",
+            "EndDate": "2030-01-01"
+          }
+        ]
+      }
+    }
+  ]
+}

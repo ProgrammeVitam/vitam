@@ -101,4 +101,9 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     public RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest) {
         throw new IllegalStateException("Stop using mocks in production");
     }
+    @Override public RequestResponse<JsonNode> massUpdateUnits(VitamContext vitamContext, JsonNode updateQuery)
+        throws VitamClientException {
+        return ClientMockResultHelper.getArchiveUnitSimpleResult(updateQuery);
+    }
+
 }
