@@ -1363,7 +1363,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         for (DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
 
-            String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
+            String archiveUnitRefId = (String) relatedObjectReferenceItem.getArchiveUnitRefId();
 
             if (archiveUnitRefId != null) {
                 if (unitIdToGuid.containsKey(archiveUnitRefId)) {

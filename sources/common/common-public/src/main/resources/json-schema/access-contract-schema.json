@@ -137,6 +137,9 @@
     "WritingPermission": {
       "type": "boolean"
     },
+    "WritingRestrictedDesc": {
+      "type": "boolean"
+    },
     "EveryOriginatingAgency": {
       "type": "boolean"
     },

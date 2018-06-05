@@ -79,6 +79,9 @@ public class AccessContractModel extends AbstractContractModel {
     @JsonProperty("WritingPermission")
     private Boolean writingPermission;
 
+    @JsonProperty("WritingRestrictedDesc")
+    private Boolean writingRestrictedDesc;
+
     @JsonProperty(EVERY_ORIGINATINGAGENCY)
     private Boolean everyOriginatingAgency;
 
@@ -153,6 +156,21 @@ public class AccessContractModel extends AbstractContractModel {
         return this;
     }
 
+    /**
+     * @return writingRestrictedDesc
+     */
+    public Boolean getWritingRestrictedDesc() {
+        return writingRestrictedDesc;
+    }
+
+    /**
+     * @param writingRestrictedDesc
+     * @return AccessContractModel
+     */
+    public AccessContractModel setWritingRestrictedDesc(Boolean writingRestrictedDesc) {
+        this.writingRestrictedDesc = writingRestrictedDesc;
+        return this;
+    }
 
     /**
      * @return true if all originatingAgencies are enabled for this contract
@@ -233,6 +251,7 @@ public class AccessContractModel extends AbstractContractModel {
 
     public void initializeDefaultValue() {
         writingPermission = firstNonNull(writingPermission, false);
+        writingRestrictedDesc = firstNonNull(writingRestrictedDesc, false);
         everyOriginatingAgency = firstNonNull(everyOriginatingAgency, false);
         everyDataObjectVersion = firstNonNull(everyDataObjectVersion, false);
     }

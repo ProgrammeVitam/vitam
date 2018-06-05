@@ -2,10 +2,7 @@ package fr.gouv.vitam.access.internal.common.exception;
 
 public class AccessInternalRuleExecutionException extends
 		AccessInternalException {
-	
-    /**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 3507862590422500648L;
 
 	/**

@@ -31,12 +31,10 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalPermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
@@ -87,7 +85,7 @@ public interface AccessInternalModule {
      */
     JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException,
-        IllegalArgumentException, AccessInternalRuleExecutionException;
+        IllegalArgumentException,AccessInternalPermissionException, AccessInternalRuleExecutionException;
 
     /**
      * Retrieve an ObjectGroup by its id with results fields filtered based on given query

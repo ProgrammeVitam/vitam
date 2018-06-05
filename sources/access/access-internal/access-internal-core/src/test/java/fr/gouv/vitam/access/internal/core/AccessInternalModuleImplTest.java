@@ -44,8 +44,10 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalPermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -121,6 +123,10 @@ public class AccessInternalModuleImplTest {
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
     private static JsonNode sampleObjectGroup;
 
+    private static final String ACCESS_CONTRACT_NO_PERMISSION = "access_contract_no_update_allowed.json";
+    private static final String ACCESS_CONTRACT_DESC_ONLY = "access_contract_update_desc_only.json";
+    private static final String ACCESS_CONTRACT_ALL_PERMISSION = "access_contract_update_all_allowed.json";
+
     private static final String QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
     private static final String QUERY_UPDATE =
@@ -153,6 +159,11 @@ public class AccessInternalModuleImplTest {
             " \"MimeType\" : \"application/pdf\"," + " \"FormatId\" : \"fmt/18\"" + " }," + "\"FileInfo\" : {" +
             "\"Filename\" : \"Suivi des op\u00E9rations d\'entr\u00E9es vs. recherche via registre des fonds.pdf\"," +
             "\"LastModified\" : \"2016-08-05T09:28:15.000+02:00\"" + "}" + "} ]" + "} ]}";
+
+
+    private static final String QUERY_DESCRIPTION =
+            "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+                    "{\"$set\":{\"Description\":\"Test\"}}]}";
 
     private static final String QUERY_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," +
         "\"$action\":[" + "{\"$set\":{\"Title\":\"Eglise de Pantin Modfii\u00E9\"}}," +
@@ -421,7 +432,9 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        AccessContractModel accessContractModel = new AccessContractModel();
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -470,17 +483,131 @@ public class AccessInternalModuleImplTest {
         assertEquals(
             "-    \"Title\" : \"MyTitle\",\n+    \"Title\" : \"Modified title\",\n-    \"MyBoolean\" : false,\n+    \"MyBoolean\" : true,",
             lfcParams.get("diff").textValue());
+    }
 
+    @Test
+    @RunWithCustomExecutor
+    public void given_throw_desc_only_error_When_updateUnitById_thenOK()
+            throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_DESC_ONLY));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
+        accessContractModel.setIdentifier("FakeIdentifier");
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
+                ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
+
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
+                anyObject());
+
+        final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+                "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\",\"#management\":{}," +
+                "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+                "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+                "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
+        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
+                .addResult(jsonResult)
+                .setHttpCode(Status.OK.getStatusCode());
+
+        // Mock select unit response
+        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        // mock get lifecyle
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+                .thenReturn(JsonHandler.getFromString("{\"$hits" +
+                        "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
+                        "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
+                        "\"evTypeProc\":\"INGEST\",\"evDateTime\":\"2016-09-28T11:44:28.548\"," +
+                        "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+                        "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
+        // Mock update unit response
+        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+                "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
+                "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
+                " \\\"MyBoolean\\\" : true,\"}]}"));
+
+        try {
+            String query = QUERY_MULTIPLE_STRING.replace("managementRulesUpdate", id);
+            accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(query), id, REQUEST_ID);
+            fail("Should throw exception");
+        } catch (AccessInternalPermissionException e){
+            assertEquals("ACCESS_INTERNAL_UPDATE_UNIT_DESC_PERMISSION", e.getMessage());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_throw_permission_error_When_updateUnitById_thenOK()
+            throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
+        accessContractModel.setIdentifier("FakeIdentifier");
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
+                ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
+
+        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
+                anyObject());
+
+        final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
+        JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
+                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+                "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
+                "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
+                "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+                "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
+        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
+                .addResult(jsonResult)
+                .setHttpCode(Status.OK.getStatusCode());
+
+        // Mock select unit response
+        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        // mock get lifecyle
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+                .thenReturn(JsonHandler.getFromString("{\"$hits" +
+                        "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
+                        "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
+                        "\"evTypeProc\":\"INGEST\",\"evDateTime\":\"2016-09-28T11:44:28.548\"," +
+                        "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
+                        "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
+        // Mock update unit response
+        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+                "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+                "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
+                "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
+                " \\\"MyBoolean\\\" : true,\"}]}"));
+
+        try {
+            accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(QUERY_DESCRIPTION), id, REQUEST_ID);
+            fail("Should throw exception");
+        } catch (AccessInternalPermissionException e){
+            assertEquals("ACCESS_INTERNAL_UPDATE_UNIT_PERMISSION", e.getMessage());
+        }
     }
 
     // update by id - start
-    @Test(expected = MetaDataNotFoundException.class)
+    @Test(expected = AccessInternalExecutionException.class)
     @RunWithCustomExecutor
     public void given_notfound_guid_When_updateUnitById_thenKO()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        AccessContractModel accessContractModel = new AccessContractModel();
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -503,7 +630,7 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
         when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
 
-        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
+        accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(QUERY_STRING), id, REQUEST_ID);
 
     }
 
@@ -512,7 +639,10 @@ public class AccessInternalModuleImplTest {
     public void given_error_schema_When_updateUnitById_thenKO()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        AccessContractModel accessContractModel = new AccessContractModel();
+
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
@@ -556,7 +686,10 @@ public class AccessInternalModuleImplTest {
     public void given_dsl_nodiff_When_updateUnitById_thenOK()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        AccessContractModel accessContractModel = new AccessContractModel();
+
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
@@ -607,6 +740,7 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+
         accessModuleImpl.updateUnitbyId(fromStringToJson(""), ID, REQUEST_ID);
     }
 
@@ -619,6 +753,7 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(fromStringToJson(QUERY), ID);
+
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), ID, REQUEST_ID);
     }
 
@@ -627,6 +762,7 @@ public class AccessInternalModuleImplTest {
     public void given_test_updateUnitById_withWrongGUID()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), "dfsdfsdf", REQUEST_ID);
     }
 
@@ -639,6 +775,7 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .updateUnitbyId(anyObject(), anyObject());
+
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY_UPDATE), ID, REQUEST_ID);
     }
 
@@ -647,7 +784,9 @@ public class AccessInternalModuleImplTest {
     public void given_DSLWhen_updateUnitById_ThenThrows_MetaDataDocumentSizeException()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        AccessContractModel accessContractModel = new AccessContractModel();
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
@@ -660,6 +799,7 @@ public class AccessInternalModuleImplTest {
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
         when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenThrow(new MetaDataDocumentSizeException(""));
+
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
     }
 
@@ -668,7 +808,9 @@ public class AccessInternalModuleImplTest {
     public void given_DSL_When_updateUnitById_ThenThrows_MetaDataExecutionException()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        AccessContractModel accessContractModel = new AccessContractModel();
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
@@ -683,6 +825,7 @@ public class AccessInternalModuleImplTest {
         when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
         Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient)
             .updateUnitbyId(anyObject(), anyObject());
+
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
     }
 
@@ -692,7 +835,9 @@ public class AccessInternalModuleImplTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        AccessContractModel accessContractModel = new AccessContractModel();
+        JsonNode accessContractFile = JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_ALL_PERMISSION));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+                new TypeReference<AccessContractModel>() {});
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
@@ -736,6 +881,7 @@ public class AccessInternalModuleImplTest {
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 
+
         accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
 
     }
@@ -753,6 +899,7 @@ public class AccessInternalModuleImplTest {
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(fromStringToJson(QUERY), "");
+
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), "", REQUEST_ID);
     }
 
