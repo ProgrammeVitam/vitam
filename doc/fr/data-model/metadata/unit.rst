@@ -113,7 +113,7 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
     }
 
 
-Voici un autre extrait de détail JON : 
+Voici un autre extrait de détail JSON :
 
 
 .. code-block:: json
@@ -124,7 +124,7 @@ Voici un autre extrait de détail JON :
        "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
        "aeaqaaaaaahjgl36aazigaldnxdkivaaaaba"
    ],
-   
+
    "_us": [
        "aeaqaaaaaahjgl36aazigaldnxdkivyaaabq",
        "aeaqaaaaaahjgl36aazigaldnxdkimiaaabq",
@@ -337,23 +337,98 @@ Cette transposition se fait comme suit :
 
 **"_mgt":** contient les balises contenues dans le bloc <Management> du bordereau de tranfert pour cette unité archivistique.
 
-  * "OriginatingAgency": service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
-  * "RuleType" : catégorie de règle de gestion appliquée à cette unité archivistique. Chaque catégorie contient un tableau de règles de gestion et des paramètres d'héritage de règles. Pour être valide, la catégorie de règle doit être présente dans la collection FileRules.
-  * "Rules": tableau, optionnel, contenant une à n règles. Chaque règle est composée des champs suivants :
+Une catégorie de règles de gestion appliquées à cette unité archivistique. Ces catégories sont, exhaustivement (cardinalité 0-1 pour chaque catégorie) :
 
-      * "Rule": identifiant de la règle. Pour être valide, elle doit être contenue dans la collection FileRules, et correspondre à la valeur du champ RuleId de la collection FileRules.
-      * "StartDate": date de début du calcul de l'échéance. Cette date est déclarée dans le message ArchiveTransfer ou ajoutée *a posteriori* par une modification de l'unité archivistique.
-      * "FinalAction": champ décrivant le sort final. Ce champ est disponible pour les règles de catégorie "StorageRule" et "AppraisalRule". La valeur contenue dans le champ doit être disponible soit dans l'énumération FinalActionAppraisalCodeType soit dans FinalActionStorageCodeType.
-      * "ClassificationLevel" : champ référençant le niveau de protection. Ce champ est disponible pour les règles de la catégorie "ClassificationRule".
-      * "ClassificationOwner" : champ indiquant l'émetteur de la classification. Ce champ est disponible pour les règles de la catégorie "ClassificationRule".
-      * "ClassificationReassessingDate" : date de réévaluation de la classification. Ce champ est disponible pour les règles de la catégorie "ClassificationRule".
-      * "NeedReassessingAuthorization" : champ booléen indiquant si une autorisation humaine est nécessaire pour réévaluer la classification. Ce champ est disponible pour les règles de la catégorie "ClassificationRule".
-      * "NeedAuthorization" : champ booléen indiquant si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des unités archivistiques.
-      * "EndDate": date de fin d'application de la règle. Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam consistant en l'ajout du délai correspondant à la règle dans la collection FileRules et de la valeur du champ startDate.
+  - AccessRule (délai de communicabilité)
+  - AppraisalRule (durée d'utilité administrative)
+  - ClassificationRule (durée de classification)
+  - DisseminationRule (durée de diffusion)
+  - ReuseRule (durée de réutilisation)
+  - StorageRule (durée d'utilité courante)
 
-  * "Inheritance" : paramètres d'héritage des règles de gestion.
+Chaque catégorie peut contenir :
 
-    * "PreventInheritance" : champ booléen indiquant si les règles de gestion de la même catégorie ne doivent pas être héritées d'un parent.
-    * "PreventRulesId" : tableau d'identifiants de règles de gestion qui ne doivent pas être héritées d'un parent.
+    1. Un tableau de règles de gestion (tableau d'objets, cardinalité 0-1)
 
-  * Cardinalité : 1-1
+      Chacune des règles de ce tableau est elle-même composée de plusieurs informations :
+
+      + **"Rule"**: identifiant de la règle, qui correspond à une valeur du champ RuleId de la collection FileRules. (cardinalité 1-1)
+      + **"StartDate"** : "StartDate": date de début du calcul de l'échéance. Cette date est déclarée dans le message ArchiveTransfer ou ajoutée *a posteriori* par une modification de l'unité archivistique. (cardinalité 1-1)
+      + **"EndDate**": date de fin d'application de la règle. Cette valeur est issue d'un calcul réalisé par la solution logicielle Vitam. Celui ci consiste en l'ajout du délai correspondant à la règle dans la collection FileRules à la valeur du champ startDate (EndDate = StartDate + Durée) (cardinalité 1-1)
+
+    2. Des données spécifiques aux catégories :
+
+      - Pour les catégories "StorageRule" et "AppraisalRule" uniquement : le champ **"FinalAction"** décrit le sort final des règles dans ces catégories (cardinalité 1-1). La valeur contenue dans le champ peut être :
+
+        + Pour StorageRule : "Transfer", "Copy" ou "RestrictAccess" (énumaration issue du FinalActionStorageCodeType en SEDA 2.1)
+        + Pour AppraisalRule : "Keep" ou "Destroy" (énumaration issue du FinalActionAppraisalCodeType en SEDA 2.1)
+      - Pour ClassificationRule uniquement :
+
+        + **"ClassificationLevel"** : niveau de classification, obligatoire et systématiquement renseigné (cardinalité 1-1)
+        + **"ClassificationOwner"**: propriétaire de la classification, obligatoire et systématiquement renseigné (cardinalité 1-1)
+        + **"ClassificationAudience"** : permet de gérer les questions de "diffusion restreinte", "spécial France" et "Confidentiel Industrie", champ optionnel (cardinalité 0-1)
+        + **"ClassificationReassessingDate"** : date de réévaluation de la classification, optionnelle. (cardinalité 0-1)
+        + **"NeedReassessingAuthorization"** : indique si une autorisation humaine est nécessaire pour réévaluer la classification, optionnel (cardinalité 0-1)
+
+    3. Des paramètres de gestion d'héritage de règles, dans un objet nommé **"Inheritance"** (cardinalité 0-1). Cet objet peut avoir comme valeur :
+
+      + **"PreventInheritance"** : "true" ou "false", utilisé pour bloquer l'héritage de toutes les règles de gestion de la même catégorie (cardinalité 0-1)
+      + **"PreventRulesId"** : est un tableau d'identifiants de règles de gestion qui ne doivent pas être héritées d'un parent (cardinalité 0-1)
+
+
+Extrait d'une unité archivistique ayant un bloc "_mgt" possédant des règles de gestions :
+
+.. code-block:: json
+
+  "_mgt": {
+          "AppraisalRule": {
+              "Rules": [
+                  {
+                      "Rule": "APP-00001",
+                      "StartDate": "2015-01-01",
+                      "EndDate": "2095-01-01"
+                  },
+                  {
+                      "Rule": "APP-00002"
+                  }
+              ],
+              "Inheritance": {
+                  "PreventInheritance": true,
+                  "PreventRulesId": []
+              },
+              "FinalAction": "Keep"
+          },
+          "AccessRule": {
+              "Rules": [
+                  {
+                      "Rule": "ACC-00001",
+                      "StartDate": "2016-06-03",
+                      "EndDate": "2016-06-03"
+                  }
+              ]
+          },
+          "DisseminationRule": {
+              "Inheritance": {
+                  "PreventInheritance": true,
+                  "PreventRulesId": []
+              }
+          },
+          "ReuseRule": {
+              "Inheritance": {
+                  "PreventRulesId": [
+                      "REU-00001", "REU-00002"
+                  ]
+              }
+          },
+          "ClassificationRule": {
+              "ClassificationLevel": "Secret Défense",
+              "ClassificationOwner": "Projet_Vitam",
+              "Rules": [
+                  {
+                      "ClassificationReassessingDate": "2025-06-03",
+                      "NeedReassessingAuthorization": true,
+                      "Rule": "CLASS-00001"
+                  }
+              ]
+          }
+      },
