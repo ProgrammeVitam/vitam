@@ -391,6 +391,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         QueryBuilder qb = termQuery(VitamDocument.TENANT_ID, tenant);
 
         SearchResponse scrollResp = client.prepareSearch(index)
+            .setFetchSource(false)
             .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
             .setScroll(new TimeValue(60000))
             .setQuery(qb)
@@ -432,6 +433,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         QueryBuilder qb = matchAllQuery();
 
         SearchResponse scrollResp = client.prepareSearch(index)
+            .setFetchSource(false)
             .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
             .setScroll(new TimeValue(60000))
             .setQuery(qb)

@@ -35,6 +35,9 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.NodeWithPlugins;
 import org.apache.commons.io.FileUtils;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -55,10 +58,6 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.Netty4Plugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.NodeWithPlugins;
 
 /**
  */
@@ -108,7 +107,7 @@ public class ElasticsearchRule extends ExternalResource {
 
     /**
      * ElasticsearchRule constructor
-     * 
+     *
      * @param tempFolder
      * @param collectionNames
      */
@@ -157,6 +156,7 @@ public class ElasticsearchRule extends ExternalResource {
                     .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
                     .setScroll(new TimeValue(60000))
                     .setQuery(qb)
+                    .setFetchSource(false)
                     .setSize(100).get();
 
                 BulkRequestBuilder bulkRequest = client.prepareBulk();
@@ -211,7 +211,7 @@ public class ElasticsearchRule extends ExternalResource {
 
     /**
      * get the cluster name
-     * 
+     *
      * @return the vitam cluster name
      */
     public String getClusterName() {
@@ -220,7 +220,7 @@ public class ElasticsearchRule extends ExternalResource {
 
     /**
      * get the tcp port
-     * 
+     *
      * @return tcpPort
      */
     public static int getTcpPort() {
@@ -229,7 +229,7 @@ public class ElasticsearchRule extends ExternalResource {
 
     /**
      * get the Client
-     * 
+     *
      * @return the client
      */
     public Client getClient() {

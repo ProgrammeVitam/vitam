@@ -31,10 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
@@ -49,6 +46,7 @@ import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * ProcessMonitoringImpl class implementing the ProcessMonitoring Persists processWorkflow object (to json) at each step
@@ -103,14 +101,15 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
     }
 
     @Override
-    public void updateStep(String operationId, String uniqueStepId, long elementToProcessOrProcessed, boolean elementProcessed,
+    public void updateStep(String operationId, String uniqueStepId, long elementToProcessOrProcessed,
+        boolean elementProcessed,
         Integer tenantId) {
 
         ProcessWorkflow processWorkflow = this.findOneProcessWorkflow(operationId, tenantId);
         for (ProcessStep step : processWorkflow.getSteps()) {
             if (StringUtils.equals(uniqueStepId, step.getId())) {
                 if (elementProcessed) {
-                    step.setElementProcessed(step.getElementProcessed() + elementToProcessOrProcessed); 
+                    step.setElementProcessed(step.getElementProcessed() + elementToProcessOrProcessed);
                 } else {
                     step.setElementToProcess(step.getElementToProcess() + elementToProcessOrProcessed);
                 }
@@ -127,7 +126,9 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
         if (!WORKFLOWS_LIST.containsKey(tenantId) || WORKFLOWS_LIST.get(tenantId) == null ||
             !WORKFLOWS_LIST.get(tenantId).containsKey(processId)) {
-            throw new WorkflowNotFoundException(PROCESS_DOES_NOT_EXIST);
+            throw new WorkflowNotFoundException(
+                PROCESS_DOES_NOT_EXIST + " > Tenant (" + tenantId + ")" + ". Process (" + processId + ") map = " +
+                    WORKFLOWS_LIST.keySet());
         } else {
             return WORKFLOWS_LIST.get(tenantId).get(processId);
         }

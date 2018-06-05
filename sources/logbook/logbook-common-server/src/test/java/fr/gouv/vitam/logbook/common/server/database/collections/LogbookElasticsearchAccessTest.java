@@ -159,7 +159,7 @@ public class LogbookElasticsearchAccessTest {
         // check entry
         QueryBuilder query = QueryBuilders.matchAllQuery();
         SearchResponse elasticSearchResponse =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10, true);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
 
         assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
         assertNotNull(elasticSearchResponse.getHits().getAt(0));
@@ -193,7 +193,6 @@ public class LogbookElasticsearchAccessTest {
         assertNotNull(elasticSearchResponse2.getHits().getAt(0));
         SearchHit hit = elasticSearchResponse2.getHits().iterator().next();
         assertNotNull(hit);
-        System.out.println(hit.getSourceAsString());
 
         // check search
         SearchResponse elasticSearchResponse3 =
