@@ -94,6 +94,8 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
      :language: yaml
      :linenos:
 
+.. note:: Cas du composant ingest-external. Les directives ``upload_dir``, ``success_dir``, ``fail_dir`` et ``upload_final_action`` permettent de prendre en charge (ingest) des fichiers déposés dans ``upload_dir`` et appliquer une règle ``upload_final_action`` à l'issue du traitement (NONE, DELETE ou MOVE dans ``success_dir`` ou ``fail_dir`` selon le cas). Se référer au :term:`DEX` pour de plus amples détails. Se référer au manuel de développement pour plus de détails sur l'appel à ce cas.
+
 * |repertoire_inventory| ``/group_vars/all/cots_vars.yml``, comme suit :
 
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
