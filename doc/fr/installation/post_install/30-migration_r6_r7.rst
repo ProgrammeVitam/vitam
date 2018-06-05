@@ -16,6 +16,11 @@ ou, si vault_pass.txt n'a pas été renseigné :
 
 A l'issue de ce playbook, les timer systemD ont été arrêtés, afin de ne pas perturber la migration.
 
+Il est également recommandé :
+
+    - d'arrêter les composants :term:`VITAM` "*-external"
+    - de ne lancer la procédure de migration qu'une fois s'être assuré qu'aucun `workflow` n'est actuellement en cours de traitement
+
 Il faut alors procéder à la migration des données avec la commande suivante (sur le site primaire uniquement) :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r6_r7.yml --vault-password-file vault_pass.txt``
