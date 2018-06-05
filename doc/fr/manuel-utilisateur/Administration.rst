@@ -718,18 +718,18 @@ L'opération est journalisée et disponible depuis l'écran de consultation du j
 En cas de succès de l'import du profil XSD ou RNG, la date de mise à jour de la notice descriptive de profil est ajustée en conséquence. Si l'utilisateur importe un nouveau profil SEDA au format XSD ou RNG alors qu'un autre profil SEDA a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 
-Profils d'unités archivistiques - Documents types
+Documents types (Profils d'unités archivistiques)
 =================================================
 
-Un profil d'unité archivistique est un fichier JSON qui permet de définir précisément et d'effectuer des contrôles sur la structure des métadonnées attendues des archives destinées à être transférées à la solution logicielle Vitam.
+Un document type (profil d'unité archivistique) est un fichier JSON qui permet de définir précisément et d'effectuer des contrôles sur la structure des métadonnées attendues des archives destinées à être transférées à la solution logicielle Vitam.
 
 Il s'accompagne dans la solution logicielle Vitam d'une notice descriptive en JSON.
 
 Pour plus d'information se référer à la documentation "Document Type"
 
 
-Importer une notice de profil d'unité archivistique
----------------------------------------------------
+Importer une notice de document type (profil d'unité archivistique)
+-------------------------------------------------------------------
 
 L'import de notice détaillant les profils d'unité archivistiques est une fonctionnalité réservée à un utilisateur ayant des droits d'administration.
 
@@ -832,118 +832,6 @@ Il est possible de modifier le document type en cliquant sur le bouton "Modifier
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
-
-Ontologie
-=========
-
-Une Ontologie est un fichier au format JSON qui permet de définir des types de métadonnées à contrôler par le schéma de contrôle du document type. 
-
-Ces métadonnées font, soit partie du modèle de données de Vitam, soit sont demandées par l'utilisateur.On parlera alors d'ontologie interne (qui provient du Modèle de données Vitam) et externe (qui provient de l'utilisateur)
-
-- Les données d'onthologe dites externes, doivent être déclarées dans la solution, afin d'effectuer les contrôles définis dans les référentiels "Document types". 
-
-
-Importer une ontologie
-----------------------
-
-L'import d'un fichier JSON déclarant des métadonnées est une fonctionnalité réservée à un utilisateur ayant des droits d'administration.
-
-L'utilisateur construit au prélable le fichier au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
-
-    - Identifiant ( obligatoire - "Identifier"): pour les vocabulaires externes, l'identifiant pour le vocabulaire externe doit : être unique, ne pas commencer par "_" ou "#", ne pas contenir d'espace
-    - Intitulé API ( obligatoire - "ApiField" ) 
-    - Intitulé XML ( obligatoire - "SedaField" ) 
-    - Origine interne ou externe ( obligatoire -"Origin": "INTERNAL" / "EXTERNAL" )
-    - Type du vocabulaire ( obligatoire -  "Type" ) : valeur à choisir parmi la liste:  Text, Keyword, Date, Long, Double, Boolean, Geo-point, Enumération de valeur
-    - Traduction du vocabulaire (obligatoire - "ShortName")
-    - Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
-    - Description ( Facultative ) 
-    - Date de création ( Facultative ) 
-
-Note : Compatibilité des modifications possible concernant les types de vocabulaires :
-
-	- Text -> Keyword, Text
-	- Keyword -> Keyword, Text
-	- Date -> Keyword, Text
-	- Long -> Keyword, Text, Double
-	- Double -> Keyword, Text
-	- Boolean -> Keyword, Text
-	- Geo-point -> Keyword, Text
-	- Enumération de valeur -> Keyword, Text
-
-
-
-Pour importer un fichier JSON, l'utilisateur survole le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des ontologies".
-
-
-.. image:: images/menu_import_ontologie.png
-
-
-L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
-
-
-.. image:: images/import_ontologie.png
-
-
-Une fenêtre modale indique alors soit :
-
-- Les ontologies ont bien été importées
-- Échec de l’import du fichier, pouvant être causé par :
-	- le fait que les identifiants déclarés existent déjà
-        - le fait que l'intitulé XML déclaré existe déjà
-        - le fait que l'identifiant commence par un "_" ou un"#" ou contient des espaces
-        - le fait que le type déclaré ne soit pas valide ( parmi la liste des valeurs permises ) 
-- le fait que la collection déclarée ne soit pas valide ( parmi la liste des valeurs permises ) 
-- le fait que l'origine déclarée soit interne
-	- le fait que le fichier soit invalide (mauvais format ou champ obligatoire absent)
-
-Cette opération est journalisée et disponible dans le Journal des opérations.
-
-
-
-Recherche d' une ontologie
---------------------------
-
-Pour consulter et rechercher les documents types, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Ontologies".
-
-Par défaut, les ontologies sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
-
-La page affiche un formulaire de recherche composé des champs suivants :
-
-- Intitulé : permet d’effectuer une recherche exacte sur les noms des vocabulaires de l'ontologie disponibles dans la solution logicielle Vitam.
-- Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de l'ontologie.
-
-.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. 
-
-
-.. image:: images/recherche_ontologie.png
-
-
-Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des notices est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
-
-- Intitulé
-- Traduction
-- Identifiant
-- Description
-- Collections
-- Type d'indexation
-
-
-Détail d'une ontologie
-----------------------
-
-Pour accéder au détail d'une ontologie, l'utilisateur clique sur la ligne souhaitée. La page "Détail de l'ontologie" contient les informations suivantes :
-
-- Identifiant
-- Intitulé
-- Description
-- Traduction
-- Tenant
-- Type
-- Date de création
-- Dernière modification
-- Contexte de création
-- Collections
 
 
 Import d'un arbre de positionnement
@@ -1355,6 +1243,10 @@ Mais il est possible de re-importer un fichier afin de modifier les informations
 
 Contextes applicatifs
 =====================
+
+
+Le contexte permet de définir les droits des applications utilisatrices en fonction de leurs certificats. Pour plus de détails, se référer à la documentation métier "Gestions des habilitations". 
+
 
 Import des contextes applicatifs
 ---------------------------------
