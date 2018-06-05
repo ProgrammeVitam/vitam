@@ -70,6 +70,8 @@ public class ArchiveUnitMapper {
         archiveUnitType.setContent(descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel()));
         ArchiveUnitType.Management management = new ArchiveUnitType.Management();
 
+        management.setNeedAuthorization(model.getManagement().isNeedAuthorization());
+
         management.setAccessRule(ruleMapper.fillCommonRule(model.getManagement().getAccess(), AccessRuleType::new));
         management
             .setAppraisalRule(ruleMapper.fillCommonRule(model.getManagement().getAppraisal(), AppraisalRuleType::new));
