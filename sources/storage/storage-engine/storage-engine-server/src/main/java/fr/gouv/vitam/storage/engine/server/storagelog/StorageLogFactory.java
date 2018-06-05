@@ -108,6 +108,8 @@ public class StorageLogFactory implements StorageLogProvider {
             Files.createDirectories(storageLogPath);
         }
 
+        checkExistingStorageLogFiles(storageLogPath);
+
         return storageLogPath;
     }
 
@@ -117,14 +119,12 @@ public class StorageLogFactory implements StorageLogProvider {
      * @param storageLogPath
      * @throws IOException thrown on IO error
      */
-    private boolean existsStorageLogFiles(Path storageLogPath) throws IOException {
+    private void checkExistingStorageLogFiles(Path storageLogPath) throws IOException {
         try (Stream<Path> list = Files.list(storageLogPath)) {
             List<Path> exitingFiles = list.collect(Collectors.toList());
             if (!exitingFiles.isEmpty()) {
                 LOGGER.warn("Existing storage log files found: " + exitingFiles.toString());
-                return true;
             }
-            return false;
         }
     }
 
@@ -154,7 +154,6 @@ public class StorageLogFactory implements StorageLogProvider {
 
     @Override
     public void append(Integer tenant, StorageLogbookParameters parameters) throws IOException {
-
         Object lock = lockers.get(tenant);
         synchronized (lock) {
             storageLogAppenders.get(tenant).append(parameters);
@@ -166,11 +165,8 @@ public class StorageLogFactory implements StorageLogProvider {
 
         Object lock = lockers.get(tenant);
         synchronized (lock) {
-
             storageLogAppenders.get(tenant).close();
-
             List<LogInformation> storageLogToBackup = listStorageLogsToBackup(tenant);
-
             storageLogAppenders.put(tenant, createAppender(tenant));
 
             return storageLogToBackup;
@@ -181,14 +177,12 @@ public class StorageLogFactory implements StorageLogProvider {
     public void initializeStorageLogs(Path basePath) throws IOException {
         storageLogPath = createStoragePathDirectory(basePath);
 
-        if (!existsStorageLogFiles(basePath.resolve(STORAGE_LOG_DIR))) {
             for (Integer tenant : tenants) {
                 storageLogAppenders.put(tenant, createAppender(tenant));
             }
             for (Integer tenant : tenants) {
                 this.lockers.put(tenant, new Object());
             }
-        }
     }
 
     private List<LogInformation> listStorageLogsToBackup(Integer tenant) throws IOException {
@@ -196,7 +190,6 @@ public class StorageLogFactory implements StorageLogProvider {
         LocalDateTime now = LocalDateUtil.now();
 
         List<LogInformation> previousLogFiles = new ArrayList<>();
-
         try (DirectoryStream<Path> paths = Files.newDirectoryStream(this.storageLogPath, tenant + "_*.log")) {
             for (Path filePath : paths) {
 
