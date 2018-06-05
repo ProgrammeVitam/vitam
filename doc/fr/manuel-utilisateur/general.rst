@@ -262,8 +262,8 @@ Le tenant d'administration permet de réaliser les opérations qui concernent pl
 
 
 
-Créer une Sélection : Panier 
-============================
+Utilisation du panier
+=====================
 
 Il est possible de créer une sélection, accessible sous la forme d'un panier afin d'appliquer une action sur plusieurs unités archivistiques provenant d'un ou plusieurs services producteurs.
 
@@ -279,18 +279,44 @@ L'accès au Panier se fait via le Menu principal , une icône "Mon panier" est a
 Note: lorsque l'utilisateur utilise le même navigateur, il est possible de se retrouver la sélection lors d'une déconnexion - reconnexion, après avoir sélectionné le contrat d'accès qui permet d'avoir accès aux unités archivistiques 
 
 
-Note: même si le panier est vide, l'utilisateur a quand même accès à la page liée "panier"
+Note: même si le panier est vide, l'utilisateur a quand même accès à la page liée "panier".
+
+
+Placer des Unités Archivistiques dans le panier
+------------------------------------------------
+
+Il y a deux façons de rajouter des unités archivistiques dans le panier : soit via le détail de ces unités archivistiques, soit en accédant au panier, et en cliquant sur le bouton "Ajouter des unités archivistiques"
+
+Via le détail des unités archivistiques: tout en bas de la page, une section "Ajouter au panier", et un bouton radio permet de sélectionner la partie à insérer dans la sélection: 
+
+	* L'unité archivistique  
+	* L'unité archivistique et sa descendance 
+	* L'ensemble de l'entrée 
+
+Un bouton " Ajouter au panier " permet d'ajouter le ou les éléments voulus au panier. Un pop-up de confirmation s'affiche lors de l'ajout à la sélection. 
+
+
+.. image:: images/panier_selection.png
+
+
+Via le panier directement : 
+Le bouton "Ajouter des unités archivistiques" permet d'accèder directement à la page de recherche, afin d'ajouter des unités archivistiques à la sélection. 
+
+.. image:: images/panier_ajouter.png
+
+
+Note: il est possible de créer une sélection d'unités archivistiques provenant de services producteurs différents. 
 
 
 
 Visualisation du Panier: 
 ------------------------
 
-- L'affichage du panier permet de visualiser sous la forme d'un tableau, l'ensemble des unités archivistiques sélectionnées ainsi que leur descendance si celle ci a été sélectionnée aussi. Le tableau offre une pagination permettant de passer d'une page à l'autre. 
+L'affichage du panier permet de visualiser sous la forme d'un tableau, l'ensemble des unités archivistiques sélectionnées ainsi que leur descendance si celle ci a été sélectionnée aussi. Le tableau offre une pagination permettant de passer d'une page à l'autre. 
 
-- Le nombre d'unités archivistiques présentes dans le panier est affiché. 
+Le nombre d'unités archivistiques présentes dans le panier est affiché. 
 
-- Les informations affichées sont les suivantes : 
+Les informations affichées sont les suivantes : 
         - La première colonne indique si l'unité archivistique a été sélectionnée avec sa descendance, et un clic sur l' icône permet de plier et de déplier la liste, afin d'afficher les unités archivistiques. Les unités archivistiques déscendantes sont affichées en italiques. 
 	- Intitulé
 	- Service Producteur
@@ -316,29 +342,18 @@ Note: les unités archivistiques de la descendance ne sont pas sélectionnables 
 
 
 
-Créer une sélection et retirer des Unités archivistiques de la sélection: 
--------------------------------------------------------------------------
+Créer une sélection dans le panier 
+----------------------------------
 
-La sélection s'effectue via le détail des unités archivistiques: une section "Ajouter au panier", et un bouton radio permet de sélectionner la partie à insérer dans la sélection: 
+Il est possible de créer une sélection pour travailler seulement sur certaines unités archivistiques dans le panier.
+Pour cela, il suffit de sélectionner les unités archivistiques voulues avec les coches de sélection sur la colonne de droite. 
 
-	* L'unité archivistique  
-	* L'unité archivistique et sa descendance 
-	* L'ensemble de l'entrée 
-
-Un bouton " Ajouter au panier " permet d'ajouter le ou les éléments voulus au panier. Un pop-up de confirmation s'affiche lors de l'ajout à la sélection. 
-
-.. image:: images/panier_selection.png
+Il est possible de sélectionner toute la liste en cliquant sur l'en-tête de la colonne de droite, et aussi de tout sélectionner en recliquant. 
 
 
-Note: il est possible de créer une sélection d'unités archivistiques provenant de services producteurs différents. 
+Pour retirer une unité archivistique de la sélection: 
 
-
-
-Retirer une unité archivistique de la sélection: 
---------------------------------------------------
-
-
-Le retrait d'une unité archivistique de la sélection s'effectue via l'action "vider le panier"
+il suffit de la sélectionner via les coches, de sélectionner l'action "vider le panier" et de cliquer sur le bouton "Lancer l'action sur la sélection". 
 
 Un pop-up de confirmation s'affiche pour valider la suppression du panier 
 
@@ -346,12 +361,13 @@ Les unités archivistiques sont cependant toujours disponibles sur le tenant, et
 
 
 
-Ajouter une unité archivistique à la sélection: 
------------------------------------------------
+Vider le panier 
+---------------
 
-Le bouton "Ajouter des unités archivistiques" permet d'accèder directement à la page de recherche, afin d'ajouter des unités archivistiques à la sélection. 
+Le fait de vider le panier ou de retirer une unité archivistique ne les supprime pas de la base de donnée.
 
-.. image:: images/panier_ajouter.png
+Pour vider le panier de la totalité des unités archivistiques, il faut sélectionner l'action "Vider le panier", et cliquer sur le bouton "Lancer l'action sur le panier". Une pop up de confirmation s'affiche lorsque les unités archivistiques sont bien supprimées du panier. 
+
 
 
 
@@ -371,7 +387,6 @@ Ces actions peuvent soit être effectuées sur la totalité des unités archivis
 
 
 Note: si aucune unité archivistique n'est sélectionnée, les boutons correspondants aux actions relatives à la sélection uniquement seront grisés, et les actions seront uniquement disponibles pour la totalité du panier. 
-
 
 
 
