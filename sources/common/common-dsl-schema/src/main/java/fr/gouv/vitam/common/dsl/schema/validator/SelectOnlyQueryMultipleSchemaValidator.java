@@ -24,26 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.dsl.schema;
+package fr.gouv.vitam.common.dsl.schema.validator;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.DslSchema;
+import fr.gouv.vitam.common.dsl.schema.ValidationException;
+import fr.gouv.vitam.common.dsl.schema.Validator;
+import fr.gouv.vitam.common.dsl.schema.meta.Schema;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * List of dsl schemas
+ * SelectOnlyQueryMultipleSchemaValidator
  */
-public enum DslSchema {
-    SELECT_MULTIPLE("select-query-multiple-dsl-schema.json"),
-    SELECT_SINGLE("select-query-single-dsl-schema.json"),
-    SELECT_ONLY_QUERY_MULTIPLE("select-only-query-multiple-dsl-schema.json"),
-    GET_BY_ID("get-by-id-query-dsl-schema.json"),
-    UPDATE_BY_ID("update-by-id-query-dsl-schema.json");
+public class SelectOnlyQueryMultipleSchemaValidator implements DslValidator {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SelectOnlyQueryMultipleSchemaValidator.class);
+    private final Schema schema;
 
-    private String filename;
-
-    DslSchema(String filename) {
-        this.filename = filename;
+    /**
+     * Constructor
+     *
+     * @throws IOException thrown when the schema file is not found or invalid
+     */
+    public SelectOnlyQueryMultipleSchemaValidator() throws IOException {
+        // FIXME find a way to use JsonHandler's mapper if possible
+        ObjectMapper objectMapper = new ObjectMapper();
+        LOGGER.debug("Loading schema {} from {}", DslSchema.SELECT_ONLY_QUERY_MULTIPLE.name(),
+            DslSchema.SELECT_ONLY_QUERY_MULTIPLE.getFilename());
+        try (final InputStream schemaSource =
+            PropertiesUtils.getResourceAsStream(DslSchema.SELECT_ONLY_QUERY_MULTIPLE.getFilename())) {
+            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
+        }
     }
 
-    public String getFilename() {
-        return filename;
+    @Override
+    public void validate(JsonNode dsl) throws ValidationException {
+        Validator.validate(schema, "DSL", dsl);
     }
+
 
 }
