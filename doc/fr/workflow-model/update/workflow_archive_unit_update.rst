@@ -23,7 +23,7 @@ La fin du processus peut prendre plusieurs statuts :
 
   + KO : la mise à jour de l'unité archivistique n'a pas été effectuée en raison d'une erreur (STP_UPDATE_UNIT.KO = Échec du processus de mise à jour des métadonnées de l''unité archivistique)
 
-  + FATAL : une erreur technique est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT.FATAL = Erreur fatale lors du processus de mise à jour des métadonnées de l''unité archivistique)
+  + FATAL : une erreur fatale est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT.FATAL = Erreur fatale lors du processus de mise à jour des métadonnées de l''unité archivistique)
 
 Vérification des règles de gestion UNIT_METADATA_UPDATE_CHECK_RULES (AccessInternalModuleImpl.java)
 ---------------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ Vérification des règles de gestion UNIT_METADATA_UPDATE_CHECK_RULES (AccessInt
 
     - KO : pas de cas KO
 
-    - FATAL : une erreur technique est survenue lors de la création du rapport (UNIT_METADATA_UPDATE_CHECK_RULES.FATAL = Erreur fatale lors de la génération du rapport d'analyse du référentiel des règles de gestion)
+    - FATAL : une erreur fatale est survenue lors de la création du rapport (UNIT_METADATA_UPDATE_CHECK_RULES.FATAL = Erreur fatale lors de la génération du rapport d'analyse du référentiel des règles de gestion)
 
 Indexation des métadonnées UNIT_METADATA_UPDATE (ArchiveUnitUpdateUtils.java)
 -----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ Indexation des métadonnées UNIT_METADATA_UPDATE (ArchiveUnitUpdateUtils.java)
 
     - KO : les métadonnées des unités archivistiques n'ont pas été indexées (UNIT_METADATA_UPDATE.KO = Échec de la mise à jour des métadonnées des unités archivistiques)
 
-    - FATAL : une erreur technique est survenue lors de l'indexation des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE.FATAL = Erreur fatale lors de la mise à jour des métadonnées des unités archivistiques)
+    - FATAL : une erreur fatale est survenue lors de l'indexation des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE.FATAL = Erreur fatale lors de la mise à jour des métadonnées des unités archivistiques)
 
 
 Enregistrement du journal du cycle de vie des unités archivistiques
@@ -75,4 +75,4 @@ Cette action n'est pas journalisée.
 
     - OK : la sécurisation des journaux du cycle de vie s'est correctement déroulée (UNIT_METADATA_UPDATE.OK = Succès de l'enregistrement des journaux du cycle de vie des groupes d'objets)
 
-    - FATAL : une erreur technique est survenue lors de la sécurisation du journal du cycle de vie (UNIT_METADATA_UPDATE.FATAL = Erreur fatale lors de l'enregistrement des journaux du cycle de vie des groupes d'objets)
+    - FATAL : une erreur fatale est survenue lors de la sécurisation du journal du cycle de vie (UNIT_METADATA_UPDATE.FATAL = Erreur fatale lors de l'enregistrement des journaux du cycle de vie des groupes d'objets)

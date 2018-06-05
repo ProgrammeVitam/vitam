@@ -27,7 +27,7 @@ Contrôle sanitaire du SIP SANITY_CHECK_SIP (IngestExternalImpl.java)
 
   - KO : un ou plusieurs virus ont été détectés dans le SIP (SANITY_CHECK_SIP.KO = Échec du processus des contrôles préalables à l'entrée)
 
-  - FATAL : une erreur technique est survenue lors de la vérification de la présence de virus dans le SIP (SANITY_CHECK_SIP.FATAL = Erreur fatale lors du processus des contrôles préalables à l'entrée)
+  - FATAL : une erreur fatale est survenue lors de la vérification de la présence de virus dans le SIP (SANITY_CHECK_SIP.FATAL = Erreur fatale lors du processus des contrôles préalables à l'entrée)
 
 Contrôle du format du conteneur du SIP CHECK_CONTAINER (IngestExternalImpl.java)
 ----------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ Contrôle du format du conteneur du SIP CHECK_CONTAINER (IngestExternalImpl.java
 
   - KO : le conteneur du SIP n'est pas au bon format (CHECK_CONTAINER.KO = Échec du contrôle du format du conteneur du SIP)
 
-  - FATAL : une erreur technique est survenue lors de la vérification du format du conteneur du SIP, liée à l'outil d'identification des formats (CHECK_CONTAINER.FATAL = Erreur fatale lors du contrôle du format du conteneur du SIP)
+  - FATAL : une erreur fatale est survenue lors de la vérification du format du conteneur du SIP, liée à l'outil d'identification des formats (CHECK_CONTAINER.FATAL = Erreur fatale lors du contrôle du format du conteneur du SIP)
 
 
 Processus de réception du SIP dans Vitam STP_UPLOAD_SIP (IngestInternalResource.java)
@@ -60,7 +60,7 @@ Processus de réception du SIP dans Vitam STP_UPLOAD_SIP (IngestInternalResource
 
   + KO : le SIP n'a pas été réceptionné sur l'espace de travail interne (STP_UPLOAD_SIP.KO = Échec du processus de réception du SIP)
 
-  + FATAL : une erreur technique est survenue lors de la réception du SIP dans la solution logicielle Vitam, par exemple une indisponibilité du serveur (STP_UPLOAD_SIP.FATAL = Erreur fatale lors du processus de réception du SIP)
+  + FATAL : une erreur fatale est survenue lors de la réception du SIP dans la solution logicielle Vitam, par exemple une indisponibilité du serveur (STP_UPLOAD_SIP.FATAL = Erreur fatale lors du processus de réception du SIP)
 
 
 Processus de  contrôle du SIP (STP_INGEST_CONTROL_SIP)
@@ -77,7 +77,7 @@ Préparation des informations de stockage PREPARE_STORAGE_INFO (PrepareStorageIn
 
   - OK : Succès de la préparation des informations de stockage (PREPARE_STORAGE_INFO.OK = Succès de la préparation des informations de stockage)
   - KO : Echec de la préparation des informations de stockage (PREPARE_STORAGE_INFO.KO = Echec de la préparation des informations de stockage)
-  - FATAL :Erreur technique est survenue lors de la préparation des informations de stockage (PREPARE_STORAGE_INFO.FATAL = Erreur fatale lors de la préparation des informations de stockage)
+  - FATAL :erreur fatale est survenue lors de la préparation des informations de stockage (PREPARE_STORAGE_INFO.FATAL = Erreur fatale lors de la préparation des informations de stockage)
 
 Vérification globale du SIP CHECK_SEDA (CheckSedaActionHandler.java)
 --------------------------------------------------------------------
@@ -98,7 +98,7 @@ Vérification globale du SIP CHECK_SEDA (CheckSedaActionHandler.java)
 		- Cas 3 : le bordereau de transfert ne respecte pas le schéma par défaut fourni avec le standard SEDA 2.1 (CHECK_SEDA.NOT_XSD_VALID.KO = Échec de la vérification globale du SIP : bordereau de transfert non conforme au schéma SEDA 2.1)
 		- Cas 4 : le SIP contient plus d'un dossier "Content" (CHECK_SEDA.CONTAINER_FORMAT.DIRECTORY.KO = Le SIP contient plus d'un dossier ou un dossier dont le nommage est invalide)
 		- Cas 5 : le SIP contient plus d'un seul fichier à la racine (CHECK_SEDA.CONTAINER_FORMAT.FILE.KO = Le SIP contient plus d'un fichier à sa racine)
-  - FATAL : une erreur technique est survenue lors de du contrôle de cohérence (CHECK_SEDA.FATAL = Erreur fatale lors de la vérification globale du SIP)
+  - FATAL : une erreur fatale est survenue lors de du contrôle de cohérence (CHECK_SEDA.FATAL = Erreur fatale lors de la vérification globale du SIP)
 
 Vérification de l'en-tête du bordereau de transfert CHECK_HEADER (CheckHeaderActionHandler.java)
 ------------------------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ Vérification de l'en-tête du bordereau de transfert CHECK_HEADER (CheckHeaderA
 
   - KO : les informations du bordereau de transfert ne sont pas conformes ou il n'y a pas de service producteur déclaré (CHECK_HEADER.KO = Échec de la vérification générale du bordereau de transfert)
 
-  - FATAL : une erreur technique est survenue lors des contrôles sur les informations générales du bordereau de transfert (CHECK_HEADER.FATAL = Erreur fatale lors de la vérification générale du bordereau de transfert)
+  - FATAL : une erreur fatale est survenue lors des contrôles sur les informations générales du bordereau de transfert (CHECK_HEADER.FATAL = Erreur fatale lors de la vérification générale du bordereau de transfert)
 
 
 La tâche check_header contient les traitements suivants :
@@ -138,7 +138,7 @@ Cette tâche est exécutée si la valeur IN de checkOriginatingAgency est true.
         - Cas 2 : le service producteur et/ou le service versant déclaré dans le SIP n'est pas connue du référentiel des services agents (CHECK_HEADER.CHECK_AGENT.UNKNOWN.KO= Échec de la vérification de la présence et du contrôle des services agents : services agents inconnus du référentiel des services agents)
         - Cas 3 : la balise permettant de déclarer un service producteur est absente du bordereau de tranfert (CHECK_HEADER.CHECK_AGENT.KO=Échec de la vérification de la présence et du contrôle des services agents)
 
-      - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle des services agents (CHECK_HEADER.CHECK_AGENT.FATAL=Erreur fatale lors de la vérification de la présence et du contrôle des services agents)
+      - FATAL : une erreur fatale est survenue lors de la vérification de la présence et du contrôle des services agents (CHECK_HEADER.CHECK_AGENT.FATAL=Erreur fatale lors de la vérification de la présence et du contrôle des services agents)
 
 Vérification de la présence et contrôle du contrat d'entrée (CHECK_CONTRACT_INGEST)
 *************************************************************************************
@@ -181,7 +181,7 @@ Cette tâche est exécutée si la valeur IN de checkProfile est true.
 		- Cas 2 : le profil déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_IC_AP_RELATION.INACTIVE.KO=Échec du contrôle du caractère actif du profil d'archivage)
 		- Cas 3 : le profil déclaré dans le contrat d'entrée et celui déclaré dans le bordereau de transfert ne sont pas les mêmes (CHECK_HEADER.CHECK_IC_AP_RELATION.DIFF.KO=Échec du contrôle de cohérence entre le profil d'archivage déclaré dans le bordereau de transfert et celui déclaré dans le contrat d'entrée)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de la relation entre le contrat d'entrée et le profil d'archivage (CHECK_HEADER.CHECK_IC_AP_RELATION.FATAL = Erreur fatale lors de la vérification de la relation entre le contrat d'entrée et le profil d'archivage)
+    - FATAL : une erreur fatale est survenue lors de la vérification de la relation entre le contrat d'entrée et le profil d'archivage (CHECK_HEADER.CHECK_IC_AP_RELATION.FATAL = Erreur fatale lors de la vérification de la relation entre le contrat d'entrée et le profil d'archivage)
 
 Vérification de la conformité du bordereau de transfert par le profil d'archivage (CHECK_ARCHIVEPROFILE)
 **********************************************************************************************************
@@ -196,7 +196,7 @@ Vérification de la conformité du bordereau de transfert par le profil d'archiv
 
       - KO : le bordereau de transfert n'est pas conforme aux exigences du profil d'archivage (CHECK_HEADER.CHECK_ARCHIVEPROFILE.KO = Échec de la vérification de la conformité au profil d'archivage)
 
-      - FATAL : une erreur technique est survenue lors de la vérification du bordereau de transfert par le profil d'archivage (CHECK_HEADER.CHECK_ARCHIVEPROFILE.FATAL = Erreur fatale lors de la vérification de la conformité au profil d'archivage)
+      - FATAL : une erreur fatale est survenue lors de la vérification du bordereau de transfert par le profil d'archivage (CHECK_HEADER.CHECK_ARCHIVEPROFILE.FATAL = Erreur fatale lors de la vérification de la conformité au profil d'archivage)
 
 
 Vérification du contenu du bordereau CHECK_DATAOBJECTPACKAGE (CheckDataObjectPackageActionHandler.java)
@@ -227,7 +227,7 @@ Vérification des usages des groupes d'objets CHECK_DATAOBJECTPACKAGE.CHECK_MANI
 		- Cas 3 : un ou plusieurs objets contenus dans le SIP déclarent dans le bordereau de transfert un usage ou un numéro de version incohérent avec ceux acceptés (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION.INVALID_DATAOBJECTVERSION.KO=Cet objet déclare un usage incorrect. L'usage doit s'écrire sous la forme [usage] ou [usage]_[version]. "Usage" doit être parmi l'énumération DataObjectVersion définie pour Vitam, "version" doit être un entier positif)
 		- Cas 4 : une ou plusieurs URI sont vides (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION.EMPTY_REQUIRED_FIELD.KO=Il existe au moins un champ non renseigné dont la valeur est obligatoire)
 
-      - FATAL : une erreur technique est survenue lors du contrôle des usages déclarés dans le bordereau de transfert pour les objets contenus dans le SIP (CHECK_MANIFEST_DATAOBJECT_VERSION.FATAL = Erreur fatale lors de la vérification des usages des objets)
+      - FATAL : une erreur fatale est survenue lors du contrôle des usages déclarés dans le bordereau de transfert pour les objets contenus dans le SIP (CHECK_MANIFEST_DATAOBJECT_VERSION.FATAL = Erreur fatale lors de la vérification des usages des objets)
 
 
 Vérification du nombre d'objets CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java)
@@ -247,7 +247,7 @@ Vérification du nombre d'objets CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumber
 		- Cas 2 : le nombre d'objets reçus dans la solution logicielle Vitam est inférieur au nombre d'objets déclaré dans le bordereau de transfert du SIP (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.MANIFEST_SUPERIOR_BDO.KO=Le bordereau de transfert déclare plus d'objets binaires qu'il n'en existe dans le répertoire Content du SIP)
 		- Cas 3 : une ou plusieurs balises URI déclarent un chemin invalide (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.INVALID_URI.KO=Au moins un objet déclare une URI à laquelle ne correspond pas de fichier ou déclare une URI déjà utilisée par un autre objet)
 
-      - FATAL : une erreur technique est survenue lors de la vérification du nombre d'objets (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.FATAL = Erreur fatale lors de la vérification du nombre d'objets)
+      - FATAL : une erreur fatale est survenue lors de la vérification du nombre d'objets (CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER.FATAL = Erreur fatale lors de la vérification du nombre d'objets)
 
 Vérification de la cohérence du bordereau de transfert CHECK_MANIFEST (ExtractSedaActionHandler.java)
 *********************************************************************************************************
@@ -284,7 +284,7 @@ Vérification de la cohérence entre objets, groupes d'objets et unités archivi
 
       - KO : au moins un objet ou groupe d'objets est orphelin (c'est-à-dire non référencé par une unité archivistique) (CHECK_CONSISTENCY.KO = Échec de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques)
 
-      - FATAL : une erreur technique est survenue lors de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques (CHECK_CONSISTENCY.FATAL = Erreur fatale lors de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques)
+      - FATAL : une erreur fatale est survenue lors de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques (CHECK_CONSISTENCY.FATAL = Erreur fatale lors de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques)
 
 
 
@@ -310,7 +310,7 @@ Vérification de l'intégrité des objets CHECK_DIGEST (CheckConformityActionPlu
 		- Cas 2 : au moins une empreinte d'un objet reçu n'est pas conforme à son empreinte dans le bordereau (CHECK_DIGEST.INVALID.KO=Échec lors de la vérification de l'empreinte des objets : Il existe au moins un objet dont l'empreinte est invalide dans le bordereau de transfert)
 		- Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (CHECK_DIGEST.KO=Échec de la vérification de l'empreinte des objets)
 
-  - FATAL : une erreur technique est survenue lors de la vérification de l'intégrité des objets binaires, par exemple lorsque l'algorithme est inconnu (CHECK_DIGEST.FATAL = Erreur fatale lors de la vérification de l'empreinte des objets)
+  - FATAL : une erreur fatale est survenue lors de la vérification de l'intégrité des objets binaires, par exemple lorsque l'algorithme est inconnu (CHECK_DIGEST.FATAL = Erreur fatale lors de la vérification de l'empreinte des objets)
 
 Identification des formats (OG_OBJECTS_FORMAT_CHECK - FormatIdentificationActionPlugin.java)
 ********************************************************************************************
@@ -329,7 +329,7 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK - FormatIdentificationAction
 		- Cas 2 : au moins un objet reçu a un format qui n'est pas référencé dans le référentiel interne (OG_OBJECTS_FORMAT_CHECK.UNCHARTED.KO=Échec lors de l'identification des formats, le format de ou des objet(s) est identifié mais est inconnu du référentiel des formats)
 		- Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
 
-  - FATAL : une erreur technique est survenue lors de l'indentification des formats (OG_OBJECTS_FORMAT_CHECK.FATAL = Erreur fatale lors de l'identification des formats)
+  - FATAL : une erreur fatale est survenue lors de l'indentification des formats (OG_OBJECTS_FORMAT_CHECK.FATAL = Erreur fatale lors de l'identification des formats)
 
   - WARNING : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne mais les informations ne sont pas cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.WARNING = Avertissement lors de la vérification des formats)
 
@@ -357,7 +357,7 @@ Vérification globale de l'unité archivistique CHECK_UNIT_SCHEMA (CheckArchiveU
 		- Cas 5 : Au moins une valeur de l'unité archivistique n'est pas conforme à son schéma en raison d'un problème de cohérence entre champs. Par exemple, la valeur contenue dans le champs "StartDate" est postérieure à la date définie dans la "EndDate"  ( CHECK_UNIT_SCHEMA.CONSISTENCY.KO=Au moins une unité archivistique n'est pas conforme à son schéma en raison d'un problème de cohérence entre champs)
 
 
-  - FATAL : une erreur technique est survenue lors de la vérification de l'unité archivistique (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale lors de la vérification globale de l'unité archivistique)
+  - FATAL : une erreur fatale est survenue lors de la vérification de l'unité archivistique (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale lors de la vérification globale de l'unité archivistique)
 
 
 Vérification du profil d'unité archivistique - si celui-ci est déclaré CHECK_ARCHIVE_UNIT_PROFILE (CheckArchiveUnitProfileActionPlugin.java)
@@ -394,7 +394,7 @@ Vérification du niveau de classification CHECK_CLASSIFICATION_LEVEL (CheckClass
 
   - KO : au moins une unité archivistique du SIP possède un niveau de classification qui n'est pas un niveau de classification autorisé par la plateforme, ou une unité archivistique n'a pas de niveau de classification alors que la plateforme requiert que toutes les unités archivistiques possèdent un niveau de classification. (CHECK_CLASSIFICATION_LEVEL.KO=Échec de la vérification du niveau de classification, non autorisés par la plateforme : le bordereau de transfert déclare un niveau de classification non autorisé par la plateforme)
 
-  - FATAL : une erreur technique est survenue lors de la vérification des niveaux de classifications (CHECK_CLASSIFICATION_LEVEL.FATAL=Erreur fatale lors de la vérification du niveau de classification)
+  - FATAL : une erreur fatale est survenue lors de la vérification des niveaux de classifications (CHECK_CLASSIFICATION_LEVEL.FATAL=Erreur fatale lors de la vérification du niveau de classification)
 
 
 
@@ -414,7 +414,7 @@ Application des règles de gestion et calcul des dates d'échéances UNITS_RULES
     - Cas 1 : au moins une règle de gestion déclarée dans le manifeste n'est pas référencée dans le référentiel interne ou au moins une règle est incohérent avec sa catégorie (UNITS_RULES_COMPUTE.UNKNOWN.KO=Échec lors de l'application des règles de gestion et du calcul des dates d'échéance : règle de gestion inconnue)
     - Cas 2 : une balise RefnonRuleId a un identifiant d'une règle d'une autre catégorie que la sienne (UNITS_RULES_COMPUTE.REF_INCONSISTENCY.KO=Échec lors de l'application des règles de gestion et du calcul des dates d'échéance : exclusion d'héritage incohérente)
 
-  - FATAL : une erreur technique est survenue lors du calcul des dates d'échéances (UNITS_RULES_COMPUTE.FATAL = Erreur fatale lors de l'application des règles de gestion et du calcul des dates d'échéance)
+  - FATAL : une erreur fatale est survenue lors du calcul des dates d'échéances (UNITS_RULES_COMPUTE.FATAL = Erreur fatale lors de l'application des règles de gestion et du calcul des dates d'échéance)
 
 
 Processus de vérification préalable à la prise en charge (STP_STORAGE_AVAILABILITY_CHECK)
@@ -454,7 +454,7 @@ Vérification de la disponibilité de l'offre de stockage STORAGE_AVAILABILITY_C
     - Cas 1 : l'offre de stockage n'est pas disponible (STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK.STORAGE_OFFER_KO_UNAVAILABLE.KO=L'offre de stockage n'est pas disponible)
     - Cas 2 : l'offre de stockage ne dispose pas d'assez d'espace pour stocker le contenu du SIP (STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK.STORAGE_OFFER_SPACE_KO.KO=Disponibilité de l'offre de stockage insuffisante)
 
-  - FATAL : une erreur technique est survenue lors de la vérification de la disponibilité de l'offre de stockage (STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK.FATAL=Erreur fatale lors de la vérification de la disponibilités de l'offre de stockage)
+  - FATAL : une erreur fatale est survenue lors de la vérification de la disponibilité de l'offre de stockage (STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK.FATAL=Erreur fatale lors de la vérification de la disponibilités de l'offre de stockage)
 
 Processus d'écriture et indexation des objets et groupes d'objets (STP_OBJ_STORING)
 ===================================================================================
@@ -474,7 +474,7 @@ Ecriture des objets sur l'offre de stockage OBJ_STORAGE (StoreObjectActionHandle
 
   - WARNING : le SIP ne contient pas d'objet (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
 
-  - FATAL : une erreur technique est survenue lors de l'écriture des objets binaires sur les offres de stockage (OBJ_STORAGE.FATAL = Erreur fatale lors de l'écriture des objets et des groupes d'objets sur les offres de stockage)
+  - FATAL : une erreur fatale est survenue lors de l'écriture des objets binaires sur les offres de stockage (OBJ_STORAGE.FATAL = Erreur fatale lors de l'écriture des objets et des groupes d'objets sur les offres de stockage)
 
 
 Indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION - IndexObjectGroupActionPlugin.java)
@@ -490,7 +490,7 @@ Indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION - Inde
 
   - KO : les métadonnées des groupes d'objets n'ont pas été indexées (OG_METADATA_INDEXATION.KO = Échec de l'indexation des métadonnées des objets et des groupes d'objets)
 
-  - FATAL : une erreur technique est survenue lors de l'indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION.FATAL = Erreur fatale lors de l'indexation des métadonnées des objets et des groupes d'objets)
+  - FATAL : une erreur fatale est survenue lors de l'indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION.FATAL = Erreur fatale lors de l'indexation des métadonnées des objets et des groupes d'objets)
 
 Processus d'indexation des unités archivistiques (STP_UNIT_METADATA)
 =====================================================================
@@ -508,7 +508,7 @@ Indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATIO
 
   - KO : les métadonnées des unités archivistiques n'ont pas été indexées (UNIT_METADATA_INDEXATION.KO = Échec de l'indexation des métadonnées de l'unité archivistique)
 
-  - FATAL : une erreur technique est survenue lors de l'indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATION.FATAL = Erreur fatale lors de l'indexation des métadonnées de l'unité archivistique)
+  - FATAL : une erreur fatale est survenue lors de l'indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATION.FATAL = Erreur fatale lors de l'indexation des métadonnées de l'unité archivistique)
 
 
 Processus d'enregistrement et écriture des métadonnées des objets et groupes d'objets(STP_OG_STORING)
@@ -525,7 +525,7 @@ Enregistrement des journaux du cycle de vie des groupes d'objets COMMIT_LIFE_CYC
 
   - OK : la sécurisation des journaux du cycle de vie s'est correctement déroulée (COMMIT_LIFE_CYCLE_OBJECT_GROUP.OK = Succès de l'enregistrement des journaux du cycle de vie des groupes d'objets)
 
-  - FATAL : une erreur technique est survenue lors de la sécurisation du journal du cycle de vie (COMMIT_LIFE_CYCLE_OBJECT_GROUP.FATAL = Erreur fatale lors de l'enregistrement des journaux du cycle de vie des groupes d'objets)
+  - FATAL : une erreur fatale est survenue lors de la sécurisation du journal du cycle de vie (COMMIT_LIFE_CYCLE_OBJECT_GROUP.FATAL = Erreur fatale lors de l'enregistrement des journaux du cycle de vie des groupes d'objets)
 
 
 Ecriture des métadonnées du groupe d'objets sur l'offre de stockage OG_METADATA_STORAGE (StoreMetaDataObjectGroupActionPlugin)
@@ -570,7 +570,7 @@ Ecriture des métadonnées de l'unité archivistique sur l'offre de stockage UNI
 
   - OK : la sécurisation des journaux du cycle de vie s'est correctement déroulée (COMMIT_LIFE_CYCLE_OBJECT_GROUP.OK = Succès de l'enregistrement des journaux du cycle de vie des groupes d'objets)
 
-  - FATAL : une erreur technique est survenue lors de la sécurisation du journal du cycle de vie (COMMIT_LIFE_CYCLE_OBJECT_GROUP.FATAL = Erreur fatale lors de l'enregistrement des journaux du cycle de vie des groupes d'objets)
+  - FATAL : une erreur fatale est survenue lors de la sécurisation du journal du cycle de vie (COMMIT_LIFE_CYCLE_OBJECT_GROUP.FATAL = Erreur fatale lors de l'enregistrement des journaux du cycle de vie des groupes d'objets)
 
 Processus de mise à jour du groupe d'objets (STP_UPDATE_OBJECT_GROUP)
 =====================================================================
@@ -587,7 +587,7 @@ Création du différentiel OBJECT_GROUP_UPDATE (UpdateObjectGroupPlugin.java)
   - OK : le différentiel est créé et est enregistré dans l'evDetData (OBJECT_GROUP_UPDATE.OK = Succès lors du processus de mise à jour du groupe d'objets)
   - FATAL : une erreur fatale est survenue (OBJECT_GROUP_UPDATE.FATAL = Erreur fatale lors du processus de mise à jour du groupe d''objets)
 
-  - FATAL : une erreur technique est survenue (OBJECT_GROUP_UPDATE.FATAL = )
+  - FATAL : une erreur fatale est survenue (OBJECT_GROUP_UPDATE.FATAL = )
 
 Etablissement de la liste des objets (OBJECTS_LIST_EMPTY)
 ---------------------------------------------------------
@@ -615,7 +615,7 @@ Alimentation du registre des fonds ACCESSION_REGISTRATION (AccessionRegisterActi
 
   - KO : le registre des fonds n'a pas pu être alimenté (ACCESSION_REGISTRATION.KO = Échec de l'alimentation du registre des fonds)
 
-  - FATAL : une erreur technique est survenue lors de l'alimentation du registre des fonds (ACCESSION_REGISTRATION.FATAL = Erreur fatale lors de l'alimentation du registre des fonds)
+  - FATAL : une erreur fatale est survenue lors de l'alimentation du registre des fonds (ACCESSION_REGISTRATION.FATAL = Erreur fatale lors de l'alimentation du registre des fonds)
 
 
 Processus de finalisation de l'entrée (STP_INGEST_FINALISATION)
@@ -634,7 +634,7 @@ Notification de la fin de l'opération d'entrée ATR_NOTIFICATION (TransferNotif
 
   - KO : Le message de réponse n'a pas été correctement généré, écrit sur l'offre de stockage ou reçu par le service versant (ATR_NOTIFICATION.KO = Échec de la notification de la fin de l'opération d'entrée à l'opérateur de versement)
 
-  - FATAL : une erreur technique est survenue lors de la notification de la fin de l'opération (ATR_NOTIFICATION.FATAL = Erreur fatale lors de la notification de la fin de l'opération d'entrée à l'opérateur de versement)
+  - FATAL : une erreur fatale est survenue lors de la notification de la fin de l'opération (ATR_NOTIFICATION.FATAL = Erreur fatale lors de la notification de la fin de l'opération d'entrée à l'opérateur de versement)
 
 Mise en cohérence des journaux du cycle de vie ROLL_BACK (RollBackActionHandler.java)
 -------------------------------------------------------------------------------------
@@ -647,7 +647,7 @@ Mise en cohérence des journaux du cycle de vie ROLL_BACK (RollBackActionHandler
 
   - OK : la purge s'est correctement déroulée (ROLL_BACK.OK = Succès de la mise en cohérence des journaux du cycle de vie)
 
-  - FATAL : une erreur technique est survenue lors de la purge (ROLL_BACK.FATAL = Erreur fatale lors de la mise en cohérence des journaux du cycle de vie)
+  - FATAL : une erreur fatale est survenue lors de la purge (ROLL_BACK.FATAL = Erreur fatale lors de la mise en cohérence des journaux du cycle de vie)
 
 
 Structure du Workflow
