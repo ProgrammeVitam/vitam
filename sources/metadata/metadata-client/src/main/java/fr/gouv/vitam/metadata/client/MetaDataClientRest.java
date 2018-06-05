@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -67,6 +69,9 @@ import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 public class MetaDataClientRest extends DefaultClient implements MetaDataClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientRest.class);
+
+    public final String COMPUTE_GRAPH_URI = "/computegraph";
+
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
@@ -543,4 +548,44 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
     }
 
+    @Override
+    public GraphComputeResponse computeGraph(JsonNode queryDsl) throws VitamClientException {
+        ParametersChecker.checkParameter("The queryDsl is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, COMPUTE_GRAPH_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return response.readEntity(GraphComputeResponse.class);
+
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public GraphComputeResponse computeGraph(GraphComputeResponse.GraphComputeAction action, Set<String> ids)
+        throws VitamClientException {
+        ParametersChecker.checkParameter("All params are mandatory", action, ids);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, COMPUTE_GRAPH_URI + "/" + action.name(), null, ids,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return response.readEntity(GraphComputeResponse.class);
+
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new VitamClientException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

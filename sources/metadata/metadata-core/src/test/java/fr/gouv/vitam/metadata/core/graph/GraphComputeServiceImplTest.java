@@ -5,25 +5,27 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.List;
 
+import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.cache.VitamCache;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,11 +33,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class GraphBuilderServiceImplTest {
+public class GraphComputeServiceImplTest {
 
 
     @Rule
@@ -70,12 +73,18 @@ public class GraphBuilderServiceImplTest {
     @Mock
     private MongoCursor mongoCursorGot;
 
+
+    @Spy
+    private VitamCache<String, Document> cache = GraphComputeCache.getInstance();
+
+    @Spy
+    private List<Integer> tenants = Lists.newArrayList(1, 2);
+
     @InjectMocks
-    private GraphBuilderServiceImpl graphBuilderService;
+    private GraphComputeServiceImpl graphBuilderService;
 
     @Before
     public void setup() throws DatabaseException {
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
 
         given(unitRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableUnit);
@@ -109,17 +118,21 @@ public class GraphBuilderServiceImplTest {
 
         when(mongoCursorUnit.next()).thenAnswer(
             o -> new Document("_id", GUIDFactory.newGUID().getId())
+                .append("_og", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
                 .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
         );
         when(mongoCursorGot.next()).thenAnswer(
             o -> new Document("_id", GUIDFactory.newGUID().getId())
+                .append("_og", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
                 .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
         );
     }
 
+
     @Test
     @RunWithCustomExecutor
-    public void whenBuildGraphThenOK() throws GraphBuilderException {
+    public void whenBuildGraphThenOK() {
+
         // Given
         final int[] cpt = {0};
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
@@ -142,14 +155,15 @@ public class GraphBuilderServiceImplTest {
         });
 
 
-        Map<MetadataCollections, Integer> map = graphBuilderService.computeGraph();
-        assertThat(map.get(MetadataCollections.UNIT)).isEqualTo(3);
-        assertThat(map.get(MetadataCollections.OBJECTGROUP)).isEqualTo(3);
+        GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.UNIT,
+            Sets.newHashSet("fake1", "fake2", "fake3"), true);
+        assertThat(response.getUnitCount()).isEqualTo(3);
+        assertThat(response.getGotCount()).isEqualTo(3);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void whenBuildObjectGroupGraphThenOK() throws GraphBuilderException {
+    public void whenBuildObjectGroupGraphThenOK() {
         // Given
         final int[] cpt = {0};
         when(mongoCursorGot.hasNext()).thenAnswer(o -> {
@@ -162,13 +176,14 @@ public class GraphBuilderServiceImplTest {
         });
 
 
-        Integer result = graphBuilderService.computeGraph(MetadataCollections.OBJECTGROUP, null);
-        assertThat(result).isEqualTo(3);
+        GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.OBJECTGROUP,
+            Sets.newHashSet("fake1", "fake2", "fake3"), false);
+        assertThat(response.getGotCount()).isEqualTo(3);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void whenBuildUnitGraphThenOK() throws GraphBuilderException {
+    public void whenBuildUnitGraphThenOK() {
         // Given
         final int[] cpt = {0};
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
@@ -181,8 +196,9 @@ public class GraphBuilderServiceImplTest {
         });
 
 
-        Integer result = graphBuilderService.computeGraph(MetadataCollections.UNIT, null);
-        assertThat(result).isEqualTo(3);
+        GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.UNIT,
+            Sets.newHashSet("fake1", "fake2", "fake3"), false);
+        assertThat(response.getUnitCount()).isEqualTo(3);
     }
 
 
@@ -194,8 +210,11 @@ public class GraphBuilderServiceImplTest {
         when(mongoCursorGot.hasNext()).thenAnswer(o -> false);
 
 
-        Map<MetadataCollections, Integer> map = graphBuilderService.computeGraph();
-        assertThat(map.get(MetadataCollections.UNIT)).isEqualTo(0);
-        assertThat(map.get(MetadataCollections.OBJECTGROUP)).isEqualTo(0);
+        GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.UNIT,
+            Sets.newHashSet(), false);
+        assertThat(response.getUnitCount()).isEqualTo(0);
+        response = graphBuilderService.computeGraph(MetadataCollections.OBJECTGROUP,
+            Sets.newHashSet(), false);
+        assertThat(response.getGotCount()).isEqualTo(0);
     }
 }

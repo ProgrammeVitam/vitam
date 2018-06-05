@@ -17,9 +17,12 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
+import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -27,6 +30,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -37,6 +42,7 @@ import fr.gouv.vitam.common.graph.GraphUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -190,9 +196,12 @@ public class MetadataManagementIT {
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(), MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName());
+        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
+            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1");
 
+    Map<MetadataCollections, VitamMongoRepository> mongoRepository;
+    Map<MetadataCollections, VitamElasticsearchRepository> esRepository;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -354,19 +363,18 @@ public class MetadataManagementIT {
         metadataManagementResource = retrofit.create(MetadataManagementResource.class);
 
 
-        Map<MetadataCollections, VitamMongoRepository> mongoRepository = new HashMap<>();
+        mongoRepository = new HashMap<>();
         mongoRepository.put(MetadataCollections.UNIT,
-            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.UNIT.name())));
+            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.UNIT.getName())));
         mongoRepository.put(MetadataCollections.OBJECTGROUP,
-            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.OBJECTGROUP.name())));
-
-        Map<MetadataCollections, VitamElasticsearchRepository> esRepository = new HashMap<>();
+            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.OBJECTGROUP.getName())));
+        esRepository = new HashMap<>();
         esRepository.put(MetadataCollections.UNIT,
             new VitamElasticsearchRepository(elasticsearchRule.getClient(),
-                MetadataCollections.UNIT.name().toLowerCase(), true));
+                MetadataCollections.UNIT.getName().toLowerCase(), true));
         esRepository.put(MetadataCollections.OBJECTGROUP,
             new VitamElasticsearchRepository(elasticsearchRule.getClient(),
-                MetadataCollections.OBJECTGROUP.name().toLowerCase(), true));
+                MetadataCollections.OBJECTGROUP.getName().toLowerCase(), true));
 
         VitamConfiguration.setAdminTenant(1);
 
@@ -501,7 +509,7 @@ public class MetadataManagementIT {
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
-        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -513,7 +521,7 @@ public class MetadataManagementIT {
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
-        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
@@ -551,7 +559,7 @@ public class MetadataManagementIT {
         reconstructionItems.add(reconstructionItem1);
         reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
@@ -569,7 +577,7 @@ public class MetadataManagementIT {
         reconstructionItem2.setTenant(TENANT_1);
         reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.UNIT.getName())).isEqualTo(0L);
@@ -587,7 +595,7 @@ public class MetadataManagementIT {
         reconstructionItem2.setTenant(TENANT_0);
         reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection( reconstructionItems).execute();
+        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
@@ -670,7 +678,7 @@ public class MetadataManagementIT {
         reconstructionItems.add(reconstructionItem);
 
         Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection( reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(1);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(4L);
@@ -965,7 +973,7 @@ public class MetadataManagementIT {
         reconstructionItems.add(reconstructionItem);
 
         Response<List<ReconstructionResponseItem>> response =
-            metadataManagementResource.reconstructCollection( reconstructionItems).execute();
+            metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
         assertThat(response.body().size()).isEqualTo(2);
         assertThat(offsetRepository.findOffsetBy(TENANT_1, DataCategory.UNIT_GRAPH.name())).isEqualTo(1L);
@@ -1169,9 +1177,10 @@ public class MetadataManagementIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testComputeUnitAndObjectGroupGraph() throws Exception {
+    public void testComputeUnitAndObjectGroupGraphUsingQueryDsl() throws Exception {
         // Clean offerLog
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
 
         //Given
         initializeDbWithUnitAndObjectGroupData();
@@ -1182,18 +1191,43 @@ public class MetadataManagementIT {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
 
-        // Compute Graph
-        Map<MetadataCollections, Integer> body = metadataManagementResource.computeGraph().execute().body();
+        final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
 
+        // Compute Graph
+        final Select select = new Select();
+        select.setQuery(QueryHelper.missing("fakefake"));
+        GraphComputeResponse body = metaDataClient.computeGraph(select.getFinalSelect());
+
+        check(body);
+
+        Document au3 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_3")).first();
+        Document got10 = (Document) MetadataCollections.OBJECTGROUP.getCollection()
+            .find(eq(Unit.ID, "GOT_10"))
+            .first();
+
+        au3.remove(Unit.ORIGINATING_AGENCIES);
+        got10.remove(Unit.ORIGINATING_AGENCIES);
+
+        MetadataCollections.UNIT.getCollection().replaceOne(Filters.eq(Unit.ID, au3.getString(Unit.ID)), au3);
+        MetadataCollections.OBJECTGROUP.getCollection()
+            .replaceOne(Filters.eq(Unit.ID, got10.getString(Unit.ID)), got10);
+
+        body = metaDataClient.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT_OBJECTGROUP,
+            Sets.newHashSet("AU_3", "AU_6", "AU_7", "AU_10"));
+
+        check(body);
+
+    }
+
+    private void check(GraphComputeResponse body) {
         // Check that 4 unit and 4 ObjectGroup are trated
-        assertThat(body.get(MetadataCollections.UNIT)).isEqualTo(4);
-        assertThat(body.get(MetadataCollections.OBJECTGROUP)).isEqualTo(4);
+        assertThat(body.getUnitCount()).isEqualTo(4);
+        assertThat(body.getGotCount()).isEqualTo(3);
 
         // Check graph data for unit (AU_3, AU_6, AU_7,AU_9, AU_10)
         Document au3 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_3")).first();
         Document au6 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_6")).first();
         Document au7 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_7")).first();
-        Document au9 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_9")).first();
         Document au10 = (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "AU_10")).first();
 
         // AU3
@@ -1240,7 +1274,8 @@ public class MetadataManagementIT {
         assertThat(au10.get(Unit.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
         assertThat(au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class)).containsKeys("OA1", "OA2", "OA4");
         assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA1")).contains("AU_1");
-        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2")).contains("AU_2", "AU_6", "AU_8", "AU_9");
+        assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA2"))
+            .contains("AU_2", "AU_6", "AU_8", "AU_9");
         assertThat((List) au10.get(Unit.PARENT_ORIGINATING_AGENCIES, Map.class).get("OA4")).contains("AU_4");
         assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).hasSize(4);
         assertThat(au10.get(Unit.UNITDEPTHS, Map.class)).containsKeys("1", "2", "3");
@@ -1251,21 +1286,25 @@ public class MetadataManagementIT {
         assertThat(au10.get(Unit.MAXDEPTH, Integer.class)).isEqualTo(5);
         assertThat(au10.get(Unit.GRAPH, List.class))
             .contains(GraphUtils.createGraphRelation("AU_10", "AU_8"), GraphUtils.createGraphRelation("AU_10", "AU_9"),
-                GraphUtils.createGraphRelation("AU_8", "AU_6"), GraphUtils.createGraphRelation("AU_8", "AU_4"), GraphUtils.createGraphRelation("AU_9", "AU_5"), GraphUtils.createGraphRelation("AU_9", "AU_6"), GraphUtils.createGraphRelation("AU_5", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"), GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_1"));
+                GraphUtils.createGraphRelation("AU_8", "AU_6"), GraphUtils.createGraphRelation("AU_8", "AU_4"),
+                GraphUtils.createGraphRelation("AU_9", "AU_5"), GraphUtils.createGraphRelation("AU_9", "AU_6"),
+                GraphUtils.createGraphRelation("AU_5", "AU_2"), GraphUtils.createGraphRelation("AU_6", "AU_5"),
+                GraphUtils.createGraphRelation("AU_6", "AU_2"), GraphUtils.createGraphRelation("AU_4", "AU_2"),
+                GraphUtils.createGraphRelation("AU_4", "AU_1"));
 
 
         // Check graph data for ObjectGroup (GOT_4, GOT_6, GOT_8, GOT_9, GOT_10)
         Document got4 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_4")).first();
         Document got6 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_6")).first();
         Document got8 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_8")).first();
-        Document got9 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_9")).first();
+
         Document got10 = (Document) MetadataCollections.OBJECTGROUP.getCollection().find(eq(Unit.ID, "GOT_10")).first();
 
 
         // Got 4
         assertThat(got4.get(ObjectGroup.UP, List.class)).contains("AU_4");
         assertThat(got4.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA4");
-        assertThat(got4.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
+        assertThat(got4.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA4");
 
         // Got 6
         assertThat(got6.get(ObjectGroup.UP, List.class)).contains("AU_6");
@@ -1277,89 +1316,119 @@ public class MetadataManagementIT {
         assertThat(got8.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
         assertThat(got8.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
 
-        // Got 9
-        assertThat(got9.get(ObjectGroup.UP, List.class)).contains("AU_9");
-        assertThat(got9.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
-        assertThat(got9.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA2");
-
         // Got 10
         assertThat(got10.get(ObjectGroup.UP, List.class)).contains("AU_10");
         assertThat(got10.get(ObjectGroup.ORIGINATING_AGENCY, String.class)).isEqualTo("OA2");
         assertThat(got10.get(ObjectGroup.ORIGINATING_AGENCIES, List.class)).contains("OA1", "OA2", "OA4");
-
     }
 
     // See computegraph.png for more information
-    private void initializeDbWithUnitAndObjectGroupData() {
+    private void initializeDbWithUnitAndObjectGroupData() throws DatabaseException {
         // Create units with or without graph data
         Document au1 = new Document(Unit.ID, "AU_1")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
+            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
         Document au2 = new Document(Unit.ID, "AU_2")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
+            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au3 =
             new Document(Unit.ID, "AU_3")
+                .append(Unit.MAXDEPTH, 1)
+                .append(Unit.TENANT_ID, 1)
+                .append(Unit.OG, "GOT_8")
                 .append(Unit.UP, Lists.newArrayList("AU_1"))
                 .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA1"));
 
         Document au4 = new Document(Unit.ID, "AU_4")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_4")
             .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
+            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au5 = new Document(Unit.ID, "AU_5")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList("AU_2"))
+            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au6 = new Document(Unit.ID, "AU_6")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_6")
             .append(Unit.UP, Lists.newArrayList("AU_2", "AU_5"))
             .append(Unit.ORIGINATING_AGENCY, "OA2")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au7 =
             new Document(Unit.ID, "AU_7")
+                .append(Unit.MAXDEPTH, 1)
+                .append(Unit.TENANT_ID, 1)
+                .append(Unit.OG, "GOT_8")
                 .append(Unit.UP, Lists.newArrayList("AU_4"))
                 .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au8 = new Document(Unit.ID, "AU_8")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_8")
             .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
+            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au9 = new Document(Unit.ID, "AU_9")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_9")
             .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
+            .append("fakefake", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au10 =
             new Document(Unit.ID, "AU_10")
+                .append(Unit.MAXDEPTH, 1)
+                .append(Unit.TENANT_ID, 1)
+                .append(Unit.OG, "GOT_10")
                 .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
                 .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
-        MetadataCollections.UNIT.getCollection()
-            .insertMany(units);
+        mongoRepository.get(MetadataCollections.UNIT).save(units);
+        esRepository.get(MetadataCollections.UNIT).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
         ///////////////////////////////////////////////
         Document got4 = new Document(ObjectGroup.ID, "GOT_4")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_4"))
-            .append(ObjectGroup.ORIGINATING_AGENCY, "OA4");
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA4")
+            .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4"));
 
         // Got 6 have Graph Data
         Document got6 = new Document(ObjectGroup.ID, "GOT_6")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
@@ -1367,20 +1436,24 @@ public class MetadataManagementIT {
 
         //Unit "AU_8", "AU_3", "AU_7" attached to got 8
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_8", "AU_3", "AU_7"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got9 = new Document(ObjectGroup.ID, "GOT_9")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_9"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got10 =
             new Document(ObjectGroup.ID, "GOT_10")
+                .append(Unit.TENANT_ID, 1)
                 .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
                 .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
-        MetadataCollections.OBJECTGROUP.getCollection().insertMany(gots);
+        mongoRepository.get(MetadataCollections.OBJECTGROUP).save(gots);
+        esRepository.get(MetadataCollections.OBJECTGROUP).save(gots);
     }
 
     private void createInWorkspace(String container, String fileName, String extention, String file, DataCategory type)
@@ -1434,14 +1507,6 @@ public class MetadataManagementIT {
             "Content-Type: application/json"
         })
         Call<Map<MetadataCollections, Integer>> tryStoreGraph();
-
-        @GET("/metadata/v1/computegraph")
-        @Headers({
-            "Accept: application/json",
-            "Content-Type: application/json"
-        })
-        Call<Map<MetadataCollections, Integer>> computeGraph();
-
     }
 
 }

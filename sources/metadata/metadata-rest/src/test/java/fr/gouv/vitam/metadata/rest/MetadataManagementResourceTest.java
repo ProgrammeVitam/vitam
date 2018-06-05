@@ -41,12 +41,15 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.graph.GraphBuilderException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
-import fr.gouv.vitam.metadata.core.graph.api.GraphBuilderService;
+import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
@@ -60,14 +63,14 @@ public class MetadataManagementResourceTest {
 
     private ReconstructionService reconstructionService;
     private StoreGraphService storeGraphService;
-    private GraphBuilderService graphBuilderService;
+    private GraphComputeService graphBuilderService;
     private ReconstructionRequestItem requestItem;
 
     @Before
     public void setup() {
         reconstructionService = mock(ReconstructionService.class);
         storeGraphService = mock(StoreGraphService.class);
-        graphBuilderService = mock(GraphBuilderService.class);
+        graphBuilderService = mock(GraphComputeService.class);
         requestItem = new ReconstructionRequestItem();
         requestItem.setCollection("unit").setTenant(10).setLimit(100);
     }
@@ -114,36 +117,71 @@ public class MetadataManagementResourceTest {
 
 
     @Test
-    public void should_return_ok_when__graph_builder_handled() throws GraphBuilderException {
+    public void should_return_ok_when__graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
-        final Map<MetadataCollections, Integer> map = new HashMap<>();
-        map.put(MetadataCollections.UNIT, 10);
-        map.put(MetadataCollections.OBJECTGROUP, 3);
-        when(graphBuilderService.computeGraph()).thenReturn(map);
+        when(graphBuilderService.computeGraph(JsonHandler.createObjectNode()))
+            .thenReturn(new GraphComputeResponse(10, 3));
         MetadataManagementResource reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
         // When
-        Response response = reconstructionResource.computeGraph();
+        Response response = reconstructionResource.computeGraphByDSL(JsonHandler.createObjectNode());
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-        Map<MetadataCollections, Integer> responseEntity = (Map<MetadataCollections, Integer>) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity.size()).isEqualTo(2);
-        assertThat(responseEntity.get(MetadataCollections.UNIT)).isEqualTo(10);
-        assertThat(responseEntity.get(MetadataCollections.OBJECTGROUP)).isEqualTo(3);
+        GraphComputeResponse resp = (GraphComputeResponse) response.getEntity();
+        assertThat(resp).isNotNull();
+        assertThat(resp.getUnitCount()).isEqualTo(10);
+        assertThat(resp.getGotCount()).isEqualTo(3);
     }
 
 
     @Test
-    public void should_return_ko_when_graph_builder_handled() throws GraphBuilderException {
+    public void should_return_ko_when_graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
         String errorMessage = "Error in graph builder";
-        when(graphBuilderService.computeGraph()).thenThrow(new RuntimeException(errorMessage));
+        when(graphBuilderService.computeGraph(JsonHandler.createObjectNode()))
+            .thenThrow(new RuntimeException(errorMessage));
         MetadataManagementResource reconstructionResource =
             new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
         // When
-        Response response = reconstructionResource.computeGraph();
+        Response response = reconstructionResource.computeGraphByDSL(JsonHandler.createObjectNode());
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        String responseEntity = (String) response.getEntity();
+        assertThat(responseEntity).isNotNull();
+        assertThat(responseEntity).contains(errorMessage);
+    }
+
+    @Test
+    public void should_return_ok_when__graph_handled() throws MetaDataException {
+        // Given
+        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false))
+            .thenReturn(new GraphComputeResponse(10, 3));
+        MetadataManagementResource reconstructionResource =
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+        // When
+        Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
+        GraphComputeResponse resp = (GraphComputeResponse) response.getEntity();
+        assertThat(resp).isNotNull();
+        assertThat(resp.getUnitCount()).isEqualTo(10);
+        assertThat(resp.getGotCount()).isEqualTo(3);
+    }
+
+
+    @Test
+    public void should_return_ko_when_graph_compute_handled() throws MetaDataException {
+        // Given
+        String errorMessage = "Error in graph builder";
+        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false))
+            .thenThrow(new RuntimeException(errorMessage));
+        MetadataManagementResource reconstructionResource =
+            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService);
+        // When
+        Response response = reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());

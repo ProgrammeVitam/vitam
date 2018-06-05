@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
@@ -42,10 +43,13 @@ import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
+import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 
 /**
  * Metadata resources and filter
@@ -71,16 +75,18 @@ public class BusinessApplication extends Application {
 
             MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
 
-            MetadataResource metaDataResource = new MetadataResource(mongoAccessMetadata);
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
+            MetaData metadata = MetaDataImpl.newMetadata(mongoAccessMetadata);
 
+            GraphFactory.initialize(vitamRepositoryProvider, metadata);
+
+            MetadataResource metaDataResource = new MetadataResource(metadata);
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
-
             MetadataManagementResource metadataReconstruction =
-                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository);
+                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository, metadata);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

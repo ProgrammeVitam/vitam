@@ -15,9 +15,6 @@ case "$1" in
       systemctl stop vitam-metadata-store-graph.timer >/dev/null 2>&1 || true
       systemctl --no-reload disable vitam-metadata-store-graph.service >/dev/null 2>&1 || true
       systemctl stop vitam-metadata-store-graph.service >/dev/null 2>&1 || true
-
-      systemctl --no-reload disable vitam-metadata-graph-builder.service >/dev/null 2>&1 || true
-      systemctl stop vitam-metadata-graph-builder.service >/dev/null 2>&1 || true
     fi
     ;;
 

@@ -29,28 +29,37 @@ package fr.gouv.vitam.metadata.rest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
+import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
-import fr.gouv.vitam.metadata.core.graph.GraphBuilderServiceImpl;
+import fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
-import fr.gouv.vitam.metadata.core.graph.api.GraphBuilderService;
+import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
@@ -65,6 +74,9 @@ public class MetadataManagementResource {
      * Vitam Logger.
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataManagementResource.class);
+    public static final String OBJECTGROUP = "OBJECTGROUP";
+    public static final String UNIT = "UNIT";
+    public static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
     private final String STORE_GRAPH_URI = "/storegraph";
@@ -81,12 +93,15 @@ public class MetadataManagementResource {
     private static final String STORE_GRAPH_EXCEPTION_MSG =
         "ERROR: Exception has been thrown when sotre graph: ";
 
+    private static final String COMPUTE_GRAPH_EXCEPTION_MSG =
+        "ERROR: Exception has been thrown when compute graph: ";
+
     /**
      * Reconstruction service.
      */
     private ReconstructionService reconstructionService;
     private StoreGraphService storeGraphService;
-    private GraphBuilderService graphBuilderService;
+    private GraphComputeService graphComputeService;
 
     /**
      * Constructor
@@ -95,9 +110,10 @@ public class MetadataManagementResource {
      * @param offsetRepository
      */
     public MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository) {
+        OffsetRepository offsetRepository, MetaData metadata) {
         this(new ReconstructionService(vitamRepositoryProvider, offsetRepository),
-            new StoreGraphService(vitamRepositoryProvider), new GraphBuilderServiceImpl(vitamRepositoryProvider));
+            new StoreGraphService(vitamRepositoryProvider),
+            GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata));
     }
 
     /**
@@ -110,10 +126,10 @@ public class MetadataManagementResource {
     public MetadataManagementResource(
         ReconstructionService reconstructionService,
         StoreGraphService storeGraphService,
-        GraphBuilderService graphBuilderService) {
+        GraphComputeService graphComputeService) {
         this.reconstructionService = reconstructionService;
         this.storeGraphService = storeGraphService;
-        this.graphBuilderService = graphBuilderService;
+        this.graphComputeService = graphComputeService;
     }
 
     /**
@@ -201,16 +217,17 @@ public class MetadataManagementResource {
      * @return the response
      */
     @Path(COMPUTE_GRAPH_URI)
-    @GET
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response computeGraph() {
+    public Response computeGraphByDSL(JsonNode queryDsl) {
 
         try {
-            Map<MetadataCollections, Integer> map = this.graphBuilderService.computeGraph();
-            return Response.ok().entity(map).build();
+            GraphComputeResponse response = this.graphComputeService.computeGraph(queryDsl);
+            return Response.ok().entity(response).build();
         } catch (Exception e) {
-            LOGGER.error(STORE_GRAPH_EXCEPTION_MSG, e);
+            LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
             return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
         }
     }
@@ -226,16 +243,50 @@ public class MetadataManagementResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response computeGraphInProgress() {
+    public Response computeGraphByDSLInProgress() {
 
-        boolean inProgress = this.storeGraphService.isInProgress();
+        boolean inProgress = this.graphComputeService.isInProgress();
         if (inProgress) {
-            LOGGER.info("Graph builder in progress ...");
-            return Response.ok("{\"msg\": \"Graph builder in progress ...\"}").build();
+            LOGGER.info("Graph compute in progress ...");
+            return Response.ok("{\"msg\": \"Graph compute in progress ...\"}").build();
         } else {
             LOGGER.info("No active graph builder");
-            return Response.status(Response.Status.NOT_FOUND).entity("{\"msg\": \"No active graph builder\"}")
+            return Response.status(Response.Status.NOT_FOUND).entity("{\"msg\": \"No active graph compute service\"}")
                 .build();
         }
+    }
+
+
+    /**
+     * API to access and launch the Vitam graph builder service for metadatas.<br/>
+     *
+     * @return the response
+     */
+    @Path(COMPUTE_GRAPH_URI + "/{collection:" + UNIT + "|" + OBJECTGROUP + "|" + UNIT_OBJECTGROUP + "}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response computeGraph(@PathParam("collection") GraphComputeAction action, Set<String> documentsId) {
+        try {
+
+            MetadataCollections metadataCollections = MetadataCollections.UNIT;
+            boolean computeObjectGroupGraph = GraphComputeAction.UNIT_OBJECTGROUP.equals(action);
+
+            if (GraphComputeAction.OBJECTGROUP.equals(action)) {
+                metadataCollections = MetadataCollections.OBJECTGROUP;
+            }
+
+            GraphComputeResponse response =
+                this.graphComputeService.computeGraph(metadataCollections, documentsId, computeObjectGroupGraph);
+            return Response.ok().entity(response).build();
+        } catch (Exception e) {
+            LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
+            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+    public static void main(String[] args) throws InvalidParseOperationException {
+        List<String> list = Lists.newArrayList("a", "b");
+        System.err.println(JsonHandler.writeAsString(list));
     }
 }
