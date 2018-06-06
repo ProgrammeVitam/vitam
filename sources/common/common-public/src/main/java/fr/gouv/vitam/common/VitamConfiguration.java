@@ -155,6 +155,7 @@ public class VitamConfiguration {
      */
     private static String vitamTmpFolderDefault = "/vitam/data/tmp";
 
+    private static String workspaceWorkflowsFolder = "workflows";
 
 
     private static Integer vitamCleanPeriod = 1;
@@ -1740,5 +1741,13 @@ public class VitamConfiguration {
 
     public static long getSwiftFileLimit() {
         return swiftFileLimit;
+    }
+
+    public static String getWorkspaceWorkflowsFolder() {
+        return workspaceWorkflowsFolder;
+    }
+
+    public static void setWorkspaceWorkflowsFolder(String workspaceWorkflowsFolder) {
+        VitamConfiguration.workspaceWorkflowsFolder = workspaceWorkflowsFolder;
     }
 }

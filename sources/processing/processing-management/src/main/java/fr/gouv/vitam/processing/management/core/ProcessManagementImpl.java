@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
@@ -97,7 +96,7 @@ public class ProcessManagementImpl implements ProcessManagement {
     /**
      * constructor of ProcessManagementImpl
      *
-     * @param config configuration of process engine server
+     * @param config             configuration of process engine server
      * @param processDistributor
      * @throws ProcessingStorageWorkspaceException thrown when error occurred on loading paused process
      */
@@ -196,7 +195,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         // check data container and folder
         ProcessDataManagement dataManagement = WorkspaceProcessDataManagement.getInstance();
         dataManagement.createProcessContainer();
-        dataManagement.createFolder(String.valueOf(ServerIdentity.getInstance().getServerId()));
+        dataManagement.createFolder(VitamConfiguration.getWorkspaceWorkflowsFolder());
 
         final ProcessWorkflow processWorkflow;
         if (ParametersChecker.isNotEmpty(workflowId)) {
@@ -205,14 +204,15 @@ public class ProcessManagementImpl implements ProcessManagement {
                     logbookTypeProcess, tenantId, contextId);
         } else {
             processWorkflow = processData
-                .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId, contextId);
+                .initProcessWorkflow(null, workerParameters.getContainerName(), LogbookTypeProcess.INGEST, tenantId,
+                    contextId);
         }
 
         processWorkflow.setWorkflowId(workflowId);
 
         try {
             // TODO: create json workflow file, but immediately updated so keep this part ?)
-            dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+            dataManagement.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                 workerParameters.getContainerName(), processWorkflow);
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException(e);
@@ -394,7 +394,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         final ProcessDataManagement datamanage = WorkspaceProcessDataManagement.getInstance();
         Map<String, ProcessWorkflow> map = datamanage.getProcessWorkflowFor(null,
-            String.valueOf(ServerIdentity.getInstance().getServerId()));
+            VitamConfiguration.getWorkspaceWorkflowsFolder());
 
         // Nothing to load
         if (map == null) {
@@ -426,13 +426,12 @@ public class ProcessManagementImpl implements ProcessManagement {
                     processWorkflow.setProcessCompletedDate(LocalDateTime.now());
                     processWorkflow.setState(ProcessState.COMPLETED);
                     try {
-                        datamanage.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance()
-                            .getServerId()), operationId, processWorkflow);
+                        datamanage.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(), operationId, processWorkflow);
                     } catch (InvalidParseOperationException e) {
                         // TODO: just log error is the good solution (here, we set to failed and unknown status on wrong
                         // persisted process) ?
                         LOGGER.error("Cannot set UNKNONW status and FAILED execution status on workflow {}, check " +
-                            "processing datas",
+                                "processing datas",
                             operationId, e);
                     }
                 }

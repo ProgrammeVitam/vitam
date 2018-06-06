@@ -78,7 +78,6 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -2267,7 +2266,7 @@ public class ProcessingIT {
         ProcessDataManagement dataManagement = WorkspaceProcessDataManagement.getInstance();
         assertNotNull(dataManagement);
 
-        assertNotNull(dataManagement.getProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+        assertNotNull(dataManagement.getProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
             containerName));
 
         RequestResponse<ItemStatus> ret =
@@ -2312,7 +2311,7 @@ public class ProcessingIT {
 
         boolean exc = false;
         try {
-            dataManagement.getProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+            dataManagement.getProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                 containerName);
         } catch (ProcessingStorageWorkspaceException e) {
             exc = true;

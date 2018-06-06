@@ -27,9 +27,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Maps;
-
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -736,7 +735,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         try {
-            dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+            dataManagement.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                 operationId, processWorkflow);
             return true;
         } catch (InvalidParseOperationException | ProcessingStorageWorkspaceException e) {
@@ -747,7 +746,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             } catch (InterruptedException e1) {
             }
             try {
-                dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                dataManagement.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                     operationId, processWorkflow);
                 return true;
             } catch (InvalidParseOperationException | ProcessingStorageWorkspaceException ex) {
