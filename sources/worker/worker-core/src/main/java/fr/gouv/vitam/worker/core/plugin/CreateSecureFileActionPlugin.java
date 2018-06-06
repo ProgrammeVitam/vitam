@@ -159,7 +159,9 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                     DataCategory.OBJECTGROUP, lfGuid + JSON_EXTENSION, storageClient);
                 List<ObjectGroupDocumentHash> list = StorageClientUtil.extractListObjectsFromJson(og, storageClient);
 
-                lfcTraceSecFileDataLine.setIdUnit(og.get(MetadataDocument.UP).get(0).textValue());
+                ArrayList<String> auParents = new ArrayList<>();
+                og.get(MetadataDocument.UP).forEach (up -> auParents.add(up.textValue()));
+                lfcTraceSecFileDataLine.setUp(auParents);
 
                 lfcTraceSecFileDataLine.setObjectGroupDocumentHashList(list);
             } else {
