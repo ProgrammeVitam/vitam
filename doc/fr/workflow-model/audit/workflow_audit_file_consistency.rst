@@ -40,10 +40,11 @@ Récupération des données dans la base de donnée EVIDENCE_AUDIT_CHECK_DATABAS
 * **Règle** : Tâche consistant à récupérer les informations nécéssaires à l'audit dans la base de données.
 * **Type** : bloquant
 * **Statuts** :
+
 	- OK : La récupération des données dans la base de données est un succès (EVIDENCE_AUDIT_CHECK_DATABASE.OK=Succès de la récupération des données dans la base de données)
 	- KO : La récupération des données dans la base de donnée est un échec (EVIDENCE_AUDIT_CHECK_DATABASE.KO=Echec de la récupération des données dans la base de données)
 	- FATAL : Une erreur fatale est survenue dans la récupération des données dans la base de données (EVIDENCE_AUDIT_CHECK_DATABASE.FATAL=Erreur fatale lors de la récupération des données dans la base de données)
-    - WARNING : Avertissement lors de la récupération des données dans la base de données (EEVIDENCE_AUDIT_CHECK_DATABASE.WARNING=Avertissement lors de la récupération des données dans la base de données)
+	- WARNING : Avertissement lors de la récupération des données dans la base de données (EEVIDENCE_AUDIT_CHECK_DATABASE.WARNING=Avertissement lors de la récupération des données dans la base de données)
 
 
 
