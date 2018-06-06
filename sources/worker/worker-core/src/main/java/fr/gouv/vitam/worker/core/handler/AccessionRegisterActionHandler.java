@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -329,6 +328,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setTotalObjects(totalObjects)
             .setObjectSize(objectSize)
             .setSymbolic(symbolic)
+            .setIdentifier(params.getContainerName())
+            .setOperationGroup(params.getContainerName())
             .addOperationsId(params.getContainerName());
     }
 

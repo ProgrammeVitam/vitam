@@ -26,18 +26,15 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import org.bson.Document;
 
 /**
  * Accession Register Detail document
@@ -56,6 +53,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final String TOTAL_OBJECTS = "TotalObjects";
     private static final String OBJECT_SIZE = "ObjectSize";
     private static final String STATUS = "Status";
+    private static final String IDENTIFIER = "Identifier";
+    private static final String OPERATION_GROUP = "OperationGroup";
     private static final String OPERATION_IDS = "OperationIds";
     private static final String TENANT = "_tenant";
     private static final String SYMBOLIC = "Symbolic";
@@ -63,7 +62,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     /**
      * Empty Constructor
      */
-    public AccessionRegisterDetail() {}
+    public AccessionRegisterDetail() {
+    }
 
     /**
      * Constructor
@@ -89,7 +89,6 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     *
      * @param tenantId th working tenant
      */
     public AccessionRegisterDetail(Integer tenantId) {
@@ -251,11 +250,32 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
 
+    public AccessionRegisterDetail setIdentifier(String identifier) {
+        append(IDENTIFIER, identifier);
+        return this;
+    }
+
+    public String getIdentifier() {
+        return (String) get(IDENTIFIER);
+    }
+
+    public AccessionRegisterDetail setOperationGroup(String operationGroup) {
+        append(OPERATION_GROUP, operationGroup);
+        return this;
+    }
+
+    public String getOperationGroup() {
+        return (String) get(OPERATION_GROUP);
+    }
+
     public AccessionRegisterDetail setOperationIds(List<String> operationIds) {
-        if (!operationIds.isEmpty()) {
-            final List<String> ids = new ArrayList<>();
-            ids.addAll(operationIds);
-            append(OPERATION_IDS, ids);
+        if (null != operationIds) {
+            append(OPERATION_IDS, operationIds);
+            if (!operationIds.isEmpty()) {
+                String operationsId = operationIds.iterator().next();
+                put(IDENTIFIER, operationsId);
+                put(OPERATION_GROUP, operationIds);
+            }
         }
         return this;
     }

@@ -663,7 +663,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
         RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
-        accessionRegisterDetail.setId(model.getId()).setOriginatingAgency(model.getOriginatingAgency())
+        accessionRegisterDetail.setId(model.getId())
+            .setOriginatingAgency(model.getOriginatingAgency())
+            .setIdentifier(model.getIdentifier())
+            .setOperationGroup(model.getOperationGroup())
             .setSubmissionAgency(model.getSubmissionAgency())
             .setArchivalAgreement(model.getArchivalAgreement()).setEndDate(model.getEndDate())
             .setStartDate(model.getStartDate());
