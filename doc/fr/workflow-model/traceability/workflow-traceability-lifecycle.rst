@@ -24,13 +24,13 @@ La fin du processus peut prendre plusieurs statuts :
 
 * **Statuts** :
 
-  + OK : les journaux du cycle de vie ont été sécurisés (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des groupes d'objets)
+    - OK : les journaux du cycle de vie ont été sécurisés (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
-  + WARNING : il n'y pas de nouveaux journaux à sécuriser depuis la dernière sécurisation (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
+    - WARNING : il n'y pas de nouveaux journaux à sécuriser depuis la dernière sécurisation (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
-  + KO : pas de cas KO
+    - KO : pas de cas KO
 
-  + FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.FATAL = Erreur fatale lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
+    - FATAL : une erreur fatale est survenue lors de la sécurisation du journal des opérations (LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.FATAL = Erreur fatale lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
 Préparation des listes des cycles de vie
 ----------------------------------------
@@ -52,7 +52,7 @@ Préparation des listes des cycles de vie
 
     - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un journal de cycle de vie (PREPARE_OG_LFC_TRACEABILITY.KO=Échec du listage des journaux du cycle de vie des groupes d'objets)
 
-    - FATAL : une erreur technique est survenue (PREPARE_LC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie des groupes d'objets)
+    - FATAL : une erreur fatale est survenue (PREPARE_LC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie des groupes d'objets)
 
 
 **Étape 2** - STP_OG_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans ObjectGroup
@@ -74,7 +74,8 @@ Préparation des listes des cycles de vie
 
     - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (STP_OG_CREATE_SECURED_FILE.KO=Échec du processus de sécurisation des groupes d'objets)
 
-    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (STP_OG_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de sécurisation des groupes d'objets)
+    - FATAL : une erreur fatale est survenue lors de la génération des fichiers sécurisés (STP_OG_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de sécurisation des groupes d'objets)
+
 
 * Vérification de la liste des éléments à traiter (OBJECTS_LIST_EMPTY)
 
@@ -87,9 +88,9 @@ Préparation des listes des cycles de vie
 
   + **Statuts** :
 
-  - WARNING : il n'y a pas de nouveaux journaux à sécuriser (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
+    - WARNING : il n'y a pas de nouveaux journaux à sécuriser (OBJECTS_LIST_EMPTY.WARNING = Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape)
 
-  - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (OBJECTS_LIST_EMPTY.FATAL = Erreur fatale lors de l'établissement de la liste des objets)
+    - FATAL : une erreur fatale est survenue lors de la génération des fichiers sécurisés (OBJECTS_LIST_EMPTY.FATAL = Erreur fatale lors de l'établissement de la liste des objets)
 
 
 
@@ -123,13 +124,13 @@ La fin du processus peut prendre plusieurs statuts :
 
 * **Statuts** :
 
-  + OK : les journaux du cycle de vie ont été sécurisés (LOGBOOK_UNIT_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    - OK : les journaux du cycle de vie ont été sécurisés (LOGBOOK_UNIT_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-  + WARNING : il n'y pas de nouveaux journaux à sécuriser depuis la dernière sécurisation (LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    - WARNING : il n'y pas de nouveaux journaux à sécuriser depuis la dernière sécurisation (LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-  + KO : pas de cas KO
+    - KO : pas de cas KO
 
-  + FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (LOGBOOK_UNIT_LFC_TRACEABILITY.FATAL = Erreur fatale lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    - FATAL : une erreur fatale est survenue lors de la sécurisation du journal des opérations (LOGBOOK_UNIT_LFC_TRACEABILITY.FATAL = Erreur fatale lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
 Préparation des listes des cycles de vie
 ----------------------------------------
@@ -151,7 +152,7 @@ Préparation des listes des cycles de vie
 
     - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un cycle de vie (PREPARE_UNIT_LFC_TRACEABILITY.KO=Échec du listage des journaux du cycle de vie)
 
-    - FATAL : une erreur technique est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
+    - FATAL : une erreur fatale est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
 
 
 **Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
@@ -159,9 +160,6 @@ Préparation des listes des cycles de vie
 
 * Traitement des journaux du cycle de vie pour les unités archivistiques - UNITS_CREATE_SECURED_FILE
 
-  + **Type** : bloquant
-
-=======
 
   + **Type** : bloquant
 
@@ -173,16 +171,17 @@ Préparation des listes des cycles de vie
 
     - KO : le fichier zip n'a pas pu être généré ou sauvegardé sur les offres (FINALIZE_OG_LFC_TRACEABILITY.KO=Échec de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
-    - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_OG_LFC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
+    - FATAL : une erreur fatale est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_OG_LFC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie des groupes d'objets)
 
 
-Note:
 D'une façon synthétique, le workflow est décrit de cette façon :
+
+Diagramme d'activité du workflow de sécurisation des cycles de vie des groupes d'objets
 
   .. figure:: images/workflow_lfc_og_traceability.png
     :align: center
 
-    Diagramme d'activité du workflow de sécurisation des cycles de vie des groupes d'objets
+    
 
 
 
@@ -196,7 +195,7 @@ Cette section décrit le processus (workflow) permettant la sécurisation des jo
 Le workflow mis en place dans la solution logicielle Vitam est défini dans le fichier "DefaultUnitLifecycleTraceability.json".
 Ce fichier est disponible dans : sources/processing/processing-management/src/main/resources/workflows.
 
-Note : Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des unités archivistiques.
+.. caution:: Le traitement permettant la sécurisation des journaux du cycle de vie procède par des tranches de lots de 100K. La solution Vitam à la fin de ce premier lot enclenche un autre traitement de 100K et ce jusqu'à avoir traités l'ensemble des unités archivistiques.
 
 
 Processus de sécurisation des journaux des cycles de vie des unités archivistiques  (vision métier)
@@ -213,13 +212,13 @@ La fin du processus peut prendre plusieurs statuts :
 
 * **Statuts** :
 
-  + OK : les journaux du cycle de vie ont été sécurisés (LOGBOOK_UNIT_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    - OK : les journaux du cycle de vie ont été sécurisés (LOGBOOK_UNIT_LFC_TRACEABILITY.OK = Succès de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-  + WARNING : il n'y pas de nouveaux journaux à sécuriser depuis la dernière sécurisation (LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    - WARNING : il n'y pas de nouveaux journaux à sécuriser depuis la dernière sécurisation (LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING = Avertissement lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
-  + KO : pas de cas KO
+    - KO : pas de cas KO
 
-  + FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (LOGBOOK_UNIT_LFC_TRACEABILITY.FATAL = Erreur fatale lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
+    - FATAL : une erreur fatale est survenue lors de la sécurisation du journal des opérations (LOGBOOK_UNIT_LFC_TRACEABILITY.FATAL = Erreur fatale lors de la sécurisation des journaux du cycle de vie des unités archivistiques)
 
 Préparation des listes des cycles de vie
 ----------------------------------------
@@ -241,7 +240,7 @@ Préparation des listes des cycles de vie
 
     - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un cycle de vie (PREPARE_UNIT_LFC_TRACEABILITY.KO=Échec du listage des journaux du cycle de vie)
 
-    - FATAL : une erreur technique est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
+    - FATAL : une erreur fatale est survenue (PREPARE_UNIT_LFC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
 
 
 **Étape 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID
@@ -261,7 +260,7 @@ Préparation des listes des cycles de vie
 
     - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (UNITS_CREATE_SECURED_FILE.KO=Échec du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
 
-    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (UNITS_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
+    - FATAL : une erreur fatale est survenue lors de la génération des fichiers sécurisés (UNITS_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
 
 * Vérification de la liste des éléments à traiter (OBJECTS_LIST_EMPTY)
 
@@ -282,12 +281,13 @@ Il s'agit du même contrôle que l'étape 2
 
     - KO : le fichier zip n'a pas pu être généré ou sauvegardé sur les offres (FINALIZE_LC_TRACEABILITY.KO=Échec de la sécurisation des journaux du cycle de vie)
 
-    - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_LC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie)
+    - FATAL : une erreur fatale est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_LC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie)
 
 D'une façon synthétique, le workflow est décrit de cette façon :
 
+Diagramme d'activité du workflow de sécurisation des cycles de vie des unités archivistiques
 
   .. figure:: images/workflow_lfc_unit_traceability.png
     :align: center
 
-    Diagramme d'activité du workflow de sécurisation des cycles de vie des unités archivistiques
+    

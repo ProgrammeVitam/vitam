@@ -25,7 +25,7 @@ Création du Bordereau CREATE_MANIFEST (CreateManifest.java)
 
   - KO : la création du bordereau contenant les descriptions des unités archivistiques, groupes d'objets techniques et objets-données a échouée car des informations étaient manquantes, érronées ou inconnues (CREATE_MANIFEST.KO=Échec de la création du bordereau de mise à disposition)
 
-  - FATAL : une erreur technique est survenue lors de la création du bordereau (CREATE_MANIFEST.FATAL=Erreur fatale lors de la création du bordereau de mise à disposition)
+  - FATAL : une erreur fatale est survenue lors de la création du bordereau (CREATE_MANIFEST.FATAL=Erreur fatale lors de la création du bordereau de mise à disposition)
 
 Processus de déplacement des objets binaires vers le workspace (STP_PUT_BINARY_ON_WORKSPACE)
 ============================================================================================
@@ -43,7 +43,7 @@ Déplacement des objets binaires vers le workspace PUT_BINARY_ON_WORKSPACE  (Put
 
   - KO : le déplacement des objet-données vers le workspace a échoué car un ou plusieurs de ces objets étaient introuvables (PUT_BINARY_ON_WORKSPACE.KO=Échec du déplacement des objets binaires de l'offre de stockage vers le workspace)
 
-  - FATAL : une erreur technique est survenue lors du déplacement des objets binaires de stockage vers le workspace (PUT_BINARY_ON_WORKSPACE.FATAL=Erreur fatale lors du déplacement des objets binaires de l'offre de stockage vers le workspace)
+  - FATAL : une erreur fatale est survenue lors du déplacement des objets binaires de stockage vers le workspace (PUT_BINARY_ON_WORKSPACE.FATAL=Erreur fatale lors du déplacement des objets binaires de l'offre de stockage vers le workspace)
 
 Processus de création du DIP et de son déplacement vers l'offre de stockage (STP_STORE_MANIFEST)
 ================================================================================================
@@ -58,7 +58,7 @@ Stockage du bordereau compressé (STORE_MANIFEST - StoreDIP.java)
 + **Statuts** :
 
   - OK : le DIP a été créé et stocké sur les offres de stockages avec succès (STORE_MANIFEST.OK=Succès du processus de la création du DIP et de son déplacement vers l'offre de stockage)
-  - FATAL :  une erreur technique est survenue lors de la création et de l'enregistrement du DIP sur les offres de stockage déplacement des objets binaires de stockage vers workspace (STORE_MANIFEST.FATAL=Erreur fatale lors de la création du DIP et de son déplacement vers l'offre de stockage)
+  - FATAL :  une erreur fatale est survenue lors de la création et de l'enregistrement du DIP sur les offres de stockage déplacement des objets binaires de stockage vers workspace (STORE_MANIFEST.FATAL=Erreur fatale lors de la création du DIP et de son déplacement vers l'offre de stockage)
 
 Structure du Workflow d'export de DIP
 =====================================

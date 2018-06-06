@@ -27,7 +27,7 @@ La fin du processus peut prendre plusieurs statuts :
 
   + KO : pas de cas KO
 
-  + FATAL : une erreur technique est survenue lors de la sécurisation du journal des opérations (STP_OP_SECURISATION.FATAL = Erreur fatale lors du processus de sécurisation du journal des opérations)
+  + FATAL : une erreur fatale est survenue lors de la sécurisation du journal des opérations (STP_OP_SECURISATION.FATAL = Erreur fatale lors du processus de sécurisation du journal des opérations)
 
 
 OP_SECURISATION_TIMESTAMP (LogbookAdministration.java)
@@ -37,7 +37,7 @@ OP_SECURISATION_TIMESTAMP (LogbookAdministration.java)
 * **Type** : bloquant
 * **Status** :
 	* OK : le tampon d'horodatage est calculé (OP_SECURISATION_TIMESTAMP.OK=Succès de la création du tampon d'horodatage de l'ensemble des journaux)
-	* FATAL : une erreur technique est survenue lors de l'horodatage (OP_SECURISATION_TIMESTAMP.FATAL=Erreur fatale lors de la création du tampon d'horodatage de l'ensemble des journaux)
+	* FATAL : une erreur fatale est survenue lors de l'horodatage (OP_SECURISATION_TIMESTAMP.FATAL=Erreur fatale lors de la création du tampon d'horodatage de l'ensemble des journaux)
 
 OP_SECURISATION_STORAGE (LogbookAdministration.java)
 ------------------------------------------------------
@@ -46,7 +46,7 @@ OP_SECURISATION_STORAGE (LogbookAdministration.java)
 * **Type** : bloquant
 * **Status** :
 	* OK : le journal sécurisé est écrit sur les offres de stockage (OP_SECURISATION_STORAGE.OK=Succès de l'enregistrement des journaux sur les offres de stockage)
-	* FATAL : une erreur technique est survenue lors de l'écriture du journal sécurisé (OP_SECURISATION_STORAGE.FATAL=Erreur fatale lors de l'enregistrement des journaux sur les offres de stockage)
+	* FATAL : une erreur fatale est survenue lors de l'écriture du journal sécurisé (OP_SECURISATION_STORAGE.FATAL=Erreur fatale lors de l'enregistrement des journaux sur les offres de stockage)
 
 D'une façon synthétique, le workflow est décrit de cette façon.
 

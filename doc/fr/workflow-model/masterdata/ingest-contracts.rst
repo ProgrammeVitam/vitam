@@ -39,9 +39,7 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 
     - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_INGEST_CONTRACT.KO=Échec du processus d'import du contrat d'entrée)
 
-    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
-
-    - STARTED : Début du processus d'import du contrat d'entrée ( STP_IMPORT_INGEST_CONTRACT.STARTED=Début du processus d'import du contrat d'entrée ) 
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée) 
 
     - WARNING : Avertissement lors du processus d'import du contrat d''entrée ( STP_IMPORT_INGEST_CONTRACT.WARNING=Avertissement lors du processus d'import du contrat d'entrée ) 
 
