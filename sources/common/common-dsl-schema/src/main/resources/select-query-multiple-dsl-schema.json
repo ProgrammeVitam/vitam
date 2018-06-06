@@ -276,8 +276,11 @@
         "hint": "Max number of buckets"
       },
       "$order": {
-        "format": "ref",
-        "type": "string",
+        "format": "enum",
+        "values": [
+          "ASC",
+          "DESC"
+        ],
         "optional": false,
         "hint": "Order of buckets"
       }

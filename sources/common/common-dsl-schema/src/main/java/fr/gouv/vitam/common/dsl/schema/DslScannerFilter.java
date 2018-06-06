@@ -39,6 +39,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.GetByIdSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.SelectOnlyQueryMultipleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectSingleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.UpdateByIdSchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -62,6 +63,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
     private DslValidator selectSingleSchemaValidator;
     private DslValidator getByIdSchemaValidator;
     private DslValidator updateByIdSchemaValidator;
+    private DslValidator selectOnlyQueryMultipleSchemaValidator;
     private DslSchema dslSchema;
 
     public DslScannerFilter(DslSchema dslSchema) throws IOException {
@@ -70,6 +72,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
         this.selectSingleSchemaValidator = new SelectSingleSchemaValidator();
         this.getByIdSchemaValidator = new GetByIdSchemaValidator();
         this.updateByIdSchemaValidator = new UpdateByIdSchemaValidator();
+        this.selectOnlyQueryMultipleSchemaValidator = new SelectOnlyQueryMultipleSchemaValidator();
     }
 
 
@@ -85,6 +88,9 @@ public class DslScannerFilter implements ContainerRequestFilter {
                     break;
                 case SELECT_SINGLE:
                     selectSingleSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    break;
+                case SELECT_ONLY_QUERY_MULTIPLE:
+                    selectOnlyQueryMultipleSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
                     break;
                 case GET_BY_ID:
                     getByIdSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));

@@ -333,7 +333,6 @@ public class ValidatorSelectQueryMultipleTest {
 
     // FIXME : remove ignore when fixing bug #4353
     @Test
-    @Ignore
     public void should_retrieve_errors_when_select_multiple_complete_facet_terms_invalid_order() throws Exception {
         JsonNode test1Json =
             JsonHandler
@@ -344,7 +343,20 @@ public class ValidatorSelectQueryMultipleTest {
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("Validating $order")
-            .hasMessageContaining("WRONG_JSON_TYPE");
+            .hasMessageContaining("WRONG");
+    }
+
+    @Test
+    public void should_not_retrieve_errors_when_select_multiple_complete_facet_terms_valid_order() throws Exception {
+        JsonNode test1Json =
+            JsonHandler
+                .getFromFile(
+                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_valid_order.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
+
     }
 
     @Test
