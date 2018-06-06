@@ -5,6 +5,7 @@
 .. toctree::
    :maxdepth: 2
 
+   dev-environnement.rst
    include/_toc.rst
    parallisation_tests.rst
    plugin-icu-elasticsearch.rst
@@ -22,4 +23,3 @@
 
       \listoffigures
       \listoftables
-
