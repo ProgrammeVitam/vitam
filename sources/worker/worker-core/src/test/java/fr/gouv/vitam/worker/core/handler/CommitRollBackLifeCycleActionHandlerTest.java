@@ -5,10 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.BusinessObjectType;
@@ -23,6 +19,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Test;
 
 public class CommitRollBackLifeCycleActionHandlerTest {
 
@@ -46,7 +45,7 @@ public class CommitRollBackLifeCycleActionHandlerTest {
         GUID containerName = GUIDFactory.newGUID();
         String unit = "unit_1.xml";
         String object = "object_group_1.json";
-        commitAction = new HandlerIOImpl(containerName.getId(), "workerId");
+        commitAction = new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
 
         WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters()
@@ -71,7 +70,7 @@ public class CommitRollBackLifeCycleActionHandlerTest {
     public void givenOperationIdObjectIdThenReturnRollBackOk() {
         GUID containerName = GUIDFactory.newGUID();
         String unit = "unit_1.xml";
-        commitAction = new HandlerIOImpl(containerName.getId(), "workerId");
+        commitAction = new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
 
         WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters()
@@ -92,14 +91,14 @@ public class CommitRollBackLifeCycleActionHandlerTest {
 
         // RollBack with a successful workFlow
         params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.toString());
-        rollBackAction = new HandlerIOImpl(containerName.getId(), "workerId");
+        rollBackAction = new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
 
         response = rollBackHandler.execute(params, rollBackAction);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // RollBack with a failed workFlow
         params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.FATAL.toString());
-        rollBackAction = new HandlerIOImpl(containerName.getId(), "workerId");
+        rollBackAction = new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
 
         response = rollBackHandler.execute(params, rollBackAction);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);

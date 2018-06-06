@@ -27,7 +27,33 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.AdditionalMatchers.and;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -67,29 +93,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.AdditionalMatchers.and;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class FinalizeObjectGroupLifecycleTraceabilityActionHandlerTest {
 
@@ -145,8 +148,10 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionHandlerTest {
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
-        handlerIO =
-            new HandlerIOImpl(workspaceClient, "FinalizeObjectGroupLifecycleTraceabilityActionHandlerTest", "workerId");
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(workspaceClient, "FinalizeLifecycleTraceabilityActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/lastOperation.json")));
@@ -174,8 +179,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenFilesNotInSubFoldersWhenExecuteThenReturnResponseFATAL() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKObj));
@@ -194,8 +199,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenLogbookNotFoundWhenExecuteThenReturnResponseFATAL() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOKObj));
@@ -215,8 +220,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenNoLifecycleWhenExecuteThenReturnResponseOKWithNoZipCreated() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION_EMPTY), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION_EMPTY), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -246,8 +251,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionHandlerTest {
     @RunWithCustomExecutor
     public void givenNothingSpecialWhenExecuteThenReturnResponseOK() throws Exception {
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))

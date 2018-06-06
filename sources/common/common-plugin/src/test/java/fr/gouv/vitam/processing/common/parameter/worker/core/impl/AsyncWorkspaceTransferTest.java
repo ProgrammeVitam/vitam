@@ -27,7 +27,9 @@
 
 package fr.gouv.vitam.processing.common.parameter.worker.core.impl;
 
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import fr.gouv.vitam.processing.common.model.WorkspaceAction;
 import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -35,9 +37,6 @@ import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.worker.core.impl.AsyncWorkspaceTransfer;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import org.junit.Test;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class AsyncWorkspaceTransferTest {
 

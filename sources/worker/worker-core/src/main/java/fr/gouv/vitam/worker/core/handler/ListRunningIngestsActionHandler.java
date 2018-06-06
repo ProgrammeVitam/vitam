@@ -106,7 +106,7 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
             List<ProcessDetail> ingestsInProcess = response.getResults();
             File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(RANK_FILE).getPath());
             JsonHandler.writeAsFile(ingestsInProcess, tempFile);
-            handlerIO.addOuputResult(RANK_FILE, tempFile, true, asyncIO);
+            handlerIO.addOutputResult(RANK_FILE, tempFile, true, asyncIO);
 
         } catch (VitamClientException e) {
             LOGGER.error("Process Management cannot be called", e);

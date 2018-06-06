@@ -17,16 +17,9 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +39,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -59,7 +53,6 @@ import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -543,7 +536,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             try {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
-                /**
+                /*
                  * As pause can occurs on not started WorkerTask,
                  * so we have to get the corresponding elements in order to execute them after restart
                  */

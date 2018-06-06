@@ -26,8 +26,48 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static javax.xml.datatype.DatatypeFactory.newInstance;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.StreamSupport;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.stream.XMLStreamException;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.*;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeListVersionsType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
+import fr.gouv.culture.archivesdefrance.seda.v2.OperationType;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationWithIdType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -40,11 +80,20 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.*;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -66,19 +115,6 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import org.bson.Document;
 import org.xml.sax.SAXException;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.stream.XMLStreamException;
-import java.io.*;
-import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.StreamSupport;
-
-import static javax.xml.datatype.DatatypeFactory.newInstance;
 
 /**
  * Transfer notification reply handler
@@ -201,7 +237,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 LOGGER.error("ATR File is not a correct xml file", e);
             }
 
-            handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true, false);
+            handler.addOutputResult(ATR_RESULT_OUT_RANK, atrFile, true, false);
             // store data object
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());

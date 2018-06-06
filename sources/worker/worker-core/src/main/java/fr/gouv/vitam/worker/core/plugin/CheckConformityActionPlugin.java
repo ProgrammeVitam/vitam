@@ -90,7 +90,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
             
-            handlerIO.addOuputResult(OG_OUT_RANK, jsonOG, true, false);
+            handlerIO.addOutputResult(OG_OUT_RANK, jsonOG, true, false);
 
             final Map<String, DataObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
 

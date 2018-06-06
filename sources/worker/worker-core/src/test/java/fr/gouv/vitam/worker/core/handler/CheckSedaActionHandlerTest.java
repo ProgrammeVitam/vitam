@@ -38,17 +38,6 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -61,6 +50,16 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -78,7 +77,7 @@ public class CheckSedaActionHandlerTest {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
         guid = GUIDFactory.newGUID();
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
         in = new ArrayList<>();
         PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
     }

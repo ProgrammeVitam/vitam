@@ -84,7 +84,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
-    HandlerIO addOuputResult(int rank, Object object, boolean asyncIO) throws ProcessingException;
+    HandlerIO addOutputResult(int rank, Object object, boolean asyncIO) throws ProcessingException;
 
     /**
      * Add one output result
@@ -97,7 +97,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ProcessingException
      * @throws IllegalArgumentException
      */
-    HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO) throws ProcessingException;
+    HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO) throws ProcessingException;
 
     /**
      *
@@ -306,6 +306,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @return true if the folder was removed, false if it does not exist
      * @throws ContentAddressableStorageException when storage error occurs
      */
-    public boolean removeFolder(String folderName)
-        throws ContentAddressableStorageException;
+    boolean removeFolder(String folderName) throws ContentAddressableStorageException;
+
+    void setCurrentObjectId(String currentObjectId);
 }

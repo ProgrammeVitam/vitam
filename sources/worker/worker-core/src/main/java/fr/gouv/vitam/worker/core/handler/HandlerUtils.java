@@ -64,6 +64,6 @@ public class HandlerUtils {
             throw new IOException(e);
         }
 
-        handlerIO.addOuputResult(rank, firstMapTmpFile, removeTmpFile, asyncIO);
+        handlerIO.addOutputResult(rank, firstMapTmpFile, removeTmpFile, asyncIO);
     }
 }

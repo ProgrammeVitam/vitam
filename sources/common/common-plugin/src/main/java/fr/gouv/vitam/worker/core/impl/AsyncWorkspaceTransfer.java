@@ -27,14 +27,13 @@
 
 package fr.gouv.vitam.worker.core.impl;
 
+import java.util.concurrent.Executor;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
-
-import java.util.concurrent.Executor;
 
 /**
  * Send asynchronously files to the workspace

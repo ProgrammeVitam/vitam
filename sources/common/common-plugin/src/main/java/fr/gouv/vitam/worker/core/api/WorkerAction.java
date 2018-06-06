@@ -27,6 +27,9 @@
 package fr.gouv.vitam.worker.core.api;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -54,6 +57,35 @@ public interface WorkerAction {
      */
     ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException;
+
+    /**
+     *
+     * @param workerParameters
+     * @param handler
+     * @return
+     * @throws ProcessingException
+     * @throws ContentAddressableStorageServerException
+     */
+    default List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException, ContentAddressableStorageServerException {
+
+        try {
+            List<ItemStatus> aggregateItemStatus = new ArrayList<>();
+            for (String objectId : workerParameters.getObjectNameList()) {
+
+                workerParameters.setObjectName(objectId);
+                handler.setCurrentObjectId(objectId);
+
+                ItemStatus itemStatus = execute(workerParameters, handler);
+
+                aggregateItemStatus.add(itemStatus);
+            }
+            return aggregateItemStatus;
+
+        } finally {
+            handler.setCurrentObjectId(null);
+        }
+    }
 
     /**
      * Check mandatory parameter

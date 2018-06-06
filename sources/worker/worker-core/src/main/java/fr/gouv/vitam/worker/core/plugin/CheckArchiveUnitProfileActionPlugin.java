@@ -153,7 +153,7 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                     archiveUnitProfileIdentifier);
 
                 if (isUpdateJsonMandatory) {
-                    handlerIO.addOuputResult(UNIT_OUT_RANK, archiveUnit, true, false);
+                    handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
                 }
 
                 switch (schemaValidationStatus.getValidationStatus()) {

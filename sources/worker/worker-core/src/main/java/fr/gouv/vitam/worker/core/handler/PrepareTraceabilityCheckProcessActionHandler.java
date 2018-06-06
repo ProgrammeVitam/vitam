@@ -26,8 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -59,11 +66,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  *
@@ -212,6 +214,6 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
         JsonHandler.writeAsFile(eventDetailData, tempFile);
 
         // Put file in workspace
-        handlerIO.addOuputResult(TRACEABILITY_EVENT_DETAIL_RANK, tempFile, true, false);
+        handlerIO.addOutputResult(TRACEABILITY_EVENT_DETAIL_RANK, tempFile, true, false);
     }
 }

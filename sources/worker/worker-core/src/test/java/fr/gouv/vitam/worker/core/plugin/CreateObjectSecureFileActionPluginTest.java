@@ -50,17 +50,9 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -100,6 +92,14 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 public class CreateObjectSecureFileActionPluginTest {
 
@@ -154,7 +154,7 @@ public class CreateObjectSecureFileActionPluginTest {
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory, storageClientFactory);
-        handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId");
+        handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId", Lists.newArrayList());
     }
 
     @Test

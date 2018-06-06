@@ -1,13 +1,24 @@
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
@@ -28,7 +39,6 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,19 +49,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -120,7 +117,7 @@ public class PrepareAuditActionHandlerTest {
         registerSummary.addResult(register);
         when(adminClient.getAccessionRegister(anyObject())).thenReturn(registerSummary);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON)));

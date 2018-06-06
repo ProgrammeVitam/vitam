@@ -1,6 +1,16 @@
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -19,15 +29,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class PrepareStorageInfoActionHandlerTest {
 
@@ -65,7 +66,7 @@ public class PrepareStorageInfoActionHandlerTest {
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-        verify(handlerIO).addOuputResult(0, output, true, false);
+        verify(handlerIO).addOutputResult(0, output, true, false);
 
         JsonNode storageInfo = JsonHandler.getFromFile(output);
 

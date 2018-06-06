@@ -160,7 +160,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             SchemaValidationUtils validator = new SchemaValidationUtils();
             JsonNode archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
             
-            handlerIO.addOuputResult(UNIT_OUT_RANK, archiveUnit, true, false);
+            handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
             
             // sanityChecker
             try {

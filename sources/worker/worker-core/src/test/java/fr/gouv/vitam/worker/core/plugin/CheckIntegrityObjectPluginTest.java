@@ -14,19 +14,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -46,7 +36,17 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -96,7 +96,7 @@ public class CheckIntegrityObjectPluginTest {
         PowerMockito.when(StorageClientFactory.getInstance().getClient())
             .thenReturn(storageClient);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "shouldWriteLFC")));
         action.getInput().add(ogNode);

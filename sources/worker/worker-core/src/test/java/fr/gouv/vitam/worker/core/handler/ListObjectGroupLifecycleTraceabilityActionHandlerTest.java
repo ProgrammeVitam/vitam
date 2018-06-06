@@ -27,7 +27,31 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -64,28 +88,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 public class ListObjectGroupLifecycleTraceabilityActionHandlerTest {
 
@@ -143,8 +145,7 @@ public class ListObjectGroupLifecycleTraceabilityActionHandlerTest {
         when(logbookOperationsClientFactory.getClient())
             .thenReturn(logbookOperationsClient);
 
-        handlerIO =
-            new HandlerIOImpl(workspaceClient, "ListObjectGroupLifecycleTraceabilityActionHandlerTest", "workerId");
+        handlerIO = new HandlerIOImpl(workspaceClient, "ListLifecycleTraceabilityActionHandlerTest", "workerId", Lists.newArrayList());
         // mock later ?
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,

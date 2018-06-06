@@ -41,17 +41,6 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CharsetUtils;
@@ -71,6 +60,16 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -119,7 +118,7 @@ public class CheckObjectsNumberActionHandlerTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        handlerIO = new HandlerIOImpl("CheckObjectsNumberActionHandlerTest", "workerId");
+        handlerIO = new HandlerIOImpl("CheckObjectsNumberActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
 
         PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
@@ -33,30 +34,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.gouv.vitam.common.stream.StreamUtils;
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -68,6 +54,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -83,8 +70,16 @@ import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.xml.ws.Response;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
@@ -136,8 +131,9 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        action = new HandlerIOImpl(guid.getId(), "workerId");
-
+        String objectId = "objectId";
+        action = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
+        action.setCurrentObjectId(objectId);
 
         PowerMockito.mockStatic(ValidationXsdUtils.class);
         PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
@@ -158,13 +154,13 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "file" + i)));
         }
         action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
-        action.addOuputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
-        action.addOuputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
-        action.addOuputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
+        action.addOutputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        action.addOutputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
+        action.addOutputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
+        action.addOutputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
         action
-            .addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS), false);
-        action.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+            .addOutputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS), false);
+        action.addOutputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
         action.reset();
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, ATR_PATH)));

@@ -117,7 +117,7 @@ public class UpdateObjectGroupPluginTest {
 
         handler = new UpdateObjectGroupPlugin();
 
-        handlerIO = new HandlerIOImpl(workspaceClient, "UpdateObjectGroupPluginTest", "workerId");
+        handlerIO = new HandlerIOImpl(workspaceClient, "UpdateObjectGroupPluginTest", "workerId", com.google.common.collect.Lists.newArrayList());
 
         final InputStream guid1 =
             PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_GUID_1);

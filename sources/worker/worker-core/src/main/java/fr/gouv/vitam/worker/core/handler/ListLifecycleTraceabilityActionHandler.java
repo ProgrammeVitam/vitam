@@ -26,9 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+import static fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper.INITIAL_START_DATE;
+
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -54,16 +65,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-
-import java.io.File;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
-import static fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper.INITIAL_START_DATE;
 
 /**
  * ListLifecycleTraceabilityAction Plugin
@@ -253,7 +254,7 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
         File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(TRACEABILITY_INFORMATION_RANK).getPath());
         // Create json file
         JsonHandler.writeAsFile(traceabilityInformation, tempFile);
-        handlerIO.addOuputResult(TRACEABILITY_INFORMATION_RANK, tempFile, true, false);
+        handlerIO.addOutputResult(TRACEABILITY_INFORMATION_RANK, tempFile, true, false);
     }
 
     private void exportLastOperationTraceabilityLifecycle(HandlerIO handlerIO,
@@ -263,11 +264,11 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
         if (lastOperationTraceability == null) {
             // empty json file
             JsonHandler.writeAsFile(JsonHandler.createObjectNode(), tempFile);
-            handlerIO.addOuputResult(LAST_OPERATION_LIFECYCLES_RANK, tempFile, true, false);
+            handlerIO.addOutputResult(LAST_OPERATION_LIFECYCLES_RANK, tempFile, true, false);
         } else {
             // Create json file
             JsonHandler.writeAsFile(lastOperationTraceability, tempFile);
-            handlerIO.addOuputResult(LAST_OPERATION_LIFECYCLES_RANK, tempFile, true, false);
+            handlerIO.addOutputResult(LAST_OPERATION_LIFECYCLES_RANK, tempFile, true, false);
         }
     }
 }

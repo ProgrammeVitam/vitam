@@ -1,6 +1,11 @@
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -28,10 +33,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Audit - Check Object class
@@ -97,9 +98,9 @@ public class AuditCheckObjectPlugin extends ActionHandler {
                 actionType = CheckExistenceObjectPlugin.getId();
                 itemStatus.setItemsStatus(CheckExistenceObjectPlugin.getId(), checkExistenceActionStatus);
                 if (checkExistenceActionStatus.getGlobalStatus().equals(StatusCode.KO)) {
-                    handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
+                    handlerIO.addOutputResult(SHOULD_WRITE_RANK, true, true, false);
                 } else {
-                    handlerIO.addOuputResult(SHOULD_WRITE_RANK, false, true, false);
+                    handlerIO.addOutputResult(SHOULD_WRITE_RANK, false, true, false);
                 }
             }
         } else if (auditActions.contains(CheckIntegrityObjectPlugin.getId())) {
@@ -108,9 +109,9 @@ public class AuditCheckObjectPlugin extends ActionHandler {
                 actionType = CheckIntegrityObjectPlugin.getId();
                 itemStatus.setItemsStatus(CheckIntegrityObjectPlugin.getId(), checkIntegreityActionStatus);
                 if (checkIntegreityActionStatus.getGlobalStatus().equals(StatusCode.KO)) {
-                    handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
+                    handlerIO.addOutputResult(SHOULD_WRITE_RANK, true, true, false);
                 } else {
-                    handlerIO.addOuputResult(SHOULD_WRITE_RANK, false, true, false);
+                    handlerIO.addOutputResult(SHOULD_WRITE_RANK, false, true, false);
                 }
             }
         }

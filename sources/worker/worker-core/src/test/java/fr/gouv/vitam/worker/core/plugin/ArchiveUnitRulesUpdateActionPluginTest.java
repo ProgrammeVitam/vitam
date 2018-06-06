@@ -28,7 +28,6 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
@@ -43,19 +42,6 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -86,6 +72,18 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -147,7 +145,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
                 .thenReturn(workspaceClient);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
                 UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON)));

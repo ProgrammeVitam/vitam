@@ -94,7 +94,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {        
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try {
@@ -189,7 +189,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             }
             JsonHandler.writeAsFile(guidArrayNode, tempFile);
             // list of archive units to be updated
-            handlerIO.addOuputResult(AU_TO_BE_UPDATED_RANK, tempFile, true, asyncIO);
+            handlerIO.addOutputResult(AU_TO_BE_UPDATED_RANK, tempFile, true, asyncIO);
             for (String key : archiveUnitGuidAndRulesToBeUpdated.keySet()) {
                 final File archiveUnitTempFile = handlerIO.getNewLocalFile(
                     UpdateWorkflowConstants.UNITS_FOLDER + "/" + key + JSON);
@@ -221,7 +221,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Nothing to check
     }
-    
+
     /**
      * @return HANDLER_ID
      */

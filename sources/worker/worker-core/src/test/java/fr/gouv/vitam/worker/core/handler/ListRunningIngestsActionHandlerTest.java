@@ -38,18 +38,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -75,6 +65,16 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -127,7 +127,7 @@ public class ListRunningIngestsActionHandlerTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
             .thenReturn(workspaceClient);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON)));

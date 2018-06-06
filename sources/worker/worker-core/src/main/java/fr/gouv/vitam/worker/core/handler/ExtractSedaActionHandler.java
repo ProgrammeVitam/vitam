@@ -1066,7 +1066,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.saveArchiveUnit",
                 saveArchiveUnitStopWatch.elapsed(TimeUnit.MILLISECONDS));
 
-            handlerIO.addOuputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false, asyncIO);
+            handlerIO.addOutputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false, asyncIO);
 
             return evDetData;
         } catch (final XMLStreamException | InvalidParseOperationException e) {
@@ -1111,7 +1111,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         // Save DataObjectIdToGuid Map
         HandlerUtils.saveMap(handlerIO, dataObjectIdToGuid, DO_ID_TO_GUID_IO_RANK, true, asyncIO);
         // Save objectGroupIdToUnitId Map
-        handlerIO.addOuputResult(OG_ID_TO_UNID_ID_IO_RANK, objectGroupIdToUnitId, asyncIO);
+        handlerIO.addOutputResult(OG_ID_TO_UNID_ID_IO_RANK, objectGroupIdToUnitId, asyncIO);
         // Save dataObjectIdToDetailDataObject Map
         HandlerUtils.saveMap(handlerIO, dataObjectIdToDetailDataObject, BDO_ID_TO_VERSION_DO_IO_RANK, true,
             asyncIO);
@@ -2224,7 +2224,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // create json file
             JsonHandler.writeAsFile(ingestLevelStack, tempFile);
             // put file in workspace
-            handlerIO.addOuputResult(rank, tempFile, true, asyncIO);
+            handlerIO.addOutputResult(rank, tempFile, true, asyncIO);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
@@ -2366,7 +2366,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             HandlerUtils.saveMap(handlerIO, dataObjectIdToObjectGroupId, DO_ID_TO_OG_ID_IO_RANK, true, asyncIO);
             // Save objectGroupIdToGuid
             HandlerUtils.saveMap(handlerIO, objectGroupIdToGuid, OG_ID_TO_GUID_IO_RANK, true, asyncIO);
-            handlerIO.addOuputResult(OG_ID_TO_GUID_IO_MEMORY_RANK, objectGroupIdToGuid, asyncIO);
+            handlerIO.addOutputResult(OG_ID_TO_GUID_IO_MEMORY_RANK, objectGroupIdToGuid, asyncIO);
         } catch (final IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
             throw new ProcessingException(e1);
@@ -2575,7 +2575,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
-        handlerIO.addOuputResult(EXISTING_GOT_RANK, existingGotsFile, true, false);
+        handlerIO.addOutputResult(EXISTING_GOT_RANK, existingGotsFile, true, false);
 
         // Update LFC of exiting object group
         for (String gotGuid : existingGOTs.keySet()) {

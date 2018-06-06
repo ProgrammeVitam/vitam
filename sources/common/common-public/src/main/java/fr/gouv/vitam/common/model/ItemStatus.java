@@ -167,6 +167,9 @@ public class ItemStatus {
     public ItemStatus setItemId(String itemId) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemId);
         this.itemId = itemId;
+        for (Entry<String, ItemStatus> itemStatusEntry : itemsStatus.entrySet()) {
+            itemStatusEntry.getValue().setItemId(itemId);
+        }
         return this;
     }
 
@@ -390,7 +393,7 @@ public class ItemStatus {
                 final ItemStatus value = itemStatus.getValue();
                 final ItemStatus is = itemsStatus.get(key);
 
-                if (null != is) {
+                if (is != null) {
                     if (value.getGlobalStatus().isGreaterOrEqualToKo() && null != value.getData() &&
                         value.getData().size() > 0) {
                         is.getData().putAll(value.getData());

@@ -40,17 +40,6 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -70,6 +59,16 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 
 @RunWith(PowerMockRunner.class)
@@ -108,7 +107,7 @@ public class StoreObjectGroupActionPluginTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        action = new HandlerIOImpl(CONTAINER_NAME, "workerId");
+        action = new HandlerIOImpl(CONTAINER_NAME, "workerId", com.google.common.collect.Lists.newArrayList());
         
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")));

@@ -10,17 +10,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -39,6 +30,15 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -82,7 +82,7 @@ public class AuditCheckObjectPluginTest {
         PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
             .thenReturn(metadataClient);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "shouldWriteLFC")));
 

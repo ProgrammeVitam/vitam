@@ -48,6 +48,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+
 public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
     private static final String FILE_NAME = "0_operations_20171031_151118.zip";
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-08-17T14:01:07.52";
@@ -92,8 +94,11 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
+        String objectId = "objectId";
         handlerIO =
-            new HandlerIOImpl(workspaceClient, "Test", "workerId");
+            new HandlerIOImpl(workspaceClient, "Test", "workerId", Lists.newArrayList(objectId));
+        handlerIO.setCurrentObjectId(objectId);
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/lastOperation.json")));
@@ -112,8 +117,8 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         // Given
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
 
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =
@@ -135,8 +140,8 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         // Given
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
 
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
@@ -178,8 +183,8 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         // Given
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
 
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =
@@ -204,8 +209,8 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         // Given
         GUID guid = GUIDFactory.newOperationLogbookGUID(0);
         handlerIO.addOutIOParameters(in);
-        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
-        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION), false);
+        handlerIO.addOutputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
         handlerIO.addInIOParameters(in);
 
         LogbookObjectGroupLifeCycleTraceabilityHelper helper =

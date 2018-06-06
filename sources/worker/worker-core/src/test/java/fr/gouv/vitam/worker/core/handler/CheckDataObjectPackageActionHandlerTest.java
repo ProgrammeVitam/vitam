@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -158,7 +159,10 @@ public class CheckDataObjectPackageActionHandlerTest {
         mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
 
-        action = new HandlerIOImpl("ExtractSedaActionHandlerTest", "workerId");
+        String objectId = "objectId";
+        action = new HandlerIOImpl("ExtractSedaActionHandlerTest", "workerId", newArrayList(objectId));
+        action.setCurrentObjectId(objectId);
+
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
         out.add(

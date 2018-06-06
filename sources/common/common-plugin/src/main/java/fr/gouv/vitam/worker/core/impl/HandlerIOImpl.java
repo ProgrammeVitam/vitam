@@ -48,6 +48,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -84,17 +86,15 @@ import fr.gouv.vitam.workspace.common.CompressInformation;
 public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HandlerIOImpl.class);
-    /**
-     * Not Enough Param
-     */
-    public static final String NOT_ENOUGH_PARAM = "Input/Output io parameter list is not enough";
+
     /**
      * Not Conform Param
      */
     public static final String NOT_CONFORM_PARAM = "Input/Output io parameter is not correct";
     private static final String HANDLER_INPUT_NOT_FOUND = "Handler input not found exception: ";
 
-    private final List<Object> input = new ArrayList<>();
+    private final ListMultimap<String, Object> input = ArrayListMultimap.create();
+    //private final List<Object> input = new ArrayList<>();
     private final List<ProcessingUri> output = new ArrayList<>();
     private final String containerName;
     private final String workerId;
@@ -105,28 +105,30 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     private final LogbookLifeCyclesClientHelper helper;
 
     private AsyncWorkspaceTransfer asyncWorkspaceTransfer;
+    private String currentObjectId;
+    private List<String> objectIds;
 
     private boolean needRefresh = false;
 
     /**
      * Constructor with local root path
-     *
-     * @param containerName the container name
-     * @param workerId the worker id
+     *  @param containerName the container name
+     * @param workerId      the worker id
+     * @param objectIds
      */
-    public HandlerIOImpl(String containerName, String workerId) {
-        this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId);
+    public HandlerIOImpl(String containerName, String workerId, List<String> objectIds) {
+        this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId, objectIds);
     }
 
     /**
      * Constructor with workspaceClient, local root path he is used for test purpose
-     *
-     * @param workspaceClient
-     * @param containerName the container name
-     * @param workerId the worker id
+     *  @param workspaceClient
+     * @param containerName   the container name
+     * @param workerId        the worker id
+     * @param objectIds
      */
     @VisibleForTesting
-    public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId) {
+    public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId, List<String> objectIds) {
         this.containerName = containerName;
         this.workerId = workerId;
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
@@ -134,6 +136,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         client = workspaceClient;
         lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
         helper = new LogbookLifeCyclesClientHelper();
+        this.objectIds = objectIds;
+
         this.asyncWorkspaceTransfer = new AsyncWorkspaceTransfer(this);
     }
 
@@ -156,17 +160,24 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 case WORKSPACE:
                     try {
                         // TODO P1 : remove optional when lazy file loading is implemented
-                        input.add(findFileFromWorkspace(in.getUri().getPath(),
-                            in.getOptional()));
+                        for (String objectId : objectIds) {
+                            input.put(objectId, findFileFromWorkspace(in.getUri().getPath(),
+                                in.getOptional()));
+                        }
+
                         break;
                     } catch (final FileNotFoundException e) {
                         throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + in.getUri().getPath(), e);
                     }
                 case MEMORY:
-                    input.add(memoryMap.get(in.getUri().getPath()));
+                    for (String objectId : objectIds) {
+                        input.put(objectId, memoryMap.get(String.format("%s.%s", in.getUri().getPath(), objectId)));
+                    }
                     break;
                 case VALUE:
-                    input.add(in.getUri().getPath());
+                    for (String objectId : objectIds) {
+                        input.put(objectId, in.getUri().getPath());
+                    }
                     break;
                 default:
                     throw new IllegalArgumentException(
@@ -223,12 +234,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public List<Object> getInput() {
-        return input;
+        return input.get(currentObjectId);
     }
 
     @Override
     public Object getInput(int rank) {
-        return input.get(rank);
+        return input.get(currentObjectId).get(rank);
     }
 
     @Override
@@ -242,12 +253,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
-    public HandlerIO addOuputResult(int rank, Object object, boolean asyncIO) throws ProcessingException {
-        return addOuputResult(rank, object, false, asyncIO);
+    public HandlerIO addOutputResult(int rank, Object object, boolean asyncIO) throws ProcessingException {
+        return addOutputResult(rank, object, false, asyncIO);
     }
 
     @Override
-    public HandlerIO addOuputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO)
+    public HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO)
         throws ProcessingException {
         final ProcessingUri uri = output.get(rank);
         if (uri == null) {
@@ -255,7 +266,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         }
         switch (uri.getPrefix()) {
             case MEMORY:
-                memoryMap.put(uri.getPath(), object);
+                memoryMap.put(String.format("%s.%s", uri.getPath(), currentObjectId), object);
                 break;
             case VALUE:
                 // Ignore
@@ -594,6 +605,11 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
             throw new ContentAddressableStorageException(exc);
         }
+    }
+
+    @Override
+    public void setCurrentObjectId(String currentObjectId) {
+        this.currentObjectId = currentObjectId;
     }
 
     private boolean isFolderExist(String folderName) throws ContentAddressableStorageException {

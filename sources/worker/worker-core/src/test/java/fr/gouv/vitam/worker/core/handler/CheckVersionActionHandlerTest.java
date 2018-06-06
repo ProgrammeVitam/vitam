@@ -32,11 +32,17 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.utils.SedaUtils;
+import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -47,15 +53,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -70,7 +67,7 @@ public class CheckVersionActionHandlerTest {
                     .setObjectNameList(Lists.newArrayList("objectName.json"))
                     .setObjectName("objectName.json").setCurrentStep("currentStep")
                     .setContainerName("CheckVersionActionHandlerTest");
-    private final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId");
+    private final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
 
     @Before
     public void setUp() throws Exception {
