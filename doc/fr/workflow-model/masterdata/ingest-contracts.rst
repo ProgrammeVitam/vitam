@@ -27,11 +27,18 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 
     + Les données suivantes optionnelles si elles sont remplies le sont en respectant les règles énnonées pour chacune :
 
-    * Le champ "Description" est peuplé avec une chaîne de caractères
-    * Le champ "Status" est peuplé avec de la valeur ACTIVE ou la valeur INACTIVE
-    * Le champ "ArchiveProfile" est peuplé avec un tableau d'une ou plusieurs chaînes de caractère. Chacune de ces chaînes de caractère doit correspondre au champ "Identifier" d'un profil d'archivage contenu dans le référentiel des profils
-    * Le champ "CheckParentLink": est peuplé avec de la valeur ACTIVE ou la valeur INACTIVE
-    * Le champ "LinkedParentId" est peuplé par une chaîne de caractères devant correspondre au GUID d'une AU de plan de classement ou d'arbre de positionnement pris en charge par la solution logicielle Vitam sur le même tenant
+    * Le champ "Description" doit être une chaîne de caractères
+    * Le champ "Status" doit avoir la valeur ACTIVE ou INACTIVE
+    * Le champ "ArchiveProfile" doit être un tableau d'une ou plusieurs chaînes de caractère. Chacune de ces chaînes de caractère doit correspondre au champ "Identifier" d'un profil d'archivage contenu dans le référentiel des profils
+    * Le champ "CheckParentLink": doit avoir la valeur ACTIVE ou INACTIVE
+    * Le champ "LinkedParentId" doit être une chaîne de caractères devant correspondre au GUID d'une AU de plan de classement ou d'arbre de positionnement pris en charge par la solution logicielle Vitam sur le même tenant
+    * Le champ "MasterMandatory" doit avoir la valeur true ou false
+    * Le champ "EveryDataObjectVersion" doit avoir la valeur true ou false
+    * Le champ "DataObjectVersion" devrait être un tableau dont chaque élément est dans l'énumération suivantes (ou être vide) : "BinaryMaster", "TextContent", "Thumbnail", "PhysicalMaster", "Dissemination"
+    * Le champ "FormatUnidentifiedAuthorized" doit avoir la valeur true ou false
+    * Le champ "EveryFormatType" doit avoir la valeur true ou false
+    * Le champ "FormatType" doit être un tableau dont chaque élément est une PUID du référentiel des formats (exemple : "fmt/17")
+
 
   + **Statuts** :
 
@@ -39,17 +46,17 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 
     - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_INGEST_CONTRACT.KO=Échec du processus d'import du contrat d'entrée)
 
-    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée) 
+    - FATAL : une erreur fatale est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
 
-    - WARNING : Avertissement lors du processus d'import du contrat d''entrée ( STP_IMPORT_INGEST_CONTRACT.WARNING=Avertissement lors du processus d'import du contrat d'entrée ) 
+    - WARNING : Avertissement lors du processus d'import du contrat d''entrée ( STP_IMPORT_INGEST_CONTRACT.WARNING=Avertissement lors du processus d'import du contrat d'entrée )
 
-    - DUPLICATION : L'identifiant utilisé existe déjà ( STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé ) 
+    - DUPLICATION : L'identifiant utilisé existe déjà ( STP_IMPORT_INGEST_CONTRACT.IDENTIFIER_DUPLICATION.KO=Échec de l'import : l'identifiant est déjà utilisé )
 
-    - EMPTY REQUIRED FIELD : un champ obligatoire n'est pas renseigné ( STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné ) 
+    - EMPTY REQUIRED FIELD : un champ obligatoire n'est pas renseigné ( STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO=Échec de l'import : au moins un des champs obligatoires n'est pas renseigné )
 
-    - PROFILE NOT FOUND : Le profil d'archivage mentionné n' existe pas ( STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO=Échec de l'import : profil d'archivage non trouvé ) 
+    - PROFILE NOT FOUND : Le profil d'archivage mentionné n' existe pas ( STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO=Échec de l'import : profil d'archivage non trouvé )
 
-  
+
 
 Mise à jour d'un contrat d'entrée (STP_UPDATE_INGEST_CONTRACT)
 ---------------------------------------------------------------

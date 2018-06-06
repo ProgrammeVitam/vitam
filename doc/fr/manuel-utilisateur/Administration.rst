@@ -113,7 +113,7 @@ Un fichier valide est un fichier respectant toutes les conditions suivantes :
 - Valeurs cohérentes avec les besoins métier
 
 
-Pour importer un référentiel de règles de gestion, l'administrateur : 
+Pour importer un référentiel de règles de gestion, l'administrateur :
 
 - Sélectionne le fichier CSV précédemment décrit
 - Accède à l'interface d'import du référentiel des règles de gestion et clique sur le bouton "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement
@@ -220,7 +220,7 @@ Pour accéder à la page d'import, l’utilisateur clique sur le menu « Adminis
 
 L’utilisateur doit au préalable créer le référentiel des services agents au format CSV afin de l’importer dans Vitam.
 
-Le référentiel doit comporter les champs suivants : 
+Le référentiel doit comporter les champs suivants :
 
 * Identifier : Identifiant du service (Cet identifiant ne doit pas comprendre d’espace ou de caractère accentué)
 * Name : Nom du service
@@ -228,7 +228,7 @@ Le référentiel doit comporter les champs suivants :
 
 Le processus d’import du référentiel se déroule comme ceci :
 
-* Accéder à l’interface d’import du référentiel des services agents 
+* Accéder à l’interface d’import du référentiel des services agents
 * Cliquer sur le bouton « sélectionner un fichier » ou faire glisser le fichier sur l’espace de téléchargement
 * Sélectionner le fichier CSV
 * Cliquer sur le bouton «Importer»
@@ -290,7 +290,7 @@ Les contrats d'entrée permettent de gérer les droits donnés aux utilisateurs 
 Pour plus de détail se référer à la documentation "Gestion des habilitations".
 
 Import de contrats d'entrée
------------------------------
+---------------------------
 
 L'import d'un contrat est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. L'utilisateur construit au préalable son contrat d'entrée au format JSON. La structure et les valeurs des contrats sont décrites dans la documentation du modèle de données.
 
@@ -315,13 +315,13 @@ Une fenêtre modale s'ouvre alors pour indiquer:
 
 - Que le contrat a bien été importé
 - Un échec de l'import du fichier, pouvant être causé par :
-	- Le fait que le contrat mentionné existe déjà pour le tenant ( si la solution est en mode "esclave") 
+	- Le fait que le contrat mentionné existe déjà pour le tenant ( si la solution est en mode "esclave")
 	- Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
 Recherche d'un contrat d'entrée
---------------------------------
+-------------------------------
 
 Pour consulter et rechercher les contrats d'entrée, l'utilisateur clique sur le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Contrats d'entrée".
 
@@ -358,7 +358,7 @@ Détail d'un contrat d'entrée
 
 Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhaitée. La page "Détail d'un contrat d'entrée" contient les informations suivantes :
 
-Identifiant, Intitulé, Description, Statut, Date de création, Date de dernière modification, Profils d'archivage, Nœud de rattachement, Contrôle sur noeud de rattachement, Tenant, Présence Obligatoire d'un master, Tous les usages, Liste blanche des usages
+Identifiant, Intitulé, Description, Statut, Date de création, Date de dernière modification, Profils d'archivage, Nœud de rattachement, Contrôle sur noeud de rattachement, Tenant, Présence Obligatoire d'un master, Tous les usages, Liste blanche des usages, Formats non identifiés autorisés, Tous les formats, Liste blanche des format
 
 |
 
@@ -368,7 +368,7 @@ Identifiant, Intitulé, Description, Statut, Date de création, Date de dernièr
 Modifier un contrat d'entrée
 -----------------------------
 
-Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification de plusieurs champs du contrat: l'intitulé, la description, le statut, le profil d'archivage, les contrôles sur les noeuds de rattachement, etc. 
+Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification de plusieurs champs du contrat: l'intitulé, la description, le statut, le profil d'archivage, les contrôles sur les noeuds de rattachement, etc.
 |
 
 .. image:: images/detail_ce_modif.png
@@ -380,12 +380,12 @@ L'administrateur a la possibilité d'activer / désactiver un contrat en cliquan
 
 * Restriction d'entrée par Profil d'archivage:
 
-Il est possible d'ajouter des contrôles à l'entrée grâce au profil. L'utilisateur ajoute dans ce champ un ou plusieurs identifiants de profils d'archivage, appuie sur la touche entrée avant de valider. 
+Il est possible d'ajouter des contrôles à l'entrée grâce au profil. L'utilisateur ajoute dans ce champ un ou plusieurs identifiants de profils d'archivage, appuie sur la touche entrée avant de valider.
 Les SIP qui utiliseront ce contrat d'entrée devront obligatoirement comporter la référence d'un de leurs profils d'archivage autorisés dans leur bordereau de versement.
 
 * Nœud de rattachement
 
-Il est possible de rattacher une entrée à une unité archivistique existant déjà dans le système. 
+Il est possible de rattacher une entrée à une unité archivistique existant déjà dans le système.
 Pour cela, l'utilisateur ajoute dans le champ l'identifiant (GUID) d'une unité archivistique de plan de classement ou d'arbre de positionnement,  et appuie sur la touche entrée avant de valider l'ajout. Les SIP qui utiliseront ce contrat d'entrée seront automatiquement rattachés à l'unité archivistique déclarée dans le nœud de rattachement.
 
 * Contrôle sur noeud de rattachement
@@ -394,11 +394,29 @@ En activant cette option un contrôle est effectué sur la cohérence du rattach
 
 * Contrôle sur les usages déclarés dans le SIP
 
-Il est possible de réaliser un contrôle sur le type d'usages lié aux objets lors du rattachement, ainsi que de rendre obligatoire la présence d'un objet de type Master lors d'une entré. 
+Il est possible de réaliser un contrôle sur le type d'usages lié aux objets lors du rattachement, ainsi que de rendre obligatoire la présence d'un objet de type Master lors d'une entré.
 
-Pour cela, l'utilisateur active / désactive le contrôle sur une liste d'usages via les options dans le détail des contrats d'accès : " Tous les usages " permet d'autoriser la présence de tous les usages ou bien d'en sélectionner que certains via la "Liste blanche des usages". 
+Pour cela, l'utilisateur active / désactive le contrôle sur une liste d'usages via les options dans le détail des contrats d'accès : " Tous les usages " permet d'autoriser la présence de tous les usages ou bien d'en sélectionner que certains via la "Liste blanche des usages".
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
+
+* Formats non identifiés autorisés
+
+Ce paramètre permet d'autoriser ou non la solution logicielle Vitam à accepter les versements comportant des objets dont formats que le système n'arrive pas à identifier. Si la valeur de ce paramètre est à "Non", les entrées de ces archives avec objets non identifiés seront rejetés. Si il est à "Oui", elles pourront être versées.
+
+* Tous les formats
+
+Un contrat d'entrée peut limiter les formats acceptés par la solution logicielle Vitam au moment du versement. Lorsque ce paramètre est à "Oui", tous les formats sont acceptés. Quand il est à "Non", seuls les formats déclarés dans la "Liste des formats" (voir ci-dessous) seront autorisés.
+
+* Liste des formats
+
+Cette option n'est disponible que Lorsque le paramètre "Tous les formats" est à "Non". Dans ce cas seuls les versements d'archives comportant des objets dont le format est déclaré dans cette liste seront acceptés. Si une archive possède au moins un objet dont le format n'est pas dans la liste, son versement sera rejeté.
+
+Cette liste de format est une liste de PUID, c'est à dire d'identifiants de format déjà enregistré dans la solution logicelle Vitam dans le référentiel des formats. (Par exemple, si l'on se base sur le référentiel des formats PRONOM, l'identifiant "fmt/17" correspond au format PDF version 1.3).
+
+Pour enregistrer un nouvel identifiant dans la liste des formats, il est nécessaire de l'écrire sur l'écran de modification des formats et de valider avec la touche entrée. Le format se transforme alors en "tag". Une fois terminée la saisie d'un ou plusieurs identifiants de formats, le bouton "Sauvegarder" permet d'enregistrer les changements.
+
+Si dans cette liste l'utilisateur ne saisit pas un identifiant de format valide, c'est un dire un identifiant qui n'est pas un PUID du référentiel des formats de la solution logicielle Vitam, alors les modifications seront rejetées au moment de cliquer sur "Sauvegarder".
 
 Contrats d'accès
 =================
@@ -415,7 +433,7 @@ L'administrateur devra au préalable construire son contrat sous la forme d'un c
 
 - Nom (obligatoire)
 - Description (obligatoire)
-- Statut (facultatif) : si aucun statut n'est défini, le contrat sera inactif par défaut et les consultations seront impossibles. 
+- Statut (facultatif) : si aucun statut n'est défini, le contrat sera inactif par défaut et les consultations seront impossibles.
 
 La structure et les valeurs des contrats sont décrites dans la documentation "Gestion des habilitations".
 
@@ -521,7 +539,7 @@ Un contrat d'accès peut autoriser l'accès à tous ou certains usages d'objets 
  - accès à "Tous les usages" en cliquant afin de changer la valeur à "oui"
  - accès à une sélection d'usages en cliquant sur le bouton "Tous les usages" afin de porter sa valeur à "non" puis en sélectionnant les usages voulus dans la liste blanche des usages.
 
-* Restriction par nœud de consultation 
+* Restriction par nœud de consultation
 
 Un contrat peut restreindre l'accès aux unités archivistiques listées en tant que nœuds de consultation ainsi qu'à leurs enfants. Chaque unité archivistique renseignée est identifiée par son identifiant. Si aucune unité archivistique n'est renseignée, alors l'accès du détenteur du contrat n'est pas restreint à des nœuds de consultation (sytème de tag).
 
@@ -538,7 +556,7 @@ Un contrat peut restreindre l'accès à la consultation à partir de certains no
 Contextes applicatifs
 =======================
 
-Le contexte permet de définir les droits des applications utilisatrices en fonction de leurs certificats. 
+Le contexte permet de définir les droits des applications utilisatrices en fonction de leurs certificats.
 
 
 Import de contextes applicatifs
@@ -576,7 +594,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
     - Date de création
     - Dernière modification
 
-.. note:: une coche indique la présence d'au moins un contrat lié à ce contexte, une croix indique qu'aucun contrat n'est lié à ce contexte. 
+.. note:: une coche indique la présence d'au moins un contrat lié à ce contexte, une croix indique qu'aucun contrat n'est lié à ce contexte.
 
 Le bouton "Informations supplémentaires" permet d'afficher des informations supplémentaires sur les contextes applicatifs. Il suffit de cocher dans la liste les informations voulues.
 
@@ -645,7 +663,7 @@ Une fenêtre modale indique alors soit :
 
 - Le profil a été importé
 - Échec de l’import du fichier, pouvant être causé par :
-	- le fait que le(s) profil(s) d'archivage mentionné(s) existe(nt) déjà pour le tenant (si Vitam est en mode esclave) 
+	- le fait que le(s) profil(s) d'archivage mentionné(s) existe(nt) déjà pour le tenant (si Vitam est en mode esclave)
 	- le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
@@ -681,9 +699,9 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Statut (Actif / Inactif)
 - Date de de création
 - Dernière modification
-- Profil 
+- Profil
 
-Lorsqu'un profil SEDA a été associé à la notice du profil, une flèche indiquant la possibilité de le télécharger apparaît dans la colonne "Profil". L'utilisateur peut lancer le téléchargement en cliquant dessus. la notice de profil est donc consultable via l'IHM tandis que le profil ne l'est que par téléchargement. 
+Lorsqu'un profil SEDA a été associé à la notice du profil, une flèche indiquant la possibilité de le télécharger apparaît dans la colonne "Profil". L'utilisateur peut lancer le téléchargement en cliquant dessus. la notice de profil est donc consultable via l'IHM tandis que le profil ne l'est que par téléchargement.
 
 
 .. image:: images/res_profil.png
@@ -692,7 +710,7 @@ Détail d'une notice descriptive d'un profil d'archivage
 -------------------------------------------------------
 
 Pour accéder au détail d'une notice de profil d'archivage, l'utilisateur clique sur la ligne souhaitée. La page "Détail du profil" contient les informations suivantes :
-Identifiant, Intitulé, Description, Statut, Tenant, Date de création, Dernière modification, Format, Fichier.  
+Identifiant, Intitulé, Description, Statut, Tenant, Date de création, Dernière modification, Format, Fichier.
 
 |
 
@@ -839,7 +857,7 @@ Import d'un arbre de positionnement
 
 Les arbres de positionnement correspondent à des ensembles logiques hiérarchisés les uns par rapport aux autres sous forme arborescente. Ils permettent à un service d’archives d’organiser des fonds. Ils s’apparentent à la notion de cadre de classement qu’ils utilisent.
 
-Pour plus d'informations, consulter la documentation "Arbres et Plans". 
+Pour plus d'informations, consulter la documentation "Arbres et Plans".
 
 Import d'un arbre de positionnement
 -----------------------------------
@@ -920,8 +938,8 @@ La notification comprend ensuite la liste des erreurs rencontrées (échec ou av
 Consulter un arbre de positionnement
 ------------------------------------
 
-Il est possible de consulter un arbre de positionnement importé dans la solution Vitam, de la même façon que pour les unités archivistiques: via par exemple un identifiant récupéré sur l' ATR lors de l'entrée de l'arbre de positionnement. 
-La page de recherche permet d'effectuer des recherches avancées, notamment au niveau de l'identifiant, afin de pouvoir accéder au détail. 
+Il est possible de consulter un arbre de positionnement importé dans la solution Vitam, de la même façon que pour les unités archivistiques: via par exemple un identifiant récupéré sur l' ATR lors de l'entrée de l'arbre de positionnement.
+La page de recherche permet d'effectuer des recherches avancées, notamment au niveau de l'identifiant, afin de pouvoir accéder au détail.
 
 
 
@@ -1090,7 +1108,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 
 .. image:: images/res_gestion.png
 
-Utilisation du mode pas à pas pour les entrées 
+Utilisation du mode pas à pas pour les entrées
 ----------------------------------------------
 
 Lorsque l’entrée est réalisée en mode d’exécution pas à pas, l’utilisateur doit alors utiliser les boutons d’action disponibles afin de faire avancer son traitement.
@@ -1131,9 +1149,9 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Identifiant : identifiant de l'opération recherchée sur l'IHM
 - Date de début et date de fin : intervalle de dates permettant de rechercher sur les dates du premier et du dernier journal pris en compte dans l'opération de sécurisation
 - Type de journal sécurisé : liste déroulante permettant de sélectionner le type de journal sécurisé à afficher.
-	* Journal des écritures (correspondant au type : STORAGE) 
-	* Journal des opérations (correspondant au type : OPERATIONS)  
-	* Journaux des cycles de vie des unités archivistiques 
+	* Journal des écritures (correspondant au type : STORAGE)
+	* Journal des opérations (correspondant au type : OPERATIONS)
+	* Journaux des cycles de vie des unités archivistiques
         * Journaux des cycles de vie des groupes d'objets
 
 |
@@ -1178,7 +1196,7 @@ Pour accéder au détail d'un journal sécurisé, l'utilisateur clique sur la li
 Vérification d'un journal sécurisé
 ----------------------------------
 
-En cliquant sur le bouton "Lancer la vérification", la solution logicielle Vitam vérifie que les informations de l'arbre de hashage sont à la fois conformes au contenu du journal sécurisé et aux journaux disponibles dans la solution logicielle Vitam. Le tableau détaille les étapes du processus de vérification. 
+En cliquant sur le bouton "Lancer la vérification", la solution logicielle Vitam vérifie que les informations de l'arbre de hashage sont à la fois conformes au contenu du journal sécurisé et aux journaux disponibles dans la solution logicielle Vitam. Le tableau détaille les étapes du processus de vérification.
 
 Une fois l'opération terminée, son détail est affiché dans une partie "Rapport de vérification". Il est également disponible dans le Journal des opérations.
 Le téléchargement du fichier lié à la sécurisation peut être realisé via le détail de l'opération.
@@ -1211,7 +1229,7 @@ Pour importer un référentiel des formats, l'administrateur:
 
 - Accède à l'écran d'import du référentiel des formats
 - Clique sur le bouton "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement
-- Sélectionne le fichier .xml PRONOM récupéré précédemment ou le fait glisser dans la zone spécifique au téléchargement 
+- Sélectionne le fichier .xml PRONOM récupéré précédemment ou le fait glisser dans la zone spécifique au téléchargement
 - Clique sur le bouton "Importer"
 
 |
@@ -1236,8 +1254,8 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas 
 Modification du référentiel des formats
 ---------------------------------------
 
-Il n'est pas possible de modifier un référentiel des formats via l'IHM, il n'y a pas de bouton "Modifier" affiché. 
-Mais il est possible de re-importer un fichier afin de modifier les informations. 
+Il n'est pas possible de modifier un référentiel des formats via l'IHM, il n'y a pas de bouton "Modifier" affiché.
+Mais il est possible de re-importer un fichier afin de modifier les informations.
 
 
 
@@ -1245,7 +1263,7 @@ Contextes applicatifs
 =====================
 
 
-Le contexte permet de définir les droits des applications utilisatrices en fonction de leurs certificats. Pour plus de détails, se référer à la documentation métier "Gestions des habilitations". 
+Le contexte permet de définir les droits des applications utilisatrices en fonction de leurs certificats. Pour plus de détails, se référer à la documentation métier "Gestions des habilitations".
 
 
 Import des contextes applicatifs
@@ -1253,7 +1271,7 @@ Import des contextes applicatifs
 
 L'import de contextes applicatifs est une fonctionnalité réservée au tenant d'administration et pour un utilisateur ayant des droits d'administration. La structure et les valeurs des contextes sont décrites dans la documentation du modèle de données.
 
-L'administrateur devra au préalable construire son contexte applicatif, sous la forme d'un fichier CSV, comportant les champs suivants: 
+L'administrateur devra au préalable construire son contexte applicatif, sous la forme d'un fichier CSV, comportant les champs suivants:
 
 - identifiant
 - nom du contexte
@@ -1350,14 +1368,14 @@ L'import d'un fichier JSON déclarant des métadonnées est une fonctionnalité 
 L'utilisateur construit au prélable le fichier au format JSON. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du fichier :
 
     - Identifiant ( obligatoire - "Identifier"): l'identifiant pour le vocabulaire externe doit : être unique, ne pas commencer par "_" ou "#" et ne pas contenir d'espace
-    - Intitulé API ( obligatoire - "ApiField" ) 
-    - Intitulé XML ( obligatoire - "SedaField" ) 
+    - Intitulé API ( obligatoire - "ApiField" )
+    - Intitulé XML ( obligatoire - "SedaField" )
     - Origine interne ou externe ( obligatoire -"Origin": "INTERNAL" / "EXTERNAL" )
     - Type: Type du vocabulaire ( obligatoire ) : valeur à choisir parmi la liste:  Text, Keyword, Date, Long, Double, Boolean, Geo-point, Enumération de valeur
     - Traduction du vocabulaire (obligatoire - "ShortName")
     - Intitulé d'une ou plusieurs des collections (obligatoire - "Collections")
-    - Description ( Facultative ) 
-    - Date de création ( Facultative ) 
+    - Description ( Facultative )
+    - Date de création ( Facultative )
 
 Note: Compatibilité des modifications possibles concernant les types de vocabulaires :
 
@@ -1391,8 +1409,8 @@ Une fenêtre modale indique alors soit :
 	- le fait que les identifiants déclarés existent déjà
         - le fait que l'intitulé XML déclaré existe déjà
         - le fait que l'identifiant commence par un "_" ou un"#" ou contient des espaces
-        - le fait que le type déclaré ne soit pas valide ( parmi la liste des valeurs permises ) 
-- le fait que la collection déclarée ne soit pas valide ( parmi la liste des valeurs permises ) 
+        - le fait que le type déclaré ne soit pas valide ( parmi la liste des valeurs permises )
+- le fait que la collection déclarée ne soit pas valide ( parmi la liste des valeurs permises )
 - le fait que l'origine déclarée soit interne
 	- le fait que le fichier soit invalide (mauvais format ou champ obligatoire absent)
 
@@ -1412,7 +1430,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Intitulé : permet d’effectuer une recherche exacte sur les noms des vocabulaires de l'ontologie disponibles dans la solution logicielle Vitam.
 - Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de l'ontologie.
 
-.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. 
+.. note:: Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé.
 
 
 .. image:: images/recherche_ontologie.png
@@ -1451,10 +1469,10 @@ Modifier une ontologie
 
 **Point d'attention : la modification des contextes applicatifs est une opération d'administration délicate qui peut bloquer le fonctionnement de la solution logicielle. Elle doit être évitée ou réalisée avec précaution.**
 
-Il est possible de modifier les ontologies en re-important un fichier, et non via l' IHM. 
+Il est possible de modifier les ontologies en re-important un fichier, et non via l' IHM.
 
 
-Note: en re-important le fichier JSON , il est possible de modifier les types de vocabulaire, mais seulement certaines combinaisons sont autorisées: 
+Note: en re-important le fichier JSON , il est possible de modifier les types de vocabulaire, mais seulement certaines combinaisons sont autorisées:
 	- Text -> Keyword, Text
 	- Keyword -> Keyword, Text
 	- Date -> Keyword, Text
@@ -1463,5 +1481,3 @@ Note: en re-important le fichier JSON , il est possible de modifier les types de
 	- Boolean -> Keyword, Text
 	- Geo-point -> Keyword, Text
 	- Enumération de valeur -> Keyword, Text
-
-

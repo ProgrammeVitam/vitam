@@ -325,13 +325,16 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK - FormatIdentificationAction
 
   - KO :
 
-		- Cas 1 : au moins un objet reçu a un format qui n'a pas été trouvé (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
+		- Cas 1 : au moins un objet reçu a un format qui n'a pas été trouvé et le contrat d'entrée utilisé interdit le versement d'objets aux formats non identifiés (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
 		- Cas 2 : au moins un objet reçu a un format qui n'est pas référencé dans le référentiel interne (OG_OBJECTS_FORMAT_CHECK.UNCHARTED.KO=Échec lors de l'identification des formats, le format de ou des objet(s) est identifié mais est inconnu du référentiel des formats)
 		- Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (OG_OBJECTS_FORMAT_CHECK.KO = Échec de l'identification des formats)
 
   - FATAL : une erreur fatale est survenue lors de l'indentification des formats (OG_OBJECTS_FORMAT_CHECK.FATAL = Erreur fatale lors de l'identification des formats)
 
-  - WARNING : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne mais les informations ne sont pas cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.WARNING = Avertissement lors de la vérification des formats)
+  - WARNING :
+
+    - Cas 1 : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne mais les informations ne sont pas cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.WARNING = Avertissement lors de la vérification des formats)
+    - Cas 2 : au moins un objet reçu a un format qui n'a pas été trouvé mais le contrat d'entrée utilisé autorise le versement d'objets aux formats non identifiés. Dans ce cas Vitam remplace le champ "FormatId" du manifest.xml par le mot "unknown" (OG_OBJECTS_FORMAT_CHECK.WARNING = Avertissement lors de la vérification des formats)
 
 
 Processus de contrôle et traitement des unités archivistiques (STP_UNIT_CHECK_AND_PROCESS)
