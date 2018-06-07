@@ -361,9 +361,9 @@ public class OntologyManager {
 
         return (ontology) -> {
             if (ParametersChecker.isNotEmpty(ontology.getIdentifier())) {
-                int tenant = ParameterHelper.getTenantParameter();
-                Bson clause = or(regex(Ontology.IDENTIFIER, "^(?i)" + Pattern.quote(ontology.getIdentifier())),
-                    regex(Ontology.SEDAFIELD, "^(?i)" + Pattern.quote(ontology.getIdentifier())));
+                //Workaround for a case insensitive query in mongoDb
+                Bson clause = or(regex(Ontology.IDENTIFIER, "^(?i)" + Pattern.quote(ontology.getIdentifier()) + "$"),
+                    regex(Ontology.SEDAFIELD, "^(?i)" + Pattern.quote(ontology.getIdentifier()) + "$"));
 
                 boolean exist = FunctionalAdminCollections.ONTOLOGY.getCollection().count(clause) > 0;
                 if (exist) {
