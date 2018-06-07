@@ -54,13 +54,13 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -80,6 +80,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
@@ -1520,7 +1521,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
         if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE)) {
             ruleCategoryModel
-                .setClassificationAudience(globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE).asText());
+                .setClassificationAudience(
+                    globalMgtRuleNode.get(SedaConstants.TAG_RULE_CLASSIFICATION_AUDIENCE).asText());
         }
         JsonNode finalAction = globalMgtRuleNode.get(SedaConstants.TAG_RULE_FINAL_ACTION);
         if (finalAction != null && ruleCategoryModel.getFinalAction() == null) {
@@ -2249,64 +2251,87 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
 
     private void checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup() throws ProcessingException {
-
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-
             RequestResponse<IngestContractModel> referenceContracts = getIngestContract(adminClient);
             if (referenceContracts.isOk()) {
                 List<IngestContractModel> results =
                     ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
                 if (results != null && results.size() > 0) {
                     IngestContractModel contract = results.iterator().next();
-                    List<String> usages = new ArrayList<>();
-                    for (final Entry<String, List<String>> entry : objectGroupIdToDataObjectId.entrySet()) {
-                        dataObjectGroupMasterMandatory.put(entry.getKey(), false);
-                        for (int index = 0; index < entry.getValue().size(); index++) {
-                            final String id = entry.getValue().get(index);
-                            final File dataObjectFile =
-                                handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
-                            JsonNode dataObjectNode =
-                                JsonHandler.getFromFile(dataObjectFile).get(BINARY_DATA_OBJECT);
-
-                            if (dataObjectNode == null) {
-                                dataObjectNode = JsonHandler
-                                    .getFromFile(dataObjectFile)
-                                    .get(PHYSICAL_DATA_OBJECT);
-                            }
-                            String nodeCategory = "";
-                            if (dataObjectNode.get(SedaConstants.TAG_DO_VERSION) != null) {
-                                nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
-                            }
-                            if (nodeCategory.split("_").length == 1) {
-                                final String nodeCategoryNumbered = nodeCategory + "_1";
-                                ((ObjectNode) dataObjectNode)
-                                    .put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
-                            }
-                            nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
-                            if ((BINARY_MASTER.equals(nodeCategory.split("_")[0]) ||
-                                PHYSICAL_MASTER.equals(nodeCategory.split("_")[0]))) {
-                                dataObjectGroupMasterMandatory.replace(entry.getKey(), true);
-                            }
-                            usages.add(nodeCategory.split("_")[0]);
-                        }
-                    }
-                    if (contract.isMasterMandatory()) {
-                        List<String> objectIdWithoutMaster =
-                            dataObjectGroupMasterMandatory.entrySet().stream().filter(entry -> !entry.getValue())
-                                .map(Entry::getKey).collect(Collectors.toList());
-                        if (!objectIdWithoutMaster.isEmpty()) {
-                            String objectGroupsId = objectIdWithoutMaster.stream().collect(Collectors.joining(" , "));
-                            throw new ProcessingObjectGroupMasterMandatoryException(String.format(
-                                "BinaryMaster or PhysicalMaster is not present for objectGroup : %s",
-                                objectGroupsId), objectGroupsId);
-                        }
-                    }
-                    checkIngestContractForObjectGroupAttachment(contract, usages);
+                    Map<String, String> usageToObjectGroupId = getUsageToObjectGroupId();
+                    Set<String> updatedObjectGroupIds = getUpdatedObjectGroupIds();
+                    checkMasterMandatory(contract, updatedObjectGroupIds);
+                    checkIngestContractForObjectGroupAttachment(contract, usageToObjectGroupId, updatedObjectGroupIds);
                 }
             }
         } catch (AdminManagementClientServerException | InvalidParseOperationException |
             InvalidCreateOperationException e) {
             throw new ProcessingException(e);
+        }
+
+    }
+
+    private Map<String, String> getUsageToObjectGroupId() throws InvalidParseOperationException {
+        Map<String, String> usageToObjectGroupId = new HashMap<>();
+        for (final Entry<String, List<String>> entry : objectGroupIdToDataObjectId.entrySet()) {
+            dataObjectGroupMasterMandatory.put(entry.getKey(), false);
+            for (int index = 0; index < entry.getValue().size(); index++) {
+                final String id = entry.getValue().get(index);
+                final File dataObjectFile = handlerIO.
+                    getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
+                JsonNode dataObjectNode = JsonHandler.getFromFile(dataObjectFile).get(BINARY_DATA_OBJECT);
+                if (dataObjectNode == null) {
+                    dataObjectNode = JsonHandler
+                        .getFromFile(dataObjectFile)
+                        .get(PHYSICAL_DATA_OBJECT);
+                }
+                String nodeCategory = "";
+                if (dataObjectNode.get(SedaConstants.TAG_DO_VERSION) != null) {
+                    nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
+                }
+                if (nodeCategory.split("_").length == 1) {
+                    final String nodeCategoryNumbered = nodeCategory + "_1";
+                    ((ObjectNode) dataObjectNode)
+                        .put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
+                }
+                nodeCategory = dataObjectNode.get(SedaConstants.TAG_DO_VERSION).asText();
+                if ((BINARY_MASTER.equals(nodeCategory.split("_")[0]) ||
+                    PHYSICAL_MASTER.equals(nodeCategory.split("_")[0]))) {
+                    dataObjectGroupMasterMandatory.replace(entry.getKey(), true);
+                }
+                usageToObjectGroupId.put(nodeCategory.split("_")[0], entry.getKey());
+            }
+        }
+        return usageToObjectGroupId;
+    }
+
+    private Set<String> getUpdatedObjectGroupIds() {
+        Set<String> updatedUnitsId = unitIdToGuid.keySet().stream()
+            .filter(unitId -> existingUnitIdWithExistingObjectGroup.containsKey(unitIdToGuid.get(unitId)))
+            .collect(Collectors.toSet());
+        return unitIdToGroupId.entrySet().stream().filter(entry -> updatedUnitsId.contains(entry.getKey()))
+            .map(Entry::getValue)
+            .collect(Collectors.toSet());
+
+    }
+
+    private void checkMasterMandatory(IngestContractModel contract, Set<String> updatedObjectGroupIds)
+        throws ProcessingObjectGroupMasterMandatoryException {
+        if (contract.isMasterMandatory()) {
+            List<String> objectIdWithoutMaster =
+                dataObjectGroupMasterMandatory.entrySet().stream().filter(entry -> !entry.getValue())
+                    .map(Entry::getKey)
+                    .collect(Collectors.toList());
+            List<String> objectIdWithoutUpdatedOG =
+                objectIdWithoutMaster.stream()
+                    .filter(objectId -> !updatedObjectGroupIds.contains(objectId))
+                    .collect(Collectors.toList());
+            if (!objectIdWithoutUpdatedOG.isEmpty()) {
+                String objectGroupsId = objectIdWithoutMaster.stream().collect(Collectors.joining(" , "));
+                throw new ProcessingObjectGroupMasterMandatoryException(String.format(
+                    "BinaryMaster or PhysicalMaster is not present for objectGroup : %s",
+                    objectGroupsId), objectGroupsId);
+            }
         }
 
     }
@@ -2320,18 +2345,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
         select.setQuery(QueryHelper.eq(IngestContract.IDENTIFIER, archival_Agreement.asText()));
         JsonNode queryDsl = select.getFinalSelect();
         return adminClient.findIngestContracts(queryDsl);
+
     }
 
     private void checkIngestContractForObjectGroupAttachment(IngestContractModel contract,
-        List<String> usages)
+        Map<String, String> usages, Set<String> objectGroupIdUpdated)
         throws ProcessingObjectGroupEveryDataObjectVersionException {
 
         if (!existingUnitIdWithExistingObjectGroup.isEmpty() && !contract.isEveryDataObjectVersion()) {
             final Set<String> dataObjectVersion = contract.getDataObjectVersion();
             if (dataObjectVersion != null && !dataObjectVersion.isEmpty()) {
-                List<String> usageInObjectVersion =
-                    usages.stream().filter(dataObjectVersion::contains).collect(Collectors.toList());
-                if (usageInObjectVersion.size() == usages.size()) {
+                Set<String> usageInObjectVersion = usages.entrySet().stream()
+                    .filter(entry -> objectGroupIdUpdated.contains(entry.getValue()))
+                    .filter(entry -> dataObjectVersion.contains(entry.getKey()))
+                    .map(Entry::getKey)
+                    .collect(Collectors.toSet());
+                if (usageInObjectVersion.size() == dataObjectVersion.size()) {
                     return;
                 }
             }

@@ -11,5 +11,6 @@
   "ActivationDate": "2018-05-18T09:31:05.909",
   "CheckParentLink": "INACTIVE",
   "MasterMandatory": true,
-  "EveryDataObjectVersion": false
+  "EveryDataObjectVersion": false,
+  "DataObjectVersion": ["Thumbnail"]
 }
