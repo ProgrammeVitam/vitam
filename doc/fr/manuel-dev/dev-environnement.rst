@@ -1,6 +1,6 @@
-=====
+#################################################
 Configuration de l'environnement de développement
-=====
+#################################################
 
 Voici comment préparez votre environnement de développement afin de pouvoir coder, démarrer les micros services, débugger...
 
