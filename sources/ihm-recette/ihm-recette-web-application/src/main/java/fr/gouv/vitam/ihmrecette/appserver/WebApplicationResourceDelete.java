@@ -26,48 +26,46 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.VitamConfigurationParameters;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -85,11 +83,6 @@ import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 /**
@@ -103,6 +96,8 @@ public class WebApplicationResourceDelete {
     private static final String CONTEXT_TO_SAVE = "admin-context";
     private static final String SECURITY_PROFIL_NAME = "Name";
     private static final String SECURITY_PROFIL_NAME_TO_SAVE = "admin-security-profile";
+    private static final String ONTOLOGY_ORIGIN = "Origin";
+    private static final String ONTOLOGY_EXTERNAL = "EXTERNAL";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceDelete.class);
     private static final String STP_DELETE_FORMAT = "STP_DELETE_FORMAT";
     private static final String STP_DELETE_RULES = "STP_DELETE_RULES";
@@ -707,11 +702,47 @@ public class WebApplicationResourceDelete {
 
     }
 
+    /**
+     * Delete the EXTERNAL entries for the ontology collection and reimport the INTERNAL entries
+     *
+     * @return Response
+     */
+    @Path("masterdata/ontologies")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteAndImportOntologies(@Context HttpServletRequest request) throws IOException {
+
+        //Delete the EXTERNAL ontologies
+        Response response = deleteMasterDataCollection(FunctionalAdminCollections.ONTOLOGY);
+
+        //recreate the internals ontologies
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+
+            InputStream input = this.getClass().getResourceAsStream("/VitamOntology.json");
+            VitamContext context = UserInterfaceTransactionManager.getVitamContext(request);
+            context.setTenantId(1);
+            RequestResponse requestResponse =
+                adminClient.importOntologies(true, context, input);
+            if (requestResponse.isOk()) {
+                return Response.status(Status.OK).build();
+            }
+            if (requestResponse instanceof VitamError) {
+                final VitamError error = (VitamError) requestResponse;
+                return Response.status(error.getHttpCode()).entity(requestResponse).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+
+        } catch (final Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     private Response deleteMasterDataCollection(FunctionalAdminCollections collection) {
         if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.INGEST_CONTRACT) ||
             collection.equals(FunctionalAdminCollections.PROFILE) ||
             collection.equals(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE) ||
+            collection.equals(FunctionalAdminCollections.ONTOLOGY) ||
             collection.equals(FunctionalAdminCollections.AGENCIES) ||
             collection.equals(FunctionalAdminCollections.CONTEXT))) {
             throw new IllegalArgumentException("unsupported collection");
@@ -725,6 +756,7 @@ public class WebApplicationResourceDelete {
                 VitamThreadUtils.getVitamSession().setTenantId(0);
             }
         }
+
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_MASTERDATA + "_" + collection.name(), eip,
@@ -736,6 +768,8 @@ public class WebApplicationResourceDelete {
             if (FunctionalAdminCollections.CONTEXT.equals(collection)) {
                 // HACK: CT-0001, admin-context have not to be deleted
                 mongoDbAccessAdmin.deleteCollection(collection, queryDeleteContext()).close();
+            } else if (FunctionalAdminCollections.ONTOLOGY.equals(collection)) {
+                mongoDbAccessAdmin.deleteCollection(collection, queryDeleteExternalOntology()).close();
             } else {
                 mongoDbAccessAdmin.deleteCollection(collection).close();
             }
@@ -1274,6 +1308,14 @@ public class WebApplicationResourceDelete {
         return delete;
     }
 
+
+    private Delete queryDeleteExternalOntology() throws InvalidCreateOperationException {
+        final Delete delete = new Delete();
+        final Query query = QueryHelper.eq(ONTOLOGY_ORIGIN, ONTOLOGY_EXTERNAL);
+        delete.setQuery(query);
+        return delete;
+    }
+
     private Response updateLogbookAndGetErrorResponse(LogbookOperationsClientHelper helper, GUID eip, Exception exc) {
         try {
             final Queue<LogbookOperationParameters> parameters = helper.removeCreateDelegate(eip.getId());
@@ -1286,5 +1328,5 @@ public class WebApplicationResourceDelete {
         final Status status = Status.INTERNAL_SERVER_ERROR;
         return Response.status(status).entity(exc.getMessage()).build();
     }
-    
+
 }

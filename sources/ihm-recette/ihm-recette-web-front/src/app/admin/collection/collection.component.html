@@ -9,6 +9,9 @@
                           name="formats" label="Purge du Référentiel des formats (impacte tous les tenants)"></vitam-remove-items>
       <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/context"
                           name="contextes" label="Purge des contextes (impacte tous les tenants)"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/ontologies"
+                          name="ontologies"
+                          label="Purge des ontologies externes (impacte tous les tenants)"></vitam-remove-items>
       <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="rules"
                           name="règles de gestion" label="Purge du Référentiel des règles de gestion"></vitam-remove-items>
       <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="accessionregisters"
