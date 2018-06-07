@@ -1,5 +1,9 @@
+.. _upgrade_r6_r7:
+
 Migration R6 vers R7
 ####################
+
+
 
 .. caution:: la migration n'est possible qu'en partant de la version la plus récente de la version "R6" (1.0.3).
 
