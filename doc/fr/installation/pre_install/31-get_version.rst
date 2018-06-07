@@ -7,7 +7,7 @@ Utilisation des dépôts open-source
 
 Les scripts de déploiement de VITAM sont disponibles dans le dépôt github `VITAM <https://github.com/ProgrammeVitam/vitam>`_ , dans le répertoire ``deployment``.
 
-Les binaires de VITAM sont disponibles sur les dépôts `bintray <https://bintray.com/programmevitam>`_ ; ces dépôts doivent être correctement configurés sur la plate-forme cible avant toute installation.
+Les binaires de VITAM sont disponibles sur un dépôt vitam publique indiqué ci-dessous par type de package; ces dépôts doivent être correctement configurés sur la plate-forme cible avant toute installation.
 
 
 Repository pour environnement CentOS
@@ -15,31 +15,31 @@ Repository pour environnement CentOS
 
 Sur les partitions cibles, configurer le fichier ``/etc/yum.repos.d/vitam-repositories.repo`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 
-   [vitam-bintray--programmevitam-vitam-rpm-release-product]
-   name=vitam-bintray--programmevitam-vitam-rpm-release-product
-   baseurl=https://dl.bintray.com/programmevitam/vitam-rpm-release/centos/7/vitam-product/<branche_vitam>/
+   [programmevitam-vitam-rpm-release-product]
+   name=programmevitam-vitam-rpm-release-product
+   baseurl=http://download.programmevitam.fr/vitam_repository/<vitam_version>/rpm/vitam-product/
    gpgcheck=0
    repo_gpgcheck=0
    enabled=1
 
-   [vitam-bintray--programmevitam-vitam-rpm-release-external]
-   name=vitam-bintray--programmevitam-vitam-rpm-release-external
-   baseurl=https://dl.bintray.com/programmevitam/vitam-rpm-release/centos/7/vitam-external/<branche_vitam>/
+   [programmevitam-vitam-rpm-release-external]
+   name=programmevitam-vitam-rpm-release-external
+   baseurl=http://download.programmevitam.fr/vitam_repository/<vitam_version>/rpm/vitam-external/
    gpgcheck=0
    repo_gpgcheck=0
    enabled=1
 
-.. note:: remplacer <branche_vitam> par la version à déployer.
+.. note:: remplacer <vitam_version> par la version à déployer.
 
 Repository pour environnement Debian
 -------------------------------------
 
 Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam-repositories.list`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 
-   deb [trusted=yes] https://dl.bintray.com/programmevitam/vitam-deb-release jessie vitam-product-<branche_vitam> vitam-external-<branche_vitam>
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_repository/<vitam_version>/rpm jessie vitam-product vitam-external
 
 
-.. note:: remplacer <branche_vitam> par la version à déployer.
+.. note:: remplacer <vitam_version> par la version à déployer.
 
 Utilisation du package global d'installation
 ============================================
@@ -55,5 +55,3 @@ Le package global d'installation contient :
 Sur la machine "ansible" dévouée au déploiement de :term:`VITAM`, décompacter le package (au format ``tar.gz``).
 
 Sur le repository "VITAM", récupérer également depuis le fichier d'extension tar.gz les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le repository.
-
-
