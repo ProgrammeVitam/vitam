@@ -112,8 +112,10 @@ public class ExtractSedaActionHandlerTest {
         "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupDontContainMaster.xml";
     private static final String MANIFEST_WITH_BINARYMASTER =
         "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachementToExistingOne.xml";
-    private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES =
-    "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnail.xml";
+    private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITHOUT_MASTER =
+        "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnail.xml";
+    private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITH_MASTER =
+        "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnailAndOtherMaster.xml";
     private static final String UNIT_ATTACHED_DB_RESPONSE = "extractSedaActionHandler/addLink/_Unit_CHILD.json";
     private ExtractSedaActionHandler handler;
 
@@ -211,7 +213,8 @@ public class ExtractSedaActionHandlerTest {
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
         String objectId = "SIP/manifest.xml";
-        handlerIO = new HandlerIOImpl(workspaceClient, "ExtractSedaActionHandlerTest", "workerId", Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(workspaceClient, "ExtractSedaActionHandlerTest", "workerId",
+            Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 
         out = new ArrayList<>();
@@ -936,14 +939,14 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_check_ingestContract_dataObjectVersion_when_binary_is_attached_to_existing_objectGroup_then_ok()
+    public void should_check_ingestContract_when_multi_Au_in_Sip_updated_one_and_created_one_with_master_then_ok()
         throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         final InputStream sedaLocal =
-            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_AND_USAGES);
-        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITH_MASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_TRUE);
         JsonNode objectGroupLinkedToExistingOne = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
         // When
@@ -956,6 +959,31 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_when_multi_Au_in_Sip_updated_one_and_created_one_without_master_then_ko()
+        throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITHOUT_MASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_TRUE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
+        // When
+        when(metadataClient.selectUnitbyId(any(), eq("aeaqaaaaaafla2gpab4wualdfinpdziaaaaq")))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+
 
     @Test
     @RunWithCustomExecutor
