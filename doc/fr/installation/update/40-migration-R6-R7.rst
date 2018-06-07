@@ -17,3 +17,5 @@ Exemple :
 A l'issue du passage de ce `playbook`, s'assurer que l'état des services Consul est OK.
 
 Si tel est le cas, la pré-migration a été effectuée avec succès ; vous pouvez alors procéder au déploiement classique.
+
+A l'issue, appliquer la procédure de migration ; se référer à :ref:`upgrade_r6_r7`.
