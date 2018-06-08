@@ -26,6 +26,15 @@ vitam:
         https_enabled: false
         secret_platform: "false"
 
+# Period units in seconds
+metricbeat:
+    system:
+        period: 10
+    mongodb:
+        period: 10
+    elasticsearch:
+        period: 10
+
 docker_opts:
     registry_httponly: yes
     vitam_docker_tag: latest
