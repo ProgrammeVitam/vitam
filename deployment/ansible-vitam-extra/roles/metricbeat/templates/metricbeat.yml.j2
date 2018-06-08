@@ -47,7 +47,7 @@ metricbeat.modules:
     - diskio
 
   enabled: true
-  period: 10s
+  period: {{ metricbeat.system.period }}s
   processes: ['.*']
 
 {% if inventory_hostname in groups['hosts-mongoc-data'] %}
@@ -57,7 +57,7 @@ metricbeat.modules:
   username: {{ mongodb['mongo-data']['localadmin']['user'] }}
   password: {{ mongodb['mongo-data']['localadmin']['password'] }}
   db: ["admin"]
-  period: 10s
+  period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
 {% if inventory_hostname in groups['hosts-mongod-data'] %}
@@ -67,7 +67,7 @@ metricbeat.modules:
   username: {{ mongodb['mongo-data']['localadmin']['user'] }}
   password: {{ mongodb['mongo-data']['localadmin']['password'] }}
   db: ["admin"]
-  period: 10s
+  period: {{ metricbeat.mongodb.period }}s
 {% endif %}
 
 {% if inventory_hostname in groups['hosts-mongos-data'] %}
@@ -77,7 +77,7 @@ metricbeat.modules:
   username: {{ mongodb['mongo-data']['admin']['user'] }}
   password: {{ mongodb['mongo-data']['admin']['password'] }}
   db: ["admin"]
-  period: 10s
+  period: {{ metricbeat.mongodb.period }}s
   #collections: ["logbook","masterdata","metadata,"identity"]
 {% endif %}
 
@@ -85,7 +85,7 @@ metricbeat.modules:
 # {% if inventory_hostname in groups['hosts-elasticsearch-data'] %}
 # - module: elasticsearch
 #   metricsets: ["node", "node_stats"]
-#   period: 10s
+#   period: {{ metricbeat.elasticsearch.period }}s
 #   hosts: ["{{ ip_service }}:{{ elasticsearch.data.port_http }}"]
 # {% endif %}
 
