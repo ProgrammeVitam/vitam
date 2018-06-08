@@ -22,7 +22,7 @@ A l'issue de ce playbook, les timer systemD ont été arrêtés, afin de ne pas 
 
 Il est également recommandé :
 
-    - d'arrêter les composants :term:`VITAM` "*-external"
+    - d'arrêter les composants :term:`VITAM` "\*-external"
     - de ne lancer la procédure de migration qu'une fois s'être assuré qu'aucun `workflow` n'est actuellement en cours de traitement
 
 Il faut alors procéder à la migration des données avec la commande suivante (sur le site primaire uniquement) :
