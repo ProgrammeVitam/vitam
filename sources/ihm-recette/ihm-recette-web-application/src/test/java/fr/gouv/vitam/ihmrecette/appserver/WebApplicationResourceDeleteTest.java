@@ -143,7 +143,7 @@ public class WebApplicationResourceDeleteTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
-    static final int tenantId = 0;
+    private static final Integer ADMIN_TENANT_ID = 1;
     static final List<Integer> tenantList = Arrays.asList(0);
 
     final static String tokenCSRF = XSRFHelper.generateCSRFToken();
@@ -281,6 +281,22 @@ public class WebApplicationResourceDeleteTest {
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/formats");
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDeleteOntologiesOK() {
+        try {
+            final GUID idOntology = addData(FunctionalAdminCollections.ONTOLOGY);
+            assertTrue(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, ADMIN_TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/masterdata/ontologies");
+            assertFalse(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
@@ -433,6 +449,8 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
+
+
     @Test
     @RunWithCustomExecutor
     public void testDeleteTnrOk() throws SchemaValidationException {
@@ -582,6 +600,9 @@ public class WebApplicationResourceDeleteTest {
             final GUID idContext2 = addData(FunctionalAdminCollections.CONTEXT);
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
+
+            final GUID idOntology = addData(FunctionalAdminCollections.ONTOLOGY);
+            assertTrue(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
             // delete all
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
@@ -609,7 +630,17 @@ public class WebApplicationResourceDeleteTest {
     public GUID addData(FunctionalAdminCollections collection)
         throws ReferentialException, SchemaValidationException {
         final GUID guid = GUIDFactory.newGUID();
-        final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
+        ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
+        if (collection.equals(FunctionalAdminCollections.ONTOLOGY)) {
+            data1.put("CreationDate", "2008-10-10");
+            data1.put("Identifier", "Identifier");
+            data1.put("LastUpdate", "2008-10-10");
+            data1.put("Origin", "EXTERNAL");
+            data1.put("Type", "TEXT");
+            data1.put("_tenant", 1);
+            data1.put("_v", "0");
+        }
+
         mongoDbAccessAdmin.insertDocument(data1, collection).close();
         return guid;
     }
