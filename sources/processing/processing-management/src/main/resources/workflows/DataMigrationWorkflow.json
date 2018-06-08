@@ -29,7 +29,7 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_LINKED_FILE",
-        "element": "Units/chainedFile_0.json"
+        "element": "Units/chainedFile.json"
       },
       "actions": [
         {
@@ -63,7 +63,7 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_LINKED_FILE",
-        "element": "ObjectGroup/chainedFile_0.json"
+        "element": "ObjectGroup/chainedFile.json"
       },
       "actions": [
         {

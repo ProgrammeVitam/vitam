@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -46,12 +45,8 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
-import java.io.File;
-import java.util.List;
-
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER;
-import static fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper.checkNumberOfResultQuery;
-import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.createAndSaveLinkedFilesInWorkSpaceFromScrollRequest;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.exportToReportAndLinkedFiles;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSelectMultiQuery;
 
 /**
@@ -76,11 +71,11 @@ public class MigrationUnitPrepare extends ActionHandler {
      * Constructor
      */
     public MigrationUnitPrepare() {
-        metaDataClientFactory = MetaDataClientFactory.getInstance();
-        bachSize = GlobalDatasDb.LIMIT_LOAD;
+        this(MetaDataClientFactory.getInstance(), GlobalDatasDb.LIMIT_LOAD);
     }
 
-    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
         ItemStatus itemStatus = new ItemStatus(MIGRATION_UNITS_LIST);
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
@@ -90,15 +85,10 @@ public class MigrationUnitPrepare extends ActionHandler {
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
                 .createUnitScrollSplitIterator(client, selectMultiQuery, bachSize);
 
-            List<String> totalIdentifiers =
-                createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(scrollRequest, handler, ARCHIVE_UNIT_FOLDER,
-                    bachSize);
-            File file = handler.getNewLocalFile(MIGRATION_UNITS_LIST_IDS);
-            JsonHandler.writeAsFile(totalIdentifiers, file);
-            handler.transferFileToWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json",
-                file, true, false);
+            exportToReportAndLinkedFiles(scrollRequest, handler, ARCHIVE_UNIT_FOLDER,
+                bachSize, REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
 
-            if (checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
+            if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
                 return new ItemStatus(MIGRATION_UNITS_LIST)
                     .setItemsStatus(MIGRATION_UNITS_LIST, itemStatus);
             }
@@ -111,9 +101,8 @@ public class MigrationUnitPrepare extends ActionHandler {
         return new ItemStatus(MIGRATION_UNITS_LIST).setItemsStatus(MIGRATION_UNITS_LIST, itemStatus);
     }
 
-
-
-    @Override public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //nothing
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // nothing
     }
 }
