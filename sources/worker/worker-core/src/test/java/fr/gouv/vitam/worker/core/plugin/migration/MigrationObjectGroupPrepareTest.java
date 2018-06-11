@@ -20,6 +20,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -28,7 +29,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class MigrationObjectGroupPrepareTest {
-
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock private MetaDataClientFactory metaDataClientFactory;
@@ -46,16 +46,18 @@ public class MigrationObjectGroupPrepareTest {
     @Test
     public void should_prepare_Linked_got_files() throws Exception {
         //GIVEN
-
         given(metaDataClient.selectObjectGroups(any(JsonNode.class))).willReturn(
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/migration/resultObjectGroup.json")));
 
         File chainedFile0 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile_0.json")).willReturn(chainedFile0);
+        given(handlerIO.getNewLocalFile("chainedFile.json")).willReturn(chainedFile0);
 
 
         File chainedFile1 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile_1.json")).willReturn(chainedFile1);
+        given(handlerIO.getNewLocalFile("chainedFile.json.1")).willReturn(chainedFile1);
+
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getNewLocalFile(("report.json"))).willReturn(reportFile);
 
         MigrationObjectGroupPrepare migrationGotPrepare = new MigrationObjectGroupPrepare(metaDataClientFactory, 2);
         File file = tempFolder.newFile();
@@ -72,11 +74,15 @@ public class MigrationObjectGroupPrepareTest {
         ChainedFileModel model1 = JsonHandler.getFromFile(chainedFile1, ChainedFileModel.class);
 
         assertThat(model0.getElements().size()).isEqualTo(2);
-        assertThat(model0.getNextFile()).isEqualTo("chainedFile_1.json");
+        assertThat(model0.getNextFile()).isEqualTo("chainedFile.json.1");
 
         assertThat(model1.getElements().size()).isEqualTo(1);
         assertThat(model1.getNextFile()).isNull();
 
+        assertThat(JsonHandler.getFromFile(reportFile, List.class)).containsExactly(
+            "aebaaaaaaadf6mc4aathcak7tmtgc7yaaaaq", "aebaaaaaaadf6mc4aathcak7tmtgc7qaaaaq",
+            "aebaaaaaaadf6mc4aathcak7tmtgc6yaaaaq"
+        );
     }
 
 }

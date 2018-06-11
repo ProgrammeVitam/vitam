@@ -31,7 +31,7 @@ public class ChainedFileModel {
      * List of elements.
      */
     @JsonProperty("elements")
-    private List<String> elements;
+    private List<String> elements = new ArrayList<>();
 
     /**
      * next file.
@@ -59,9 +59,6 @@ public class ChainedFileModel {
      * @return
      */
     public List<String> getElements() {
-        if (null == elements) {
-            return new ArrayList<>();
-        }
         return elements;
     }
 

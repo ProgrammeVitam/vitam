@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.migration;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -35,40 +36,34 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.model.ChainedFileModel;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.service.ChainedFileWriter;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 
 /**
  * MigrationHelper class
  */
 class MigrationHelper {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationHelper.class);
 
     private static final String FIELDS_KEY = "$fields";
-    private static final String CHAINED_FILE = "chainedFile_";
+    private static final String CHAINED_FILE = "chainedFile.json";
     private static final String ID = "#id";
-    private static final String JSON = ".json";
-
-
 
     /**
      * Create SelectMultiQuery for selecting Id
      *
      * @return the SelectMultiQuery
-     * @throws InvalidParseOperationException  InvalidParseOperationException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      * @throws InvalidCreateOperationException InvalidCreateOperationException
      */
     static SelectMultiQuery getSelectMultiQuery()
@@ -87,73 +82,39 @@ class MigrationHelper {
     /**
      * Create linked Files and save them in workspace
      *  @param scrollRequest scroll Request
-     * @param handler       the handler
-     * @param folder        the workspace folder to save into
-     * @param bachSize
+     * @param handler the handler
+     * @param folder the workspace folder to save into
+     * @param bachSize linked file batch size
      */
-    static List<String> createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(final ScrollSpliterator<JsonNode> scrollRequest,
-        final HandlerIO handler, final String folder, int bachSize) {
+    static void exportToReportAndLinkedFiles(
+        final ScrollSpliterator<JsonNode> scrollRequest,
+        final HandlerIO handler, final String folder, int bachSize, String reportFilename) throws ProcessingException {
 
-        final AtomicInteger itemCounter = new AtomicInteger(0);
-        final AtomicInteger chainedFileCounter = new AtomicInteger(0);
+        File report = handler.getNewLocalFile("report.json");
 
-        final List<String> identifierLists = new ArrayList<>();
-        final List<String> totalIdentifierLists = new ArrayList<>();
+        try (ChainedFileWriter chainedFileWriter = new ChainedFileWriter(handler, folder, CHAINED_FILE, bachSize);
+            OutputStream outputStream = new FileOutputStream(report)) {
 
+            JsonGenerator jsonGenerator = createJsonGenerator(outputStream);
+            jsonGenerator.writeStartArray();
 
-        StreamSupport.stream(scrollRequest, false).forEach(
-            item -> {
-                final int itemNumber = itemCounter.getAndIncrement();
-                if (itemNumber == bachSize) {
-
-                    createAndSaveChainedFiles(chainedFileCounter, identifierLists, handler, folder, false);
-                    //Clear the list
-                    identifierLists.clear();
-                }
-
-                final String identifier = item.get(ID).asText();
-                // add to the list
-                identifierLists.add(identifier);
-                totalIdentifierLists.add(identifier);
-            });
-
-        createAndSaveChainedFiles(chainedFileCounter, identifierLists, handler, folder, true);
-        return totalIdentifierLists;
-    }
-
-    private static void createAndSaveChainedFiles(final AtomicInteger chainedFileCounter,
-        final List<String> identifierLists,
-        final HandlerIO handler, final String folder, boolean isLastLinkedFile) {
-
-        // actual File
-        final int numberOfActualChainedFile = chainedFileCounter.get();
-        final String nameOfActualFile = CHAINED_FILE + numberOfActualChainedFile + JSON;
-
-        // next File
-        final int numberOfNextChainedFile = chainedFileCounter.incrementAndGet();
-        final String nameOfNextFile = CHAINED_FILE + numberOfNextChainedFile + JSON;
-
-        final ChainedFileModel model = new ChainedFileModel();
-
-        model.setElements(identifierLists);
-
-        if (!isLastLinkedFile) {
-            model.setNextFile(nameOfNextFile);
+            StreamSupport.stream(scrollRequest, false).forEach(
+                item -> {
+                    final String id = item.get(ID).asText();
+                    try {
+                        chainedFileWriter.addEntry(id);
+                        jsonGenerator.writeString(id);
+                    } catch (IOException | ProcessingException | InvalidParseOperationException e) {
+                        throw new VitamRuntimeException(e);
+                    }
+                });
+            jsonGenerator.writeEndArray();
+            jsonGenerator.close();
+        } catch (IOException | InvalidParseOperationException e) {
+            throw new ProcessingException("Could not save linked files", e);
         }
 
-        final File file = handler.getNewLocalFile(nameOfActualFile);
-
-        try {
-            JsonHandler.writeAsFile(model, file);
-
-            handler
-                .transferFileToWorkspace(folder + "/" + nameOfActualFile,
-                    file, true, false);
-
-        } catch (InvalidParseOperationException | ProcessingException e) {
-            LOGGER.error(e);
-            throw new VitamRuntimeException(e);
-        }
+        handler.transferFileToWorkspace(reportFilename, report, true, false);
     }
 
     static boolean checkMigrationEvents(JsonNode lfc, String eventType ) {
