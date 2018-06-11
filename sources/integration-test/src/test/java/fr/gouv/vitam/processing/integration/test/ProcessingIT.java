@@ -492,13 +492,16 @@ public class ProcessingIT {
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importFormat(
                     PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
                     "DROID_SignatureFile_V88.xml");
                 // Import Rules
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
                     "jeu_donnees_OK_regles_CSV_regles.csv");
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
                 // lets check evdetdata for rules import
                 LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
@@ -516,6 +519,7 @@ public class ProcessingIT {
                     });
                 client.createProfiles(profileModelList);
 
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
                 client.importProfileFile(response.getResults().get(0).getIdentifier(),
@@ -523,15 +527,16 @@ public class ProcessingIT {
 
 
                 // import contract
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                     new TypeReference<List<IngestContractModel>>() {
                     });
-
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
                 // import access contract
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
                     .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {

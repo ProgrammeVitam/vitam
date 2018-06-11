@@ -536,6 +536,7 @@ public class LogbookCheckConsistencyIT {
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
             operationGuid, "PROCESS_SIP_UNITARY", operationGuid,
             LogbookTypeProcess.INGEST,
@@ -616,18 +617,22 @@ public class LogbookCheckConsistencyIT {
     private void importFiles() {
         ProcessDataAccessImpl.getInstance().clearWorkflow();
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importFormat(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DROID_SIGNATURE_FILE_V88_XML),
                 DROID_SIGNATURE_FILE_V88_XML);
 
             // Import Rules
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importRulesFile(PropertiesUtils.getResourceAsStream(HECK_LOGBOOK_MGT_RULES_REF_CSV),
                 MGT_RULES_REF_CSV);
 
             // import service agent
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DATA_AGENCIES),
                 AGENCIES_CSV);
 
             // import contract
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileContracts = PropertiesUtils.getResourceFile(REFERENTIAL_CONTRACTS_OK_JSON);
             List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
                 new TypeReference<List<IngestContractModel>>() {
@@ -635,6 +640,7 @@ public class LogbookCheckConsistencyIT {
             client.importIngestContracts(IngestContractModelList);
 
             // import contrat
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRATS_JSON);
             List<AccessContractModel> accessContractModelList = JsonHandler
                 .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {

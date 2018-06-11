@@ -99,6 +99,7 @@ public class StateMachineTest {
             .setUrlMetadata("http://localhost:8083")
             .setUrlWorkspace("http://localhost:8083")
             .setContainerName(GUIDFactory.newGUID().getId())
+            .setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString())
             .putParameterValue(WorkerParameterName.context, "DEFAULT_WORKFLOW");
 
         processDataAccess = ProcessDataAccessImpl.getInstance();

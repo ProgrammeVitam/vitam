@@ -154,7 +154,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
             .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
                 LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
+                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip);
         return logbookParametersEnd;
     }
 
@@ -176,7 +176,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                 LogbookTypeProcess.MASTERDATA, StatusCode.OK,
                 VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK) + VERSION +
                     pronomList.get(0).get("VersionPronom").textValue() + FILE_PRONOM,
-                eip1);
+                eip);
         ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
 
         return logbookParametersEnd;

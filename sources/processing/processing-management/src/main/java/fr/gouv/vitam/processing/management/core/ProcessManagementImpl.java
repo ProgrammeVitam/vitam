@@ -151,6 +151,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                         .setUrlWorkspace(config.getUrlWorkspace())
                         .setLogbookTypeProcess(stateMachine.getLogbookTypeProcess())
                         .setContainerName(operationId)
+                        .setRequestId(operationId)
                         .putParameterValue(WorkerParameterName.context, stateMachine.getWorkflowId());
 
                 if (stateMachine.isStepByStep()) {
