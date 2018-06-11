@@ -49,20 +49,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -72,7 +58,9 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
@@ -80,7 +68,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -96,6 +86,15 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 public class ExtractSedaActionHandlerTest {
 
@@ -113,8 +112,10 @@ public class ExtractSedaActionHandlerTest {
         "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupDontContainMaster.xml";
     private static final String MANIFEST_WITH_BINARYMASTER =
         "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachementToExistingOne.xml";
-    private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES =
-    "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnail.xml";
+    private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITHOUT_MASTER =
+        "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnail.xml";
+    private static final String MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITH_MASTER =
+        "checkMasterMandatoryInOGAndAttachmentInOG/DataObjectGroupAttachmentToExistingWithTunbnailAndOtherMaster.xml";
     private static final String UNIT_ATTACHED_DB_RESPONSE = "extractSedaActionHandler/addLink/_Unit_CHILD.json";
     private ExtractSedaActionHandler handler;
 
@@ -211,7 +212,9 @@ public class ExtractSedaActionHandlerTest {
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
+        String objectId = "SIP/manifest.xml";
         handlerIO = new HandlerIOImpl(workspaceClient, "ExtractSedaActionHandlerTest", "workerId");
+
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
         out.add(
@@ -934,14 +937,14 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_check_ingestContract_dataObjectVersion_when_binary_is_attached_to_existing_objectGroup_then_ok()
+    public void should_check_ingestContract_when_multi_Au_in_Sip_updated_one_and_created_one_with_master_then_ok()
         throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         final InputStream sedaLocal =
-            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_AND_USAGES);
-        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITH_MASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_TRUE);
         JsonNode objectGroupLinkedToExistingOne = JsonHandler
             .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
         // When
@@ -954,6 +957,31 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_ingestContract_when_multi_Au_in_Sip_updated_one_and_created_one_without_master_then_ko()
+        throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream sedaLocal =
+            PropertiesUtils.getResourceAsStream(MANIFEST_WITH_ATTACHMENT_AND_USAGES_WITHOUT_MASTER);
+        prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_MASTER_MANDATORY_TRUE);
+        JsonNode objectGroupLinkedToExistingOne = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile(UNIT_ATTACHED_DB_RESPONSE));
+        // When
+        when(metadataClient.selectUnitbyId(any(), eq("aeaqaaaaaafla2gpab4wualdfinpdziaaaaq")))
+            .thenReturn(objectGroupLinkedToExistingOne);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        // Then
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+
 
     @Test
     @RunWithCustomExecutor
