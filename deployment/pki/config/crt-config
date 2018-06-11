@@ -53,7 +53,7 @@ authorityKeyIdentifier          = keyid,issuer:always
 issuerAltName                   = issuer:copy
 subjectAltName                  = ${ENV::OPENSSL_SAN}
 basicConstraints                = critical,CA:FALSE
-keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+keyUsage                        = digitalSignature, keyEncipherment
 nsCertType                      = server
 extendedKeyUsage                = serverAuth
 
@@ -63,7 +63,7 @@ subjectKeyIdentifier            = hash
 authorityKeyIdentifier          = keyid,issuer:always
 issuerAltName                   = issuer:copy
 basicConstraints                = critical,CA:FALSE
-keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+keyUsage                        = digitalSignature
 nsCertType                      = client
 extendedKeyUsage                = clientAuth
 
@@ -73,6 +73,6 @@ subjectKeyIdentifier            = hash
 authorityKeyIdentifier          = keyid,issuer:always
 issuerAltName                   = issuer:copy
 basicConstraints                = critical,CA:FALSE
-keyUsage                        = digitalSignature, nonRepudiation, keyEncipherment
+keyUsage                        = digitalSignature, nonRepudiation
 nsCertType                      = server
 extendedKeyUsage                = critical,timeStamping
