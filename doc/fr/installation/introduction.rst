@@ -4,7 +4,7 @@ Introduction
 Objectif de ce document
 =======================
 
-Ce document a pour but de permettre de fournir à une équipe d'exploitants de VITAM les procédures et informations utiles et nécessaires pour l'installation de la solution logicielle.
+Ce document a pour but de permettre de fournir à une équipe d'exploitants de :term:`VITAM` les procédures et informations utiles et nécessaires pour l'installation de la solution logicielle.
 
 Il s'adresse aux personnes suivantes :
 
