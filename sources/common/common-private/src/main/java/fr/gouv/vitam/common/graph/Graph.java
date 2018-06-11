@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
@@ -187,7 +186,7 @@ public class Graph {
      */
     private Map<Integer, Integer> findLongestsPath(int source) {
         applyTopologicalSort();
-        final Map<Integer, Integer> longestsPathMap = new WeakHashMap<>();
+        final Map<Integer, Integer> longestsPathMap = new HashMap<>();
         vertices[source - 1].cost = 0;
         while (!stack.isEmpty()) {
             final Vertex u = stack.pop();
@@ -217,7 +216,7 @@ public class Graph {
      * @return Map<Integer, Integer> :longest path for different roots
      */
     private Map<Integer, Integer> findAllLongestsPath(Set<String> roots) {
-        final Map<Integer, Integer> allLongestsPath = new WeakHashMap<>();
+        final Map<Integer, Integer> allLongestsPath = new HashMap<>();
         for (final String rootXmlId : roots) {
             // find longest path for different roots
             final Map<Integer, Integer> longestsPathMap = findLongestsPath(getIndex(rootXmlId));
