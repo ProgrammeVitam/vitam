@@ -70,6 +70,9 @@ public class ObjectGroupModel {
     @JsonProperty("_tenant")
     private int tenant;
 
+    @JsonProperty("_v")
+    private int version = 0;
+
     /*
      * getter and setter
      */
@@ -159,5 +162,14 @@ public class ObjectGroupModel {
 
     public void setStorageModel(StorageModel storageModel) {
         this.storageModel = storageModel;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public ObjectGroupModel setVersion(int version) {
+        this.version = version;
+        return this;
     }
 }
