@@ -112,6 +112,13 @@ Glossaire
    PKI
       Une infrastructure à clés publiques (ICP) ou infrastructure de gestion de clés (IGC) ou encore Public Key Infrastructure (PKI), est un ensemble de composants physiques (des ordinateurs, des équipements cryptographiques logiciels ou matériel type HSM ou encore des cartes à puces), de procédures humaines (vérifications, validation) et de logiciels (système et application) en vue de gérer le cycle de vie des certificats numériques ou certificats électroniques. `Définition PKI <https://fr.wikipedia.org/wiki/Infrastructure_%C3%A0_cl%C3%A9s_publiques>`_
 
+   PCA
+      Plan de Continuité d'Activité
+
+   PRA
+      Plan de Reprise d'Activité
+
+  
    REST
       REpresentational State Transfer : type d'architecture d'échanges. Appliqué aux services web, en se basant sur les appels http standard, il permet de fournir des API dites "RESTful" qui présentent un certain nombre d'avantages en termes d'indépendance, d'universalité, de maintenabilité et de gestion de charge. `Définition REST <https://fr.wikipedia.org/wiki/Representational_state_transfer>`_
 
@@ -126,6 +133,9 @@ Glossaire
 
    SIA
       Système d'Informations Archivistique
+
+   SIP
+      Submission Information Package
 
    TNR
       Tests de Non-Régression
