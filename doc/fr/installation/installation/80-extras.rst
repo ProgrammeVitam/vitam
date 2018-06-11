@@ -22,7 +22,7 @@ Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la
 
 .. warning:: A modifier selon le besoin avant de lancer le playbook ! Le composant ihm-recette, s'il est déployé en "https", doit avoir un paramétrage différent dans ``environments/group_vars/all/extra_vars.yml`` sur le paramètre ``secure_cookie`` selon qu'il est attaqué en direct ou derrière un proxy https (``secure_cookie: true``) ou un proxy http (``secure_cookie: false``). Par défaut, la variable est à ``true``. Le symptôme observé, en cas de problème, est une bonne authentification, mais l'impossibilité de sélectionner un tenant.
 
-.. note:: La section ``metricbeat`` permet de configurer la périodicité d'envoi des informations collectées. Selon l'espace disponible sur le `cluster` Elasticsearch de log et la taille de l'environnement :term:`VITAM`(en particulier, le nombre de machines), il peut être nécessaire d'allonger cette périodicité (en secondes).
+.. note:: La section ``metricbeat`` permet de configurer la périodicité d'envoi des informations collectées. Selon l'espace disponible sur le `cluster` Elasticsearch de log et la taille de l'environnement :term:`VITAM` (en particulier, le nombre de machines), il peut être nécessaire d'allonger cette périodicité (en secondes).
 
 
 Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contient les secrets supplémentaires des extra ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement, si le composant ihm-recette est déployé avec récupération des TNR.
