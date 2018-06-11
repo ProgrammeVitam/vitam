@@ -132,12 +132,6 @@ public class MigrationObjectGroups extends ActionHandler {
 
             metaDataClient.updateObjectGroupById(updateMultiQuery.getFinalUpdate(), objectGroupId);
 
-            LogbookLifeCycleObjectGroupParameters logbookLCParam =
-                createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
-                    GUIDReader.getGUID(objectGroupId), OBJECT_GROUPS_UPDATE_MIGRATION);
-
-            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
             final String fileName = objectGroupId + JSON;
 
             //TODO Call StoreMetaDataObjectGroupActionPlugin
@@ -163,6 +157,12 @@ public class MigrationObjectGroups extends ActionHandler {
             storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
                 description.getObjectName(),
                 description);
+
+            LogbookLifeCycleObjectGroupParameters logbookLCParam =
+                createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
+                    GUIDReader.getGUID(objectGroupId), OBJECT_GROUPS_UPDATE_MIGRATION);
+
+            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
         } catch (VitamException e) {
             LOGGER.error(e);

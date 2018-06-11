@@ -1,7 +1,6 @@
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -21,6 +20,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.File;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -50,29 +50,38 @@ public class MigrationUnitPrepareTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/migration/resultMetadata.json")));
 
         File chainedFile0 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile_0.json")).willReturn(chainedFile0);
+        given(handlerIO.getNewLocalFile("chainedFile.json")).willReturn(chainedFile0);
 
 
         File chainedFile1 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile_1.json")).willReturn(chainedFile1);
+        given(handlerIO.getNewLocalFile("chainedFile.json.1")).willReturn(chainedFile1);
+
+        File reportFile = tempFolder.newFile();
+        given(handlerIO.getNewLocalFile(("report.json"))).willReturn(reportFile);
 
         MigrationUnitPrepare migrationUnitPrepare = new MigrationUnitPrepare(metaDataClientFactory, 3);
         File file = tempFolder.newFile();
-
         when(handlerIO.getNewLocalFile("migrationUnitsListIds")).thenReturn(file);
+
         //WHEN
         ItemStatus execute = migrationUnitPrepare.execute(defaultWorkerParameters, handlerIO);
 
         //THEN
+
+        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
         ChainedFileModel model0 = JsonHandler.getFromFile(chainedFile0, ChainedFileModel.class);
         ChainedFileModel model1 = JsonHandler.getFromFile(chainedFile1, ChainedFileModel.class);
 
-        assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(model0.getElements().size()).isEqualTo(3);
-        assertThat(model0.getNextFile()).isEqualTo("chainedFile_1.json");
+        assertThat(model0.getNextFile()).isEqualTo("chainedFile.json.1");
 
         assertThat(model1.getElements().size()).isEqualTo(1);
         assertThat(model1.getNextFile()).isNull();
 
+        assertThat(JsonHandler.getFromFile(reportFile, List.class)).containsExactly(
+            "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaaba", "aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba",
+            "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca", "aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba"
+        );
     }
 }

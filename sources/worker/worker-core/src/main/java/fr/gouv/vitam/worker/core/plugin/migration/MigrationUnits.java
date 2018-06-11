@@ -129,20 +129,12 @@ public class MigrationUnits extends ActionHandler {
 
             metaDataClient.updateUnitbyId(updateMultiQuery.getFinalUpdate(), unitId);
 
-            LogbookLifeCycleUnitParameters logbookLCParam =
-                createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
-                    GUIDReader.getGUID(unitId), UNIT_UPDATE_MIGRATION);
-
-            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
             final String fileName = unitId + JSON;
 
             //// get metadata
             JsonNode unit = getUnitMetadata(unitId);
 
             MetadataDocumentHelper.removeComputedGraphFieldsFromUnit(unit);
-
-
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
@@ -160,6 +152,12 @@ public class MigrationUnits extends ActionHandler {
             storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
                 description.getObjectName(),
                 description);
+
+            LogbookLifeCycleUnitParameters logbookLCParam =
+                createParameters(GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
+                    GUIDReader.getGUID(unitId), UNIT_UPDATE_MIGRATION);
+
+            logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
 
         } catch (VitamException e) {
             LOGGER.error(e);
