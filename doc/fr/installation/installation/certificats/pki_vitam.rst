@@ -51,7 +51,3 @@ Ce script génère sous ``environments/certs`` les certificats (format crt & key
 Les mots de passe des clés privées des certificats sont stockés dans le vault ansible environments/certs/vault-certs.yml
 
 .. caution::  Les certificats générés à l'issue ont une durée de validité de 3 ans.
-
-.. include:: swift.rst
-
-.. include:: keystores.rst
