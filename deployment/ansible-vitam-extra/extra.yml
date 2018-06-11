@@ -5,6 +5,10 @@
   roles:
     - check_networks
 
+- import_playbook: reverse.yml
+
+- import_playbook: browser.yml
+
 # Vitam solution deployment
 - hosts: vitam
   roles:
@@ -17,10 +21,6 @@
 - hosts: hosts-elasticsearch-log
   roles:
     - curator
-
-- hosts: vitam
-  roles:
-    - vitam_browser
 
 - import_playbook: dev-tools.yml
 
@@ -35,5 +35,3 @@
     - openldap_server
 
 - import_playbook: ihm-recette.yml
-
-- import_playbook: reverse.yml
