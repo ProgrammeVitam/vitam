@@ -93,6 +93,7 @@ mongo_express:
     baseuri: "mongo-express"
 
 ldap_authentification:
+    ldap_protocol: "ldap"
     ldap_server: "{% if groups['ldap']|length > 0 %}{{ groups['ldap']|first }}{% endif %}"
     ldap_port: "389"
     ldap_base: "dc=programmevitam,dc=fr"

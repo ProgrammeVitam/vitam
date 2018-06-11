@@ -36,9 +36,13 @@ iniRealm.credentialsMatcher = $sha256Matcher
 
 {% if "ldapRealm" in vitam_struct.authentication_realms %}
 contextFactory = org.apache.shiro.realm.ldap.JndiLdapContextFactory
-contextFactory.url = ldap://{{ ldap_authentification.ldap_server }}:{{ ldap_authentification.ldap_port }}
+contextFactory.url = {{ ldap_authentification.ldap_protocol }}://{{ ldap_authentification.ldap_server }}:{{ ldap_authentification.ldap_port }}
+{% if ldap_authentification.ldap_login is defined and ldap_authentification.ldap_pwd is defined %}
+{% if ldap_authentification.ldap_login != "" and ldap_authentification.ldap_pwd != "" %} 
 contextFactory.systemUsername = {{ ldap_authentification.ldap_login }}
 contextFactory.systemPassword = {{ ldap_authentification.ldap_pwd }}
+{% endif %} 
+{% endif %}
 
 ldapRealm = fr.gouv.vitam.common.auth.core.realm.LdapRealm
 ldapRealm.ldapContextFactory = $contextFactory
