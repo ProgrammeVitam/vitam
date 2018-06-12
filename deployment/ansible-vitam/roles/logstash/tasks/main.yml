@@ -39,6 +39,7 @@
   file:
     path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/logstash"
     owner: "{{ logstash.user }}"
+    group: "{{ vitam_defaults.users.group }}"
     state: directory
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
@@ -53,6 +54,7 @@
   file:
     path: "{{logstash_confextra_dir}}"
     owner: "{{ logstash.user }}"
+    group: "{{ vitam_defaults.users.group }}"
     state: directory
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
@@ -77,6 +79,7 @@
     src: "{{ item }}.j2"
     dest: "{{logstash_conf_dir}}/{{ item }}"
     owner: "{{ logstash.user }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "01-logstash-vitam-input.conf"
@@ -99,6 +102,7 @@
     src: "{{ item }}.j2"
     dest: "{{logstash_conf_dir}}/extra/{{ item }}"
     owner: logstash
+    group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "elasticsearch-template.json"
