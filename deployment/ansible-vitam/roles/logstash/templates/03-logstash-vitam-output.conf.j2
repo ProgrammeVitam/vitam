@@ -15,18 +15,18 @@ output
                 #workers => 20
                 template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-vitam-%{+YYYY.MM.dd}"
-                {% for host in groups['hosts-elasticsearch-log'] %}
-                 hosts =>  ["{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"]
-                {% endfor %}
+
+                 hosts =>  [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+
             }
         }
         else if [vitam_component] =~ "elasticsearch-log" or [vitam_component] =~ "logstash" or [logger] =~ "curator"
         {
             elasticsearch
             {
-                # template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
+                template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-logs-%{+YYYY.MM.dd}"
-                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.log.port_http + '", "') }}:{{ elasticsearch.log.port_http }}"]
+                hosts => [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
             }
         }
         else
@@ -35,7 +35,7 @@ output
             {
                 template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-uncatched-%{+YYYY.MM.dd}"
-                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.log.port_http + '", "') }}:{{ elasticsearch.log.port_http }}"]
+                hosts => [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
             }
         }
     }
@@ -45,7 +45,7 @@ output
         elasticsearch
         {
             index => "logstash-failure-%{+YYYY.MM.dd}"
-            hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.log.port_http + '", "') }}:{{ elasticsearch.log.port_http }}"]
+            hosts => [{% for host in groups['hosts-elasticsearch-log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
         }
     }
 
