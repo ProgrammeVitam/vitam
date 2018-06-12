@@ -20,7 +20,9 @@ API Externes
 Ingest
 ------
 
-//TODO
+*Ingest d'un fichier se trouvant dans le dossier baseUploadPath*
+Le fichier doit se trouver dans le répertoire configuré dans le fichier de configuration (baseUploadPath) puis, exécuter :
+``curl -v -X POST -k --key vitam-vitam_1.key --cert vitam-vitam_1.pem '{env.programmevitam.fr}/ingest-external/v1/ingests' -H 'X-Tenant-Id: 0' -H 'X-Access-Contract-Id: ContratTNR' -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept: application/json' -H 'X-Context-Id: DEFAULT_WORKFLOW' -H 'X-ACTION: RESUME' --data-binary '{"path": "SIP_OK_2_0.zip"}'``
 
 Access
 ------
