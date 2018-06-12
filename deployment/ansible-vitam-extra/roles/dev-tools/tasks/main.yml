@@ -36,15 +36,34 @@
     apt:
       update_cache: yes
 
-  - name: installer le package docker
+  - name: installer docker & pip
     apt:
       name: "{{ item }}"
       state: latest
-       # TODO: check if useful
-      default_release: jessie-backports
     with_items:
-        - docker-ce
-        - python-docker
+      - docker-ce
+      - python-pip
+
+  - name: upgrade pip & install docker python package
+    pip:
+      name: "{{ item }}"
+      state: latest
+    environment:
+      http_proxy: "{{ http_proxy_environnement }}"
+      https_proxy: "{{ http_proxy_environnement }}"
+    with_items:
+      - pip
+      - docker
+    when: http_proxy_environnement is defined and http_proxy_environnement != ""
+
+  - name: upgrade pip & install docker python package
+    pip:
+      name: "{{ item }}"
+      state: latest
+    with_items:
+      - pip
+      - docker
+    when: http_proxy_environnement is not defined or http_proxy_environnement == ""
 
   when: (ansible_distribution == "Debian")
   # End docker debian
