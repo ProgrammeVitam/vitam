@@ -97,7 +97,6 @@ import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -301,10 +300,6 @@ public class PausedProcessingIT {
         }
     }
 
-    private void flush() {
-        ProcessDataAccessImpl.getInstance().clearWorkflow();
-    }
-
     private void waitStep(ProcessWorkflow processWorkflow, int stepId) {
 
         ProcessStep step = processWorkflow.getSteps().get(stepId);
@@ -333,7 +328,6 @@ public class PausedProcessingIT {
 
     private void tryImportFile() {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
