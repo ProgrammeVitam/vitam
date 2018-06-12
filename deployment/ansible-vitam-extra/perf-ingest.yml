@@ -6,4 +6,5 @@
   vars:
     ingest_number: 5
     sip_name: SIP-1000-102400.zip
-    parallel: false
+    parallel: "false"
+    delay: 5000
