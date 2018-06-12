@@ -990,7 +990,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     currentRuleInProcess.equalsIgnoreCase(((EndElement) event).getName().getLocalPart())) {
                     xw.add(eventFactory.createEndElement("", "", event.asEndElement().getName().getLocalPart()));
                     // Add to map
-                    mngtMdRuleIdToRulesXml.put(currentRuleId, stringWriterRule);
+                    if (currentRuleId == null) {
+                        // use temporary id (avoid using null key for different rule category) 
+                        mngtMdRuleIdToRulesXml.put(currentRuleInProcess, stringWriterRule);
+                    } else {
+                        mngtMdRuleIdToRulesXml.put(currentRuleId, stringWriterRule);
+                    }
                     stringWriterRule.close();
                     break;
                 }
@@ -1002,8 +1007,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (currentRuleId != null) {
                         xw.add(eventFactory.createEndElement("", "", GLOBAL_MGT_RULE_TAG));
                         xw.add(eventFactory.createEndDocument());
-                        stringWriterRule.close();
                         mngtMdRuleIdToRulesXml.put(currentRuleId, stringWriterRule);
+                        stringWriterRule.close();
 
                         // Start a new build of a stringWriterRule
                         stringWriterRule = new StringWriter();
@@ -1455,8 +1460,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         Set<String> globalMgtIdExtra = new HashSet<>();
 
         if (isRootArchive) {
-            // Add rules from global Management Data (only new
-            // ones)
+            // Add rules from global Management Data (only new ones)
             if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
                 globalMgtIdExtra.clear();
                 globalMgtIdExtra.addAll(mngtMdRuleIdToRulesXml.keySet());
