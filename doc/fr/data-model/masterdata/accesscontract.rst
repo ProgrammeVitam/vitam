@@ -66,6 +66,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la coll
         "aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
     ],
     "WritingPermission": true,
+    "WritingRestrictedDesc": false,
     "EveryOriginatingAgency": false,
     "EveryDataObjectVersion": true,
     "_tenant": 0,
@@ -163,8 +164,15 @@ Détail des champs
 
 **"WritingPermission":** droit d'écriture. 
 
-  * PIl s'agit d'un booléen. Si la valeur est à true, le détenteur du contrat peut effectuer des mises à jour.
+  * Il s'agit d'un booléen. Si la valeur est à true, le détenteur du contrat peut effectuer des mises à jour.
   * Cardinalité : 1-1
+
+**"WritingRestrictedDesc":** droit de modification des métadonnées descriptives seulement.
+
+  * Il s'agit d'un booléen. Si la valeur est à true, le détenteur du contrat peut effectuer des mises à jour seulement sur les métadonnées descriptives.
+    Si la valeur est à false, le détenteur du contrat peut effectuer des mises à jour sur les métadonnées descriptives, ainsi que sur les métadonnées de gestion.
+  * Cardinalité : 0-1
+
 
 **"EveryOriginatingAgency":** droit de consultation sur tous les services producteurs.
 
@@ -201,4 +209,7 @@ Détail des champs
   * Il s'agit d'un tableau de chaînes de caractères.
   * Peut être vide
   * Cardinalité : 0-1
+
+
+
 
