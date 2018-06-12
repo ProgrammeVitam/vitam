@@ -167,7 +167,7 @@ public class GraphService {
 
         // Debug
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("DEBUG: UNIT {}", JSON.serialize(this));
+            LOGGER.debug("DEBUG: UNIT {}", JSON.serialize(unit));
         }
     }
 
