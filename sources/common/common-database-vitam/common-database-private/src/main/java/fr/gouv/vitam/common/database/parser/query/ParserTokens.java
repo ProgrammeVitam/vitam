@@ -335,6 +335,7 @@ public class ParserTokens extends BuilderToken {
         "DeactivationDate",
         "DataObjectVersion",
         "WritingPermission",
+        "WritingRestrictedDesc",
         "EveryOriginatingAgency",
         "EveryDataObjectVersion",
         "RootUnits",

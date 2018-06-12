@@ -63,6 +63,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalPermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
@@ -111,10 +112,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.parameters.*;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -142,7 +140,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * UNITS
      */
     private static final String UNITS = "units";
-    private static final String RESULTS = "$results";    
+    private static final String RESULTS = "$results";
 
     // DIP
     private DipService unitDipService;
@@ -157,6 +155,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
     private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
+    private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
+    private static final String STP_UPDATE_DESC_UNIT = "STP_UPDATE_DESC_UNIT";
 
     private final AccessInternalModule accessModule;
     private ArchiveUnitMapper archiveUnitMapper;
@@ -189,13 +189,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     /**
      * Test constructor
      *
-     * @param accessModule accessModule
+     * @param accessModule                   accessModule
      * @param logbookOperationsClientFactory logbookOperationsClientFactory
-     * @param workspaceClientFactory workspaceClientFactory
+     * @param workspaceClientFactory         workspaceClientFactory
      */
-    @VisibleForTesting AccessInternalResourceImpl(AccessInternalModule accessModule,
-        LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+    @VisibleForTesting
+    AccessInternalResourceImpl(AccessInternalModule accessModule,
+                               LogbookOperationsClientFactory logbookOperationsClientFactory,
+                               WorkspaceClientFactory workspaceClientFactory) {
         this.accessModule = accessModule;
         archiveUnitMapper = new ArchiveUnitMapper();
         objectGroupMapper = new ObjectGroupMapper();
@@ -279,8 +280,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
@@ -427,10 +428,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
-            if (!VitamThreadUtils.getVitamSession().getContract().getWritingPermission()) {
-                status = Status.UNAUTHORIZED;
-                return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
-            }
+
             JsonNode result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
             return Response.status(Status.OK).entity(result).build();
@@ -442,6 +440,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final AccessInternalRuleExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             return buildErrorResponse(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES, e.getMessage());
+        } catch (final AccessInternalPermissionException e) {
+            LOGGER.error(e.getMessage(), e);
+            return buildErrorResponse(VitamCodeHelper.getFrom(e.getMessage()), e.getMessage());
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = INTERNAL_SERVER_ERROR;
@@ -479,7 +480,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
-            InvalidCreateOperationException exc) {
+                InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
@@ -510,7 +511,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
+                    .build();
         } catch (AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
@@ -553,9 +554,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
 
-
     private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap,
-        String idObjectGroup, boolean post) {
+                                       String idObjectGroup, boolean post) {
 
         if (post) {
             if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
@@ -572,8 +572,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorStream(Status.PRECONDITION_FAILED,
                     "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
-                        .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
-                        ")"))
+                    .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
+                    ")"))
                 .build();
         }
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
@@ -647,8 +647,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     QueryHelper.in(PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray));
 
             Query excludeRootUnitsRestriction = QueryHelper
-                    .and().add(QueryHelper.nin(PROJECTIONARGS.ID.exactToken(), excludedRootUnitsArray),
-                            QueryHelper.nin(PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray));
+                .and().add(QueryHelper.nin(PROJECTIONARGS.ID.exactToken(), excludedRootUnitsArray),
+                    QueryHelper.nin(PROJECTIONARGS.ALLUNITUPS.exactToken(), excludedRootUnitsArray));
 
 
             List<Query> queryList = parser.getRequest().getQueries();
@@ -693,7 +693,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     private JsonNode addProdServicesToQueryForObjectGroup(JsonNode queryDsl)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+            throws InvalidParseOperationException, InvalidCreateOperationException {
         final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
         Set<String> prodServices = contract.getOriginatingAgencies();
         if (contract.getEveryOriginatingAgency()) {
@@ -710,7 +710,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     private void checkEmptyQuery(JsonNode queryDsl)
-        throws InvalidParseOperationException, InvalidCreateOperationException, BadRequestException {
+            throws InvalidParseOperationException, InvalidCreateOperationException, BadRequestException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl.deepCopy());
         if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {
@@ -731,11 +731,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+                (message != null && !message.trim().isEmpty()) ? message
+                        : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
 
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     private InputStream getErrorStream(Status status, String message) {

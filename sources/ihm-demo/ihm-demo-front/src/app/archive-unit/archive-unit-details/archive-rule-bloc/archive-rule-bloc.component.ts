@@ -335,20 +335,24 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
   initUpdatedRules() {
     for (const category of this.rulesCategories) {
-      if (this.management[category.rule]) {
+      let categoryNode = this.management[category.rule];
+      if (categoryNode) {
         const rules = [];
         const ruleIds = [];
-        for (const rule of this.management[category.rule].Rules) {
-          const updatedRule = JSON.parse(JSON.stringify(rule));
-          if (updatedRule.StartDate) {
-            updatedRule.StartDate = new Date(updatedRule.StartDate);
-          } else {
-            updatedRule.StartDate = '';
-          }
-          updatedRule.oldId = updatedRule.Rule;
+        if (categoryNode.Rules) {
+          for (const rule of categoryNode.Rules) {
 
-          rules.push(updatedRule);
-          ruleIds.push(updatedRule.Rule);
+            const updatedRule = JSON.parse(JSON.stringify(rule));
+            if (updatedRule.StartDate) {
+              updatedRule.StartDate = new Date(updatedRule.StartDate);
+            } else {
+              updatedRule.StartDate = '';
+            }
+            updatedRule.oldId = updatedRule.Rule;
+
+            rules.push(updatedRule);
+            ruleIds.push(updatedRule.Rule);
+          }
         }
 
         if (this.inheritedRules[category.rule]) {

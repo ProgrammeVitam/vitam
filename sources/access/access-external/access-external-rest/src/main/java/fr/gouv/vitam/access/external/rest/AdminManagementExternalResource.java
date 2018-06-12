@@ -477,7 +477,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a set of access contracts.
      *
-     * @param select the select query to find document
+     * @param contract the input set of contracts as json
      * @return Response
      */
     @Path("/accesscontracts")
@@ -486,11 +486,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "accesscontracts:create:json",
         description = "Importer des contrats d'accès dans le référentiel")
-    public Response importAccessContracts(JsonNode select) {
+    public Response importAccessContracts(JsonNode contract) {
 
-        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
+        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+            Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(contract.toString(),
                 new TypeReference<List<AccessContractModel>>() {}));
 
             if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {

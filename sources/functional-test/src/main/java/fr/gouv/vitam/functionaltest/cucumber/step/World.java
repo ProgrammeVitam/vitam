@@ -35,6 +35,7 @@ import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
+import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -340,6 +341,7 @@ public class World {
      * @param contractId
      * @return this
      */
+    @Given("^J'utilise le contrat d'access (.*)$")
     public World setContractId(String contractId) {
         this.contractId = contractId;
         return this;

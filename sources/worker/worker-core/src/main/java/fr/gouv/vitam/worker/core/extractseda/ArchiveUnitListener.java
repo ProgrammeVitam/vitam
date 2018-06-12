@@ -401,7 +401,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
         for (DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
 
-            String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
+            String archiveUnitRefId = (String) relatedObjectReferenceItem.getArchiveUnitRefId();
 
             if (archiveUnitRefId != null) {
                 if (unitIdToGuid.containsKey(archiveUnitRefId)) {

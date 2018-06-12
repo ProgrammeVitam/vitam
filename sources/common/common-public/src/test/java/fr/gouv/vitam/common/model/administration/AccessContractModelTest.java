@@ -108,6 +108,7 @@ public class AccessContractModelTest {
         accessContractModel.setEveryOriginatingAgency(true);
         accessContractModel.setEveryDataObjectVersion(true);
         accessContractModel.setWritingPermission(true);
+        accessContractModel.setWritingRestrictedDesc(true);
 
         // When
         accessContractModel.initializeDefaultValue();
@@ -116,5 +117,6 @@ public class AccessContractModelTest {
         assertThat(accessContractModel.getEveryOriginatingAgency()).isTrue();
         assertThat(accessContractModel.getWritingPermission()).isTrue();
         assertThat(accessContractModel.isEveryDataObjectVersion()).isTrue();
+        assertThat(accessContractModel.getWritingRestrictedDesc()).isTrue();
     }
 }

@@ -357,6 +357,10 @@ public enum VitamCode {
     ACCESS_INTERNAL_DIP_ERROR(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "13",
         Status.BAD_REQUEST,
         "Access internal client error in DIP service"),
+    ACCESS_INTERNAL_UPDATE_UNIT_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "14", Status.UNAUTHORIZED,
+        "Unauthorized to update archive unit"),
+    ACCESS_INTERNAL_UPDATE_UNIT_DESC_PERMISSION(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "15", Status.UNAUTHORIZED,
+        "Unauthorized to update other than descriptive metadata in archive unit"),
 
     INGEST_EXTERNAL_ILLEGAL_ARGUMENT(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00", Status.PRECONDITION_FAILED,
         "Ingest external illegal argument"),

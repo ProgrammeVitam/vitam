@@ -1452,6 +1452,15 @@
         "Collections": ["AccessContract"]
     },
     {
+        "Identifier": "WritingRestrictedDesc",
+        "ApiField": "WritingRestrictedDesc",
+        "Description": "Mapping : accesscontract-es-mapping.json",
+        "Type": "BOOLEAN",
+        "Origin": "INTERNAL",
+        "ShortName": "Droit d'écriture restrint à la description",
+        "Collections": ["AccessContract"]
+    },
+    {
         "Identifier": "ArchivalAgreement",
         "SedaField": "ArchivalAgreement",
         "ApiField": "ArchivalAgreement",
