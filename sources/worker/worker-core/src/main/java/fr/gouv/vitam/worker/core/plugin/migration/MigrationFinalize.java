@@ -27,8 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.migration;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -42,11 +40,14 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroupPrepare.MIGRATION_OBJECT_LIST_IDS;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare.MIGRATION_UNITS_LIST_IDS;
@@ -77,36 +78,31 @@ public class MigrationFinalize extends ActionHandler {
 
         ItemStatus itemStatus = new ItemStatus(MIGRATION_FINALIZE);
 
-        File reportFile = handlerIO.getNewLocalFile("report.json");
         try {
 
-            File unitsIdentifierFile = null;
-            File objectIdentifierFile = null;
-            ArrayList<String> unitsIdentifiers = null;
-            ArrayList<String> objectIdentifiers = null;
-            try {
-                unitsIdentifierFile =
-                    handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
-                objectIdentifierFile =
-                    handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json");
-            } catch (ContentAddressableStorageNotFoundException e) {
-                LOGGER.error(e);
+            File unitsIdentifierFile =
+                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
+            File objectIdentifierFile =
+                handlerIO.getFileFromWorkspace(REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json");
+
+            File report = handlerIO.getNewLocalFile("report.json");
+
+            try (FileInputStream unitsReportInputStream = new FileInputStream(unitsIdentifierFile);
+                FileInputStream objectsReportInputStream = new FileInputStream(objectIdentifierFile);
+                OutputStream os = new FileOutputStream(report)) {
+
+                // Sorry for that.. jackson JsonGenerator does not support APIs for raw input streams copy
+                os.write("{\"units:\":".getBytes(StandardCharsets.UTF_8));
+                IOUtils.copy(unitsReportInputStream, os);
+                os.write(",\"objectGroups:\":".getBytes(StandardCharsets.UTF_8));
+                IOUtils.copy(objectsReportInputStream, os);
+                os.write("}".getBytes(StandardCharsets.UTF_8));
             }
 
-            if (unitsIdentifierFile != null && objectIdentifierFile != null) {
-                unitsIdentifiers =  JsonHandler.getFromFile(unitsIdentifierFile, ArrayList.class);
-                objectIdentifiers = JsonHandler.getFromFile(objectIdentifierFile, ArrayList.class);
-            }
+            backupService.backup(new FileInputStream(report), DataCategory.REPORT,
+                handlerIO.getContainerName() + ".json");
 
-            MigrationReport migrationReport = new MigrationReport(unitsIdentifiers, objectIdentifiers);
-            JsonHandler.writeAsFile(migrationReport, reportFile);
-
-            backupService
-                .backup(new FileInputStream(reportFile), DataCategory.REPORT,
-                    handlerIO.getContainerName() + ".json");
-
-        } catch ( IOException | InvalidParseOperationException | BackupServiceException e) {
-            LOGGER.error(e);
+        } catch (IOException | BackupServiceException | ContentAddressableStorageNotFoundException e) {
             throw new ProcessingException(e);
         }
         itemStatus.increment(StatusCode.OK);

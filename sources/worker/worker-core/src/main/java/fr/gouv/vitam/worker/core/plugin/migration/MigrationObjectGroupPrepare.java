@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -46,11 +45,8 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 
-import java.io.File;
-import java.util.List;
-
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.OBJECT_GROUP_FOLDER;
-import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.createAndSaveLinkedFilesInWorkSpaceFromScrollRequest;
+import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.exportToReportAndLinkedFiles;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSelectMultiQuery;
 
 /**
@@ -71,7 +67,7 @@ public class MigrationObjectGroupPrepare extends ActionHandler {
      * Constructor
      *
      * @param metaDataClientFactory metaDataClientFactory
-     * @param bachSize              bachSize
+     * @param bachSize bachSize
      */
     @VisibleForTesting
     public MigrationObjectGroupPrepare(MetaDataClientFactory metaDataClientFactory, int bachSize) {
@@ -98,20 +94,12 @@ public class MigrationObjectGroupPrepare extends ActionHandler {
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
                 .createObjectGroupScrollSplitIterator(client, selectMultiQuery, bachSize);
 
-            List<String> totalIdentifiers =
-                createAndSaveLinkedFilesInWorkSpaceFromScrollRequest(scrollRequest, handler, OBJECT_GROUP_FOLDER,
-                    bachSize);
-
-            File file = handler.getNewLocalFile(MIGRATION_OBJECT_LIST_IDS);
-            JsonHandler.writeAsFile(totalIdentifiers, file);
-            handler.transferFileToWorkspace(REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json",
-                file, true, false);
+            exportToReportAndLinkedFiles(scrollRequest, handler, OBJECT_GROUP_FOLDER,
+                bachSize, REPORTS + "/" + MIGRATION_OBJECT_LIST_IDS + ".json");
 
             if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
-
                 return new ItemStatus(MIGRATION_OBJECT_GROUPS_LIST)
                     .setItemsStatus(MIGRATION_OBJECT_GROUPS_LIST, itemStatus);
-
             }
         } catch (InvalidParseOperationException | InvalidCreateOperationException | ProcessingException e) {
             LOGGER.error(e);
@@ -123,5 +111,7 @@ public class MigrationObjectGroupPrepare extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(final HandlerIO handler) throws ProcessingException {/*     nothing */ }
+    public void checkMandatoryIOParameter(final HandlerIO handler) throws ProcessingException {
+        // nothing
+    }
 }
