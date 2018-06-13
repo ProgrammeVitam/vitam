@@ -46,6 +46,7 @@ Extrait d'un JSON correspondant à un journal de cycle du vie d'une unité archi
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
             "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
             "evDetData": null,
+            "_lastPersistedDate": "2017-04-10T12:39:37.953"
         },
         {
             "evId": "aedqaaaaaghbl62n5g8ftak3k7qg5tiaaabq",
@@ -60,6 +61,7 @@ Extrait d'un JSON correspondant à un journal de cycle du vie d'une unité archi
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
             "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
             "evDetData": null,
+	    "_lastPersistedDate": "2017-04-10T12:39:37.953"
         },{
 
         [...]
@@ -230,6 +232,7 @@ Champs présents dans les events
     * agId
     * obId
     * evDetData
+    * lastPersistedDate
 
 Détail des champs du JSON stocké en base spécifiques à une mise à jour
 ======================================================================

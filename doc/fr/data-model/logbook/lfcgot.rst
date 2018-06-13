@@ -44,6 +44,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":773928267,\"SiteId\":1,\"GlobalPlatformId\":237057355}",
             "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
             "evDetData": null,
+	    "_lastPersistedDate": "2016-11-04T14:47:45.132",
         },
         {
             "evId": "\"aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba\"",
@@ -60,6 +61,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
             "evDetData": "{\"MessageDigest\":\"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
             5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\",\"Algorithm\": \"SHA512\", \"SystemMessageDigest\": \"SHA-512\", \"SystemAlgorithm\": \"0f1de441a7d44a277e265eb741e748ea18c96a59c8c0385f938b9768a42e375716dfa3b20cc125905636
             5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\"} ",
+	    "_lastPersistedDate": "2016-11-04T14:47:45.132",
         },
         {
             
@@ -239,3 +241,4 @@ Champs présents dans les events
     * agId
     * obId
     * evDetData
+    * LastPersistedDate
