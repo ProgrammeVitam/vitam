@@ -1,5 +1,6 @@
-Généralités
-***********
+Journal de cycle de vie
++++++++++++++++++++++++
+
 Le rôle du journal de cycle de vie est de tracer toutes les événements qui impactent l'archive dès sa prise en charge dans le système et doit être conservé autant que l'archive.
 
 - dès la réception de l'entrée, on trace les opérations effectuées sur les ArchiveUnit et les ObjectGroup qui sont dans le SIP

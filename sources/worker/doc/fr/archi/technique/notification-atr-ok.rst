@@ -1,5 +1,5 @@
-Généralités
-***********
+notification-atr-ok
+*******************
 
 Cette section présente les modules & services pour traiter le processus de notification du téléchargement 
 d'un document SIP. 

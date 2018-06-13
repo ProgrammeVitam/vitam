@@ -1,6 +1,3 @@
-Introduction
-############
-
 Gestion de règles
 --------------------------
 

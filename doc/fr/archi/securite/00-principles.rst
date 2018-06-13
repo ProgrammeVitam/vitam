@@ -9,7 +9,7 @@ Les principes de sécurité de VITAM suivent les directives suivantes :
     - Détection et suppression de codes malveillants dans les archives déposées dans VITAM ;
     - Robustesse contre les failles du Top Ten OWASP pour toutes les interfaces REST ;
 
-* Validation périodique des listes de CRL pour toutes les CA trustées par VITAM.
+* Validation périodique des listes de CRL pour toutes les AC trustées par VITAM (non implémentée dans cette version de VITAM, cf. ci-dessous).
 
 
 Principes de cloisonnement
@@ -31,15 +31,16 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 
 .. note:: Les ciphers recommandés sont : ``TLS_ECDHE.*``, ``TLS_DHE_RSA.*``
 
-* Authentification par certificat x509 requise des applications externes (authentification M2M) basée sur une liste blanche de certificats valides ;
+* Authentification par certificat x509 requise des applications externes (authentification M2M) basée sur une liste blanche de certificats valides :
 
-    - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (not before, not after) et est bien présent dans le référentiel d’authentification des certificats valides (qui est un fichier keystore contenant la liste des certificats valides).
+    - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (not before, not after) et qu'il est validé par une Autorité de Certification connue (liste des AC potée par un fichier truststore) ;
+    - Avant de valider tout appel d'API, l'applicatif vérifie que le certificat proposé est bien présent dans le référentiel d’authentification des certificats valides (un des référentiels métier portés par la base des métadonnées).
 
 .. caution:: La révocation des certificats se fait par leur suppression dans les différents magasins et référentiels. Les CRL ne sont pas supportées dans cette version de la solution logicielle VITAM.
 
 * Filtrage exhaustif des données et requêtes entrant dans le système basé sur :
 
-    - Un WAF applicatif permettant le filtrage d'entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ dans les composants ``*-external`` protégeant notamment contre les attaques de type XSS)
+    - Un WAF applicatif permettant le filtrage d'entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ dans les composants ``*-external`` protégeant notamment contre les attaques de type XSS) ;
     - Support de l'utilisation d'un ou plusieurs antivirus (configurables et extensibles) dans le composant d'entrée (``ingest-external``) permettant de valider l'innocuité des données entrantes.
 
 .. note:: Dans cette version du système, le paramétrage de l'antivirus est supporté lors de l'installation, mais pas le paramétrage d'ESAPI (notamment les filtres appliqués).
@@ -96,7 +97,7 @@ Principes de sécurisation des secrets de déploiement
 
 Les secrets de l'intégralité de la solution VITAM déployée sont tous présents sur le serveur de déploiement ; par conséquent, ils doivent y être stockés de manière sécurisée, avec les principes suivants :
 
-* Les mot de passe et token utilisés par ansible doivent être stockés dans des fichiers d'inventaire chiffrés par ansible-vault ;
-* Les clé privées des certificats doivent être protégées par des mot de passe complexes ; ces derniers doivent suivre la règle précédente.
+* Les mots de passe et tokens utilisés par ansible doivent être stockés dans des fichiers d'inventaire chiffrés par ansible-vault ;
+* Les clés privées des certificats doivent être protégées par des mots de passe complexes ; ces derniers doivent suivre la règle précédente.
 
 

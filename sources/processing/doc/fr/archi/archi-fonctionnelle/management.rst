@@ -1,5 +1,5 @@
 Processing Management
-#####################
+*********************
 
 Ce module est pour le but d'organiser l'exécution d'un process de traitement avec les workflows fournis et un ensemble de paramètres passés par le service d'appel (Ingest : traitement des saisies d'archives).
 

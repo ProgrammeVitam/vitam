@@ -8,21 +8,21 @@ Drivers de l'architecture
 Les principes d'implémentation applicative ont pour but de faciliter, voire d'assurer les enjeux auxquels le système VITAM est confronté :
 
 
-* Modèle Open-Source pour la réutilisation dans la sphère publique ainsi que conserver la maîtrise dans le temps du socle logiciel ;
+* Modèle Open-Source pour la réutilisation dans la sphère publique ainsi que pour conserver la maîtrise dans le temps du socle logiciel ;
 * Couplage lâche entre les composants ;
-* Nécessité de pouvoir disposer des composants de générations différentes rendant un même service ;
+* Nécessité de pouvoir disposer de composants de générations différentes rendant un même service ;
 * Usage d’API REST pour la communication entre composants internes à VITAM, ainsi qu'en extrême majorité pour les services exposés à l'extérieur ;
 * Exploitabilité de la solution : limiter le coût d’entrée et de maintenance en : 
 
-    - Intégrant un outillage favorisant le déploiement et les mises à jour de la plateforme
-    - Intégrant les éléments nécessaires pour l’exploiter (supervision, sauvegarde, ordonnancement)
-    - Enfin, à terme, la solution doit pouvoir tirer partie d’une infrastructure élastique et disposant d’offres de services de stockage diverses (externes)
+    - Intégrant un outillage favorisant le déploiement et les mises à jour de la plateforme ;
+    - Intégrant les éléments nécessaires pour l’exploiter (supervision, sauvegarde, ordonnancement) ;
+    - Enfin, à terme, la solution doit pouvoir tirer partie d’une infrastructure élastique et disposant d’offres de services de stockage diverses (externes).
 
 
 Services
 ========
 
-La solution logicielle VITAM est découpé en services autonomes interagissant pour permettre de rendre le service global; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle. 
+La solution logicielle :term:`VITAM` est découpée en services autonomes interagissant pour permettre de rendre le service global ; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle. 
 
 Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ihm-demo et storage-offer-default (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle VITAM.
 

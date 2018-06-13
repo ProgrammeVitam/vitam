@@ -1,6 +1,10 @@
 Généralités
 ***********
-Le rôle du journal d'opération est de conserver une trace des oprétations réalisées au sein du système lors de traitements
+
+Journal d'opération
++++++++++++++++++++
+
+Le rôle du journal d'opération est de conserver une trace des opérations réalisées au sein du système lors de traitements
 sur des lots d'archives.
 
 Chaque opération est tracée sous la forme de 2 enregistrements (début et fin).
@@ -19,4 +23,4 @@ Chaque opération est tracée sous la forme de 2 enregistrements (début et fin)
 * Fin du Stockage du lot
 * Fin de Ingest
 
-// TODO compléter la liste
+.. // TODO compléter la liste
