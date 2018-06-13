@@ -27,6 +27,19 @@
 package fr.gouv.vitam.processing.integration.test;
 
 
+import static com.jayway.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -104,7 +117,6 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -121,18 +133,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static com.jayway.restassured.RestAssured.get;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Processing integration test
@@ -505,10 +505,14 @@ public class ProcessingLFCTraceabilityIT {
         TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
 
         assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
-        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
+            beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability1.minusSeconds(temporizationDelayInSeconds));
 
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
+            beforeTraceability2.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability2.minusSeconds(temporizationDelayInSeconds));
     }
 
     @RunWithCustomExecutor
@@ -567,10 +571,14 @@ public class ProcessingLFCTraceabilityIT {
         TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
 
         assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
-        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
+            beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability1.minusSeconds(temporizationDelayInSeconds));
 
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
+            beforeTraceability2.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability2.minusSeconds(temporizationDelayInSeconds));
     }
 
 
@@ -673,7 +681,8 @@ public class ProcessingLFCTraceabilityIT {
         Thread.sleep(temporizationDelayInSeconds * 1000);
 
         LocalDateTime beforeTraceability1 = LocalDateUtil.now();
-        String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        String traceabilityOperation1 =
+            launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
         LocalDateTime afterTraceability1 = LocalDateUtil.now();
 
         // Second ingest + traceability
@@ -681,7 +690,8 @@ public class ProcessingLFCTraceabilityIT {
         Thread.sleep(temporizationDelayInSeconds * 1000);
 
         LocalDateTime beforeTraceability2 = LocalDateUtil.now();
-        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        String traceabilityOperation2 =
+            launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
         LocalDateTime afterTraceability2 = LocalDateUtil.now();
 
         // Then
@@ -693,10 +703,14 @@ public class ProcessingLFCTraceabilityIT {
         TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
 
         assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
-        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
+            beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability1.minusSeconds(temporizationDelayInSeconds));
 
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
+            beforeTraceability2.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability2.minusSeconds(temporizationDelayInSeconds));
     }
 
     @RunWithCustomExecutor
@@ -734,7 +748,8 @@ public class ProcessingLFCTraceabilityIT {
         Thread.sleep(temporizationDelayInSeconds * 1000);
 
         LocalDateTime beforeTraceability1 = LocalDateUtil.now();
-        String traceabilityOperation1 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        String traceabilityOperation1 =
+            launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
         LocalDateTime afterTraceability1 = LocalDateUtil.now();
 
 
@@ -743,7 +758,8 @@ public class ProcessingLFCTraceabilityIT {
         Thread.sleep(temporizationDelayInSeconds * 1000);
 
         LocalDateTime beforeTraceability2 = LocalDateUtil.now();
-        String traceabilityOperation2 = launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
+        String traceabilityOperation2 =
+            launchLogbookLFC(temporizationDelayInSeconds, Contexts.OBJECTGROUP_LFC_TRACEABILITY);
         LocalDateTime afterTraceability2 = LocalDateUtil.now();
 
         // Then
@@ -755,15 +771,18 @@ public class ProcessingLFCTraceabilityIT {
         TraceabilityEvent traceabilityEvent2 = getTraceabilityEvent(traceabilityOperation2);
 
         assertThat(traceabilityEvent1.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
-        assertThatDateIsBetween(traceabilityEvent1.getEndDate(), beforeTraceability1.minusSeconds(temporizationDelayInSeconds), afterTraceability1.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent1.getEndDate(),
+            beforeTraceability1.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability1.minusSeconds(temporizationDelayInSeconds));
 
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(), beforeTraceability2.minusSeconds(temporizationDelayInSeconds), afterTraceability2.minusSeconds(temporizationDelayInSeconds));
+        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
+            beforeTraceability2.minusSeconds(temporizationDelayInSeconds),
+            afterTraceability2.minusSeconds(temporizationDelayInSeconds));
     }
 
     private void tryImportFile() {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -825,10 +844,6 @@ public class ProcessingLFCTraceabilityIT {
             }
             imported = true;
         }
-    }
-
-    private void flush() {
-        ProcessDataAccessImpl.getInstance().clearWorkflow();
     }
 
     private void wait(String operationId) {

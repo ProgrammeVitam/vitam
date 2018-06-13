@@ -99,7 +99,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -301,10 +300,6 @@ public class ReindexSwitchIT {
         }
     }
 
-    private void flush() {
-        ProcessDataAccessImpl.getInstance().clearWorkflow();
-    }
-
     private void wait(String operationId) {
         int nbTry = 0;
         while (!processingClient.isOperationCompleted(operationId)) {
@@ -321,7 +316,6 @@ public class ReindexSwitchIT {
 
     private void tryImportFile() {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
-        flush();
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -341,7 +335,8 @@ public class ReindexSwitchIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                    });
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
@@ -357,12 +352,14 @@ public class ReindexSwitchIT {
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 List<IngestContractModel> IngestContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 // import contrat
                 File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                    });
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importAccessContracts(accessContractModelList);
 
