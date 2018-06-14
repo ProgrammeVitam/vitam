@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.lifecycles.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
@@ -428,8 +429,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     private List<JsonNode> getRawLifecyclesByLastPersistedDate(LogbookCollections collection, String startDate,
         String endDate, int limit) throws InvalidParseOperationException {
-        VitamMongoRepository vitamMongoRepository =
-            VitamRepositoryFactory.getInstance().getVitamMongoRepository(collection);
+        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
         List<JsonNode> result = new ArrayList<>();
         try (MongoCursor<Document> lifecycles =
             vitamMongoRepository.findDocuments(
@@ -464,8 +464,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     private JsonNode getRawLifecycleById(String id, LogbookCollections collection)
         throws InvalidParseOperationException, LogbookNotFoundException {
-        VitamMongoRepository vitamMongoRepository =
-            VitamRepositoryFactory.getInstance().getVitamMongoRepository(collection);
+        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
 
         Document document = vitamMongoRepository.findDocuments(
             Filters.and(

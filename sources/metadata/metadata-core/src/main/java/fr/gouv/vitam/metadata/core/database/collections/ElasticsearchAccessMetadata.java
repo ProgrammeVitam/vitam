@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import org.bson.Document;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.DocWriteRequest.OpType;
@@ -654,6 +655,31 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             doc.put(VitamDocument.ID, id);
         }
     }
+
+    public void insertFullDocuments(MetadataCollections collection, Integer tenantId, List<? extends MetadataDocument> documents)
+        throws MetaDataExecutionException{
+        BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+
+        documents.forEach(document -> {
+            String id = (String) document.remove("_id");
+            String source = document.toJson();
+            bulkRequestBuilder
+                .add(client.prepareIndex(getAliasName(collection, tenantId), VitamCollection.TYPEUNIQUE, id)
+                    .setSource(source, XContentType.JSON));
+        });
+
+        BulkResponse bulkRes = bulkRequestBuilder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+
+        LOGGER.info("{}", bulkRes.getItems().length);
+        if (bulkRes.hasFailures()) {
+            LOGGER.error("##### Bulk Request failure with error: " + bulkRes.buildFailureMessage());
+            throw new MetaDataExecutionException(String
+                .format("Could not index document on ES. collection=%s, status=%s", collection,
+                    bulkRes.status()));
+
+        }
+    }
+
 
     /**
      * Update one element fully

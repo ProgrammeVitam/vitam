@@ -42,8 +42,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static fr.gouv.vitam.metadata.core.database.collections.GraphLoader.UNIT_VITAM_GRAPH_PROJECTION;
 import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITDEPTHS;
-import static fr.gouv.vitam.metadata.core.graph.GraphService.UNIT_VITAM_GRAPH_PROJECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
@@ -76,7 +76,7 @@ public class GraphServiceTest {
         uds12.put("1", Lists.newArrayList("1"));
         unit2.put(UNITDEPTHS, uds12);
 
-        given(mongoDbMetadataRepository.selectByIds(UNIT_VITAM_GRAPH_PROJECTION, directParents))
+        given(mongoDbMetadataRepository.selectByIds(directParents, UNIT_VITAM_GRAPH_PROJECTION))
             .willReturn(Lists.newArrayList(unit1, unit2));
 
         Unit unit = new Unit();
@@ -101,7 +101,7 @@ public class GraphServiceTest {
         Unit unit2 = new Unit();
         unit2.put("_id", "2");
 
-        given(mongoDbMetadataRepository.selectByIds(UNIT_VITAM_GRAPH_PROJECTION, directParents))
+        given(mongoDbMetadataRepository.selectByIds(directParents, UNIT_VITAM_GRAPH_PROJECTION))
             .willReturn(Lists.newArrayList(unit1, unit2));
 
         Unit unit = new Unit();

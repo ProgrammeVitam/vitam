@@ -1,57 +1,71 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.UP;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.GRAPH;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.PARENT_ORIGINATING_AGENCIES;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITDEPTHS;
+import static fr.gouv.vitam.metadata.core.database.collections.Unit.UNITUPS;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoBulkWriteException;
+import com.mongodb.MongoException;
+import com.mongodb.bulk.BulkWriteError;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.result.DeleteResult;
-import org.bson.conversions.Bson;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.ReplaceOneModel;
 
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import org.bson.conversions.Bson;
 
 /**
  * Repository to access to metadata collection
  */
-public class MongoDbMetadataRepository {
+public class MongoDbMetadataRepository<T extends VitamDocument> {
 
-    private MongoCollection mongoCollection;
+    private MongoCollection<T> mongoCollection;
 
-    public MongoDbMetadataRepository(MongoCollection mongoCollection) {
+    public MongoDbMetadataRepository(MongoCollection<T> mongoCollection) {
         this.mongoCollection = mongoCollection;
     }
 
-    public MetadataDocument findOne(MetadataCollections col, String id) {
-        return MongoDbMetadataHelper.findOne(col, id);
-    }
-
     /**
-     * Does not call getAfterLoad.
+     * @param ids list of parents
      *
-     * @param projection select condition
-     * @param directParents list of parents
+     * @param projection
      * @return the FindIterable on the find request based on the given collection
      */
-    public <T extends VitamDocument> Collection<T> selectByIds(Bson projection, Collection<String> directParents) {
-        final Bson condition = in(ID, directParents);
-        FindIterable<?> result;
-        if (projection != null) {
-            result = mongoCollection.find(condition).projection(projection);
-        } else {
-            result = mongoCollection.find(condition);
-        }
-        FindIterable<T> iterable =  (FindIterable<T>) result;
+    public Collection<T> selectByIds(Iterable<? extends String> ids, BasicDBObject projection) {
+        // final Bson condition = and(in(ID, ids), eq(TENANT_ID, ParameterHelper.getTenantParameter()));
+        final Bson condition = in(ID, ids);
+
+        FindIterable<T> result = mongoCollection.find(condition).projection(projection);
 
         List<T> vitamDocuments = new ArrayList<>();
 
-        try (final MongoCursor<T> cursor = iterable.iterator()) {
+        try (final MongoCursor<T> cursor = result.iterator()) {
             while (cursor.hasNext()) {
                 final T vitamDocument = cursor.next();
                 vitamDocuments.add(vitamDocument);
@@ -61,78 +75,62 @@ public class MongoDbMetadataRepository {
         return vitamDocuments;
     }
 
-    /**
-     * Does not call getAfterLoad.
-     *
-     * @param collection domain of request
-     * @param condition where condition
-     * @param projection select condition
-     * @param orderBy orderBy condition
-     * @param offset offset (0 by default)
-     * @param limit limit (0 for no limit)
-     * @return the FindIterable on the find request based on the given collection
-     */
-    public FindIterable<?> selectByIds(MetadataCollections collection,
-                                       Bson condition, Bson projection, Bson orderBy,
-                                       int offset, int limit) {
-        return MongoDbMetadataHelper.select(collection, condition, projection, orderBy, offset, limit);
+    public void insert(List<T> metadataDocuments) throws MetaDataExecutionException, MetaDataAlreadyExistException {
+        BulkWriteOptions options = new BulkWriteOptions();
+        options.ordered(false);
+
+        try {
+            List<InsertOneModel<T>> collect = new ArrayList<>();
+            metadataDocuments.forEach(metadataDocument -> {
+                metadataDocument.append(VERSION, 0);
+                metadataDocument.append(TENANT_ID, ParameterHelper.getTenantParameter());
+                InsertOneModel<T> tInsertOneModel = new InsertOneModel<>(metadataDocument);
+                collect.add(tInsertOneModel);
+            });
+            BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect, options);
+            if (bulkWriteResult.getInsertedCount() != metadataDocuments.size()) {
+                throw new MetaDataExecutionException(
+                    String.format("Error while bulk save document count : %s != size : %s :", bulkWriteResult.getInsertedCount(), metadataDocuments.size()));
+            }
+        } catch (final MongoBulkWriteException e) {
+            List<String> ids = new ArrayList<>();
+            for (BulkWriteError bulkWriteError : e.getWriteErrors()) {
+                if (bulkWriteError.getCategory() == ErrorCategory.DUPLICATE_KEY) {
+                    ids.add(metadataDocuments.get(bulkWriteError.getIndex()).getId());
+                }
+            }
+            if (!ids.isEmpty()) {
+                throw new MetaDataAlreadyExistException("Metadata already exists: " + ids);
+            }
+            throw new MetaDataExecutionException(e);
+        } catch (final MongoException | IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
+        }
     }
 
-    /**
-     * Aff orderBy and offset and limit if not null or not -1
-     *
-     * @param find
-     * @param orderBy
-     * @param offset
-     * @param limit
-     * @return the modified FindIterable
-     */
-    public FindIterable<?> selectFiltered(FindIterable<?> find, Bson orderBy,
-                                                       int offset, int limit) {
-        return MongoDbMetadataHelper.selectFiltered(find, orderBy, offset, limit);
-    }
+    public void update(List<T> metadataDocuments) throws MetaDataExecutionException {
+        BulkWriteOptions options = new BulkWriteOptions();
+        options.ordered(false);
 
-    /**
-     * @param collection domain of request
-     * @param condition where condition
-     * @param nb nb of item to delete
-     * @return the DeleteResult on the update request based on the given collection
-     * @throws MetaDataExecutionException if a mongo operation exception occurred
-     */
-    public DeleteResult delete(MetadataCollections collection,
-                                            Bson condition, int nb)
-        throws MetaDataExecutionException {
+        try {
+            List<ReplaceOneModel<T>> collect = metadataDocuments.stream()
+                .map(item -> {
+                    Bson query = and(
+                        eq(VitamDocument.ID, item.getId()),
+                        eq(TENANT_ID, ParameterHelper.getTenantParameter()));
+                    return new ReplaceOneModel<>(query
+                        , item);
+                })
+                .collect(Collectors.toList());
+            BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect, options);
+            if (bulkWriteResult.getMatchedCount() != metadataDocuments.size()) {
+                throw new MetaDataExecutionException(
+                    String.format("Error while bulk save document count : %s != size : %s :", bulkWriteResult.getInsertedCount(), metadataDocuments.size()));
+            }
+        } catch (final MongoException | IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
+        }
 
-        return MongoDbMetadataHelper.delete(collection, condition, nb);
-    }
-
-    /**
-     * Used to filter Units/OG according to some Units ancestors
-     *
-     * @param targetIds   set of target ids
-     * @param ancestorIds set of ancestor ids
-     *
-     * @return the Filter condition to find if ancestorIds are ancestors of targetIds or equals to targetIds
-     */
-    public Bson queryForAncestorsOrSame(Collection<String> targetIds, Collection<String> ancestorIds) {
-        return MongoDbMetadataHelper.queryForAncestorsOrSame(targetIds, ancestorIds);
-    }
-
-    /**
-     * @param type of filter
-     * @return a new Result
-     */
-    public Result createOneResult(BuilderToken.FILTERARGS type) {
-        return MongoDbMetadataHelper.createOneResult(type);
-    }
-
-    /**
-     * @param type of filter
-     * @param set of collection for creating Result
-     * @return a new Result
-     */
-    public Result createOneResult(BuilderToken.FILTERARGS type, Collection<String> set) {
-        return createOneResult(type, set);
     }
 
 }

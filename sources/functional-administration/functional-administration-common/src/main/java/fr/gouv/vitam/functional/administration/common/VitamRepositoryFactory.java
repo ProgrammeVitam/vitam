@@ -32,102 +32,12 @@ import org.bson.Document;
  */
 public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
-    private static VitamRepositoryFactory instance;
-
-    private Map<FunctionalAdminCollections, VitamMongoRepository> mongoRepository;
-    private Map<FunctionalAdminCollections, VitamElasticsearchRepository> esRepository;
-
-    private void initialize() {
-        VitamCollection formats = FunctionalAdminCollections.FORMATS.getVitamCollection();
-        VitamCollection rules = FunctionalAdminCollections.RULES.getVitamCollection();
-        VitamCollection agencies = FunctionalAdminCollections.AGENCIES.getVitamCollection();
-        VitamCollection profile = FunctionalAdminCollections.PROFILE.getVitamCollection();
-        VitamCollection archiveUnitProfile = FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getVitamCollection();
-        VitamCollection ontology = FunctionalAdminCollections.ONTOLOGY.getVitamCollection();
-        VitamCollection securityProfile = FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection();
-        VitamCollection ingestContract = FunctionalAdminCollections.INGEST_CONTRACT.getVitamCollection();
-        VitamCollection accessContract = FunctionalAdminCollections.ACCESS_CONTRACT.getVitamCollection();
-        VitamCollection accessionRegisterSummary =
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection();
-        VitamCollection accessionRegisterDetail =
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection();
-        VitamCollection context = FunctionalAdminCollections.CONTEXT.getVitamCollection();
-        VitamCollection sequence = FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection();
-
-        mongoRepository.put(FunctionalAdminCollections.FORMATS,
-            new VitamMongoRepository((MongoCollection<Document>) formats.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.RULES,
-            new VitamMongoRepository((MongoCollection<Document>) rules.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.PROFILE,
-            new VitamMongoRepository((MongoCollection<Document>) profile.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE,
-            new VitamMongoRepository((MongoCollection<Document>) archiveUnitProfile.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.ONTOLOGY,
-            new VitamMongoRepository((MongoCollection<Document>) ontology.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.AGENCIES,
-            new VitamMongoRepository((MongoCollection<Document>) agencies.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.ACCESS_CONTRACT,
-            new VitamMongoRepository((MongoCollection<Document>) accessContract.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.SECURITY_PROFILE,
-            new VitamMongoRepository((MongoCollection<Document>) securityProfile.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.INGEST_CONTRACT,
-            new VitamMongoRepository((MongoCollection<Document>) ingestContract.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
-            new VitamMongoRepository((MongoCollection<Document>) accessionRegisterSummary.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-            new VitamMongoRepository((MongoCollection<Document>) accessionRegisterDetail.getCollection()));
-        mongoRepository.put(FunctionalAdminCollections.CONTEXT,
-            new VitamMongoRepository((MongoCollection<Document>) context.getCollection()));
-
-        mongoRepository.put(FunctionalAdminCollections.VITAM_SEQUENCE,
-            new VitamMongoRepository((MongoCollection<Document>) sequence.getCollection()));
-
-
-        esRepository.put(FunctionalAdminCollections.RULES,
-            new VitamElasticsearchRepository(rules.getEsClient().getClient(), rules.getName().toLowerCase(),
-                rules.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.FORMATS,
-            new VitamElasticsearchRepository(formats.getEsClient().getClient(), formats.getName().toLowerCase(),
-                formats.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.PROFILE,
-            new VitamElasticsearchRepository(profile.getEsClient().getClient(), profile.getName().toLowerCase(),
-                profile.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE,
-            new VitamElasticsearchRepository(archiveUnitProfile.getEsClient().getClient(), archiveUnitProfile.getName().toLowerCase(),
-                archiveUnitProfile.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.ONTOLOGY,
-            new VitamElasticsearchRepository(ontology.getEsClient().getClient(), ontology.getName().toLowerCase(),
-                ontology.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.AGENCIES,
-            new VitamElasticsearchRepository(agencies.getEsClient().getClient(), agencies.getName().toLowerCase(),
-                agencies.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.ACCESS_CONTRACT,
-            new VitamElasticsearchRepository(accessContract.getEsClient().getClient(), accessContract.getName().toLowerCase(),
-                accessContract.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.SECURITY_PROFILE,
-            new VitamElasticsearchRepository(securityProfile.getEsClient().getClient(), securityProfile.getName().toLowerCase(),
-                securityProfile.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.INGEST_CONTRACT,
-            new VitamElasticsearchRepository(ingestContract.getEsClient().getClient(), ingestContract.getName().toLowerCase(),
-                ingestContract.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
-            new VitamElasticsearchRepository(accessionRegisterSummary.getEsClient().getClient(),
-                accessionRegisterSummary.getName().toLowerCase(), accessionRegisterSummary.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-            new VitamElasticsearchRepository(accessionRegisterDetail.getEsClient().getClient(),
-                accessionRegisterDetail.getName().toLowerCase(), accessionRegisterDetail.isCreateIndexByTenant()));
-        esRepository.put(FunctionalAdminCollections.CONTEXT,
-            new VitamElasticsearchRepository(context.getEsClient().getClient(), context.getName().toLowerCase(),
-                context.isCreateIndexByTenant()));
-    }
+    private static VitamRepositoryFactory instance = new VitamRepositoryFactory();
 
     /**
      * private constructor for instance initialization. <br />
      */
     private VitamRepositoryFactory() {
-        mongoRepository = new HashMap<>();
-        esRepository = new HashMap<>();
-        initialize();
     }
 
     /**
@@ -135,18 +45,18 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
      *
      * @return
      */
-    public static synchronized VitamRepositoryFactory getInstance() {
-        if (instance == null) {
-            instance = new VitamRepositoryFactory();
-        }
+    public static VitamRepositoryFactory getInstance() {
         return instance;
     }
 
     public VitamMongoRepository getVitamMongoRepository(FunctionalAdminCollections collection) {
-        return mongoRepository.get(collection);
+        return new VitamMongoRepository(collection.getCollection());
     }
 
     public VitamElasticsearchRepository getVitamESRepository(FunctionalAdminCollections collection) {
-        return esRepository.get(collection);
+        VitamCollection vitamCollection = collection.getVitamCollection();
+        return new VitamElasticsearchRepository(vitamCollection.getEsClient().getClient(), vitamCollection.getName().toLowerCase(),
+            vitamCollection.isCreateIndexByTenant());
     }
+
 }

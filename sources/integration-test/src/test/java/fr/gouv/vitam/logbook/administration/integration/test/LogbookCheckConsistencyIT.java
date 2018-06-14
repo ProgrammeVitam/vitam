@@ -437,6 +437,9 @@ public class LogbookCheckConsistencyIT {
         if (accessInternalApplication != null) {
             accessInternalApplication.stop();
         }
+        if (logbookApplication != null) {
+            logbookApplication.stop();
+        }
         elasticsearchRule.afterClass();
     }
 
@@ -503,7 +506,6 @@ public class LogbookCheckConsistencyIT {
                 storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS)
                         .readEntity(InputStream.class);
 
-        ObjectMapper mapper = new ObjectMapper();
         LogbookCheckResult logbookCheckResult = JsonHandler.getFromInputStream(inputStream, LogbookCheckResult.class);
         assertNotNull(logbookCheckResult);
 

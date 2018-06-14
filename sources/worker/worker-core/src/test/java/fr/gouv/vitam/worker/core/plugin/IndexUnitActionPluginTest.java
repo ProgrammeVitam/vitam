@@ -37,6 +37,8 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.List;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -112,7 +114,7 @@ public class IndexUnitActionPluginTest {
             .setObjectName("objectName.json").setCurrentStep("currentStep")
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
-    public IndexUnitActionPluginTest() throws FileNotFoundException {
+    public IndexUnitActionPluginTest() {
     }
 
     @Before
@@ -141,87 +143,87 @@ public class IndexUnitActionPluginTest {
 
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL() throws Exception {
-        final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
+        assertEquals(response.get(0).getGlobalStatus(), StatusCode.FATAL);
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         // Given
-        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnit);
         // When
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
     public void testMetadataException() throws Exception {
         // Given
-        when(metadataClient.insertUnit(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(metadataClient.insertUnitBulk(anyObject())).thenThrow(new MetaDataExecutionException(""));
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnit);
         // When
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
     @Test
     public void testWorkspaceException() throws Exception {
         // Given
-        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
         // When
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
 
     @Test
     public void testIndexUnitWithRulesOk() throws Exception {
         // Given
-        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitWithRules);
         // When
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
     public void testIndexUnitUpdateChildOk() throws Exception {
         // Given
-        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitChild);
         // When
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
     public void testIndexUnitUpdateParentOk() throws Exception {
         // Given
-        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitParent);
         // When
-        ItemStatus response = plugin.execute(params, handlerIO);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
     public void testIndexWithRules() throws Exception {
         // Given
-        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metadataClient.insertUnitBulk(anyObject())).thenReturn(JsonHandler.createObjectNode());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(archiveUnitWithMgtRules);
         // When
-        final ItemStatus response = plugin.execute(params, handlerIO);
+        final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
 }

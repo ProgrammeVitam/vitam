@@ -46,6 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
@@ -60,6 +61,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -107,6 +110,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -141,18 +145,27 @@ public class DbRequest {
     private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
-    private GraphService graphService;
+    // TODO JE final
+    private MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
+
+    // TODO JE final
+    private MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
 
     @VisibleForTesting
-    DbRequest(GraphService graphService) {
-        this.graphService = graphService;
+    DbRequest(MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
+              MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository) {
+        this.mongoDbUnitRepository = mongoDbUnitRepository;
+        this.mongoDbObjectGroupRepository = mongoDbObjectGroupRepository;
     }
 
     /**
      * Constructor
      */
+    // TODO JE finish to refactor
     public DbRequest() {
-        this(new GraphService(new MongoDbMetadataRepository(MetadataCollections.UNIT.getCollection())));
+        this(
+            new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
     }
 
     /**
@@ -876,7 +889,7 @@ public class DbRequest {
                             documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
                             documentFinal.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
                         }
-                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);                        
+                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                             throw new MetaDataExecutionException(
                                 "Unable to validate updated Unit " + status.getValidationMessage());
@@ -884,7 +897,7 @@ public class DbRequest {
                         if (externalSchema != null && externalSchema.size() > 0) {
                             validateOtherExternalSchema(updatedJsonDocument, externalSchema);
                             documentFinal.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                        }                        
+                        }
                     }
 
                     // Make Update
@@ -1081,50 +1094,7 @@ public class DbRequest {
         MetaDataAlreadyExistException {
 
         LOGGER.debug("Exec db insert unit request: %s", requestParser);
-
-        try {
-
-            final InsertToMongodb requestToMongodb =
-                (InsertToMongodb) RequestToMongodb.getRequestToMongoDb(requestParser);
-
-            final Unit unit = new Unit(requestToMongodb.getFinalData());
-
-            String unitId = unit.getId();
-
-            Set<String> roots = requestParser.getRequest().getRoots();
-            graphService.compute(unit, roots);
-
-            unit.insert();
-
-            final Integer tenantId = ParameterHelper.getTenantParameter();
-            MetadataCollections.UNIT.getEsClient()
-                .insertFullDocument(MetadataCollections.UNIT, tenantId, unitId,
-                    unit);
-
-            String ogId = unit.getString(MetadataDocument.OG);
-            if (StringUtils.isNotEmpty(ogId)) {
-
-                final ObjectGroup objectGroup =
-                    (ObjectGroup) MongoDbMetadataHelper.findOne(MetadataCollections.OBJECTGROUP, ogId);
-                if (objectGroup == null) {
-                    throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
-                        " from " + unitId);
-                }
-
-                objectGroup.buildParentGraph(unit);
-                MetadataCollections.OBJECTGROUP.getCollection().findOneAndReplace(
-                    eq(VitamDocument.ID, ogId), objectGroup);
-
-                MetadataCollections.OBJECTGROUP.getEsClient()
-                    .updateFullDocument(MetadataCollections.OBJECTGROUP, tenantId, ogId,
-                        objectGroup);
-            }
-
-        } catch (final MongoWriteException e) {
-            throw e;
-        } catch (final MongoException e) {
-            throw new MetaDataExecutionException("Insert concern", e);
-        }
+        execInsertUnitRequests(Lists.newArrayList(requestParser));
     }
 
     /**
@@ -1210,4 +1180,96 @@ public class DbRequest {
             throw new MetaDataExecutionException("Delete concern", e);
         }
     }
+
+    /**
+     * Inserts a unit
+     *
+     * @param requestParsers list of InsertParserMultiple to execute
+     * @throws MetaDataExecutionException when insert on metadata collection exception occurred
+     * @throws InvalidParseOperationException when json data exception occurred
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
+     */
+    public void execInsertUnitRequests(Collection<InsertParserMultiple> requestParsers)
+        throws MetaDataExecutionException, MetaDataNotFoundException, InvalidParseOperationException,
+        MetaDataAlreadyExistException {
+
+        LOGGER.debug("Exec db insert unit request: %s", requestParsers);
+
+        List<Unit> unitToSave = Lists.newArrayList();
+        List<ObjectGroup> objectGroupToSave = Lists.newArrayList();
+        final Integer tenantId = ParameterHelper.getTenantParameter();
+
+        try (GraphLoader graphLoader = new GraphLoader(mongoDbUnitRepository)) {
+
+            GraphService graphService = new GraphService(graphLoader);
+
+            List<String> allRoots = new ArrayList<>();
+            for (InsertParserMultiple requestParser : requestParsers) {
+                allRoots.addAll(requestParser.getRequest().getRoots());
+            }
+
+
+            Stopwatch loadParentAU = Stopwatch.createStarted();
+            graphLoader.loadGraphs(allRoots);
+            PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "loadParentAU", loadParentAU.elapsed(TimeUnit.MILLISECONDS));
+
+            Stopwatch computeAU = Stopwatch.createStarted();
+
+            for (InsertParserMultiple requestParser: requestParsers) {
+                final InsertToMongodb requestToMongodb = new InsertToMongodb(requestParser);
+                final Unit unit = new Unit(requestToMongodb.getFinalData());
+
+                String unitId = unit.getId();
+
+                Set<String> roots = requestParser.getRequest().getRoots();
+                graphService.compute(unit, roots);
+
+                // save mongo
+                unitToSave.add(unit);
+
+                String ogId = unit.getString(MetadataDocument.OG);
+                if (StringUtils.isNotEmpty(ogId)) {
+
+                    final ObjectGroup objectGroup =
+                        (ObjectGroup) MongoDbMetadataHelper.findOne(MetadataCollections.OBJECTGROUP, ogId);
+                    if (objectGroup == null) {
+                        throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
+                            " from " + unitId);
+                    }
+
+                    objectGroup.buildParentGraph(unit);
+                    objectGroupToSave.add(objectGroup);
+                }
+            }
+            PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "computeAU", computeAU.elapsed(TimeUnit.MILLISECONDS));
+
+            if (!unitToSave.isEmpty()) {
+                Stopwatch saveAU = Stopwatch.createStarted();
+                mongoDbUnitRepository.insert(unitToSave);
+                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInMongo", saveAU.elapsed(TimeUnit.MILLISECONDS));
+
+                saveAU = Stopwatch.createStarted();
+                MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, tenantId, unitToSave);
+                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveUnitInElastic", saveAU.elapsed(TimeUnit.MILLISECONDS));
+            }
+
+            if(!objectGroupToSave.isEmpty()) {
+                Stopwatch saveGOT = Stopwatch.createStarted();
+                mongoDbObjectGroupRepository.update(objectGroupToSave);
+                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInMongo", saveGOT.elapsed(TimeUnit.MILLISECONDS));
+
+                saveGOT = Stopwatch.createStarted();
+                MetadataCollections.OBJECTGROUP.getEsClient()
+                    .insertFullDocuments(MetadataCollections.OBJECTGROUP, tenantId, objectGroupToSave);
+                PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInElastic", saveGOT.elapsed(TimeUnit.MILLISECONDS));
+            }
+
+        } catch (final MongoWriteException e) {
+            throw e;
+        } catch (final MongoException e) {
+            throw new MetaDataExecutionException("Insert concern", e);
+        }
+    }
+
 }

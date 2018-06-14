@@ -90,14 +90,6 @@ public class Unit extends MetadataDocument<Unit> {
     public static final BasicDBObject UNIT_ES_PROJECTION = new BasicDBObject(UNITDEPTHS, 0);
 
     /**
-     * Unit Id, Vitam fields Only projection (no content nor management)
-     */
-    public static final BasicDBObject UNIT_VITAM_PROJECTION =
-        new BasicDBObject(NBCHILD, 1).append(TYPE, 1).append(UNITUPS, 1).append(UNITDEPTHS, 1)
-            .append(MINDEPTH, 1).append(MAXDEPTH, 1)
-            .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1)
-            .append(ORIGINATING_AGENCIES, 1).append(MetadataDocument.OG, 1);
-    /**
      * Storage Rule
      */
     public static final String STORAGERULE = MANAGEMENT + ".StorageRule";
