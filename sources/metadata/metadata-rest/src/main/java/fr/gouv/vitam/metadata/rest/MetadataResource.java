@@ -67,7 +67,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import org.bson.Document;
 import org.elasticsearch.ElasticsearchParseException;
 
@@ -88,20 +87,16 @@ public class MetadataResource extends ApplicationStatusResource {
     private static final String ACCESS = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
 
-    private final MetaData metaDataImpl;
+    private final MetaData metaData;
 
     /**
      * MetaDataResource constructor
      *
-     * @param mongoDbAccessMetadata
+     * @param metaData
      */
-    public MetadataResource(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
-        metaDataImpl = MetaDataImpl.newMetadata(mongoDbAccessMetadata);
+    public MetadataResource(MetaData metaData) {
+        this.metaData = metaData;
         LOGGER.info("init MetaData Resource server");
-    }
-
-    MongoDbAccessMetadataImpl getMongoDbAccess() {
-        return ((MetaDataImpl) metaDataImpl).getMongoDbAccess();
     }
 
     /**
@@ -117,7 +112,7 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response insertUnit(JsonNode insertRequest) {
         Status status;
         try {
-            metaDataImpl.insertUnit(insertRequest);
+            metaData.insertUnit(insertRequest);
         } catch (final VitamDBException ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -212,7 +207,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             RequestResponse<JsonNode> result = null;
             try {
-                result = metaDataImpl.selectUnitsByQuery(selectRequest);
+                result = metaData.selectUnitsByQuery(selectRequest);
             } catch (final VitamDBException ve) {
                 LOGGER.error(ve);
                 status = Status.INTERNAL_SERVER_ERROR;
@@ -274,7 +269,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response flushUnit() {
         try {
-            metaDataImpl.flushUnit();
+            metaData.flushUnit();
             RequestResponseOK response = new RequestResponseOK();
             response.setHits(1, 0, 1);
             response.setHttpCode(Status.OK.getStatusCode());
@@ -317,7 +312,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             RequestResponse<JsonNode> result = null;
             try {
-                result = metaDataImpl.selectObjectGroupsByQuery(selectRequest);
+                result = metaData.selectObjectGroupsByQuery(selectRequest);
             } catch (final VitamDBException ve) {
                 LOGGER.error(ve);
                 status = Status.INTERNAL_SERVER_ERROR;
@@ -379,7 +374,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response flushObjectGroup() {
         try {
-            metaDataImpl.flushObjectGroup();
+            metaData.flushObjectGroup();
             RequestResponseOK response = new RequestResponseOK();
             response.setHits(1, 0, 1);
             response.setHttpCode(Status.OK.getStatusCode());
@@ -426,7 +421,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             RequestResponse<JsonNode> result = null;
             try {
-                result = metaDataImpl.updateUnitbyId(updateRequest, unitId);
+                result = metaData.updateUnitbyId(updateRequest, unitId);
             } catch (final VitamDBException ve) {
                 LOGGER.error(ve);
                 status = Status.INTERNAL_SERVER_ERROR;
@@ -490,7 +485,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             RequestResponse<JsonNode> result = null;
             try {
-                result = metaDataImpl.selectUnitsById(selectRequest, unitId);
+                result = metaData.selectUnitsById(selectRequest, unitId);
             } catch (final VitamDBException ve) {
                 LOGGER.error(ve);
                 status = Status.INTERNAL_SERVER_ERROR;
@@ -575,7 +570,7 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response insertObjectGroup(JsonNode insertRequest) {
         Status status;
         try {
-            metaDataImpl.insertObjectGroup(insertRequest);
+            metaData.insertObjectGroup(insertRequest);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -683,7 +678,7 @@ public class MetadataResource extends ApplicationStatusResource {
         }
         try {
             try {
-                metaDataImpl.updateObjectGroupId(updateRequest, objectGroupId);
+                metaData.updateObjectGroupId(updateRequest, objectGroupId);
             } catch (final VitamDBException ve) {
                 LOGGER.error(ve);
                 status = Status.INTERNAL_SERVER_ERROR;
@@ -731,7 +726,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             RequestResponse<JsonNode> result = null;
             try {
-                result = metaDataImpl.selectObjectGroupById(selectRequest, objectGroupId);
+                result = metaData.selectObjectGroupById(selectRequest, objectGroupId);
             } catch (final VitamDBException ve) {
                 LOGGER.error(ve);
                 status = Status.INTERNAL_SERVER_ERROR;
@@ -785,7 +780,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnUnitByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaDataImpl.selectAccessionRegisterOnUnitByOperationId(operationId);
+        List<Document> documents = metaData.selectAccessionRegisterOnUnitByOperationId(operationId);
 
         RequestResponseOK<UnitPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -803,7 +798,7 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
-        List<Document> documents = metaDataImpl.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
+        List<Document> documents = metaData.selectAccessionRegisterOnObjectGroupByOperationId(operationId);
 
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -854,7 +849,7 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(exc.getMessage()))
                 .build();
         }
-        IndexationResult result = metaDataImpl.reindex(indexParameters);
+        IndexationResult result = metaData.reindex(indexParameters);
         Response response = null;
         if (result.getIndexKO() == null || result.getIndexKO().size() == 0) {
             // No KO -> 201
@@ -903,7 +898,7 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
         try {
-            metaDataImpl.switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
+            metaData.switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
             return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (DatabaseException exc) {

@@ -78,6 +78,46 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.dip.CreateManifest",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	},
+	"EVIDENCE_AUDIT_LIST_OBJECT": {
+		"className": "fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditPrepare",
+		"propertiesFile": "evidence_audit_prepare.properties"
+	},
+	"EVIDENCE_AUDIT_CHECK_DATABASE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditDatabaseCheck",
+		"propertiesFile": "evidence_audit_database_check.properties"
+	},
+
+	"EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD":{
+		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditListSecuredFiles",
+		"propertiesFile":"evidence_audit_list_secured_files.properties"
+	},
+	"EVIDENCE_AUDIT_EXTRACT_ZIP_FILE":{
+		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditExtractFromZip",
+		"propertiesFile":"evidence_audit_extract_from_zip.properties"
+	},
+	"EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS":{
+		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditGenerateReports",
+		"propertiesFile":"evidence_audit_generate_reports.properties"
+	},
+	"EVIDENCE_AUDIT_FINALIZE":{
+		"className":"fr.gouv.vitam.worker.core.plugin.evidence.EvidenceAuditFinalize",
+		"propertiesFile":"evidence_audit_finalize.properties"
+	},
+	"MIGRATION_UNITS_LIST":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare"
+	},
+	"MIGRATION_UNITS":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationUnits"
+	},
+	"MIGRATION_OBJECT_GROUPS_LIST":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroupPrepare"
+	},
+	"MIGRATION_OBJECT_GROUPS":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationObjectGroups"
+	},
+	"MIGRATION_FINALIZE":{
+		"className":"fr.gouv.vitam.worker.core.plugin.migration.MigrationFinalize"
+	},
 	"PUT_BINARY_ON_WORKSPACE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
@@ -89,5 +129,13 @@
 	"OBJECT_GROUP_UPDATE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
 		"propertiesFile": "object_group_update.properties"
+	},
+	"UNIT_GRAPH_COMPUTE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.graph.UnitGraphComputePlugin",
+		"propertiesFile": "unit_graph_compute_plugin.properties"
+	},
+	"OBJECT_GROUP_GRAPH_COMPUTE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.graph.ObjectGroupGraphComputePlugin",
+		"propertiesFile": "object_group_graph_compute.properties"
 	}
 }

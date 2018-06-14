@@ -11,6 +11,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -24,6 +25,7 @@ import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Mock client implementation for metadata
@@ -149,4 +151,14 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         }
     }
 
+    @Override
+    public GraphComputeResponse computeGraph(JsonNode queryDsl) throws VitamClientException {
+        return new GraphComputeResponse(3, 3);
+    }
+
+    @Override
+    public GraphComputeResponse computeGraph(GraphComputeResponse.GraphComputeAction action, Set<String> ids)
+        throws VitamClientException {
+        return new GraphComputeResponse(3, 3);
+    }
 }

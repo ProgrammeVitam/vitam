@@ -28,6 +28,7 @@
 package fr.gouv.vitam.metadata.client;
 
 import java.util.List;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.BasicClient;
@@ -36,6 +37,8 @@ import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
+import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -261,4 +264,29 @@ public interface MetaDataClient extends BasicClient {
      * @return Json object {$hint:{},$result:[{}]} or vitam error
      */
     RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException ;
+
+
+
+    /**
+     * Compute graph of all Units/Got that match the given query dsl
+     * The returned number of treated object group is an estimation, as object group can be computed several times
+     * @param queryDsl
+     * @return GraphComputeResponse
+     * @throws VitamClientException
+     */
+    GraphComputeResponse computeGraph(JsonNode queryDsl) throws VitamClientException ;
+
+
+    /**
+     * Compute graph of all document match ids.
+     * The document can be UNIT, OBJECTGROUP, or UNIT AND OBJECTGROUP
+     *
+     * In case of UNIT AND OBJECTGROUP, the ids set is id of UNITs
+     * @param action
+     * @param ids
+     * @return GraphComputeResponse
+     * @throws VitamClientException
+     */
+    GraphComputeResponse computeGraph(GraphComputeAction action, Set<String> ids) throws VitamClientException ;
+
 }

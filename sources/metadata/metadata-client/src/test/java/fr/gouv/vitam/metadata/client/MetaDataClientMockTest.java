@@ -2,7 +2,12 @@ package fr.gouv.vitam.metadata.client;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -92,4 +97,14 @@ public class MetaDataClientMockTest {
         assertNotNull(client.getObjectGroupByIdRaw("objectGroupId"));
     }
 
+    @Test
+    public void testComputeGraphByDSL() throws VitamClientException {
+        assertNotNull(client.computeGraph(JsonHandler.createObjectNode()));
+    }
+
+    @Test
+    public void testComputeGraph()
+        throws VitamClientException {
+        assertNotNull(client.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet()));
+    }
 }

@@ -30,10 +30,13 @@ import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
+import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -41,6 +44,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -82,8 +86,13 @@ public class AdminMetadataApplication extends Application {
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
 
+            MetaData metadata = MetaDataImpl.newMetadata(mongoDbAccessMetadata);
+
+            GraphFactory.initialize(vitamRepositoryProvider, metadata);
+
             final MetadataManagementResource metadataReconstructionResource =
-                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository);
+                new MetadataManagementResource(vitamRepositoryProvider, offsetRepository,
+                    metadata);
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());

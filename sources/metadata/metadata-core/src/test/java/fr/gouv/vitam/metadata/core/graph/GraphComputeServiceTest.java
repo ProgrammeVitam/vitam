@@ -13,7 +13,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.bson.Document;
 import org.junit.Test;
 
-public class GraphBuilderServiceTest {
+public class GraphComputeServiceTest {
 
 
 

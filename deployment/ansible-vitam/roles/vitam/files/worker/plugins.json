@@ -129,6 +129,13 @@
 	"OBJECT_GROUP_UPDATE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
 		"propertiesFile": "object_group_update.properties"
+	},
+	"UNIT_GRAPH_COMPUTE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.graph.UnitGraphComputePlugin",
+		"propertiesFile": "unit_graph_compute_plugin.properties"
+	},
+	"OBJECT_GROUP_GRAPH_COMPUTE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.graph.ObjectGroupGraphComputePlugin",
+		"propertiesFile": "object_group_graph_compute.properties"
 	}
 }
-

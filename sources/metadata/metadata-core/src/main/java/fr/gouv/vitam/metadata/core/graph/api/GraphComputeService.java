@@ -27,8 +27,6 @@
 package fr.gouv.vitam.metadata.core.graph.api;
 
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Projections.include;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,30 +39,25 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableMap;
 import com.mongodb.Function;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.cache.VitamCache;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.graph.GraphUtils;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.graph.GraphBuilderException;
 import fr.gouv.vitam.metadata.core.graph.GraphRelation;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -75,63 +68,36 @@ import org.bson.Document;
  * This class get units where calculated data are modified
  * Zip generated files and store the zipped file in the offer.
  */
-public interface GraphBuilderService extends VitamAutoCloseable {
+public interface GraphComputeService extends VitamCache<String, Document>, VitamAutoCloseable {
 
     String $_SET = "$set";
     Integer START_DEPTH = 1;
 
-    Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 16);
+    Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 32);
     ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel);
-
-    LoadingCache<String, Document> unitCache =
-        CacheBuilder
-            .newBuilder()
-            .maximumSize(VitamConfiguration.getMaxCacheEntries())
-            .recordStats()
-            .softValues()
-            .concurrencyLevel(concurrencyLevel)
-            .expireAfterAccess(VitamConfiguration.getExpireCacheEntriesDelay(), TimeUnit.SECONDS)
-            .build(new CacheLoader<String, Document>() {
-                @Override
-                public Document load(String key) {
-                    return (Document) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, key))
-                        .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES))
-                        .first();
-                }
-
-                @Override
-                public Map<String, Document> loadAll(Iterable<? extends String> keys) {
-                    Map<String, Document> docs = new HashMap<>();
-                    MongoCursor<Document> it = MetadataCollections.UNIT.getCollection().find(in(Unit.ID, keys))
-                        .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES)).iterator();
-                    while (it.hasNext()) {
-                        final Document doc = it.next();
-                        docs.put(doc.get(Unit.ID, String.class), doc);
-                    }
-                    return docs;
-                }
-            });
 
 
     /**
-     * If no graph builder in progress, try to start one
+     * If workflow of compute graph in progress, do not execute this method
      * Should be exposed in the API
      *
      * @return the map of collection:number of treated documents
      */
-    Map<MetadataCollections, Integer> computeGraph() throws GraphBuilderException;
-
+    GraphComputeResponse computeGraph(JsonNode queryDSL) throws MetaDataException;
 
 
     /**
-     * Should be called only for the method tryStoreGraph
+     * Compute graph for unit/got from all parents
      *
-     * @param metadataCollections the collection concerned by the build of the graph
-     * @param queryDSL            the query dsl to select units subject of computing graph
-     * @return False if an exception occurs of if no unit graph was stored.
-     * True if a stored zip file is created and saved in the storage.
+     * @param metadataCollections     the collection concerned by the build of the graph
+     * @param unitsId                 the collection of units subject of computing graph
+     * @param computeObjectGroupGraph true mean compute graph
+     * @return The collection of object group treated or to be treated bu an other process.
+     * This collection contains got's id of concerning units.
+     * Empty collection is returned if computeGraph of object group.
      */
-    Integer computeGraph(MetadataCollections metadataCollections, JsonNode queryDSL);
+    GraphComputeResponse computeGraph(MetadataCollections metadataCollections, Set<String> unitsId,
+        boolean computeObjectGroupGraph);
 
 
 
@@ -139,9 +105,10 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      * Get data from database and pre-populate unitCache
      *
      * @param documents
-     * @throws GraphBuilderException
+     * @throws MetaDataException
      */
-    default void preLoadCache(List<Document> documents) throws GraphBuilderException {
+    default void preLoadCache(List<Document> documents) throws MetaDataException {
+        // TODO Check if we preloadCache or not?!
         Set<String> allUps =
             documents
                 .stream()
@@ -151,7 +118,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                 .collect(Collectors.toSet());
 
         try {
-            ImmutableMap<String, Document> docs = unitCache.getAll(allUps);
+            Map<String, Document> docs = getCache().getAll(allUps);
             while (!allUps.isEmpty()) {
 
                 allUps = docs
@@ -163,12 +130,12 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                     .collect(Collectors.toSet());
 
                 if (!allUps.isEmpty()) {
-                    docs = unitCache.getAll(allUps);
+                    docs = getCache().getAll(allUps);
                 }
             }
 
         } catch (ExecutionException e) {
-            throw new GraphBuilderException(e);
+            throw new MetaDataException(e);
         }
     }
 
@@ -178,16 +145,12 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      *
      * @param metadataCollections the type the collection (Unit or ObjectGroup)
      * @param documents           the concerning collection of documents
-     * @param prePopulateCache    if true pre-populate cache
-     * @throws GraphBuilderException
+     * @throws MetaDataException
      */
-    default void computeGraph(MetadataCollections metadataCollections, List<Document> documents,
-        boolean prePopulateCache)
-        throws GraphBuilderException {
+    default void computeGraph(MetadataCollections metadataCollections, List<Document> documents)
+        throws MetaDataException {
 
-        if (prePopulateCache) {
-            preLoadCache(documents);
-        }
+        preLoadCache(documents);
 
         Function<Document, WriteModel<Document>> func;
         try {
@@ -199,9 +162,10 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                     func = this::computeObjectGroupGraph;
                     break;
                 default:
-                    throw new GraphBuilderException("Collection (" + metadataCollections + ") not supported");
+                    throw new MetaDataException("Collection (" + metadataCollections + ") not supported");
             }
 
+            // Create a batch of CompletableFuture.
             CompletableFuture<WriteModel<Document>>[] features = documents.stream()
                 .map(o -> CompletableFuture.supplyAsync(() -> func.apply(o), executor))
                 .toArray(CompletableFuture[]::new);
@@ -224,14 +188,14 @@ public interface GraphBuilderService extends VitamAutoCloseable {
                             Collectors.toSet()));
                 } catch (DatabaseException e) {
                     // Rollback in MongoDB and Elasticsearch
-                    throw new GraphBuilderException(e);
+                    throw new MetaDataException(e);
                 }
             }
 
         } catch (VitamRuntimeException e) {
-            throw new GraphBuilderException(e.getCause());
+            throw new MetaDataException(e.getCause());
         } catch (InterruptedException | ExecutionException e) {
-            throw new GraphBuilderException(e);
+            throw new MetaDataException(e);
         }
 
 
@@ -243,7 +207,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      *
      * @param document
      * @return UpdateOneModel for Unit
-     * @throws GraphBuilderException
+     * @throws MetaDataException
      */
     default UpdateOneModel<Document> computeUnitGraph(Document document)
         throws VitamRuntimeException {
@@ -308,9 +272,9 @@ public interface GraphBuilderService extends VitamAutoCloseable {
          * In this case, we will just update cache. because invalidation must be done
          */
 
-        if (null != unitCache.getIfPresent(unitId)) {
+        if (null != getCache().getIfPresent(unitId)) {
             document.put(Unit.ORIGINATING_AGENCIES, new ArrayList<>(sps));
-            unitCache.put(unitId, document);
+            getCache().put(unitId, document);
         }
 
         Document update = new Document(Unit.ID, unitId)
@@ -334,7 +298,7 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      *
      * @param document
      * @return UpdateOneModel for ObjectGroup
-     * @throws GraphBuilderException
+     * @throws MetaDataException
      */
     default UpdateOneModel<Document> computeObjectGroupGraph(Document document)
         throws VitamRuntimeException {
@@ -355,6 +319,8 @@ public interface GraphBuilderService extends VitamAutoCloseable {
 
 
     /**
+     * Recursive method that compute graph using only _up
+     * With global (by reference variable graphRels, we get all needed informations from all parent of the given unit unitId.
      * @param graphRels
      * @param unitId
      * @param originatingAgency
@@ -362,43 +328,49 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      * @param currentDepth      the current depth, initially equals to 1
      * @throws ExecutionException
      */
-    static void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
+    default void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
         String originatingAgency, List<String> ups, Integer currentDepth)
         throws VitamRuntimeException {
         if (null == ups || ups.isEmpty()) {
             return;
         }
 
-        final ImmutableMap<String, Document> units;
+        final Map<String, Document> units;
         try {
-            units = unitCache.getAll(ups);
+            units = getCache().getAll(ups);
         } catch (ExecutionException e) {
             throw new VitamRuntimeException(e);
         }
 
         final Integer nextDepth = currentDepth + 1;
         for (Map.Entry<String, Document> unitParent : units.entrySet()) {
-            Document au = unitParent.getValue();
+            Document parentUnit = unitParent.getValue();
 
             GraphRelation ugr = new GraphRelation(unitId, originatingAgency, unitParent.getKey(),
                 unitParent.getValue().get(Unit.ORIGINATING_AGENCY, String.class), currentDepth);
 
             if (graphRels.contains(ugr)) {
+                // relation (unit_id , unitParent.getKey()) already treated
                 break;
             }
 
             graphRels.add(ugr);
 
+            // Recall the same method, but no for each parent unit of the current unit_id
             computeUnitGraphUsingDirectParents(graphRels,
                 unitParent.getKey(),
-                au.get(Unit.ORIGINATING_AGENCY, String.class),
-                au.get(Unit.UP, List.class), nextDepth);
+                parentUnit.get(Unit.ORIGINATING_AGENCY, String.class),
+                parentUnit.get(Unit.UP, List.class), nextDepth);
         }
 
     }
 
 
     /**
+     * For ObjectGroup, we only get graph data (sps) from only unit represents (up)
+     * We do not loop over all parent of parent until root units
+     * As not concurrence expected, no problem of inconsistency,
+     * Else, if parallel compute is needed, then, we have to loop over all units (until root units) or to implements optimistic lock on _glpd
      * @param originatingAgencies
      * @param ups
      * @throws ExecutionException
@@ -409,19 +381,21 @@ public interface GraphBuilderService extends VitamAutoCloseable {
             return;
         }
 
-        final ImmutableMap<String, Document> units;
+        final Map<String, Document> units;
         try {
-            units = unitCache.getAll(ups);
+            units = getCache().getAll(ups);
         } catch (ExecutionException e) {
             throw new VitamRuntimeException(e);
         }
 
         for (Map.Entry<String, Document> unit : units.entrySet()) {
             Document au = unit.getValue();
-            originatingAgencies.addAll(au.get(Unit.ORIGINATING_AGENCIES, List.class));
+            List agencies = au.get(Unit.ORIGINATING_AGENCIES, List.class);
+            if (CollectionUtils.isNotEmpty(agencies)) {
+                originatingAgencies.addAll(agencies);
+            }
         }
     }
-
 
     /**
      * Bulk write in mongodb
@@ -453,4 +427,6 @@ public interface GraphBuilderService extends VitamAutoCloseable {
      */
     void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException;
+
+    boolean isInProgress();
 }
