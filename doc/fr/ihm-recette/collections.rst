@@ -41,9 +41,23 @@ Une fois la suppression effectuée, un message de confirmation s'affiche dans un
 
 
 
-Référentiel des formats
+**Purge des référentiels impactant tous les tenants**
+
+ - Référentiel des formats
 
 Le référentiel des formats de la solution logicielle Vitam est supprimé **pour tous les tenants**. L'IHM du référentiel de formats est vide de contenu. Sans référentiel des formats, aucun SIP ne pourra être importé dans la solution logicielle Vitam.
+
+ - Purge des contextes applicatifs 
+
+Lors de son exécution, la fonctionnalité de purge des contextes contrôle qu'il y a plus d'un contexte dans le référentiel. Si tel n'est pas le cas, la purge n'est pas réalisée. Si le référentiel contient plus d'un contexte, ils sont supprimés de la solution logicielle Vitam à l'exception de celui nommé « admin-context ».
+
+ - Purge des ontologies externes 
+
+La purge des ontologies externes supprime en réalité toutes les ontologies présentent dans le système Vitam et ce sur les différents tenants. Les vocabulaires internes (embarqués avec la solution) et externes sont supprimés. Les vocabulaires internes sont automatiquement réimporter. Cette fonctionnalité permet de revenir à l'état initial concernant le référentiel des ontologies. 
+
+
+**Purge des référentiels sur un seul tenant**
+
 
  - Référentiel des règles de gestion
 
@@ -57,10 +71,7 @@ Le contenu du registre des fonds de la solution logicielle Vitam est supprimé p
 
 Tous les profils sont supprimés de la solution logicielle Vitam pour le tenant supprimé par l'utilisateur. L'IHM du "référentiel des profils" est vide de contenu.
 
- - Purge des contextes applicatifs 
-
-Lors de son exécution, la fonctionnalité de purge des contextes contrôle qu'il y a plus d'un contexte dans le référentiel. Si tel n'est pas le cas, la purge n'est pas réalisée. Si le référentiel contient plus d'un contexte, ils sont supprimés de la solution logicielle Vitam à l'exception de celui nommé « admin-context ».
-
+ 
  - Purge des services agents
 
 Le référentiel des services agents de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des services agents est vide de contenu. Sans référentiel de service agents, aucun SIP ne pourra être importé sur le tenant dans la solution logicielle Vitam.
@@ -68,6 +79,7 @@ Le référentiel des services agents de la solution logicielle Vitam est supprim
  - Purge des documents type 
 
 Le référentiel des documents type de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des documents type est vide de contenu.
+
 
 Purge des journaux
 ------------------
