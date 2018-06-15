@@ -349,6 +349,148 @@ public class OntologyServiceImplTest {
     }
 
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenUpdateDoubleTypeThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("ontology_double.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            });
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isTrue();
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_long.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
+        assertThat(response2.isOk()).isFalse();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenUpdateLongTypeThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("ontology_long.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            });
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isTrue();
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_double.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
+        assertThat(response2.isOk()).isFalse();
+
+
+        final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_keyword.json");
+        final List<OntologyModel> ontologyModelList3 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
+        assertThat(response3.isOk()).isFalse();
+    }
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenUpdateBooleanTypeThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("ontology_boolean.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            });
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isTrue();
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_text.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
+        assertThat(response2.isOk()).isFalse();
+
+
+        final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_keyword.json");
+        final List<OntologyModel> ontologyModelList3 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
+        assertThat(response3.isOk()).isFalse();
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenUpdateTextType() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("ontology_text.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            });
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isTrue();
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_double.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
+        assertThat(response2.isOk()).isFalse();
+
+
+        final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_keyword.json");
+        final List<OntologyModel> ontologyModelList3 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
+        assertThat(response3.isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenUpdateKeywordType() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileOntology = PropertiesUtils.getResourceFile("ontology_keyword.json");
+        final List<OntologyModel> ontologyModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+            });
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
+        assertThat(response.isOk()).isTrue();
+
+        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_double.json");
+        final List<OntologyModel> ontologyModelList2 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
+        assertThat(response2.isOk()).isFalse();
+
+
+        final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_text.json");
+        final List<OntologyModel> ontologyModelList3 =
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
+            });
+
+        final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
+        assertThat(response3.isOk()).isTrue();
+    }
+
+
+
     @Test
     @RunWithCustomExecutor
     public void givenUpdateWithMissingPropertyOk() throws Exception {
