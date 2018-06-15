@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-CEREBRO_VERSION="0.7.2"
+CEREBRO_VERSION="0.7.3"
 WORKING_FOLDER=$(dirname $0)
 
 if [ ! -d ${WORKING_FOLDER}/target ]; then
