@@ -147,12 +147,6 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store metadata object from workspace
             storeObject(description, itemStatus);
-
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
-            InvalidParseOperationException | MetaDataClientServerException e) {
-            LOGGER.error(e);
-            throw e;
         }
     }
-
 }
