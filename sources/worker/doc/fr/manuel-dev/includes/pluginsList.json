@@ -130,6 +130,18 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
 		"propertiesFile": "object_group_update.properties"
 	},
+	"RECLASSIFICATION_PREPARATION": {
+		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationPlugin",
+		"propertiesFile": "reclassification_preparation.properties"
+	},
+	"UNIT_DETACHMENT": {
+		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.UnitDetachmentPlugin",
+		"propertiesFile": "reclassification_unit_detachment.properties"
+	},
+	"UNIT_ATTACHMENT": {
+		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.UnitAttachmentPlugin",
+		"propertiesFile": "reclassification_unit_attachment.properties"
+	},
 	"UNIT_GRAPH_COMPUTE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.UnitGraphComputePlugin",
 		"propertiesFile": "reclassification_unit_compute.properties"

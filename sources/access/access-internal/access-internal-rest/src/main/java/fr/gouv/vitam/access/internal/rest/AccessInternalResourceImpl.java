@@ -46,6 +46,7 @@ import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -334,6 +335,74 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }
+    }
+
+
+    /**
+     * Starts a reclassification workflow.
+     */
+    @Override
+    @POST
+    @Path("/reclassification")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startReclassificationWorkflow(JsonNode reclassificationRequestJson) {
+
+        Status status;
+
+        try {
+
+            ParametersChecker.checkParameter("Missing reclassification request", reclassificationRequestJson);
+
+            // Start workflow
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                final LogbookOperationParameters initParameters =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        GUIDReader.getGUID(operationId),
+                        "RECLASSIFICATION",
+                        GUIDReader.getGUID(operationId),
+                        LogbookTypeProcess.RECLASSIFICATION,
+                        StatusCode.STARTED,
+                        VitamLogbookMessages.getLabelOp("RECLASSIFICATION.STARTED") + " : " +
+                            GUIDReader.getGUID(operationId),
+                        GUIDReader.getGUID(operationId));
+
+                logbookOperationsClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+
+                workspaceClient.putObject(operationId, "request.json",
+                    JsonHandler.writeToInpustream(reclassificationRequestJson));
+
+                processingClient.initVitamProcess(Contexts.RECLASSIFICATION.name(), operationId,
+                    Contexts.RECLASSIFICATION.getEventType());
+
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    processingClient.executeOperationProcess(operationId, Contexts.RECLASSIFICATION.getEventType(),
+                        Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
+                return jsonNodeRequestResponse.toResponse();
+            }
+
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            VitamClientException | InternalServerException e) {
+            LOGGER.error("Error while starting unit reclassification workflow", e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         }
     }
 

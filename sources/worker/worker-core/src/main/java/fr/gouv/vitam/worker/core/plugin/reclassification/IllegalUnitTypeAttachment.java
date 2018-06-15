@@ -24,84 +24,65 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.UnitType;
 
 /**
- * Logbook Process Type
+ * Pojo for storing child / parent attachment with inconsistent unit-type reference.
  */
-public enum LogbookTypeProcess {
-    /**
-     * Ingest type process
-     */
-    INGEST,
-    /**
-     * Audit type process
-     */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK,
+class IllegalUnitTypeAttachment {
 
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_RULE,
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_AGENCIES,
-    /**
-     * Storage Backup type process
-     */
-    STORAGE_BACKUP,
-    /**
-     * Holding scheme type process (tree)
-     */
-    HOLDINGSCHEME,
-    /**
-     * Filing scheme type process (classification plan)
-     */
-    FILINGSCHEME,
-    /**
-     * export du DIP
-     */
-    EXPORT_DIP,
-    /**
-     * Migration
-     */
-    DATA_MIGRATION,
-    /**
-     * Reclassification process (attachment/detachment)
-     */
-    RECLASSIFICATION
+    @JsonProperty("childUnidId")
+    private String childUnidId;
+
+    @JsonProperty("childUnidType")
+    private UnitType childUnidType;
+
+    @JsonProperty("parentUnidId")
+    private String parentUnidId;
+
+    @JsonProperty("parentUnidType")
+    private UnitType parentUnidType;
+
+    public IllegalUnitTypeAttachment(String childUnidId, UnitType childUnidType, String parentUnidId,
+        UnitType parentUnidType) {
+        this.childUnidId = childUnidId;
+        this.childUnidType = childUnidType;
+        this.parentUnidId = parentUnidId;
+        this.parentUnidType = parentUnidType;
+    }
+
+    public String getChildUnidId() {
+        return childUnidId;
+    }
+
+    public void setChildUnidId(String childUnidId) {
+        this.childUnidId = childUnidId;
+    }
+
+    public UnitType getChildUnidType() {
+        return childUnidType;
+    }
+
+    public void setChildUnidType(UnitType childUnidType) {
+        this.childUnidType = childUnidType;
+    }
+
+    public String getParentUnidId() {
+        return parentUnidId;
+    }
+
+    public void setParentUnidId(String parentUnidId) {
+        this.parentUnidId = parentUnidId;
+    }
+
+    public UnitType getParentUnidType() {
+        return parentUnidType;
+    }
+
+    public void setParentUnidType(UnitType parentUnidType) {
+        this.parentUnidType = parentUnidType;
+    }
 }

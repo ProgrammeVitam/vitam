@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -257,4 +256,13 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientServerException
      */
     Response findDIPByID(String id) throws AccessInternalClientServerException;
+
+    /**
+     * Performs a reclassification workflow.
+     *
+     * @param reclassificationRequest List of attachment and detachment operations in unit graph.
+     * @return Response
+     */
+    RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest)
+        throws AccessInternalClientServerException;
 }

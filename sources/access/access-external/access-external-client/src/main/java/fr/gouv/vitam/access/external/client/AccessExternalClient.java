@@ -197,6 +197,17 @@ public interface AccessExternalClient extends BasicClient {
      */
     Response getDIPById(VitamContext vitamContext, String dipId)
         throws VitamClientException;
+
+    /**
+     * Performs a reclassification workflow.
+     *
+     * @param vitamContext the vitam context
+     * @param reclassificationRequest List of attachment and detachment operations in unit graph.
+     * @return Response
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest)
+        throws VitamClientException;
 }
 
 

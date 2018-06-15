@@ -40,6 +40,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 
 /**
  * Access Resource REST API
+ *
  */
 public interface AccessInternalResource extends VitamResource {
 
@@ -63,6 +64,14 @@ public interface AccessInternalResource extends VitamResource {
      * @return
      */
     Response findDIPByID(String id);
+
+    /**
+     * Starts a reclassification workflow.
+     *
+     * @param reclassificationRequest Reclassification request.
+     * @return response
+     */
+    Response startReclassificationWorkflow(JsonNode reclassificationRequest);
 
     /**
      * gets archive units by Id with Json query

@@ -1,0 +1,113 @@
+{
+  "id": "ReclassificationWorkflow",
+  "name": "Reclassification",
+  "identifier": "RECLASSIFICATION",
+  "typeProc": "Reclassification",
+  "comment": "Default reclassification workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_RECLASSIFICATION_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "RECLASSIFICATION_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_DETACHMENT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "type": "Units",
+        "element": "UnitsToDetach",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "UNIT_DETACHMENT"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_ATTACHMENT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "type": "Units",
+        "element": "UnitsToAttach",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "UNIT_ATTACHMENT"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_GRAPH_COMPUTE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_LINKED_FILE",
+        "type": "Units",
+        "element": "UnitsToUpdate/chainedFile.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "UNIT_GRAPH_COMPUTE"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OBJECT_GROUP_GRAPH_COMPUTE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_LINKED_FILE",
+        "type": "ObjectGroup",
+        "element": "ObjectGroupsToUpdate/chainedFile.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "OBJECT_GROUP_GRAPH_COMPUTE"
+          }
+        }
+      ]
+    }
+  ]
+}

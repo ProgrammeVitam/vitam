@@ -26,28 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -83,6 +62,25 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Access External Resource
@@ -221,6 +219,41 @@ public class AccessExternalResource extends ApplicationStatusResource {
             }
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
+        } catch (final Exception e) {
+            LOGGER.error("Technical Exception ", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+        }
+    }
+
+    /**
+     * Performs a reclassification workflow.
+     *
+     * @param reclassificationRequest List of attachment and detachment operations in unit graph.
+     * @return Response
+     */
+    @POST
+    @Path("/reclassification")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "reclassification:update", description = "Reclassification d'unités archivistiques")
+    public Response reclassification(JsonNode reclassificationRequest) {
+
+        ParametersChecker.checkParameter("Missing reclassification request", reclassificationRequest);
+
+        // FIXME : Request validation (DSL vs Other?)
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = client.reclassification(reclassificationRequest);
+            if (response.isOk()) {
+                return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
+            } else {
+                return response.toResponse();
+            }
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Precondition Failed Exception ", e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (final Exception e) {

@@ -44,7 +44,8 @@ public enum Contexts {
     OBJECTGROUP_LFC_TRACEABILITY(LogbookTypeProcess.TRACEABILITY, "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY"),
     EXPORT_DIP(LogbookTypeProcess.EXPORT_DIP, "EXPORT_DIP"),
     EVIDENCE_AUDIT(LogbookTypeProcess.AUDIT, "EVIDENCE_AUDIT"),
-    DATA_MIGRATION(LogbookTypeProcess.DATA_MIGRATION, "DATA_MIGRATION");
+    DATA_MIGRATION(LogbookTypeProcess.DATA_MIGRATION, "DATA_MIGRATION"),
+    RECLASSIFICATION(LogbookTypeProcess.RECLASSIFICATION, "RECLASSIFICATION");
 
     private LogbookTypeProcess logbookTypeProcess;
     private String eventType;

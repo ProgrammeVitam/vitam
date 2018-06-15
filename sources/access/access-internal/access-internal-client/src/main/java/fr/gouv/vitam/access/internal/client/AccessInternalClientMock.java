@@ -30,7 +30,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -192,4 +191,8 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         return Response.ok().build();
     }
 
+    @Override
+    public RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

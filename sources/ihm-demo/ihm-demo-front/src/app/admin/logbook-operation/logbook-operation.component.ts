@@ -34,7 +34,8 @@ export class LogbookOperationComponent extends PageComponent {
     {label: 'Préservation', value: 'preservation'},
     {label: 'Sécurisation', value: 'traceability'},
     {label: 'Vérification', value: 'check'},
-    {label: 'Sauvegarde écritures', value: 'storage_backup'}
+    {label: 'Sauvegarde écritures', value: 'storage_backup'},
+    {label: 'Reclassification', value: 'reclassification'}
   ];
   public logbookData = [
     FieldDefinition.createIdField('evId', 'Identifiant', 6, 8),
