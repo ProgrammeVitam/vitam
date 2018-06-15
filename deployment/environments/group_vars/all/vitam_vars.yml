@@ -32,7 +32,10 @@ vitam_defaults:
 
 ### consul ###
 # FIXME: Consul à la racine pour le moment à cause de problèmes de récursivité dans le parsing yaml
-# TODO : consul_domain should be in inventory as choosable by customer
+# WARNING: consul_domain should be a supported domain name for your organization
+#          You will have to generate server certificates with the same domain name and the service subdomain name
+#          Example: consul_domain=vitam means you will have to generate some certificates with .service.vitam domain
+#                   access-external.service.vitam, ingest-external.service.vitam, ...
 consul_domain: consul
 consul_component: consul
 consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_component }}"
