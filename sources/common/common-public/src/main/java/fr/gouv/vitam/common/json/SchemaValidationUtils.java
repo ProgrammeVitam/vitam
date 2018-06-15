@@ -57,7 +57,6 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import com.github.fge.jsonschema.messages.JsonSchemaValidationBundle;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.github.fge.msgsimple.load.MessageBundles;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -151,12 +150,16 @@ public class SchemaValidationUtils {
     private static final String TYPE = "type";
     private static final String ARRAY = "array";
     private static final String ENUM = "enum";
+    private static final String FORMAT = "format";
     private static final String OBJECT = "object";
     private static final String PROPERTIES = "properties";
     private static final String ITEMS = "items";
     private static final String ANY_OF = "anyOf";
     private static final String ALL_OF = "allOf";
     private static final String ONE_OF = "oneOf";
+    private static final String DATE = "date";
+    private static final String DATE_TIME = "date-time";
+    private static final String DATE_TIME_VITAM = "date-time-vitam";
     private static final List<String> SCHEMA_DECLARATION_TYPE = Arrays.asList(new String[] {
         "$schema",
         "id", "type", "additionalProperties", "anyOf", "required", "description", "items", "title",
@@ -168,7 +171,7 @@ public class SchemaValidationUtils {
 
     /**
      * Constructor with a default schema filename
-     * 
+     *
      * @throws FileNotFoundException
      * @throws ProcessingException
      * @throws InvalidParseOperationException
@@ -180,7 +183,7 @@ public class SchemaValidationUtils {
 
     /**
      * Constructor with a specified schema filename
-     * 
+     *
      * @param schema schemaFilename or external json schema as a string
      * @throws FileNotFoundException
      * @throws ProcessingException
@@ -218,7 +221,7 @@ public class SchemaValidationUtils {
     private static JsonSchemaFactory getJsonSchemaFactory() {
         // override for date format
         final Library library = DraftV4Library.get().thaw()
-            .addFormatAttribute("date-time-vitam", VitamDateTimeAttribute.getInstance())
+            .addFormatAttribute(DATE_TIME_VITAM, VitamDateTimeAttribute.getInstance())
             .freeze();
 
         final MessageBundle bundle = MessageBundles.getBundle(JsonSchemaValidationBundle.class);
@@ -344,7 +347,7 @@ public class SchemaValidationUtils {
 
     /**
      * Validate a json with the schema archive-unit-schema
-     * 
+     *
      * @param archiveUnit the json to be validated
      * @return a status ({@link SchemaValidationStatus})
      */
@@ -416,7 +419,7 @@ public class SchemaValidationUtils {
 
     /**
      * Validate a json for insert or update with a schema
-     * 
+     *
      * @param archiveUnit the json to be validated
      * @return a status ({@link SchemaValidationStatus})
      */
@@ -440,7 +443,7 @@ public class SchemaValidationUtils {
 
     /**
      * Get fields list declared in schema
-     * 
+     *
      * @param schemaJsonAsString
      * @return a map with fields and its information declared in the schema
      * @throws InvalidParseOperationException
@@ -454,6 +457,125 @@ public class SchemaValidationUtils {
         }
         return listProperties;
     }
+
+    /**
+     * Get fields list declared in schema
+     *
+     * @param schemaJsonAsString
+     * @return a map with fields and its information declared in the schema
+     * @throws InvalidParseOperationException
+     */
+    public HashMap<String, ArrayNode> extractExtraPropertyFromSchema(String schemaJsonAsString)
+        throws InvalidParseOperationException {
+        HashMap<String, ArrayNode> listProperties = new HashMap<String, ArrayNode>();
+        JsonNode externalSchema = JsonHandler.getFromString(schemaJsonAsString);
+        if (externalSchema != null && externalSchema.get(PROPERTIES) != null) {
+            extractExtraPropertiesFromJsonNode(externalSchema.get(PROPERTIES), listProperties);
+        }
+        return listProperties;
+    }
+
+    /**
+     * Get the 'format' properties from the JsonNode
+     *
+     * @param value
+     * @param formats
+     */
+    private void getFormats(JsonNode value, List formats) {
+        List<JsonNode> formatNodes = new ArrayList<>();
+        JsonNode format = value.get(FORMAT);
+        if (format != null) {
+            formatNodes.add(format);
+        }
+        JsonNode anyOf = value.get(ANY_OF);
+        if (anyOf != null) {
+            formatNodes.add(anyOf);
+        }
+        if (formatNodes != null && !formatNodes.isEmpty()) {
+            for (JsonNode formatNode : formatNodes) {
+                if (formatNode.isObject()) {
+                    formats.add(formatNode.get(FORMAT).textValue());
+                } else if (formatNode.isTextual()) {
+                    formats.add(formatNode.textValue());
+                } else if (formatNode.isArray()) {
+                    for (Iterator<JsonNode> it = formatNode.iterator(); it.hasNext(); ) {
+                        JsonNode node = it.next().get(FORMAT);
+                        if (node != null) {
+                            formats.add(node.textValue());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Check if the ArrayNode contains the specified value
+     *
+     * @param node
+     * @param value
+     * @return
+     */
+    private boolean containsValue(ArrayNode node, String value) {
+        final Iterator<JsonNode> iterator = node.elements();
+        while (iterator.hasNext()) {
+            JsonNode element = iterator.next();
+            if (element.textValue().equals(value)) {
+                return true;
+            }
+
+        }
+        return false;
+
+    }
+
+
+    /**
+     * Extract specific properties from the JsonSchema.
+     * These properties are not part of the jsonSchema standard properties but are part of the ontology types
+     * These specific properties correspond to OntologyType.ENUM and OntologyType.DATE
+     *
+     * @param currentJson
+     * @param listProperties
+     */
+    private void extractExtraPropertiesFromJsonNode(JsonNode currentJson, Map<String, ArrayNode> listProperties) {
+
+        List<String> dateFormats = Arrays.asList(DATE, DATE_TIME, DATE_TIME_VITAM);
+        final Iterator<Entry<String, JsonNode>> iterator = currentJson.fields();
+        while (iterator.hasNext()) {
+            final Entry<String, JsonNode> entry = iterator.next();
+            String key = entry.getKey();
+
+            List<String> typesAsList = new ArrayList<String>();
+            JsonNode value = entry.getValue();
+            if (value != null && value.isObject() || value.isArray()) {
+                // if subproperties
+                extractExtraPropertiesFromJsonNode(value, listProperties);
+            }
+            if (value != null) {
+                ArrayNode types = JsonHandler.createArrayNode();
+                if (value.get(ENUM) != null) {
+                    if (!(containsValue(types, ENUM))) {
+                        types.add(ENUM);
+                    }
+                }
+                List<String> formats = new ArrayList();
+                getFormats(value, formats);
+                for (String format : formats) {
+                    if (dateFormats.contains(format)) {
+                        if (!(containsValue(types, DATE))) {
+                            types.add(DATE);
+                        }
+                    }
+                }
+
+                if (types.size() > 0) {
+                    listProperties.put(key, types);
+                }
+            }
+        }
+    }
+
 
 
     private void extractPropertyFromJsonNode(JsonNode currentJson, Map<String, ArrayNode> listProperties) {
@@ -510,6 +632,7 @@ public class SchemaValidationUtils {
 
     }
 
+
     private boolean handleAnyOfOneOfAllOf(JsonNode value, List<String> type) {
         String typeToAdd = null;
         boolean isThereAType = false;
@@ -522,7 +645,7 @@ public class SchemaValidationUtils {
         } else {
             return isThereAType;
         }
-        for (Iterator<JsonNode> it = value.get(typeToAdd).iterator(); it.hasNext();) {
+        for (Iterator<JsonNode> it = value.get(typeToAdd).iterator(); it.hasNext(); ) {
             JsonNode current = ((ObjectNode) it.next()).get(TYPE);
             if (current != null) {
                 if (type != null && !type.contains(current.asText())) {
@@ -568,7 +691,7 @@ public class SchemaValidationUtils {
 
     /**
      * Change the type of field for long double and boolean
-     * 
+     *
      * @param archiveUnitFragment
      * @param ontology
      */
