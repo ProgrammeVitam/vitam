@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
 
 /**
  * Results for client mock
@@ -749,6 +750,6 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getOntologies(int statusCode) throws InvalidParseOperationException {
-        return createReponse(ONTOLOGIES);
+        return createReponse(ONTOLOGIES, OntologyModel.class);
     }
 }

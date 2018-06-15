@@ -114,6 +114,10 @@
               {
                 "name": "mapsGuid.file",
                 "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
               }
             ]
           }
@@ -134,6 +138,12 @@
           "action": {
             "actionKey": "CHECK_UNIT_SCHEMA",
             "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
+              }
+            ],
             "out": [
               {
                 "name": "unit",

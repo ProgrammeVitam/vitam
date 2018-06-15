@@ -151,9 +151,9 @@ public class CreateManifestTest {
             JsonHandler.getMapFromInputStream(new FileInputStream(guidToPathFile));
 
         assertThat(linkBetweenBinaryIdAndFileName)
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq")
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq")
-            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba");
+            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf")
+            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq.pdf")
+            .containsEntry("aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba", "Content/aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba.pdf");
 
         ArrayNode fromFile = (ArrayNode) JsonHandler.getFromFile(binaryFile);
 
@@ -162,7 +162,7 @@ public class CreateManifestTest {
                 "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba");
 
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:DataObjectGroup/vitam:BinaryDataObject/vitam:Uri",
-            equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq"))
+            equalTo("Content/aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq.pdf"))
             .withNamespaceContext(prefix2Uri));
         Assert.assertThat(Input.fromFile(manifestFile), hasXPath("//vitam:ArchiveDeliveryRequestReply/vitam:DataObjectPackage/vitam:ManagementMetadata/vitam:OriginatingAgencyIdentifier",
             equalTo("FRAN_NP_005568"))

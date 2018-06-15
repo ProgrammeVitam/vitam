@@ -26,7 +26,14 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
-import static fr.gouv.vitam.common.SedaConstants.*;
+import static fr.gouv.vitam.common.SedaConstants.ATTRIBUTE_ID;
+import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_DELIVERY_REQUEST_REPLY;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_GROUP;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DATA_OBJECT_PACKAGE;
+import static fr.gouv.vitam.common.SedaConstants.TAG_DESCRIPTIVE_METADATA;
+import static fr.gouv.vitam.common.SedaConstants.TAG_MANAGEMENT_METADATA;
+import static fr.gouv.vitam.common.SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER;
 import static fr.gouv.vitam.common.mapping.dip.UnitMapper.buildObjectMapper;
 import static fr.gouv.vitam.worker.common.utils.SedaUtils.XSI_URI;
 
@@ -36,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -46,12 +54,21 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.io.FilenameUtils;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ListMultimap;
-import fr.gouv.culture.archivesdefrance.seda.v2.*;
-import fr.gouv.vitam.common.SedaConstants;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -110,7 +127,7 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeNamespace("pr", "info:lc/xmlns/premis-v2");
         writer.writeDefaultNamespace(NAMESPACE_URI);
         writer.writeNamespace("xsi", XSI_URI);
-        writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " "+SedaUtils.SEDA_XSD_VERSION);
+        writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " " + SedaUtils.SEDA_XSD_VERSION);
     }
 
     /**
@@ -132,7 +149,7 @@ public class ManifestBuilder implements AutoCloseable {
             xmlObject = objectGroupMapper.map(objectGroup);
 
             List<Object> dataObjectGroupList = xmlObject.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
-            //must be only 1 GOT (vitam seda restriction)
+            // must be only 1 GOT (vitam seda restriction)
             for (Object dataObjectGroupItem : dataObjectGroupList) {
 
                 DataObjectGroupType dataObjectGroup = (DataObjectGroupType) dataObjectGroupItem;
@@ -144,10 +161,9 @@ public class ManifestBuilder implements AutoCloseable {
                 for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
                     if (minimalDataObjectType instanceof BinaryDataObjectType) {
                         BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
-
-                        String binaryId = binaryDataObjectType.getId();
-
-                        String fileName = StoreDIP.CONTENT + "/" + binaryId;
+                        String extension =
+                            FilenameUtils.getExtension(binaryDataObjectType.getUri());
+                        String fileName = StoreDIP.CONTENT + "/" + binaryDataObjectType.getId() + "." + extension;
                         binaryDataObjectType.setUri(fileName);
                         maps.put(minimalDataObjectType.getId(), fileName);
                     }
@@ -235,6 +251,7 @@ public class ManifestBuilder implements AutoCloseable {
     public void endDataObjectGroup() throws XMLStreamException {
         writer.writeEndElement();
     }
+
     public void writeOriginatingAgency(String originatingAgency) throws JAXBException, XMLStreamException {
         writer.writeStartElement(NAMESPACE_URI, TAG_MANAGEMENT_METADATA);
 

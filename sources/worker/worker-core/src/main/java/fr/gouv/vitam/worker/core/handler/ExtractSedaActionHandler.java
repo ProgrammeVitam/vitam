@@ -38,7 +38,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -82,7 +81,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
@@ -105,12 +103,15 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
@@ -193,7 +194,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
     private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
-    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 11;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 12;
+    private static final int ONTOLOGY_IO_RANK = 11;
 
     // IN RANK
     private static final int UNIT_TYPE_INPUT_RANK = 1;
@@ -480,7 +482,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 LOGGER.debug("archivalProfile  is: " + archivalProfile);
                 rightsStatementIdentifier.put(ARCHIVAl_PROFIL, archivalProfile);
             }
-
+            extractOntology();
             /*
              * setting rightsStatementIdentifier information
              */
@@ -661,7 +663,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params                    parameters of workspace server
+     * @param params parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @param workflowUnitType
      * @throws ProcessingException throw when can't read or extract element from SEDA
@@ -915,7 +917,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             long elapsed = xmlParserStopwatch.elapsed(TimeUnit.MILLISECONDS);
 
-            PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.xml.parse", elapsed);
+            PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.xml.parse",
+                elapsed);
 
             writer.add(eventFactory.createEndDocument());
             writer.close();
@@ -1335,7 +1338,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     /**
-     * <p>Finalize filling of sytemGUID for all reference items of RelatedObjectReference (RelationGroup) instead of internal seda id (defined in manifest).<br>
+     * <p>
+     * Finalize filling of sytemGUID for all reference items of RelatedObjectReference (RelationGroup) instead of
+     * internal seda id (defined in manifest).<br>
      * not set yet by first pass call (one parsing) in method
      * {@link fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener#replaceInternalReferenceForRelatedObjectReference(String, DescriptiveMetadataModel)}
      * </p>
@@ -1427,7 +1432,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit      archiveUnit
+     * @param archiveUnit archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1479,9 +1484,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode          global management node
+     * @param globalMgtRuleNode global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType                   category of rule
+     * @param ruleType category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1830,7 +1835,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 jsonWriter.add(eventFactory.createCharacters(dataObjectId));
                 jsonWriter.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_ID));
 
-                //ObjectGroup Wrapping mode (seda version >= 2.1)
+                // ObjectGroup Wrapping mode (seda version >= 2.1)
                 if (currentGroupId != null) {
                     if (objectGroupIdToDataObjectId.get(currentGroupId) == null) {
                         final List<String> dataOjectList = new ArrayList<>();
@@ -1847,7 +1852,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                     // Create new startElement for group with new guid
                     jsonWriter.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
-                    jsonWriter.add(eventFactory.createCharacters(currentGroupId));
+                    jsonWriter.add(eventFactory.createCharacters(groupGuid));
                     jsonWriter.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
 
                     isTraversingNestedGroupTags = true;
@@ -2248,7 +2253,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                : LogbookParametersFactory.newLogbookOperationParameters();
+                    : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2284,8 +2289,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             dataObjectGroupMasterMandatory.put(entry.getKey(), false);
             for (int index = 0; index < entry.getValue().size(); index++) {
                 final String id = entry.getValue().get(index);
-                final File dataObjectFile = handlerIO.
-                    getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
+                final File dataObjectFile = handlerIO.getNewLocalFile(dataObjectIdToGuid.get(id) + JSON_EXTENSION);
                 JsonNode dataObjectNode = JsonHandler.getFromFile(dataObjectFile).get(BINARY_DATA_OBJECT);
                 if (dataObjectNode == null) {
                     dataObjectNode = JsonHandler
@@ -2713,7 +2717,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid       guid of data object
+     * @param guid guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2871,7 +2875,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * contract
      *
      * @throws ProcessingUnitLinkingException in case the sip declares an attachment to a unit that is not a children of
-     *                                        the unit declared in ingest contract
+     *         the unit declared in ingest contract
      */
     private void checkIngestContractWithAttachmentGuid(ArrayNode attachmentNode)
         throws ProcessingUnitLinkingException {
@@ -2910,6 +2914,42 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (!handler.checkHandlerIO(HANDLER_IO_OUT_PARAMETER_NUMBER, handlerInputIOList)) {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
+        }
+    }
+
+
+    private void extractOntology() throws ProcessingException {
+        Select selectOntologies = new Select();
+        List<OntologyModel> ontologyModelList = new ArrayList<OntologyModel>();
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
+            selectOntologies.setQuery(
+                QueryHelper.and()
+                    .add(QueryHelper.in(OntologyModel.TAG_TYPE, OntologyType.DOUBLE.getType(),
+                        OntologyType.BOOLEAN.getType(),
+                        OntologyType.DATE.getType(),
+                        OntologyType.LONG.getType())));
+            Map<String, Integer> projection = new HashMap<String, Integer>();
+            projection.put(OntologyModel.TAG_IDENTIFIER, 1);
+            projection.put(OntologyModel.TAG_TYPE, 1);
+            QueryProjection queryProjection = new QueryProjection();
+            queryProjection.setFields(projection);
+            selectOntologies.setProjection(JsonHandler.toJsonNode(queryProjection));
+            RequestResponse<OntologyModel> responseOntologies =
+                adminClient.findOntologies(selectOntologies.getFinalSelect());
+            if (responseOntologies != null && responseOntologies.isOk() &&
+                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
+                ontologyModelList =
+                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+            }
+            File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(ONTOLOGY_IO_RANK).getPath());
+            // create json file
+            JsonHandler.writeAsFile(ontologyModelList, tempFile);
+            // put file in workspace
+            handlerIO.addOutputResult(ONTOLOGY_IO_RANK, tempFile, true, false);
+        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
+            InvalidParseOperationException e) {
+            LOGGER.error("Could not get ontology", e);
+            throw new ProcessingException(e);
         }
     }
 

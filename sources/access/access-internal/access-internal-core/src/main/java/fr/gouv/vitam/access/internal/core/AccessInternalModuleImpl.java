@@ -44,6 +44,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -93,6 +95,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -102,6 +105,8 @@ import fr.gouv.vitam.common.model.VitamConstants.StorageRuleFinalAction;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -151,7 +156,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.BooleanUtils;
 
 
 /**
@@ -566,10 +570,19 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 LOGGER.error(e);
                 throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
             }
+
+            try {
+                addOntologyFieldsToBeUpdated((UpdateParserMultiple) parser);
+            } catch (AdminManagementClientServerException | InvalidCreateOperationException |
+                InvalidParseOperationException e) {
+                LOGGER.error(e);
+                throw new AccessInternalExecutionException("Error while adding ontology information", e);
+            }
+
             try {
                 queryJson = ((UpdateParserMultiple) parser).getRequest()
-                        .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
-                        .getFinalUpdate();
+                    .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
+                    .getFinalUpdate();
             } catch (final InvalidCreateOperationException e) {
                 LOGGER.error(e);
                 throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
@@ -606,14 +619,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             globalStep = true;
 
             // write logbook operation at end, in case of exception it is written by rollBackLogbook
-            finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep, stepCheckPermission,
-                stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, null, masterStpOperation,
+            finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep,
+                stepCheckPermission,
+                stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, null,
+                masterStpOperation,
                 requestUpdateManagment);
         } catch (final InvalidParseOperationException ipoe) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, ipoe.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, stepCheckPermission,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                stepCheckPermission,
                 JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(PARSING_ERROR, ipoe);
             throw ipoe;
@@ -674,8 +690,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // NO since metadata is already updated: rollBackLogbook(logbookLifeCycleClient, logbookOperationClient,
             // updateOpGuidStart, newQuery, idGUID);
             try {
-                finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep, stepCheckPermission,
-                    stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, null, masterStpOperation,
+                finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep,
+                    stepCheckPermission,
+                    stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, null,
+                    masterStpOperation,
                     requestUpdateManagment);
             } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                 LogbookClientServerException e1) {
@@ -700,8 +718,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, e.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
-                    globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
-                    stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(ERROR_CHECK_PERMISSIONS, e);
             throw e;
         } catch (final ArchiveUnitProfileNotFoundException | ArchiveUnitProfileInactiveException aupnfe) {
@@ -741,7 +759,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private boolean updateContainsManagmentFields(JsonNode queryDsl) {
         ArrayNode actions = (ArrayNode) queryDsl.get("$action");
-        for (JsonNode node: actions) {
+        for (JsonNode node : actions) {
             JsonNode fieldNode = node.get("$set");
             if (fieldNode == null) {
                 fieldNode = node.get("$unset");
@@ -753,12 +771,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             Iterator<String> fieldNames = fieldNode.fieldNames();
             while (fieldNames.hasNext()) {
                 String fieldName = fieldNames.next();
-                if("ArchiveUnitProfile".equals(fieldName) || fieldName.startsWith("#management")) {
+                if ("ArchiveUnitProfile".equals(fieldName) || fieldName.startsWith("#management")) {
                     return true;
                 }
             }
-         }
-         return false;
+        }
+        return false;
     }
 
     /**
@@ -885,8 +903,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     private void finalizeStepOperation(LogbookOperationsClient logbookOperationClient, GUID updateOpGuidStart,
-        GUID idRequest, String idUnit, boolean globalStep, boolean stepCheckPermission, boolean stepMetadataUpdate, boolean stepStorageUpdate,
-        boolean stepCheckRules, boolean stepLFCCommit, boolean stepDTValidation, String evDetData, String masterOperation,
+        GUID idRequest, String idUnit, boolean globalStep, boolean stepCheckPermission, boolean stepMetadataUpdate,
+        boolean stepStorageUpdate,
+        boolean stepCheckRules, boolean stepLFCCommit, boolean stepDTValidation, String evDetData,
+        String masterOperation,
         boolean isManagementUpdate)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
 
@@ -915,7 +935,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (!stepCheckRules) {
                 // STEP UNIT_CHECK_RULES KO
                 logbookOpParamEnd =
-                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                        updateOpGuidStart,
                         StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.KO), idRequest,
                         UNIT_CHECK_RULES, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
@@ -924,7 +945,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             } else if (!stepDTValidation) {
                 // STEP UNIT_CHECK_DT KO
                 logbookOpParamEnd =
-                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                        updateOpGuidStart,
                         StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_DT, StatusCode.KO), idRequest,
                         UNIT_CHECK_DT, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
@@ -934,7 +956,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 if (isManagementUpdate) {
                     // last step STEP UNIT_CHECK_RULES OK
                     logbookOpParamEnd =
-                        getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                        getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                            updateOpGuidStart,
                             StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.OK), idRequest,
                             UNIT_CHECK_RULES, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
@@ -943,7 +966,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
                 // last step STEP UNIT_CHECK_DT OK
                 logbookOpParamEnd =
-                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                        updateOpGuidStart,
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_DT, StatusCode.OK), idRequest,
                         UNIT_CHECK_DT, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
@@ -954,7 +978,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     logbookOpParamEnd =
                         getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
                             updateOpGuidStart,
-                            StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.KO), idRequest,
+                            StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.KO),
+                            idRequest,
                             UNIT_METADATA_UPDATE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
@@ -964,7 +989,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     logbookOpParamEnd =
                         getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
                             updateOpGuidStart,
-                            StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idRequest,
+                            StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK),
+                            idRequest,
                             UNIT_METADATA_UPDATE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                     logbookOperationClient.update(logbookOpParamEnd);
@@ -1042,11 +1068,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private void rollBackLogbook(LogbookOperationsClient logbookOperationClient,
         LogbookLifeCyclesClient logbookLifeCycleClient, GUID updateOpGuidStart, GUID idRequest, String idUnit,
         boolean globalStep, boolean stepMetadataUpdate, boolean stepStorageUpdate, boolean stepCheckRules,
-        boolean stepLFCCommit, boolean stepDTValidation, boolean stepCheckPermission, String evDetData, String masterOperation,
+        boolean stepLFCCommit, boolean stepDTValidation, boolean stepCheckPermission, String evDetData,
+        String masterOperation,
         boolean isManagementUpdate) {
         try {
-            finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep, stepCheckPermission,
-               stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, evDetData, masterOperation, isManagementUpdate);
+            finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep,
+                stepCheckPermission,
+                stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, evDetData,
+                masterOperation, isManagementUpdate);
             // That means lifecycle could be found, so it could be roolbacked
             if (stepMetadataUpdate) {
                 logbookLifeCycleClient.rollBackUnitsByOperation(updateOpGuidStart.toString());
@@ -1701,6 +1730,51 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             InvalidCreateOperationException e) {
             // AUP select could not be executed
             LOGGER.error(e);
+            throw e;
+        }
+    }
+
+    private static void addOntologyFieldsToBeUpdated(UpdateParserMultiple updateParser)
+        throws InvalidCreateOperationException, AdminManagementClientServerException,
+        InvalidParseOperationException {
+        UpdateMultiQuery request = updateParser.getRequest();
+        Select selectOntologies = new Select();
+        List<OntologyModel> ontologyModelList = new ArrayList<OntologyModel>();
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            selectOntologies.setQuery(
+                QueryHelper.and()
+                    .add(QueryHelper.in(OntologyModel.TAG_TYPE, OntologyType.DOUBLE.getType(),
+                        OntologyType.BOOLEAN.getType(),
+                        OntologyType.DATE.getType(),
+                        OntologyType.LONG.getType()))
+                    .add(QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName()))
+                );
+            selectOntologies.setProjection(JsonHandler.getFromString("{\"$fields\": { \"Identifier\": 1, \"Type\": 1}}"));
+            RequestResponse<OntologyModel> responseOntologies =
+                adminClient.findOntologies(selectOntologies.getFinalSelect());
+            if (responseOntologies.isOk() &&
+                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
+                ontologyModelList =
+                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+            } else {
+                // no external ontology, nothing to do
+                return;
+            }
+            if (ontologyModelList.size() > 0) {
+                ArrayNode ontologyArrayNode = JsonHandler.createArrayNode();              
+                ontologyModelList.forEach(ontology -> {
+                    try {
+                        ontologyArrayNode.add(JsonHandler.toJsonNode(ontology));
+                    } catch (InvalidParseOperationException e) {
+                        LOGGER.error("could not parse this ontology", e);
+                    }
+                });
+                Action action =
+                    new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS, JsonHandler.unprettyPrint(ontologyArrayNode));
+                request.addActions(action);
+            }
+        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
+            InvalidParseOperationException e) {
             throw e;
         }
     }
