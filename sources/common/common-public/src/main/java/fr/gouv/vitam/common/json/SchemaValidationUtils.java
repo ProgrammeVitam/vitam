@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -43,6 +44,7 @@ import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jsonschema.cfg.ValidationConfiguration;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ListProcessingReport;
@@ -133,10 +135,17 @@ public class SchemaValidationUtils {
     public static final String TAG_SCHEMA_VALIDATION = "schemaValidation";
 
     /**
+     * schemaValidation
+     */
+    public static final String TAG_ONTOLOGY_FIELDS = "ontologyFields";
+    /**
      * ontology.schema
      */
     public static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";
 
+
+    private static final Pattern SPECIFIC_DATE_TZ = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}[zZ])$");
+    private static final Pattern PATTERN_DATE_TZ = Pattern.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2})");
 
     private static final String TYPE = "type";
     private static final String ARRAY = "array";
@@ -650,19 +659,32 @@ public class SchemaValidationUtils {
 
     /**
      * 
+     * Loop and replace in Json fields to map the ontology
+     * 
      * @param archiveUnit the archive Unit to be changed
      * @param ontologyModelMap the map containing ontology fields to be changed
+     * @param errorList errorList to be returned
+     * @return a list of error
      */
-    public void loopAndReplaceInJson(JsonNode archiveUnit, Map<String, OntologyModel> ontologyModelMap) {
-        final Iterator<Entry<String, JsonNode>> iterator = archiveUnit.fields();
+    public void loopAndReplaceInJson(JsonNode archiveUnit, Map<String, OntologyModel> ontologyModelMap,
+        List<String> errorList) {
+        Iterator<Entry<String, JsonNode>> iterator = archiveUnit.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
             String key = entry.getKey();
             JsonNode value = entry.getValue();
-            if (!ontologyModelMap.containsKey(key) && value != null && (value.isObject() || value.isArray())) {
-                loopAndReplaceInJson(value, ontologyModelMap);
-            } else if (ontologyModelMap.containsKey(key)) {
-                replaceProperFieldWithType(value, ontologyModelMap.get(key));
+            if (ontologyModelMap.containsKey(key)) {
+                try {
+                    replaceProperFieldWithType(value, ontologyModelMap.get(key), archiveUnit);
+                } catch (Exception e) {
+                    errorList.add("Error with field " + key + (e.getMessage() != null ? " - " + e.getMessage() : ""));
+                }
+            } else if (value != null && value.isObject()) {
+                loopAndReplaceInJson(value, ontologyModelMap, errorList);
+            } else if (value != null && value.isArray()) {
+                ((ArrayNode) value).forEach(o -> {
+                    loopAndReplaceInJson(o, ontologyModelMap, errorList);
+                });
             }
         }
     }
@@ -673,7 +695,7 @@ public class SchemaValidationUtils {
      * @param archiveUnitFragment
      * @param ontology
      */
-    private void replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology) {
+    private void replaceProperFieldWithType(JsonNode archiveUnitFragment, OntologyModel ontology, JsonNode parent) {
         if (archiveUnitFragment.isArray()) {
             ArrayNode copy = ((ArrayNode) archiveUnitFragment).deepCopy();
             for (int i = 0; i < copy.size(); i++) {
@@ -682,11 +704,49 @@ public class SchemaValidationUtils {
                 } else if (OntologyType.LONG == ontology.getType()) {
                     ((ArrayNode) archiveUnitFragment).set(i, new LongNode(Long.parseLong(copy.get(i).asText())));
                 } else if (OntologyType.BOOLEAN == ontology.getType()) {
-                    if ("true".equals(copy.get(i).asText())) {
+                    if ("true".equals(copy.get(i).asText().toLowerCase())) {
                         ((ArrayNode) archiveUnitFragment).set(i, BooleanNode.TRUE);
-                    } else if ("false".equals(copy.get(i).asText())) {
+                    } else if ("false".equals(copy.get(i).asText().toLowerCase())) {
                         ((ArrayNode) archiveUnitFragment).set(i, BooleanNode.FALSE);
+                    } else {
+                        throw new IllegalArgumentException(
+                            "Incorrect value, " + copy.get(i).asText() + " is not a boolean ");
                     }
+                } else if (OntologyType.DATE == ontology.getType()) {
+                    // deal with specific dates
+                    if (copy.get(i).asText() != null && SPECIFIC_DATE_TZ.matcher(copy.get(i).asText()).find()) {
+                        ((ArrayNode) archiveUnitFragment).set(i,
+                            new TextNode(copy.get(i).asText().substring(0, copy.get(i).asText().length() - 1)));
+                    }
+                }
+            }
+        } else if (archiveUnitFragment.isTextual() && parent.isObject() &&
+            parent.get(ontology.getIdentifier()) != null) {
+            if (OntologyType.DOUBLE == ontology.getType()) {
+                ((ObjectNode) parent).set(ontology.getIdentifier(),
+                    new DoubleNode(Double.parseDouble(archiveUnitFragment.asText())));
+            } else if (OntologyType.LONG == ontology.getType()) {
+                ((ObjectNode) parent).set(ontology.getIdentifier(),
+                    new LongNode(Long.parseLong(archiveUnitFragment.asText())));
+            } else if (OntologyType.BOOLEAN == ontology.getType()) {
+                if ("true".equals(archiveUnitFragment.asText().toLowerCase())) {
+                    ((ObjectNode) parent).set(ontology.getIdentifier(), BooleanNode.TRUE);
+                } else if ("false".equals(archiveUnitFragment.asText().toLowerCase())) {
+                    ((ObjectNode) parent).set(ontology.getIdentifier(), BooleanNode.FALSE);
+                } else {
+                    throw new IllegalArgumentException(
+                        "Incorrect value, " + archiveUnitFragment.asText() + " is not a boolean ");
+                }
+            } else if (OntologyType.DATE == ontology.getType()) {
+                // deal with specific dates
+                if (archiveUnitFragment.asText() != null &&
+                    SPECIFIC_DATE_TZ.matcher(archiveUnitFragment.asText()).find()) {
+                    ((ObjectNode) parent).set(ontology.getIdentifier(), new TextNode(
+                        archiveUnitFragment.asText().substring(0, archiveUnitFragment.asText().length() - 1)));
+                } else if (archiveUnitFragment.asText() != null &&
+                    !PATTERN_DATE_TZ.matcher(archiveUnitFragment.asText()).find()) {
+                    throw new IllegalArgumentException(
+                        "Incorrect value, " + archiveUnitFragment.asText() + " is not a correct date");
                 }
             }
         }

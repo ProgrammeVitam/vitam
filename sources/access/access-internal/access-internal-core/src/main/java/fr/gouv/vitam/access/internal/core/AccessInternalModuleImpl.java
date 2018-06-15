@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
@@ -92,6 +93,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -100,6 +102,8 @@ import fr.gouv.vitam.common.model.VitamConstants.AppraisalRuleFinalAction;
 import fr.gouv.vitam.common.model.VitamConstants.StorageRuleFinalAction;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -149,9 +153,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-
-
 
 /**
  * AccessModuleImpl implements AccessModule
@@ -557,10 +558,16 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 LOGGER.error(e);
                 throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
             }
-            // OK For both + Continue
-            JsonNode newQuery = queryJson;
             try {
-                newQuery = ((UpdateParserMultiple) parser).getRequest()
+                addOntologyFieldsToBeUpdated((UpdateParserMultiple) parser);
+            } catch (AdminManagementClientServerException | InvalidCreateOperationException |
+                InvalidParseOperationException e) {
+                LOGGER.error(e);
+                throw new AccessInternalExecutionException("Error while adding ontology information", e);
+            }
+
+            try {
+                queryJson = ((UpdateParserMultiple) parser).getRequest()
                     .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
                     .getFinalUpdate();
             } catch (final InvalidCreateOperationException e) {
@@ -571,7 +578,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             /** Update: Indexation task **/
             stepMetadataUpdate = false;
             // call update
-            jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
+            jsonNode = metaDataClient.updateUnitbyId(queryJson, idUnit);
 
 
             // update logbook TASK INDEXATION
@@ -686,7 +693,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 JsonHandler.unprettyPrint(evDetData));
             LOGGER.error(ERROR_CHECK_RULES, e);
             throw e;
-        } catch (final ArchiveUnitProfileNotFoundException | ArchiveUnitProfileInactiveException | ArchiveUnitProfileEmptyControlSchemaException aupnfe) {
+        } catch (final ArchiveUnitProfileNotFoundException | ArchiveUnitProfileInactiveException |
+            ArchiveUnitProfileEmptyControlSchemaException aupnfe) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, aupnfe.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
@@ -707,6 +715,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
         return jsonNode;
     }
+
 
     /**
      * @param idUnit
@@ -884,6 +893,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.KO), idRequest,
                         UNIT_METADATA_UPDATE, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
+            } else if (!stepDTValidation) {
+                // STEP UNIT_CHECK_DT KO
+                logbookOpParamEnd =
+                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                        updateOpGuidStart,
+                        StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_DT, StatusCode.KO), idRequest,
+                        UNIT_CHECK_DT, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
                 logbookOperationClient.update(logbookOpParamEnd);
             } else {
@@ -893,7 +909,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         updateOpGuidStart,
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idRequest,
                         UNIT_METADATA_UPDATE, false);
-                logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                 logbookOperationClient.update(logbookOpParamEnd);
 
                 if (!stepLFCCommit) {
@@ -1613,11 +1628,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 archiveUnitProfile = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().get(0);
                 if (ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
                     if (controlSchemaIsEmpty(archiveUnitProfile)) {
-                        throw new ArchiveUnitProfileEmptyControlSchemaException("Archive unit profile does not have a controlSchema");
+                        throw new ArchiveUnitProfileEmptyControlSchemaException(
+                            "Archive unit profile does not have a controlSchema");
                     } else {
                         Action action =
-                                new SetAction(SchemaValidationUtils.TAG_SCHEMA_VALIDATION,
-                                        archiveUnitProfile.getControlSchema());
+                            new SetAction(SchemaValidationUtils.TAG_SCHEMA_VALIDATION,
+                                archiveUnitProfile.getControlSchema());
                         request.addActions(action);
                     }
                 } else {
@@ -1636,10 +1652,56 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private static boolean controlSchemaIsEmpty(ArchiveUnitProfileModel archiveUnitProfile) {
         try {
-            return archiveUnitProfile.getControlSchema() == null || JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
+            return archiveUnitProfile.getControlSchema() == null ||
+                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
         } catch (InvalidParseOperationException e) {
             return false;
         }
     }
 
+    private static void addOntologyFieldsToBeUpdated(UpdateParserMultiple updateParser)
+        throws InvalidCreateOperationException, AdminManagementClientServerException,
+        InvalidParseOperationException {
+        UpdateMultiQuery request = updateParser.getRequest();
+        Select selectOntologies = new Select();
+        List<OntologyModel> ontologyModelList = new ArrayList<OntologyModel>();
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            selectOntologies.setQuery(
+                QueryHelper.and()
+                    .add(QueryHelper.in(OntologyModel.TAG_TYPE, OntologyType.DOUBLE.getType(),
+                        OntologyType.BOOLEAN.getType(),
+                        OntologyType.DATE.getType(),
+                        OntologyType.LONG.getType()))
+                    .add(QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName())));
+            selectOntologies
+                .setProjection(JsonHandler.getFromString("{\"$fields\": { \"Identifier\": 1, \"Type\": 1}}"));
+            RequestResponse<OntologyModel> responseOntologies =
+                adminClient.findOntologies(selectOntologies.getFinalSelect());
+            if (responseOntologies.isOk() &&
+                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
+                ontologyModelList =
+                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+            } else {
+                // no external ontology, nothing to do
+                return;
+            }
+            if (ontologyModelList.size() > 0) {
+                ArrayNode ontologyArrayNode = JsonHandler.createArrayNode();
+                ontologyModelList.forEach(ontology -> {
+                    try {
+                        ontologyArrayNode.add(JsonHandler.toJsonNode(ontology));
+                    } catch (InvalidParseOperationException e) {
+                        LOGGER.error("could not parse this ontology", e);
+                    }
+                });
+                Action action =
+                    new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS,
+                        JsonHandler.unprettyPrint(ontologyArrayNode));
+                request.addActions(action);
+            }
+        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
+            InvalidParseOperationException e) {
+            throw e;
+        }
+    }
 }
