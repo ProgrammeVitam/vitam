@@ -24,74 +24,65 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.processing;
+package fr.gouv.vitam.common.utils;
+
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 
 /**
- * Enum of kind for distributor
+ * Vitam reader Spliterator.
  */
-public enum DistributionKind {
-    // TODO P1 comment on each lines + since each is the same enum = String, remove String
+public class VitamReaderSpliterator implements Spliterator<String> {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamReaderSpliterator.class);
 
     /**
-     * Distribution by reference, so 1 item only
+     * reader
      */
-    REF("REF"),
-    /**
-     * Distribution by List (workspace or other kind of lists)
-     */
-
-    LIST_IN_FILE("LIST_IN_FILE"),
+    private final BufferedReader reader;
 
     /**
-     * Distribution by List defined in a file.
-     */
-    LIST_ORDERING_IN_FILE("LIST_ORDERING_IN_FILE"),
-
-    /**
-     * Distribution by List defined in a directory.
-     */
-    LIST_IN_DIRECTORY("LIST_IN_DIRECTORY"),
-
-    /**
-     * Distribution by list defined in linked file.
-     */
-    LIST_IN_LINKED_FILE("LIST_IN_LINKED_FILE"),
-
-    /**
-     * Distribution by list defined in JSONL file.
-     */
-    LIST_IN_JSONL_FILE("LIST_IN_JSONL_FILE");
-
-    /**
-     * value
-     */
-    private String value;
-
-    /**
-     * DistributionKind
+     * Constructor.
      *
-     * @param value
+     * @param reader
      */
-    DistributionKind(String value) {
-        this.value = value;
+    public VitamReaderSpliterator(BufferedReader reader) {
+        this.reader = reader;
     }
 
-    /**
-     * value(), get the value of DistributionKind
-     *
-     * @return the value as String
-     */
-    public String value() {
-        return value;
+    @Override
+    public boolean tryAdvance(Consumer<? super String> action) {
+        try {
+            String line = reader.readLine();
+            if (line != null) {
+                action.accept(line);
+                return true;
+            } else
+                return false;
+        } catch (IOException e) {
+            LOGGER.error(e);
+            return false;
+        }
     }
 
-    /**
-     * isDistributed
-     *
-     * @return
-     */
-    public boolean isDistributed() {
-        return this != REF;
+    @Override
+    public Spliterator<String> trySplit() {
+        return null;
+    }
+
+    @Override
+    public long estimateSize() {
+        return Long.MAX_VALUE;
+    }
+
+    @Override
+    public int characteristics() {
+        return DISTINCT | NONNULL | IMMUTABLE;
     }
 
 }
