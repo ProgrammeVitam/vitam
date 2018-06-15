@@ -10,20 +10,31 @@ La procédure suivante s'applique lorsqu'une :term:`PKI` est déjà disponible p
 
 Les étapes d'intégration des certificats à la solution Vitam sont les suivantes :
 
-* déposer les certificats et les autorités de certifications correspondantes dans les bons répertoires.
-* renseigner les mots de passe des clés privées des certificats dans le vault ansible environments/certs/vault-certs.yml
-* utiliser le script Vitam permettant de générer les différents keystores.
+* Générer les certificats avec les bons `key usage` par type de certificat
+* Déposer les certificats et les autorités de certifications correspondantes dans les bons répertoires.
+* Renseigner les mots de passe des clés privées des certificats dans le vault ansible ``environments/certs/vault-certs.yml``
+* Utiliser le script Vitam permettant de générer les différents keystores.
 
 .. note:: Rappel pré-requis : vous devez disposer d'une ou plusieurs :term:`PKI` pour tout déploiement en production de la solution VITAM.
 
 Génération des certificats
 --------------------------
 
-Les certificats générés doivent prendre en compte des alias "web" (subjectAltName).
+En conformité avec le document RGSV2 de l'ANSSI, il est recommandé de générer des certificats avec les caractéristiques suivantes:
 
-Le *subjectAltName* des certificats serveurs (``deployment/environments/certs/server/hosts/*``) doit contenir le nom dns du service sur consul.
+Certificats serveurs
+^^^^^^^^^^^^^^^^^^^^
 
-Exemple avec un cas standard: <composant_vitam>.service.consul.
+* Key Usage
+    * digitalSignature, keyEncipherment
+* Extended Key Usage
+    * TLS Web Server Authentication
+
+Les certificats serveurs générés doivent prendre en compte des alias "web" ( ``subjectAltName`` ).
+
+Le *subjectAltName* des certificats serveurs ( ``deployment/environments/certs/server/hosts/*`` ) doit contenir le nom dns du service sur consul associé.
+
+Exemple avec un cas standard: <composant_vitam>.service.<consul_domain>.
 Ce qui donne pour le certificat serveur de access-external par exemple:
 
 .. code-block:: text
@@ -31,7 +42,25 @@ Ce qui donne pour le certificat serveur de access-external par exemple:
     X509v3 Subject Alternative Name:
         DNS:access-external.service.consul, DNS:localhost
 
+Il faudra alors mettre le même nom de domaine pour la configuration de consul (fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, variable ``consul_domain`` )
+
 Cas particulier pour ihm-demo et ihm-recette: il faut rajouter le nom dns qui sera utilisé pour requêter ces deux applications si celles-ci sont appelées directement en frontal en https.
+
+Certificat clients
+^^^^^^^^^^^^^^^^^^
+
+* Key Usage
+    * digitalSignature
+* Extended Key Usage
+    * TLS Web Client Authentication
+
+Certificats d'horodatage
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Key Usage
+    * digitalSignature, nonRepudiation
+* Extended Key Usage
+    * Time Stamping
 
 Intégration de certificats existants
 ------------------------------------
@@ -70,4 +99,3 @@ Dans le cas d'ajout de certificats :term:`SIA` externes :
     * Déposer le certificat (``.crt``) de l'application client dans ``environments/certs/client-external/clients/external/``
     * Déposer les :term:`CA` du certificat de l'application (``.crt``) dans ``environments/certs/client-external/ca/``
     * Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s)  (sous forme répertoire/fichier.crt, exemple: ``external/mon_sia.crt``) dans  la directive ``admin_context_certs`` pour que ceux-ci soient ajoutés aux profils de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
-
