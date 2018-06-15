@@ -9,11 +9,23 @@ Cette section décrit le processus permettant la mise à jour des unités archiv
 Processus de mise à jour des unités archivistiques (vision métier)
 ==================================================================
 
-Le processus de mise à jour des unités archivistiques est lancé lors d'une mise à jour de n'importe quelle métadonnée d'une unité archivistique. Un certain nombre d'étapes et actions sont journalisées dans le journal des opérations.
+Le processus de mise à jour des unités archivistiques est lancé lors d'une mise à jour de n'importe quelle métadonnée d'une unité archivistique. On distingue cependant deux cas de modifications, liées à des droits, gérés via les contrats d'accès: 
+Soit les utilisateurs auront le droit à la modification des métadonnées descriptives seulement, soit ils auront des droits pour modifier les métadonnées descriptives et liées aux règles de gestion. 
+
+Un certain nombre d'étapes et actions sont journalisées dans le journal des opérations.
 Les étapes et actions associées ci-dessous décrivent ce processus de mise à jour (clé et description de la clé associée dans le journal des opérations).
 
-Mise à jour des unités archivistiques STP_UPDATE_UNIT (AccessInternalModuleImpl.java)
-=====================================================================================
+
+
+Mise à jour des unités archivistiques
+======================================
+
+
+Selon le type de modifications, une des deux étapes peut être déclenchée: 
+
+
+Si le type de modification concerne une métadonnée descriptive: STP_UPDATE_UNIT (AccessInternalModuleImpl.java)
+---------------------------------------------------------------------------------------------------------------
 
 La fin du processus peut prendre plusieurs statuts :
 
@@ -24,6 +36,44 @@ La fin du processus peut prendre plusieurs statuts :
   + KO : la mise à jour de l'unité archivistique n'a pas été effectuée en raison d'une erreur (STP_UPDATE_UNIT.KO = Échec du processus de mise à jour des métadonnées de l''unité archivistique)
 
   + FATAL : une erreur fatale est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT.FATAL = Erreur fatale lors du processus de mise à jour des métadonnées de l''unité archivistique)
+
+
+
+
+
+Si le type de modification concerne une métadonnée de règle de gestion et descriptive: STP_UPDATE_UNIT_DESC ((AccessInternalModuleImpl.java)
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+La fin du processus peut prendre plusieurs statuts :
+
+* **Statuts** :
+
+  + OK : la mise à jour de l'unité archivistique a bien été effectuée (STP_UPDATE_UNIT_DESC.OK = Succès du processus de mise à jour des métadonnées descriptives de l''unité archivistique)
+
+  + KO : la mise à jour de l'unité archivistique n'a pas été effectuée en raison d'une erreur (STP_UPDATE_UNIT_DESC.KO = Échec du processus de mise à jour des métadonnées descriptives de l''unité archivistique)
+
+  + FATAL : une erreur fatale est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT_DESC.FATAL = Erreur fatale lors du processus de mise à jour des métadonnées descriptives de l''unité archivistique)
+
+
+
+
+Vérification des permissions de modifications UNIT_METADATA_UPDATE_CHECK_PERMISSION 
+====================================================================================
+
+Cette étape permet d'effectuer les contrôles sur le champ présent dans le contrat d'accès, qui autorise ou non la modification de métadonnées descriptives seulement ou bien des métadonnées descriptives et de gestion. 
+
+La fin du processus peut prendre plusieurs statuts :
+
+* **Statuts** :
+
+  + OK : Succès de la vérification des droits de mise à jour des métadonnées de l'unité archivistique ((UNIT_METADATA_UPDATE_CHECK_PERMISSION OK = Succès du processus de mise à jour des métadonnées de l''unité archivistique)
+
+  + KO : la mise à jour de l'unité archivistique n'a pas été effectuée en raison d'une erreur (STP_UPDATE_UNIT.KO = Échec du processus de mise à jour des métadonnées de l''unité archivistique)
+
+  + FATAL : une erreur fatale est survenue lors de la mise à jour de l'unité archivistique (STP_UPDATE_UNIT.FATAL = Erreur fatale lors du processus de mise à jour des métadonnées de l''unité archivistique)
+
+
+
 
 Vérification des règles de gestion UNIT_METADATA_UPDATE_CHECK_RULES (AccessInternalModuleImpl.java)
 ---------------------------------------------------------------------------------------------------
@@ -40,6 +90,8 @@ Vérification des règles de gestion UNIT_METADATA_UPDATE_CHECK_RULES (AccessInt
 
     - FATAL : une erreur fatale est survenue lors de la création du rapport (UNIT_METADATA_UPDATE_CHECK_RULES.FATAL = Erreur fatale lors de la génération du rapport d'analyse du référentiel des règles de gestion)
 
+
+
 Indexation des métadonnées UNIT_METADATA_UPDATE (ArchiveUnitUpdateUtils.java)
 -----------------------------------------------------------------------------
 
@@ -49,11 +101,15 @@ Indexation des métadonnées UNIT_METADATA_UPDATE (ArchiveUnitUpdateUtils.java)
 
   + **Statuts** :
 
-    - OK : les métadonnées des unités archivistiques ont été indexées avec succès (UNIT_METADATA_UPDATE.OK = Succès de la mise à jour des métadonnées des unités archivistiques)
+    - OK : Succès de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.OK=Succès de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
 
-    - KO : les métadonnées des unités archivistiques n'ont pas été indexées (UNIT_METADATA_UPDATE.KO = Échec de la mise à jour des métadonnées des unités archivistiques)
+    - KO : Échec de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.KO=Échec de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
 
-    - FATAL : une erreur fatale est survenue lors de l'indexation des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE.FATAL = Erreur fatale lors de la mise à jour des métadonnées des unités archivistiques)
+    - STARTED : Début de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.STARTED=Début de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
+
+    - FATAL : Erreur fatale lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.FATAL=Erreur fatale lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
+
+    - WARNING : Avertissement lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques (UNIT_METADATA_UPDATE_CHECK_PERMISSION.WARNING=Avertissement lors de la vérification des droits de mise à jour des métadonnées des unités archivistiques)
 
 
 Enregistrement du journal du cycle de vie des unités archivistiques
