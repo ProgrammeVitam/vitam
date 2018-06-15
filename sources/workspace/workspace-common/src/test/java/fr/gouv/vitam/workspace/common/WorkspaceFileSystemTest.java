@@ -310,6 +310,14 @@ public class WorkspaceFileSystemTest {
         Assert.assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
     }
 
+    @Test
+    public void givenZipSIPAndArchiveTypeWhenManifestFileNamePersonalizedThenRenamedToManifestDotXmlOK()
+            throws Exception {
+        storage.createContainer(CONTAINER_NAME);
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("personalized_manifest_file_name.zip"));
+        Assert.assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void givenTarGzSIPAndUnsupportedArchiveTypeWhenUncompressObjectThenRaiseException()
         throws Exception {

@@ -67,7 +67,8 @@
 								<chmod file="target/test-classes/scan-clamav.sh" perm="755" />
 								<chmod file="target/test-classes/scan-clamav_virus.sh" perm="755" />
 								<chmod file="target/test-classes/scan-clamav_virus_fixed.sh" perm="755" />
-								<chmod file="target/test-classes/scan-clamav_unknown.sh" perm="755" />								
+								<chmod file="target/test-classes/scan-clamav_unknown.sh" perm="755" />
+								<chmod file="target/test-classes/scan-clamav-ok.sh" perm="755" />
 							</target>
 						</configuration>
 						<goals>
