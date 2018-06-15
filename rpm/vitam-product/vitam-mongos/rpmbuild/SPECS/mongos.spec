@@ -1,5 +1,5 @@
 Name:          vitam-mongos
-Version:       3.4.14
+Version:       3.4.15
 Release:       1%{?dist}
 Summary:       Service files for Vitam mongos cluster configuration nodes
 Group:         Applications/Databases
