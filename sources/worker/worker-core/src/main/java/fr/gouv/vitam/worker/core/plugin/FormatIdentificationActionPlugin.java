@@ -26,17 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -46,6 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FileFormatRejectedException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
@@ -62,6 +54,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -72,6 +65,16 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
  * FormatIdentificationAction Plugin.<br>
@@ -101,12 +104,21 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
     private static final String FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR = "NOT_FOUND_REFERENTIAL";
     private static final String FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR = "FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR";
+    private static final String FILE_FORMAT_REJECTED = "REJECTED_FORMAT";
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
     private static final int OG_INPUT_RANK = 0;
 
     private static final String SUBSTATUS_UNKNOWN = "UNKNOWN";
     private static final String SUBSTATUS_UNCHARTED = "UNCHARTED";
+    private static final String SUBSTATUS_REJECTED = "REJECTED";
+
+    private static final int REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK = 1;
+    private static final String UNKNOWN_FORMAT = "unknown";
+
+    private static final String FORMAT_UNIDENTIFIED_AUTHORISED = "formatUnidentifiedAuthorized";
+    private static final String EVERY_FORMAT_TYPE = "everyFormatType";
+    private static final String FORMAT_TYPE = "formatType";
 
     private HandlerIO handlerIO;
     private FormatIdentifier formatIdentifier;
@@ -189,6 +201,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                             case FILE_FORMAT_PUID_NOT_FOUND:
                                                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
                                                 break;
+                                            case FILE_FORMAT_REJECTED:
+                                                subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_REJECTED);
+                                                itemStatus.setGlobalOutcomeDetailSubcode(FILE_FORMAT_REJECTED);
+                                                break;
                                         }
                                     }
                                     itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
@@ -245,7 +261,19 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         File file, JsonNode version) {
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult(objectId);
         objectCheckFormatResult.setStatus(StatusCode.OK);
+
+        boolean formatUnidentifiedAuthorized = false;
+        boolean everyFormatType = true;
+        Set<String> formatTypeSet = new HashSet<>();
         try {
+            IngestContractModel ingestContract = loadIngestContractFromWorkspace();
+            everyFormatType = ingestContract.isEveryFormatType();
+            formatUnidentifiedAuthorized = ingestContract.isFormatUnidentifiedAuthorized();
+            formatTypeSet = ingestContract.getFormatType();
+
+            if (!everyFormatType && !identifiedFormatsRestricted(formatIdentification, formatTypeSet)) {
+                throw new FileFormatRejectedException("File format rejected in " + FORMAT_IDENTIFIER_ID);
+            }
 
             // check the file
             final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
@@ -265,8 +293,11 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             }
 
             // TODO P1 : what should we do if more than 1 result (for the moment, we take into account the first one)
-            if (!result.isOk() || ((RequestResponseOK<FileFormatModel>) result).getResults().size() == 0) {
+            if (!result.isOk() || ((RequestResponseOK<FileFormatModel>) result).getResults().isEmpty()) {
                 // format not found in vitam referential
+                if (formatUnidentifiedAuthorized) {
+                    checkNotFoundFormatIdentification(formatIdentification, version, objectCheckFormatResult);
+                }
                 objectCheckFormatResult.setStatus(StatusCode.KO);
                 objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
             } else {
@@ -275,18 +306,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 RequestResponseOK<FileFormatModel> requestResponseOK = (RequestResponseOK<FileFormatModel>) result;
                 List<FileFormatModel> results = requestResponseOK.getResults();
                 FileFormatModel refFormat = results.get(0);
-                final JsonNode newFormatIdentification =
-                    checkAndUpdateFormatIdentification(objectId, formatIdentification,
-                        objectCheckFormatResult, refFormat,
-                        version);
-                ObjectNode diffObject = JsonHandler.createObjectNode();
-                diffObject.set("-", formatIdentification);
-                diffObject.set("+", newFormatIdentification);
-                ObjectNode object = JsonHandler.createObjectNode();
-                object.set("diff", diffObject);
-                eventDetailData = object.toString();
-                // Reassign new format
-                ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
+
+                checkFormatIdentification(formatIdentification, version, refFormat.getPuid(), refFormat.getName(), refFormat.getMimeType(), objectCheckFormatResult);
             }
         } catch (InvalidParseOperationException | InvalidCreateOperationException | FormatIdentifierTechnicalException |
             IOException e) {
@@ -305,7 +326,12 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         } catch (final FileFormatNotFoundException e) {
             // format no found case
             LOGGER.error(e);
-            objectCheckFormatResult.setStatus(StatusCode.KO);
+            if (formatUnidentifiedAuthorized && everyFormatType) {
+                checkNotFoundFormatIdentification(formatIdentification, version, objectCheckFormatResult);
+                objectCheckFormatResult.setStatus(StatusCode.WARNING);
+            } else {
+                objectCheckFormatResult.setStatus(StatusCode.KO);
+            }
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND);
 
         } catch (final FormatIdentifierNotFoundException e) {
@@ -314,16 +340,19 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_TOOL_DOES_NOT_ANSWER);
 
+        } catch (final FileFormatRejectedException e) {
+            LOGGER.error(e);
+            objectCheckFormatResult.setStatus(StatusCode.KO);
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_REJECTED);
         }
 
         return objectCheckFormatResult;
     }
 
-    private JsonNode checkAndUpdateFormatIdentification(String objectId,
-        JsonNode formatIdentification,
-        ObjectCheckFormatResult objectCheckFormatResult, FileFormatModel refFormat, JsonNode version) {
+    private JsonNode checkAndUpdateFormatIdentification(JsonNode formatIdentification,
+        ObjectCheckFormatResult objectCheckFormatResult, String puid, String name, String mimeType, JsonNode version) {
 
-        final String puid = refFormat.getPuid();
+
         final StringBuilder diff = new StringBuilder();
         JsonNode newFormatIdentification = formatIdentification != null ? formatIdentification.deepCopy() : null;
         if ((newFormatIdentification == null || !newFormatIdentification.isObject()) && puid != null) {
@@ -346,7 +375,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 diff.append(puid);
                 metadatasUpdated = true;
             }
-            final String name = refFormat.getName();
+
             final String fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL) != null
                 ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText()
                 : null;
@@ -365,7 +394,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 diff.append(name);
                 metadatasUpdated = true;
             }
-            final String mimeType = refFormat.getMimeType();
+
             final String fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE) != null
                 ? newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText()
                 : null;
@@ -422,7 +451,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     }
 
 
-    private Map<String, String> getMapOfObjectsIdsAndUris(JsonNode jsonOG) throws ProcessingException {
+    private Map<String, String> getMapOfObjectsIdsAndUris(JsonNode jsonOG) {
         final Map<String, String> binaryObjectsToStore = new HashMap<>();
 
         // Filter on objectGroup objects ids to retrieve only binary objects
@@ -488,5 +517,51 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         if (formatIdentifier != null) {
             formatIdentifier.close();
         }
+    }
+
+
+    private IngestContractModel loadIngestContractFromWorkspace() throws InvalidParseOperationException {
+           return JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK), IngestContractModel.class);
+    }
+
+    private boolean identifiedFormatsRestricted(final JsonNode format, Set<String> formatTypeSet) {
+        final JsonNode formatIdNode = format.get(SedaConstants.TAG_FORMAT_ID);
+        return formatIdNode != null && formatTypeSet.contains(formatIdNode.asText());
+    }
+
+    private void checkNotFoundFormatIdentification(JsonNode formatIdentification,
+                                                   JsonNode version,
+                                                   ObjectCheckFormatResult objectCheckFormatResult) {
+        String formatId = UNKNOWN_FORMAT;
+        String formatName = formatIdentification == null
+                || formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL) == null
+                ? "" : formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText();
+        String mimeType = formatIdentification == null
+                || formatIdentification.get(SedaConstants.TAG_MIME_TYPE) == null
+                ? "" : formatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText();
+
+        checkFormatIdentification(formatIdentification, version, formatId, formatName, mimeType, objectCheckFormatResult);
+    }
+
+    private void checkFormatIdentification(JsonNode formatIdentification,
+                                           JsonNode version,
+                                           String puid,
+                                           String name,
+                                           String mimeType,
+                                           ObjectCheckFormatResult objectCheckFormatResult) {
+        // check formatIdentification
+
+        final JsonNode newFormatIdentification =
+                checkAndUpdateFormatIdentification(formatIdentification,
+                        objectCheckFormatResult, puid, name, mimeType,
+                        version);
+        ObjectNode diffObject = JsonHandler.createObjectNode();
+        diffObject.set("-", formatIdentification);
+        diffObject.set("+", newFormatIdentification);
+        ObjectNode object = JsonHandler.createObjectNode();
+        object.set("diff", diffObject);
+        eventDetailData = object.toString();
+        // Reassign new format
+        ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
     }
 }

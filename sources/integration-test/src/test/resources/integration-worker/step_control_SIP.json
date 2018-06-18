@@ -30,6 +30,12 @@
                 "name": "checkProfile",
                 "uri": "VALUE:false"
               }
+            ],
+            "out": [
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
+              }
             ]
           }
         },
