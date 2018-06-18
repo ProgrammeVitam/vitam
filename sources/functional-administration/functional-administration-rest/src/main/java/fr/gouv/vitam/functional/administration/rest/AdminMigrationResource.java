@@ -33,13 +33,14 @@ package fr.gouv.vitam.functional.administration.rest;
 
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -73,6 +74,7 @@ public class AdminMigrationResource {
     private HashMap<Integer, String> xrequestIds;
     private AdminDataMigrationResource adminDataMigrationResource;
     private ProcessingManagementClientFactory processingManagementClientFactory;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminMigrationResource.class);
 
     /**
      * @param adminDataMigrationResource adminDataMigrationResource
@@ -114,16 +116,11 @@ public class AdminMigrationResource {
         xrequestIds.clear();
 
         getTenants().forEach(integer -> xrequestIds.put(integer, GUIDFactory.newGUID().getId()));
-
+        
         for (Map.Entry<Integer, String> entry : xrequestIds.entrySet()) {
             VitamThreadUtils.getVitamSession().setRequestId(entry.getValue());
             VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
-
-            VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-                VitamThreadUtils.getVitamSession().setRequestId(entry.getValue());
-                VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
-                adminDataMigrationResource.migrateTo(entry.getKey());
-            });
+            adminDataMigrationResource.migrateTo(entry.getKey());
         }
 
         return Response.status(Response.Status.ACCEPTED).build();
@@ -145,19 +142,24 @@ public class AdminMigrationResource {
         if (xrequestIds.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        try {
-            for (Map.Entry<Integer, String> entry : xrequestIds.entrySet()) {
-                VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
 
+        for (Map.Entry<Integer, String> entry : xrequestIds.entrySet()) {
+            VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
+            try {
                 ItemStatus operationProcessStatus =
                     processingManagementClient.getOperationProcessStatus(entry.getValue());
+                // if one process is on STARTED status return accepted
                 if (operationProcessStatus.getGlobalStatus().ordinal() <= StatusCode.STARTED.ordinal()) {
+                    // At least one workflow is in progress
                     return Response.status(Response.Status.ACCEPTED).build();
                 }
-
+            } catch (WorkflowNotFoundException e) {
+                LOGGER.warn("Could not find process '" + entry.getValue() + "'. Cleaned Process ?", e);
+            } catch (VitamException e) {
+                LOGGER.error("Could not check process status " + entry.getValue(), e);
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
-        } catch (VitamException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+
         }
 
         return Response.status(Response.Status.OK).build();
