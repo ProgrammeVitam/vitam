@@ -10,15 +10,28 @@
 		"MasterMandatory": false,
 		"EveryDataObjectVersion": true,
 		"FormatUnidentifiedAuthorized": false,
-		"EveryFormatType": true
+		"EveryFormatType": true,
+		"FormatType": ["fmt/18", "x-fmt/18", "fmt/19"]
 	},
-		{
+	{
 		"Name":"bName2",
 		"Description":"aDescription of the contract 2",
 		"Status":"ACTIVE",
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
-		"DeactivationDate":"10/12/2016"
+		"DeactivationDate":"10/12/2016",
+		"EveryFormatType": false,
+		"FormatType": []
+	},
+	{
+		"Name":"bName3",
+		"Description":"aDescription of the contract 3",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"EveryFormatType": false
 	}
 ]

@@ -12,11 +12,11 @@ export class ReferentialHelper {
   constructor() { }
 
   useSwitchButton(key : string) {
-    return ['Status','EveryDataObjectVersion', 'WritingPermission', 'EveryOriginatingAgency'].indexOf(key) > -1;
+    return ['Status', 'EveryDataObjectVersion', 'WritingPermission', 'EveryOriginatingAgency', 'EveryFormatType'].indexOf(key) > -1;
   }
 
   useChips(key : string) {
-    return ['OriginatingAgencies', 'ArchiveProfiles', 'RootUnits', 'ExcludedRootUnits'].indexOf(key) > -1;
+    return ['OriginatingAgencies', 'ArchiveProfiles', 'RootUnits', 'ExcludedRootUnits', 'FormatType'].indexOf(key) > -1;
   }
 
   useMultiSelect(key : string) {

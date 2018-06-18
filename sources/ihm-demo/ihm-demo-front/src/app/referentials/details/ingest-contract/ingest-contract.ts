@@ -11,6 +11,9 @@ export class IngestContract {
   CreationDate: string;
   MasterMandatory: boolean;
   EveryDataObjectVersion: boolean;
+  FormatUnidentifiedAuthorized: boolean;
+  EveryFormatType: boolean;
+  FormatType: string[];
   DataObjectVersion: string[];
   LastUpdate: string;
   ActivationDate: string;

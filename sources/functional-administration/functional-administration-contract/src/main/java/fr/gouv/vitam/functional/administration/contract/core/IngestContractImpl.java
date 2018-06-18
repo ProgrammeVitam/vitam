@@ -26,21 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -79,6 +64,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
@@ -103,6 +89,20 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.bson.conversions.Bson;
 
+import javax.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+
 /**
  * IngestContract implementation class
  */
@@ -112,6 +112,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         "The Ingest contract status must be ACTIVE or INACTIVE but not ";
     private static final String INGEST_CONTRACT_NOT_FOUND = "Ingest contract not found";
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
+    private static final String EVERYFORMAT_LIST_EMPTY = "formatType field must not be empty when everyFormat is false";
+    private static final String EVERYFORMAT_LIST_NOT_EMPTY = "formatType field must be empty when everyFormat is true";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_INGEST_CONTRACT";
@@ -127,6 +129,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String UPDATE_PROFILE_NOT_FOUND = "STP_UPDATE_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO";
     private static final String UPDATE_CONTRACT_BAD_REQUEST = "STP_UPDATE_INGEST_CONTRACT.BAD_REQUEST.KO";
     private static final String UPDATE_KO = "STP_UPDATE_INGEST_CONTRACT.KO";
+    private static final String UPDATE_WRONG_FILEFORMAT = "STP_UPDATE_INGEST_CONTRACT.FILEFORMAT_NOT_FOUND.KO";
 
     private static final String EVDETDATA_IDENTIFIER = "identifier";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
@@ -217,6 +220,20 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                                     .getReason(), StatusCode.KO));
                         continue;
                     }
+                }
+
+                //when everyformattype is false, formattype must not be empty
+                if (!acm.isEveryFormatType() && (acm.getFormatType() == null || acm.getFormatType().isEmpty())) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            EVERYFORMAT_LIST_EMPTY, StatusCode.KO).setMessage(CONTRACTS_IMPORT_EVENT));
+                    continue;
+                }
+
+                //when everyformattype is true, formattype must  be empty
+                if (acm.isEveryFormatType() && acm.getFormatType() != null) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        EVERYFORMAT_LIST_NOT_EMPTY, StatusCode.KO).setMessage(CONTRACTS_IMPORT_EVENT));
+                    continue;
                 }
 
                 // validate contract
@@ -356,7 +373,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
         public IngestContractManager(LogbookOperationsClient logbookClient, MetaDataClient metaDataClient,
-            GUID eip) {
+                                     GUID eip) {
             this.logbookClient = logbookClient;
             this.metaDataClient = metaDataClient;
             this.eip = eip;
@@ -366,6 +383,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 put(createWrongFieldFormatValidator(), EMPTY_REQUIRED_FIELD);
                 put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
                 put(createCheckProfilesExistsInDatabaseValidator(), PROFILE_NOT_FOUND_IN_DATABASE);
+                put(createCheckFormatFileExistsInDatabaseValidator(), CONTRACT_UPDATE_EVENT);
             }};
         }
 
@@ -451,6 +469,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                             evDetDataKey = "Mandatory Fields";
                             break;
                         case WRONG_FIELD_FORMAT:
+                        case UPDATE_WRONG_FILEFORMAT :
                             evDetDataKey = "Incorrect Field and value";
                             break;
                         case DUPLICATE_IN_DATABASE:
@@ -702,6 +721,33 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         }
 
         /**
+         * Check if the fileFormat submitted exist in database
+         *
+         * @return IngestContractValidator
+         */
+        private IngestContractValidator createCheckFormatFileExistsInDatabaseValidator() {
+            return (contract, contractName) -> {
+                if (null == contract.getFormatType() || contract.getFormatType().size() == 0) {
+                    return Optional.empty();
+                }
+                GenericRejectionCause rejection = null;
+                final int tenant = ParameterHelper.getTenantParameter();
+
+                final Bson clause =
+                        in(FileFormat.PUID, contract.getFormatType());
+
+                final long count = FunctionalAdminCollections.FORMATS.getCollection().count(clause);
+
+                if (count != contract.getFormatType().size()) {
+                    rejection =
+                            GenericRejectionCause
+                                    .rejectFormatFileTypeNotFoundInDatabase(contractName);
+                }
+                return rejection == null ? Optional.empty() : Optional.of(rejection);
+            };
+        }
+
+        /**
          * Check if the linkParentId is a valid existing FILING or HOLDING Unit identifier
          *
          * @param linkParentId GUID as String
@@ -813,6 +859,39 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     error.addToErrors(
                         getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result.get().getReason(),
                             StatusCode.KO).setMessage(UPDATE_PROFILE_NOT_FOUND));
+                }
+            }
+
+            //validate formattype not empty if everyformattype is false
+            final JsonNode everyFileformatFlagNode = queryDsl.findValue(IngestContractModel.EVERY_FORMAT_TYPE);
+            final JsonNode fileformatTypeNode = queryDsl.findValue(IngestContractModel.FORMAT_TYPE);
+            Set<String> fileformatTypes = null;
+
+            final boolean everyFileformatIsFalse = everyFileformatFlagNode != null && !everyFileformatFlagNode.asBoolean();
+
+            if(fileformatTypeNode != null && fileformatTypeNode.isArray()){
+                fileformatTypes =
+                        JsonHandler.getFromString(fileformatTypeNode.toString(), Set.class, String.class);
+            }
+
+            if(everyFileformatIsFalse && (fileformatTypeNode == null || fileformatTypes.isEmpty())){
+                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), EVERYFORMAT_LIST_EMPTY,
+                        StatusCode.KO).setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+            }
+
+            if (fileformatTypes != null) {
+
+                final IngestContractValidator validator =
+                        manager.createCheckFormatFileExistsInDatabaseValidator();
+                final Optional<GenericRejectionCause> result =
+                        validator.validate(new IngestContractModel().setFormatType(fileformatTypes),
+                                identifier);
+                if (result.isPresent()) {
+                    // there is a validation error on this contract
+                    /* contract is valid, add it to the list to persist */
+                    error.addToErrors(
+                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result.get().getReason(),
+                                    StatusCode.KO).setMessage(UPDATE_WRONG_FILEFORMAT));
                 }
             }
 

@@ -98,6 +98,18 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public static final String MASTERMANDATORY = "MasterMandatory";
 
+
+    /**
+     * the FormatUnidentifiedAuthorized false by default
+     */
+    public static final String FORMATUNIDENTIFIEDAUTHORIZED = "FormatUnidentifiedAuthorized";
+    /**
+     * the EveryFormatType true by default
+     */
+    public static final String EVERYFORMATTYPE = "EveryFormatType";
+
+
+
     /**
      * Empty Constructor
      */
@@ -350,5 +362,22 @@ public class IngestContract extends VitamDocument<IngestContract> {
         return this;
     }
 
+    public Boolean getEveryFormatType() {
+        return getBoolean(EVERYFORMATTYPE);
+    }
+
+    public IngestContract setEveryFormatType(boolean everyFormatType) {
+        append(EVERYFORMATTYPE, everyFormatType);
+        return this;
+    }
+
+    public Boolean getFormatUnidentifiedAuthorized() {
+        return getBoolean(FORMATUNIDENTIFIEDAUTHORIZED);
+    }
+
+    public IngestContract setFormatUnidentifiedAuthorized(boolean formatUnidentifiedAuthorized) {
+        append(FORMATUNIDENTIFIEDAUTHORIZED, formatUnidentifiedAuthorized);
+        return this;
+    }
 
 }

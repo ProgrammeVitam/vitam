@@ -26,6 +26,7 @@ export class IngestContractComponent extends PageComponent {
   isActif :boolean;
   isCheckParent :boolean;
   isMasterMandatory: boolean;
+  isFormatUnidentifiedAuthorized: boolean;
   update : boolean;
   updatedFields: any = {};
   saveRunning = false;
@@ -84,7 +85,11 @@ export class IngestContractComponent extends PageComponent {
       }
     }
   }
-    
+
+  changeFormatUnidentifiedAuthorized() {
+    this.updatedFields.FormatUnidentifiedAuthorized  = this.modifiedContract.FormatUnidentifiedAuthorized ;
+  }
+
   changeCheckControl() {
     if (this.isCheckParent) {
       this.updatedFields.CheckParentLink = 'ACTIVE';
@@ -92,7 +97,6 @@ export class IngestContractComponent extends PageComponent {
       this.updatedFields.CheckParentLink = 'INACTIVE';
     }
   }
-    
   valueChange(key : string) {
     this.updatedFields[key] = this.modifiedContract[key];
   }

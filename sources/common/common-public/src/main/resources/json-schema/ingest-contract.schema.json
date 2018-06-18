@@ -131,6 +131,18 @@
           "PhysicalMaster"
         ]
       }
+    },
+    "FormatUnidentifiedAuthorized": {
+      "type": "boolean"
+    },
+    "EveryFormatType": {
+      "type": "boolean"
+    },
+    "FormatType": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [
@@ -143,6 +155,8 @@
     "LastUpdate",
     "Name",
     "MasterMandatory",
-    "EveryDataObjectVersion"
+    "EveryDataObjectVersion",
+    "FormatUnidentifiedAuthorized",
+    "EveryFormatType"
   ]
 }
