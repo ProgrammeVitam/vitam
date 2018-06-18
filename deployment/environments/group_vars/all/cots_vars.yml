@@ -1,12 +1,10 @@
 ---
 consul_remote_sites:
-    # domain_name variables must correspond to vitam_site_name in each site inventory
-    # wan contains the wan addresses of consul server instances
+    # wan contains the wan addresses of the consul server instances of the external vitam sites
+    # Exemple, if our local dc is dc1, we will need to set dc2 & dc3 wan conf:
     # - dc2:
-    #   domain_name: "dc2"
     #   wan: ["10.10.10.10","1.1.1.1"]
     # - dc3:
-    #   domain_name: "site3"
     #   wan: ["10.10.10.11","1.1.1.1"]
 
 elasticsearch:
