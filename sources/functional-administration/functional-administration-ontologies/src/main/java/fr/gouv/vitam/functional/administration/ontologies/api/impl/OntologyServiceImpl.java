@@ -164,12 +164,12 @@ public class OntologyServiceImpl implements OntologyService {
      */
     private void initTypeMap() {
         typeMap = new HashMap<>();
-        typeMap.put(OntologyType.TEXT, Arrays.asList(OntologyType.TEXT, OntologyType.KEYWORD));
-        typeMap.put(OntologyType.KEYWORD, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
+        typeMap.put(OntologyType.TEXT, Arrays.asList(OntologyType.KEYWORD));
+        typeMap.put(OntologyType.KEYWORD, Arrays.asList(OntologyType.TEXT));
         typeMap.put(OntologyType.DATE, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
-        typeMap.put(OntologyType.LONG, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT, OntologyType.DOUBLE));
-        typeMap.put(OntologyType.DOUBLE, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
-        typeMap.put(OntologyType.BOOLEAN, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
+        typeMap.put(OntologyType.LONG, new ArrayList<>());
+        typeMap.put(OntologyType.DOUBLE, new ArrayList<>());
+        typeMap.put(OntologyType.BOOLEAN, new ArrayList<>());
         typeMap.put(OntologyType.GEO_POINT, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
         typeMap.put(OntologyType.ENUM, Arrays.asList(OntologyType.KEYWORD, OntologyType.TEXT));
     }
