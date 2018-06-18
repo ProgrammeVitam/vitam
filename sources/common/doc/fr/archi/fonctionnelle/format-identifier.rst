@@ -1,10 +1,3 @@
-Introduction
-############
-
-   Vitam traite des arbres des archive units et des groupes d'objet qui peuvent être présenter par des graphes précisement par Graphe orienté acyclique(D.A.G).
-   
-
-
 Vérification des formats :
 **************************
 

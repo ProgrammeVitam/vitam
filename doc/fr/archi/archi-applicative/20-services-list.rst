@@ -32,7 +32,6 @@ Rôle :
 Fonctions :
 
 * Upload HTTP de fichiers au format SEDA
-* Sas de validation antivirus des fichiers entrants
 * Persistance du SEDA dans workspace
 * Lancement des workflows de traitements liés à l'entrée dans processing
 
@@ -50,9 +49,9 @@ Rôle :
 
 Fonction :
 
-* Exposition des fonctions de recherche d'archives offertes par metadata ;
-* Exposition des fonctions de parcours de journaux offertes par logbook.
-* Exposition des fonctions d'admnistration métier du système offertes par functional-administration.
+* Exposition des fonctions de recherche d'archives offertes par metadata
+* Exposition des fonctions de parcours de journaux offertes par logbook
+* Exposition des fonctions d'admnistration métier du système offertes par functional-administration
 
 Données gérées :
 
@@ -70,12 +69,12 @@ Fonctions :
 
 * Gestion des certificats d'accès des applications (SIA)
 * Gestion des certificats personnels
-* Gestion des endpoints nécessitant le contrôle des certificats personnels.
+* Gestion des endpoints nécessitant le contrôle des certificats personnels
 
 Données gérées :
 
-* Certificats des applications appelant Vitam (SIA).
-* Certificates personnels (pour les endpoints nécessitant une authentification personae)
+* Certificats des applications appelant VITAM (SIA)
+* Certificats personnels (pour les endpoints nécessitant une authentification personae)
 
 
 Moteur d’exécution (processing)
@@ -97,7 +96,7 @@ Contraintes techniques :
 
 * Grand nombre de tâches
 * La durée d’exécution d’un ensemble de tâches peut être longue (ex: une campagne de transformation de document peut durer plusieurs semaines, voire plusieurs mois)
-* Possibilité de devoir gérer des objets lourds ; cela implique notamment l'usage de l’espace de travail pour passer des informations entre tâches, et des optimisations (colocalisations ou copies directes) permettant de limiter les contraintes sur le réseau.
+* Possibilité de devoir gérer des objets lourds ; cela implique notamment l'usage de l’espace de travail pour passer des informations entre tâches, et des optimisations (colocalisations ou copies directes) permettant de limiter les contraintes sur le réseau
 
 Données gérées :
 
@@ -109,7 +108,7 @@ Espace de travail (workspace)
 
 Rôle :
 
-* Fourniture d'un espace pour l'échange de fichiers (et faire un appel par pointeur lors des appels entre composants) entre les différents composants de Vitam
+* Fourniture d'un espace pour l'échange de fichiers (et faire un appel par pointeur lors des appels entre composants) entre les différents composants de VITAM
 
 Fonctions :
 
@@ -133,8 +132,8 @@ Rôle :
 
 Fonction :
 
-* Déclenchement des opérations sur requête du moteur d'exécution ;
-* Gestion d'un cache local des éléments traités, en interactions avec l'espace de travail ;
+* Déclenchement des opérations sur requête du moteur d'exécution
+* Gestion d'un cache local des éléments traités, en interaction avec l'espace de travail
 
 Données gérées :
 
@@ -154,7 +153,7 @@ Fonctions :
 
 Données gérées :
 
-* Métadonnées et structures des archives : Archive Units, Object Group ;
+* Métadonnées et structures des archives : Archive Units, Object Group
 
 
 Moteur de journalisation (logbook)
@@ -166,8 +165,8 @@ Rôle :
 
 Fonctions :
 
-* Gestion des journaux (ajout, lecture) ;
-* Sécurisation des journaux (cron)
+* Gestion des journaux (ajout, lecture)
+* Sécurisation des journaux (timer systemd)
 
 Contraintes techniques :
 
@@ -227,7 +226,7 @@ Offre de stockage par défaut (storage-offer-default)
 
 Rôle :
 
-* Fournir une offre de stockage par défaut permettant la persistance des objets sur un système de fichier local
+* Fournir une offre de stockage par défaut permettant la persistance des objets sur un système de fichiers local
 
 Fonctions :
 

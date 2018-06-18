@@ -1,10 +1,5 @@
-Introduction
-############
-
-But de cette documentation
-**************************
-L'objectif de cette documentation est d'expliquer l'architecture fonctionnelle de ce module.
-
+Engine
+******
 
 Ce service permet d'exécuter une étape d'un processus. Il est complètement piloté par une machine à état.
 

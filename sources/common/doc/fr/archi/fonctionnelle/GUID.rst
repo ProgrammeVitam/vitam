@@ -1,5 +1,5 @@
-Introduction
-############
+GUID
+####
 
 Le sujet porte notamment sur les **GUID**.
 

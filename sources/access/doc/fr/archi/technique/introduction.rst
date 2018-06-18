@@ -17,7 +17,7 @@ Itération 4
 | - vitam-access-core : Classes impléméntant les API publiques.
 | - vitam-access-rest : module pour les api REST.
 
-//TODO si IHM
+.. //TODO si IHM
 
 Modules - packages
 ------------------

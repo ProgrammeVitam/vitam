@@ -1,10 +1,5 @@
-Introduction
-############
-
-But de cette documentation
-**************************
-
-L'objectif de cette documentation est d'expliquer l'architecture fonctionnelle de ce module.
+Worker
+******
 
 Ce module traite une étape précise dans l'ensemble des opérations de workflow.
 Pour chaque étape, une liste d'actions est lancée via des ActionHandler.

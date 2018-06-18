@@ -1,8 +1,5 @@
-Introduction
-############
-
-But de cette documentation
-**************************
+Worker
+******
 
 L'objectif de cette documentation est d'expliquer l'architecture fonctionnelle de ce module.
 

@@ -1,5 +1,2 @@
-Introduction
-############
-
 Gestion de format
 --------------------------

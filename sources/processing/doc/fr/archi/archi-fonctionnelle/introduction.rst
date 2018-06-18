@@ -8,7 +8,7 @@ L'objectif de cette documentation est d'expliquer l'architecture fonctionnelle d
 
 
 Processing
-************************
+**********
 
 Mot-clé
  - workflow : une processus de traitement des opérations

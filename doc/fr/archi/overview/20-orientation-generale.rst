@@ -28,7 +28,7 @@ Même si c'est un back-office, certaines IHM sont prévues pour différentes fon
 * IHM minimale : elle assure un socle minimal d'IHM pour assurer un usage rapide de Vitam. Cette IHM est prévue pour être utilisée dans les cas simples, et donc, selon le front-office utilisé, elle peut ne pas être nécessaire ;
 * IHM de démonstration : elle porte des exemples d'implémentations limitatives tant en fonctionnalité qu'en garantie de fonctionnement. Ces IHM ne doivent pas être mises en production mais sont des exemples dont peuvent s'inspirer les concepteurs d'applications front-offices.
 
-	- Cette IHM porte notamment des codes de démonstration, des cas particulier d'exemples pour de futures implémentations de front-offices, mais uniquement sur un aspect codage (requêtes et réponses) pour illustrer des cas d'usages
+	- Cette IHM porte notamment des codes de démonstration, des cas particulier d'exemples pour de futures implémentations de front-offices, mais uniquement sur un aspect codage (requêtes et réponses) pour illustrer des cas d'usages.
 
 
 API REST
@@ -38,17 +38,17 @@ Pour assurer l'interconnexion entre le back-office et les front-offices, il est 
 
 Une analogie peut être faite entre Vitam et une base de données :
 
-* une base de données peut héberger une ou plusieurs tables communes à de multiples applications clientes
-* les applications clientes utilisent des API (SQL) pour échanger avec le moteur de la base de données
-* la base de données dispose d'une IHM spécifique d'administration pouvant utiliser les mêmes API (SQL) ou des API spécifiques du moteur
+* une base de données peut héberger une ou plusieurs tables communes à de multiples applications clientes ;
+* les applications clientes utilisent des API (SQL) pour échanger avec le moteur de la base de données ;
+* la base de données dispose d'une IHM spécifique d'administration pouvant utiliser les mêmes API (SQL) ou des API spécifiques du moteur.
 
 
 Big Data et Cloud computing
 ===========================
 
-Les contraintes de volumétrie (plusieurs dizaines de milliards d'objets) conduisent à une volumétrie (en nombre) dépassant les capacités des logiciels usuels (type SGBDR). Les technologies NoSQL ou Cloud computing à forte distribution permettent de palier à ce problème.
+Les contraintes de volumétrie (plusieurs dizaines de milliards d'objets) conduisent à une volumétrie (en nombre) dépassant les capacités des logiciels usuels (type SGBDR). Les technologies NoSQL ou Cloud computing à forte distribution permettent de pallier ce problème.
 
-Pour chaque objet numérique, les métadonnées associées sont variables ([Nom, Prénom, ...] pour un dossier RH, [Projet, Domaine, ...] pour un dossier projet, [Action, Plan comptable, … ] pour de la comptabilité, …). Cette variabilité peut être assumée par des technologies NoSQL dites "schema less".
+Pour chaque objet numérique, les métadonnées associées sont variables ([Nom, Prénom, ...] pour un dossier RH, [Projet, Domaine, ...] pour un dossier projet, [Action, Plan comptable, … ] pour de la comptabilité, …). Cette variabilité peut être assumée par des technologies NoSQL dites "schemaless".
 
 Chaque objet numérique peut être d'un format différent (Word, PDF, JPG, AVI, …). La lisibilité dans le temps d'un objet numérique est un enjeu majeur. Si on ne peut plus le lire (le consulter par exemple), il n'est plus compréhensible par l'humain. Les transformations de format pour en assurer la lisibilité sont donc indispensables dans le temps. Du fait de la masse (dizaines de milliards d'objets numériques), cette contrainte impose de gérer une vélocité de grande masse.
 
@@ -62,7 +62,7 @@ Ces 3 V (Volume, Variété, Vélocité) imposent une vision "Big Data" mais non 
 Cloud storage
 =============
 
-La particularité de l'accès aux objets numériques est un accès unitaire a minima (l'accès à un lot se résumant à faire des accès unitaires pour chacun des éléments de ce lot). Ainsi on accède à un courriel et non uniquement à une boîte aux lettres. Ainsi chaque objet étant accédé unitairement, la logique retenue pour le stockage est une logique Objet ("Content Adressable Storage = CAS") et non une logique systèmes de fichiers. L'implémentation réelle peut s'appuyer sur une logique de systèmes de fichiers, mais l'interface visible elle sera objet. Le modèle de référence (ce qui ne veut pas dire l'implémentation réelle ni l'interface exacte) s'inspire de la NF Z 42-020 et du modèle SWIFT ou CEPH. L'avantage des deux dernières technologies est qu'elles permettent d'envisager un modèle qui peut croître en taille sans avoir à tout changer à chaque fois. Il s'agit donc du modèle Cloud Storage.
+La particularité de l'accès aux objets numériques est un accès unitaire a minima (l'accès à un lot se résumant à faire des accès unitaires pour chacun des éléments de ce lot). Ainsi on accède à un courriel et non uniquement à une boîte aux lettres. Ainsi chaque objet étant accédé unitairement, la logique retenue pour le stockage est une logique Objet ("Content Adressable Storage = CAS") et non une logique systèmes de fichiers. L'implémentation réelle peut s'appuyer sur une logique de systèmes de fichiers, mais l'interface visible sera bien objet. Le modèle de référence (ce qui ne veut pas dire l'implémentation réelle ni l'interface exacte) s'inspire de la NF Z 42-020 et du modèle SWIFT ou CEPH. L'avantage des deux dernières technologies est qu'elles permettent d'envisager un modèle qui peut croître en taille sans avoir à tout changer à chaque fois. Il s'agit donc du modèle Cloud Storage.
 
 .. note:: Les notions de Cloud computing ou Cloud Storage ne sont pas à prendre au sens hébergement chez Amazon, Google ou Azure, mais au sens des technologies sous-jacentes.
 
@@ -122,7 +122,7 @@ Du fait de la complexité des composants à mettre en oeuvre et donc de l'exploi
 
 Ainsi il est nécessaire de disposer d'un outillage permettant la configuration, l'installation et la mise à jour des composants et des services pour une plate-forme Vitam.
 
-Il est nécessaire d'avoir de disposer d'un outillage permettant de suivre l'activité du système global :
+Il est également nécessaire de disposer d'un outillage permettant de suivre l'activité du système global :
 
 * Gestion des logs centralisés
 * Suivi des opérations ou d'une opération en cours

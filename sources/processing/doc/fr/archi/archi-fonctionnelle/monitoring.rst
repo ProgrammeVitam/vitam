@@ -1,9 +1,5 @@
 Process Monitoring
-##################
-
-Explication
-***********
-L'objectif de cette documentation est d'expliquer l'architecture fonctionnelle de ce module.
+******************
 
 Le but de ce module est de pouvoir monitorer les différentes étapes des différents Worklow. 
 

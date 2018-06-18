@@ -1,5 +1,5 @@
 ########
-Securite
+Sécurité
 ########
 
 .. toctree::
