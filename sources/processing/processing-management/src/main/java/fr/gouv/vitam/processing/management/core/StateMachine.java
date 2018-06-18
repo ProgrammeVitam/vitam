@@ -75,8 +75,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StateMachine.class);
 
-    private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
-
     private ProcessEngine processEngine;
     private ProcessWorkflow processWorkflow;
     private ProcessDataManagement dataManagement;
@@ -486,7 +484,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (null != currentStep) {
             engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
-            Stopwatch stopwatch = Stopwatch.createStarted();
             try {
                 workerParameters.setPreviousStep(backwards ? currentStep.getStepName() : null);
                 this.processEngine.start(currentStep, workerParameters, engineParams, pauseRecover);
@@ -498,8 +495,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 } finally {
                     this.persistProcessWorkflow();
                 }
-            } finally {
-                PERFORMANCE_LOGGER.log(currentStep.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
             }
         }
     }
@@ -522,7 +517,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (null != currentStep) {
             engineParams.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, messageIdentifier);
             engineParams.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
-            Stopwatch stopWatch = Stopwatch.createStarted();
             try {
                 this.processEngine.start(currentStep, workerParameters, engineParams, PauseRecover.NO_RECOVER);
             } catch (ProcessingEngineException e) {
@@ -533,8 +527,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 } finally {
                     this.persistProcessWorkflow();
                 }
-            } finally {
-                PERFORMANCE_LOGGER.log(currentStep.getStepName(), stopWatch.elapsed(TimeUnit.MILLISECONDS));
             }
         }
     }

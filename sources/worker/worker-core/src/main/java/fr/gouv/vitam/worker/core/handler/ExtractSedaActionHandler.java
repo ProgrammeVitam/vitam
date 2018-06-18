@@ -30,22 +30,6 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -66,6 +50,23 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLEventWriter;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.EndElement;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -73,6 +74,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
@@ -913,7 +915,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             long elapsed = xmlParserStopwatch.elapsed(TimeUnit.MILLISECONDS);
 
-            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.xml.parse", elapsed);
+            PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.xml.parse", elapsed);
 
             writer.add(eventFactory.createEndDocument());
             writer.close();
@@ -1038,7 +1040,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             checkCycle(logbookLifeCycleClient, containerId, evDetDataJson);
 
-            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.checkCycle",
+            PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.checkCycle",
                 checkCycle.elapsed(TimeUnit.MILLISECONDS));
 
             // 2- create graph and create level
@@ -1053,7 +1055,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup();
             saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, originatingAgency,
                 storageInfo);
-            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.saveObjectGroup",
+
+            PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveObjectGroup",
                 saveObjectGroupToWorkspaceStopWatch.elapsed(TimeUnit.MILLISECONDS));
 
 
@@ -1064,7 +1067,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, logbookLifeCycleClient, storageInfo);
 
-            PERFORMANCE_LOGGER.log("CHECK_DATAOBJECTPACKAGE", getId(), "extractSeda.saveArchiveUnit",
+            PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveArchiveUnit",
                 saveArchiveUnitStopWatch.elapsed(TimeUnit.MILLISECONDS));
 
             handlerIO.addOutputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false, asyncIO);
@@ -1192,7 +1195,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     xw.add(eventFactory.createEndElement("", "", event.asEndElement().getName().getLocalPart()));
                     // Add to map
                     if (currentRuleId == null) {
-                        // use temporary id (avoid using null key for different rule category) 
+                        // use temporary id (avoid using null key for different rule category)
                         mngtMdRuleIdToRulesXml.put(currentRuleInProcess, stringWriterRule);
                     } else {
                         mngtMdRuleIdToRulesXml.put(currentRuleId, stringWriterRule);
