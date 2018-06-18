@@ -50,11 +50,11 @@ public class MigrationUnitPrepareTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/migration/resultMetadata.json")));
 
         File chainedFile0 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile.json")).willReturn(chainedFile0);
+        given(handlerIO.getNewLocalFile("Units/chainedFile.json")).willReturn(chainedFile0);
 
 
         File chainedFile1 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile.json.1")).willReturn(chainedFile1);
+        given(handlerIO.getNewLocalFile("Units/chainedFile.json.1")).willReturn(chainedFile1);
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(("report.json"))).willReturn(reportFile);

@@ -50,11 +50,11 @@ public class MigrationObjectGroupPrepareTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/migration/resultObjectGroup.json")));
 
         File chainedFile0 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile.json")).willReturn(chainedFile0);
+        given(handlerIO.getNewLocalFile("ObjectGroup/chainedFile.json")).willReturn(chainedFile0);
 
 
         File chainedFile1 = tempFolder.newFile();
-        given(handlerIO.getNewLocalFile("chainedFile.json.1")).willReturn(chainedFile1);
+        given(handlerIO.getNewLocalFile("ObjectGroup/chainedFile.json.1")).willReturn(chainedFile1);
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(("report.json"))).willReturn(reportFile);
