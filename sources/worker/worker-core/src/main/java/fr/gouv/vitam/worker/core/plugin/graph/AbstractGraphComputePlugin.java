@@ -29,9 +29,13 @@ package fr.gouv.vitam.worker.core.plugin.graph;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
@@ -44,6 +48,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.elasticsearch.common.Strings;
 
 /**
  * Common implementation of compute graph for UNIT and GOT
@@ -70,18 +75,21 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
 
         List<ItemStatus> aggregateItemStatus = new ArrayList<>();
         List<String> items = workerParameters.getObjectNameList();
+        // Transform to Set? (Remove duplicates)
+        Set<String> ids = new HashSet<>(items);
 
-        int initialSize = new HashSet<>(items).size(); // Because in metadata we transform to Set (Remove duplicates)
+        int initialSize = ids.size();
         int finalSize = 0;
+        GraphComputeResponse graphComputeResponse = null;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-            GraphComputeResponse resp = metaDataClient.computeGraph(getGraphComputeAction(), new HashSet<>(items));
+            graphComputeResponse = metaDataClient.computeGraph(getGraphComputeAction(), ids);
 
             switch (getGraphComputeAction()) {
                 case UNIT:
-                    finalSize = resp.getUnitCount();
+                    finalSize = graphComputeResponse.getUnitCount();
                     break;
                 case OBJECTGROUP:
-                    finalSize = resp.getGotCount();
+                    finalSize = graphComputeResponse.getGotCount();
                     break;
                 default:
                     // Nothing
@@ -95,13 +103,21 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
         }
 
 
-        int ko = Math.abs(initialSize - finalSize);
+        int fatal = Math.abs(initialSize - finalSize);
 
         // The ko should be not blocking
-        if (0 == ko) {
+        if (0 == fatal) {
             itemStatus.increment(StatusCode.OK, finalSize);
         } else {
-            itemStatus.increment(StatusCode.OK, finalSize).increment(StatusCode.KO, ko);
+            if (null != graphComputeResponse && !Strings.isNullOrEmpty(graphComputeResponse.getErrorMessage())) {
+                ObjectNode infoNode = JsonHandler.createObjectNode();
+                infoNode.put(SedaConstants.EV_DET_TECH_DATA, graphComputeResponse.getErrorMessage());
+                String evdev = JsonHandler.unprettyPrint(infoNode);
+                itemStatus.setEvDetailData(evdev);
+            }
+
+            // When fatal occurs, we have the index from where we restart workflow distribution after resolving FATAL cause
+            itemStatus.increment(StatusCode.OK, finalSize).increment(StatusCode.FATAL, fatal);
         }
         aggregateItemStatus.add(itemStatus);
 

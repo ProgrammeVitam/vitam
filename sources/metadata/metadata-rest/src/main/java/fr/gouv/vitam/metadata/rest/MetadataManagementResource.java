@@ -42,11 +42,9 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
@@ -54,6 +52,7 @@ import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
@@ -178,8 +177,8 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraph() {
-
         try {
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
             Map<MetadataCollections, Integer> map = this.storeGraphService.tryStoreGraph();
             return Response.ok().entity(map).build();
         } catch (Exception e) {
@@ -283,10 +282,5 @@ public class MetadataManagementResource {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
             return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
         }
-    }
-
-    public static void main(String[] args) throws InvalidParseOperationException {
-        List<String> list = Lists.newArrayList("a", "b");
-        System.err.println(JsonHandler.writeAsString(list));
     }
 }

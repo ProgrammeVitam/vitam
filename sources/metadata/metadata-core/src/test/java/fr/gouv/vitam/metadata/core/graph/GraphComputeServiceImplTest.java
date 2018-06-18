@@ -204,7 +204,7 @@ public class GraphComputeServiceImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void whenBuildGraphThenQueryResultIsEmpty() throws GraphBuilderException {
+    public void whenBuildGraphThenQueryResultIsEmpty() {
         // given
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);
         when(mongoCursorGot.hasNext()).thenAnswer(o -> false);

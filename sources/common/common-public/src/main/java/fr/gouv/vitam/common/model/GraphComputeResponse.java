@@ -32,8 +32,17 @@ package fr.gouv.vitam.common.model;
 public class GraphComputeResponse {
 
     public enum GraphComputeAction {
+        /**
+         * Compute graph only for Unit
+         */
         UNIT,
+        /**
+         * Compute graph only for ObjectGroup
+         */
         OBJECTGROUP,
+        /**
+         * Compute graph for Unit and there ObjectGroup
+         */
         UNIT_OBJECTGROUP
     }
 
@@ -41,6 +50,7 @@ public class GraphComputeResponse {
     private Integer unitCount = 0;
     private Integer gotCount = 0;
 
+    private String errorMessage;
     /**
      * Default constructor
      */
@@ -127,5 +137,13 @@ public class GraphComputeResponse {
     public GraphComputeResponse setGotCount(Integer gotCount) {
         this.gotCount = gotCount;
         return this;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }
