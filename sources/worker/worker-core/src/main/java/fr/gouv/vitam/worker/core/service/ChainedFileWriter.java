@@ -40,7 +40,6 @@ import java.io.File;
 public class ChainedFileWriter implements AutoCloseable {
 
     private final HandlerIO handler;
-    private final String folder;
     private final String filename;
     private final int batchSize;
 
@@ -49,9 +48,8 @@ public class ChainedFileWriter implements AutoCloseable {
     private int chainedFileCount;
     private boolean closed;
 
-    public ChainedFileWriter(HandlerIO handler, String folder, String filename, int batchSize) {
+    public ChainedFileWriter(HandlerIO handler, String filename, int batchSize) {
         this.handler = handler;
-        this.folder = folder;
         this.filename = filename;
         this.batchSize = batchSize;
 
@@ -84,7 +82,7 @@ public class ChainedFileWriter implements AutoCloseable {
         File file = handler.getNewLocalFile(currentFileName);
         JsonHandler.writeAsFile(currentChainedFile, file);
 
-        handler.transferFileToWorkspace(folder + "/" + currentFileName, file, true, false);
+        handler.transferFileToWorkspace(currentFileName, file, true, false);
     }
 
     @Override
