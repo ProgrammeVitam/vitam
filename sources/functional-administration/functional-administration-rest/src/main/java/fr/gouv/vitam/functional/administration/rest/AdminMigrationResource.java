@@ -149,7 +149,13 @@ public class AdminMigrationResource {
                 ItemStatus operationProcessStatus =
                     processingManagementClient.getOperationProcessStatus(entry.getValue());
                 // if one process is on STARTED status return accepted
-                if (operationProcessStatus.getGlobalStatus().ordinal() <= StatusCode.STARTED.ordinal()) {
+
+                boolean isProcessFinished = operationProcessStatus.getGlobalState().equals(ProcessState.COMPLETED);
+
+                // When FATAL occurs, the process state will be set to PAUSE and status to FATAL => To be treated manually
+                boolean isProcessPauseFatal = operationProcessStatus.getGlobalState().equals(ProcessState.PAUSE) && StatusCode.FATAL.equals(operationProcessStatus.getGlobalStatus());
+
+                if (!isProcessFinished && !isProcessPauseFatal) {
                     // At least one workflow is in progress
                     return Response.status(Response.Status.ACCEPTED).build();
                 }
