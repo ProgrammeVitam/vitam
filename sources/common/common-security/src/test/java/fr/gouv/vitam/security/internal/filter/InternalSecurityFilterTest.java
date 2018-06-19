@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.UriInfo;
 
+import fr.gouv.vitam.common.model.administration.ContextStatus;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -206,7 +207,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, "fakeAccessContract", null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -226,7 +227,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
 
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(false, true, null, null));
+            .thenReturn(getTestContext(ContextStatus.INACTIVE, true, null, null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -246,7 +247,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn(VitamConfiguration.STATUS_URL);
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, null, null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -265,7 +266,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn(VitamConfiguration.TENANTS_URL);
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, null, null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -284,7 +285,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, null, null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -303,7 +304,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, "fakeAccessContract", null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -323,7 +324,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/access-external/");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, "fakeAccessContract", null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -343,7 +344,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/access-external/");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, "fakeAccessContract", null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -365,7 +366,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/access-external/");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, false, "fakeAccessContract", null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, false, "fakeAccessContract", null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -386,7 +387,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, "notIngestContract", null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "notIngestContract", null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -405,7 +406,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, true, null, "fakeIngestContract"));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, "fakeIngestContract"));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -426,7 +427,7 @@ public class InternalSecurityFilterTest {
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
         when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(true, false, "notIngestContract", null));
+            .thenReturn(getTestContext(ContextStatus.ACTIVE, false, "notIngestContract", null));
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -439,7 +440,7 @@ public class InternalSecurityFilterTest {
      * @param ingestContract
      * @return
      */
-    private RequestResponse getTestContext(boolean status, boolean enableControl, String accessContract,
+    private RequestResponse getTestContext(ContextStatus status, boolean enableControl, String accessContract,
         String ingestContract) {
         ContextModel contextModel = new ContextModel();
         contextModel.setId("fakeId");

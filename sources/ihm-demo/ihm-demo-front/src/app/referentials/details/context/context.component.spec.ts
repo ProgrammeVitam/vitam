@@ -16,7 +16,7 @@ const context1 = {
   "tenant": '0',
   "Name":"admin-context",
   "Description": "Context de test",
-  "Status":true,"EnableControl":false,
+  "Status":"ACTIVE","EnableControl":false,
   "Permissions":[
     {"tenant":0,"AccessContracts":[],"IngestContracts":[]}],
   "CreationDate":"2017-10-09T10:11:05.588",
@@ -31,7 +31,7 @@ const context2 = {
   "tenant": '0',
   "Name":"admin-context",
   "Description": "Context de test",
-  "Status":true,"EnableControl":false,
+  "Status":"ACTIVE","EnableControl":false,
   "Permissions":[
     {"tenant":0,"AccessContracts":['ContratTNR'],"IngestContracts":[]}],
   "CreationDate":"2017-10-09T10:11:05.588",
