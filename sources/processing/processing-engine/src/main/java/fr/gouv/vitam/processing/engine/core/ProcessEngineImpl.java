@@ -29,6 +29,8 @@ package fr.gouv.vitam.processing.engine.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Stopwatch;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -45,8 +47,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.Action;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -72,12 +74,15 @@ import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
  */
 public class ProcessEngineImpl implements ProcessEngine {
+
+    private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
     private static final String AGENCY_DETAIL = "agIdExt";
@@ -167,6 +172,8 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         this.workerParameters.setCurrentStep(step.getStepName());
 
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
         CompletableFuture
             // call distributor in async mode
             .supplyAsync(() -> {
@@ -221,12 +228,15 @@ public class ProcessEngineImpl implements ProcessEngine {
                 }
 
                 callback.onComplete(distributorResponse, this.workerParameters);
+                PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
                 return distributorResponse;
             })
             // When exception occurred
             .exceptionally((e) -> {
                 LOGGER.error("Error while process workflow", e);
                 callback.onError(e, this.workerParameters);
+                PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 return null;
             });
     }
