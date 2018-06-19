@@ -638,7 +638,9 @@ public class MongoDbAccessAdminImplTest {
             .setActivationdate(lastupdate)
             .setDeactivationdate(lastupdate)
             .setMasterMandatory(true)
-            .setEveryDataObjectVersion(false);
+            .setEveryDataObjectVersion(false)
+            .setFormatUnidentifiedAuthorized(true)
+            .setEveryFormatType(false);
         return contract;
     }
 

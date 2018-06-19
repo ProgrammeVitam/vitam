@@ -30,6 +30,7 @@ export class LogbookOperationComponent extends PageComponent {
     {label: 'Entrée', value: 'ingest'},
     {label: 'Export DIP', value: 'export_dip'},
     {label: 'Mise à jour', value: 'update'},
+    {label: 'Mise à jour de format authorisé', value: 'formatUpdate'},
     {label: 'Préservation', value: 'preservation'},
     {label: 'Sécurisation', value: 'traceability'},
     {label: 'Vérification', value: 'check'},

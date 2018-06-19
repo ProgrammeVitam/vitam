@@ -91,6 +91,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_WRONG_LINK_PARENT_ID =
             "the id of the AU %s is not in filing nor holding schema";
+        private static final String ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT = "One or multiple file format %s not found in db";
 
         private String reason;
 
@@ -199,6 +200,16 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectMandatoryMissing(String fieldName) {
             return new GenericRejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
+        }
+
+        /**
+         * Verify for each contract that all archive profiles exists in database
+         *
+         * @param contractName
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectFormatFileTypeNotFoundInDatabase(String contractName) {
+            return new GenericRejectionCause(String.format(ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT, contractName));
         }
 
         /**

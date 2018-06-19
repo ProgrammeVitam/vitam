@@ -10,6 +10,8 @@
 	"DeactivationDate": "2016-12-10T00:00:00.000",
 	"MasterMandatory": true,
 	"EveryDataObjectVersion": false,
+	"FormatUnidentifiedAuthorized": true,
+	"EveryFormatType": false,
 	"_tenant": 0,
 	"_v": 0
 }

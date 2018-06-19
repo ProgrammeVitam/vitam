@@ -17,24 +17,6 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -67,6 +49,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -77,11 +60,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import org.bson.Document;
@@ -95,6 +78,23 @@ import org.mockito.Mockito;
 import org.openstack4j.api.exceptions.StatusCode;
 
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 
 public class IngestContractImplTest {
@@ -110,6 +110,7 @@ public class IngestContractImplTest {
     static final String COLLECTION_NAME = "IngestContract";
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
+    static final  String FORMAT_FILE = "file-format-light.json";
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient client;
@@ -557,6 +558,10 @@ public class IngestContractImplTest {
             assertThat(ingestContractModel.isMasterMandatory()).isTrue();
             assertThat(ingestContractModel.isEveryDataObjectVersion()).isFalse();
         }
+        for (final IngestContractModel ingestContractModel : responseFindbName2.getResults()){
+            assertThat(ingestContractModel.isFormatUnidentifiedAuthorized()).isFalse();
+            assertThat(ingestContractModel.isEveryFormatType()).isTrue();
+        }
         for (final IngestContractModel ingestContractModel : responseCast.getResults()) {
             assertThat(ActivationStatus.ACTIVE.equals(ingestContractModel.getStatus())).isTrue();
         }
@@ -564,6 +569,11 @@ public class IngestContractImplTest {
             assertThat(ingestContractModel.isMasterMandatory()).isFalse();
             assertThat(ingestContractModel.isEveryDataObjectVersion()).isTrue();
         }
+        for (final IngestContractModel ingestContractModel : responseCast.getResults()) {
+            assertThat(ingestContractModel.isFormatUnidentifiedAuthorized()).isFalse();
+            assertThat(ingestContractModel.isEveryFormatType()).isTrue();
+        }
+
         final String identifier = responseCast.getResults().get(0).getIdentifier();
         // Test update for ingest contract Status => inactive
         final String now = LocalDateUtil.now().toString();
@@ -624,9 +634,60 @@ public class IngestContractImplTest {
             ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
         assertThat(!responseUpdate.isOk());
         assertEquals(responseUpdate.getStatus(), StatusCode.BAD_REQUEST.getCode());
-
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractsTestFormatInDB() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileFormat = PropertiesUtils.getResourceFile(FORMAT_FILE);
+
+        final List<FileFormatModel> fileFormatModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileFormat, new TypeReference<List<FileFormatModel>>() {
+                });
+
+        ArrayNode allFormatNodeArray = JsonHandler.createArrayNode();
+        for(FileFormatModel format : fileFormatModelList){
+            allFormatNodeArray.add(JsonHandler.toJsonNode(format));
+        }
+        dbImpl.insertDocuments(
+                allFormatNodeArray,
+                FunctionalAdminCollections.FORMATS).close();
+        //Contract format OK
+        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ok.json");
+        final List<IngestContractModel> ingestContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
+
+        RequestResponse response = ingestContractService.createContracts(ingestContractModelList);
+
+        assertTrue(response.isOk());
+
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
+        parser.parse(select.getFinalSelect());
+
+        JsonNode formatQueryDsl = parser.getRequest().getFinalSelect();
+        RequestResponseOK<IngestContractModel> responseCast = ingestContractService.findContracts(formatQueryDsl);
+
+        assertThat(responseCast.getResults()).isNotEmpty();
+        assertTrue(responseCast.getResults().size() == 2);
+
+        //KO
+        final File fileContractsKO = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ko.json");
+        final List<IngestContractModel> ingestContractModelKOList =
+                JsonHandler.getFromFileAsTypeRefence(fileContractsKO, new TypeReference<List<IngestContractModel>>() {
+                });
+
+        response = ingestContractService.createContracts(ingestContractModelKOList);
+
+        assertTrue(!response.isOk());
+
+        RequestResponseOK<IngestContractModel> responseContrat = ingestContractService.findContracts(formatQueryDsl);
+
+        assertThat(responseContrat.getResults()).isNotEmpty();
+        assertTrue(responseCast.getResults().size() == 2);
+    }
 
     @Test
     @RunWithCustomExecutor

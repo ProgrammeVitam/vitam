@@ -132,6 +132,43 @@
                                 class="ui-g-12" [(updatedFields)]="updatedFields"></vitam-metadata-field>
         </div>
       </div>
+    </div>
+
+    <div class="ui-g-12 textAlignLeft" *ngIf="contract">
+      <div class="ui-g-12">
+        <div class="ui-g-nopad ui-g-4">
+          <div class="ui-g-8">
+            <label class="label fieldLabel">Formats non identifiés autorisés</label>
+          </div>
+          <div class="ui-g-2" *ngIf="!update">
+            <span class="overflow-break-words">{{modifiedContract.FormatUnidentifiedAuthorized ? 'oui' : 'non'}}</span>
+          </div>
+          <div class="ui-g-2" *ngIf="update">
+            <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.FormatUnidentifiedAuthorized "
+                            (onChange)="changeFormatUnidentifiedAuthorized ()"></p-toggleButton>
+          </div>
+        </div>
+
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-8">
+            <label class="label fieldLabel">Tous les formats</label>
+          </div>
+          <div class="ui-g-nopad ui-g-2" *ngIf="!update">
+            <span class="overflow-break-words" >{{modifiedContract.EveryFormatType ? 'Oui' : 'Non'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-2" *ngIf="update">
+            <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.EveryFormatType" (onChange)="changeBooleanValue('EveryFormatType')"></p-toggleButton>
+
+          </div>
+        </div>
+      <div class="ui-g-nopad ui-g-4">
+          <vitam-metadata-field *ngIf="!modifiedContract.EveryFormatType" [title]="'Liste blanche des format'"
+                                [originalTitle]="'FormatType'"  [value]="modifiedContract.FormatType" [labelSize]="4"
+                                class="ui-g-12 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+          <div class="ui-g-4" *ngIf="modifiedContract.EveryFormatType"  >
+          </div>
+        </div>
+      </div>
 
       <div class="ui-g-12">
         <div class="ui-g-nopad ui-g-12" *ngIf="update">

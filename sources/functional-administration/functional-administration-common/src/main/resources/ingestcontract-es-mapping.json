@@ -47,6 +47,15 @@
     "DataObjectVersion": {
       "type": "keyword"
     },
+    "FormatUnidentifiedAuthorized": {
+      "type": "boolean"
+    },
+    "EveryFormatType": {
+      "type": "boolean"
+    },
+    "FormatType": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },

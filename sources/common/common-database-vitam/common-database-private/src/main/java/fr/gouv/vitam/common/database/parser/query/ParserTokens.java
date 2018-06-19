@@ -387,6 +387,9 @@ public class ParserTokens extends BuilderToken {
         "LinkParentId",
         "CheckParentLink",
         "MasterMandatory",
+        "FormatUnidentifiedAuthorized",
+        "EveryFormatType",
+        "FormatType",
         "_tenant",
         "_v",
         "_score",
@@ -1038,6 +1041,9 @@ public class ParserTokens extends BuilderToken {
             case "LinkParentId":
             case "CheckParentLink":
             case "MasterMandatory":
+            case "FormatUnidentifiedAuthorized":
+            case "EveryFormatType":
+            case "FormatType":
                 // Access contracts
             case "Identifier":
             case "CreationDate":

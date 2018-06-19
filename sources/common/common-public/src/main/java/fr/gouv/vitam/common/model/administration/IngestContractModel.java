@@ -57,6 +57,13 @@ public class IngestContractModel extends AbstractContractModel {
 
     public static final String DATA_OBJECT_VERSION = "DataObjectVersion";
 
+    public static final String FORMAT_UNIDENTIFIED_AUTHORIZED = "FormatUnidentifiedAuthorized";
+
+    public static final String EVERY_FORMAT_TYPE = "EveryFormatType";
+
+    public static final String FORMAT_TYPE = "FormatType";
+
+
     @JsonProperty(LINK_PARENT_ID)
     private String linkParentId;
 
@@ -78,6 +85,20 @@ public class IngestContractModel extends AbstractContractModel {
 
     @JsonProperty(DATA_OBJECT_VERSION)
     private Set<String> dataObjectVersion;
+    /**
+     * formatUnidentifiedAuthorized is false  by default if no value is specified
+     */
+    @JsonProperty(FORMAT_UNIDENTIFIED_AUTHORIZED)
+    private boolean formatUnidentifiedAuthorized = false;
+    /**
+     * everyFormatType is True by default if no value is specified.
+     */
+    @JsonProperty(EVERY_FORMAT_TYPE)
+    private boolean everyFormatType = true;
+
+    @JsonProperty(FORMAT_TYPE)
+    private Set<String> formatType;
+
 
 
     public IngestContractModel() {
@@ -158,4 +179,33 @@ public class IngestContractModel extends AbstractContractModel {
         this.dataObjectVersion = dataObjectVersion;
         return this;
     }
+
+
+    public boolean isFormatUnidentifiedAuthorized() {
+        return formatUnidentifiedAuthorized;
+    }
+
+    public IngestContractModel setFormatUnidentifiedAuthorized(boolean formatUnidentifiedAuthorized) {
+        this.formatUnidentifiedAuthorized = formatUnidentifiedAuthorized;
+        return this;
+    }
+
+    public boolean isEveryFormatType() {
+        return everyFormatType;
+    }
+
+    public IngestContractModel setEveryFormatType(boolean everyFormatType) {
+        this.everyFormatType = everyFormatType;
+        return this;
+    }
+
+    public Set<String> getFormatType() {
+        return formatType;
+    }
+
+    public IngestContractModel setFormatType(Set<String> formatType) {
+        this.formatType = formatType;
+        return this;
+    }
+
 }

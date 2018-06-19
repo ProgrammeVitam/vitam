@@ -10,7 +10,8 @@
 		"MasterMandatory": false,
 		"EveryDataObjectVersion": true,
 		"FormatUnidentifiedAuthorized": false,
-		"EveryFormatType": true
+		"EveryFormatType": false,
+		"FormatType": ["fmt/18", "x-fmt/18", "fmt/19"]
 	},
 		{
 		"Name":"bName2",
