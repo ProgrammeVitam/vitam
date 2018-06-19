@@ -74,7 +74,7 @@ public class MigrationUnitPrepareTest {
         ChainedFileModel model1 = JsonHandler.getFromFile(chainedFile1, ChainedFileModel.class);
 
         assertThat(model0.getElements().size()).isEqualTo(3);
-        assertThat(model0.getNextFile()).isEqualTo("chainedFile.json.1");
+        assertThat(model0.getNextFile()).isEqualTo("Units/chainedFile.json.1");
 
         assertThat(model1.getElements().size()).isEqualTo(1);
         assertThat(model1.getNextFile()).isNull();
