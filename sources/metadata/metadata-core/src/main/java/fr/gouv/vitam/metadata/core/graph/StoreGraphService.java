@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -153,8 +154,6 @@ public class StoreGraphService {
      */
     public LocalDateTime getLastGraphStoreDate(MetadataCollections metadataCollections) throws StoreGraphException {
         try {
-            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-
             DataCategory dataCategory = getDataCategory(metadataCollections);
             List<OfferLog> res =
                 restoreBackupService.getListing(STRATEGY_ID, dataCategory, null, 1, Order.DESC);
@@ -262,7 +261,7 @@ public class StoreGraphService {
         final String containerName = storeOperation.getId();
 
         if (alreadyRunningLock.get()) {
-            LOGGER.info("Start graph store "+metadataCollections.getName()+" ...");
+            LOGGER.info("Start graph store " + metadataCollections.getName() + " ...");
 
             LocalDateTime lastStoreDate;
             try {
@@ -474,13 +473,7 @@ public class StoreGraphService {
         } catch (ContentAddressableStorageServerException e) {
             throw new StoreGraphException(e);
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    LOGGER.error("InputStream close failed :", e);
-                }
-            }
+            StreamUtils.closeSilently(inputStream);
         }
     }
 }

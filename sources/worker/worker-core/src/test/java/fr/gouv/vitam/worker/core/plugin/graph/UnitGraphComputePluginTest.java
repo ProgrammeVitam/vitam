@@ -71,16 +71,16 @@ public class UnitGraphComputePluginTest {
     }
 
     @Test
-    public void whenExecuteListThenKO() {
+    public void whenExecuteListThenFATAL() {
         HandlerIO handlerIO = mock(HandlerIO.class);
         WorkerParameters workerParameters = WorkerParametersFactory.newWorkerParameters();
         workerParameters.setObjectNameList(Lists.newArrayList("a", "b", "c", "d"));
         List<ItemStatus> itemStatuses = unitGraphComputePlugin.executeList(workerParameters, handlerIO);
         assertThat(itemStatuses).hasSize(1);
         ItemStatus itemStatuse = itemStatuses.iterator().next();
-        assertThat(itemStatuse.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(itemStatuse.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         List<Integer> statusMeter = itemStatuse.getStatusMeter();
         assertThat(statusMeter.get(3)).isEqualTo(3);
-        assertThat(statusMeter.get(5)).isEqualTo(1);
+        assertThat(statusMeter.get(6)).isEqualTo(1);
     }
 }

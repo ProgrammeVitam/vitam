@@ -101,19 +101,11 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     private String currentOperation = null;
 
     /**
-     * Private constructor
-     */
-    private GraphComputeServiceImpl() {
-    }
-
-
-    /**
      * @param vitamRepositoryProvider
      * @param metaData
      * @param cache
      * @param tenants
      */
-    @VisibleForTesting
     private GraphComputeServiceImpl(
         VitamRepositoryProvider vitamRepositoryProvider,
         MetaData metaData,
@@ -147,7 +139,6 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         }
         return instance;
     }
-
 
     /**
      * @param vitamRepositoryProvider
@@ -246,6 +237,8 @@ public class GraphComputeServiceImpl implements GraphComputeService {
                     MetaDataDocumentSizeException |
                     MetaDataNotFoundException | BadRequestException |
                     VitamDBException e) {
+                    // Error (KO, FATAL) are not managed. Compute graph by DSL used only for PRA (Plan de reprise d'activité)
+                    // WARN: But if we want to use it in workflow, then we have to distinguish between KO and FATAL
                     throw new IllegalStateException(e);
                 }
             }, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, GlobalDatasDb.LIMIT_LOAD);
@@ -292,7 +285,6 @@ public class GraphComputeServiceImpl implements GraphComputeService {
                     computeGraph(metadataCollections, documents);
                     documents = new ArrayList<>();
                 }
-
             }
 
             //Compute ObjectGroup graph
@@ -304,10 +296,12 @@ public class GraphComputeServiceImpl implements GraphComputeService {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("End Compute graph of (%s)", metadataCollections.name()));
             }
-        } catch (MetaDataException e) {
+        } catch (Exception e) {
             LOGGER.error(String
                     .format("[Consistency ERROR] : Error while compute graph of (%s)", metadataCollections.name()),
                 e);
+            String msgCause = e.getCause() == null ? "" : e.getCause().getMessage();
+            reponse.setErrorMessage(String.format("Compute graph error (%s) cause (%)", e.getMessage(), msgCause));
         }
 
         return reponse;
@@ -318,9 +312,11 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         // Invalidate cache if operation change
         if (!Objects.equals(operation, currentOperation)) {
             this.currentOperation = operation;
-            LOGGER.info("[Graph compute] cache before invalidate : " + GraphComputeCache.getInstance().getCache().stats());
+            LOGGER.info(
+                "[Graph compute] cache before invalidate : " + GraphComputeCache.getInstance().getCache().stats());
             getCache().invalidateAll();
         } else if (RandomUtils.nextInt(1, 20) % 2 == 0) {
+            // If we want to see randomly cache stats. To be removed when stats not needed
             LOGGER.info("[Graph compute] cache : " + GraphComputeCache.getInstance().getCache().stats());
         }
     }

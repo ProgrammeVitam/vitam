@@ -71,7 +71,7 @@ import org.bson.Document;
 public interface GraphComputeService extends VitamCache<String, Document>, VitamAutoCloseable {
 
     String $_SET = "$set";
-    Integer START_DEPTH = 1;
+    int START_DEPTH = 1;
 
     Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 32);
     ExecutorService executor = Executors.newFixedThreadPool(concurrencyLevel);
@@ -212,6 +212,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
     default UpdateOneModel<Document> computeUnitGraph(Document document)
         throws VitamRuntimeException {
 
+        // FIXME: Pourquoi l'ordre est important? j'aurais vu plutôt un Set surtout qu'on fait des .contains dessus
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
         List<String> ups = document.get(Unit.UP, List.class);
         String unitId = document.get(Unit.ID, String.class);
@@ -267,7 +268,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
          *      - invalidate cache for this key
          *      - update cache
          * Why ?
-         * the cache will be re-used to compute graph of ObjectGroup
+         * the cache will be re-used to compute graph of ObjectGroup (if UNIT/GOT compute at the same time demanded)
          *
          * In this case, we will just update cache. because invalidation must be done
          */
@@ -329,7 +330,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
      * @throws ExecutionException
      */
     default void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
-        String originatingAgency, List<String> ups, Integer currentDepth)
+        String originatingAgency, List<String> ups, int currentDepth)
         throws VitamRuntimeException {
         if (null == ups || ups.isEmpty()) {
             return;
@@ -342,7 +343,7 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
             throw new VitamRuntimeException(e);
         }
 
-        final Integer nextDepth = currentDepth + 1;
+        final int nextDepth = currentDepth + 1;
         for (Map.Entry<String, Document> unitParent : units.entrySet()) {
             Document parentUnit = unitParent.getValue();
 
@@ -350,7 +351,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
                 unitParent.getValue().get(Unit.ORIGINATING_AGENCY, String.class), currentDepth);
 
             if (graphRels.contains(ugr)) {
-                // relation (unit_id , unitParent.getKey()) already treated
+                // Relation (unit_id , unitParent.getKey()) already treated
+                // Means unit_id already visited, then  continue is unnecessary. beak is the best choice for performance
                 break;
             }
 

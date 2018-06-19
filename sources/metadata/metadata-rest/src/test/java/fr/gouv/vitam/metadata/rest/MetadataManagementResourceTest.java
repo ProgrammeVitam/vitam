@@ -45,6 +45,9 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
@@ -54,12 +57,17 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
  * MetadataManagementResource test
  */
 public class MetadataManagementResourceTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private ReconstructionService reconstructionService;
     private StoreGraphService storeGraphService;
@@ -77,6 +85,7 @@ public class MetadataManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when_store_graph_handled() throws StoreGraphException {
         // Given
         final Map<MetadataCollections, Integer> map = new HashMap<>();
@@ -99,6 +108,7 @@ public class MetadataManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ko_when_store_graph_handled() throws StoreGraphException {
         // Given
         String errorMessage = "Error store unit graph in the offer";
@@ -117,6 +127,7 @@ public class MetadataManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when__graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
         when(graphBuilderService.computeGraph(JsonHandler.createObjectNode()))
@@ -136,6 +147,7 @@ public class MetadataManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ko_when_graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
         String errorMessage = "Error in graph builder";
@@ -154,6 +166,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when__graph_handled() throws MetaDataException {
         // Given
         when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false))
@@ -173,6 +186,7 @@ public class MetadataManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ko_when_graph_compute_handled() throws MetaDataException {
         // Given
         String errorMessage = "Error in graph builder";
@@ -191,6 +205,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when_request_item_full() {
         // Given
         ReconstructionResponseItem responseItem = new ReconstructionResponseItem(requestItem, StatusCode.OK);
@@ -212,6 +227,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_empty_response_when_that_request_empty() {
         // Given
         MetadataManagementResource reconstructionResource =
@@ -226,6 +242,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_request_offset_when_reconstruction_throws_database_exception() {
         // Given
         when(reconstructionService.reconstruct(requestItem)).thenThrow(new IllegalArgumentException("Database error"));
@@ -245,6 +262,7 @@ public class MetadataManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_return_ok_when__request_item_no_offset() {
         // Given
         MetadataManagementResource reconstructionResource =
