@@ -114,8 +114,11 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             client.createFolder(PROCESS_CONTAINER, folderName);
             return true;
-        } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException exc) {
+        } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
+        } catch (ContentAddressableStorageAlreadyExistException e) {
+            LOGGER.warn(e);
+            return false;
         }
     }
 
