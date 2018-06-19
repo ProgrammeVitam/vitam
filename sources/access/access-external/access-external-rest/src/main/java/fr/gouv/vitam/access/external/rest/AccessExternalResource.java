@@ -231,7 +231,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Performs a reclassification workflow.
      *
-     * @param reclassificationRequest List of attachment and detachment operations in unit graph.
+     * @param queryJson List of reclassification DSL queries.
      * @return Response
      */
     @POST
@@ -239,14 +239,12 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "reclassification:update", description = "Reclassification d'unités archivistiques")
-    public Response reclassification(JsonNode reclassificationRequest) {
+    public Response reclassification(@Dsl(DslSchema.RECLASSIFICATION_QUERY) JsonNode queryJson) {
 
-        ParametersChecker.checkParameter("Missing reclassification request", reclassificationRequest);
-
-        // FIXME : Request validation (DSL vs Other?)
+        ParametersChecker.checkParameter("Missing reclassification request", queryJson);
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            RequestResponse response = client.reclassification(reclassificationRequest);
+            RequestResponse response = client.reclassification(queryJson);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {

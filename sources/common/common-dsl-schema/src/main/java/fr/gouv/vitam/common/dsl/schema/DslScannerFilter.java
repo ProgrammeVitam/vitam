@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectOnlyQueryMultipleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.SelectSingleSchemaValidator;
 import fr.gouv.vitam.common.dsl.schema.validator.UpdateByIdSchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.ReclassificationQuerySchemaValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -64,6 +65,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
     private DslValidator getByIdSchemaValidator;
     private DslValidator updateByIdSchemaValidator;
     private DslValidator selectOnlyQueryMultipleSchemaValidator;
+    private DslValidator updateQueryReclassificationSchemaValidator;
     private DslSchema dslSchema;
 
     public DslScannerFilter(DslSchema dslSchema) throws IOException {
@@ -73,6 +75,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
         this.getByIdSchemaValidator = new GetByIdSchemaValidator();
         this.updateByIdSchemaValidator = new UpdateByIdSchemaValidator();
         this.selectOnlyQueryMultipleSchemaValidator = new SelectOnlyQueryMultipleSchemaValidator();
+        this.updateQueryReclassificationSchemaValidator = new ReclassificationQuerySchemaValidator();
     }
 
 
@@ -97,6 +100,9 @@ public class DslScannerFilter implements ContainerRequestFilter {
                     break;
                 case UPDATE_BY_ID:
                     updateByIdSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
+                    break;
+                case RECLASSIFICATION_QUERY:
+                    updateQueryReclassificationSchemaValidator.validate(JsonHandler.getFromBytes(bout.toByteArray()));
                     break;
                 default:
                     requestContext.abortWith(
