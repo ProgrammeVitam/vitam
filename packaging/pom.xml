@@ -327,6 +327,19 @@
 			<type>deb</type>
 		</dependency>
 
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>elastic-kibana-interceptor</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>elastic-kibana-interceptor</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
+
 		<!-- Docs dependencies -->
 
 		<dependency>
