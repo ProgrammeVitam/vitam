@@ -23,14 +23,13 @@ public class ChainedFileWriterTest {
 
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
-        String folder = "folder";
-        String filename = "filename.json";
+        String filename = "folder/filename.json";
 
         File chainedFile0 = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(filename)).willReturn(chainedFile0);
 
         // When
-        try (ChainedFileWriter instance = new ChainedFileWriter(handlerIO, folder, filename, 3)) {
+        try (ChainedFileWriter instance = new ChainedFileWriter(handlerIO, filename, 3)) {
             // Empty
         }
 
@@ -47,8 +46,7 @@ public class ChainedFileWriterTest {
 
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
-        String folder = "folder";
-        String filename = "filename.json";
+        String filename = "folder/filename.json";
 
         File chainedFile0 = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(filename)).willReturn(chainedFile0);
@@ -57,7 +55,7 @@ public class ChainedFileWriterTest {
         given(handlerIO.getNewLocalFile(filename + ".1")).willReturn(chainedFile1);
 
         // When
-        try (ChainedFileWriter instance = new ChainedFileWriter(handlerIO, folder, filename, 3)) {
+        try (ChainedFileWriter instance = new ChainedFileWriter(handlerIO, filename, 3)) {
 
             instance.addEntry("1");
             instance.addEntry("2");
@@ -82,8 +80,7 @@ public class ChainedFileWriterTest {
 
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
-        String folder = "folder";
-        String filename = "filename.json";
+        String filename = "folder/filename.json";
 
         File chainedFile0 = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(filename)).willReturn(chainedFile0);
@@ -92,7 +89,7 @@ public class ChainedFileWriterTest {
         given(handlerIO.getNewLocalFile(filename + ".1")).willReturn(chainedFile1);
 
         // When
-        try (ChainedFileWriter instance = new ChainedFileWriter(handlerIO, folder, filename, 3)) {
+        try (ChainedFileWriter instance = new ChainedFileWriter(handlerIO, filename, 3)) {
 
             instance.addEntry("1");
             instance.addEntry("2");
