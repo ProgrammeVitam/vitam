@@ -38,7 +38,9 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
@@ -47,8 +49,8 @@ import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 
 /**
@@ -78,7 +80,9 @@ public class BusinessApplication extends Application {
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
-            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory
+                .initialize(Lists.newArrayList(MetadataCollections.UNIT.getVitamCollection(),
+                    MetadataCollections.OBJECTGROUP.getVitamCollection()));
             MetaData metadata = MetaDataImpl.newMetadata(mongoAccessMetadata);
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);

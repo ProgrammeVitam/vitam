@@ -33,6 +33,7 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -40,11 +41,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 
 /**
@@ -90,12 +89,12 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
-        final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(collection);
+        final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(collection.getName());
         final VitamElasticsearchRepository elasticsearchRepository =
-            vitamRepositoryProvider.getVitamESRepository(collection);
+            vitamRepositoryProvider.getVitamESRepository(collection.getName());
 
         final VitamMongoRepository sequenceRepository =
-            vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE);
+            vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName());
 
         switch (collection) {
             case CONTEXT:

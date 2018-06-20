@@ -144,6 +144,12 @@ public class VitamCollection {
     }
 
     /**
+     * @return the associated MongoCollection
+     */
+    public <T> MongoCollection<T> getTypedCollection() {
+        return (MongoCollection<T>) collection;
+    }
+    /**
      * @return the associated class
      */
     public Class<?> getClasz() {

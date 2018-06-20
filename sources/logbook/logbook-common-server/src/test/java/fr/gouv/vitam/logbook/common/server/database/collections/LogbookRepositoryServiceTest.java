@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;

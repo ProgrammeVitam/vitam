@@ -37,6 +37,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -47,7 +48,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataRepositoryService;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 
 /**
  * Metadata Raw resource REST API
@@ -74,8 +74,6 @@ public class MetadataRawResource {
      *
      * @param unitId the unit id to get
      * @return {@link Response} contains a request response json filled with unit result
-     * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
-     * @see #type(javax.ws.rs.core.MediaType)
      */
     @Path("/raw/units/{id_unit}")
     @GET
@@ -90,8 +88,6 @@ public class MetadataRawResource {
      *
      * @param objectGroupId the objectGroup ID to get
      * @return {@link Response} contains a request response json filled with object group result
-     * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
-     * @see #type(javax.ws.rs.core.MediaType)
      */
     @Path("/raw/objectgroups/{id_og}")
     @GET

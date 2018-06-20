@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.common.server;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,7 +49,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ReferentialAccessionRegisterSummaryUtil;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
@@ -105,8 +105,8 @@ public class AdminManagementRepositoryService {
         throws DatabaseException, InvalidCreateOperationException, InvalidParseOperationException {
         Document document = Document.parse(JsonHandler.unprettyPrint(functionalAdminRegister));
         VitamRepositoryStatus status = vitamRepositoryProvider
-            .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).saveOrUpdate(document);
-        vitamRepositoryProvider.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)
+            .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()).saveOrUpdate(document);
+        vitamRepositoryProvider.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName())
             .saveOrUpdate(document);
 
         if (VitamRepositoryStatus.CREATED.equals(status)) {
@@ -151,9 +151,9 @@ public class AdminManagementRepositoryService {
             (ObjectNode) mongoInMemory.getUpdateJson(update.getFinalUpdate(), false, new VarNameAdapter());
 
         AccessionRegisterSummary accessionRegisterSummary = new AccessionRegisterSummary(updatedJsonDocument);
-        vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)
+        vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
             .saveOrUpdate(accessionRegisterSummary);
-        vitamRepositoryProvider.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)
+        vitamRepositoryProvider.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
             .saveOrUpdate(accessionRegisterSummary);
     }
 
@@ -176,7 +176,7 @@ public class AdminManagementRepositoryService {
 
         switch (collection) {
             case ACCESSION_REGISTER_DETAIL:
-                try (MongoCursor<Document> cursor = vitamRepositoryProvider.getVitamMongoRepository(collection)
+                try (MongoCursor<Document> cursor = vitamRepositoryProvider.getVitamMongoRepository(collection.getName())
                     .findByFieldsDocuments(fields, 1, tenant).iterator()) {
                     if (cursor.hasNext()) {
                         return JsonHandler.toJsonNode(new AccessionRegisterDetail(cursor.next()));
@@ -186,7 +186,7 @@ public class AdminManagementRepositoryService {
                     }
                 }
             case ACCESSION_REGISTER_SUMMARY:
-                try (MongoCursor<Document> cursor = vitamRepositoryProvider.getVitamMongoRepository(collection)
+                try (MongoCursor<Document> cursor = vitamRepositoryProvider.getVitamMongoRepository(collection.getName())
                     .findByFieldsDocuments(fields, 1, tenant).iterator()) {
                     if (cursor.hasNext()) {
                         return JsonHandler.toJsonNode(new AccessionRegisterSummary(cursor.next()));

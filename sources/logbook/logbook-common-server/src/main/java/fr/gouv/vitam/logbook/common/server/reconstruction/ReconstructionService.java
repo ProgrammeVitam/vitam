@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import org.bson.Document;
 
@@ -55,7 +56,6 @@ import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestIt
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -161,9 +161,9 @@ public class ReconstructionService {
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         final VitamMongoRepository mongoRepository =
-            vitamRepositoryProvider.getVitamMongoRepository(LogbookCollections.OPERATION);
+            vitamRepositoryProvider.getVitamMongoRepository(LogbookCollections.OPERATION.getName());
         final VitamElasticsearchRepository esRepository =
-            vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION);
+            vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION.getName());
 
         long newOffset = offset;
 

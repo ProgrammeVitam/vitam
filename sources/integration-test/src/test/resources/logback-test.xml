@@ -12,7 +12,8 @@
 
 	<logger name="fr.gouv.vitam.common.server.HeaderIdHelper" level="ERROR"/>
 
-	<logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="DEBUG" />
+	<logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="WARN" />
+	<logger name="fr.gouv.vitam.common.VitamServerRunner" level="WARN" />
 
 	<root level="ERROR">
 		<appender-ref ref="STDOUT" />

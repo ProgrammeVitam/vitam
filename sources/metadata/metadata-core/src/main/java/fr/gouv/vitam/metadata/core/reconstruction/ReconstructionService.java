@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -86,7 +87,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -416,7 +416,7 @@ public class ReconstructionService {
         }
 
 
-        try (MongoCursor<Document> iterator = this.vitamRepositoryProvider.getVitamMongoRepository(collection)
+        try (MongoCursor<Document> iterator = this.vitamRepositoryProvider.getVitamMongoRepository(collection.getName())
             .findDocuments(dataMap.keySet(), projection)
             .iterator()) {
 
@@ -575,7 +575,7 @@ public class ReconstructionService {
                 exists(Unit.TENANT_ID, false),
                 lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));
 
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).remove(query);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).remove(query);
         } catch (DatabaseException e) {
             LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
         }
@@ -621,7 +621,7 @@ public class ReconstructionService {
      */
     private void bulkMongo(MetadataCollections metaDaCollection, List<WriteModel<Document>> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).update(collection);
+        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).update(collection);
     }
 
 
@@ -640,7 +640,7 @@ public class ReconstructionService {
         }
 
         FindIterable<Document> fit =
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).findDocuments(collection, null);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).findDocuments(collection, null);
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
@@ -659,7 +659,7 @@ public class ReconstructionService {
      */
     private void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getName()).save(collection);
     }
 
     /**

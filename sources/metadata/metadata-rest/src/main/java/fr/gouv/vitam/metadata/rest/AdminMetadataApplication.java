@@ -27,15 +27,17 @@
 package fr.gouv.vitam.metadata.rest;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.metadata.core.graph.GraphFactory;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
@@ -84,7 +86,9 @@ public class AdminMetadataApplication extends Application {
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccessMetadata);
 
-            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.initialize(Lists
+                .newArrayList(MetadataCollections.UNIT.getVitamCollection(),
+                    MetadataCollections.OBJECTGROUP.getVitamCollection()));
 
             MetaData metadata = MetaDataImpl.newMetadata(mongoDbAccessMetadata);
 

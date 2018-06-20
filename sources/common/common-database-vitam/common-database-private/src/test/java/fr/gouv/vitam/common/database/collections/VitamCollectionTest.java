@@ -26,13 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.collections;
 
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mongodb.ReadConcern;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -40,82 +50,37 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ReadConcern;
-import com.mongodb.ReadPreference;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-
 public class VitamCollectionTest {
 
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient mongoClient;
-    static JunitHelper junitHelper;
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static int port;
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "Vitam-Test",
+            CollectionSample.class.getSimpleName());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder());
+
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private final static String HOST_NAME = "127.0.0.1";
-
     private static ElasticsearchAccess esClient;
-    private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 
-        esClient = new ElasticsearchAccess(CLUSTER_NAME, nodes);
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
+        esClient = new ElasticsearchAccess(elasticsearchRule.getClusterName(), nodes);
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config == null) {
-            return;
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
-        JunitHelper.stopElasticsearchForTest(config);
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     @SuppressWarnings("unchecked")
@@ -123,18 +88,16 @@ public class VitamCollectionTest {
     public void shouldCreateVitamCollection() {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
-        mongoClient =
-            new MongoClient(new ServerAddress(DATABASE_HOST, port), VitamCollection.getMongoClientOptions(classList));
         final VitamCollection vitamCollection =
             VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample");
         vitamCollection.initialize(esClient);
         assertEquals(esClient, vitamCollection.getEsClient());
-        vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
-        assertEquals("majority", mongoClient.getWriteConcern().getWString());
-        assertEquals(null, mongoClient.getWriteConcern().getJournal());
-        assertEquals(ReadConcern.MAJORITY, mongoClient.getReadConcern());
+        vitamCollection.initialize(mongoRule.getMongoDatabase(), true);
+        assertEquals("majority", mongoRule.getMongoDatabase().getWriteConcern().getWString());
+        assertEquals(null, mongoRule.getMongoDatabase().getWriteConcern().getJournal());
+        assertEquals(ReadConcern.MAJORITY, mongoRule.getMongoDatabase().getReadConcern());
         final MongoCollection<CollectionSample> collection =
             (MongoCollection<CollectionSample>) vitamCollection.getCollection();
         String guid = GUIDFactory.newGUID().toString();

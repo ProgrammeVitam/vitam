@@ -75,6 +75,8 @@ public class VitamApplicationInitializr {
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
 
             workerManager = new WorkerManager();
+            workerManager.initialize();
+
             processDistributor = new ProcessDistributorImpl(workerManager);
 
             ProcessManagementResource processManagementResource =
@@ -84,7 +86,6 @@ public class VitamApplicationInitializr {
             vitamServerLifeCycle =
                 new VitamServerLifeCycle(processManagementResource.getProcessLifeCycle());
 
-            workerManager.initialize();
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

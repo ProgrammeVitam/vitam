@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -42,7 +41,6 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
-import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.common.MessageLogbookEngineHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -358,6 +356,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      */
     protected void doRunning(WorkerParameters workerParameters, ProcessState targetState)
         throws ProcessingException {
+
+
         if (null == targetState)
             throw new ProcessingException("The targetState is required");
         // Double check

@@ -35,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.File;
 import java.io.InputStream;
 
+import fr.gouv.vitam.common.VitamRuleRunner;
+import fr.gouv.vitam.common.VitamServerRunner;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -42,34 +44,13 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.util.Lists;
-import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
@@ -77,50 +58,21 @@ import fr.gouv.vitam.security.internal.common.exception.InternalSecurityExceptio
 import fr.gouv.vitam.security.internal.rest.IdentityMain;
 import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
 
-public class SecurityInternalIT {
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    private static JunitHelper junitHelper;
-
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private static MongodProcess mongod;
-    private static int mongoPort;
-    private static MongodExecutable mongodExecutable;
+public class SecurityInternalIT extends VitamRuleRunner {
 
     private static IdentityMain identityMain;
     private static final String IDENTITY_CONF = "security-internal/security-internal-test.conf";
 
-    @ClassRule
-    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private static InternalSecurityClient internalSecurityClient;
-    private static MongoClient mongoClient;
-    private static MongoCollection<Document> mongoCollection;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        File vitamTempFolder = temporaryFolder.newFolder();
-        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        mongoPort = junitHelper.findAvailablePort();
-
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(mongoPort, Network.localhostIsIPv6()))
-            .build());
-
-        mongod = mongodExecutable.start();
-        mongoClient = new MongoClient(new ServerAddress("localhost", mongoPort), getMongoClientOptions());
-
         File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
         final InternalSecurityConfiguration internalSecurityConfiguration =
             PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
-        internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(mongoPort);
+        internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
         identityMain = new IdentityMain(securityInternalConfigurationFile.getAbsolutePath());
@@ -131,15 +83,9 @@ public class SecurityInternalIT {
 
     @AfterClass
     public static void shutdownAfterClass() throws Exception {
-        junitHelper.releasePort(mongoPort);
+        runAfter();
         if (identityMain != null) {
             identityMain.stop();
-        }
-        if (mongod != null) {
-            mongod.stop();
-        }
-        if (mongodExecutable != null) {
-            mongodExecutable.stop();
         }
         if (internalSecurityClient != null) {
             internalSecurityClient.close();
@@ -149,8 +95,7 @@ public class SecurityInternalIT {
 
     @Before
     public void setUp() {
-        mongoCollection = mongoClient.getDatabase(CLUSTER_NAME).getCollection(PERSONAL_COLLECTION);
-        mongoCollection.deleteMany(new Document());
+        runAfter();
     }
 
     @Test
@@ -205,7 +150,7 @@ public class SecurityInternalIT {
         HttpResponse response = client.execute(post);
         //Then
         assertThat(response.getStatusLine().getStatusCode()).isEqualTo(204);
-        assertThat(Lists.newArrayList(mongoCollection.find()).size()).isEqualTo(1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(1);
 
     }
 
@@ -219,7 +164,7 @@ public class SecurityInternalIT {
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
 
-        assertThat(Lists.newArrayList(mongoCollection.find()).size()).isEqualTo(1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(1);
         //WHEN
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost delete = new HttpPost(url) {
@@ -233,6 +178,6 @@ public class SecurityInternalIT {
         HttpResponse response = client.execute(delete);
         //THEN
         assertThat(response.getStatusLine().getStatusCode()).isEqualTo(204);
-        assertThat(Lists.newArrayList(mongoCollection.find()).size()).isEqualTo(0);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(0);
     }
 }

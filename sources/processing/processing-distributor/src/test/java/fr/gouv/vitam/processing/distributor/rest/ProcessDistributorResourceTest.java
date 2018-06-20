@@ -89,8 +89,6 @@ public class ProcessDistributorResourceTest {
         "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     private static JunitHelper junitHelper;
-    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -122,7 +120,6 @@ public class ProcessDistributorResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        VitamConfiguration.getConfiguration().setData(defautDataFolder);        
         vitamServer.stop();
         junitHelper.releasePort(serverPort);
     }

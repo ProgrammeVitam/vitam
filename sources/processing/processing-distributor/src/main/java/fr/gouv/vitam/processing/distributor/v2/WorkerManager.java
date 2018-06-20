@@ -18,8 +18,9 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +28,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
@@ -48,8 +48,6 @@ public class WorkerManager implements IWorkerManager {
      * Default queue size
      */
     public static final int QUEUE_SIZE = 15;
-    private final String WORKKER_DB_PATH = "worker.db";
-    private final File WORKKER_DB_FILE = PropertiesUtils.fileFromDataFolder(WORKKER_DB_PATH);
     private ConcurrentMap<String, WorkerFamilyManager> workersFamily;
 
 
@@ -62,11 +60,14 @@ public class WorkerManager implements IWorkerManager {
 
     @Override
     public synchronized void marshallToDB() {
-        if (!WORKKER_DB_FILE.exists()) {
+        if (!WORKER_DB_FILE.exists()) {
             try {
-                WORKKER_DB_FILE.createNewFile();
+                if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder()))) {
+                    Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder()));
+                }
+                Files.createFile(WORKER_DB_FILE.toPath());
             } catch (IOException e) {
-                LOGGER.warn("Cannot create worker list serialization file : " + WORKKER_DB_FILE.getName(), e);
+                LOGGER.warn("Cannot create worker list serialization file : " + WORKER_DB_FILE.getName(), e);
             }
         }
         List<WorkerBean> registeredWorkers = new ArrayList<>();
@@ -79,7 +80,7 @@ public class WorkerManager implements IWorkerManager {
         }
 
         try {
-            JsonHandler.writeAsFile(registeredWorkers, WORKKER_DB_FILE);
+            JsonHandler.writeAsFile(registeredWorkers, WORKER_DB_FILE);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Cannot update database worker", e);
         }
@@ -87,7 +88,7 @@ public class WorkerManager implements IWorkerManager {
 
     @Override
     public void registerWorker(String familyId, String workerId, String workerInformation)
-        throws WorkerAlreadyExistsException, ProcessingBadRequestException, InvalidParseOperationException {
+        throws ProcessingBadRequestException {
 
         ParametersChecker.checkParameter("familyId is a mandatory argument", familyId);
         ParametersChecker.checkParameter("workerId is a mandatory argument", workerId);

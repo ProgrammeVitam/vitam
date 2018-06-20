@@ -34,6 +34,7 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,7 +57,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -74,7 +74,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
 
     private final LogbookDbAccess mongoDbAccess;
-    private boolean disablePurge;
 
     /**
      * Constructor
@@ -85,15 +84,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         this.mongoDbAccess = mongoDbAccess;
     }
 
-    /**
-     * Constructor
-     *
-     * @param mongoDbAccess of logbook
-     */
-    public LogbookLifeCyclesImpl(LogbookDbAccess mongoDbAccess, boolean disablePurge) {
-        this.mongoDbAccess = mongoDbAccess;
-        this.disablePurge = disablePurge;
-    }
 
 
     @Override
@@ -198,7 +188,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void rollbackUnit(String idOperation, String idLc)
         throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException {
-        if (!disablePurge) {
+        if (VitamConfiguration.isPurgeTemporaryLFC()) {
             mongoDbAccess.rollbackLogbookLifeCycleUnit(idOperation, idLc);
         }
     }
@@ -206,7 +196,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void rollbackObjectGroup(String idOperation, String idLc)
         throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException {
-        if (!disablePurge) {
+        if (VitamConfiguration.isPurgeTemporaryLFC()) {
             mongoDbAccess.rollbackLogbookLifeCycleObjectGroup(idOperation, idLc);
         }
     }
@@ -355,7 +345,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     @Override
     public void rollBackUnitsByOperation(String idOperation) throws LogbookNotFoundException, LogbookDatabaseException {
-        if (!disablePurge) {
+        if (VitamConfiguration.isPurgeTemporaryLFC()) {
             mongoDbAccess.rollBackUnitLifeCyclesByOperation(idOperation);
         }
     }
@@ -363,7 +353,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void rollBackObjectGroupsByOperation(String idOperation)
         throws LogbookNotFoundException, LogbookDatabaseException {
-        if (!disablePurge) {
+        if (VitamConfiguration.isPurgeTemporaryLFC()) {
             mongoDbAccess.rollBackObjectGroupLifeCyclesByOperation(idOperation);
         }
     }

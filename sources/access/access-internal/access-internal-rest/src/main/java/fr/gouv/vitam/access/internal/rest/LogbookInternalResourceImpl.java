@@ -123,8 +123,8 @@ public class LogbookInternalResourceImpl {
     private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "CHECK_LOGBOOK_OP_SECURISATION";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
-    private static final long SLEEP_TIME = 1000l;
-    private static final long NB_TRY = 600; // equivalent to 10 minutes
+    private static final long SLEEP_TIME = 20l;
+    private static final long NB_TRY = 18000;
 
     /**
      * Default Constructor

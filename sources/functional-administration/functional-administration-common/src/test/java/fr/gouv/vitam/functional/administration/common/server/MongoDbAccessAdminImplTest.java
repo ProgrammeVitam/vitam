@@ -26,19 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -48,21 +52,20 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -76,6 +79,7 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -87,19 +91,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-
 public class MongoDbAccessAdminImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImplTest.class);
     @Rule
@@ -109,15 +100,17 @@ public class MongoDbAccessAdminImplTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient mongoClient;
-    static JunitHelper junitHelper;
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitamtest";
-    static final String COLLECTION_NAME = "FileFormat";
-    static final String COLLECTION_RULES = "FileRules";
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(FileFormat.class, FileRules.class)), "Vitam-Test",
+            FileFormat.class.getSimpleName(), FileRules.class.getSimpleName());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
+            FileFormat.class.getSimpleName().toLowerCase(), FileRules.class.getSimpleName().toLowerCase());
+
+
     private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";
 
     private static final String REUSE_RULE = "ReuseRule";
@@ -131,7 +124,7 @@ public class MongoDbAccessAdminImplTest {
     private static final String AQUISITION_INFORMATION = "AcquisitionInformation";
     private static final String LEGAL_STATUS = "LegalStatus";
     private static final Integer TENANT_ID = 0;
-    
+
     private static final String DEFAULT_DATE = "2018-04-05T13:34:40.234";
 
     static int port;
@@ -146,38 +139,21 @@ public class MongoDbAccessAdminImplTest {
     static AccessContract accessContract;
     static Profile profile;
 
-    private static ElasticsearchTestConfiguration esConfig = null;
-    private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchAccessFunctionalAdmin esClient;
 
     @BeforeClass
     @RunWithCustomExecutor
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        try {
-            esConfig = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
-        esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, esNodes);
+        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
+        esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
         FunctionalAdminCollections.FORMATS.initialize(esClient);
         FunctionalAdminCollections.RULES.initialize(esClient);
-        // FunctionalAdminCollections.INGEST_CONTRACT.initialize(esClient);
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-
-        mongod = mongodExecutable.start();
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoAccess = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        mongoAccess =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
@@ -258,13 +234,8 @@ public class MongoDbAccessAdminImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (esConfig != null) {
-            JunitHelper.stopElasticsearchForTest(esConfig);
-        }
-        esClient.close();
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     @Test
@@ -281,8 +252,8 @@ public class MongoDbAccessAdminImplTest {
         final FunctionalAdminCollections formatCollection = FunctionalAdminCollections.FORMATS;
         mongoAccess.insertDocuments(arrayNode, formatCollection).close();
         assertEquals("FileFormat", formatCollection.getName());
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoCollection<Document> collection =
+            mongoRule.getMongoCollection(FunctionalAdminCollections.FORMATS.getName());
         assertEquals(3, collection.count());
 
         // find all
@@ -356,7 +327,6 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(2, collection.count());
         fileList.close();
         mongoAccess.deleteCollection(formatCollection).close();
-        client.close();
         deleteResult.close();
     }
 
@@ -372,8 +342,8 @@ public class MongoDbAccessAdminImplTest {
         final FunctionalAdminCollections rulesCollection = FunctionalAdminCollections.RULES;
         mongoAccess.insertDocuments(arrayNode, rulesCollection).close();
         assertEquals("FileRules", rulesCollection.getName());
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_RULES);
+        final MongoCollection<Document> collection =
+            mongoRule.getMongoCollection(FunctionalAdminCollections.RULES.getName());
         assertEquals(2, collection.count());
 
         final Select select = new Select();
@@ -404,7 +374,6 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(2, requestResponse.getHits().getTotalHits());
         mongoAccess.deleteCollection(rulesCollection).close();
         assertEquals(0, collection.count());
-        client.close();
     }
 
     @Test
@@ -415,13 +384,11 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         assertEquals(ACCESSION_REGISTER_DETAIL_COLLECTION,
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
-            client.getDatabase(DATABASE_NAME).getCollection(ACCESSION_REGISTER_DETAIL_COLLECTION);
+            mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         assertEquals(1, collection.count());
         mongoAccess.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         assertEquals(0, collection.count());
-        client.close();
     }
 
     @Test
@@ -435,12 +402,11 @@ public class MongoDbAccessAdminImplTest {
         ((ObjectNode) jsonContract).put("Identifier", contract.getName());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
-            client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
+            mongoRule.getMongoCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.count());
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -450,7 +416,7 @@ public class MongoDbAccessAdminImplTest {
         } catch (BadRequestException e) {
             // do nothing
         }
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -462,7 +428,6 @@ public class MongoDbAccessAdminImplTest {
         }
         mongoAccess.deleteCollection(contractCollection).close();
         assertEquals(0, collection.count());
-        client.close();
     }
 
 
@@ -481,12 +446,11 @@ public class MongoDbAccessAdminImplTest {
         ((ObjectNode) jsonContract).put("AccessLog", "INACTIVE");
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
-            client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
+            mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.count());
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -496,7 +460,7 @@ public class MongoDbAccessAdminImplTest {
         } catch (BadRequestException e) {
             // do nothing
         }
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -509,7 +473,6 @@ public class MongoDbAccessAdminImplTest {
 
         mongoAccess.deleteCollection(contractCollection).close();
         assertEquals(0, collection.count());
-        client.close();
     }
 
     @Test
@@ -522,14 +485,12 @@ public class MongoDbAccessAdminImplTest {
         final JsonNode jsonprofile = JsonHandler.toJsonNode(profile);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonprofile);
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
-            client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.PROFILE.getName());
+            mongoRule.getMongoCollection(FunctionalAdminCollections.PROFILE.getName());
         mongoAccess.insertDocuments(arrayNode, profileCollection).close();
         assertEquals(1, collection.count());
         mongoAccess.deleteCollection(profileCollection).close();
         assertEquals(0, collection.count());
-        client.close();
     }
 
 
@@ -657,7 +618,7 @@ public class MongoDbAccessAdminImplTest {
             .setOriginatingAgencies(originatingAgencies)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);            
+            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
         return contract;
     }
 

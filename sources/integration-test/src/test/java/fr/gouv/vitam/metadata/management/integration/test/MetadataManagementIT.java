@@ -4,21 +4,15 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Sorts.orderBy;
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,20 +29,19 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.rest.AccessInternalResourceImpl;
+import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
-import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.VitamRuleRunner;
+import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -62,12 +55,11 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
+import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
+import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -76,7 +68,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -92,6 +83,7 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -101,11 +93,9 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -124,9 +114,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -139,12 +127,19 @@ import retrofit2.http.POST;
 /**
  * Integration tests for the reconstruction of metadatas. <br/>
  */
-public class MetadataManagementIT {
+public class MetadataManagementIT extends VitamRuleRunner {
 
-    /**
-     * Vitam logger.
-     */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataManagementIT.class);
+    @ClassRule
+    public static VitamServerRunner runner =
+        new VitamServerRunner(MetadataManagementIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class
+            ));
 
     private static final String unit_with_graph_0 = "integration-metadata-management/data/unit_with_graph_0.json";
     private static final String unit_with_graph_1 = "integration-metadata-management/data/unit_with_graph_1.json";
@@ -177,15 +172,6 @@ public class MetadataManagementIT {
     private static final String got_graph_zip_file =
         "integration-metadata-management/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
 
-    private static final String DEFAULT_OFFER_CONF = "integration-metadata-management/storage-default-offer.conf";
-    private static final String LOGBOOK_CONF = "integration-metadata-management/logbook.conf";
-    private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
-    private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
-    private static final String METADATA_CONF = "integration-metadata-management/metadata.conf";
-    private static final String PROCESSING_CONF = "integration-metadata-management/processing.conf";
-    private static final String WORKER_CONF = "integration-metadata-management/worker.conf";
-
-
     private static final String reclassification_units = "integration-metadata-management/reclassification/units.json";
     private static final String reclassification_units_lfc =
         "integration-metadata-management/reclassification/units_lfc.json";
@@ -203,239 +189,24 @@ public class MetadataManagementIT {
     private static final String dsl_attach_detach_ok =
         "integration-metadata-management/reclassification/dsl_attach_detach_ok.json";
 
-    private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;
     private static final int TENANT_1 = 1;
-    private static final long SLEEP_TIME = 5000l;
-    private static final long NB_TRY = 180; // equivalent to 15 minutes
 
+    private static final int PORT_SERVICE_METADATA = 8098;
 
-    private static final int PORT_SERVICE_WORKSPACE = 8094;
-    private static final int PORT_SERVICE_METADATA = 8096;
-    private static final int PORT_SERVICE_LOGBOOK = 8099;
-    private static final int PORT_SERVICE_STORAGE = 8193;
-    private static final int PORT_SERVICE_OFFER = 8194;
-    private static final int PORT_SERVICE_WORKER = 8098;
-    private static final int PORT_SERVICE_PROCESSING = 8097;
-
-
-    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
-    private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
-
     public static final String JSON_EXTENTION = ".json";
 
-    private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
-
-    private static LogbookMain logbookMain;
-
-    private static StorageMain storageMain;
     private static StorageClient storageClient;
 
-    private static DefaultOfferMain defaultOfferMain;
 
-    private static MetadataMain metadataMain;
-    private static OffsetRepository offsetRepository;
+    private static MetadataManagementResource metadataManagementResource;
 
-    private static ProcessManagementMain processManagementMain;
-    private static WorkerMain workerMain;
-
-    private MetadataManagementResource metadataManagementResource;
-
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
-            MetadataCollections.UNIT.getName(), MetadataCollections.OBJECTGROUP.getName(),
-            LogbookCollections.OPERATION.getName(),
-            LogbookCollections.LIFECYCLE_UNIT.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION, OffsetRepository.COLLECTION_NAME,
-            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
-
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1");
-
-    Map<MetadataCollections, VitamMongoRepository> mongoRepository;
-    Map<MetadataCollections, VitamElasticsearchRepository> esRepository;
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    static OffsetRepository offsetRepository;
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-
-        File vitamTempFolder = tempFolder.newFolder();
-        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
-
-        // launch ES
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
-
-        StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_STORAGE));
-        storageClient = StorageClientFactory.getInstance().getClient();
-
-        // launch workspace
-        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_WORKSPACE));
-
-        final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_CONF);
-
-        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            PropertiesUtils.readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
-        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
-
-        writeYaml(workspaceConfigFile, workspaceConfiguration);
-
-        workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
-        workspaceMain.start();
-        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
-        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-
-        // launch logbook
-        SystemPropertyUtil
-            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
-        final File logbookConfigFile = PropertiesUtils.findFile(LOGBOOK_CONF);
-        final LogbookConfiguration logbookConfiguration =
-            PropertiesUtils.readYaml(logbookConfigFile, LogbookConfiguration.class);
-        logbookConfiguration.setElasticsearchNodes(nodesEs);
-        logbookConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        logbookConfiguration.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
-
-        PropertiesUtils.writeYaml(logbookConfigFile, logbookConfiguration);
-
-        logbookMain = new LogbookMain(logbookConfigFile.getAbsolutePath());
-        logbookMain.start();
-        SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
-        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
-        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
-
-        // launch metadata
-        SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
-        final File metadataConfig = PropertiesUtils.findFile(METADATA_CONF);
-        final MetaDataConfiguration realMetadataConfig =
-            PropertiesUtils.readYaml(metadataConfig, MetaDataConfiguration.class);
-        realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        realMetadataConfig.setDbName(mongoRule.getMongoDatabase().getName());
-        realMetadataConfig.setElasticsearchNodes(nodesEs);
-        realMetadataConfig.setClusterName(elasticsearchRule.getClusterName());
-
-        PropertiesUtils.writeYaml(metadataConfig, realMetadataConfig);
-
-        metadataMain = new MetadataMain(metadataConfig.getAbsolutePath());
-        metadataMain.start();
-        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
-        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
-
-        // launch processing
-        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementMain = new ProcessManagementMain(PropertiesUtils.getResourceFile(PROCESSING_CONF).toString());
-        processManagementMain.start();
-        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
-
-        // launch worker
-        SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
-        workerMain = new WorkerMain(PropertiesUtils.getResourceFile(WORKER_CONF).toString());
-        workerMain.start();
-        SystemPropertyUtil.clear("jetty.worker.port");
-
-
-        // launch offer
-        SystemPropertyUtil
-            .set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
-        final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
-        final OfferConfiguration offerConfiguration = PropertiesUtils.readYaml(offerConfig, OfferConfiguration.class);
-        List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
-        mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
-        offerConfiguration.setMongoDbNodes(mongoDbNodes);
-        PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
-
-        defaultOfferMain = new DefaultOfferMain(offerConfig.getAbsolutePath());
-        defaultOfferMain.start();
-        SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
-
-        // launch storage engine
-        File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
-        final StorageConfiguration serverConfiguration = readYaml(storageConfigurationFile, StorageConfiguration.class);
-        serverConfiguration
-            .setUrlWorkspace("http://localhost:" + PORT_SERVICE_WORKSPACE);
-
-        serverConfiguration.setZippingDirecorty(tempFolder.newFolder().getAbsolutePath());
-        serverConfiguration.setLoggingDirectory(tempFolder.newFolder().getAbsolutePath());
-
-        writeYaml(storageConfigurationFile, serverConfiguration);
-
-        SystemPropertyUtil
-            .set(StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_STORAGE));
-        storageMain = new StorageMain(STORAGE_CONF);
-        storageMain.start();
-        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
-
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), "Vitam-Test");
-        offsetRepository = new OffsetRepository(mongoDbAccess);
-    }
-
-
-    @AfterClass
-    public static void afterClass() throws Exception {
-
-        if (workspaceClient != null) {
-            workspaceClient.close();
-        }
-        if (workspaceMain != null) {
-            workspaceMain.stop();
-        }
-        File offerFolder = new File(OFFER_FOLDER);
-        if (offerFolder.exists()) {
-            try {
-                // if clean offer delete did not work
-                FileUtils.cleanDirectory(offerFolder);
-                FileUtils.deleteDirectory(offerFolder);
-            } catch (Exception e) {
-                LOGGER.error("ERROR: Exception has been thrown when cleanning offer:", e);
-            }
-        }
-        if (storageClient != null) {
-            storageClient.close();
-        }
-        if (defaultOfferMain != null) {
-            defaultOfferMain.stop();
-        }
-        if (storageMain != null) {
-            storageMain.stop();
-        }
-        if (metadataMain != null) {
-            metadataMain.stop();
-        }
-        if (logbookMain != null) {
-            logbookMain.stop();
-        }
-
-        if (workerMain != null) {
-            workerMain.stop();
-        }
-
-        if (processManagementMain != null) {
-            processManagementMain.stop();
-        }
-        elasticsearchRule.afterClass();
-    }
-
-    @Before
-    public void setup() {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -446,20 +217,25 @@ public class MetadataManagementIT {
             new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
         metadataManagementResource = retrofit.create(MetadataManagementResource.class);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        storageClient = StorageClientFactory.getInstance().getClient();
+
+        MongoDbAccess mongoDbAccess =
+            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        offsetRepository = new OffsetRepository(mongoDbAccess);
+
+    }
 
 
-        mongoRepository = new HashMap<>();
-        mongoRepository.put(MetadataCollections.UNIT,
-            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.UNIT.getName())));
-        mongoRepository.put(MetadataCollections.OBJECTGROUP,
-            new VitamMongoRepository(mongoRule.getMongoCollection(MetadataCollections.OBJECTGROUP.getName())));
-        esRepository = new HashMap<>();
-        esRepository.put(MetadataCollections.UNIT,
-            new VitamElasticsearchRepository(elasticsearchRule.getClient(),
-                MetadataCollections.UNIT.getName().toLowerCase(), true));
-        esRepository.put(MetadataCollections.OBJECTGROUP,
-            new VitamElasticsearchRepository(elasticsearchRule.getClient(),
-                MetadataCollections.OBJECTGROUP.getName().toLowerCase(), true));
+    @AfterClass
+    public static void afterClass() throws Exception {
+        runAfter();
+    }
+
+    @Before
+    public void setup() {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
         VitamConfiguration.setAdminTenant(1);
 
@@ -469,11 +245,7 @@ public class MetadataManagementIT {
 
     @After
     public void tearDown() {
-        // clean offers
-        cleanOffers();
-
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        runAfter();
     }
 
     @Test
@@ -1606,8 +1378,8 @@ public class MetadataManagementIT {
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
-        mongoRepository.get(MetadataCollections.UNIT).save(units);
-        esRepository.get(MetadataCollections.UNIT).save(units);
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getName()).save(units);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getName()).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
@@ -1648,8 +1420,8 @@ public class MetadataManagementIT {
                 .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
-        mongoRepository.get(MetadataCollections.OBJECTGROUP).save(gots);
-        esRepository.get(MetadataCollections.OBJECTGROUP).save(gots);
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getName()).save(gots);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getName()).save(gots);
     }
 
     private void createInWorkspace(String container, String fileName, String extention, String file, DataCategory type)
@@ -1666,24 +1438,6 @@ public class MetadataManagementIT {
             workspaceClient.putObject(container, fileName + extention, stream);
         }
         storageClient.storeFileFromWorkspace("default", type, fileName, objectDescription);
-    }
-
-    /**
-     * Clean offers content.
-     */
-    private static void cleanOffers() {
-        // ugly style but we don't have the digest herelo
-        File directory = new File(OFFER_FOLDER);
-        if (directory.exists()) {
-            try {
-                Files.walk(directory.toPath())
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-            } catch (IOException | IllegalArgumentException e) {
-                LOGGER.error("ERROR: Exception has been thrown when cleaning offers.", e);
-            }
-        }
     }
 
     public interface MetadataManagementResource {

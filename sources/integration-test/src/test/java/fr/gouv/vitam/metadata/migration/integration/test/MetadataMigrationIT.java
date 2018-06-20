@@ -26,40 +26,52 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.migration.integration.test;
 
+import static com.mongodb.client.model.Indexes.ascending;
+import static com.mongodb.client.model.Sorts.orderBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamRuleRunner;
+import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
+import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.metadata.rest.MetadataMigrationAdminResource;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.OkHttpClient;
-import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -68,41 +80,19 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-
-import static com.mongodb.client.model.Indexes.ascending;
-import static com.mongodb.client.model.Sorts.orderBy;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
 /**
  * Integration test of metadata migration services.
  */
-public class MetadataMigrationIT {
+public class MetadataMigrationIT extends VitamRuleRunner {
 
-    private static final String METADATA_CONF = "integration-metadata-migration/metadata.conf";
-
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
-            MetadataCollections.UNIT.getName(), MetadataCollections.OBJECTGROUP.getName());
-
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(Files.newTemporaryFolder(), MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName());
-
-    private static MetadataMain metadataMain;
+    public static VitamServerRunner runner =
+        new VitamServerRunner(MetadataMigrationIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class
+            ));
 
     private static final int PORT_ADMIN_METADATA = 28098;
     private static final int PORT_SERVICE_METADATA = 8098;
@@ -118,39 +108,13 @@ public class MetadataMigrationIT {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
-        File vitamTempFolder = tempFolder.newFolder();
-        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
-
-        // launch metadata
-        SystemPropertyUtil.set("jetty.metadata.port", Integer.toString(PORT_SERVICE_METADATA));
-        SystemPropertyUtil.set("jetty.metadata.admin", Integer.toString(PORT_ADMIN_METADATA));
-        final File metadataConfig = PropertiesUtils.findFile(METADATA_CONF);
-        final MetaDataConfiguration realMetadataConfig =
-            PropertiesUtils.readYaml(metadataConfig, MetaDataConfiguration.class);
-        realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
-        realMetadataConfig.setDbName(mongoRule.getMongoDatabase().getName());
-
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
-        realMetadataConfig.setElasticsearchNodes(nodesEs);
-        realMetadataConfig.setClusterName(elasticsearchRule.getClusterName());
-
-        PropertiesUtils.writeYaml(metadataConfig, realMetadataConfig);
-
-        metadataMain = new MetadataMain(metadataConfig.getAbsolutePath());
-        metadataMain.start();
-        SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        runAfter();
 
-        if (metadataMain != null) {
-            metadataMain.stop();
-        }
-        elasticsearchRule.afterClass();
     }
 
     @Before
@@ -170,8 +134,7 @@ public class MetadataMigrationIT {
 
     @After
     public void tearDown() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        runAfter();
     }
 
     @Test

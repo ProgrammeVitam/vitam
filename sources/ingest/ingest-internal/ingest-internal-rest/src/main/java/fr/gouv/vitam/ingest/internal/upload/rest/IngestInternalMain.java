@@ -51,6 +51,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class IngestInternalMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalMain.class);
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.ingest-internal.port";
 
     private static final String CONF_FILE_NAME = "ingest-internal.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();

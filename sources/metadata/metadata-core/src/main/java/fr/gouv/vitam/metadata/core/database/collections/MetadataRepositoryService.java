@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import java.util.Optional;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,7 +65,7 @@ public class MetadataRepositoryService {
      */
     public JsonNode getDocumentById(MetadataCollections collection, String id, Integer tenant)
         throws DatabaseException, MetaDataNotFoundException, InvalidParseOperationException {
-        Optional<Document> document = vitamRepositoryProvider.getVitamMongoRepository(collection).getByID(id, tenant);
+        Optional<Document> document = vitamRepositoryProvider.getVitamMongoRepository(collection.getName()).getByID(id, tenant);
         if (document.isPresent()) {
             switch (collection) {
                 case UNIT:

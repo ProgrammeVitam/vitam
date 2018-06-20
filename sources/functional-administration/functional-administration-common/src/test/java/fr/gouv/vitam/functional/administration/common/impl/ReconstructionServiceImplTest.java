@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.common.impl;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -38,7 +39,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -125,14 +125,14 @@ public class ReconstructionServiceImplTest {
 
     @Before
     public void setup() {
-        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.RULES))
+        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.RULES.getName()))
             .thenReturn(mutliTenantElasticsearchRepository);
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.RULES))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.RULES.getName()))
             .thenReturn(multiTenantMongoRepository);
 
-        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.FORMATS))
+        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.FORMATS.getName()))
             .thenReturn(crossTenantElasticsearchRepository);
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.FORMATS))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.FORMATS.getName()))
             .thenReturn(crossTenantMongoRepository);
     }
 
@@ -144,7 +144,7 @@ public class ReconstructionServiceImplTest {
         Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_0);
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
             .thenReturn(backupCollection);
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
             .thenReturn(multiTenantMongoRepository);
 
         // call the reconstruction service.
@@ -182,7 +182,7 @@ public class ReconstructionServiceImplTest {
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.FORMATS))
             .thenReturn(backupCollection);
 
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
             .thenReturn(crossTenantMongoRepository);
 
         // call the reconstruction service.
@@ -218,7 +218,7 @@ public class ReconstructionServiceImplTest {
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
             .thenReturn(backupCollection);
 
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
             .thenReturn(multiTenantMongoRepository);
 
         // call the reconstruction service.
@@ -294,7 +294,7 @@ public class ReconstructionServiceImplTest {
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
             .thenReturn(backupCollection2);
 
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
             .thenReturn(multiTenantMongoRepository);
         // testing the reconstruction service.
         LOGGER.debug(String.format("Reconstruction of Vitam tenants."));

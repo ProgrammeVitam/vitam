@@ -75,11 +75,6 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     private Integer lifecycleTraceabilityMaxEntries;
 
     /**
-     * Disable purge for temp LFC (used for coherence check)
-     */
-    private boolean disableTempLfcPurge;
-
-    /**
      * List of events that are generated in a wf-operation but are not declared in the wf itself
      */
     private List<String> opEventsNotInWf;
@@ -243,21 +238,6 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     public void setAlertEvents(List<LogbookEvent> alertEvents) {
         this.alertEvents = alertEvents;
     }
-
-    /**
-     * @return disableTempLfcPurge
-     */
-    public boolean getDisableTempLfcPurge() {
-        return disableTempLfcPurge;
-    }
-
-    /**
-     * @param disableTempLfcPurge to set
-     */
-    public void setDisableTempLfcPurge(boolean disableTempLfcPurge) {
-        this.disableTempLfcPurge = disableTempLfcPurge;
-    }
-
     /**
      * @return opWithLFC
      */

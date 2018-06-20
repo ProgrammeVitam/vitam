@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.core.graph;
 
 import static com.mongodb.client.model.Projections.include;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -49,6 +48,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -61,7 +61,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -300,7 +299,7 @@ public class StoreGraphService {
 
                 final Bson projection = getProjection(metadataCollections);
                 final MongoCursor<Document> cursor = vitamRepositoryProvider
-                    .getVitamMongoRepository(metadataCollections)
+                    .getVitamMongoRepository(metadataCollections.getName())
                     .findDocuments(query, VitamConfiguration.getBatchSize())
                     .projection(projection)
                     .iterator();

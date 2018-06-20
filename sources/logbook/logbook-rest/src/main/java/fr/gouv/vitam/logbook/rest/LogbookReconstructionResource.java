@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import com.google.common.annotations.VisibleForTesting;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -23,7 +24,6 @@ import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
 
 /**

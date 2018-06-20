@@ -13,12 +13,12 @@ import java.util.Map;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -94,8 +94,8 @@ public class StoreGraphServiceTest {
         given(unitRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableUnit);
         given(gotRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableGot);
 
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT)).willReturn(unitRepository);
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP))
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getName())).willReturn(unitRepository);
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getName()))
             .willReturn(gotRepository);
 
         given(findIterableUnit.projection(anyObject())).willReturn(findIterableUnit);

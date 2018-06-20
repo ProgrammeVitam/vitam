@@ -18,8 +18,8 @@
 package fr.gouv.vitam.metadata.core.graph;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.api.MetaData;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
 
 /**

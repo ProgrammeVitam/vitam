@@ -18,54 +18,7 @@
 
 package fr.gouv.vitam.functional.administration.archiveunitprofiles.api.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -73,78 +26,103 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verifyZeroInteractions;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mockito;
+
 public class ArchiveUnitProfileServiceImplTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final Integer TENANT_ID = 1;
-    private static final Integer EXTERNAL_TENANT = 2 ;
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(ArchiveUnitProfile.class)), "Vitam-Test",
+            ArchiveUnitProfile.class.getSimpleName());
 
-    static JunitHelper junitHelper;
-    static final String COLLECTION_NAME = "ArchiveUnitProfile";
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient client;
+
+    private static final Integer TENANT_ID = 1;
+    private static final Integer EXTERNAL_TENANT = 2;
+
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
-    static Map<Integer, List<String>> externalIdentifiers;
 
     static ArchiveUnitProfileServiceImpl archiveUnitProfileService;
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
-    static int mongoPort;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        mongoPort = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(mongoPort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        dbImpl =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
-        Map <Integer,List<String>> listEnableExternalIdentifiers = new HashMap<>();
-        List<String > list_tenant = new ArrayList<>();
+        Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
+        List<String> list_tenant = new ArrayList<>();
         list_tenant.add("PROFILE");
-        listEnableExternalIdentifiers.put(EXTERNAL_TENANT,list_tenant);
+        listEnableExternalIdentifiers.put(EXTERNAL_TENANT, list_tenant);
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
 
         LogbookOperationsClientFactory.changeMode(null);
 
         archiveUnitProfileService =
-            new ArchiveUnitProfileServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+            new ArchiveUnitProfileServiceImpl(
+                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
                 vitamCounterService, functionalBackupService, false);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(mongoPort);
-        client.close();
+    public static void tearDownAfterClass() {
+        mongoRule.handleAfter();
         archiveUnitProfileService.close();
     }
 
     @After
     public void afterTest() {
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        collection.deleteMany(new Document());
+        mongoRule.handleAfter();
         reset(functionalBackupService);
     }
 
@@ -169,11 +147,14 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
     }
 
@@ -183,20 +164,24 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_missing_identifier.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
         verifyZeroInteractions(functionalBackupService);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenATestMissingSchemaReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_missing_schema.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -209,7 +194,9 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_duplicate_identifier.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -221,7 +208,9 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_duplicate_name.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -234,10 +223,13 @@ public class ArchiveUnitProfileServiceImplTest {
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
 
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
         // Try to recreate the same profile but with id
@@ -262,7 +254,8 @@ public class ArchiveUnitProfileServiceImplTest {
          * String q = "{ \"$query\" : [ { \"$eq\" : { \"_id\" : \"fake_id\" } } ] }"; JsonNode queryDsl =
          * JsonHandler.getFromString(q);
          */
-        final RequestResponseOK<ArchiveUnitProfileModel> profileModelList = archiveUnitProfileService.findArchiveUnitProfiles(queryDsl);
+        final RequestResponseOK<ArchiveUnitProfileModel> profileModelList =
+            archiveUnitProfileService.findArchiveUnitProfiles(queryDsl);
 
         assertThat(profileModelList.getResults()).isEmpty();
     }
@@ -279,10 +272,13 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
         // We juste test the first profile
@@ -312,10 +308,13 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
         // We just test the first profile
@@ -331,18 +330,21 @@ public class ArchiveUnitProfileServiceImplTest {
         final ArchiveUnitProfileModel one = archiveUnitProfileService.findByIdentifier(id1);
         assertThat(one).isNull();
     }
-    
-    
+
+
     @Test
     @RunWithCustomExecutor
     public void givenTestWithSchema() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_with_schema.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
@@ -351,7 +353,7 @@ public class ArchiveUnitProfileServiceImplTest {
         assertThat(acm).isNotNull();
         assertThat(acm.getFields()).isNotNull();
         assertTrue(acm.getFields().size() > 0);
-    }    
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -360,10 +362,13 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
         // We juste test the first profile
@@ -379,6 +384,7 @@ public class ArchiveUnitProfileServiceImplTest {
 
         assertThat(one.getName()).isEqualTo(acm.getName());
     }
+
     @Test
     @RunWithCustomExecutor
     public void givenTestImportExternalIdentifier() throws Exception {
@@ -386,10 +392,13 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
         // We juste test the first profile
@@ -406,17 +415,20 @@ public class ArchiveUnitProfileServiceImplTest {
 
         assertThat(one.getName()).isEqualTo(acm.getName());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenTestFindAllThenReturnTwoProfiles() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
-        final RequestResponseOK<ArchiveUnitProfileModel> responseCast = (RequestResponseOK<ArchiveUnitProfileModel>) response;
+        final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
+            (RequestResponseOK<ArchiveUnitProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
 
         final RequestResponseOK<ArchiveUnitProfileModel> profileModelListSearch =
@@ -430,7 +442,9 @@ public class ArchiveUnitProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("AUP_ok_id.json");
         final List<ArchiveUnitProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {});
+            JsonHandler
+                .getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ArchiveUnitProfileModel>>() {
+                });
         final RequestResponse response = archiveUnitProfileService.createArchiveUnitProfiles(profileModelList);
 
         final RequestResponseOK<ArchiveUnitProfileModel> responseCast =
