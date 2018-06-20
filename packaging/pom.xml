@@ -329,13 +329,13 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>elastic-kibana-interceptor</artifactId>
+			<artifactId>elastic-kibana-interceptor-rest</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>elastic-kibana-interceptor</artifactId>
+			<artifactId>elastic-kibana-interceptor-rest</artifactId>
 			<version>${project.version}</version>
 			<type>deb</type>
 		</dependency>
