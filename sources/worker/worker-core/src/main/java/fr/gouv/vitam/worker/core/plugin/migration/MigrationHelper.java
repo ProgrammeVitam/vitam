@@ -92,7 +92,7 @@ class MigrationHelper {
 
         File report = handler.getNewLocalFile("report.json");
 
-        try (ChainedFileWriter chainedFileWriter = new ChainedFileWriter(handler, folder, CHAINED_FILE, bachSize);
+        try (ChainedFileWriter chainedFileWriter = new ChainedFileWriter(handler, folder + "/" + CHAINED_FILE, bachSize);
             OutputStream outputStream = new FileOutputStream(report)) {
 
             JsonGenerator jsonGenerator = createJsonGenerator(outputStream);
