@@ -1,0 +1,9 @@
+[
+  {
+    "Identifier": "MyField",
+    "ApiField": "MyField",
+    "Origin": "INTERNAL",
+    "Type": "BOOLEAN",
+    "Description": "Extension au SEDA. Elément de type boolean"
+  }
+]
