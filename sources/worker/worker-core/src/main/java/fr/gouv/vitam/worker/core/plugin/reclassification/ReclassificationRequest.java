@@ -24,84 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Logbook Process Type
+ * Pojo class for reclassification request deserialization
  */
-public enum LogbookTypeProcess {
-    /**
-     * Ingest type process
-     */
-    INGEST,
-    /**
-     * Audit type process
-     */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK,
+public class ReclassificationRequest {
 
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_RULE,
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_AGENCIES,
-    /**
-     * Storage Backup type process
-     */
-    STORAGE_BACKUP,
-    /**
-     * Holding scheme type process (tree)
-     */
-    HOLDINGSCHEME,
-    /**
-     * Filing scheme type process (classification plan)
-     */
-    FILINGSCHEME,
-    /**
-     * export du DIP
-     */
-    EXPORT_DIP,
-    /**
-     * Migration
-     */
-    DATA_MIGRATION,
-    /**
-     * Reclassification process (attachment/detachment)
-     */
-    RECLASSIFICATION
+    private Map<String, ReclassificationUpdates> updatesByUnit = new HashMap<>();
+
+    public ReclassificationRequest() {
+        // Empty constructor for deserialization
+    }
+
+    @JsonAnyGetter
+    public Map<String, ReclassificationUpdates> getUpdatesByUnit() {
+        return updatesByUnit;
+    }
+
+    public void setUpdatesByUnit(Map<String, ReclassificationUpdates> updatesByUnit) {
+        this.updatesByUnit = updatesByUnit;
+    }
+
+    @JsonAnySetter
+    public void addUpdateByUnit(String unitId, ReclassificationUpdates reclassificationUpdates) {
+        this.updatesByUnit.put(unitId, reclassificationUpdates);
+    }
 }

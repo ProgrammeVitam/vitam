@@ -601,4 +601,25 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
+    @Override
+    public RequestResponse<JsonNode> reclassification(JsonNode reclassificationRequest)
+        throws AccessInternalClientServerException {
+
+        ParametersChecker.checkParameter("Missing reclassification request", reclassificationRequest);
+
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.POST, "/reclassification", null, reclassificationRequest,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            consumeAnyEntityAndClose(response);
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } catch (final Exception e) {
+            consumeAnyEntityAndClose(response);
+            throw e;
+        }
+    }
 }

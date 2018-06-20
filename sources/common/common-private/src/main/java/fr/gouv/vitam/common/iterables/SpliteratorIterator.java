@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,24 +23,45 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.worker.core.plugin.graph;
+ *******************************************************************************/
+package fr.gouv.vitam.common.iterables;
 
-import fr.gouv.vitam.common.model.GraphComputeResponse;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
 
 /**
- * Plugin compute graph of object group
+ * Spliterator to Iterator Adapter.
+ *
+ * Not thread safe.
  */
-public class ObjectGroupGraphComputePlugin extends AbstractGraphComputePlugin {
-    private static final String OBJECT_GROUP_GRAPH_COMPUTE = "OBJECT_GROUP_GRAPH_COMPUTE";
+public class SpliteratorIterator<T> implements Iterator<T> {
 
-    GraphComputeResponse.GraphComputeAction getGraphComputeAction() {
-        return GraphComputeResponse.GraphComputeAction.OBJECTGROUP;
+    private final Spliterator<T> spliterator;
+    private T nextEntry;
+
+    public SpliteratorIterator(Spliterator<T> spliterator) {
+        this.spliterator = spliterator;
     }
 
-    String getPluginKeyName() {
-        return OBJECT_GROUP_GRAPH_COMPUTE;
+    @Override
+    public boolean hasNext() {
+        if (nextEntry != null) {
+            return true;
+        }
+
+        return spliterator.tryAdvance(t -> nextEntry = t);
     }
 
+    @Override
+    public T next() {
 
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+
+        T result = nextEntry;
+        nextEntry = null;
+        return result;
+    }
 }

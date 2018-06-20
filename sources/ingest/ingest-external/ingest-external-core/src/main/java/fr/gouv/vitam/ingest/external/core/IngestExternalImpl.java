@@ -372,35 +372,7 @@ public class IngestExternalImpl implements IngestExternal {
                                     format.getMimetype()));
                         }
                     }
-                } catch (final FormatIdentifierNotFoundException e) {
-                    LOGGER.error(e);
-                    formatParameters.setStatus(StatusCode.FATAL);
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                        messageLogbookEngineHelper.getOutcomeDetail(CHECK_CONTAINER, StatusCode.FATAL));
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        messageLogbookEngineHelper.getLabelOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (final FormatIdentifierFactoryException e) {
-                    LOGGER.error(e);
-                    formatParameters.setStatus(StatusCode.FATAL);
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                        messageLogbookEngineHelper.getOutcomeDetail(CHECK_CONTAINER, StatusCode.FATAL));
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        messageLogbookEngineHelper.getLabelOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (final FormatIdentifierTechnicalException e) {
-                    LOGGER.error(e);
-                    formatParameters.setStatus(StatusCode.FATAL);
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                        messageLogbookEngineHelper.getOutcomeDetail(CHECK_CONTAINER, StatusCode.FATAL));
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        messageLogbookEngineHelper.getLabelOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (final FileFormatNotFoundException e) {
-                    LOGGER.error(e);
-                    formatParameters.setStatus(StatusCode.FATAL);
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                        messageLogbookEngineHelper.getOutcomeDetail(CHECK_CONTAINER, StatusCode.FATAL));
-                    formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        messageLogbookEngineHelper.getLabelOp(CHECK_CONTAINER, StatusCode.FATAL));
-                } catch (final FormatIdentifierBadRequestException e) {
+                } catch (final FormatIdentifierNotFoundException | FormatIdentifierBadRequestException | FileFormatNotFoundException | FormatIdentifierTechnicalException | FormatIdentifierFactoryException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetail,

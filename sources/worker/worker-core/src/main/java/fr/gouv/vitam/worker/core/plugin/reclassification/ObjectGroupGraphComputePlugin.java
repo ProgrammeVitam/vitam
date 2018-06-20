@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,85 +23,24 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
+package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import fr.gouv.vitam.common.model.GraphComputeResponse;
 
 /**
- * Logbook Process Type
+ * Plugin compute graph of object group
  */
-public enum LogbookTypeProcess {
-    /**
-     * Ingest type process
-     */
-    INGEST,
-    /**
-     * Audit type process
-     */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK,
+public class ObjectGroupGraphComputePlugin extends AbstractGraphComputePlugin {
+    private static final String OBJECT_GROUP_GRAPH_COMPUTE = "OBJECT_GROUP_GRAPH_COMPUTE";
 
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_RULE,
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_AGENCIES,
-    /**
-     * Storage Backup type process
-     */
-    STORAGE_BACKUP,
-    /**
-     * Holding scheme type process (tree)
-     */
-    HOLDINGSCHEME,
-    /**
-     * Filing scheme type process (classification plan)
-     */
-    FILINGSCHEME,
-    /**
-     * export du DIP
-     */
-    EXPORT_DIP,
-    /**
-     * Migration
-     */
-    DATA_MIGRATION,
-    /**
-     * Reclassification process (attachment/detachment)
-     */
-    RECLASSIFICATION
+    GraphComputeResponse.GraphComputeAction getGraphComputeAction() {
+        return GraphComputeResponse.GraphComputeAction.OBJECTGROUP;
+    }
+
+    String getPluginKeyName() {
+        return OBJECT_GROUP_GRAPH_COMPUTE;
+    }
+
+
 }

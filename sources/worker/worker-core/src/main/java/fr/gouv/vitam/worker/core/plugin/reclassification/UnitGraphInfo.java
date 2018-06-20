@@ -24,84 +24,60 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.UnitType;
+
+import java.util.Set;
 
 /**
- * Logbook Process Type
+ * Pojo for in unit graph deserialization
  */
-public enum LogbookTypeProcess {
-    /**
-     * Ingest type process
-     */
-    INGEST,
-    /**
-     * Audit type process
-     */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK,
+class UnitGraphInfo {
 
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_RULE,
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_AGENCIES,
-    /**
-     * Storage Backup type process
-     */
-    STORAGE_BACKUP,
-    /**
-     * Holding scheme type process (tree)
-     */
-    HOLDINGSCHEME,
-    /**
-     * Filing scheme type process (classification plan)
-     */
-    FILINGSCHEME,
-    /**
-     * export du DIP
-     */
-    EXPORT_DIP,
-    /**
-     * Migration
-     */
-    DATA_MIGRATION,
-    /**
-     * Reclassification process (attachment/detachment)
-     */
-    RECLASSIFICATION
+    @JsonProperty("#id")
+    private String id;
+    @JsonProperty("#unitType")
+    private UnitType unitType;
+    @JsonProperty("#unitups")
+    private Set<String> up;
+    @JsonProperty("#originatingAgency")
+    private String sp;
+
+    public UnitGraphInfo() {
+        // Empty constructor for deserialization
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public UnitType getUnitType() {
+        return unitType;
+    }
+
+    public void setUnitType(UnitType unitType) {
+        this.unitType = unitType;
+    }
+
+    public Set<String> getUp() {
+        return up;
+    }
+
+    public void setUp(Set<String> up) {
+        this.up = up;
+    }
+
+    public String getSp() {
+        return sp;
+    }
+
+    public void setSp(String sp) {
+        this.sp = sp;
+    }
 }

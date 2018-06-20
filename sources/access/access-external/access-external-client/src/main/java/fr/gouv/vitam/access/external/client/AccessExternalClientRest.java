@@ -34,6 +34,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
     private static final String BLANK_DIP_ID = "DIP identifier should be filled";
+    private static final String MISSING_VITAM_CONTEXT = "Missing vitam context";
+    private static final String MISSING_RECLASSIFICATION_REQUEST = "Missing reclassification request";
 
     private static final String LOGBOOK_OPERATIONS_URL = "/logbookoperations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/logbookunitlifecycles";
@@ -322,5 +324,36 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             throw new VitamClientException(e);
         }
         return response;
+    }
+
+    /**
+     * Performs a reclassification workflow.
+     *
+     * @param vitamContext the vitam context
+     * @param reclassificationRequest List of attachment and detachment operations in unit graph.
+     */
+    public RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest)
+        throws VitamClientException {
+
+        ParametersChecker.checkParameter(MISSING_VITAM_CONTEXT, vitamContext);
+        ParametersChecker.checkParameter(MISSING_RECLASSIFICATION_REQUEST, reclassificationRequest);
+
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/reclassification", headers,
+                reclassificationRequest, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 }

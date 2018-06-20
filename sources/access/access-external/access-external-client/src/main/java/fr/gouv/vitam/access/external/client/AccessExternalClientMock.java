@@ -9,7 +9,6 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
@@ -98,4 +97,8 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
+    @Override
+    public RequestResponse<JsonNode> reclassification(VitamContext vitamContext, JsonNode reclassificationRequest) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
 }

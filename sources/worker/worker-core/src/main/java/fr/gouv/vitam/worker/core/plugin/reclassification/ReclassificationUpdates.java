@@ -24,84 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Logbook Process Type
+ * Pojo class for reclassification request updates deserialization
  */
-public enum LogbookTypeProcess {
-    /**
-     * Ingest type process
-     */
-    INGEST,
-    /**
-     * Audit type process
-     */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK,
+public class ReclassificationUpdates {
 
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_RULE,
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_AGENCIES,
-    /**
-     * Storage Backup type process
-     */
-    STORAGE_BACKUP,
-    /**
-     * Holding scheme type process (tree)
-     */
-    HOLDINGSCHEME,
-    /**
-     * Filing scheme type process (classification plan)
-     */
-    FILINGSCHEME,
-    /**
-     * export du DIP
-     */
-    EXPORT_DIP,
-    /**
-     * Migration
-     */
-    DATA_MIGRATION,
-    /**
-     * Reclassification process (attachment/detachment)
-     */
-    RECLASSIFICATION
+    @JsonProperty("attachments")
+    private Set<String> attachments = new HashSet<>();
+    @JsonProperty("detachments")
+    private Set<String> detachments = new HashSet<>();
+
+    public ReclassificationUpdates() {
+        // Empty constructor for deserialization
+    }
+
+    public ReclassificationUpdates(Set<String> attachments,
+        Set<String> detachments) {
+        this.attachments = attachments;
+        this.detachments = detachments;
+    }
+
+    public Set<String> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(Set<String> attachments) {
+        this.attachments = attachments;
+    }
+
+    public Set<String> getDetachments() {
+        return detachments;
+    }
+
+    public void setDetachments(Set<String> detachments) {
+        this.detachments = detachments;
+    }
 }
