@@ -12,15 +12,22 @@
       "true",
       "false"
     ],
-    "extNumber": [
+    "extLong": [
       "0",
       "1",
       "2",
       "3"
     ],
+    "extDouble": [
+      "0",
+      "1",
+      "2",
+      "3.222"
+    ],
     "extString": [
       "g1String"
     ],
+  	"Writer":[{"BirthDate":"2016-09-26Z"}],    
     "Management": {
       "AccessRule": {
         "Rules": [
@@ -44,5 +51,5 @@
     "RulesToApply": [
       "ACC-00002;"
     ]
-  }
+  }  
 }

@@ -31,16 +31,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 
@@ -406,22 +408,55 @@ public class SchemaValidationUtilsTest {
         // Given
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         Map<String, OntologyModel> ontologyModelMap = new HashMap<String, OntologyModel>();
-        ontologyModelMap.put("extNumber", new OntologyModel().setType(OntologyType.LONG));
-        ontologyModelMap.put("extBoolean", new OntologyModel().setType(OntologyType.BOOLEAN));
+        ontologyModelMap.put("extLong", new OntologyModel().setType(OntologyType.LONG).setIdentifier("extLong"));
+        ontologyModelMap.put("extDouble", new OntologyModel().setType(OntologyType.DOUBLE).setIdentifier("extDouble"));
+        ontologyModelMap.put("extBoolean",
+            new OntologyModel().setType(OntologyType.BOOLEAN).setIdentifier("extBoolean"));
+        ontologyModelMap.put("BirthDate", new OntologyModel().setType(OntologyType.DATE).setIdentifier("BirthDate"));
         JsonNode jsonArcUnit =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(JSON_FILE_WITH_REPLACEABLE_FIELDS));
         JsonNode jsonOriginArcUnit = jsonArcUnit.deepCopy();
-        schemaValidation.loopAndReplaceInJson(jsonArcUnit, ontologyModelMap);
-        jsonArcUnit.get("ArchiveUnit").get("extNumber").forEach((j) -> assertTrue(j.isLong()));
+        schemaValidation.loopAndReplaceInJson(jsonArcUnit, ontologyModelMap, new ArrayList<>());
+        jsonArcUnit.get("ArchiveUnit").get("extLong").forEach((j) -> assertTrue(j.isLong()));
+        jsonArcUnit.get("ArchiveUnit").get("extDouble").forEach((j) -> assertTrue(j.isDouble()));
         jsonArcUnit.get("ArchiveUnit").get("extBoolean").forEach((j) -> assertTrue(j.isBoolean()));
+        assertEquals("2016-09-26", jsonArcUnit.get("ArchiveUnit").get("Writer").get(0).get("BirthDate").asText());
 
-        try {
-            ((ArrayNode) jsonOriginArcUnit.get("ArchiveUnit").get("extNumber")).set(0, new TextNode("TEXT"));
-            schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit, ontologyModelMap);
-            fail("Should fail");
-        } catch (NumberFormatException e) {
-            // do nothing
-        }
+        JsonNode jsonOriginArcUnit2 = jsonOriginArcUnit.deepCopy();
+        JsonNode jsonOriginArcUnit3 = jsonOriginArcUnit.deepCopy();
+        JsonNode jsonOriginArcUnit4 = jsonOriginArcUnit.deepCopy();
+        
+        ((ArrayNode) jsonOriginArcUnit.get("ArchiveUnit").get("extLong")).set(0, new DoubleNode(8.324));
+        List<String> errors = new ArrayList<>();
+        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit, ontologyModelMap, errors);
+        assertTrue(!errors.isEmpty());
+        assertTrue(errors.get(0).contains("extLong"));
+
+        ((ArrayNode) jsonOriginArcUnit2.get("ArchiveUnit").get("extBoolean")).set(0, new TextNode("NOT_TRUE"));
+        errors = new ArrayList<>();
+        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit2, ontologyModelMap, errors);
+        assertTrue(!errors.isEmpty());
+        assertTrue(errors.get(0).contains("extBoolean"));
+
+        ((ArrayNode) jsonOriginArcUnit3.get("ArchiveUnit").get("Writer")).set(0,
+            JsonHandler.getFromString("{\"BirthDate\":\"01/01/2001\"}"));
+        errors = new ArrayList<>();
+        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit3, ontologyModelMap, errors);
+        assertTrue(!errors.isEmpty());
+        assertTrue(errors.get(0).contains("BirthDate"));
+
+        ((ArrayNode) jsonOriginArcUnit3.get("ArchiveUnit").get("Writer")).set(0,
+            JsonHandler.getFromString("{\"BirthDate\":\"01/01/2001\"}"));
+        errors = new ArrayList<>();
+        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit3, ontologyModelMap, errors);
+        assertTrue(!errors.isEmpty());
+        assertTrue(errors.get(0).contains("BirthDate"));
+
+        ((ArrayNode) jsonOriginArcUnit4.get("ArchiveUnit").get("extDouble")).set(0, new TextNode("notADouble"));
+        errors = new ArrayList<>();
+        schemaValidation.loopAndReplaceInJson(jsonOriginArcUnit4, ontologyModelMap, errors);
+        assertTrue(!errors.isEmpty());
+        assertTrue(errors.get(0).contains("extDouble"));
     }
 
 }
