@@ -26,6 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Set;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +57,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
@@ -103,27 +126,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -189,14 +191,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     /**
      * Test constructor
      *
-     * @param accessModule                   accessModule
+     * @param accessModule accessModule
      * @param logbookOperationsClientFactory logbookOperationsClientFactory
-     * @param workspaceClientFactory         workspaceClientFactory
+     * @param workspaceClientFactory workspaceClientFactory
      */
     @VisibleForTesting
     AccessInternalResourceImpl(AccessInternalModule accessModule,
-                               LogbookOperationsClientFactory logbookOperationsClientFactory,
-                               WorkspaceClientFactory workspaceClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        WorkspaceClientFactory workspaceClientFactory) {
         this.accessModule = accessModule;
         archiveUnitMapper = new ArchiveUnitMapper();
         objectGroupMapper = new ObjectGroupMapper();
@@ -281,8 +283,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
                 final LogbookOperationParameters initParameters =
                     LogbookParametersFactory.newLogbookOperationParameters(
@@ -306,7 +308,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
-                InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+                LogbookClientAlreadyExistsException |
                 VitamClientException | InternalServerException e) {
                 LOGGER.error("Error while generating DIP", e);
                 return Response.status(INTERNAL_SERVER_ERROR)
@@ -390,7 +393,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
-            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+            LogbookClientAlreadyExistsException |
             VitamClientException | InternalServerException e) {
             LOGGER.error("Error while starting unit reclassification workflow", e);
             return Response.status(INTERNAL_SERVER_ERROR)
@@ -410,7 +414,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * get Archive Unit list by query based on identifier
      *
      * @param queryDsl as JsonNode
-     * @param idUnit   identifier
+     * @param idUnit identifier
      * @return an archive unit result list
      */
     @Override
@@ -484,8 +488,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * update archive units by Id with Json query
      *
      * @param requestId request identifier
-     * @param queryDsl  DSK, null not allowed
-     * @param idUnit    units identifier
+     * @param queryDsl DSK, null not allowed
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @Override
@@ -515,7 +519,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return buildErrorResponse(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES, e.getMessage());
         } catch (final AccessInternalPermissionException e) {
             LOGGER.error(e.getMessage(), e);
-            return buildErrorResponse(VitamCodeHelper.getFrom(e.getMessage()), e.getMessage());
+            return buildErrorResponse(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_PERMISSION, e.getMessage());
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = INTERNAL_SERVER_ERROR;
@@ -553,7 +557,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
-                InvalidCreateOperationException exc) {
+            InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
@@ -575,7 +579,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(objectId);
             SanityChecker.checkJsonAll(dslQuery);
             final JsonNode result = accessModule.selectObjectGroupById(
-                    AccessContractRestrictionHelper.addProdServicesToQueryForObjectGroup(dslQuery), objectId);
+                AccessContractRestrictionHelper.addProdServicesToQueryForObjectGroup(dslQuery), objectId);
             ArrayNode results = (ArrayNode) result.get(RESULTS);
             JsonNode objectGroup = results.get(0);
             Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, objectId);
@@ -584,7 +588,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                    .build();
+                .build();
         } catch (AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
@@ -630,7 +634,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
 
     private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap,
-                                       String idObjectGroup, boolean post) {
+        String idObjectGroup, boolean post) {
 
         if (post) {
             if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
@@ -647,8 +651,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorStream(Status.PRECONDITION_FAILED,
                     "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
-                    .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
-                    ")"))
+                        .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
+                        ")"))
                 .build();
         }
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
@@ -698,7 +702,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     private void checkEmptyQuery(JsonNode queryDsl)
-            throws InvalidParseOperationException, InvalidCreateOperationException, BadRequestException {
+        throws InvalidParseOperationException, InvalidCreateOperationException, BadRequestException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl.deepCopy());
         if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {
@@ -719,11 +723,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
-                (message != null && !message.trim().isEmpty()) ? message
-                        : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
 
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
     private InputStream getErrorStream(Status status, String message) {
