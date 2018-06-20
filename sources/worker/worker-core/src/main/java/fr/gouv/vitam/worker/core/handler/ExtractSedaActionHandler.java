@@ -1840,7 +1840,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                     // Create new startElement for group with new guid
                     jsonWriter.add(eventFactory.createStartElement("", "", DATA_OBJECT_GROUPID));
-                    jsonWriter.add(eventFactory.createCharacters(currentGroupId));
+                    jsonWriter.add(eventFactory.createCharacters(groupGuid));
                     jsonWriter.add(eventFactory.createEndElement("", "", DATA_OBJECT_GROUPID));
 
                     isTraversingNestedGroupTags = true;
