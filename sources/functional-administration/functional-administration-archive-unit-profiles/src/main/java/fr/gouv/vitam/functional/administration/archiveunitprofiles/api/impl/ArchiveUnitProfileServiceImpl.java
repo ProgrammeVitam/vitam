@@ -20,6 +20,7 @@ package fr.gouv.vitam.functional.administration.archiveunitprofiles.api.impl;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
+import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,15 +33,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -192,7 +190,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         final VitamError error =
             getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_FILE_IMPORT_ERROR.getItem(),
                 "Global create archive unit profile error", StatusCode.KO).setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                Response.Status.BAD_REQUEST.getStatusCode());
 
         try {
 
@@ -211,9 +209,9 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                         error.addToErrors(
                             getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                                 "Duplicate archive unit profiles (ID)", StatusCode.KO)
-                                    .setMessage(
-                                        "Archive unit profile identifier " + aupm.getIdentifier() +
-                                            " already exists in the json"));
+                                .setMessage(
+                                    "Archive unit profile identifier " + aupm.getIdentifier() +
+                                        " already exists in the json"));
                         continue;
                     } else {
                         profileIdentifiers.add(aupm.getIdentifier());
@@ -222,8 +220,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                         error.addToErrors(
                             getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                                 "Duplicate archive unit profiles (Names)", StatusCode.KO)
-                                    .setMessage(
-                                        "Archive unit profile name " + aupm.getName() + " already exists in the json"));
+                                .setMessage(
+                                    "Archive unit profile name " + aupm.getName() + " already exists in the json"));
                         continue;
                     } else {
                         profileNames.add(aupm.getName());
@@ -287,9 +285,12 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 if (aupm.getControlSchema() != null) {
                     HashMap<String, ArrayNode> extractFields =
                         new SchemaValidationUtils().extractFieldsFromSchema(aupm.getControlSchema());
+                    //Get the extra properties (enum and date) for ontologyType comparison
+                    HashMap<String, ArrayNode> extraProperties =
+                        new SchemaValidationUtils().extractExtraPropertyFromSchema(aupm.getControlSchema());
                     if (checkOntology) {
                         extractFields.forEach((k, v) -> {
-                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error);
+                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
                         });
                     }
                     aupm.setFields(new ArrayList<String>(extractFields.keySet()));
@@ -371,8 +372,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
         if (profileModel == null) {
             return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                 ARCHIVE_UNIT_PROFILE_NOT_FOUND, StatusCode.KO)
-                    .setHttpCode(Response.Status.NOT_FOUND.getStatusCode())
-                    .setMessage(ArchiveUnitProfileManager.UPDATE_AUP_NOT_FOUND);
+                .setHttpCode(Response.Status.NOT_FOUND.getStatusCode())
+                .setMessage(ArchiveUnitProfileManager.UPDATE_AUP_NOT_FOUND);
         }
 
 
@@ -387,14 +388,14 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 "Update query dsl must be an object and not null", ArchiveUnitProfileManager.UPDATE_KO);
             return getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                 "Update query dsl must be an object and not null : " + profileModel.getIdentifier(), StatusCode.KO)
-                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                    .setMessage(ArchiveUnitProfileManager.UPDATE_KO);
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                .setMessage(ArchiveUnitProfileManager.UPDATE_KO);
         }
 
         final VitamError error = getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
             "Update archive unit profile error : " + profileModel.getIdentifier(), StatusCode.KO)
-                .setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+            .setHttpCode(
+                Response.Status.BAD_REQUEST.getStatusCode());
 
         final JsonNode actionNode = queryDsl.get(BuilderToken.GLOBAL.ACTION.exactToken());
         boolean schemaUpdate = false;
@@ -421,9 +422,12 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     final Map<String, OntologyModel> ontologyModelMap = getOntologyModelMap(error);
                     HashMap<String, ArrayNode> extractFields =
                         new SchemaValidationUtils().extractFieldsFromSchema(newSchema);
+                    //Get the extra properties (enum and date) for ontologyType comparison
+                    HashMap<String, ArrayNode> extraProperties =
+                        new SchemaValidationUtils().extractExtraPropertyFromSchema(newSchema);
                     if (checkOntology) {
                         extractFields.forEach((k, v) -> {
-                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error);
+                            validateFieldsInSchemaAgainstOntology(ontologyModelMap, k, v, error, extraProperties.get(k));
                         });
                     }
                     ObjectNode fieldsObjectNode = JsonHandler.createObjectNode();
@@ -549,8 +553,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 ArchiveUnitProfileStatus.INACTIVE.name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                     ARCHIVE_UNIT_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE + value.asText(), StatusCode.KO)
-                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                        .setMessage(ArchiveUnitProfileManager.UPDATE_VALUE_NOT_IN_ENUM));
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                    .setMessage(ArchiveUnitProfileManager.UPDATE_VALUE_NOT_IN_ENUM));
             }
         }
 
@@ -568,8 +572,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
             if (!value.isTextual()) {
                 error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                     ARCHIVE_UNIT_PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText(), StatusCode.KO)
-                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                        .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                    .setMessage(ArchiveUnitProfileManager.UPDATE_KO));
             } else if (!profileModel.getIdentifier().equals(value.asText())) {
                 Optional<RejectionCause> validateIdentifier = manager.createCheckDuplicateInDatabaseValidator()
                     .validate(new ArchiveUnitProfileModel().setIdentifier(value.asText()));
@@ -577,8 +581,8 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                     error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                         ARCHIVE_UNIT_PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText(),
                         StatusCode.KO)
-                            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                            .setMessage(ArchiveUnitProfileManager.UPDATE_DUPLICATE_IN_DATABASE));
+                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                        .setMessage(ArchiveUnitProfileManager.UPDATE_DUPLICATE_IN_DATABASE));
                 }
             }
         }
@@ -621,7 +625,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
 
     /**
      * Get ontology map
-     * 
+     *
      * @param error
      * @return ontology map
      */
@@ -654,24 +658,27 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
     }
 
     /**
-     * Validate fields against one present in Ontology
-     * 
+     * Validate the field against the one present in Ontology
+     *
      * @param ontologyList
      * @param field
      * @param types
      * @param error
+     * @param extraType
      */
     private void validateFieldsInSchemaAgainstOntology(Map<String, OntologyModel> ontologyList,
-        final String field, final ArrayNode types, final VitamError error) {
+        final String field, final ArrayNode types, final VitamError error, ArrayNode extraType) {
         final HashMap<OntologyType, List<String>> fieldsCorrelation = new HashMap<>();
         fieldsCorrelation.put(OntologyType.BOOLEAN, Arrays.asList(new String[] {"boolean", "string"}));
-        fieldsCorrelation.put(OntologyType.DATE, Arrays.asList(new String[] {"string"}));
+        fieldsCorrelation.put(OntologyType.DATE, Arrays.asList(new String[] {"date", "string"}));
         fieldsCorrelation.put(OntologyType.KEYWORD,
             Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
         fieldsCorrelation.put(OntologyType.TEXT,
             Arrays.asList(new String[] {"string", "number", "null", "array", "object", "integer"}));
         fieldsCorrelation.put(OntologyType.DOUBLE, Arrays.asList(new String[] {"number"}));
         fieldsCorrelation.put(OntologyType.LONG, Arrays.asList(new String[] {"number", "integer"}));
+        fieldsCorrelation.put(OntologyType.GEO_POINT, Arrays.asList(new String[] {"string"}));
+        fieldsCorrelation.put(OntologyType.ENUM, Arrays.asList(new String[] {"enum"}));
 
         if (ontologyList.containsKey(field)) {
             OntologyModel checkedField = ontologyList.get(field);
@@ -680,7 +687,14 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 String type = iterator.next().asText();
                 if (type != null) {
                     List<String> listforOntType = fieldsCorrelation.get(checkedField.getType());
-                    if (listforOntType != null && !listforOntType.contains(type)) {
+                    boolean containsExtraType = false;
+                    if (extraType != null && extraType.get(0) != null) {
+                        JsonNode extraNode = extraType.get(0);
+                        if (listforOntType.contains(extraNode.asText())) {
+                            containsExtraType = true;
+                        }
+                    }
+                    if (listforOntType != null && !listforOntType.contains(type) && !containsExtraType) {
                         error.addToErrors(getVitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem(),
                             RejectionCause.rejectIncorrectFieldInOntology(field).getReason(), StatusCode.KO));
                     }
