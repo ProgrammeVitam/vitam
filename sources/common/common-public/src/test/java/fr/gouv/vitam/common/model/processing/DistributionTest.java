@@ -30,9 +30,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.common.model.processing.Distribution;
-import fr.gouv.vitam.common.model.processing.DistributionKind;
-
 public class DistributionTest {
 
     private static final String Test = "test";
@@ -41,8 +38,8 @@ public class DistributionTest {
     public void testConstructor() {
         assertEquals("", new Distribution().getElement());
         assertEquals(DistributionKind.REF, new Distribution().getKind());
-        assertEquals(DistributionKind.LIST.value(),
-            new Distribution().setKind(DistributionKind.LIST).getKind().value());
+        assertEquals(DistributionKind.LIST_ORDERING_IN_FILE.value(),
+            new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).getKind().value());
         assertEquals(Test, new Distribution().setElement(Test).getElement());
         
     }

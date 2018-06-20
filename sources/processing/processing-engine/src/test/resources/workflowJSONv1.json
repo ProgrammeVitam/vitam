@@ -1,20 +1,37 @@
 {
-	"id": "workflowJSONv1",
-	"identifier":"workflowJSONv1",
-	"name":"name",
-	"typeProc":"typeProc",
-	"comment":"traitement en deux macro étapes",
-	"steps":
-	[
-	{
-	"workerGroupId" :"worker2",
-		"stepName":"Traiter_archives",
-		"behavior": "NOBLOCKING",
-		"actions":[
-		{"action":{"actionKey": "extractContentAction", "behavior": "NOBLOCKING"}},
-		{"action":{"actionKey": "storeAction", "behavior": "NOBLOCKING"}},
-		{"action":{"actionKey": "saveInDataBaseAction", "behavior": "NOBLOCKING"}}
-		]
-	}
-	]
+  "id": "workflowJSONv1",
+  "identifier": "workflowJSONv1",
+  "name": "name",
+  "typeProc": "typeProc",
+  "comment": "traitement en deux macro étapes",
+  "steps": [
+    {
+      "workerGroupId": "worker2",
+      "stepName": "Traiter_archives",
+      "behavior": "NOBLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "extractContentAction",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "storeAction",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "saveInDataBaseAction",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    }
+  ]
 }

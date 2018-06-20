@@ -26,64 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
@@ -94,12 +36,74 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class, StorageClientFactory.class})
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
+import fr.gouv.vitam.common.model.MetadataType;
+import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+
 public class CreateObjectSecureFileActionPluginTest {
 
-    CreateObjectSecureFileActionPlugin plugin = new CreateObjectSecureFileActionPlugin();
+    CreateObjectSecureFileActionPlugin plugin;
 
     private static final Integer TENANT_ID = 0;
     private static final String OBJECT_LFC_1 = "CreateObjectSecureFileActionPlugin/object1.json";
@@ -110,7 +114,8 @@ public class CreateObjectSecureFileActionPluginTest {
     private String guidOg = "aebaaaaaaahgausqab7boak55jchzyqaaaaq";
 
     private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
-
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -124,12 +129,16 @@ public class CreateObjectSecureFileActionPluginTest {
             .setObjectName(guidOg + ".json").setCurrentStep("currentStep")
             .setContainerName(guid.getId())
             .setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
+    @Mock
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
     private MetaDataClient metadataClient;
+    @Mock
     private MetaDataClientFactory metadataClientFactory;
 
+    @Mock
     private StorageClientFactory storageClientFactory;
+    @Mock
     private StorageClient storageClient;
 
     public CreateObjectSecureFileActionPluginTest() {
@@ -141,23 +150,10 @@ public class CreateObjectSecureFileActionPluginTest {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
-        workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        PowerMockito.mockStatic(MetaDataClientFactory.class);
-        metadataClient = mock(MetaDataClient.class);
-        metadataClientFactory = mock(MetaDataClientFactory.class);
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
-        PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
-            .thenReturn(metadataClient);
 
-        PowerMockito.mockStatic(StorageClientFactory.class);
-        storageClientFactory = mock(StorageClientFactory.class);
-        storageClient = mock(StorageClient.class);
-        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        PowerMockito.when(StorageClientFactory.getInstance().getClient())
-            .thenReturn(storageClient);
-
+        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        plugin = new CreateObjectSecureFileActionPlugin(metadataClientFactory, storageClientFactory);
         handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId");
     }
 
@@ -194,12 +190,13 @@ public class CreateObjectSecureFileActionPluginTest {
         saveWorkspacePutObject(SedaConstants.LFC_OBJECTS_FOLDER + "/" + guidOg + ".json");
 
         final String[] offerIds = new String[] {"vitam-iaas-app-02.int", "vitam-iaas-app-03.int"};
-        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(LFC_GOT_MD_FILE);
+        JsonNode mdWithLfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LFC_GOT_MD_FILE));
+        final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(
+            mdWithLfc);
 
         final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidOg, "",
             expectedMDLFCGlobalHashFromStorage, 17011, "file_owner",
-            LocalDateUtil.getString(LocalDateTime.now()), LocalDateUtil.getString(LocalDateTime.now())
-        );
+            LocalDateUtil.getString(LocalDateTime.now()), LocalDateUtil.getString(LocalDateTime.now()));
 
         final ObjectNode objectInformationResult = JsonHandler.createObjectNode();
 
@@ -216,7 +213,7 @@ public class CreateObjectSecureFileActionPluginTest {
 
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 
-        //Test with same global digest for all storage offers
+        // Test with same global digest for all storage offers
         storageMDResult.setDigest(expectedMDLFCGlobalHashFromStorage);
         objectInformationResult.set(offerIds[0], JsonHandler.toJsonNode(storageMDResult));
         objectInformationResult.set(offerIds[1], JsonHandler.toJsonNode(storageMDResult));
@@ -227,12 +224,18 @@ public class CreateObjectSecureFileActionPluginTest {
         String fileAsString = getSavedWorkspaceObject(SedaConstants.LFC_OBJECTS_FOLDER + "/" + guidOg + ".json");
         assertNotNull(fileAsString);
         System.out.println(fileAsString);
-        //got have 11 objects and the last one is an Array with the elements ==> 13 json separators (ie ',')
-        assertEquals(13, StringUtils.countMatches(fileAsString, ","));
+        // got have 11 objects and the last one is an Array with the elements ==> 13 json separators (ie ',')
+        assertEquals(15, StringUtils.countMatches(fileAsString, ","));
 
         // check hash for LFC and for MD
-        final String gotMDHash = generateExpectedDigest(OBJECT_GROUP_MD);
-        final String gotLFCHash = generateExpectedDigest(OBJECT_LFC_1);
+        ObjectNode got = (ObjectNode) JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(OBJECT_GROUP_MD));
+
+        final String gotMDHash = generateExpectedDigest(got);
+
+        JsonNode lfc = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_LFC_1));
+        final String gotLFCHash = generateExpectedDigest(lfc);
+        final String gotLFCHashEvents = generateExpectedDigest(lfc.get(LogbookDocument.EVENTS));
 
 
         final LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLineExpected =
@@ -241,29 +244,39 @@ public class CreateObjectSecureFileActionPluginTest {
                 "INGEST",
                 "2017-08-16T09:29:25.562",
                 guidOg,
-                LifeCycleTraceabilitySecureFileObject.MetadataType.OBJECTGROUP,
+                MetadataType.OBJECTGROUP,
                 0,
                 "OK",
                 gotLFCHash,
+                gotLFCHashEvents,
                 gotMDHash,
                 expectedMDLFCGlobalHashFromStorage,
                 null
-            );
-        //add object documents (qualifiers->version)
-        lfcTraceSecFileDataLineExpected.addObjectGroupDocumentHashToList("aeaaaaaaaahgausqab7boak55jchzzqaaaaq",
-            expectedMDLFCGlobalHashFromStorage
-        );
-        lfcTraceSecFileDataLineExpected.addObjectGroupDocumentHashToList("aeaaaaaaaahgausqab7boak55jchzyiaaabq",
-            expectedMDLFCGlobalHashFromStorage);
 
-        assertEquals(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected).toString(), fileAsString);
+            );
+        List<String> auUp = new ArrayList<>();
+        auUp.add("aeaqaaaaaahgausqab7boak55jcmttqaaaaq");
+        lfcTraceSecFileDataLineExpected.setUp(auUp);
+        // add object documents (qualifiers->version)
+        List<ObjectGroupDocumentHash> objectGroupDocumentHashToList = new ArrayList<>();
+
+        objectGroupDocumentHashToList.add(
+            new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzzqaaaaq", expectedMDLFCGlobalHashFromStorage));
+        objectGroupDocumentHashToList.add(
+            new ObjectGroupDocumentHash("aeaaaaaaaahgausqab7boak55jchzyiaaabq", expectedMDLFCGlobalHashFromStorage));
+
+        lfcTraceSecFileDataLineExpected.setObjectGroupDocumentHashList(objectGroupDocumentHashToList);
+
+        String expected = new String(
+            CanonicalJsonFormatter.serializeToByteArray(JsonHandler.toJsonNode(lfcTraceSecFileDataLineExpected)),
+            StandardCharsets.UTF_8);
+        assertEquals(expected, fileAsString);
 
     }
 
-    private String generateExpectedDigest(String resource) throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
+    private String generateExpectedDigest(JsonNode jsonNode) {
         Digest digest = new Digest(digestType);
-        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes(StandardCharsets.UTF_8));
+        digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
     }
 

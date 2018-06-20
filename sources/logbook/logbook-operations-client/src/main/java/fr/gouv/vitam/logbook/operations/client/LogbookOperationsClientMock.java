@@ -50,6 +50,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -177,8 +178,16 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     }
 
     @Override
-    public RequestResponseOK traceabilityLFC() throws LogbookClientServerException, InvalidParseOperationException {
-        LOGGER.debug("calling traceability LFC");
+    public RequestResponseOK traceabilityLfcUnit() {
+        LOGGER.debug("calling traceability LFC unit");
+        final List<String> resultAsJson = new ArrayList<>();
+        resultAsJson.add(GUID_EXAMPLE);
+        return new RequestResponseOK().addAllResults(resultAsJson);
+    }
+
+    @Override
+    public RequestResponseOK traceabilityLfcObjectGroup() {
+        LOGGER.debug("calling traceability LFC ObjectGroup");
         final List<String> resultAsJson = new ArrayList<>();
         resultAsJson.add(GUID_EXAMPLE);
         return new RequestResponseOK().addAllResults(resultAsJson);
@@ -203,5 +212,10 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
 
     @Override public Response checkLogbookCoherence() throws VitamException {
         return Response.ok().build();
+    }
+
+    @Override
+    public LifecycleTraceabilityStatus checkLifecycleTraceabilityWorkflowStatus(String operationId) {
+        throw new IllegalStateException("Stop using mocks in production");
     }
 }

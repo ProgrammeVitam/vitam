@@ -134,10 +134,14 @@ public enum WorkerParameterName {
     requestId,
 
     /**
-     * The overlap delay (in seconds) for logbook lifecycle traceability events.
-     * Used to catch up possibly missed events due to clock difference.
+     * Temporization delay (in seconds) for recent logbook lifecycle events
      */
-    lifecycleTraceabilityOverlapDelayInSeconds;
+    lifecycleTraceabilityTemporizationDelayInSeconds,
+
+    /**
+     * Max event count to select during a single logbook lifecycle traceability workflow.
+     */
+    lifecycleTraceabilityMaxEntries;
 
     public static HashSet<String> getEnums() {
 

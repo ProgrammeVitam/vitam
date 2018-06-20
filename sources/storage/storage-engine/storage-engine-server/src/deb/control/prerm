@@ -5,6 +5,16 @@ case "$1" in
     if [ -x /bin/systemctl ]; then
       systemctl --no-reload disable vitam-${unix.name}.service >/dev/null 2>&1 || true
       systemctl stop vitam-${unix.name}.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-storage-log-backup.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-storage-log-backup.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-storage-log-backup.service >/dev/null 2>&1 || true
+      systemctl stop vitam-storage-log-backup.service >/dev/null 2>&1 || true
+
+      systemctl --no-reload disable vitam-storage-log-traceability.timer >/dev/null 2>&1 || true
+      systemctl stop vitam-storage-log-traceability.timer >/dev/null 2>&1 || true
+      systemctl --no-reload disable vitam-storage-log-traceability.service >/dev/null 2>&1 || true
+      systemctl stop vitam-storage-log-traceability.service >/dev/null 2>&1 || true
     fi
     ;;
 

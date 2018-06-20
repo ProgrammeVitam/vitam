@@ -26,18 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.core;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
@@ -45,15 +49,21 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Logbook LifeCycles implementation base class
@@ -124,9 +134,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters, boolean commit)
-            throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
-            LogbookAlreadyExistsException {
+    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters,
+        boolean commit)
+        throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
+        LogbookAlreadyExistsException {
         checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
         mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, idLc, parameters, commit);
     }
@@ -400,6 +411,73 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public void bulk(LogbookCollections collections, String idOp,
         List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException {
         mongoDbAccess.bulk(collections, logbookLifeCycleModels);
+    }
+
+    @Override
+    public List<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate, int limit)
+        throws InvalidParseOperationException {
+        return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_UNIT, startDate, endDate, limit);
+    }
+
+    @Override
+    public List<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate,
+        int limit) throws InvalidParseOperationException {
+        return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_OBJECTGROUP, startDate, endDate,
+            limit);
+    }
+
+    private List<JsonNode> getRawLifecyclesByLastPersistedDate(LogbookCollections collection, String startDate,
+        String endDate, int limit) throws InvalidParseOperationException {
+        VitamMongoRepository vitamMongoRepository =
+            VitamRepositoryFactory.getInstance().getVitamMongoRepository(collection);
+        List<JsonNode> result = new ArrayList<>();
+        try (MongoCursor<Document> lifecycles =
+            vitamMongoRepository.findDocuments(
+                Filters.and(
+                    Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
+                    Filters.gte(LogbookDocument.LAST_PERSISTED_DATE, startDate),
+                    Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
+                , VitamConfiguration.getBatchSize())
+                .sort(
+                    Sorts.ascending(LogbookDocument.LAST_PERSISTED_DATE)
+                )
+                .limit(limit).iterator()) {
+
+            while (lifecycles.hasNext()) {
+                result.add(JsonHandler.getFromString(JSON.serialize(lifecycles.next())));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public JsonNode getRawUnitLifeCycleById(String id)
+        throws LogbookNotFoundException, InvalidParseOperationException {
+        return getRawLifecycleById(id, LogbookCollections.LIFECYCLE_UNIT);
+    }
+
+    @Override
+    public JsonNode getRawObjectGroupLifeCycleById(String id)
+        throws LogbookNotFoundException, InvalidParseOperationException {
+        return getRawLifecycleById(id, LogbookCollections.LIFECYCLE_OBJECTGROUP);
+    }
+
+    private JsonNode getRawLifecycleById(String id, LogbookCollections collection)
+        throws InvalidParseOperationException, LogbookNotFoundException {
+        VitamMongoRepository vitamMongoRepository =
+            VitamRepositoryFactory.getInstance().getVitamMongoRepository(collection);
+
+        Document document = vitamMongoRepository.findDocuments(
+            Filters.and(
+                Filters.eq(LogbookDocument.ID, id),
+                Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            ), 1).first();
+
+        if (document == null) {
+            throw new LogbookNotFoundException("Could not find raw lifecycle by id " + id);
+        }
+
+        return JsonHandler.getFromString(JSON.serialize(document));
     }
 }
 

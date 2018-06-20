@@ -524,7 +524,6 @@ public class LogbookCheckConsistencyIT {
 
         // Import of data
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_0);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
         importFiles();
 
@@ -649,6 +648,7 @@ public class LogbookCheckConsistencyIT {
 
 
             // Import Security Profile
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importSecurityProfiles(JsonHandler
                 .getFromFileAsTypeRefence(
                     PropertiesUtils.getResourceFile("integration-logbook/data/security_profile_ok.json"),
@@ -656,6 +656,7 @@ public class LogbookCheckConsistencyIT {
                     }));
 
             // Import Context
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importContexts(JsonHandler
                 .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-logbook/data/contexts.json"),
                     new TypeReference<List<ContextModel>>() {

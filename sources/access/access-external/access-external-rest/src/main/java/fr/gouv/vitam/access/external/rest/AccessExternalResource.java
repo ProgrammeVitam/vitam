@@ -95,6 +95,10 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
     private static final String UNITS = "units";
+    private static final String CONTRACT_ACCESS_NOT_ALLOW = "Contract access does not allow ";
+    private static final String UNIT_NOT_FOUND = "Unit not found";
+    private static final String REQ_RES_DOES_NOT_EXIST = "Request resource does not exist";
+    private static final String OBJECT_TAG = "#object";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
 
@@ -158,7 +162,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Predicate Failed Exception ", e);
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
@@ -172,14 +176,14 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.error("Request resources does not exits ", e);
+            LOGGER.error(REQ_RES_DOES_NOT_EXIST, e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
@@ -216,7 +220,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 return response.toResponse();
             }
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Predicate Failed Exception ", e);
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (final Exception e) {
@@ -243,7 +247,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             Response response = client.findDIPByID(id);
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Predicate Failed Exception ", e);
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
@@ -254,7 +258,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit    the id of archive unit to get
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -276,7 +280,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
             if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
                 ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
-                throw new AccessInternalClientNotFoundException("Unit not found");
+                throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
             return Response.status(st).entity(result).build();
@@ -293,7 +297,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
                 e.getLocalizedMessage()).setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
                 e.getLocalizedMessage()).setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
@@ -303,7 +307,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson the update query (null not allowed)
-     * @param idUnit    units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -355,7 +359,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.debug("Contract access does not allow ", e);
+            LOGGER.debug(CONTRACT_ACCESS_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
@@ -367,8 +371,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers   the http header defined parameters of request
-     * @param unitId    the id of archive unit
+     * @param headers the http header defined parameters of request
+     * @param unitId the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -392,7 +396,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
             if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
                 ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
-                throw new AccessInternalClientNotFoundException("Unit not found");
+                throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 
             return Response.status(st).entity(result).build();
@@ -418,7 +422,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR,
@@ -432,7 +436,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request
-     * @param unitId  the id of archive unit
+     * @param unitId the id of archive unit
      * @return response
      */
     @GET
@@ -475,7 +479,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                         e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
                 .build();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(getErrorStream(
@@ -485,24 +489,25 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
-    private String idObjectGroup(String idu) throws InvalidParseOperationException, AccessInternalClientServerException,
+    private String idObjectGroup(String idu)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException {
         // Select "Object from ArchiveUNit idu
         ParametersChecker.checkParameter("unit id is required", idu);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
-            select.addUsedProjection("#object");
+            select.addUsedProjection(OBJECT_TAG);
             RequestResponse<JsonNode> response = client.selectUnitbyId(select.getFinalSelect(), idu);
             SanityChecker.checkJsonAll(response.toJsonNode());
             if (response.isOk()) {
                 JsonNode unit = ((RequestResponseOK<JsonNode>) response).getFirstResult();
-                if (unit == null || unit.findValue("#object") == null) {
+                if (unit == null || unit.findValue(OBJECT_TAG) == null) {
                     throw new AccessInternalClientNotFoundException("Unit with objectGroup not found");
                 } else {
-                    return unit.findValue("#object").textValue();
+                    return unit.findValue(OBJECT_TAG).textValue();
                 }
             } else {
-                throw new AccessInternalClientNotFoundException("Unit not found");
+                throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
         }
     }

@@ -4,14 +4,14 @@
   "identifier": "EXPORT_DIP",
   "typeProc": "DIP",
   "comment": "Default export archiveUnit",
+  "lifecycleLog": "DISABLED",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_CREATE_MANIFEST",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "REF",
-        "element": ""
+        "kind": "REF"
       },
       "actions": [
         {
@@ -64,8 +64,7 @@
       "stepName": "STP_STORE_MANIFEST",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "REF",
-        "element": ""
+        "kind": "REF"
       },
       "actions": [
         {

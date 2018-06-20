@@ -27,29 +27,6 @@
 
 package fr.gouv.vitam.logbook.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.mongodb.client.MongoCursor;
@@ -71,6 +48,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -85,12 +63,15 @@ import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.logbook.administration.audit.exception.LogbookAuditException;
+import fr.gouv.vitam.logbook.administration.core.LfcTraceabilityType;
 import fr.gouv.vitam.logbook.administration.core.LogbookAdministration;
 import fr.gouv.vitam.logbook.administration.core.LogbookLFCAdministration;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
+import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -144,8 +125,8 @@ import java.util.List;
  * Logbook Resource implementation
  */
 @Path("/logbook/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class LogbookResource extends ApplicationStatusResource {
+
     private static final String LOGBOOK = "logbook";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
     public static final String CONSISTENCY_ERROR_AN_INTERNAL_DATA_CONSISTENCY_ERROR_HAS_BEEN_DETECTED =
@@ -200,13 +181,14 @@ public class LogbookResource extends ApplicationStatusResource {
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
 
         logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
-            configuration.getOperationTraceabilityOverlapDelay());
+            configuration.getOperationTraceabilityTemporizationDelay());
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
 
         logbookLFCAdministration = new LogbookLFCAdministration(logbookOperation, processClientFactory,
-            clientFactory, configuration.getLifecycleTraceabilityOverlapDelay());
+            clientFactory, configuration.getLifecycleTraceabilityTemporizationDelay(),
+            configuration.getLifecycleTraceabilityMaxEntries());
 
         logbookAuditAdministration = new LogbookAuditAdministration(logbookOperation);
 
@@ -956,7 +938,7 @@ public class LogbookResource extends ApplicationStatusResource {
      *
      * @param idOp the operation id
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
-     * @return Response with a status of OK if updated aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq
+     * @return Response with a status of OK if updated
      */
     @PUT
     @Path("/operations/{id_op}/unitlifecycles")
@@ -1096,36 +1078,11 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
         throws VitamDBException {
-        return getUnitLifeCycle(queryDsl, evtStatus, true);
-    }
-
-    /**
-     * Gets a list of raw unit lifeCycles using a queryDsl
-     * 
-     * @param queryDsl a DSL query
-     * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
-     * @return a list of unit lifeCycles
-     */
-    @GET
-    @Path("/unitlifecyclesraw")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCyclesRaw(JsonNode queryDsl,
-        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
-        throws VitamDBException {
-        // FIXME : this is not a raw service, it should use a VitamRepository instead of current mongoDbAccess, this is
-        // a list service with full data at most. Please rename or make a real raw API point.
-        return getUnitLifeCycle(queryDsl, evtStatus, false);
-    }
-
-    private Response getUnitLifeCycle(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
-        boolean sliced)
-        throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
             final List<LogbookLifeCycle> result =
-                logbookLifeCycle.selectUnit(queryDsl, sliced, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
+                logbookLifeCycle.selectUnit(queryDsl, true, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
 
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
@@ -1164,6 +1121,110 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Gets a list of raw unit life cycles by request
+     *
+     * @param selectionJsonNode the request
+     * @return a list of unit lifeCycles
+     */
+    @GET
+    @Path("/raw/unitlifecycles/bylastpersisteddate")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getRawUnitLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
+        Status status;
+        try {
+
+            RawLifecycleByLastPersistedDateRequest request =
+                JsonHandler.getFromJsonNode(selectionJsonNode, RawLifecycleByLastPersistedDateRequest.class);
+
+            final List<JsonNode> result =
+                logbookLifeCycle
+                    .getRawUnitLifecyclesByLastPersistedDate(request.getStartDate(), request.getEndDate(),
+                        request.getLimit());
+
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<JsonNode>()
+                    .addAllResults(result)
+                    .setHttpCode(Status.OK.getStatusCode()))
+                .build();
+
+        } catch (final InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+    }
+
+    /**
+     * Gets a list of raw unit lifeCycles by id
+     *
+     * @param id the id to retrieve
+     * @return a the unit lifecycle in raw format
+     */
+    @GET
+    @Path("/raw/unitlifecycles/byid/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getRawUnitLifeCycleById(@PathParam("id") String id) {
+        Status status;
+        try {
+
+            final JsonNode result =
+                logbookLifeCycle.getRawUnitLifeCycleById(id);
+
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<JsonNode>()
+                    .addResult(result)
+                    .setHttpCode(Status.OK.getStatusCode()))
+                .build();
+
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.debug(exc);
+            return Response.status(Status.NOT_FOUND)
+                .entity(new RequestResponseOK()
+                    .addResult(JsonHandler.createArrayNode())
+                    .setHits(0, 0, 1)
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
+                .build();
+        } catch (final InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+    }
 
     /***** LIFE CYCLES UNIT - END *****/
 
@@ -1675,6 +1736,111 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Gets a list of raw unit life cycles by request
+     *
+     * @param selectionJsonNode the request
+     * @return a list of unit lifeCycles
+     */
+    @GET
+    @Path("/raw/objectgrouplifecycles/bylastpersisteddate")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getRawObjectGroupLifecyclesByLastPersistedDate(JsonNode selectionJsonNode) {
+        Status status;
+        try {
+
+            RawLifecycleByLastPersistedDateRequest request =
+                JsonHandler.getFromJsonNode(selectionJsonNode, RawLifecycleByLastPersistedDateRequest.class);
+
+            final List<JsonNode> result =
+                logbookLifeCycle
+                    .getRawObjectGroupLifecyclesByLastPersistedDate(request.getStartDate(), request.getEndDate(),
+                        request.getLimit());
+
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<JsonNode>()
+                    .addAllResults(result)
+                    .setHttpCode(Status.OK.getStatusCode()))
+                .build();
+
+        } catch (final InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+    }
+
+    /**
+     * Gets a list of raw object group lifeCycles by id
+     *
+     * @param id the id to retrieve
+     * @return a the object group lifecycle in raw format
+     */
+    @GET
+    @Path("/raw/objectgrouplifecycles/byid/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getRawObjectGroupLifeCycleById(@PathParam("id") String id) {
+        Status status;
+        try {
+
+            final JsonNode result =
+                logbookLifeCycle.getRawObjectGroupLifeCycleById(id);
+
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<JsonNode>()
+                    .addResult(result)
+                    .setHttpCode(Status.OK.getStatusCode()))
+                .build();
+
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.debug(exc);
+            return Response.status(Status.NOT_FOUND)
+                .entity(new RequestResponseOK()
+                    .addResult(JsonHandler.createArrayNode())
+                    .setHits(0, 0, 1)
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
+                .build();
+        } catch (final InvalidParseOperationException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+    }
+
     /***** LIFE CYCLES OBJECT GROUP - END *****/
 
     /**
@@ -1796,17 +1962,35 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
-     * Run traceability secure lifecycles for logbook
+     * Runs unit lifecycle traceability
      *
      * @param xTenantId the tenant id
      * @return the response with a specific HTTP status
      */
     @POST
-    @Path("/lifecycles/traceability")
+    @Path("/lifecycles/units/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceabilityLFC(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response traceabilityLfcUnit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        return traceabilityLFC(xTenantId, LfcTraceabilityType.Unit);
+    }
+
+    /**
+     * Runs object group lifecycle traceability
+     *
+     * @param xTenantId the tenant id
+     * @return the response with a specific HTTP status
+     */
+    @POST
+    @Path("/lifecycles/objectgroups/traceability")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response traceabilityLfcObjectGroup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        return traceabilityLFC(xTenantId, LfcTraceabilityType.ObjectGroup);
+    }
+
+    private Response traceabilityLFC(String xTenantId,
+        LfcTraceabilityType lfcTraceabilityType) {
+
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -1815,7 +1999,7 @@ public class LogbookResource extends ApplicationStatusResource {
             Integer tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            final GUID guid = logbookLFCAdministration.generateSecureLogbookLFC();
+            final GUID guid = logbookLFCAdministration.generateSecureLogbookLFC(lfcTraceabilityType);
             final List<String> resultAsJson = new ArrayList<>();
 
             resultAsJson.add(guid.toString());
@@ -1828,6 +2012,44 @@ public class LogbookResource extends ApplicationStatusResource {
 
         } catch (VitamException e) {
             LOGGER.error("unable to generate traceability log", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(new RequestResponseOK()
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+                .build();
+        }
+    }
+
+    /**
+     * Runs unit lifecycle traceability
+     *
+     * @param operationId the process id
+     * @return the response with a specific HTTP status
+     */
+    @GET
+    @Path("/lifecycles/traceability/check/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkLifecycleTraceabilityStatus(@PathParam("id") String operationId) {
+
+        try {
+            LifecycleTraceabilityStatus status = logbookLFCAdministration.checkLifecycleTraceabilityStatus(operationId);
+
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<LifecycleTraceabilityStatus>()
+                    .addResult(status)
+                    .setHits(1, 0, 1)
+                    .setHttpCode(Status.OK.getStatusCode()))
+                .build();
+        } catch (final LogbookNotFoundException | WorkflowNotFoundException exc) {
+            LOGGER.debug(exc);
+            return Response.status(Status.NOT_FOUND)
+                .entity(new VitamError(Status.NOT_FOUND.name()).setHttpCode(Status.NOT_FOUND.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(Status.NOT_FOUND.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (VitamException | InvalidCreateOperationException e) {
+            LOGGER.error("unable to check lifecycle traceability status", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(new RequestResponseOK()
                     .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()))

@@ -26,23 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.RestAssured.with;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assume.assumeTrue;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -64,6 +47,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -74,12 +58,15 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.RawLifecycleByLastPersistedDateRequest;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -96,9 +83,29 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static com.jayway.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assume.assumeTrue;
+
 @RunWithCustomExecutor
 public class LogbookResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
+    private static final String LIFECYCLES_TRACEABILITY_CHECK = "/lifecycles/traceability/check/";
 
     @Rule
     @ClassRule
@@ -126,7 +133,10 @@ public class LogbookResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String UNIT_LIFECYCLES = "/unitlifecycles";
     private static final String TRACEABILITY_URI = "/operations/traceability";
-    private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
+    private static final String OBJECT_GROUP_LFC_TRACEABILITY_URI = "/lifecycles/units/traceability";
+    private static final String UNIT_LFC_TRACEABILITY_URI = "/lifecycles/objectgroups/traceability";
+    private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/unitlifecycles/bylastpersisteddate";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/objectgrouplifecycles/bylastpersisteddate";
     private static final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
     private static int databasePort;
@@ -250,7 +260,8 @@ public class LogbookResourceTest {
         workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
             (WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)"))
-            .willReturn(WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+            .willReturn(WireMock.aResponse().withStatus(201)
+                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         workspaceInstanceRule.stubFor(WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
             (WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         processingInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
@@ -298,7 +309,7 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public final void testTraceabilityLFC() {
+    public final void testTraceabilityUnitLfc() {
         logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
@@ -306,12 +317,58 @@ public class LogbookResourceTest {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersAppend)
-            .post(TRACEABILITY_LFC_URI)
+            .post(UNIT_LFC_TRACEABILITY_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
+    @Test
+    public final void testTraceabilityObjectGroupLfc() {
+        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity());
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(logbookParametersAppend)
+            .post(OBJECT_GROUP_LFC_TRACEABILITY_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
 
+    @Test
+    public final void testGetRawUnitLifecyclesByLastPersistedDate() throws InvalidParseOperationException {
+
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2018-02-20T11:14:54.872",
+            "2018-02-20T11:14:54.872",
+            1000
+        );
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .get(UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public final void testGetRawObjectGroupLifecyclesByLastPersistedDate() throws InvalidParseOperationException {
+
+        RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
+            "2018-02-20T11:14:54.872",
+            "2018-02-20T11:14:54.872",
+            1000
+        );
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(request))
+            .get(OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
 
     @Test
     public final void testOperation() {
@@ -633,4 +690,46 @@ public class LogbookResourceTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckLifecycleTraceabilityStatus_NotFound() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        processingInstanceRule.stubFor(WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(404)));
+
+        // call the endpoint logbook check coherence
+        given().contentType(ContentType.JSON).
+            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(LIFECYCLES_TRACEABILITY_CHECK + "unkownid")
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testCheckLifecycleTraceabilityStatus_CompletedWithWarn() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        String operationId = "mockId";
+
+        processingInstanceRule.stubFor(WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
+            (WireMock.aResponse()
+                .withStatus(200)
+                .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED.name())
+                .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.WARNING.name())));
+
+        // call the endpoint logbook check coherence
+        JsonNode responseJson = given().contentType(ContentType.JSON).
+            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(LIFECYCLES_TRACEABILITY_CHECK + operationId)
+            .then().statusCode(Status.OK.getStatusCode())
+            .extract().body().as(JsonNode.class);
+
+        LifecycleTraceabilityStatus status =
+            JsonHandler.getFromJsonNode(responseJson.get("$results").get(0), LifecycleTraceabilityStatus.class);
+
+        assertThat(status.isCompleted()).isTrue();
+        assertThat(status.getOutcome()).isEqualTo("COMPLETED.WARNING");
+        assertThat(status.isMaxEntriesReached()).isFalse();
+    }
 }

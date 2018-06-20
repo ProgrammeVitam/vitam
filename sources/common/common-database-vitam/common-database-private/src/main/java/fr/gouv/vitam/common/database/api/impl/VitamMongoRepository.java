@@ -29,25 +29,26 @@ package fr.gouv.vitam.common.database.api.impl;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepository;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
@@ -55,6 +56,8 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 /**
  * Implementation for MongoDB
@@ -62,12 +65,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class VitamMongoRepository implements VitamRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMongoRepository.class);
     public static final String NAME = "Name";
-
+    private static final String ALL_PARAMS_REQUIRED = "All params are required";
     private MongoCollection<Document> collection;
 
     /**
      * Default constructor
-     * 
+     *
      * @param collection the collection on which to perform operation
      */
     public VitamMongoRepository(MongoCollection<Document> collection) {
@@ -76,7 +79,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void save(Document document) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, document);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, document);
         try {
             collection.insertOne(document);
         } catch (Exception e) {
@@ -87,7 +90,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, document);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, document);
         try {
             ReplaceOneModel<Document> replaceOneModel =
                 new ReplaceOneModel<Document>(eq("_id", document.get("_id")), document,
@@ -107,7 +110,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void save(List<Document> documents) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, documents);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
         List<InsertOneModel<Document>> collect =
             documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
 
@@ -125,7 +128,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public void saveOrUpdate(List<Document> documents) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", collection, documents);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
         List<ReplaceOneModel<Document>> collect =
             documents.stream().map(document -> new ReplaceOneModel<Document>(eq("_id", document.get("_id")), document,
                 new UpdateOptions().upsert(true))).collect(Collectors.toList());
@@ -159,7 +162,7 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException {
 
-        ParametersChecker.checkParameter("All params are required", name, tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, name, tenant);
         Bson query = and(eq(VitamDocument.TENANT_ID, tenant), eq(NAME, name));
         DeleteResult delete = collection.deleteOne(query);
         long count = delete.getDeletedCount();
@@ -176,7 +179,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public long purge(Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
         try {
             DeleteResult response = collection.deleteMany(new BasicDBObject(VitamDocument.TENANT_ID, tenant));
@@ -201,7 +204,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public Optional<Document> getByID(String id, Integer tenant) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", id);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
         try {
             FindIterable<Document> result = collection.find(new BasicDBObject(VitamDocument.ID, id));
             if (result.iterator().hasNext()) {
@@ -219,7 +222,7 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
         throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", identifier, tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, identifier, tenant);
         Bson query = and(eq("Identifier", identifier), eq(VitamDocument.TENANT_ID, tenant));
         try {
             FindIterable<Document> result = collection.find(query);
@@ -242,7 +245,7 @@ public class VitamMongoRepository implements VitamRepository {
 
     @Override
     public Optional<Document> findByIdentifier(String identifier) throws DatabaseException {
-        ParametersChecker.checkParameter("All params are required", identifier);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, identifier);
         try {
             FindIterable<Document> result = collection.find(eq("Identifier", identifier));
             if (result.iterator().hasNext()) {
@@ -265,7 +268,7 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
         Integer tenant) {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
         if (fields == null || fields.isEmpty()) {
             return findDocuments(mongoBatchSize, tenant);
         }
@@ -275,14 +278,31 @@ public class VitamMongoRepository implements VitamRepository {
         return collection.find(filter).batchSize(mongoBatchSize);
     }
 
+
+    @Override
+    public FindIterable<Document> findDocuments(Collection<String> ids, Bson projection) {
+        ParametersChecker.checkParameter("Id list is required ", ids);
+        if (null == projection) {
+            return collection.find(in(ID, ids));
+        } else {
+            return collection.find(in(ID, ids)).projection(projection);
+        }
+    }
+
+
     @Override
     public FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant) {
-        ParametersChecker.checkParameter("All params are required", tenant);
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
         return collection.find(new BasicDBObject(VitamDocument.TENANT_ID, tenant)).batchSize(mongoBatchSize);
     }
 
     @Override
     public FindIterable<Document> findDocuments(int mongoBatchSize) {
         return collection.find().batchSize(mongoBatchSize);
+    }
+
+    @Override
+    public FindIterable<Document> findDocuments(Bson query, int mongoBatchSize) {
+        return collection.find(query).batchSize(mongoBatchSize);
     }
 }

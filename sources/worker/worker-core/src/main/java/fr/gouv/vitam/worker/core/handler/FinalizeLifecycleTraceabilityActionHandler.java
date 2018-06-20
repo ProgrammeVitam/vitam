@@ -26,6 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.timestamp.TimeStampSignature;
+import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
+import fr.gouv.vitam.common.timestamp.TimestampGenerator;
+import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
+import fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper;
+import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
@@ -34,41 +45,18 @@ import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.timestamp.TimeStampSignature;
-import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
-import fr.gouv.vitam.common.timestamp.TimestampGenerator;
-import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
-import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.model.LogbookLifeCycleTraceabilityHelper;
-
 /**
  * FinalizeLifecycleTraceabilityAction Plugin
  */
-public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
+public abstract class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(FinalizeLifecycleTraceabilityActionHandler.class);
-
-    private static final String HANDLER_ID = "FINALIZE_LC_TRACEABILITY";
-
-    private HandlerIO handlerIO;
 
     private final TimestampGenerator timestampGenerator;
     private static final String VERIFY_TIMESTAMP_CONF_FILE = "verify-timestamp.conf";
 
     /**
      * Empty constructor FinalizeLifecycleTraceabilityActionPlugin
-     *
      */
     public FinalizeLifecycleTraceabilityActionHandler() {
         TimeStampSignature timeStampSignature;
@@ -99,52 +87,20 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
         }
     }
 
-    @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
-        handlerIO = handler;
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        try {
-            finalizeLifecycles(params, itemStatus);
-            itemStatus.increment(StatusCode.OK);
-        } catch (TraceabilityException e) {
-            LOGGER.error("Exception while finalizing", e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID,
-            itemStatus);
-    }
-
     /**
      * Generation and storage of the secure file for lifecycles
-     * 
-     * @param params worker parameters
-     * @param itemStatus step itemStatus, would be updated by the current handler
-     * @throws TraceabilityException if any error occurs
+     *
+     * @param helper@throws TraceabilityException if any error occurs
      */
-    private void finalizeLifecycles(WorkerParameters params, ItemStatus itemStatus)
+    protected void finalizeLifecycles(LogbookTraceabilityHelper helper)
         throws TraceabilityException {
-    	
+
         Integer tenantId = ParameterHelper.getTenantParameter();
         File tmpFolder = PropertiesUtils.fileFromTmpFolder("secure");
-        final LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
-        LogbookLifeCycleTraceabilityHelper helper =
-        		new LogbookLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, params.getContainerName());
-    	
-    	TraceabilityService traceabilityService = 
-    		new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
-    	
-    	traceabilityService.secureData();
-    }
 
-    @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // Nothing to check
-    }
+        TraceabilityService traceabilityService =
+            new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
 
-    /**
-     * @return HANDLER_ID
-     */
-    public static final String getId() {
-        return HANDLER_ID;
+        traceabilityService.secureData();
     }
 }

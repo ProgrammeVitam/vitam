@@ -26,38 +26,66 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.processing;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
+
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import com.google.common.base.MoreObjects;
 import fr.gouv.vitam.common.SingletonUtils;
 
 /**
- *
- *
  * workflow class used for deserialize JSON file (root element)
- *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class WorkFlow {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("identifier")
     private String identifier;
+
     @JsonProperty("typeProc")
     private String typeProc;
+
     @JsonProperty("comment")
     private String comment;
+
+    private LifecycleState lifecycleLog;
 
     /**
      * steps properties, must be defined in JSON file(required)
      */
-    @JsonProperty("steps")
     protected List<Step> steps;
+
+    // Use only in mock and test
+    public WorkFlow() {
+    }
+
+    @JsonCreator
+    public WorkFlow(
+        @JsonProperty("id") String id,
+        @JsonProperty("name") String name,
+        @JsonProperty("identifier") String identifier,
+        @JsonProperty("typeProc") String typeProc,
+        @JsonProperty("comment") String comment,
+        @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
+        @JsonProperty("steps") List<Step> steps) {
+        this.id = id;
+        this.name = name;
+        this.identifier = identifier;
+        this.typeProc = typeProc;
+        this.comment = comment;
+        this.lifecycleLog = firstNonNull(lifecycleLog, LifecycleState.ENABLED);
+        this.steps = steps;
+        steps.forEach(step -> step.defaultLifecycleLog(this.lifecycleLog));
+    }
 
     /**
      * getId, get id of workflow
@@ -88,7 +116,7 @@ public class WorkFlow {
      * @return the workflowName
      */
     public String getName() {
-        if(name == null) {
+        if (name == null) {
             return "";
         }
         return name;
@@ -131,7 +159,7 @@ public class WorkFlow {
      * @return the workflowType
      */
     public String getTypeProc() {
-        if(typeProc == null) {
+        if (typeProc == null) {
             return "";
         }
         return typeProc;
@@ -206,6 +234,14 @@ public class WorkFlow {
         sb.append("typeProc=" + getTypeProc() + "\n");
         sb.append("comments=" + getComment() + "\n");
         return sb.toString();
+    }
+
+    public LifecycleState getLifecycleLog() {
+        return lifecycleLog;
+    }
+
+    public void setLifecycleLog(LifecycleState lifecycleLog) {
+        this.lifecycleLog = lifecycleLog;
     }
 
 }

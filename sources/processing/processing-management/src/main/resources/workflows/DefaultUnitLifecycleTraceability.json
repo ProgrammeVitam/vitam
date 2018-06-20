@@ -1,0 +1,79 @@
+{
+  "id": "DefaultUnitLifecycleTraceability",
+  "name": "Default Unit Lifecycle Traceability",
+  "identifier": "LOGBOOK_UNIT_LFC_TRACEABILITY",
+  "typeProc": "TRACEABILITY",
+  "comment": "Default logbook traceability for unit lifecycles Workflow V1",
+  "lifecycleLog": "DISABLED",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PREPARE_UNIT_LFC_TRACEABILITY",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PREPARE_UNIT_LFC_TRACEABILITY",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "lastOperation.file",
+                "uri": "WORKSPACE:Operations/lastOperation.json"
+              },
+              {
+                "name": "traceabilityInformation.file",
+                "uri": "WORKSPACE:Operations/traceabilityInformation.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNITS_CREATE_SECURED_FILE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "UnitsWithoutLevel"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNITS_CREATE_SECURED_FILE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_TRACEABILITY_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "FINALIZE_UNIT_LFC_TRACEABILITY",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "lastOperation.file",
+                "uri": "WORKSPACE:Operations/lastOperation.json"
+              },
+              {
+                "name": "traceabilityInformation.file",
+                "uri": "WORKSPACE:Operations/traceabilityInformation.json"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -29,8 +29,10 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import static fr.gouv.vitam.access.external.api.AdminCollections.AGENCIES;
 import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
 import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -47,6 +49,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -54,6 +58,9 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import fr.gouv.vitam.common.exception.VitamException;
+import org.assertj.core.api.Fail;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -857,85 +864,76 @@ public class AccessStep {
         assertThat(auditStatus.getStatusCode()).isEqualTo(202);
     }
 
-    @When("^je réalise un audit de traçabilité de l'unité$")
+    @When("^je réalise un audit de traçabilité de la requete$")
     public void unit_traceability_audit() throws Throwable {
-        String unitId = world.getUnitId();
+
+        JsonNode queryFromString = JsonHandler.getFromString(world.getQuery());
 
         // Run unit traceability audit
-        VitamContext vitamContext =
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId());
-        world.getAdminClient().unitEvidenceAudit(vitamContext, unitId);
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse requestResponse = world.getAdminClient().evidenceAudit(vitamContext, queryFromString);
+
+
+        final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
+        world.setOperationId(operationId);
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+
+        boolean process_timeout = vitamPoolingClient
+            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+        if (!process_timeout) {
+            fail("Sip processing not finished. Timeout exceeded.");
+        }
+        assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
-    @When("^je réalise un audit de traçabilité de l'objet group$")
-    public void object_group_traceability_audit() throws Throwable {
-        String objectGroupId = world.getObjectGroupId();
-
-        // Run unit traceability audit
-        VitamContext vitamContext =
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId());
-        world.getAdminClient().objectGroupEvidenceAudit(vitamContext, objectGroupId);
-    }
-
-    @Then("^le journal d'opération de l'audit de traçabilité a pour statut (.*)$")
-    public void check_traceability_audit_status(String expectedStatus) throws Throwable {
-        // Select operation
-        Select select = new Select();
-        BooleanQuery query = and().add(
-            eq(LogbookMongoDbName.eventType.getDbname(), EVIDENCE_AUDIT));
-        select.setQuery(query);
-        select.setLimitFilter(0, 1);
-        select.addOrderByDescFilter("events.evDateTime");
-
-        VitamContext vitamContext =
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId());
-        RequestResponse<LogbookOperation>
-            operationRequestResponse = world.getAccessClient().selectOperations(vitamContext, select.getFinalSelect());
-        assertThat(operationRequestResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<LogbookOperation>) operationRequestResponse).getResults()).hasSize(1);
-
-        LogbookOperation logbookOperation =
-            ((RequestResponseOK<LogbookOperation>) operationRequestResponse).getResults().get(0);
-
-        List<LogbookEventOperation> events = logbookOperation.getEvents();
-        LogbookEventOperation lastEvent = events.get(events.size() - 1);
-
-        assertThat(lastEvent.getEvType()).isEqualTo(EVIDENCE_AUDIT);
-        assertThat(lastEvent.getOutcome()).isEqualTo(expectedStatus);
-    }
-
-    @When("^on lance la traçabilité des journaux de cycles de vie$")
-    public void lfc_traceability() {
+    @When("^on lance la traçabilité des journaux de cycles de vie des unités archivistiques$")
+    public void unit_lfc_traceability() {
         runInVitamThread(() -> {
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLFC();
-            assertThat(requestResponseOK.isOk()).isTrue();
-
-            final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-            assertThat(traceabilityOperationId).isNotNull();
-
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean process_timeout = vitamPoolingClient
-                .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
-                    TimeUnit.MILLISECONDS);
-            if (!process_timeout) {
-                fail("Traceability processing not finished. Timeout exceeded.");
-            }
-
-            VitamContext vitamContext =
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId());
-            RequestResponse<ItemStatus> operationProcessExecutionDetails =
-                world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
-
-            assertThat(operationProcessExecutionDetails.isOk()).isTrue();
-            assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
-                .getGlobalStatus()).isEqualTo(StatusCode.OK);
+            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcUnit();
+            checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
         });
+    }
+
+    @When("^on lance la traçabilité des journaux de cycles de vie des groupes d'objets$")
+    public void objectgroup_lfc_traceability() {
+        runInVitamThread(() -> {
+            VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+
+            RequestResponseOK requestResponseOK = world.getLogbookOperationsClient().traceabilityLfcObjectGroup();
+            checkTraceabilityLfcResponseOKOrWarn(requestResponseOK);
+        });
+    }
+
+    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK requestResponseOK) throws VitamException {
+        assertThat(requestResponseOK.isOk()).isTrue();
+
+        final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        assertThat(traceabilityOperationId).isNotNull();
+
+        final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+        boolean process_timeout = vitamPoolingClient
+            .wait(world.getTenantId(), traceabilityOperationId, ProcessState.COMPLETED, 1800, 1_000L,
+                TimeUnit.MILLISECONDS);
+        if (!process_timeout) {
+            fail("Traceability processing not finished. Timeout exceeded.");
+        }
+
+        VitamContext vitamContext =
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<ItemStatus> operationProcessExecutionDetails =
+            world.getAdminClient().getOperationProcessExecutionDetails(vitamContext, traceabilityOperationId);
+
+        assertThat(operationProcessExecutionDetails.isOk()).isTrue();
+
+        // Check is LFC status is OK ou WARN
+        // LFC with WARN (no data to secure) may occur randomly during tests if traceability timers are run concurrently
+        assertThat(((RequestResponseOK<ItemStatus>) operationProcessExecutionDetails).getFirstResult()
+            .getGlobalStatus()).isIn(StatusCode.OK, StatusCode.WARNING);
     }
 
     /**

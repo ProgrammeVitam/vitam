@@ -27,8 +27,9 @@
 
 package fr.gouv.vitam.logbook.administration.core;
 
-import javax.ws.rs.core.Response.Status;
-
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -36,20 +37,28 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -61,6 +70,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import javax.ws.rs.core.Response.Status;
+import java.util.List;
+
 /**
  * Business class for Logbook LFC Administration (traceability)
  */
@@ -69,59 +81,79 @@ public class LogbookLFCAdministration {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLFCAdministration.class);
 
-    private static String SECURISATION_LC = "LOGBOOK_LC_SECURISATION";
-
     private final LogbookOperations logbookOperations;
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final int lifecycleTraceabilityOverlapDelayInSeconds;
+    private final int lifecycleTraceabilityTemporizationDelayInSeconds;
+    private final int lifecycleTraceabilityMaxEntries;
 
     /**
      * LogbookLFCAdministration constructor
-     *  @param logbookOperations the logbook operations
+     *
+     * @param logbookOperations the logbook operations
      * @param processingManagementClientFactory the processManagementClient factory
      * @param workspaceClientFactory the Workspace Client Factory
-     * @param lifecycleTraceabilityOverlapDelay
+     * @param lifecycleTraceabilityTemporizationDelay
+     * @param lifecycleTraceabilityMaxEntries
      */
     public LogbookLFCAdministration(LogbookOperations logbookOperations,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        WorkspaceClientFactory workspaceClientFactory, Integer lifecycleTraceabilityOverlapDelay) {
+        WorkspaceClientFactory workspaceClientFactory, Integer lifecycleTraceabilityTemporizationDelay,
+        Integer lifecycleTraceabilityMaxEntries) {
         this.logbookOperations = logbookOperations;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
-        this.lifecycleTraceabilityOverlapDelayInSeconds = validateAndGetTraceabilityOverlapDelay(
-            lifecycleTraceabilityOverlapDelay);
+        this.lifecycleTraceabilityTemporizationDelayInSeconds = validateAndGetLifecycleTraceabilityTemporizationDelay(
+            lifecycleTraceabilityTemporizationDelay);
+        this.lifecycleTraceabilityMaxEntries = validateAndGetLifecycleTraceabilityMaxEntries(
+            lifecycleTraceabilityMaxEntries);
     }
 
-    private static int validateAndGetTraceabilityOverlapDelay(Integer operationTraceabilityOverlapDelay) {
-        if (operationTraceabilityOverlapDelay == null) {
+    private static int validateAndGetLifecycleTraceabilityTemporizationDelay(
+        Integer lifecycleTraceabilityTemporizationDelay) {
+        if (lifecycleTraceabilityTemporizationDelay == null) {
             return 0;
         }
-        if (operationTraceabilityOverlapDelay < 0) {
-            throw new IllegalArgumentException("Operation traceability overlap delay cannot be negative");
+        if (lifecycleTraceabilityTemporizationDelay < 0) {
+            throw new IllegalArgumentException("Temporization delay cannot be negative");
         }
-        return operationTraceabilityOverlapDelay;
+        return lifecycleTraceabilityTemporizationDelay;
+    }
+
+    private static int validateAndGetLifecycleTraceabilityMaxEntries(Integer lifecycleTraceabilityMaxEntries) {
+        if (lifecycleTraceabilityMaxEntries == null) {
+            return 0;
+        }
+        if (lifecycleTraceabilityMaxEntries <= 0) {
+            throw new IllegalArgumentException("Max traceability events cannot be negative");
+        }
+        return lifecycleTraceabilityMaxEntries;
     }
 
     /**
      * Secure the logbook Lifecycles since last securisation by launching a workflow.
-     * 
+     *
+     * @param lfcTraceabilityType
      * @return the GUID of the operation
      * @throws VitamException if case of errors launching the workflow
      */
-    public synchronized GUID generateSecureLogbookLFC()
+    public synchronized GUID generateSecureLogbookLFC(
+        LfcTraceabilityType lfcTraceabilityType)
         throws VitamException {
+
+        Contexts workflowContext = getWorkflowContext(lfcTraceabilityType);
+
         final GUID traceabilityOperationGUID = GUIDFactory.newOperationLogbookGUID(
             VitamThreadUtils.getVitamSession().getTenantId());
         try (ProcessingManagementClient processManagementClient =
             processingManagementClientFactory.getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(traceabilityOperationGUID);
             final LogbookOperationParameters logbookUpdateParametersStart = LogbookParametersFactory
-                .newLogbookOperationParameters(traceabilityOperationGUID, SECURISATION_LC,
+                .newLogbookOperationParameters(traceabilityOperationGUID, workflowContext.getEventType(),
                     traceabilityOperationGUID,
                     LogbookTypeProcess.TRACEABILITY,
                     StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(SECURISATION_LC, StatusCode.STARTED),
+                    VitamLogbookMessages.getCodeOp(workflowContext.getEventType(), StatusCode.STARTED),
                     traceabilityOperationGUID);
             LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersStart);
             createLogBookEntry(logbookUpdateParametersStart);
@@ -129,11 +161,14 @@ public class LogbookLFCAdministration {
                 createContainer(traceabilityOperationGUID.getId());
 
                 ProcessingEntry processingEntry = new ProcessingEntry(traceabilityOperationGUID.getId(),
-                    SECURISATION_LC);
+                    workflowContext.getEventType());
                 processingEntry.getExtraParams().put(
-                    WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds.name(),
-                    Integer.toString(lifecycleTraceabilityOverlapDelayInSeconds));
-                processManagementClient.initVitamProcess(Contexts.SECURISATION_LC.name(),
+                    WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name(),
+                    Integer.toString(lifecycleTraceabilityTemporizationDelayInSeconds));
+                processingEntry.getExtraParams().put(
+                    WorkerParameterName.lifecycleTraceabilityMaxEntries.name(),
+                    Integer.toString(lifecycleTraceabilityMaxEntries));
+                processManagementClient.initVitamProcess(workflowContext.name(),
                     processingEntry);
 
                 LOGGER.debug("Started Traceability in Resource");
@@ -151,11 +186,11 @@ public class LogbookLFCAdministration {
                 final LogbookOperationParameters logbookUpdateParametersEnd =
                     LogbookParametersFactory
                         .newLogbookOperationParameters(traceabilityOperationGUID,
-                            SECURISATION_LC,
+                            workflowContext.getEventType(),
                             traceabilityOperationGUID,
                             LogbookTypeProcess.TRACEABILITY,
                             StatusCode.KO,
-                            VitamLogbookMessages.getCodeOp(SECURISATION_LC,
+                            VitamLogbookMessages.getCodeOp(workflowContext.getEventType(),
                                 StatusCode.KO),
                             traceabilityOperationGUID);
                 LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersEnd);
@@ -166,6 +201,16 @@ public class LogbookLFCAdministration {
         return traceabilityOperationGUID;
     }
 
+    private Contexts getWorkflowContext(LfcTraceabilityType lfcTraceabilityType) {
+        switch (lfcTraceabilityType) {
+            case Unit:
+                return Contexts.UNIT_LFC_TRACEABILITY;
+            case ObjectGroup:
+                return Contexts.OBJECTGROUP_LFC_TRACEABILITY;
+            default:
+                throw new IllegalStateException("Unknown traceability type " + lfcTraceabilityType);
+        }
+    }
 
     /**
      * Create a LogBook Entry related to object's creation
@@ -195,7 +240,7 @@ public class LogbookLFCAdministration {
 
     /**
      * Create a container in the workspace, this is necessary so the workflow could be executed
-     * 
+     *
      * @param containerName name of the container
      * @throws VitamClientException in case container couldnt be created
      */
@@ -208,5 +253,44 @@ public class LogbookLFCAdministration {
         }
     }
 
+    /**
+     * Check lifecycle traceability status
+     *
+     * @param operationId the process id
+     * @return the lifecycle traceability status
+     */
+    public LifecycleTraceabilityStatus checkLifecycleTraceabilityStatus(String operationId)
+        throws VitamException, InvalidCreateOperationException {
 
+        try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
+
+            ItemStatus processStatus = processManagementClient.getOperationProcessStatus(operationId);
+
+            boolean isCompleted = (processStatus.getGlobalState() == ProcessState.COMPLETED);
+            boolean isOK = processStatus.getGlobalStatus() == StatusCode.OK;
+
+            LifecycleTraceabilityStatus lifecycleTraceabilityStatus = new LifecycleTraceabilityStatus();
+            lifecycleTraceabilityStatus.setCompleted(isCompleted);
+            lifecycleTraceabilityStatus.setOutcome(processStatus.getGlobalState().name() + "." + processStatus.getGlobalStatus().name());
+
+            if (isCompleted && isOK) {
+
+                Select selectQuery = new Select();
+                selectQuery.setQuery(QueryHelper.eq(LogbookMongoDbName.eventIdentifier.getDbname(), operationId));
+                List<LogbookOperation> operations
+                    = logbookOperations.select(selectQuery.getFinalSelect());
+
+                if (operations.isEmpty()) {
+                    throw new LogbookNotFoundException("Could not find logbook operation " + operationId);
+                }
+
+                String evDetData = operations.get(0).getString(LogbookDocument.EVENT_DETAILS);
+                TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
+
+                lifecycleTraceabilityStatus.setMaxEntriesReached(traceabilityEvent.getMaxEntriesReached());
+            }
+
+            return lifecycleTraceabilityStatus;
+        }
+    }
 }

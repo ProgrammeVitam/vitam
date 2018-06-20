@@ -311,20 +311,21 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         // Update new events
         Thread.sleep(100);
-        LocalDateTime snapshotDate = LocalDateUtil.now();
 
+        LocalDateTime snapshotDate1 = LocalDateUtil.now();
         logbookOperationsImpl.create(logbookParameters4);
         logbookOperationsImpl.update(event);
+        LocalDateTime snapshotDate2 = LocalDateUtil.now();
 
         MongoCursor<LogbookOperation> cursor;
-        cursor = logbookOperationsImpl.selectOperationsPersistedAfterDate(snapshotDate);
+        cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(snapshotDate1, snapshotDate2);
         assertTrue(cursor.hasNext());
         final LogbookOperation op = cursor.next();
 
         assertDateBetween(
             LocalDateUtil.parseMongoFormattedDate(op.getString(LogbookDocument.LAST_PERSISTED_DATE)),
-            snapshotDate,
-            LocalDateUtil.now());
+            snapshotDate1,
+            snapshotDate2);
 
         assertEquals(op.get("evDateTime"), "2017-09-01");
         final List<Document> list = (List<Document>) op.get(LogbookDocument.EVENTS);
@@ -339,53 +340,30 @@ public class LogbookOperationsImplWithDatabasesTest {
     }
 
     @Test
-    public void givenCreateAndSelectByTenant() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        mockWorkspaceClient();
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
-        logbookOperationsImpl.create(logbookParameters5);
-        logbookOperationsImpl.update(event2);
-        MongoCursor<LogbookOperation> curseur;
-        curseur = logbookOperationsImpl.selectOperationsPersistedAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
-        assertFalse(curseur.hasNext());
+    public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
 
-
-    }
-
-    @Test
-    public void testAuditLogbook() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
 
-        GUID eventIdentifier = GUIDFactory.newEventGUID(0);
-        String eventType = "AUDIT";
-        GUID eventIdentifierProcess = GUIDFactory.newEventGUID(0);
-        LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.MASTERDATA;
-        StatusCode outcome = StatusCode.STARTED;
-        String outcomeDetailMessage = "AUDIT." + StatusCode.STARTED.name();
-        GUID eventIdentifierRequest = GUIDFactory.newEventGUID(0);
+        logbookOperationsImpl.create(logbookParameters1);
+        logbookOperationsImpl.create(logbookParameters2);
 
-        final LogbookOperationParameters parametersForCreation =
-            LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
-                eventType, eventIdentifierProcess, eventTypeProcess,
-                outcome, outcomeDetailMessage, eventIdentifierRequest);
-        final LogbookOperationParameters parametersForCreation2 =
-            LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
-                eventType, eventIdentifierProcess, eventTypeProcess,
-                outcome, outcomeDetailMessage, eventIdentifierRequest);
-        parametersForCreation2.putParameterValue(LogbookParameterName.eventDetailData,
-            "{\"OriginatingAgency\":\"RATP\",\"errors\":[{\"IdObj\":\"aeaaaaaaaaeseksgabgg6ak7gp5wkmqaaaaq\",\"Usage\":\"BinaryMaster_1\"}],\"nbKO\":1}");
+        Thread.sleep(10);
 
-        LogbookOperationParameters[] param = new LogbookOperationParameters[2];
+        LocalDateTime snapshot1 = LocalDateUtil.now();
+        Thread.sleep(10);
+        logbookOperationsImpl.create(logbookParameters3);
 
-        param[0] = parametersForCreation;
-        param[1] = parametersForCreation2;
-        
-        logbookOperationsImpl.createBulkLogbookOperation(param);  
-        
+        LocalDateTime snapshot2 = LocalDateUtil.now();
+        Thread.sleep(10);
+
+        logbookOperationsImpl.create(logbookParameters4);
+
         MongoCursor<LogbookOperation> cursor;
-        cursor = logbookOperationsImpl.selectOperationsPersistedAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
+        cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(snapshot1, snapshot2);
+
+        assertEquals(eip3.toString(), cursor.next().get("evId"));
         assertFalse(cursor.hasNext());
     }
 

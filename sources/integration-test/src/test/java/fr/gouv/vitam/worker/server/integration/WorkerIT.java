@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
+import fr.gouv.vitam.common.model.processing.LifecycleState;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -564,6 +565,7 @@ public class WorkerIT {
         descriptionStep.getWorkParams().setObjectName("SIP/manifest.xml");
         descriptionStep.getWorkParams().setObjectNameList(Lists.newArrayList("SIP/manifest.xml"));
         descriptionStep.getWorkParams().setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+        descriptionStep.getStep().defaultLifecycleLog(LifecycleState.ENABLED);
         return descriptionStep;
     }
 

@@ -32,7 +32,8 @@ export class OperationComponent extends PageComponent {
     {label : "--", value : ""},
     {label : "Journal des écritures", value : "STP_STORAGE_SECURISATION"},
     {label : "Journal des opérations", value : "STP_OP_SECURISATION"},
-    {label : "Journaux de cycle de vie", value : "LOGBOOK_LC_SECURISATION"},
+    {label : "Journaux de cycle de vie des unités archivistiques", value : "LOGBOOK_UNIT_LFC_TRACEABILITY"},
+    {label : "Journaux de cycle de vie des groupes d'objets", value : "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY"},
   ];
     
   public logbookData = [

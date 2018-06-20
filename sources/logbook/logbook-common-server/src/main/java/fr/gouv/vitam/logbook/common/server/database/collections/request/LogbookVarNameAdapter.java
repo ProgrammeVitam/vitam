@@ -54,6 +54,8 @@ public class LogbookVarNameAdapter extends VarNameAdapter {
     public String getVariableName(String name) {
         if(name.equals(ParserTokens.PROJECTIONARGS.LAST_PERSISTED_DATE.exactToken()))
             return LogbookDocument.LAST_PERSISTED_DATE;
+        if(name.equals(ParserTokens.PROJECTIONARGS.ID.exactToken()))
+            return LogbookDocument.ID;
         return null;
     }
 }

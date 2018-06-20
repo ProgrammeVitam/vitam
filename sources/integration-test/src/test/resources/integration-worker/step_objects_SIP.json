@@ -3,8 +3,9 @@
       "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST",
-        "element": "ObjectGroup"
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup"
       },
       "actions": [
         {

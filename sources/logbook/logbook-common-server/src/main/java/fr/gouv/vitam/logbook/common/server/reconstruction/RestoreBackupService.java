@@ -151,14 +151,12 @@ public class RestoreBackupService {
                 inputStream = storageClient.getContainerAsync(strategy, filename, type).readEntity(InputStream.class);
                 LogbookOperation logbookOperationDocument =
                     new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
-                if (logbookOperationDocument != null) {
-                    LogbookBackupModel logbookBackupModel = new LogbookBackupModel();
-                    logbookBackupModel.setLogbookOperation(logbookOperationDocument);
-                    logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
-                    logbookBackupModel.setOffset(offset);
-                    populateAccessionRegisterDetails(logbookBackupModel, logbookOperationDocument);
-                    return logbookBackupModel;
-                }
+                LogbookBackupModel logbookBackupModel = new LogbookBackupModel();
+                logbookBackupModel.setLogbookOperation(logbookOperationDocument);
+                logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
+                logbookBackupModel.setOffset(offset);
+                populateAccessionRegisterDetails(logbookBackupModel, logbookOperationDocument);
+                return logbookBackupModel;
             }
         } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);

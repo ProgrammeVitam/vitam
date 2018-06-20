@@ -267,7 +267,8 @@ public final class DslQueryHelper {
                             BooleanQuery queryOrTraceability = or();
                             queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
                             queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "STP_STORAGE_SECURISATION.OK"));
-                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "LOGBOOK_LC_SECURISATION.OK"));
+                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "LOGBOOK_UNIT_LFC_TRACEABILITY.OK"));
+                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK"));
                             query.add(queryOrTraceability);
                         }
                         break;

@@ -1,0 +1,10 @@
+[Unit]
+Description=Secure logbook unit lifecycles
+
+[Timer]
+OnCalendar=*-*-* *:00:00
+Persistent=false
+
+
+[Install]
+WantedBy=timers.target

@@ -26,25 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.outcomeDetail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.exception.VitamDBException;
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -58,6 +49,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCol
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -70,6 +62,7 @@ import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -86,6 +79,17 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.outcomeDetail;
 
 /**
  * Logbook Operations implementation base class
@@ -134,7 +138,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
         // TODO: why true by default ? this is a queryDSL, all the request options are in, so why ?
         List<LogbookOperation> operations = new ArrayList<>();
-            operations = select(select, true);
+        operations = select(select, true);
         return operations;
     }
 
@@ -209,10 +213,17 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(final LocalDateTime date)
+    public MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(LocalDateTime startDate,
+        LocalDateTime endDate)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidCreateOperationException,
         InvalidParseOperationException {
-        final Select select = logbookOperationsAfterDateQuery(date);
+
+        Select select = new Select();
+        select.setQuery(QueryHelper.and()
+            .add(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)))
+            .add(QueryHelper.lte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(endDate))));
+        select.addOrderByAscFilter(VitamFieldsHelper.lastPersistedDate());
+
         MongoCursor<LogbookOperation> cursor = null;
         try {
             cursor =
@@ -221,15 +232,6 @@ public class LogbookOperationsImpl implements LogbookOperations {
             LOGGER.error(e);
         }
         return cursor;
-    }
-
-    private Select logbookOperationsAfterDateQuery(final LocalDateTime date)
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-        final Select select = new Select();
-        select.setQuery(
-            QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(date)));
-        select.addOrderByAscFilter("evDateTime");
-        return select;
     }
 
     @Override

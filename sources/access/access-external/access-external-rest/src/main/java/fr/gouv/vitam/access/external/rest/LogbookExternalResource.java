@@ -75,6 +75,9 @@ public class LogbookExternalResource {
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String OB_ID = "obId";
     public static final String VITAM_CODE = "vitam-code";
+    private static final String INVALID_ARGUMENT = "Invalid argument: ";
+    private static final String CONTRACT_ACCESS_DOES_NOT_ALLOW = "Contract access does not allow ";
+    private static final String COULD_NOT_MODIFY_QUERY = "Could not modify search query: ";
 
     /**
      * Constructor
@@ -125,7 +128,7 @@ public class LogbookExternalResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: ", e);
+            LOGGER.error(INVALID_ARGUMENT, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -133,7 +136,7 @@ public class LogbookExternalResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -179,7 +182,7 @@ public class LogbookExternalResource {
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: ", e);
+            LOGGER.error(INVALID_ARGUMENT, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -187,12 +190,12 @@ public class LogbookExternalResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error("Could not modify search query: ", e);
+            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
@@ -232,17 +235,17 @@ public class LogbookExternalResource {
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: ", e);
+            LOGGER.error(INVALID_ARGUMENT, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error("Could not modify search query: ", e);
+            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
@@ -285,19 +288,19 @@ public class LogbookExternalResource {
                     e.getLocalizedMessage())
                 .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Invalid argument: ", e);
+            LOGGER.error(INVALID_ARGUMENT, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
                     e.getLocalizedMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         } catch (InvalidCreateOperationException e) {
-            LOGGER.error("Could not modify search query: ", e);
+            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
                     e.getLocalizedMessage())
                 .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
+            LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
                     e.getLocalizedMessage())

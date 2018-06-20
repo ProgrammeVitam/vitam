@@ -326,25 +326,30 @@ public class PauseOnFatalProcessingIT {
 
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importFormat(
                     PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
                     "DROID_SignatureFile_V88.xml");
 
                 // Import Rules
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
                     "jeu_donnees_OK_regles_CSV_regles.csv");
 
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
                     JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
                     });
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importProfileFile(response.getResults().get(0).getIdentifier(),
                     PropertiesUtils.getResourceAsStream("integration-processing/profil_ok.rng"));
 
@@ -355,9 +360,11 @@ public class PauseOnFatalProcessingIT {
                     .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
                     });
 
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importIngestContracts(IngestContractModelList);
 
                 // Import Security Profile
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importSecurityProfiles(JsonHandler
                     .getFromFileAsTypeRefence(
                         PropertiesUtils.getResourceFile("integration-processing/security_profile_ok.json"),
@@ -365,6 +372,7 @@ public class PauseOnFatalProcessingIT {
                         }));
 
                 // Import Context
+                VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 client.importContexts(JsonHandler
                     .getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("integration-processing/contexts.json"),
                         new TypeReference<List<ContextModel>>() {

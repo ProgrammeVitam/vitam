@@ -193,7 +193,6 @@ public class LogbookElasticsearchAccessTest {
         assertNotNull(elasticSearchResponse2.getHits().getAt(0));
         SearchHit hit = elasticSearchResponse2.getHits().iterator().next();
         assertNotNull(hit);
-        System.out.println(hit.getSourceAsString());
 
         // check search
         SearchResponse elasticSearchResponse3 =

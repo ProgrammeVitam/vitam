@@ -821,8 +821,8 @@ public class ParserTokens extends BuilderToken {
                         case LAST_PERSISTED_DATE:
                             return true;
                         case STORAGE:
-                            // FIXME should consider more security on this one!
-                            return false;
+
+                            return true;
                         default:
                     }
                 } catch (final Exception e) {

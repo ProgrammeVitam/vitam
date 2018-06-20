@@ -271,7 +271,7 @@ public class LogbookResourceIT {
                 "6o8M2da67rvizzBMoV/Zjtm4u1S3SVCKrf10go7vGOvF0IIAzFE+Un255jsGVrvWdYQcueS7s9GJIPEMN/9huIMM6WUyPkPcj4I6Way+iOoNBZT7aGx9tQEXsZYXiQ6/VDLmiBiWJKwCs" +
                 "HNuIckMGV5KQcKAbJYPgqjBNHFgVD9hf9AX0R763soZy8BMW6UOZGNlY08QXsm2eNc70D0+6kRMCAu/iARyq04Cz+L5tKwtIBzbOOqD+6h9ok8ahXQCQZKBc3SRHbc3rm9SnnUdQUsb53OOkRE=\"," +
                 "\"MinusOneMonthLogbookTraceabilityDate\":\"2017-01-16T23:01:03.49\",\"MinusOneYearLogbookTraceabilityDate\":\"2016-02-16T23:01:03.49\"," +
-                "\"NumberOfElement\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
+                "\"NumberOfElements\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
         LogbookOperationParameters traceabilityParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
             eip1, "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
             StatusCode.STARTED, "Début de la sécurisation des journaux", eip1);

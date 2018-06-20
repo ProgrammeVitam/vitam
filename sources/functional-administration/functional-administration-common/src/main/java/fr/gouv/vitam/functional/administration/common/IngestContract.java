@@ -219,7 +219,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
 
     /**
      * Set the collection of archive profiles
-     * 
+     *
      * @param archiveProfiles
      * @return this
      */

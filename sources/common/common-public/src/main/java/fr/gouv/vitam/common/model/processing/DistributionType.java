@@ -1,5 +1,8 @@
 package fr.gouv.vitam.common.model.processing;
 
+/**
+ * Distribution Type
+ */
 public enum DistributionType {
 
     /**
@@ -10,6 +13,6 @@ public enum DistributionType {
     /**
      * ObjectGroup
      */
-    ObjectGroup;
+    ObjectGroup
 
 }

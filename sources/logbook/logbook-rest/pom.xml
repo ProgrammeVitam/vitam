@@ -111,6 +111,11 @@
 			<artifactId>wiremock</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>net.javacrumbs.json-unit</groupId>
+            <artifactId>json-unit</artifactId>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 
@@ -296,10 +301,10 @@
 						<script>%systemd_post vitam-${unix.name}.service</script>
 					</postinstallScriptlet>
 					<preremoveScriptlet>
-						<script>%systemd_preun vitam-${unix.name}.service</script>
+						<script>%systemd_preun vitam-${unix.name}.service vitam-logbook-reconstruction.timer vitam-logbook-reconstruction.service vitam-traceability-audit.timer vitam-traceability-audit.service vitam-traceability-lfc-objectgroup.timer vitam-traceability-lfc-objectgroup.service vitam-traceability-lfc-unit.timer vitam-traceability-lfc-unit.service vitam-traceability-operations.timer vitam-traceability-operations.service</script>
 					</preremoveScriptlet>
 					<postremoveScriptlet>
-						<script>%systemd_postun vitam-${unix.name}.service</script>
+						<script>%systemd_postun vitam-${unix.name}.service vitam-logbook-reconstruction.timer vitam-logbook-reconstruction.service vitam-traceability-audit.timer vitam-traceability-audit.service vitam-traceability-lfc-objectgroup.timer vitam-traceability-lfc-objectgroup.service vitam-traceability-lfc-unit.timer vitam-traceability-lfc-unit.service vitam-traceability-operations.timer vitam-traceability-operations.service</script>
 					</postremoveScriptlet>
 				</configuration>
 			</plugin>

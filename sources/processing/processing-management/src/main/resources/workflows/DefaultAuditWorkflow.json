@@ -4,6 +4,7 @@
   "identifier": "PROCESS_AUDIT",
   "typeProc": "AUDIT",
   "comment": "Default Audit Object workflow V1",
+  "lifecycleLog": "DISABLED",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
@@ -28,7 +29,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_IN_FILE",
-        "element": "AUDIT_OG"
+        "element": "AUDIT_OG",
+        "type" : "ObjectGroup"
       },
       "actions": [
         {

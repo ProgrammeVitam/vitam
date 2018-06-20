@@ -40,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -261,7 +262,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
             }
         } catch (ContentAddressableStorageServerException e) {
             throw new ProcessingStorageWorkspaceException(e);
-        } catch (InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException  e) {
             throw new ProcessingStorageWorkspaceException(e);
         }
         return result;

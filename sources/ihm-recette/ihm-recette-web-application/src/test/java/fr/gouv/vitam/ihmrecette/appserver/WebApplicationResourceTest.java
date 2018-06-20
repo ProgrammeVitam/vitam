@@ -72,7 +72,9 @@ public class WebApplicationResourceTest {
     // take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String TRACEABILITY_URI = "/operations/traceability";
-    private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
+    private static final String TRACEABILITY_UNIT_LFC_URI = "/lifecycles/units/traceability";
+    private static final String TRACEABILITY_OBJECTGROUP_LFC_URI = "/lifecycles/objectgroups/traceability";
+
     private static final String FAKE_OPERATION_ID = "1";
     private static JsonNode sampleLogbookOperation;
     private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
@@ -193,13 +195,25 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public final void testTraceabilityLFCEndpointIsWorking() {
+    public final void testTraceabilityUnitLfcEndpointIsWorking() {
         given()
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .cookie(COOKIE)
             .body("")
-            .post(TRACEABILITY_LFC_URI)
+            .post(TRACEABILITY_UNIT_LFC_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public final void testTraceabilityObjectGroupLfcEndpointIsWorking() {
+        given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .cookie(COOKIE)
+            .body("")
+            .post(TRACEABILITY_OBJECTGROUP_LFC_URI)
             .then()
             .statusCode(Status.OK.getStatusCode());
     }

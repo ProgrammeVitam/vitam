@@ -138,6 +138,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Deprecated
     private static final String CODE_VITAM = "code_vitam";
     private static final String HTML_CONTENT_MSG_ERROR = "document has toxic HTML content";
+    private static final String AGENCIES = "agencies";
+    private static final String RULES = "rules";
+
+    private static final String DOCUMENT_IS_MANDATORY = "document is a mandatory parameter";
+    private static final String JSON_SELECT_IS_MANDATORY = "Json select is a mandatory parameter";
+    private static final String SUCCESSFULLY_IMPORTED = "Successfully imported";
+    private static final String FORMAT_ID_MANDATORY = "formatId is a mandatory parameter";
+    private static final String UNEXPECTED_ERROR = "Unexpected error was thrown : ";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
     private static final AlertService alertService = new AlertServiceImpl();
@@ -302,7 +310,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = client.importFormat(document, filename);
                 // Send the http response with no entity and the status got from internalService;
@@ -348,7 +356,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
 
             // Check Html Pattern
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
@@ -429,8 +437,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "ingestcontracts:create:json",
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select) {
-
-        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        ParametersChecker.checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<IngestContractModel>>() {
@@ -443,7 +450,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
-                .entity("Successfully imported");
+                .entity(SUCCESSFULLY_IMPORTED);
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
@@ -949,7 +956,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            ParametersChecker.checkParameter(DOCUMENT_IS_MANDATORY, document);
 
             // Check Html Pattern
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
@@ -1113,7 +1120,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findFormatByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 final JsonNode result = client.getFormatByID(documentId);
@@ -1151,7 +1158,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findRuleByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 final JsonNode result = client.getRuleByID(documentId);
@@ -1188,7 +1195,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
@@ -1227,7 +1234,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findAccessContractsByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
@@ -1266,7 +1273,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findProfilesByID(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
@@ -1305,7 +1312,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findContextById(@PathParam("id_document") String documentId) {
 
         try {
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            ParametersChecker.checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
@@ -1571,7 +1578,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
+                .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         } catch (LogbookClientServerException e) {
@@ -1579,7 +1586,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
+                .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         } catch (AccessUnauthorizedException e) {
@@ -1611,7 +1618,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                 .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
+                .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         }
@@ -1828,7 +1835,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.listOperationsDetails(query).toResponse();
         } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
                 .entity(
                     VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
@@ -1928,7 +1935,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -2041,7 +2048,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.getWorkflowDefinitions().toResponse();
         } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
                 .entity(VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
                     e.getLocalizedMessage()))
@@ -2111,24 +2118,24 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
 
     /**
-     * launch a traceability audit for the unit
+     * launch a traceability audit for the query
      *
-     * @param unitId unit Id
+     * @param select the query select
      * @return Response response
      */
-    @Path("/evidenceaudit/unit/{id}")
+    @Path("/evidenceaudit")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "evidenceaudit:unit:id:check", description = "Audit de traçabilité d'une unité archivistique")
-    public Response checkUnitEvidenceAudit(@PathParam("id") String unitId) {
-        ParametersChecker.checkParameter("mandatory parameter", unitId);
+    @Secured(permission = "evidenceaudit:check", description = "Audit de traçabilité d'unités archivistiques")
+    public Response checkEvidenceAudit(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode select) {
+        ParametersChecker.checkParameter("mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> result = client.unitEvidenceAudit(unitId);
+            RequestResponse<JsonNode> result = client.evidenceAudit(select);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
+            LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
                     e.getLocalizedMessage()))
@@ -2136,29 +2143,4 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-    /**
-     * launch a traceability audit for the object group
-     *
-     * @param objectGroupId object group Id
-     * @return Response response
-     */
-    @Path("/evidenceaudit/objects/{id}")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "evidenceaudit:objects:id:check", description = "Audit de traçabilité d'un groupe d'objets")
-    public Response checkObjectGroupEvidenceAudit(@PathParam("id") String objectGroupId) {
-        ParametersChecker.checkParameter("mandatory parameter", objectGroupId);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> result = client.objectGroupEvidenceAudit(objectGroupId);
-            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-            return Response.status(st).entity(result).build();
-        } catch (AdminManagementClientServerException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            return Response.serverError()
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_OBJECT_GROUP_TRACREABILITY_AUDIT,
-                    e.getLocalizedMessage()))
-                .build();
-        }
-    }
 }
