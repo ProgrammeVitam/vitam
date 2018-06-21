@@ -420,7 +420,7 @@ public class SchemaValidationUtils {
         final Iterator<String> names = unitCopy2.fieldNames();
         while (names.hasNext()) {
             String name = names.next();
-            if (SCHEMA_DECLARATION_INTERNAL_FIELDS_USABLE.contains(name)) {
+            if (!isExternal && SCHEMA_DECLARATION_INTERNAL_FIELDS_USABLE.contains(name)) {
                 continue;
             } else if ("_mgt".equals(name) || "#management".equals(name)) {
                 final JsonNode value = unitCopy.remove(name);
