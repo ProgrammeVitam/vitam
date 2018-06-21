@@ -84,7 +84,7 @@ public class VitamConfigurationParameters {
     private List<Integer> tenants;
 
     /**
-     * /**
+     *
      * Default Vitam Config Folder
      */
     private String vitamConfigFolderDefault;
@@ -215,7 +215,12 @@ public class VitamConfigurationParameters {
     private Integer BUFFER_NUMBER;
 
     /**
-     * Setter for   vitamCleanPeriod;
+     * Allow client and Server Encoding request or response in GZIP format
+     */
+    private Boolean forceChunkModeInputStream;
+
+    /**
+     * Setter for vitamCleanPeriod;
      */
     public void setVitamCleanPeriod(Integer vitamCleanPeriod) {
         this.vitamCleanPeriod = vitamCleanPeriod;
@@ -674,6 +679,22 @@ public class VitamConfigurationParameters {
      */
     public void setWaitingDelay(Integer waitingDelay) {
         this.waitingDelay = waitingDelay;
+    }
+
+
+
+    /**
+     * Getter for forceChunkModeInputStream;
+     */
+    public Boolean isForceChunkModeInputStream() {
+        return forceChunkModeInputStream;
+    }
+
+    /**
+     * Setter for forceChunkModeInputStream;
+     */
+    public void setForceChunkModeInputStream(Boolean forceChunkModeInputStream) {
+        this.forceChunkModeInputStream = forceChunkModeInputStream;
     }
 
     /**

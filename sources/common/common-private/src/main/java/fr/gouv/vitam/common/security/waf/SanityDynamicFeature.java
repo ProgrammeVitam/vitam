@@ -36,8 +36,10 @@ import javax.ws.rs.ext.Provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+
 /**
- *  Dynamic filter checker for resources 
+ * Dynamic filter checker for resources
  */
 @Provider
 public class SanityDynamicFeature implements DynamicFeature {
@@ -49,10 +51,10 @@ public class SanityDynamicFeature implements DynamicFeature {
             Class<?> parameterClass = parametersClass[i];
             if (parameterClass.isAssignableFrom(JsonNode.class)) {
                 context.register(SanityCheckerJsonFilter.class);
-            } else if (parameterClass.isAssignableFrom(InputStream.class)) {
+            } else if (VitamConfiguration.isForceChunkModeInputStream() &&
+                parameterClass.isAssignableFrom(InputStream.class)) {
                 context.register(SanityCheckerInputStreamFilter.class);
             }
         }
     }
 }
- 

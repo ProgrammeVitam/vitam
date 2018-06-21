@@ -358,6 +358,11 @@ public class VitamConfiguration {
 
     private static int asyncWorkspaceQueueSize = 10;
 
+    /**
+     * Force chunked mode
+     */
+    private static Boolean forceChunkModeInputStream = false;
+
 
     /*
      * maxResultWindow
@@ -759,6 +764,10 @@ public class VitamConfiguration {
 
         if (null != parameters.getOptimisticLockSleepTime()) {
             setOptimisticLockSleepTime(parameters.getOptimisticLockSleepTime());
+        }
+
+        if (null != parameters.isForceChunkModeInputStream()) {
+            setForceChunkModeInputStream(parameters.isForceChunkModeInputStream());
         }
     }
 
@@ -1447,6 +1456,25 @@ public class VitamConfiguration {
      */
     private static void setAllowGzipEncoding(Boolean allowGzipEncoding) {
         VitamConfiguration.allowGzipEncoding = allowGzipEncoding;
+    }
+
+
+    /**
+     * getter for forceChunkModeInputStream
+     *
+     * @return forceChunkModeInputStream
+     */
+    public static Boolean isForceChunkModeInputStream() {
+        return forceChunkModeInputStream;
+    }
+
+    /**
+     * setter for forceChunkModeInputStream
+     *
+     * @param forceChunkModeInputStream
+     */
+    private static void setForceChunkModeInputStream(Boolean forceChunkModeInputStream) {
+        VitamConfiguration.forceChunkModeInputStream = forceChunkModeInputStream;
     }
 
     /**
