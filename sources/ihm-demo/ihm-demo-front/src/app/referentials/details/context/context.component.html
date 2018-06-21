@@ -47,17 +47,20 @@
         <vitam-metadata-field [title]="'Intitulé'" [originalTitle]="'Name'"  [value]="modifiedContext.Name" [labelSize]="4"
                               class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
 
+
         <div class="ui-g-4">
           <div class="ui-g-nopad ui-g-4">
             <label class="label fieldLabel">Statut</label>
           </div>
           <div class="ui-g-nopad ui-g-8" *ngIf="!update">
-            <span class="overflow-break-words" >{{modifiedContext.Status ? 'Actif' : 'Inactif'}}</span>
+            <span class="overflow-break-words">{{isActif ? 'Actif' : 'Inactif'}}</span>
           </div>
           <div class="ui-g-nopad ui-g-8" *ngIf="update">
-            <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="modifiedContext.Status" (onChange)="valueChange('Status')"></p-toggleButton>
+            <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="isActif"
+                            (onChange)="changeStatus()"></p-toggleButton>
           </div>
         </div>
+
 
       </div>
       <div class="ui-g-12">

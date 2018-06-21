@@ -2,7 +2,7 @@
   {
     "Name": "Context_IT",
     "Identifier": "Context_IT",
-    "Status": true,
+    "Status": "ACTIVE",
     "EnableControl": true,
     "SecurityProfile": "admin-security-profile",
     "Permissions": [

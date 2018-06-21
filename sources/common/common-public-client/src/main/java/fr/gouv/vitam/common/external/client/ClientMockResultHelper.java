@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -339,7 +340,7 @@ public class ClientMockResultHelper {
         context.setIdentifier("FAKE_IDENTIFIER");
         context.setName("My_Context_1");
         context.setDeactivationdate("DESCRIPTION D'UN CONEXTE");
-        context.setStatus(true);
+        context.setStatus(ContextStatus.ACTIVE);
         context.setCreationdate("2016-11-02");
         context.setLastupdate("2016-11-05");
         context.setActivationdate("2016-11-04");

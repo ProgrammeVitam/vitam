@@ -241,7 +241,7 @@ public class ClientMockResultHelper {
         "}";
 
     public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
-        "\"Status\": true," +
+        "\"Status\":\"ACTIVE\", " +
         "\"SecurityProfile\" : \"SEC_PROFILE-000001\"," +
         "\"Permissions\": [{" +
         "\"_tenant\": 0," +
