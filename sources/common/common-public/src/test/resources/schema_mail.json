@@ -1,0 +1,394 @@
+{
+  "$schema": "http://vitam-json-schema.org/draft-04/schema#",
+  "id": "http://example.com/root.json",
+  "type": "object",
+  "additionalProperties": false,
+  "anyOf": [
+    {
+      "required": [
+        "ArchiveUnitProfile",
+        "Title",
+        "OriginatingSystemId",
+        "DescriptionLevel",
+        "Writer",
+        "ReceivedDate",
+        "SentDate"
+      ]
+    }
+  ],
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "_og": {
+      "type": "string"
+    },
+    "ArchiveUnitProfile": {
+      "description": "champ obligatoire",
+      "type": [
+        "string",
+        "array"
+      ]
+    },
+    "Management": {
+      "id": "http://example.com/root.json/ArchiveUnit/Management",
+      "additionalProperties": false,
+      "properties": {
+        "AppraisalRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string",
+                    "enum": [
+                      "APP-00001"
+                    ]
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "Rule",
+                  "StartDate"
+                ]
+              }
+            },
+            "FinalAction": {
+              "type": "string",
+              "enum": [
+                "Keep"
+              ]
+            }
+          },
+          "required": [
+            "FinalAction"
+          ]
+        },
+        "StorageRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "FinalAction": {
+              "type": "string",
+              "enum": [
+                "RestrictAccess",
+                "Copy",
+                "Transfer"
+              ]
+            }
+          }
+        },
+        "AccessRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string",
+                    "enum": [
+                      "ACC-00001"
+                    ]
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "AppraisalRule",
+        "AccessRule"
+      ]
+    },
+    "DescriptionLevel": {
+      "description": "champ obligatoire - valeur = item",
+      "type": "string",
+      "enum": [
+        "Item"
+      ],
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "Title": {
+      "description": "champ obligatoire - valeur non imposee",
+      "type": "string",
+      "minLength": 1,
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "OriginatingSystemId": {
+      "description": "champ obligatoire - valeur non imposee",
+      "type": [
+        "string",
+        "number",
+        "array"
+      ],
+      "minItems": 1,
+      "maxItems": 1,
+      "minLength": 1
+    },
+    "Description": {
+      "description": "champ obligatoire - valeur non imposee",
+      "type": "string",
+      "minItems": 1
+    },
+    "CustodialHistory": {
+      "description": "champ obligatoire - sous-champ et valeur du sous-champ imposes",
+      "type": "object",
+      "properties": {
+        "CustodialHistoryItem": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "Lieu de conservation : Programme Vitam"
+            ]
+          }
+        },
+        "CustodialHistoryFile": {
+          "type": "object",
+          "properties": {
+            "DataObjectReferenceId": {
+              "description": "xsd:IDREF",
+              "type": "string"
+            },
+            "DataObjectGroupReferenceId": {
+              "description": "xsd:IDREF",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "CustodialHistoryItem"
+      ]
+    },
+    "Tag": {
+      "description": "champ facultatif et repetable - valeur non imposee",
+      "type": [
+        "array"
+      ]
+    },
+    "Keyword": {
+      "description": "End of KeywordsGroup",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "KeywordContent": {
+            "type": "string"
+          },
+          "KeywordReference": {
+            "type": "string"
+          },
+          "KeywordType": {
+            "description": "How TODO ? listVersionID (attribute) + String: [@listVersionID + $, Only string]?",
+            "enum": [
+              "corpname",
+              "famname",
+              "geogname",
+              "name",
+              "occupation",
+              "persname",
+              "subject",
+              "genreform",
+              "function"
+            ]
+          }
+        }
+      }
+    },
+    "Writer": {
+      "description": "champ obligatoire et unique - sous-champs dont les valeurs sont non imposees",
+      "type": [
+        "array",
+        "object"
+      ],
+      "minItems": 1,
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": "string"
+          },
+          "BirthName": {
+            "type": "string"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "FirstName",
+          "BirthName",
+          "Identifier"
+        ]
+      }
+    },
+    "Addressee": {
+      "description": "champ obligatoire et repetable - sous-champs dont les valeurs sont non imposees",
+      "type": [
+        "array"
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": "string"
+          },
+          "BirthName": {
+            "type": "string"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "FirstName",
+          "BirthName",
+          "Identifier"
+        ]
+      },
+      "minItems": 1
+    },
+    "SentDate": {
+      "description": "pattern: Date. date d'envoi. champ obligatoire et unique - sous-champs dont les valeurs sont des dates non imposees",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ],
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "ReceivedDate": {
+      "description": "pattern: Date. date de reception. champ obligatoire et unique - sous-champs dont les valeurs sont des dates non imposees",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ],
+      "minItems": 1,
+      "maxItems": 1
+    }
+  }
+}

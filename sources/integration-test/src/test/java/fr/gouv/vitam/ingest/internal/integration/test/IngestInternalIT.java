@@ -724,7 +724,8 @@ public class IngestInternalIT {
             final JsonNode unit = result.get(0);
             assertNotNull(unit);
             final String og = unit.get("#object").asText();
-            assertNotNull(og);
+            boolean needAuthorization = unit.get("#management").get("NeedAuthorization").asBoolean();
+            assertTrue(needAuthorization);
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);

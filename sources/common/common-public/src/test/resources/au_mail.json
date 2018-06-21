@@ -1,0 +1,113 @@
+{
+  "_id": "aeaqaaaaaahsagijaaqvgaledwaua7qaaaaq",
+  "ArchiveUnitProfile": "AUP-000001",
+  "_mgt": {
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "Rule": "APP-00001",
+          "StartDate": "2018-02-02",
+          "EndDate": "2098-02-02"
+        }
+      ],
+      "FinalAction": "Keep"
+    },
+    "AccessRule": {
+      "Rules": [
+        {
+          "Rule": "ACC-00001",
+          "StartDate": "2018-02-02",
+          "EndDate": "2018-02-02"
+        }
+      ]
+    }
+  },
+  "DescriptionLevel": "Item",
+  "Title": "Reportage sur Arte zrzrzerzrez",
+  "OriginatingSystemId": [
+    "<566E7D90.5020504@culture.gouv.fr>"
+  ],
+  "Description": "D\u00e9but du texte [Bonjour \u00e0 tous,\n                    \n                    J'ai vu un documentaire ce week end r\u00e9sumant bien la probl\u00e9matique de\n                    l'archivage num\u00e9rique (par moment on aurait dit une pub pour Vitam...]\n                    Fin du texte [ine.jablasy@culture.gouv.fr>\n                    Suivez-nous sur Twitter @ProgVitam <https:\/\/twitter.com\/progvitam>\n                    \/Le programme est h\u00e9berg\u00e9 par les moyens informatiques du MCC\/]",
+  "Writer": [
+    {
+      "FirstName": "\"catherine",
+      "BirthName": "JABLASY-Telem@c\"",
+      "Identifier": [
+        "catherine.jablasy@culture.gouv.fr"
+      ]
+    }
+  ],
+  "Addressee": [
+    {
+      "FirstName": "liliane",
+      "BirthName": "quinte@culture.gouv.fr",
+      "Identifier": [
+        "liliane.quinte@culture.gouv.fr"
+      ]
+    },
+    {
+      "FirstName": "thibaut",
+      "BirthName": "UNCOLLEGUE",
+      "Identifier": [
+        "thibaut.uncollegue@culture.gouv.fr"
+      ]
+    },
+    {
+      "FirstName": "patricia",
+      "BirthName": "QUINTE",
+      "Identifier": [
+        "patricia.quinte@culture.gouv.fr"
+      ]
+    },
+    {
+      "FirstName": "line",
+      "BirthName": "JABLASY",
+      "Identifier": [
+        "line.jablasy@culture.gouv.fr"
+      ]
+    }
+  ],
+  "SentDate": "2015-12-14T08:28:00.0Z",
+  "ReceivedDate": "2015-12-14T08:28:00.0Z",
+  "_storage": {
+    "_nbc": 1,
+    "offerIds": [
+      "offer-fs-1.service.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_sps": [
+    "Service_producteur"
+  ],
+  "_sp": "Service_producteur",
+  "_ops": [
+    "aeeaaaaaachsagijaasl4aledwas6gqaaaaq",
+    "aeeaaaaaachsagijab35oaleeekkjwyaaaaq"
+  ],
+  "_opi": "aeeaaaaaachsagijaasl4aledwas6gqaaaaq",
+  "_unitType": "INGEST",
+  "_up": [
+    "aeaqaaaaaahsagijaaqvgaledwauacyaaaba"
+  ],
+  "_us": [
+    "aeaqaaaaaahsagijaaqvgaledwauacyaaaba"
+  ],
+  "_graph": [
+    "aeaqaaaaaahsagijaaqvgaledwaua7qaaaaq\/aeaqaaaaaahsagijaaqvgaledwauacyaaaba"
+  ],
+  "_uds": {
+    "1": [
+      "aeaqaaaaaahsagijaaqvgaledwauacyaaaba"
+    ]
+  },
+  "_us_sp": {
+    "Service_producteur": [
+      "aeaqaaaaaahsagijaaqvgaledwauacyaaaba"
+    ]
+  },
+  "_min": 1,
+  "_max": 2,
+  "_glpd": "2018-06-20T14:02:59.819",
+  "_v": 0,
+  "_tenant": 0
+}
