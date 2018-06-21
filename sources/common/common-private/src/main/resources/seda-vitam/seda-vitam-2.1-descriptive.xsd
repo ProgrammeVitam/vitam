@@ -23,13 +23,10 @@
                         <xsd:documentation>Référence à une partie d'un profil d’archivage applicable à un ArchiveUnit en particulier. Permet par exemple de faire référence à une typologie documentaire dans un profil d'archivage.</xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="Management" minOccurs="0">
+                <xsd:element name="Management" type="ManagementType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>Métadonnées de gestion applicables à l’ArchiveUnit concernée et à ses héritiers.</xsd:documentation>
                     </xsd:annotation>
-                    <xsd:complexType>
-                        <xsd:group ref="ManagementGroup"/>
-                    </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="Content" type="DescriptiveMetadataContentType" minOccurs="1">
                     <xsd:annotation>
@@ -43,11 +40,11 @@
                                 <xsd:documentation>Gestion de la récursivité. Une ArchiveUnit peut être contenu dans une ature ArchiveUnit.</xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
-<!--                        <xsd:element ref="ArchiveUnitReferenceAbstract">
+                        <!--xsd:element ref="ArchiveUnitReferenceAbstract">
                             <xsd:annotation>
                                 <xsd:documentation>Permet de faire référence à une sous unité d'archives, pouvant être déjà présente dans le système d'archivage provenant d'une transaction précédente.</xsd:documentation>
                             </xsd:annotation>
-                        </xsd:element>-->
+                        </xsd:element-->
                         <xsd:element name="DataObjectReference" type="DataObjectRefType">
                             <xsd:annotation>
                                 <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
@@ -68,6 +65,9 @@
                 <xsd:documentation>Identifiant de l'unité d'archives utilisé par exemple dans le cas de multiples héritages, pour savoir quel noeud contient une erreur.</xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="ManagementType">
+        <xsd:group ref="ManagementGroup"/>
     </xsd:complexType>
     <!-- Extension VITAM : Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans le SAE -->
     <xsd:complexType name="ObjectGroupRefType">

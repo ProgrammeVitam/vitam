@@ -29,8 +29,9 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import java.util.List;
 
+import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryItemType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
+import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 
@@ -40,25 +41,25 @@ import fr.gouv.vitam.common.model.unit.DataObjectReference;
 public class CustodialHistoryMapper {
 
     // TODO : there is two CustodialHistoryMapper, refactor should be done
-    
+
     /**
-     * Map an object {@link CustodialHistory} to a {@link CustodialHistoryModel}
-     * 
+     * Map an object {@link CustodialHistoryType} to a {@link CustodialHistoryModel}
+     *
      * @param custodialHistoryModel the custodial history
      * @return the custodial history as a {@link CustodialHistoryMapper} object
      */
-    public CustodialHistory map(CustodialHistoryModel custodialHistoryModel) {
+    public CustodialHistoryType map(CustodialHistoryModel custodialHistoryModel) {
 
         if (custodialHistoryModel == null) {
             return null;
         }
 
-        CustodialHistory custodialHistory = new CustodialHistory();
+        CustodialHistoryType custodialHistory = new CustodialHistoryType();
 
         List<String> custodialHistoryItems = custodialHistoryModel.getCustodialHistoryItem();
 
         custodialHistoryItems.forEach(item -> {
-            CustodialHistory.CustodialHistoryItem custodialHistoryItem = new CustodialHistory.CustodialHistoryItem();
+            CustodialHistoryItemType custodialHistoryItem = new CustodialHistoryItemType();
             custodialHistoryItem.setValue(item);
             custodialHistory.getCustodialHistoryItem().add(custodialHistoryItem);
 

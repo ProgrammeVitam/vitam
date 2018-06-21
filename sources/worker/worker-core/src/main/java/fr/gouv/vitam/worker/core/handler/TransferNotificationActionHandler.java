@@ -27,7 +27,26 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.*;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeListVersionsType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
+import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LogBookType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
+import fr.gouv.culture.archivesdefrance.seda.v2.OperationType;
+import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationWithIdType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -660,14 +679,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
         
         archiveUnit.setContent(descMetadataContent);
 
-        ArchiveUnitType.Management archiveUnitMgmt = objectFactory.createArchiveUnitTypeManagement();
+        ManagementType archiveUnitMgmt = objectFactory.createManagementType();
 
         if(logbookLifeCycleUnitEvents != null && !logbookLifeCycleUnitEvents.isEmpty()){
-            ManagementMetadataType.LogBook logbook = new ManagementMetadataType.LogBook();
+            LogBookType logbook = new LogBookType();
             for (final Document document : logbookLifeCycleUnitEvents) {
                 EventType eventObject = buildEventByContainerType(document, SedaConstants.TAG_ARCHIVE_UNIT, statusToBeChecked, null);
                 if (eventObject != null) {
-                    logbook.getEvent().add((ManagementMetadataType.LogBook.Event) eventObject);
+                    logbook.getEvent().add(eventObject);
                 }
             }
 
@@ -790,13 +809,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
         final List<Document> logbookLifeCycleObjectGroupEvents =
             (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS.toString());
         if (logbookLifeCycleObjectGroupEvents != null) {
-            dataObjectGroup.setLogBook(new DataObjectGroupType.LogBook());
+            dataObjectGroup.setLogBook(new LogBookOgType());
             for (final Document eventDoc : logbookLifeCycleObjectGroupEvents) {
                 String objectSystemId = eventDoc.get(LogbookMongoDbName.objectIdentifier.getDbname()).toString();
                 String objectId = dataObjectSystemGUIDToID.get(objectSystemId);
                 Object objectObject = findDataObjectById(dataObjectGroup, objectId);
                 dataObjectGroup.getLogBook().getEvent().add(
-                    (DataObjectGroupType.LogBook.Event) buildEventByContainerType(eventDoc,
+                    (EventLogBookOgType) buildEventByContainerType(eventDoc,
                         SedaConstants.TAG_DATA_OBJECT_GROUP,
                         statusToBeChecked, objectObject)
                 );
@@ -890,18 +909,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             //case of DataObjectGroupType, must return an DataObjectGroupType.Event type object
             if (SedaConstants.TAG_DATA_OBJECT_GROUP.equals(eventType)) {
-                eventObject = new DataObjectGroupType.LogBook.Event();
+                eventObject = new EventLogBookOgType();
 
                 if(dataObjectToReference != null) {
-                    //String objRefId = document.get(LogbookMongoDbName.objectIdentifier.getDbname()).toString();
-                    DataObjectGroupType.LogBook.Event.DataObjectReference dataObjectRef = objectFactory.createDataObjectGroupTypeLogBookEventDataObjectReference();
-                    dataObjectRef.setDataObjectReferenceId(dataObjectToReference);
-
-                    ((DataObjectGroupType.LogBook.Event) eventObject).setDataObjectReference(dataObjectRef);
+                    ((EventLogBookOgType) eventObject).setDataObjectReferenceId(dataObjectToReference);
                 }
-
-            } else if (SedaConstants.TAG_ARCHIVE_UNIT.equals(eventType)) {
-                eventObject = new ManagementMetadataType.LogBook.Event();
             } else {
                 eventObject = objectFactory.createEventType();
             }

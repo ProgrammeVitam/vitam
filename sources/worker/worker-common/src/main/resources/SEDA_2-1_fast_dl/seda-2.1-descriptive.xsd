@@ -23,13 +23,10 @@
                         <xsd:documentation>Référence à une partie d'un profil d’archivage applicable à un ArchiveUnit en particulier. Permet par exemple de faire référence à une typologie documentaire dans un profil d'archivage.</xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="Management" minOccurs="0">
+                <xsd:element name="Management" type="ManagementType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>Métadonnées de gestion applicables à l’ArchiveUnit concernée et à ses héritiers.</xsd:documentation>
                     </xsd:annotation>
-                    <xsd:complexType>
-                        <xsd:group ref="ManagementGroup"/>
-                    </xsd:complexType>
                 </xsd:element>
                 <xsd:element name="Content" type="DescriptiveMetadataContentType" minOccurs="1">
                     <xsd:annotation>
@@ -61,6 +58,9 @@
                 <xsd:documentation>Identifiant de l'unité d'archives utilisé par exemple dans le cas de multiples héritages, pour savoir quel noeud contient une erreur.</xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+    </xsd:complexType>
+    <xsd:complexType name="ManagementType">
+        <xsd:group ref="ManagementGroup"/>
     </xsd:complexType>
 
     <!-- In ArchiveUnitType from seda-2.1-descriptive.xsd: Descriptive Metadata Content -->

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
+import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
@@ -41,12 +41,12 @@ import fr.gouv.vitam.common.model.unit.DataObjectReference;
 public class CustodialHistoryMapper {
 
     /**
-     * Map an object {@link CustodialHistory} to a {@link CustodialHistoryModel}
+     * Map an object {@link CustodialHistoryType} to a {@link CustodialHistoryModel}
      * 
      * @param custodialHistory
      * @return the custodial history as a {@link CustodialHistoryMapper} object
      */
-    public CustodialHistoryModel map(DescriptiveMetadataContentType.CustodialHistory custodialHistory) {
+    public CustodialHistoryModel map(CustodialHistoryType custodialHistory) {
         if (custodialHistory == null) {
             return null;
         }

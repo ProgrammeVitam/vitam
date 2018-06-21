@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.mapping;
 import java.util.List;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
@@ -136,8 +137,8 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setSender(metadataContentType.getSender());
 
         if(metadataContentType.getRelatedObjectReference() != null){
-            DescriptiveMetadataContentType.RelatedObjectReference relatedObjectRef = metadataContentType.getRelatedObjectReference();
-            DescriptiveMetadataContentType.RelatedObjectReference relatedObjectRefNew = new DescriptiveMetadataContentType.RelatedObjectReference();
+            RelatedObjectReferenceType relatedObjectRef = metadataContentType.getRelatedObjectReference();
+            RelatedObjectReferenceType relatedObjectRefNew = new RelatedObjectReferenceType();
 
             descriptiveMetadataModel.setRelatedObjectReference(relatedObjectRefNew);
 

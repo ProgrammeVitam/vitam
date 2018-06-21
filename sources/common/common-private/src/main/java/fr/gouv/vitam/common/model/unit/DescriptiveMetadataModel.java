@@ -36,12 +36,13 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.CoverageType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.GpsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationType;
+import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
 /**
@@ -97,7 +98,7 @@ public class DescriptiveMetadataModel {
 
     private List<AgentTypeModel> authorizedAgent;
 
-    private List<WriterModel> writer;
+    private List<AgentTypeModel> writer;
 
     private List<AgentTypeModel> addressee;
 
@@ -109,7 +110,7 @@ public class DescriptiveMetadataModel {
 
     private String source;
 
-    private DescriptiveMetadataContentType.RelatedObjectReference relatedObjectReference;
+    private RelatedObjectReferenceType relatedObjectReference;
 
     private String createdDate;
 
@@ -129,7 +130,7 @@ public class DescriptiveMetadataModel {
 
     private List<EventType> event;
 
-    private List<DescriptiveMetadataContentType.Signature> signature;
+    private List<SignatureType> signature;
 
     private GpsType gps;
 
@@ -485,7 +486,7 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public List<WriterModel> getWriter() {
+    public List<AgentTypeModel> getWriter() {
         if (writer == null) {
             writer = new ArrayList<>();
         }
@@ -495,7 +496,7 @@ public class DescriptiveMetadataModel {
     /**
      * @param writer
      */
-    public void setWriter(List<WriterModel> writer) {
+    public void setWriter(List<AgentTypeModel> writer) {
         this.writer = writer;
     }
 
@@ -588,15 +589,14 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public DescriptiveMetadataContentType.RelatedObjectReference getRelatedObjectReference() {
+    public RelatedObjectReferenceType getRelatedObjectReference() {
         return relatedObjectReference;
     }
 
     /**
      * @param relatedObjectReference
      */
-    public void setRelatedObjectReference(
-        DescriptiveMetadataContentType.RelatedObjectReference relatedObjectReference) {
+    public void setRelatedObjectReference(RelatedObjectReferenceType relatedObjectReference) {
         this.relatedObjectReference = relatedObjectReference;
     }
 
@@ -732,14 +732,14 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public List<DescriptiveMetadataContentType.Signature> getSignature() {
+    public List<SignatureType> getSignature() {
         return signature;
     }
 
     /**
      * @param signature
      */
-    public void setSignature(List<DescriptiveMetadataContentType.Signature> signature) {
+    public void setSignature(List<SignatureType> signature) {
         this.signature = signature;
     }
 
