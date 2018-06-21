@@ -1,6 +1,6 @@
 {
   "service": {
-{% if vitam_struct.vitam_component == 'offer' %}    
+{% if vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component %}
     "name": "{{ offer_conf }}",
 {% else %}
     "name": "{{ vitam_struct.vitam_component }}",
@@ -33,7 +33,7 @@
         "http": "http://{{ip_admin}}:{{ vitam_struct.port_admin }}/admin/v1/status",
         "interval": "1s"
       }
-{% if (vitam_struct.vitam_component == 'worker') or (vitam_struct.vitam_component =='ingest-external')  %}
+{% if (vitam_struct.vitam_component == vitam.worker.vitam_component) or (vitam_struct.vitam_component == vitam.ingestexternal.vitam_component)  %}
       ,
       {
         "name": "Siegfried check",
