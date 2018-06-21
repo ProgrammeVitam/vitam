@@ -52,6 +52,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class SedaConverterToolTest {
     private static final String UNIT_SEDA_2_0_FILE_1 = "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.0_1.json",
+                                UNIT_SEDA_2_0_FILE_2 = "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.0_2.json",
                                 UNIT_SEDA_2_1_FILE_1 =
                                     "DataMigrationR6/SedaUnitDataSet/AU_SEDA_2.1_NotToBeMigrated.json";
 
@@ -66,12 +67,34 @@ public class SedaConverterToolTest {
 
         Unit convertedUnit = SedaConverterTool.convertUnitToSeda21(unit);
 
+        System.out.println(convertedUnit.toJson());
+
         assertConvertedUnitOk(convertedUnit);
         assertTrue(((Document) ((List)convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
 
+        //test 2
+        jsonUnit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNIT_SEDA_2_0_FILE_2));
+
+         unit = new Unit(jsonUnit);
+
+        assertTrue(unit.get("Signature") != null);
+        assertTrue(((Document)unit.get("Signature")).get("DateSignature") != null);
+
+        convertedUnit = SedaConverterTool.convertUnitToSeda21(unit);
+
+        System.out.println("========================================================================");
+        System.out.println(convertedUnit.toJson());
+
+        assertConvertedUnitOk(convertedUnit);
+        assertTrue(((Document) ((List)convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
+
+        //not to be migrated
         jsonUnit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNIT_SEDA_2_1_FILE_1));
 
         assertConvertedUnitOk(SedaConverterTool.convertUnitToSeda21(new Unit(jsonUnit)));
+
+        System.out.println("========================================================================");
+        System.out.println(convertedUnit.toJson());
 
     }
 

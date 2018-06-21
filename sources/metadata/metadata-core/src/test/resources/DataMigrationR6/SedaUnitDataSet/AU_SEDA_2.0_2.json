@@ -1,0 +1,150 @@
+{
+  "_id": "aeaqaaaaaahp6plwaaefealec57u3aaaaaaq",
+  "_og": "aebaaaaaaahp6plwaaefealec57u2lqaaaaq",
+  "_mgt": {
+    "AccessRule": {
+      "Inheritance": {
+        "PreventRulesId": [
+          "ACC-00001"
+        ]
+      }
+    }
+  },
+  "DescriptionLevel": "Item",
+  "Title_": {
+    "fr": "Chemin des dames - Le château de la Motte",
+    "en": "Chemin des dames - The Castle of La Motte"
+  },
+  "FilePlanPosition": "AB-001",
+  "OriginatingSystemId": "ID01",
+  "ArchivalAgencyArchiveUnitIdentifier": "1 Num 1/204-3",
+  "OriginatingAgencyArchiveUnitIdentifier": "CP1",
+  "TransferringAgencyArchiveUnitIdentifier": "CP1",
+  "Description": "Allemant. - Au chemin des Dames : le château et la ferme de la Motte totalement détruits.",
+  "CustodialHistory": {
+    "CustodialHistoryItem": [
+      "La collection de cartes postales présentée ici provient des\n                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande\n                            Collecte 1914-1918.",
+      "Ces cartes postales, écrites pour la plupart, ont été dans bien\n                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit\n                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,\n                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son\n                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres\n                            écrits).",
+      "A noter : les cartes représentant des périodes de manoeuvres ou\n                            des armes proviennent de clichés pris avant le conflit.",
+      "Dans le cas présent : Collecte 14-18. Prêt Hervé,\n                            2014"
+    ]
+  },
+  "Language": "french",
+  "Tag": [
+    "Grande Collecte"
+  ],
+  "Keyword": [
+    {
+      "KeywordContent": "Aisne (département)",
+      "KeywordType": "geogname"
+    },
+    {
+      "KeywordContent": "Guerre 1914-1918",
+      "KeywordType": "subject"
+    },
+    {
+      "KeywordContent": "Dommages de guerre",
+      "KeywordType": "subject"
+    },
+    {
+      "KeywordContent": "Carte postale",
+      "KeywordType": "genreform"
+    }
+  ],
+  "AuthorizedAgent": {
+    "BirthPlace": {
+      "Geogname": "Geogname",
+      "Address": "123 my Street",
+      "PostalCode": "CD255",
+      "City": "Toronto",
+      "Region": "Ontario",
+      "Country": "Canada"
+    },
+    "BirthDate": "2000-01-01",
+    "DeathPlace": {
+      "Geogname": "Geogname",
+      "Address": "123 my Street",
+      "PostalCode": "CD255",
+      "City": "Toronto",
+      "Region": "Ontario",
+      "Country": "Canada"
+    },
+    "GivenName": "Martin",
+    "BirthName": "Doe",
+    "FirstName": "John",
+    "Gender": "Male",
+    "Nationality": [
+      "Canadian"
+    ],
+    "DeathDate": "2000-01-01",
+    "Identifier": [
+      "ABC"
+    ]
+  },
+  "Source": "Prêt Hervé, 2014, CP1",
+  "RelatedObjectReference": {
+    "Replaces": [
+      {}
+    ]
+  },
+  "TransactedDate": "2017-06-01T09:31:00",
+  "AcquiredDate": "2016-01-05T09:31:00",
+  "RegisteredDate": "2014-06-12T09:31:00",
+  "StartDate": "1914-01-01T09:31:00",
+  "EndDate": "1918-12-31T19:06:44",
+  "Signature": {
+    "DateSignature": "2017-08-24T14:56:31.000+02:00",
+    "Signer": {
+      "BirthName": "Doe",
+      "FirstName": "John",
+      "SigningTime": "2017-08-24T14:56:31.000+02:00"
+    },
+    "Validator": {
+      "BirthName": "Doe",
+      "FirstName": "Jane",
+      "ValidationTime": "2017-08-24T14:56:31.000+02:00"
+    },
+    "ReferencedObject": {
+      "SignedObjectId": "aeaaaaaaaahp6plwaaefealec57u2raaaaba",
+      "SignedObjectDigest": {
+        "Value": "fec135f80c1996d1f281183aa260609d3dde1a831b593ba3f62c78a794b298fe22e4f305c419ffc54185477098da99b58e9627b9a78429d11fc4a12c6aed125b",
+        "Algorithm": "SHA-512"
+      }
+    }
+  },
+  "Gps": {
+    "GpsVersionID": "52.7",
+    "GpsAltitude": 255,
+    "GpsAltitudeRef": "GpsAltitudeRef",
+    "GpsLatitude": "49.4769199",
+    "GpsLatitudeRef": "GpsLatitudeRef",
+    "GpsLongitude": "3.4417368",
+    "GpsLongitudeRef": "GpsLongitudeRef",
+    "GpsDateStamp": "22:44 24/10/11"
+  },
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer-fs-1.service.int6.consul",
+      "offer-fs-2.service.int6.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_sps": [
+    "Vitam"
+  ],
+  "_sp": "Vitam",
+  "_ops": [
+    "aeeaaaaaachkaoohabgccalec57ujkiaaaaq"
+  ],
+  "_opi": "aeeaaaaaachkaoohabgccalec57ujkiaaaaq",
+  "_unitType": "INGEST",
+  "_max": 1,
+  "_min": 1,
+  "_up": [],
+  "_nbc": 0,
+  "_us": [],
+  "_uds": {},
+  "_v": 0,
+  "_tenant": 0
+}

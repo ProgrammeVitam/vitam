@@ -34,6 +34,9 @@
  */
 package fr.gouv.vitam.metadata.core.migration;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
 
@@ -121,8 +124,9 @@ public class SedaConverterTool {
 
                     Document document = (Document)object;
                     for(String subField : firstLevelField.getFields()) {
-                        if(document.get(subField) != null){
-                            document.replace(subField, Arrays.asList(document));
+                        Object subFieldValue = document.get(subField);
+                        if(subFieldValue != null){
+                               document.replace(subField, Arrays.asList(subFieldValue));
                         }
                     }
                 }
