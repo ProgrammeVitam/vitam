@@ -81,6 +81,7 @@ import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -1347,13 +1348,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
         throws InvalidParseOperationException {
 
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-        DescriptiveMetadataContentType.RelatedObjectReference archiveUnitRelatedObjectReference;
+        RelatedObjectReferenceType archiveUnitRelatedObjectReference;
 
         if (archiveUnitNode.has(SedaConstants.TAG_RELATED_OBJECT_REFERENCE) &&
             archiveUnitNode.get(SedaConstants.TAG_RELATED_OBJECT_REFERENCE) instanceof ObjectNode) {
             archiveUnitRelatedObjectReference =
                 JsonHandler.getFromJsonNode(archiveUnitNode.get(SedaConstants.TAG_RELATED_OBJECT_REFERENCE),
-                    DescriptiveMetadataContentType.RelatedObjectReference.class);
+                    RelatedObjectReferenceType.class);
 
             fillArchiveUnitReference(archiveUnitRelatedObjectReference.getIsVersionOf());
             fillArchiveUnitReference(archiveUnitRelatedObjectReference.getReplaces());

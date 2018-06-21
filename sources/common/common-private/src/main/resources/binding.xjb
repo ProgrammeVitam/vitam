@@ -138,9 +138,9 @@
         <jxb:bindings node="//xs:element[@name='Signer']">
             <jxb:class ref="fr.gouv.vitam.common.model.unit.ValidatorOrSignerModel" />
         </jxb:bindings>
-        <jxb:bindings node="//xs:element[@name='Writer']">
+        <!--jxb:bindings node="//xs:element[@name='Writer']">
             <jxb:class ref="fr.gouv.vitam.common.model.unit.WriterModel" />
-        </jxb:bindings>
+        </jxb:bindings-->
 
     </jxb:bindings>
 

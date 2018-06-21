@@ -138,29 +138,10 @@
                     <xsd:documentation>Gestion de la classification.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="LogBook" minOccurs="0">
+            <xsd:element name="LogBook" type="LogBookType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Gestion des traces.</xsd:documentation>
                 </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="Event" maxOccurs="unbounded">
-                            <xsd:complexType>
-                                <xsd:complexContent>
-                                    <xsd:extension base="EventType">
-                                        <xsd:sequence>
-                                            <xsd:element name="DataObjectReference" type="DataObjectRefType" minOccurs="0">
-                                                <xsd:annotation>
-                                                    <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
-                                                </xsd:annotation>
-                                            </xsd:element> 
-                                        </xsd:sequence>
-                                    </xsd:extension>
-                                </xsd:complexContent>
-                            </xsd:complexType>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
             </xsd:element>
             <xsd:element name="NeedAuthorization" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
@@ -174,6 +155,11 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
+    <xsd:complexType name="LogBookType">
+        <xsd:sequence>
+            <xsd:element name="Event" type="EventType" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
         
     <!-- Global inheritance control -->
     <xsd:group name="PreventInheritanceGroup">

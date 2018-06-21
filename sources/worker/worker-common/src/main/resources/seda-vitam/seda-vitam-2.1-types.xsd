@@ -66,8 +66,8 @@
     <xsd:complexType name="OpenType" abstract="true">
         <xsd:sequence>
             <!-- Redefined by VITAM-->
+            <!--xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/-->
             <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-            <!--<xsd:any namespace="##other" processContents="lax" minOccurs="0"/>-->
         </xsd:sequence>
         <xsd:attributeGroup ref="OpenTypeAttributeGroup"/>
     </xsd:complexType> 
@@ -240,7 +240,7 @@
     </xsd:complexType>
         
     <!-- Signature in Main message block -->
-    <xsd:complexType name="SignatureType">
+    <xsd:complexType name="SignatureMessageType">
         <xsd:annotation>
             <xsd:documentation>Contient toutes les métadonnées dsur la signature.</xsd:documentation>
         </xsd:annotation>

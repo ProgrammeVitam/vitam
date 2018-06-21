@@ -138,54 +138,39 @@
                     <xsd:documentation>Gestion de la classification.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="LogBook" minOccurs="0">
+            <xsd:element name="LogBook" type="LogBookType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Gestion des traces.</xsd:documentation>
                 </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="Event" maxOccurs="unbounded">
-                            <xsd:complexType>
-                                <xsd:complexContent>
-                                    <xsd:extension base="EventType">
-                                        <xsd:sequence>
-                                            <xsd:element name="DataObjectReference" type="DataObjectRefType" minOccurs="0">
-                                                <xsd:annotation>
-                                                    <xsd:documentation>Permet de faire référence à un objet-donnée binaire ou physique déjà présent dans les métadonnées du bordereau.</xsd:documentation>
-                                                </xsd:annotation>
-                                            </xsd:element> 
-                                        </xsd:sequence>
-                                    </xsd:extension>
-                                </xsd:complexContent>
-                            </xsd:complexType>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
             </xsd:element>
             <xsd:element name="NeedAuthorization" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-
+            <!-- Extension VITAM pour la gestion des rattachements d'AUs via le Manifest  -->
             <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
-                <xsd:annotation>
+                 <xsd:annotation>
                     <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
                     </xsd:documentation>
-                </xsd:annotation>
+                 </xsd:annotation>
             </xsd:element>
+            <!-- Redefined by VITAM -->
+                <!--xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+                        <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element-->
+                <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:group>
+        <xsd:complexType name="LogBookType">
+            <xsd:sequence>
+                <xsd:element name="Event" type="EventType" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
 
-            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-
-<!--            <xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>-->
-        </xsd:sequence>
-    </xsd:group>
-        
-    <!-- Global inheritance control -->
+        <!-- Global inheritance control -->
     <xsd:group name="PreventInheritanceGroup">
         <xsd:choice>
             <xsd:element name="PreventInheritance" type="xsd:boolean" default="false" minOccurs="0">
@@ -450,7 +435,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-<!-- extension VITAM pour la gestion des rattachement d'AUs via le Manifest -->
+    <!-- Extension VITAM pour la gestion des rattachement d'AUs via le Manifest -->
     <xsd:complexType name="UpdateOperationType">
         <xsd:sequence>
             <xsd:annotation>
