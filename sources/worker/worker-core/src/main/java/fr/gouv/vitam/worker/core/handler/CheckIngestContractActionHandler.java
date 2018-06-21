@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -248,8 +249,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     if (Boolean.FALSE.equals(context.isEnablecontrol())) {
                         return CheckIngestContractStatus.OK;
                     }
-
-                    if (!context.isStatus()) {
+                    if (!ContextStatus.ACTIVE.equals(context.getStatus())) {
                         LOGGER.error("CheckContract : The context " + contextId + "  is not activated");
                         return CheckIngestContractStatus.CONTEXT_INACTIVE;
                     }

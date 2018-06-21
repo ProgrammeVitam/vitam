@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -282,7 +283,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
                 } else {
                     final ContextModel context = Iterables.getFirst(results, null);
 
-                    if (!context.isStatus()) {
+                    if (!ContextStatus.ACTIVE.equals(context.getStatus())) {
                         throw new VitamSecurityException("The context " + contextId + "  is not activated");
                     }
 

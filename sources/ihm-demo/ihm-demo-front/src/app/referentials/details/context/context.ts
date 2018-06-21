@@ -6,7 +6,7 @@ export class Context {
   ActivationDate : string;
   DeactivationDate : string;
   Name : string;
-  Status : boolean;
+  Status : string;
   Description : string;
   'tenant' : string;
   EnableControl : boolean;

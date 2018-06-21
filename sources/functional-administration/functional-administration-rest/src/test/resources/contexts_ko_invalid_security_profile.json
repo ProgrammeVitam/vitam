@@ -1,7 +1,7 @@
 [
   {
     "Name": "My_Context_3",
-    "Status": true,
+    "Status": "ACTIVE",
     "SecurityProfile" : "UNKOWN_SEC_PROFILE",
     "Permissions": [
       {
