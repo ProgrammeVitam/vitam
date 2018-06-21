@@ -27,37 +27,8 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -84,9 +55,37 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
+import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  * StorageDistributionImplTest
@@ -134,7 +133,7 @@ public class StorageDistributionImplTest {
     @RunWithCustomExecutor
     public void testStoreData_IllegalArguments()
         throws StorageException, StorageAlreadyExistsException {
-        // storeData(String tenantId, String strategyId, String objectId,
+        // storeDataInOneOffer(String tenantId, String strategyId, String objectId,
         // CreateObjectDescription createObjectDescription, DataCategory
         // category,
         // JsonNode jsonData)
@@ -177,7 +176,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             storedInfoResult =
-                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -207,7 +206,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.UNIT,
+                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.UNIT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -228,7 +227,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.LOGBOOK,
+                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.LOGBOOK,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -249,7 +248,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult =
-                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.STORAGELOG,
+                customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.STORAGELOG,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -268,7 +267,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
-            storedInfoResult = customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription,
+            storedInfoResult = customDistribution.storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription,
                 DataCategory.OBJECTGROUP, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -310,13 +309,12 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
             IOUtils.closeQuietly(stream2);
         }
     }
-
 
     @Test(expected = StorageTechnicalException.class)
     @RunWithCustomExecutor
@@ -326,14 +324,13 @@ public class StorageDistributionImplTest {
         final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
-
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(Response.status(Status.OK)
             .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).entity(stream).build());
         try {
             customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -364,7 +361,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         // Store object
         customDistribution
-            .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+            .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
     }
 
     @Test
@@ -381,7 +378,7 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageException exc) {
             // Expection
@@ -392,7 +389,7 @@ public class StorageDistributionImplTest {
             .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -406,7 +403,7 @@ public class StorageDistributionImplTest {
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
             customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
+                .storeDataInOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -417,7 +414,7 @@ public class StorageDistributionImplTest {
         ObjectDescription createObjectDescription, DataCategory category)
         throws StorageException, StorageAlreadyExistsException {
         try {
-            simpleDistribution.storeData(strategyId, objectId, createObjectDescription, category, "testRequester");
+            simpleDistribution.storeDataInOffers(strategyId, objectId, createObjectDescription, category, "testRequester");
             fail("Parameter should be considered invalid");
         } catch (final IllegalArgumentException exc) {
             // test OK
@@ -428,7 +425,7 @@ public class StorageDistributionImplTest {
     @Test
     public void getContainerInformationOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final JsonNode jsonNode = simpleDistribution.getContainerInformations(STRATEGY_ID);
+        final JsonNode jsonNode = simpleDistribution.getContainerInformation(STRATEGY_ID);
         assertNotNull(jsonNode);
     }
 
@@ -436,7 +433,7 @@ public class StorageDistributionImplTest {
     @Test(expected = StorageTechnicalException.class)
     public void getContainerInformationTechnicalException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-1);
-        customDistribution.getContainerInformations(STRATEGY_ID);
+        customDistribution.getContainerInformation(STRATEGY_ID);
     }
 
     @RunWithCustomExecutor
@@ -525,7 +522,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             TransferThread.setJunitMode(true);
-            customDistribution.storeData(STRATEGY_ID, TransferThread.TIMEOUT_TEST, createObjectDescription,
+            customDistribution.storeDataInOffers(STRATEGY_ID, TransferThread.TIMEOUT_TEST, createObjectDescription,
                 DataCategory.OBJECTGROUP, "testRequester");
             TransferThread.setJunitMode(false);
         } finally {

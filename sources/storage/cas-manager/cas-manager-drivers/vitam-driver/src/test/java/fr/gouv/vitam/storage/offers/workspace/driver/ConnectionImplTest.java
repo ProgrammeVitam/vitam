@@ -57,6 +57,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -95,7 +96,6 @@ import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -970,7 +970,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     public void getObjectMetadataTestOK() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(mockMetadatasObjectResult()).build());
         final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
-        final StorageMetadatasResult result = connection.getMetadatas(request);
+        final StorageMetadataResult result = connection.getMetadatas(request);
         assertNotNull(result);
 
     }
@@ -1045,8 +1045,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
         connection.getOfferLogs(offerLogRequest);
     }
 
-    private StorageMetadatasResult mockMetadatasObjectResult() {
-        return new StorageMetadatasResult(OBJECT_ID, TYPE, "abcdef", 6096,
+    private StorageMetadataResult mockMetadatasObjectResult() {
+        return new StorageMetadataResult(OBJECT_ID, TYPE, "abcdef", 6096,
             "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
     }
 

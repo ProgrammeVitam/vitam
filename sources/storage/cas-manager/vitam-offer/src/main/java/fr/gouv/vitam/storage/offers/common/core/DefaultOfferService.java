@@ -36,7 +36,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -202,11 +202,11 @@ public interface DefaultOfferService {
      *
      * @param containerName
      * @param objectId
-     * @return StorageMetadatasResult
+     * @return StorageMetadataResult
      * @throws ContentAddressableStorageException
      * @throws IOException
      */
-    StorageMetadatasResult getMetadatas(String containerName, String objectId)
+    StorageMetadataResult getMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException;
 
     /**

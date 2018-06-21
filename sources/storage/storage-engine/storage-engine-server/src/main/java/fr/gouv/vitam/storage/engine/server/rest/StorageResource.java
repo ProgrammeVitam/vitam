@@ -269,7 +269,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             VitamCode vitamCode;
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                final JsonNode result = distribution.getContainerInformations(strategyId);
+                final JsonNode result = distribution.getContainerInformation(strategyId);
                 return Response.status(Status.OK).entity(result).build();
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
@@ -448,7 +448,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
             JsonNode offerMetadataInfo;
             try {
-                offerMetadataInfo = distribution.getContainerInformations(strategyId, type, objectId, offerIds);
+                offerMetadataInfo = distribution.getContainerInformation(strategyId, type, objectId, offerIds);
             } catch (StorageException e) {
                 LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
@@ -1222,7 +1222,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
                 final StoredInfoResult result =
-                    distribution.storeData(strategyId, objectId, createObjectDescription, category,
+                    distribution.storeDataInOffers(strategyId, objectId, createObjectDescription, category,
                         requester);
                 return Response.status(Status.CREATED).entity(result).build();
             } catch (final StorageNotFoundException exc) {

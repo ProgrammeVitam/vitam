@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
-
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -59,10 +56,10 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -513,7 +510,7 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
+    public StorageMetadataResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
@@ -526,7 +523,7 @@ public class ConnectionImpl extends AbstractConnection {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    return handleResponseStatus(response, StorageMetadatasResult.class);
+                    return handleResponseStatus(response, StorageMetadataResult.class);
                 case NOT_FOUND:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
                     throw new StorageDriverNotFoundException(getDriverName(),

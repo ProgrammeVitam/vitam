@@ -84,7 +84,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -194,7 +194,7 @@ public class CreateObjectSecureFileActionPluginTest {
         final String expectedMDLFCGlobalHashFromStorage = generateExpectedDigest(
             mdWithLfc);
 
-        final StorageMetadatasResult storageMDResult = new StorageMetadatasResult(guidOg, "",
+        final StorageMetadataResult storageMDResult = new StorageMetadataResult(guidOg, "",
             expectedMDLFCGlobalHashFromStorage, 17011, "file_owner",
             LocalDateUtil.getString(LocalDateTime.now()), LocalDateUtil.getString(LocalDateTime.now()));
 

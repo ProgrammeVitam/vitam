@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -93,15 +93,15 @@ public class StorageClientUtil {
             for (String offerId : mdOptimisticStorageInfos.getOfferIds()) {
                 JsonNode metadataResultJsonNode = storageMetadatasResultListJsonNode.get(offerId);
                 if (metadataResultJsonNode != null && metadataResultJsonNode.isObject()) {
-                    StorageMetadatasResult storageMetadatasResult =
-                        JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadatasResult.class);
+                    StorageMetadataResult storageMetadataResult =
+                        JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadataResult.class);
 
-                    if (storageMetadatasResult == null) {
+                    if (storageMetadataResult == null) {
                         throw new ProcessingException(String.format("The %s is null for the offer %s",
-                            StorageMetadatasResult.class.getSimpleName(), offerId));
+                            StorageMetadataResult.class.getSimpleName(), offerId));
                     }
 
-                    digest = storageMetadatasResult.getDigest();
+                    digest = storageMetadataResult.getDigest();
 
                     if (!isFirstDigest) {
                         isFirstDigest = true;
@@ -120,7 +120,7 @@ public class StorageClientUtil {
         } catch (StorageNotFoundClientException | StorageServerClientException | IllegalArgumentException e) {
             throw new ProcessingException("Exception when retrieving storage client ", e);
         } catch (InvalidParseOperationException e) {
-            throw new ProcessingException("Exception when parsing JsonNode to StorageMetadatasResult object ", e);
+            throw new ProcessingException("Exception when parsing JsonNode to StorageMetadataResult object ", e);
         }
 
         return digest;

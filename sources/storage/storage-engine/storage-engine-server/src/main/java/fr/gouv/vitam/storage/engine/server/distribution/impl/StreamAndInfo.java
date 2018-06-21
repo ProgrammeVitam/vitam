@@ -24,51 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-package fr.gouv.vitam.storage.engine.common.referential.model;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
 
 /**
- * Unique Reference to an offer declared in a strategy.
- *
+ * StreamAndInfo class
  */
+public class StreamAndInfo{
+    private InputStream stream;
+    private Long size;
+    private Response response;
 
-public class OfferReference{
-
-    public OfferReference(String id) {
-        this.id = id;
-    }
-
-    public OfferReference() { /* nothing */   }
-
-    private String id;
-    private boolean referent;
-
-    /**
-     * @return the id
-     */
-    public String getId() {
-        return id;
+     StreamAndInfo(InputStream stream, Long size, Response response) {
+        this.stream = stream;
+        this.size = size;
+        this.response = response;
     }
 
     /**
-     * @param id of {@link OfferReference}
-     */
-    public void setId(String id) {
-        this.id = id;
+     * getter for stream
+     **/
+    public Object getStream() {
+        return stream;
     }
 
     /**
-     * 
-     * @return is referent offer
-     */
-    public boolean isReferent() {
-        return referent;
+     * getter for size
+     **/
+    public Long getSize() {
+        return size;
     }
 
     /**
-     * @param referent is referent offer
-     */
-    public void setReferent(boolean referent) {
-        this.referent = referent;
+     * getter for response
+     **/
+    public Response getResponse() {
+        return response;
     }
+
 }

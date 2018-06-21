@@ -49,6 +49,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -81,7 +82,6 @@ import fr.gouv.vitam.common.serverv2.application.ApplicationParameter;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -1065,7 +1065,7 @@ public class StorageResourceTest {
     public static class StorageDistributionInnerClass implements StorageDistribution {
 
         @Override
-        public StoredInfoResult storeData(String strategyId, String objectId,
+        public StoredInfoResult storeDataInOffers(String strategyId, String objectId,
             ObjectDescription createObjectDescription, DataCategory category, String requester)
             throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
             Integer tenantId = ParameterHelper.getTenantParameter();
@@ -1085,7 +1085,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode getContainerInformations(String strategyId)
+        public JsonNode getContainerInformation(String strategyId)
             throws StorageNotFoundException, StorageTechnicalException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
@@ -1133,7 +1133,7 @@ public class StorageResourceTest {
         }
 
         @Override
-        public StoredInfoResult storeData(String strategyId, String objectId, DataCategory category, String requester,
+        public StoredInfoResult storeDataInOneOffer(String strategyId, String objectId, DataCategory category, String requester,
             String offerId, Response response)
             throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
             Integer tenantId = ParameterHelper.getTenantParameter();
@@ -1180,14 +1180,14 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode getContainerInformations(String strategyId, DataCategory type, String objectId,
+        public JsonNode getContainerInformation(String strategyId, DataCategory type, String objectId,
             List<String> offerIds)
             throws StorageNotFoundException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
-            StorageMetadatasResult res = new StorageMetadatasResult(objectId, "object", "abcdef", 6096,
+            StorageMetadataResult res = new StorageMetadataResult(objectId, "object", "abcdef", 6096,
                 "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
             try {
                 return JsonHandler.toJsonNode(res);

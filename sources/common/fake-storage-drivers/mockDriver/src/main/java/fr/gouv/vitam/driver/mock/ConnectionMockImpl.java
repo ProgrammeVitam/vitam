@@ -72,10 +72,9 @@ import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
-import fr.gouv.vitam.storage.driver.model.StorageOfferLogResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -403,7 +402,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
     }
 
     @Override
-    public StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
+    public StorageMetadataResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
@@ -427,7 +426,7 @@ public class ConnectionMockImpl extends AbstractMockClient implements Connection
         result.setFileOwner("Vitam_" + request.getTenantId().toString());
         result.setLastAccessDate(new Date().toString());
         result.setLastModifiedDate(new Date().toString());
-        return new StorageMetadatasResult(result);
+        return new StorageMetadataResult(result);
     }
 
     @Override

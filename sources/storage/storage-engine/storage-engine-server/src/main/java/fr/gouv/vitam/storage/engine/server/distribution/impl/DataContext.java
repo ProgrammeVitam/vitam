@@ -24,51 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-package fr.gouv.vitam.storage.engine.common.referential.model;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 /**
- * Unique Reference to an offer declared in a strategy.
- *
+ * DataContext class
  */
+public class DataContext {
 
-public class OfferReference{
+  private   final String objectId;
+  private   final DataCategory category;
+  private   final String requester;
+  private   final Integer tenantId;
 
-    public OfferReference(String id) {
-        this.id = id;
-    }
-
-    public OfferReference() { /* nothing */   }
-
-    private String id;
-    private boolean referent;
-
-    /**
-     * @return the id
-     */
-    public String getId() {
-        return id;
+     public DataContext(String objectId, DataCategory category, String requester, Integer tenantId) {
+        this.objectId = objectId;
+        this.category = category;
+        this.requester = requester;
+        this.tenantId = tenantId;
     }
 
     /**
-     * @param id of {@link OfferReference}
-     */
-    public void setId(String id) {
-        this.id = id;
+     * getter for objectId
+     **/
+    public String getObjectId() {
+        return objectId;
     }
 
     /**
-     * 
-     * @return is referent offer
-     */
-    public boolean isReferent() {
-        return referent;
+     * getter for category
+     **/
+    public DataCategory getCategory() {
+        return category;
     }
 
     /**
-     * @param referent is referent offer
-     */
-    public void setReferent(boolean referent) {
-        this.referent = referent;
+     * getter for requester
+     **/
+    public String getRequester() {
+        return requester;
+    }
+
+    /**
+     * getter for tenantId
+     **/
+    public Integer getTenantId() {
+        return tenantId;
     }
 }

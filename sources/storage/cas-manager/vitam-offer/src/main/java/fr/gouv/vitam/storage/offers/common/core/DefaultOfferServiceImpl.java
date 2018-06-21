@@ -61,7 +61,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -266,9 +266,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public StorageMetadatasResult getMetadatas(String containerName, String objectId)
+    public StorageMetadataResult getMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
-        return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(containerName, objectId));
+        return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId));
     }
 
     public String createCursor(String containerName) throws ContentAddressableStorageServerException {

@@ -1,33 +1,32 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 import javax.ws.rs.core.Response;
@@ -39,59 +38,60 @@ import java.util.Map;
 /**
  * manage list ok and ko for retry storage feature
  */
-public class TryAndRetryData {
+public class OffersToCopyIn {
     /**
      * Offers transfer OK
      */
-    private List<String> okList;
+    private final List<String> okOffers;
     /**
      * Offers transfer KO
      */
-    private List<String> koList;
-
+    private final List<String> koOffers;
     /**
      * Result
      */
-    private Map<String, Response.Status> globalOfferResult;
+    private final Map<String, Response.Status> globalOfferResult;
+
+
 
     /**
-     * Populate KO offer with offer list to start a new object
-     * transfer
+     * create  OffersToCopyIn with one
+     *
+     * @param storageOffer storageOfferStorageOffer
+     */
+    OffersToCopyIn(final StorageOffer storageOffer) {
+        globalOfferResult = new HashMap<>();
+        this.okOffers = new ArrayList<>();
+        this.koOffers = new ArrayList<>();
+        koOffers.add(storageOffer.getId());
+        globalOfferResult.put(storageOffer.getId(), Response.Status.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * * create  OffersToCopyIn lists
+     *
      *
      * @param storageOffers
-     *            list of offer reference
      */
-    public void populateFromOffers(List<StorageOffer> storageOffers) {
+    public OffersToCopyIn(final List<StorageOffer> storageOffers) {
         globalOfferResult = new HashMap<>();
-        if (okList == null) {
-            okList = new ArrayList<>();
-        }
-        if (koList == null) {
-            koList = new ArrayList<>();
-        }
+        okOffers = new ArrayList<>();
+        koOffers = new ArrayList<>();
         for (StorageOffer storageOffer : storageOffers) {
-            koList.add(storageOffer.getId());
+            koOffers.add(storageOffer.getId());
             globalOfferResult.put(storageOffer.getId(), Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 
     /**
      * Get OK offers list
      *
      * @return the ok offers list
      */
-    public List<String> getOkList() {
-        return okList;
-    }
-
-    /**
-     * Set Ok offers list
-     *
-     * @param okList
-     *            the ok offer list
-     */
-    public void setOkList(List<String> okList) {
-        this.okList = okList;
+    public List<String> getOkOffers() {
+        return okOffers;
     }
 
     /**
@@ -99,19 +99,10 @@ public class TryAndRetryData {
      *
      * @return the KO offers list
      */
-    public List<String> getKoList() {
-        return new ArrayList<String>(koList);
+    public List<String> getKoOffers() {
+        return new ArrayList<>(koOffers);
     }
 
-    /**
-     * Set the KO offers list
-     *
-     * @param koList
-     *            the KO offers list
-     */
-    public void setKoList(List<String> koList) {
-        this.koList = koList;
-    }
 
     /**
      * Get global result for storage distribution
@@ -125,12 +116,11 @@ public class TryAndRetryData {
     /**
      * Pass offerId fro KO offers list to OK offers list
      *
-     * @param offerId
-     *            the offerId
+     * @param offerId the offerId
      */
     public void koListToOkList(String offerId) {
-        koList.remove(offerId);
-        okList.add(offerId);
+        koOffers.remove(offerId);
+        okOffers.add(offerId);
         globalOfferResult.put(offerId, Response.Status.CREATED);
     }
 
@@ -138,7 +128,7 @@ public class TryAndRetryData {
      * Change the status of an offer id transfer
      *
      * @param offerId the offerId
-     * @param status the response status to set
+     * @param status  the response status to set
      */
     public void changeStatus(String offerId, Response.Status status) {
         globalOfferResult.put(offerId, status);

@@ -61,7 +61,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -189,10 +189,10 @@ public class EvidenceService {
 
                 if (metadataResultJsonNode != null && metadataResultJsonNode.isObject()) {
 
-                    StorageMetadatasResult storageMetadataResult;
+                    StorageMetadataResult storageMetadataResult;
                     try {
                         storageMetadataResult =
-                            JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadatasResult.class);
+                            JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadataResult.class);
 
                     } catch (InvalidParseOperationException e) {
                         throw new EvidenceAuditException(EvidenceStatus.FATAL,
@@ -255,9 +255,9 @@ public class EvidenceService {
             for (String offerId : storedInfoResult.getOfferIds()) {
                 final JsonNode objectVersionResultJsonNode = objectVersionStorageMetadataResult.get(offerId);
 
-                final StorageMetadatasResult storageMetadatasResult =
-                    JsonHandler.getFromJsonNode(objectVersionResultJsonNode, StorageMetadatasResult.class);
-                String digestForOffer = storageMetadatasResult.getDigest();
+                final StorageMetadataResult storageMetadataResult =
+                    JsonHandler.getFromJsonNode(objectVersionResultJsonNode, StorageMetadataResult.class);
+                String digestForOffer = storageMetadataResult.getDigest();
 
                 if (!objectVersionHash.equals(digestForOffer)) {
                     String message = String.format(

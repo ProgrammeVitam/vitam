@@ -39,6 +39,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -64,7 +65,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      */
     // TODO P1 : maybe the logbook object should be an inputstream as well.
     // This would be an other US responsibility (not #72)
-    StoredInfoResult storeData(String strategyId, String objectId, ObjectDescription createObjectDescription,
+    StoredInfoResult storeDataInOffers(String strategyId, String objectId, ObjectDescription createObjectDescription,
         DataCategory category, String requester) throws StorageException;
 
     /**
@@ -75,11 +76,11 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @param category   the category of the data to store (unit, object...)
      * @param requester  the requester information
      * @param offerId    offer identfier
-     * @param response
+     * @param response   the response
      * @return a StoredInfoResult containing informations about the created Data
-     * @throws StorageException
+     * @throws StorageException StorageException
      */
-    StoredInfoResult storeData(String strategyId, String objectId,
+    StoredInfoResult storeDataInOneOffer(String strategyId, String objectId,
         DataCategory category, String requester, String offerId, Response response) throws StorageException;
 
     /**
@@ -99,7 +100,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageNotFoundException  Thrown if the Container does not exist
      * @throws StorageTechnicalException Thrown in case of any technical problem
      */
-    JsonNode getContainerInformations(String strategyId) throws StorageException;
+    JsonNode getContainerInformation(String strategyId) throws StorageException;
 
     /**
      * Get Storage Container full content as an InputStream
@@ -218,7 +219,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return JsonNode containing informations about the requested object
      * @throws StorageException
      */
-    JsonNode getContainerInformations(String strategyId, DataCategory type, String objectId,
+    JsonNode getContainerInformation(String strategyId, DataCategory type, String objectId,
         List<String> offerIds) throws StorageException;
 
 
