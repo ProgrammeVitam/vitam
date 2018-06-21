@@ -75,7 +75,7 @@ public class ContextModel {
     private String name;
 
     @JsonProperty(TAG_STATUS)
-    private Boolean status;
+    private ContextStatus status;
 
     @JsonProperty(TAG_ENABLE_CONTROL)
     private Boolean enablecontrol;
@@ -155,14 +155,14 @@ public class ContextModel {
     /**
      * @return status
      */
-    public Boolean isStatus() {
+    public ContextStatus getStatus() {
         return status;
     }
 
     /**
      * @param status
      */
-    public void setStatus(Boolean status) {
+    public void setStatus(ContextStatus status) {
         this.status = status;
     }
 

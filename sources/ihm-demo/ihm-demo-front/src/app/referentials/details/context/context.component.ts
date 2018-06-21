@@ -38,6 +38,7 @@ export class ContextComponent extends PageComponent {
   tenants: number[];
   selectedTenant: string;
   id: string;
+  isActif : boolean;
   update: boolean;
   updatedFields = {};
   saveRunning = false;
@@ -192,9 +193,18 @@ export class ContextComponent extends PageComponent {
   initData(value) {
     this.context = plainToClass(Context, value.$results)[0];
     this.modifiedContext = ObjectsService.clone(this.context);
-
+    this.isActif = this.modifiedContext.Status === 'ACTIVE' ? true : false;
     for (let permission of this.modifiedContext.Permissions) {
       this.tenants.splice(this.tenants.indexOf(permission['tenant']), 1);
+    }
+  }
+
+
+  changeStatus() {
+    if (this.isActif) {
+      this.updatedFields['Status'] = 'ACTIVE';
+    } else {
+      this.updatedFields['Status'] = 'INACTIVE';
     }
   }
 

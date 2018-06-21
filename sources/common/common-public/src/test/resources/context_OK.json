@@ -2,7 +2,7 @@
 	"_id": "aegqaaaaaaflvhgbabrs6alb4x6csgyaaaaq",
 	"Name": "My_Context_5",
 	"Identifier": "CT-000002",
-	"Status": true,
+	"Status": "ACTIVE",
 	"SecurityProfile": "admin-security-profile",
 	"CreationDate": "2018-03-02T09:12:43.547",
 	"LastUpdate": "2018-03-02T09:12:43.548",

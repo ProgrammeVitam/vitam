@@ -2,7 +2,7 @@
   {
     "Identifier": "09877777",
     "Name": "My_Context_3",
-    "Status": true,
+    "Status": "ACTIVE",
     "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {
@@ -21,7 +21,7 @@
     "Identifier": "0987788",
 
     "Name": "My_Context_5",
-    "Status": false,
+    "Status": "INACTIVE",
     "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {

@@ -14,7 +14,11 @@
       "type": "string"
     },
     "Status": {
-      "type": "boolean"
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
     },
     "EnableControl": {
       "type": "boolean"
