@@ -26,16 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -46,13 +40,18 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Check HEADER Handler
@@ -65,6 +64,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
     private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
     private static final String EV_DETAIL_REQ = "EvDetailReq";
     private static final int CHECK_PROFILE_RANK = 2;
+    private static final int GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK = 0;
+    public static final String INGEST_CONTRACT = "ingestContract";
 
 
     /**
@@ -148,6 +149,46 @@ public class CheckHeaderActionHandler extends ActionHandler {
         String contractIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
         String profileIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
 
+        IngestContractModel ingestContractModel = null;
+        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+            RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContractsByID(contractIdentifier);
+            if (referenceContracts.isOk()) {
+                List<IngestContractModel> results =
+                        ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
+                if (null != results && results.size() > 0) {
+                    ingestContractModel = results.iterator().next();
+                }
+            } else {
+                ObjectNode evDetailData = JsonHandler.createObjectNode();
+                evDetailData.put(INGEST_CONTRACT, contractIdentifier);
+                itemStatus.setEvDetailData(evDetailData.toString());
+                itemStatus.increment(StatusCode.KO);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            }
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            ObjectNode evDetailData = JsonHandler.createObjectNode();
+            evDetailData.put(INGEST_CONTRACT, contractIdentifier);
+            itemStatus.setEvDetailData(evDetailData.toString());
+            itemStatus.increment(StatusCode.KO);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        } catch (InvalidParseOperationException | AdminManagementClientServerException e) {
+           LOGGER.error(e);
+            ObjectNode evDetailData = JsonHandler.createObjectNode();
+            evDetailData.put(INGEST_CONTRACT, contractIdentifier);
+            itemStatus.setEvDetailData(evDetailData.toString());
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        }
+
+        try {
+            writeIngestContractToWorkspace(handlerIO, ingestContractModel);
+        } catch (ProcessingException | InvalidParseOperationException e) {
+            LOGGER.error("Error when saving mandatory Seda parameter to Workspace ", e);
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        }
+
         boolean doNotCheckProfile = (null == contractIdentifier && null == profileIdentifier);
         if (shouldCheckProfile && !doNotCheckProfile) {
             handlerIO.getInput().clear();
@@ -157,27 +198,10 @@ public class CheckHeaderActionHandler extends ActionHandler {
             boolean checkRelationBetweenProfileAndContract = true;
             if (null == profileIdentifier) {
                 // Verify if contract have archive profiles, else do nothing
-                try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-                    Select select = new Select();
-                    select.setQuery(QueryHelper.eq(IngestContract.IDENTIFIER, contractIdentifier));
-                    JsonNode queryDsl = select.getFinalSelect();
-                    RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
-                    if (referenceContracts.isOk()) {
-                        List<IngestContractModel> results =
-                            ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
-                        if (null != results && results.size() > 0) {
-                            IngestContractModel contract = results.iterator().next();
-                            if (contract.getArchiveProfiles().isEmpty()) {
-                                checkRelationBetweenProfileAndContract = false;
-                            } else {
-                                handlerIO.getInput().add(contract);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    LOGGER.error(e);
-                    // Do nothing as at this point checkRelationBetweenProfileAndContract and contract will be
-                    // re-checked in the handler CheckArchiveProfileRelationActionHandler
+                if (ingestContractModel.getArchiveProfiles().isEmpty()) {
+                    checkRelationBetweenProfileAndContract = false;
+                } else {
+                    handlerIO.getInput().add(ingestContractModel);
                 }
             }
 
@@ -209,6 +233,15 @@ public class CheckHeaderActionHandler extends ActionHandler {
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    private void writeIngestContractToWorkspace(HandlerIO handlerIO, IngestContractModel ingestContractModel) throws InvalidParseOperationException, ProcessingException {
+
+        File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK).getPath());
+        // create json file
+        JsonHandler.writeAsFile(ingestContractModel, tempFile);
+        // put file in workspace
+        handlerIO.addOutputResult(GLOBAL_MANDATORY_SEDA_PARAMS_OUT_RANK, tempFile, true, false);
     }
 
     private void updateSedaInfo(Map<String, Object> madatoryValueMap, ObjectNode infoNode) {

@@ -27,22 +27,8 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -74,23 +60,49 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({FormatIdentifierFactory.class, WorkspaceClientFactory.class, AdminManagementClientFactory.class})
 public class FormatIdentificationActionPluginTest {
     FormatIdentificationActionPlugin plugin;
-    private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
     private static final String FILE_FORMAT = "FILE_FORMAT";
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_3 =
         "formatIdentificationActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaaba.json";
+
+    private static final String REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG =
+            "formatIdentificationActionPlugin/referentialIngestContractDefaultConfig.json";
+    private static final String REFERENTIAL_INGEST_CONTRACT_FORMAT_UNIDENTIFIED_AUTHORIZED =
+            "formatIdentificationActionPlugin/referentialIngestContractFormatUnidentifiedAuthorized.json";
+    private static final String REFERENTIAL_INGEST_CONTRACT_RESTRICTED_FORMAT_LIST_KO =
+            "formatIdentificationActionPlugin/referentialIngestContractRestrictedFormatListKO.json";
+    private static final String REFERENTIAL_INGEST_CONTRACT_RESTRICTED_FORMAT_LIST_OK =
+            "formatIdentificationActionPlugin/referentialIngestContractRestrictedFormatListOK.json";
+
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
     private final InputStream objectGroup3;
@@ -111,7 +123,7 @@ public class FormatIdentificationActionPluginTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         PowerMockito.mockStatic(FormatIdentifierFactory.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
@@ -120,7 +132,7 @@ public class FormatIdentificationActionPluginTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         guid = GUIDFactory.newGUID();
-        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId",Lists.newArrayList());
         deleteFiles();
     }
 
@@ -131,6 +143,7 @@ public class FormatIdentificationActionPluginTest {
 
     @Test
     public void getFormatIdentifierNotFound() throws Exception {
+        getMockedAdminManagementClient();
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
@@ -139,24 +152,33 @@ public class FormatIdentificationActionPluginTest {
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
+        handlerIO.getInput().add(null);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
+
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
     public void getFormatIdentifierFactoryError() throws Exception {
+        getMockedAdminManagementClient();
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
+
+        handlerIO.getInput().add(null);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
+
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
     public void getFormatIdentifierTechnicalError() throws Exception {
+        getMockedAdminManagementClient();
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         plugin = new FormatIdentificationActionPlugin();
@@ -164,6 +186,10 @@ public class FormatIdentificationActionPluginTest {
 
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierTechnicalException(""));
+
+        handlerIO.getInput().add(null);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
+
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -176,6 +202,7 @@ public class FormatIdentificationActionPluginTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         final AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson2Result());
@@ -200,9 +227,10 @@ public class FormatIdentificationActionPluginTest {
     private AdminManagementClient getMockedAdminManagementClient() {
         final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminManagementClientFactory =
-            PowerMockito.mock(AdminManagementClientFactory.class);
+                PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+
         return adminManagementClient;
     }
 
@@ -214,6 +242,7 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -239,6 +268,7 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og3);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -260,6 +290,7 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -275,6 +306,7 @@ public class FormatIdentificationActionPluginTest {
 
     @Test
     public void formatIdentificationNotFound() throws Exception {
+        getMockedAdminManagementClient();
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
@@ -282,6 +314,7 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -300,6 +333,117 @@ public class FormatIdentificationActionPluginTest {
     }
 
     @Test
+    public void formatUnidentifiedAuthorized() throws Exception {
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+
+        when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
+
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_FORMAT_UNIDENTIFIED_AUTHORIZED));
+
+        plugin = new FormatIdentificationActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
+        ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
+        assertEquals(StatusCode.WARNING, taskItemStatus.getGlobalStatus());
+        taskItemStatus.getSubTaskStatus().values().forEach(
+                subTaskItemStatus -> {
+                    assertEquals(StatusCode.WARNING, subTaskItemStatus.getGlobalStatus());
+                }
+        );
+    }
+
+    @Test
+    public void formatUnidentifiedAuthorizedRestrictedFormatListKO() throws Exception {
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+
+        when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
+
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_RESTRICTED_FORMAT_LIST_KO));
+
+        plugin = new FormatIdentificationActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
+        ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
+        assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
+        assertEquals("REJECTED_FORMAT", taskItemStatus.getGlobalOutcomeDetailSubcode());
+        taskItemStatus.getSubTaskStatus().values().forEach(
+                subTaskItemStatus -> {
+                    assertEquals("REJECTED", subTaskItemStatus.getGlobalOutcomeDetailSubcode());
+                    assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
+                }
+        );
+    }
+
+    @Test
+    public void formatUnidentifiedAuthorizedRestrictedFormatListOK() throws Exception {
+        AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
+
+        final FormatIdentifierSiegfried siegfried =
+                getMockedFormatIdentifierSiegfried();
+
+        final String puid[] = {"fmt/293", "fmt/18", "fmt/11", "x-fmt/111"};
+        final String mimetype[] = {"application/vnd.oasis.opendocument.presentation", "application/pdf", "image/png",
+                "text/plain"};
+        final String literal[] = {"OpenDocument Presentation", "Acrobat PDF 1.4 - Portable Document Format",
+                "Portable Network Graphics", "Plain Text File"};
+
+        when(siegfried.analysePath(anyObject())).thenAnswer(new Answer() {
+            private int count = 0;
+            public List<FormatIdentifierResponse> answer(InvocationOnMock invocation) {
+                FormatIdentifierResponse response = mock(FormatIdentifierResponse.class);
+                when(response.getPuid()).thenReturn(puid[count]);
+                when(response.getMimetype()).thenReturn(mimetype[count]);
+                when(response.getFormatLiteral()).thenReturn(literal[count]);
+                when(response.getMatchedNamespace()).thenReturn("pronom");
+                ++count;
+                return new ArrayList<>(Arrays.asList (response));
+            }
+        });
+
+        when(adminManagementClient.getFormats(anyObject())).thenAnswer(new Answer() {
+            private int count = 0;
+            public RequestResponse<FileFormatModel> answer(InvocationOnMock invocation) {
+                RequestResponseOK<FileFormatModel> response = new RequestResponseOK<>();
+                FileFormatModel fileFormat = mock(FileFormatModel.class);
+                when(fileFormat.getPuid()).thenReturn(puid[count]);
+                when(fileFormat.getName()).thenReturn(literal[count]);
+                when(fileFormat.getMimeType()).thenReturn(mimetype[count]);
+                ++count;
+                response.getResults().add(fileFormat);
+                return response;
+            }
+        });
+
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_RESTRICTED_FORMAT_LIST_OK));
+
+        plugin = new FormatIdentificationActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
+        ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
+        assertEquals(StatusCode.OK, taskItemStatus.getGlobalStatus());
+        taskItemStatus.getSubTaskStatus().values().forEach(
+                subTaskItemStatus -> {
+                    assertEquals(StatusCode.OK, subTaskItemStatus.getGlobalStatus());
+                }
+        );
+    }
+
+    @Test
     public void formatIdentificationReferentialException() throws Exception {
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
@@ -308,6 +452,7 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
@@ -333,6 +478,7 @@ public class FormatIdentificationActionPluginTest {
 
     @Test
     public void formatIdentificationTechnicalException() throws Exception {
+        getMockedAdminManagementClient();
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
@@ -340,6 +486,8 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
+
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
@@ -349,12 +497,14 @@ public class FormatIdentificationActionPluginTest {
 
     @Test
     public void formatIdentificationFileIdentifierDoesNotRespond() throws Exception {
+        getMockedAdminManagementClient();
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
         when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierNotFoundException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();

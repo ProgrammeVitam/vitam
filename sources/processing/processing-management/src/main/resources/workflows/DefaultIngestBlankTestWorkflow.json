@@ -49,6 +49,12 @@
                 "name": "checkProfile",
                 "uri": "VALUE:true"
               }
+            ],
+            "out": [
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
+              }
             ]
           }
         },
@@ -160,6 +166,10 @@
               {
                 "name": "groupObject",
                 "uri": "MEMORY:groupObjectId"
+              },
+              {
+                "name": "ingestContract.json",
+                "uri": "WORKSPACE:referential/ingestContract.json"
               }
             ]
           }

@@ -26,32 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.ProcessingUri;
+import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -78,6 +60,24 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({SedaUtilsFactory.class, WorkspaceClientFactory.class})
@@ -93,9 +93,6 @@ public class CheckHeaderActionHandlerTest {
         "CheckHeaderActionHandler/manifest_no_archival_profile.xml";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private static final int CHECK_PROFILE_RANK = 2;
-    private static final int CHECK_CONTRACT_RANK = 0;
-    private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
 
@@ -119,8 +116,7 @@ public class CheckHeaderActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testHandlerWorking()
-        throws XMLStreamException, IOException, ProcessingException {
+    public void testHandlerWorking() throws ProcessingException {
         HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
         PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -139,6 +135,8 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("false");
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         assertNotNull(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
@@ -149,6 +147,8 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "");
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
@@ -158,6 +158,8 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+
         sedaMap.remove(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
@@ -169,8 +171,7 @@ public class CheckHeaderActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testHandlerWorkingWithRealManifest()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
+    public void testHandlerWorkingWithRealManifest() throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
 
         HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
@@ -193,10 +194,12 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("false");
+
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         assertNotNull(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
-        String evDetData = (String) response.getEvDetailData();
+        String evDetData = response.getEvDetailData();
         assertTrue(evDetData.contains("ArchivalAgreement0"));
         assertTrue(evDetData.contains("English Comment"));
         assertTrue(evDetData.contains("ArchivalProfile0"));
@@ -207,8 +210,7 @@ public class CheckHeaderActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testDefinedProfileInIngestContractButNotInManifest()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
+    public void testDefinedProfileInIngestContractButNotInManifest() throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
 
         HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
@@ -230,10 +232,12 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
+        action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
+
         final ItemStatus response = handler.execute(params, action);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);        
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
-        String evDetData = (String) response.getEvDetailData();
+        String evDetData = response.getEvDetailData();
         assertThat(evDetData).contains("was not found in the ingest contract");
         assertThat(evDetData).contains("ArchivalAgreement0");
         assertThat(evDetData).contains("English Comment");
@@ -241,6 +245,4 @@ public class CheckHeaderActionHandlerTest {
         action.partialClose();
 
     }
-
-
 }
