@@ -289,6 +289,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private String originatingAgency = null;
     private String submissionAgencyIdentifier = null;
+    private String needAuthorization = null;
     private String transferringAgency = null;
     private String archivalAgency = null;
     private String contractName = null;
@@ -889,6 +890,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     globalMetadata = false;
                 }
+
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_RULE_NEED_AUTHORISATION)) {
+                    needAuthorization = reader.getElementText();
+                    globalMetadata = false;
+                }
+
                 // Process rules : build mgtRulesMap
                 if (event.isStartElement() &&
                     SedaConstants.getSupportedRules().contains(event.asStartElement().getName().getLocalPart())) {
@@ -1296,7 +1304,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 isRootArchive = addWorkInformation(archiveUnit, unitId, unitGuid, archiveUnitTree, globalMgtIdExtra);
 
-                updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
+                updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra, isRootArchive);
 
                 if (isThereManifestRelatedReferenceRemained.get(unitId) != null &&
                     isThereManifestRelatedReferenceRemained.get(unitId)) {
@@ -1434,9 +1442,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
      *
      * @param archiveUnit archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
+     * @param isRootArchive true if the AU is root
      * @throws InvalidParseOperationException
      */
-    private void updateManagementAndAppendGlobalMgtRule(ObjectNode archiveUnit, Set<String> globalMgtIdExtra)
+    private void updateManagementAndAppendGlobalMgtRule(ObjectNode archiveUnit, Set<String> globalMgtIdExtra, boolean isRootArchive)
         throws InvalidParseOperationException {
 
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
@@ -1466,6 +1475,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     mergeRule(globalMgtRuleTypeNode, archiveUnitManagementModel, ruleType);
                 }
             }
+        }
+        if (isRootArchive && archiveUnitManagementModel != null && needAuthorization != null) {
+            archiveUnitManagementModel.setNeedAuthorization(Boolean.valueOf(needAuthorization));
         }
         ObjectNode archiveUnitMgtNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitManagementModel);
         if (archiveUnitMgtNode != null) {
@@ -1541,7 +1553,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (finalAction != null && ruleCategoryModel.getFinalAction() == null) {
             ruleCategoryModel.setFinalAction(finalAction.asText());
         }
-
+        
         archiveUnitManagementModel.setRuleCategoryModel(ruleCategoryModel, ruleType);
 
     }
