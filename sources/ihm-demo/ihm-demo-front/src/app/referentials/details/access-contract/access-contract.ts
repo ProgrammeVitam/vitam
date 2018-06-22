@@ -17,4 +17,5 @@ export class AccessContract {
   EveryDataObjectVersion: boolean;
   RootUnits: string[];
   ExcludedRootUnits: string[];
+  AccessLog: string;
 }

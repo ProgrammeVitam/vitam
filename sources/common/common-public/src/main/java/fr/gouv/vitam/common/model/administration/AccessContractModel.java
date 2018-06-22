@@ -26,13 +26,12 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -70,6 +69,11 @@ public class AccessContractModel extends AbstractContractModel {
      */
     public static final String EVERY_ORIGINATINGAGENCY = "EveryOriginatingAgency";
 
+    /**
+     * Work for access log
+     */
+    public static final String ACCESS_LOG = "AccessLog";
+
     @JsonProperty(DATA_OBJECT_VERSION)
     private Set<String> dataObjectVersion;
 
@@ -93,6 +97,9 @@ public class AccessContractModel extends AbstractContractModel {
 
     @JsonProperty(EXCLUDED_ROOT_UNITS)
     private Set<String> excludedRootUnits;
+
+    @JsonProperty(ACCESS_LOG)
+    private ActivationStatus accessLog;
 
     /**
      * Constructor without fields
@@ -249,11 +256,21 @@ public class AccessContractModel extends AbstractContractModel {
         return this;
     }
 
+    public ActivationStatus getAccessLog() {
+        return accessLog;
+    }
+
+    public AccessContractModel setAccessLog(ActivationStatus accessLog) {
+        this.accessLog = accessLog;
+        return this;
+    }
+
     public void initializeDefaultValue() {
         writingPermission = firstNonNull(writingPermission, false);
         writingRestrictedDesc = firstNonNull(writingRestrictedDesc, false);
         everyOriginatingAgency = firstNonNull(everyOriginatingAgency, false);
         everyDataObjectVersion = firstNonNull(everyDataObjectVersion, false);
+        accessLog = firstNonNull(accessLog, ActivationStatus.ACTIVE);
     }
 
 }

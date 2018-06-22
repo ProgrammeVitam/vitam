@@ -340,6 +340,7 @@ public class ParserTokens extends BuilderToken {
         "EveryDataObjectVersion",
         "RootUnits",
         "ExcludedRootUnits",
+        "AccessLog",
         "_tenant",
         "_v",
         "_score",
@@ -1054,6 +1055,7 @@ public class ParserTokens extends BuilderToken {
             case "WritingPermission":
             case "EveryOriginatingAgency":
             case "EveryDataObjectVersion":
+            case "AccessLog":
                 // AccessionRegisterDetails
             case "SubmissionAgency":
             case "ArchivalAgreement":
