@@ -1,10 +1,10 @@
 secret : {{plateforme_secret}}
 filterActivation : {{ vitam_struct.secret_platform }}
-{% if inventory_hostname in groups['hosts-processing'] %}
+{% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
 distributeurBatchSize: 800
 workerBulkSize: 16
 {% endif %}
-{% if inventory_hostname in groups['hosts-metadata'] %}
+{% if vitam_struct.vitam_component == vitam.metadata.vitam_component %}
 storeGraphElementsPerFile: 10000
 storeGraphOverlapDelay: 300
 expireCacheEntriesDelay: 300
