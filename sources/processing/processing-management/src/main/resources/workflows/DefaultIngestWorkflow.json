@@ -308,8 +308,8 @@
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
         "type": "Units",
-        "element": "UnitsLevel/ingestLevelStack.json"
-
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "bulkSize": 1000
       },
       "actions": [
         {
