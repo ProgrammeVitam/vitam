@@ -42,8 +42,6 @@ public class UnitGraphInfo {
     private UnitType unitType;
     @JsonProperty("#unitups")
     private Set<String> up;
-    @JsonProperty("#originatingAgency")
-    private String sp;
 
     public UnitGraphInfo() {
         // Empty constructor for deserialization
@@ -71,13 +69,5 @@ public class UnitGraphInfo {
 
     public void setUp(Set<String> up) {
         this.up = up;
-    }
-
-    public String getSp() {
-        return sp;
-    }
-
-    public void setSp(String sp) {
-        this.sp = sp;
     }
 }

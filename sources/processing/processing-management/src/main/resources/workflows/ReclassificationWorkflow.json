@@ -15,8 +15,44 @@
       "actions": [
         {
           "action": {
-            "actionKey": "RECLASSIFICATION_PREPARATION",
+            "actionKey": "RECLASSIFICATION_PREPARATION_CHECK_LOCK",
             "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "RECLASSIFICATION_PREPARATION_LOAD_REQUEST",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "reclassification_orders.json",
+                "uri": "MEMORY:MapsMemory/reclassification_orders.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "RECLASSIFICATION_PREPARATION_CHECK_GRAPH",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "reclassification_orders.json",
+                "uri": "MEMORY:MapsMemory/reclassification_orders.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "reclassification_orders.json",
+                "uri": "MEMORY:MapsMemory/reclassification_orders.json"
+              }
+            ]
           }
         }
       ]
@@ -86,7 +122,8 @@
         {
           "action": {
             "behavior": "BLOCKING",
-            "actionKey": "UNIT_GRAPH_COMPUTE"
+            "actionKey": "UNIT_GRAPH_COMPUTE",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]
@@ -104,7 +141,8 @@
         {
           "action": {
             "behavior": "BLOCKING",
-            "actionKey": "OBJECT_GROUP_GRAPH_COMPUTE"
+            "actionKey": "OBJECT_GROUP_GRAPH_COMPUTE",
+            "lifecycleLog": "DISABLED"
           }
         }
       ]

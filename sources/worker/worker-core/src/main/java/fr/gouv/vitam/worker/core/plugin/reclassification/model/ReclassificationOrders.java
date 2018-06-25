@@ -24,36 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.reclassification;
+package fr.gouv.vitam.worker.core.plugin.reclassification.model;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 /**
- * Pojo class for reclassification request deserialization
+ * Pojo class for reclassification orders
  */
-public class ReclassificationRequest {
+public class ReclassificationOrders {
 
-    private Map<String, ReclassificationUpdates> updatesByUnit = new HashMap<>();
+    private final HashSetValuedHashMap<String, String> childToParentAttachments;
+    private final HashSetValuedHashMap<String, String> childToParentDetachments;
 
-    public ReclassificationRequest() {
-        // Empty constructor for deserialization
+    public ReclassificationOrders(
+        HashSetValuedHashMap<String, String> childToParentAttachments,
+        HashSetValuedHashMap<String, String> childToParentDetachments) {
+        this.childToParentAttachments = childToParentAttachments;
+        this.childToParentDetachments = childToParentDetachments;
     }
 
-    @JsonAnyGetter
-    public Map<String, ReclassificationUpdates> getUpdatesByUnit() {
-        return updatesByUnit;
+    public HashSetValuedHashMap<String, String> getChildToParentAttachments() {
+        return childToParentAttachments;
     }
 
-    public void setUpdatesByUnit(Map<String, ReclassificationUpdates> updatesByUnit) {
-        this.updatesByUnit = updatesByUnit;
-    }
-
-    @JsonAnySetter
-    public void addUpdateByUnit(String unitId, ReclassificationUpdates reclassificationUpdates) {
-        this.updatesByUnit.put(unitId, reclassificationUpdates);
+    public HashSetValuedHashMap<String, String> getChildToParentDetachments() {
+        return childToParentDetachments;
     }
 }

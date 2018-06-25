@@ -46,6 +46,10 @@ public class IllegalUnitTypeAttachment {
     @JsonProperty("parentUnidType")
     private UnitType parentUnidType;
 
+    public IllegalUnitTypeAttachment() {
+        // Empty constructor for deserialization
+    }
+
     public IllegalUnitTypeAttachment(String childUnidId, UnitType childUnidType, String parentUnidId,
         UnitType parentUnidType) {
         this.childUnidId = childUnidId;
