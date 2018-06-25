@@ -150,7 +150,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertUnitWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(request).execInsertUnitRequest(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(request).execInsertUnitRequests(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -168,7 +168,7 @@ public class MetaDataImplTest {
     public void givenInsertUnitWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
-        doThrow(error).when(request).execInsertUnitRequest(anyObject());
+        doThrow(error).when(request).execInsertUnitRequests(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -210,7 +210,7 @@ public class MetaDataImplTest {
 
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertUnitWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
-        doThrow(MetaDataNotFoundException.class).when(request).execInsertUnitRequest(anyObject());
+        doThrow(MetaDataNotFoundException.class).when(request).execInsertUnitRequests(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));

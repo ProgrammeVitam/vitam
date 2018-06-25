@@ -30,6 +30,7 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 import java.util.List;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -42,6 +43,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -54,6 +57,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -74,14 +78,11 @@ import org.elasticsearch.ElasticsearchParseException;
  * Units resource REST API
  */
 @Path("/metadata/v1")
-@javax.ws.rs.ApplicationPath("webresources")
 public class MetadataResource extends ApplicationStatusResource {
 
     private static final String METADATA = "METADATA";
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataResource.class);
-
 
     private static final String INGEST = "ingest";
     private static final String ACCESS = "ACCESS";
@@ -113,7 +114,7 @@ public class MetadataResource extends ApplicationStatusResource {
         Status status;
         try {
             metaData.insertUnit(insertRequest);
-        } catch (final VitamDBException ve) {
+        } catch (final VitamDBException | MetaDataExecutionException ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
@@ -153,9 +154,72 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setMessage(status.getReasonPhrase())
                     .setDescription(e.getMessage()))
                 .build();
-        } catch (final MetaDataExecutionException e) {
+        } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
+            status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+        RequestResponseOK responseOK = new RequestResponseOK(insertRequest);
+        responseOK.setHits(1, 0, 1)
+            .setHttpCode(Status.CREATED.getStatusCode());
+        return Response.status(Status.CREATED)
+            .entity(responseOK)
+            .build();
+    }
+
+    /**
+     * Insert unit with json request
+     *
+     * @param jsonNodes the insert request in JsonNode format
+     * @return Response
+     */
+    @Path("units/bulk")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response insertUnitBulk(List<JsonNode> jsonNodes) {
+        Status status;
+        try {
+            metaData.insertUnits(jsonNodes);
+        } catch (final VitamDBException | MetaDataExecutionException ve) {
+            LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(ve.getMessage()))
+                .build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        } catch (final MetaDataAlreadyExistException e) {
+            LOGGER.error(e);
+            status = Status.CONFLICT;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(INGEST)
@@ -174,8 +238,13 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-        RequestResponseOK responseOK = new RequestResponseOK(insertRequest);
-        responseOK.setHits(1, 0, 1)
+
+        // transform request in jsonNode to add it in answer
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        jsonNodes.forEach(arrayNode::add);
+
+        RequestResponseOK responseOK = new RequestResponseOK(arrayNode);
+        responseOK.setHits(arrayNode.size(), 0, arrayNode.size())
             .setHttpCode(Status.CREATED.getStatusCode());
         return Response.status(Status.CREATED)
             .entity(responseOK)

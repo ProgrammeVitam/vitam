@@ -29,6 +29,9 @@ package fr.gouv.vitam.worker.core.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -58,7 +61,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -69,6 +71,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  * IndexUnitAction Plugin
  */
 public class IndexUnitActionPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionPlugin.class);
     private static final String HANDLER_PROCESS = "INDEXATION";
 
@@ -78,9 +81,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
     private static final int SEDA_PARAMETERS_RANK = 1;
 
     private final MetaDataClientFactory metaDataClientFactory;
-
-
-    private HandlerIO handlerIO;
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -110,49 +110,123 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO param) {
-        checkMandatoryParameters(params);
-        handlerIO = param;
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
-
-        try {
-            indexArchiveUnit(params, itemStatus);
-        } catch (final StepAlreadyExecutedException e) {
-            LOGGER.warn(e);
-            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-        } catch (final IllegalArgumentException | InvalidCreateOperationException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-
-        return new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
-
+        throw new RuntimeException();
     }
+
+    @Override
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handlerIO) {
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
+            List<ItemStatus> itemStatuses = new ArrayList<>();
+
+            List<QueryCache> queryCaches = new ArrayList<>();
+
+            for (String objectId : workerParameters.getObjectNameList()) {
+
+                workerParameters.setObjectName(objectId);
+                handlerIO.setCurrentObjectId(objectId);
+
+                checkMandatoryParameters(workerParameters);
+                final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
+                QueryCache query = null;
+                try {
+
+                    query = indexArchiveUnit(workerParameters, workerParameters.getContainerName(), workerParameters.getObjectName(), handlerIO);
+                    if (!query.update) {
+                        queryCaches.add(query);
+                        itemStatus.increment(StatusCode.OK);
+                        ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                        itemStatuses.add(itemsStatus);
+                    } else {
+                        metadataClient.updateUnitbyId(((UpdateMultiQuery) query.requestMultiple).getFinalUpdate(), query.unitId);
+                        itemStatus.increment(StatusCode.OK);
+                        ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                        itemStatuses.add(itemsStatus);
+                    }
+
+                } catch (final IllegalArgumentException | InvalidCreateOperationException e) {
+                    LOGGER.error(e);
+                    itemStatus.increment(StatusCode.KO);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    itemStatuses.add(itemsStatus);
+
+                } catch (final ProcessingException e) {
+                    LOGGER.error(e);
+                    itemStatus.increment(StatusCode.FATAL);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    itemStatuses.add(itemsStatus);
+                } catch (InvalidParseOperationException e) {
+                    itemStatus.increment(StatusCode.FATAL);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    itemStatuses.add(itemsStatus);
+                    throw new IllegalArgumentException(e);
+                } catch (final MetaDataNotFoundException e) {
+                    LOGGER.error("Unit references a non existing unit " + query.toString());
+                    throw new IllegalArgumentException(e);
+                } catch (final MetaDataException e) {
+                    LOGGER.error(e);
+                    itemStatus.increment(StatusCode.FATAL);
+                }
+            }
+
+            List<ObjectNode> collect = queryCaches.stream()
+                .map(query -> query.requestMultiple)
+                .map(query -> ((InsertMultiQuery) query).getFinalInsert())
+                .collect(Collectors.toList());
+            StatusCode statusCode;
+            try {
+                metadataClient.insertUnitBulk(collect);
+                statusCode = StatusCode.OK;
+            } catch (final IllegalArgumentException e) {
+                throw e;
+            } catch (InvalidParseOperationException | MetaDataNotFoundException e) {
+                throw new IllegalArgumentException(e);
+            } catch (final MetaDataAlreadyExistException e) {
+                LOGGER.warn(e);
+                statusCode = StatusCode.ALREADY_EXECUTED;
+            } catch (final MetaDataException e) {
+                LOGGER.error(e);
+                statusCode = StatusCode.FATAL;
+            }
+
+            if (statusCode == StatusCode.FATAL || statusCode == StatusCode.ALREADY_EXECUTED) {
+                for (int i = 0; i < workerParameters.getObjectNameList().size(); i++) {
+                    final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
+                    itemStatus.increment(statusCode);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    itemStatuses.set(i, itemsStatus);
+                }
+            }
+            return itemStatuses;
+
+        } finally {
+            handlerIO.setCurrentObjectId(null);
+        }
+    }
+
 
     /**
      * Index archive unit
      *
-     * @param params work parameters
-     * @param itemStatus item status
-     * @throws ProcessingException when error in execution
+     * @param params      work parameters
+     * @param operationId operation Id
+     * @param unitId      id unit
+     * @param handlerIO   handlerIO
+     *
+     * @throws ProcessingException             when error in execution
      * @throws InvalidCreateOperationException
      */
-    private void indexArchiveUnit(WorkerParameters params, ItemStatus itemStatus)
+    private QueryCache indexArchiveUnit(WorkerParameters params, String operationId, String unitId, HandlerIO handlerIO)
         throws ProcessingException, InvalidCreateOperationException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
-        final String containerId = params.getContainerName();
-        final String objectName = params.getObjectName();
         RequestMultiple query = null;
         InputStream input;
-        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
+        try {
             input = handlerIO
                 .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
-                    File.separator + objectName);
+                    File.separator + unitId);
 
-            JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
+            JsonNode archiveUnit = prepareArchiveUnitJson(input, operationId, unitId, handlerIO);
             final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
             final JsonNode work = archiveUnit.get(TAG_WORK);
             Boolean existing = false;
@@ -176,23 +250,16 @@ public class IndexUnitActionPlugin extends ActionHandler {
                     String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
                     data.put(VitamFieldsHelper.unitType(), unitType);
                 }
-                ObjectNode finalInsert = ((InsertMultiQuery) query).addData(data).getFinalInsert();
-                metadataClient.insertUnit(finalInsert);
+                ((InsertMultiQuery) query).addData(data);
+                return new QueryCache(false, query, null);
             } else {
                 ((UpdateMultiQuery) query)
                     .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
                 String existingAuGUID = data.get("#id").asText();
-                metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(), existingAuGUID);
+                return new QueryCache(true, query, existingAuGUID);
             }
-            itemStatus.increment(StatusCode.OK);
 
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error("Unit references a non existing unit " + query.toString());
-            throw new IllegalArgumentException(e);
-        } catch (final MetaDataAlreadyExistException e) {
-            LOGGER.error("Unit references an existing unit " + query.toString());
-            throw new StepAlreadyExecutedException("Unit already exists", e);
-        } catch (final MetaDataException | InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
@@ -213,15 +280,18 @@ public class IndexUnitActionPlugin extends ActionHandler {
     /**
      * Convert xml archive unit to json node for insert/update.
      *
-     * @param input xml archive unit
+     * @param input       xml archive unit
      * @param containerId container id
-     * @param objectName unit file name
+     * @param objectName  unit file name
+     * @param handlerIO
+     *
      * @return map of data
+     *
      * @throws InvalidParseOperationException exception while reading temporary json file
-     * @throws ProcessingException exception while reading xml file
+     * @throws ProcessingException            exception while reading xml file
      */
     // FIXME do we need to create a new file or not ?
-    private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
+    private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName, HandlerIO handlerIO)
         throws InvalidParseOperationException, ProcessingException {
         try {
             ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
@@ -252,7 +322,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
             archiveUnitNode.set(VitamFieldsHelper.originatingAgencies(), originatingAgencies);
             archiveUnitNode.put(VitamFieldsHelper.originatingAgency(), prodService);
         }
-        archiveUnitNode.set(VitamFieldsHelper.management(), (JsonNode) managementNode);
+        archiveUnitNode.set(VitamFieldsHelper.management(), managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);
 
         // remove DataObjectReference
@@ -272,4 +342,19 @@ public class IndexUnitActionPlugin extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Handler without parameters input
     }
+
+    static class QueryCache {
+        boolean update;
+
+        RequestMultiple requestMultiple;
+
+        String unitId;
+
+        public QueryCache(boolean update, RequestMultiple requestMultiple, String unitId) {
+            this.update = update;
+            this.requestMultiple = requestMultiple;
+            this.unitId = unitId;
+        }
+    }
+
 }

@@ -17,47 +17,24 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCollection;
+
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
-import org.bson.Document;
 
 /**
  * Reconstruction instance for instanciating mongoDB and elasticsearch repository.
  */
 public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
-    private static VitamRepositoryFactory instance;
-
-    private Map<MetadataCollections, VitamMongoRepository> mongoRepository;
-    private Map<MetadataCollections, VitamElasticsearchRepository> esRepository;
-
-    private void initialize() {
-        MongoCollection<Document> units = MetadataCollections.UNIT.getCollection();
-        MongoCollection<Document> objectGroups = MetadataCollections.OBJECTGROUP.getCollection();
-
-        mongoRepository.put(MetadataCollections.UNIT, new VitamMongoRepository(units));
-        mongoRepository.put(MetadataCollections.OBJECTGROUP, new VitamMongoRepository(objectGroups));
-
-        esRepository.put(MetadataCollections.UNIT,
-            new VitamElasticsearchRepository(MetadataCollections.UNIT.getEsClient().getClient(),
-                MetadataCollections.UNIT.getName().toLowerCase(), true));
-
-        esRepository.put(MetadataCollections.OBJECTGROUP,
-            new VitamElasticsearchRepository(MetadataCollections.OBJECTGROUP.getEsClient().getClient(),
-                MetadataCollections.OBJECTGROUP.getName().toLowerCase(), true));
-    }
+    private static VitamRepositoryFactory instance = new VitamRepositoryFactory();
 
     /**
      * private constructor for instance initialization. <br />
      */
     private VitamRepositoryFactory() {
-        mongoRepository = new HashMap<>();
-        esRepository = new HashMap<>();
     }
 
     /**
@@ -65,39 +42,19 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
      *
      * @return current instance of VitamRepositoryFactory, create if null
      */
-    public static synchronized VitamRepositoryFactory getInstance() {
-        if (instance == null) {
-            instance = new VitamRepositoryFactory();
-            instance.initialize();
-        }
-        return instance;
-    }
-
-    /**
-     * Used only for tests
-     *
-     * @param mongoRepository
-     * @param esRepository
-     * @return
-     */
-    @VisibleForTesting
-    public static synchronized VitamRepositoryFactory getInstance(
-        Map<MetadataCollections, VitamMongoRepository> mongoRepository,
-        Map<MetadataCollections, VitamElasticsearchRepository> esRepository) {
-        instance = new VitamRepositoryFactory();
-        instance.mongoRepository = mongoRepository;
-        instance.esRepository = esRepository;
+    public static VitamRepositoryFactory getInstance() {
         return instance;
     }
 
     @Override
     public VitamMongoRepository getVitamMongoRepository(MetadataCollections collection) {
-        return mongoRepository.get(collection);
+        return new VitamMongoRepository(collection.getCollection());
     }
 
     @Override
     public VitamElasticsearchRepository getVitamESRepository(MetadataCollections collection) {
-        return esRepository.get(collection);
+        return new VitamElasticsearchRepository(MetadataCollections.OBJECTGROUP.getEsClient().getClient(),
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase(), true);
     }
 
 }

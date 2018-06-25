@@ -68,7 +68,7 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Projections.computed;
 import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
-import static fr.gouv.vitam.metadata.core.graph.GraphService.UNIT_VITAM_GRAPH_PROJECTION;
+import static fr.gouv.vitam.metadata.core.database.collections.GraphLoader.UNIT_VITAM_GRAPH_PROJECTION;
 
 /**
  * Repository for mongo data migration

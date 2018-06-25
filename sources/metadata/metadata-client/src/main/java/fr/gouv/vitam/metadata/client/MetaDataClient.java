@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
@@ -69,6 +71,10 @@ public interface MetaDataClient extends BasicClient {
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
+
+    JsonNode insertUnitBulk(List<ObjectNode> insertQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
+        MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException;
 
     /**
      * Search units by select query (DSL)

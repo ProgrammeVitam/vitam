@@ -1,6 +1,9 @@
 package fr.gouv.vitam.metadata.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -38,6 +41,14 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
+    }
+
+    @Override
+    public JsonNode insertUnitBulk(List<ObjectNode> insertQuery) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException, MetaDataClientServerException {
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        JsonNode jsonNode = ClientMockResultHelper.getMetaDataResult().toJsonNode();
+        arrayNode.add(jsonNode);
+        return arrayNode;
     }
 
     @Override

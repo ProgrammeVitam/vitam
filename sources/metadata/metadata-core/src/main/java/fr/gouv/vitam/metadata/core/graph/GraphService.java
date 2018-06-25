@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.GraphLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 
@@ -44,13 +45,10 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import com.google.common.collect.HashMultimap;
-import com.mongodb.BasicDBObject;
 import com.mongodb.util.JSON;
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.graph.GraphUtils.createGraphRelation;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OG;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCY;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.UP;
@@ -68,21 +66,14 @@ public class GraphService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GraphService.class);
 
-    public static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
-        new BasicDBObject(UP, 1)
-            .append(UNITUPS, 1)
-            .append(GRAPH, 1)
-            .append(ORIGINATING_AGENCIES, 1)
-            .append(UNITDEPTHS, 1)
-            .append(ORIGINATING_AGENCY, 1)
-            .append(PARENT_ORIGINATING_AGENCIES, 1)
-            .append(ID, 1)
-            .append(OG, 1);
+    private GraphLoader graphLoader;
 
-    private MongoDbMetadataRepository mongoDbMetadataRepository;
+    public GraphService(MongoDbMetadataRepository<Unit> mongoDbMetadataRepository) {
+        this.graphLoader = new GraphLoader(mongoDbMetadataRepository);
+    }
 
-    public GraphService(MongoDbMetadataRepository mongoDbMetadataRepository) {
-        this.mongoDbMetadataRepository = mongoDbMetadataRepository;
+    public GraphService(GraphLoader graphLoader) {
+        this.graphLoader = graphLoader;
     }
 
     public void compute(Unit unit, Collection<String> directParents) throws MetaDataNotFoundException {
@@ -100,13 +91,13 @@ public class GraphService {
 
         if (!directParents.isEmpty()) {
 
+            Iterable<Unit> select = graphLoader.loadGraphs(directParents);
+
             allParents.addAll(directParents);
 
             for (String directParent : directParents) {
                 graph.add(createGraphRelation(id, directParent));
             }
-
-            Collection<? extends VitamDocument> select = mongoDbMetadataRepository.selectByIds(UNIT_VITAM_GRAPH_PROJECTION, directParents);
 
             final Set<String> notFound = new HashSet<>(directParents);
 
@@ -121,8 +112,7 @@ public class GraphService {
 
                 Map<String, Collection<String>> parentUnitsByOriginatingAgencies =
                     parentUnit.getMapOrEmpty(PARENT_ORIGINATING_AGENCIES);
-                parentUnitsByOriginatingAgencies
-                    .forEach((key, ids) -> allParentOriginatingAgencies.putAll(key, ids));
+                parentUnitsByOriginatingAgencies.forEach(allParentOriginatingAgencies::putAll);
 
                 String parentOriginatingAgency = parentUnit.get(ORIGINATING_AGENCY, String.class);
                 if (parentOriginatingAgency != null) {

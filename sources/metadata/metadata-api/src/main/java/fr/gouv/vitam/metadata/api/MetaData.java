@@ -64,7 +64,7 @@ public interface MetaData {
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    public void insertUnit(JsonNode insertRequest)
+    void insertUnit(JsonNode insertRequest)
         throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
         MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException, VitamDBException;
 
@@ -92,7 +92,7 @@ public interface MetaData {
      * @throws BadRequestException if a bad request is being used
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
+    RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException;
 
@@ -135,7 +135,7 @@ public interface MetaData {
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      *
      */
-    public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
+    RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException, VitamDBException;
 
@@ -181,7 +181,7 @@ public interface MetaData {
      * @throws MetaDataNotFoundException Throw if unit does not exist
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
+    RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, VitamDBException;
 
@@ -254,4 +254,6 @@ public interface MetaData {
      */
     void switchIndex(String alias, String newIndexName) throws DatabaseException;
 
+    void insertUnits(List<JsonNode> jsonNodes) throws InvalidParseOperationException, IllegalArgumentException, MetaDataNotFoundException,
+        MetaDataAlreadyExistException, MetaDataExecutionException, MetaDataDocumentSizeException, VitamDBException;
 }

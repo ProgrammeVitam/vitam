@@ -75,6 +75,7 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -92,6 +93,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.Symbolic;
+import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -149,12 +151,37 @@ public class MetaDataImpl implements MetaData {
     public void insertUnit(JsonNode insertRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
+        List<JsonNode> requests = new ArrayList<>();
+        requests.add(insertRequest);
+        insertUnits(requests);
+    }
+
+    @Override
+    public void insertUnits(List<JsonNode> insertRequests)
+        throws InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataAlreadyExistException, MetaDataNotFoundException {
+        DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
         try {
-            final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
-            insertParser.parse(insertRequest);
-            DbRequestFactoryImpl.getInstance().create().execInsertUnitRequest(insertParser);
+            List<InsertParserMultiple> collect = insertRequests.stream().map(insertRequest -> {
+                InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
+                try {
+                        insertParser.parse(insertRequest);
+                    } catch (InvalidParseOperationException e) {
+                        throw new VitamRuntimeException(e);
+                    }
+                return insertParser;
+                }
+            ).collect(Collectors.toList());
+
+            dbRequest.execInsertUnitRequests(collect);
+
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
+        } catch (VitamRuntimeException e) {
+            if (e.getCause() instanceof InvalidParseOperationException) {
+                throw (InvalidParseOperationException) e.getCause();
+            }
+            throw e;
         }
     }
 
