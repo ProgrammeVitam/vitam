@@ -36,7 +36,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
@@ -137,6 +139,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 MetadataMain.class,
                 LogbookMain.class,
                 WorkspaceMain.class,
+                WorkerMain.class,
+                ProcessManagementMain.class,
                 StorageMain.class,
                 DefaultOfferMain.class
             ));
@@ -151,7 +155,6 @@ public class MetadataManagementIT extends VitamRuleRunner {
     private static final String unit_with_graph_1_guid = "aeaqaaaaaahmtusqabktwaldc34sm6aaaada";
     private static final String unit_with_graph_2_guid = "aeaqaaaaaahlm6sdabkeoaldc3hq6kyaaaca";
     private static final String unit_with_graph_3_guid = "aeaqaaaaaahlm6sdabkeoaldc3hq6laaaaaq";
-    private static final String unit_with_graph_4_guid = "aeaqaaaaaahlm6sdabkeaaldc3hq6laaaaaq";
 
 
     private static final String got_with_graph_0 = "integration-metadata-management/data/got_0.json";
@@ -975,20 +978,24 @@ public class MetadataManagementIT extends VitamRuleRunner {
             List<Document> unitsLfc = unitsLfcJsonNodes.stream()
                 .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
             // Save units
-            mongoRepository.get(MetadataCollections.UNIT).save(unitList);
-            esRepository.get(MetadataCollections.UNIT).save(unitList);
+            VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                .save(unitList);
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())
+                .save(unitList);
 
             // Save gots
-            mongoRepository.get(MetadataCollections.OBJECTGROUP).save(gotList);
-            esRepository.get(MetadataCollections.OBJECTGROUP).save(gotList);
+            VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+                .save(gotList);
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+                .save(gotList);
 
             // Save LFC
             new VitamMongoRepository(LogbookCollections.LIFECYCLE_UNIT.getCollection()).save(unitsLfc);
 
             AccessInternalConfiguration accessInternalConfiguration = new AccessInternalConfiguration();
             accessInternalConfiguration.setUrlMetaData(METADATA_URL);
-            accessInternalConfiguration.setUrlProcessing(PROCESSING_URL);
-            accessInternalConfiguration.setUrlWorkspace(WORKSPACE_URL);
+            accessInternalConfiguration.setUrlProcessing(runner.PROCESSING_URL);
+            accessInternalConfiguration.setUrlWorkspace(runner.WORKSPACE_URL);
             AccessInternalResourceImpl accessInternalResource =
                 new AccessInternalResourceImpl(accessInternalConfiguration);
 
@@ -1136,7 +1143,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
             // Get unit (au_d)
             Optional<Document> optionalUnit =
-                mongoRepository.get(MetadataCollections.UNIT).getByID("aedqaaaaacfnrnfpaao4galeht64zgqaaaaq", TENANT_0);
+                VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                    .getByID("aedqaaaaacfnrnfpaao4galeht64zgqaaaaq", TENANT_0);
             assertThat(optionalUnit).isPresent();
             Document au = optionalUnit.get();
             Integer _max = au.get(Unit.MAXDEPTH, Integer.class);
@@ -1192,7 +1200,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
             // Get unit (au_e) remove arbre
             optionalUnit =
-                mongoRepository.get(MetadataCollections.UNIT).getByID("aedqaaaaacfnrnfpaao4galeht64riyaaaaq", TENANT_0);
+                VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                    .getByID("aedqaaaaacfnrnfpaao4galeht64riyaaaaq", TENANT_0);
             assertThat(optionalUnit).isPresent();
             au = optionalUnit.get();
             _max = au.get(Unit.MAXDEPTH, Integer.class);
@@ -1229,7 +1238,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedJson);
 
         } finally {
-            StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_STORAGE));
+            StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", runner.PORT_SERVICE_STORAGE));
         }
     }
 
@@ -1272,11 +1281,11 @@ public class MetadataManagementIT extends VitamRuleRunner {
         int nbTry = 0;
         while (!ProcessingManagementClientFactory.getInstance().getClient().isOperationCompleted(operationId)) {
             try {
-                Thread.sleep(SLEEP_TIME);
+                Thread.sleep(runner.SLEEP_TIME);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
-            if (nbTry == NB_TRY)
+            if (nbTry == runner.NB_TRY)
                 break;
             nbTry++;
         }
@@ -1378,8 +1387,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getName()).save(units);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getName()).save(units);
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
@@ -1420,8 +1429,10 @@ public class MetadataManagementIT extends VitamRuleRunner {
                 .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getName()).save(gots);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getName()).save(gots);
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+            .save(gots);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+            .save(gots);
     }
 
     private void createInWorkspace(String container, String fileName, String extention, String file, DataCategory type)

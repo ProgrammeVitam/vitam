@@ -2,6 +2,7 @@ package fr.gouv.vitam.metadata.core.graph;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -10,7 +11,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.worker.core.distribution.ChainedFileModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -66,7 +66,7 @@ public class ReclassificationDistributionServiceTest {
     @Before
     public void init() throws Exception {
         doReturn(workspaceClient).when(workspaceClientFactory).getClient();
-        doReturn(vitamMongoRepository).when(vitamRepositoryProvider).getVitamMongoRepository(MetadataCollections.UNIT);
+        doReturn(vitamMongoRepository).when(vitamRepositoryProvider).getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
 
         int tenant = 0;
         VitamThreadUtils.getVitamSession().setTenantId(tenant);

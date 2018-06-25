@@ -125,14 +125,14 @@ public class ReconstructionServiceImplTest {
 
     @Before
     public void setup() {
-        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.RULES.getName()))
+        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.RULES.getVitamCollection()))
             .thenReturn(mutliTenantElasticsearchRepository);
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.RULES.getName()))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.RULES.getVitamCollection()))
             .thenReturn(multiTenantMongoRepository);
 
-        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.FORMATS.getName()))
+        when(repositoryFactory.getVitamESRepository(FunctionalAdminCollections.FORMATS.getVitamCollection()))
             .thenReturn(crossTenantElasticsearchRepository);
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.FORMATS.getName()))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.FORMATS.getVitamCollection()))
             .thenReturn(crossTenantMongoRepository);
     }
 
@@ -144,7 +144,7 @@ public class ReconstructionServiceImplTest {
         Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_0);
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
             .thenReturn(backupCollection);
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))
             .thenReturn(multiTenantMongoRepository);
 
         // call the reconstruction service.
@@ -182,7 +182,7 @@ public class ReconstructionServiceImplTest {
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.FORMATS))
             .thenReturn(backupCollection);
 
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))
             .thenReturn(crossTenantMongoRepository);
 
         // call the reconstruction service.
@@ -218,7 +218,7 @@ public class ReconstructionServiceImplTest {
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
             .thenReturn(backupCollection);
 
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))
             .thenReturn(multiTenantMongoRepository);
 
         // call the reconstruction service.
@@ -294,7 +294,7 @@ public class ReconstructionServiceImplTest {
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
             .thenReturn(backupCollection2);
 
-        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName()))
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()))
             .thenReturn(multiTenantMongoRepository);
         // testing the reconstruction service.
         LOGGER.debug(String.format("Reconstruction of Vitam tenants."));

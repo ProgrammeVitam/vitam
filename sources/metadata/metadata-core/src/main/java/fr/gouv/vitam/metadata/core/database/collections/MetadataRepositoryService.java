@@ -65,7 +65,7 @@ public class MetadataRepositoryService {
      */
     public JsonNode getDocumentById(MetadataCollections collection, String id, Integer tenant)
         throws DatabaseException, MetaDataNotFoundException, InvalidParseOperationException {
-        Optional<Document> document = vitamRepositoryProvider.getVitamMongoRepository(collection.getName()).getByID(id, tenant);
+        Optional<Document> document = vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).getByID(id, tenant);
         if (document.isPresent()) {
             switch (collection) {
                 case UNIT:

@@ -261,7 +261,7 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
 
         // get all documents of the logbook operationss
         MongoCursor<Document> cursor =
-            vitamRepository.getVitamMongoRepository(LogbookCollections.OPERATION.getName())
+            vitamRepository.getVitamMongoRepository(LogbookCollections.OPERATION.getVitamCollection())
                 .findDocuments(VitamConfiguration.getBatchSize(), tenant).iterator();
 
         // converting the results to a list of LogbookOperation.

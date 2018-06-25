@@ -416,7 +416,7 @@ public class ReconstructionService {
         }
 
 
-        try (MongoCursor<Document> iterator = this.vitamRepositoryProvider.getVitamMongoRepository(collection.getName())
+        try (MongoCursor<Document> iterator = this.vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection())
             .findDocuments(dataMap.keySet(), projection)
             .iterator()) {
 
@@ -575,7 +575,7 @@ public class ReconstructionService {
                 exists(Unit.TENANT_ID, false),
                 lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));
 
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).remove(query);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).remove(query);
         } catch (DatabaseException e) {
             LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
         }
@@ -621,7 +621,7 @@ public class ReconstructionService {
      */
     private void bulkMongo(MetadataCollections metaDaCollection, List<WriteModel<Document>> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).update(collection);
+        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).update(collection);
     }
 
 
@@ -640,7 +640,7 @@ public class ReconstructionService {
         }
 
         FindIterable<Document> fit =
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).findDocuments(collection, null);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).findDocuments(collection, null);
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
@@ -659,7 +659,7 @@ public class ReconstructionService {
      */
     private void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getName()).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection()).save(collection);
     }
 
     /**

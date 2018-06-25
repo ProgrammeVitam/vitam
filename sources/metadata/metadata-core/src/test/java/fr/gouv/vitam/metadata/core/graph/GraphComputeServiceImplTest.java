@@ -98,12 +98,12 @@ public class GraphComputeServiceImplTest {
         doNothing().when(unitEsRepository).update(anyObject());
         doNothing().when(gotEsRepository).update(anyObject());
 
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getName())).willReturn(unitRepository);
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getName()))
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitRepository);
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
             .willReturn(gotRepository);
 
-        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.UNIT.getName())).willReturn(unitEsRepository);
-        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.OBJECTGROUP.getName()))
+        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitEsRepository);
+        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
             .willReturn(gotEsRepository);
 
 

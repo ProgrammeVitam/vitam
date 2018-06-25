@@ -62,9 +62,9 @@ public class LogbookRepositoryService {
     public void saveBulk(LogbookCollections collection, List<JsonNode> logbookItems) throws DatabaseException {
         List<Document> documents = logbookItems.stream()
             .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
-        vitamRepositoryProvider.getVitamMongoRepository(collection.getName()).saveOrUpdate(documents);
+        vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).saveOrUpdate(documents);
         if (LogbookCollections.OPERATION.equals(collection)) {
-            vitamRepositoryProvider.getVitamESRepository(collection.getName()).save(documents);
+            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection()).save(documents);
         }
 
     }

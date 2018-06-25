@@ -31,22 +31,18 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 
@@ -75,11 +71,7 @@ public class BusinessApplication extends Application {
 
             OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
-            List<VitamCollection> collections =
-                Lists.newArrayList(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection(),
-                    LogbookCollections.LIFECYCLE_UNIT.getVitamCollection(),
-                    LogbookCollections.OPERATION.getVitamCollection());
-            VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.initialize(collections);
+            VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

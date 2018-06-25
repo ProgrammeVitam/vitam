@@ -264,7 +264,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
 
         try {
             final MongoCursor<Document> cursor = vitamRepositoryProvider
-                .getVitamMongoRepository(metadataCollections.getName())
+                .getVitamMongoRepository(metadataCollections.getVitamCollection())
                 .findDocuments(in(Unit.ID, documentsId), VitamConfiguration.getBatchSize())
                 .projection(include(Unit.UP, Unit.OG, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES))
                 .iterator();
@@ -324,7 +324,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     @Override
     public void bulkUpdateMongo(MetadataCollections metaDaCollection, List<WriteModel<Document>> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).update(collection);
+        this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).update(collection);
     }
 
     @Override
@@ -336,7 +336,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
         }
 
         FindIterable<Document> fit =
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getName()).findDocuments(collection, null);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).findDocuments(collection, null);
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
@@ -351,7 +351,7 @@ public class GraphComputeServiceImpl implements GraphComputeService {
     @Override
     public void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getName()).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection()).save(collection);
     }
 
     @Override

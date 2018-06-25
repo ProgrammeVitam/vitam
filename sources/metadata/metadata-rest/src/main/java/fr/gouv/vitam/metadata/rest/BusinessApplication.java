@@ -80,9 +80,7 @@ public class BusinessApplication extends Application {
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
-            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory
-                .initialize(Lists.newArrayList(MetadataCollections.UNIT.getVitamCollection(),
-                    MetadataCollections.OBJECTGROUP.getVitamCollection()));
+            VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
             MetaData metadata = MetaDataImpl.newMetadata(mongoAccessMetadata);
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);

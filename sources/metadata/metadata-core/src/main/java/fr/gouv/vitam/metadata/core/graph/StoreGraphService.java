@@ -299,7 +299,7 @@ public class StoreGraphService {
 
                 final Bson projection = getProjection(metadataCollections);
                 final MongoCursor<Document> cursor = vitamRepositoryProvider
-                    .getVitamMongoRepository(metadataCollections.getName())
+                    .getVitamMongoRepository(metadataCollections.getVitamCollection())
                     .findDocuments(query, VitamConfiguration.getBatchSize())
                     .projection(projection)
                     .iterator();

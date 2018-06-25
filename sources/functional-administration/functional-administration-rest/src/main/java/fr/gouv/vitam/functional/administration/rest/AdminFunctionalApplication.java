@@ -98,7 +98,7 @@ public class AdminFunctionalApplication extends Application {
                     FunctionalAdminCollections.CONTEXT.getVitamCollection(),
                     FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
 
-            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.initialize(collections);
+            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
             singletons.add(new AdminReconstructionResource(vitamRepositoryProvider));
             singletons.add(new AdminManagementRawResource(vitamRepositoryProvider));
             singletons.add(new ReindexationResource());

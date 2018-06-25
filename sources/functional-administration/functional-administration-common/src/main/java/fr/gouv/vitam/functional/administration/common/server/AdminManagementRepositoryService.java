@@ -63,8 +63,8 @@ public class AdminManagementRepositoryService {
 
     /**
      * Constructor
-     * 
-     * @param vitamRepositoryProvider provider
+     *
+     * @param vitamRepositoryProvider                 provider
      * @param referentialAccessionRegisterSummaryUtil referentialAccessionRegisterSummaryUtil
      */
     public AdminManagementRepositoryService(VitamRepositoryProvider vitamRepositoryProvider,
@@ -75,12 +75,12 @@ public class AdminManagementRepositoryService {
 
     /**
      * Save functional admin item
-     * 
-     * @param collection collection
+     *
+     * @param collection          collection
      * @param functionalAdminItem item
-     * @param tenant tenant
-     * @throws DatabaseException mongo/es exception
-     * @throws InvalidParseOperationException parsing error
+     * @param tenant              tenant
+     * @throws DatabaseException               mongo/es exception
+     * @throws InvalidParseOperationException  parsing error
      * @throws InvalidCreateOperationException dsl error
      */
     public void save(FunctionalAdminCollections collection, JsonNode functionalAdminItem, Integer tenant)
@@ -94,19 +94,20 @@ public class AdminManagementRepositoryService {
 
     /**
      * Save as accession register detail and update summary if created
-     * 
+     *
      * @param functionalAdminRegister accessing register
-     * @param tenant tenant
-     * @throws DatabaseException mongo/es exception
-     * @throws InvalidParseOperationException parsing error
+     * @param tenant                  tenant
+     * @throws DatabaseException               mongo/es exception
+     * @throws InvalidParseOperationException  parsing error
      * @throws InvalidCreateOperationException dsl error
      */
     private void saveAccessionRegisterDetail(JsonNode functionalAdminRegister, Integer tenant)
         throws DatabaseException, InvalidCreateOperationException, InvalidParseOperationException {
         Document document = Document.parse(JsonHandler.unprettyPrint(functionalAdminRegister));
         VitamRepositoryStatus status = vitamRepositoryProvider
-            .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()).saveOrUpdate(document);
-        vitamRepositoryProvider.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName())
+            .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection())
+            .saveOrUpdate(document);
+        vitamRepositoryProvider.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection())
             .saveOrUpdate(document);
 
         if (VitamRepositoryStatus.CREATED.equals(status)) {
@@ -116,11 +117,11 @@ public class AdminManagementRepositoryService {
 
     /**
      * Compute accession register summary with accession register detail.
-     * 
+     *
      * @param accessionRegisterDetaildocument accession register detail
-     * @param tenant tenant
-     * @throws DatabaseException mongo/es exception
-     * @throws InvalidParseOperationException parsing error
+     * @param tenant                          tenant
+     * @throws DatabaseException               mongo/es exception
+     * @throws InvalidParseOperationException  parsing error
      * @throws InvalidCreateOperationException dsl error
      */
     private void computeAccessionRegisterSummary(Document accessionRegisterDetaildocument, Integer tenant)
@@ -151,24 +152,26 @@ public class AdminManagementRepositoryService {
             (ObjectNode) mongoInMemory.getUpdateJson(update.getFinalUpdate(), false, new VarNameAdapter());
 
         AccessionRegisterSummary accessionRegisterSummary = new AccessionRegisterSummary(updatedJsonDocument);
-        vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+        vitamRepositoryProvider
+            .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection())
             .saveOrUpdate(accessionRegisterSummary);
-        vitamRepositoryProvider.getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+        vitamRepositoryProvider
+            .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection())
             .saveOrUpdate(accessionRegisterSummary);
     }
 
 
     /**
      * Retrieve document by its fields in a given collection filtered by a tenant in mongo
-     * 
+     *
      * @param collection collection
-     * @param fields fields
-     * @param tenant tenant
+     * @param fields     fields
+     * @param tenant     tenant
      * @return the document as JsonNode
-     * @throws DatabaseException database access error
-     * @throws ReferentialNotFoundException document not found
+     * @throws DatabaseException              database access error
+     * @throws ReferentialNotFoundException   document not found
      * @throws InvalidParseOperationException could not parse response
-     * @throws IllegalArgumentException invalid collection
+     * @throws IllegalArgumentException       invalid collection
      */
     public JsonNode getDocumentsByFields(FunctionalAdminCollections collection, Map<String, String> fields,
         Integer tenant)
@@ -176,7 +179,8 @@ public class AdminManagementRepositoryService {
 
         switch (collection) {
             case ACCESSION_REGISTER_DETAIL:
-                try (MongoCursor<Document> cursor = vitamRepositoryProvider.getVitamMongoRepository(collection.getName())
+                try (MongoCursor<Document> cursor = vitamRepositoryProvider
+                    .getVitamMongoRepository(collection.getVitamCollection())
                     .findByFieldsDocuments(fields, 1, tenant).iterator()) {
                     if (cursor.hasNext()) {
                         return JsonHandler.toJsonNode(new AccessionRegisterDetail(cursor.next()));
@@ -186,7 +190,8 @@ public class AdminManagementRepositoryService {
                     }
                 }
             case ACCESSION_REGISTER_SUMMARY:
-                try (MongoCursor<Document> cursor = vitamRepositoryProvider.getVitamMongoRepository(collection.getName())
+                try (MongoCursor<Document> cursor = vitamRepositoryProvider
+                    .getVitamMongoRepository(collection.getVitamCollection())
                     .findByFieldsDocuments(fields, 1, tenant).iterator()) {
                     if (cursor.hasNext()) {
                         return JsonHandler.toJsonNode(new AccessionRegisterSummary(cursor.next()));

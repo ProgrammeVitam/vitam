@@ -161,9 +161,9 @@ public class ReconstructionService {
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
         final VitamMongoRepository mongoRepository =
-            vitamRepositoryProvider.getVitamMongoRepository(LogbookCollections.OPERATION.getName());
+            vitamRepositoryProvider.getVitamMongoRepository(LogbookCollections.OPERATION.getVitamCollection());
         final VitamElasticsearchRepository esRepository =
-            vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION.getName());
+            vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION.getVitamCollection());
 
         long newOffset = offset;
 

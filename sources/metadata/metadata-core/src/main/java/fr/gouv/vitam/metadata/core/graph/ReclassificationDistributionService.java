@@ -32,12 +32,12 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.worker.core.distribution.ChainedFileWorkspaceWriter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.bson.Document;
@@ -72,7 +72,7 @@ public class ReclassificationDistributionService {
         String objectGroupsToUpdateChainedFileName) throws IOException, InvalidParseOperationException {
 
         VitamMongoRepository vitamMongoRepository =
-            vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT);
+            vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
 
         FindIterable<Document> query = vitamMongoRepository.findDocuments(
             Filters.or(

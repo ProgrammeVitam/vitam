@@ -58,7 +58,13 @@ import org.junit.rules.ExternalResource;
 public class VitamServerRunner extends ExternalResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerRunner.class);
 
+
     // Constants
+
+    public static final long SLEEP_TIME = 20l;
+    public static final long NB_TRY = 18000;
+
+
     public static final int PORT_SERVICE_WORKSPACE = 8094;
     public static final int PORT_SERVICE_WORKSPACE_ADMIN = 28094;
     public static final int PORT_SERVICE_METADATA = 8098;

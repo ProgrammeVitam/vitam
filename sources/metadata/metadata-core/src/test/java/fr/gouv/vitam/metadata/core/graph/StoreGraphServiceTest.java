@@ -94,8 +94,8 @@ public class StoreGraphServiceTest {
         given(unitRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableUnit);
         given(gotRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableGot);
 
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getName())).willReturn(unitRepository);
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getName()))
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitRepository);
+        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
             .willReturn(gotRepository);
 
         given(findIterableUnit.projection(anyObject())).willReturn(findIterableUnit);

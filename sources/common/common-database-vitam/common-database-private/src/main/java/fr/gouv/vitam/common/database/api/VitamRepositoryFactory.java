@@ -17,11 +17,6 @@
  */
 package fr.gouv.vitam.common.database.api;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
@@ -32,40 +27,12 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
  */
 public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
-    private static VitamRepositoryFactory instance;
-
-    private static Map<String, VitamMongoRepository> mongoRepository;
-    private static Map<String, VitamElasticsearchRepository> esRepository;
-
-    public static synchronized VitamRepositoryFactory initialize(List<VitamCollection> collections) {
-        if (instance == null) {
-            instance = new VitamRepositoryFactory();
-        }
-
-        for (VitamCollection collection : collections) {
-            String collectionName = collection.getName();
-            if (mongoRepository.containsKey(collectionName)) {
-                continue;
-            }
-
-            mongoRepository.put(collectionName, new VitamMongoRepository(collection.getTypedCollection()));
-
-            if (null != collection.getEsClient()) {
-                esRepository.put(collectionName,
-                    new VitamElasticsearchRepository(collection.getEsClient().getClient(),
-                        collectionName.toLowerCase(), collection.isCreateIndexByTenant()));
-            }
-        }
-
-        return instance;
-    }
+    private static VitamRepositoryFactory instance = new VitamRepositoryFactory();
 
     /**
      * private constructor for instance initialization. <br />
      */
     private VitamRepositoryFactory() {
-        mongoRepository = new HashMap<>();
-        esRepository = new HashMap<>();
     }
 
 
@@ -79,31 +46,15 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
         return instance;
     }
 
-    /**
-     * Used only for tests
-     *
-     * @param mongoRepository
-     * @param esRepository
-     * @return
-     */
-    @VisibleForTesting
-    public static synchronized VitamRepositoryFactory get(
-        Map<String, VitamMongoRepository> mongoRepository,
-        Map<String, VitamElasticsearchRepository> esRepository) {
-        instance = new VitamRepositoryFactory();
-        instance.mongoRepository = mongoRepository;
-        instance.esRepository = esRepository;
-        return instance;
+    @Override
+    public VitamMongoRepository getVitamMongoRepository(VitamCollection collection) {
+        return new VitamMongoRepository(collection.getTypedCollection());
     }
 
     @Override
-    public VitamMongoRepository getVitamMongoRepository(String collectionName) {
-        return mongoRepository.get(collectionName);
-    }
-
-    @Override
-    public VitamElasticsearchRepository getVitamESRepository(String collectionName) {
-        return esRepository.get(collectionName);
+    public VitamElasticsearchRepository getVitamESRepository(VitamCollection collection) {
+        return new VitamElasticsearchRepository(collection.getEsClient().getClient(),
+            collection.getName().toLowerCase(), collection.isCreateIndexByTenant());
     }
 
 }

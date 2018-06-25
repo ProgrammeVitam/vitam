@@ -89,23 +89,7 @@ public class BusinessApplication extends Application {
             final ProfileResource profileResource =
                 new ProfileResource(configuration, mongoDbAccess, vitamCounterService, functionalBackupService);
 
-
-            List<VitamCollection> collections =
-                Lists.newArrayList(FunctionalAdminCollections.FORMATS.getVitamCollection(),
-                    FunctionalAdminCollections.RULES.getVitamCollection(),
-                    FunctionalAdminCollections.AGENCIES.getVitamCollection(),
-                    FunctionalAdminCollections.PROFILE.getVitamCollection(),
-                    FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getVitamCollection(),
-                    FunctionalAdminCollections.ONTOLOGY.getVitamCollection(),
-                    FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
-                    FunctionalAdminCollections.INGEST_CONTRACT.getVitamCollection(),
-                    FunctionalAdminCollections.ACCESS_CONTRACT.getVitamCollection(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection(),
-                    FunctionalAdminCollections.CONTEXT.getVitamCollection(),
-                    FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
-
-            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.initialize(collections);
+            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
 
             singletons.add(resource);
             singletons.add(new ArchiveUnitProfileResource(mongoDbAccess, vitamCounterService,

@@ -89,12 +89,12 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
-        final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(collection.getName());
+        final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection());
         final VitamElasticsearchRepository elasticsearchRepository =
-            vitamRepositoryProvider.getVitamESRepository(collection.getName());
+            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection());
 
         final VitamMongoRepository sequenceRepository =
-            vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getName());
+            vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection());
 
         switch (collection) {
             case CONTEXT:
