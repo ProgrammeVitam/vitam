@@ -130,9 +130,21 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin",
 		"propertiesFile": "object_group_update.properties"
 	},
-	"RECLASSIFICATION_PREPARATION": {
-		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationPlugin",
-		"propertiesFile": "reclassification_preparation.properties"
+	"RECLASSIFICATION_PREPARATION_CHECK_LOCK": {
+		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckLockPlugin",
+		"propertiesFile": "reclassification_preparation_check_lock.properties"
+	},
+	"RECLASSIFICATION_PREPARATION_LOAD_REQUEST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestPlugin",
+		"propertiesFile": "reclassification_preparation_load_request.properties"
+	},
+	"RECLASSIFICATION_PREPARATION_CHECK_GRAPH": {
+		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationCheckGraphPlugin",
+		"propertiesFile": "reclassification_preparation_check_graph.properties"
+	},
+	"RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION": {
+		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationUpdateDistributionPlugin",
+		"propertiesFile": "reclassification_preparation_update_distribution.properties"
 	},
 	"UNIT_DETACHMENT": {
 		"className": "fr.gouv.vitam.worker.core.plugin.reclassification.UnitDetachmentPlugin",
