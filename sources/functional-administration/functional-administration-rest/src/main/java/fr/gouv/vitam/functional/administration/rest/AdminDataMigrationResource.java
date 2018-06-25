@@ -152,13 +152,15 @@ public class AdminDataMigrationResource {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
-        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
+        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
             GUID guid = GUIDReader.getGUID(requestId);
 
             VitamThreadUtils.getVitamSession().setRequestId(guid.getId());
 
             createOperation(guid);
+            workspaceClient.createContainer(guid.getId());
 
             processingClient.initVitamProcess(Contexts.DATA_MIGRATION.name(), guid.getId(), DATA_MIGRATION);
 
@@ -171,7 +173,7 @@ public class AdminDataMigrationResource {
             LOGGER.error(e);
             return status(BAD_REQUEST).build();
 
-        } catch ( VitamClientException | InternalServerException | InvalidGuidOperationException e) {
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
