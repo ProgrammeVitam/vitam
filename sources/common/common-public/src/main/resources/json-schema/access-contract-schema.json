@@ -157,6 +157,13 @@
       "items": {
         "type": "string"
       }
+    },
+    "AccessLog": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "INACTIVE"
+      ]
     }
   },
   "required": [
@@ -170,6 +177,7 @@
     "LastUpdate",
     "EveryDataObjectVersion",
     "EveryOriginatingAgency",
-    "WritingPermission"
+    "WritingPermission",
+    "AccessLog"
   ]
 }

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.model.administration;
 
 import com.google.common.collect.Sets;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -35,7 +34,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -46,7 +44,7 @@ public class AccessContractModelTest {
     private static final Integer TENANT_ID = 0;
 
     @Test
-    public void testConstructor() throws Exception {
+    public void testConstructor() {
 
         AccessContractModel contract = new AccessContractModel();
         final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
@@ -60,6 +58,7 @@ public class AccessContractModelTest {
         originatingAgencies.add("FR_FAKE");
         Set<String> rootUnits = Sets.newHashSet("guid");
         Set<String> excludedRootUnits = Sets.newHashSet("excludedGuid");
+        ActivationStatus accessLog = ActivationStatus.ACTIVE;
         contract
             .setId(id)
             .setTenant(TENANT_ID)
@@ -73,7 +72,8 @@ public class AccessContractModelTest {
             .setOriginatingAgencies(originatingAgencies)
             .setEveryOriginatingAgency(true)
             .setRootUnits(rootUnits)
-            .setExcludedRootUnits(excludedRootUnits);
+            .setExcludedRootUnits(excludedRootUnits)
+            .setAccessLog(accessLog);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
@@ -84,11 +84,11 @@ public class AccessContractModelTest {
         assertEquals(originatingAgencies, contract.getOriginatingAgencies());
         assertEquals(rootUnits, contract.getRootUnits());
         assertEquals(excludedRootUnits, contract.getExcludedRootUnits());
-        assertTrue(contract.getEveryOriginatingAgency());
+        assertEquals(accessLog, contract.getAccessLog());
     }
 
     @Test
-    public void should_initialize_default_value() throws Exception {
+    public void should_initialize_default_value() {
         // Given
         AccessContractModel accessContractModel = new AccessContractModel();
 
@@ -99,16 +99,19 @@ public class AccessContractModelTest {
         assertThat(accessContractModel.getEveryOriginatingAgency()).isFalse();
         assertThat(accessContractModel.getWritingPermission()).isFalse();
         assertThat(accessContractModel.isEveryDataObjectVersion()).isFalse();
+        assertThat(accessContractModel.getWritingRestrictedDesc()).isFalse();
+        assertEquals(ActivationStatus.ACTIVE, accessContractModel.getAccessLog());
     }
 
     @Test
-    public void should_not_initialize_default_value_if_already_present() throws Exception {
+    public void should_not_initialize_default_value_if_already_present() {
         // Given
         AccessContractModel accessContractModel = new AccessContractModel();
         accessContractModel.setEveryOriginatingAgency(true);
         accessContractModel.setEveryDataObjectVersion(true);
         accessContractModel.setWritingPermission(true);
         accessContractModel.setWritingRestrictedDesc(true);
+        accessContractModel.setAccessLog(ActivationStatus.INACTIVE);
 
         // When
         accessContractModel.initializeDefaultValue();
@@ -118,5 +121,6 @@ public class AccessContractModelTest {
         assertThat(accessContractModel.getWritingPermission()).isTrue();
         assertThat(accessContractModel.isEveryDataObjectVersion()).isTrue();
         assertThat(accessContractModel.getWritingRestrictedDesc()).isTrue();
+        assertEquals(ActivationStatus.INACTIVE, accessContractModel.getAccessLog());
     }
 }

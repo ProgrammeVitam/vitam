@@ -51,6 +51,8 @@ describe('AccessContractComponent', () => {
     component.contract.DataObjectVersion = ['BinaryMaster'];
     component.contract.Status = 'Inactif';
     component.isActif = false;
+    component.contract.AccessLog = 'Inactif';
+    component.accessLogIsActif = false;
 
     component.modifiedContract = new AccessContract();
     component.modifiedContract.Name = 'UpdatedName';
@@ -58,6 +60,8 @@ describe('AccessContractComponent', () => {
     component.modifiedContract.DataObjectVersion = ['BinaryMaster', 'Thumbnail'];
     component.modifiedContract.Status = 'Actif';
     component.isActif = true;
+    component.modifiedContract.AccessLog = 'Actif';
+    component.accessLogIsActif = true;
     component.update = true;
 
     component.switchUpdateMode();
@@ -68,6 +72,8 @@ describe('AccessContractComponent', () => {
     expect(component.modifiedContract.DataObjectVersion.length).toBe(1);
     expect(component.modifiedContract.Status).toBe('Inactif');
     expect(component.isActif).toBeFalsy();
+    expect(component.modifiedContract.AccessLog).toBe('Inactif');
+    expect(component.accessLogIsActif).toBeFalsy();
   });
 
   it('should switch to update mode', () => {
@@ -116,6 +122,22 @@ describe('AccessContractComponent', () => {
     component.changeStatus();
 
     expect(component.updatedFields.Status).toBe('INACTIVE');
+  });
+
+  it('should change access log', () => {
+    component.updatedFields = {};
+
+    // Click on status selector update accessLogIsActif and trigg changeStatus
+    component.accessLogIsActif = true;
+    component.changeAccessLog();
+
+    expect(component.updatedFields.AccessLog).toBe('ACTIVE');
+
+    // Click on status selector update accessLogIsActif and trigg changeStatus
+    component.accessLogIsActif = false;
+    component.changeAccessLog();
+
+    expect(component.updatedFields.AccessLog).toBe('INACTIVE');
   });
 
 });

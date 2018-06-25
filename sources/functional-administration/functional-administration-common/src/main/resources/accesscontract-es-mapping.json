@@ -54,6 +54,9 @@
     "ExcludedRootUnits": {
       "type": "keyword"
     },
+    "AccessLog": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },

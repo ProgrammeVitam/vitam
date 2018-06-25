@@ -24,6 +24,7 @@ export class AccessContractComponent extends PageComponent {
   id: string;
   update: boolean;
   isActif: boolean;
+  accessLogIsActif: boolean;
   updatedFields: any = {};
   saveRunning = false;
 
@@ -55,6 +56,7 @@ export class AccessContractComponent extends PageComponent {
     if (!this.update) {
       this.modifiedContract = ObjectsService.clone(this.contract);
       this.isActif = this.modifiedContract.Status === 'ACTIVE';
+      this.accessLogIsActif = this.modifiedContract.AccessLog === 'ACTIVE';
     }
   }
 
@@ -63,6 +65,14 @@ export class AccessContractComponent extends PageComponent {
       this.updatedFields.Status = 'ACTIVE';
     } else {
       this.updatedFields.Status = 'INACTIVE';
+    }
+  }
+
+  changeAccessLog() {
+    if (this.accessLogIsActif) {
+      this.updatedFields.AccessLog = 'ACTIVE';
+    } else {
+      this.updatedFields.AccessLog = 'INACTIVE';
     }
   }
 
@@ -127,5 +137,6 @@ export class AccessContractComponent extends PageComponent {
     }
     this.modifiedContract = ObjectsService.clone(this.contract);
     this.isActif = this.modifiedContract.Status === 'ACTIVE';
+    this.accessLogIsActif = this.modifiedContract.AccessLog === 'ACTIVE';
   }
 }

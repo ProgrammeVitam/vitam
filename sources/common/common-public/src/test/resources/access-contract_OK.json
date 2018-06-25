@@ -17,6 +17,7 @@
 	"WritingPermission": true,
 	"EveryOriginatingAgency": false,
 	"EveryDataObjectVersion": true,
+	"AccessLog": "INACTIVE",
 	"_tenant": 0,
 	"_v": 0,
 	"RootUnits": [
