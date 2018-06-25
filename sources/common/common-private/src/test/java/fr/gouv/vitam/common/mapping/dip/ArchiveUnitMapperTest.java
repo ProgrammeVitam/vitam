@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
@@ -81,7 +82,7 @@ public class ArchiveUnitMapperTest {
 
         // Then
         assertThat(archiveUnitType.getId()).isEqualTo("1234564");
-        ArchiveUnitType.Management management = archiveUnitType.getManagement();
+        ManagementType management = archiveUnitType.getManagement();
         assertThat(management).isNotNull();
 
         //AccessRule

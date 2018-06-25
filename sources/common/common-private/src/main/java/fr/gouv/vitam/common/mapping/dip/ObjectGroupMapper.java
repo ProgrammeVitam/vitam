@@ -26,24 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
-import static java.util.Collections.singletonList;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-
-import fr.gouv.culture.archivesdefrance.seda.v2.*;
+import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveTechnicalMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.FileInfoType;
+import fr.gouv.culture.archivesdefrance.seda.v2.FormatIdentificationType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.PhysicalDataObjectType;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import java.math.BigInteger;
+import java.util.Map;
+
+import static java.util.Collections.singletonList;
 
 /**
  * Mapper that map ObjectGroupResponse(POJO Dslquery response) to a DataObjectPackage (JAXB elements)

@@ -26,14 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
-import java.util.Collections;
-
-import com.google.common.collect.Lists;
+import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import org.apache.commons.collections4.ListUtils;
+
+import java.util.Collections;
 
 /**
  * Map the object DescriptiveMetadataModel generated from Unit data base model To a jaxb object
@@ -61,7 +59,7 @@ public class DescriptiveMetadataMapper {
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());
 
-        CustodialHistory custodialHistory = custodialHistoryMapper.map(metadataModel.getCustodialHistory());
+        CustodialHistoryType custodialHistory = custodialHistoryMapper.map(metadataModel.getCustodialHistory());
         dmc.setCustodialHistory(custodialHistory);
 
         if (metadataModel.getDescription_() != null) {

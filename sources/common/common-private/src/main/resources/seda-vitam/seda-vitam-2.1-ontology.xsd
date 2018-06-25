@@ -147,38 +147,38 @@
     <!-- CustodialHistory type -->
     <xsd:group name="CustodialHistoryGroup">
         <xsd:sequence>
-            <xsd:element name="CustodialHistory" minOccurs="0">
+            <xsd:element name="CustodialHistory" type="CustodialHistoryType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Énumère les changements successifs de propriété, de responsabilité et de conservation des ArchiveUnit avant 
                         leur entrée dans le lieu de conservation. On peut notamment y indiquer comment s'est effectué le passage de l'application 
                         d'origine au fichier archivable. Correspond à l'historique de la conservation en ISAD(G).</xsd:documentation>
                     <xsd:documentation>Références : seda.CustodialHistory</xsd:documentation>
                 </xsd:annotation>
-               <xsd:complexType>
-                   <xsd:sequence>
-                       <xsd:element name="CustodialHistoryItem" minOccurs="1" maxOccurs="unbounded">
-                           <xsd:annotation>
-                               <xsd:documentation>Description d'une période ou d'un événement précis dans l'historique.</xsd:documentation>
-                               <xsd:documentation>Références : seda.CustodialHistoryItem</xsd:documentation>
-                           </xsd:annotation>
-                           <xsd:complexType>
-                               <xsd:complexContent>
-                                   <xsd:extension base="TextType">
-                                       <xsd:attribute name="when" type="DateType" use="optional"/>
-                                   </xsd:extension>
-                               </xsd:complexContent>
-                           </xsd:complexType>
-                       </xsd:element>
-                       <xsd:element name="CustodialHistoryFile" type="DataObjectRefType" minOccurs="0">
-                           <xsd:annotation>
-                               <xsd:documentation>Référence à un fichier de journalisation externe.</xsd:documentation>
-                           </xsd:annotation>
-                       </xsd:element>
-                   </xsd:sequence>
-               </xsd:complexType>
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
+    <xsd:complexType name="CustodialHistoryType">
+        <xsd:sequence>
+            <xsd:element name="CustodialHistoryItem" type="CustodialHistoryItemType" minOccurs="1" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Description d'une période ou d'un événement précis dans l'historique.</xsd:documentation>
+                    <xsd:documentation>Références : seda.CustodialHistoryItem</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CustodialHistoryFile" type="DataObjectRefType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à un fichier de journalisation externe.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="CustodialHistoryItemType">
+        <xsd:complexContent>
+            <xsd:extension base="TextType">
+                <xsd:attribute name="when" type="DateType" use="optional"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
     <!-- OAIS type description -->
     <xsd:group name="TypeGroup">
@@ -276,22 +276,22 @@
                     <xsd:documentation>Identifiant du mot clé dans un référentiel donné. Par exemple, pour un lieu, il pourrait s'agir de son code officiel géographique selon l'INSEE.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="KeywordType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="KeywordType" type="KeyType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>Type de mot clé.</xsd:documentation>
                 </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:simpleContent>
-                        <xsd:extension base="CodeKeywordType">
-                            <xsd:attribute name="listVersionID" type="xsd:token" use="optional"
-                                default="edition 2009">
-                            </xsd:attribute>
-                        </xsd:extension>
-                    </xsd:simpleContent>
-                </xsd:complexType>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:ID" use="optional"/>
+    </xsd:complexType>
+    <xsd:complexType name="KeyType">
+        <xsd:simpleContent>
+            <xsd:extension base="CodeKeywordType">
+                <xsd:attribute name="listVersionID" type="xsd:token" use="optional"
+                    default="edition 2009">
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:simpleContent>
     </xsd:complexType>
     <!-- =============================================================== -->
     <!-- ===== Code List KeywordType: KeywordType Code           ======= -->
@@ -426,21 +426,12 @@
             <xsd:annotation>
                 <xsd:documentation>Rédacteur de l'objet d'archive.</xsd:documentation>
             </xsd:annotation>
-            <xsd:element name="Writer" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="Writer" type="AgentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Rédacteur Rédacteur de l’ArchiveUnit.</xsd:documentation>
                     <xsd:documentation>Références : interpares.Writer</xsd:documentation>
                 </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:group ref="WriterGroup"/>
-                </xsd:complexType>
             </xsd:element>
-        </xsd:sequence>
-    </xsd:group>
-    <xsd:group name="WriterGroup">
-        <xsd:sequence>
-            <xsd:group ref="PersonOrEntityGroup"/>
-            <xsd:group ref="BusinessGroup"/>
         </xsd:sequence>
     </xsd:group>
 
@@ -474,52 +465,52 @@
             <xsd:documentation>Les valeurs sont des identifiants au choix : - d'un autre objet données (DataObjectRefIdType ou GroupIdType s'ils sont dans le même transfert, ou identifiant dans le SAE sinon) - d'un autre ArchiveUnit (ArchiveUnitRefIdType s'il est dans le même transfert, ou identifiant dans le SAE sinon).</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="RelatedObjectReference" minOccurs="0">
+            <xsd:element name="RelatedObjectReference" type="RelatedObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Référence à un objet faisant ou ne faisant pas partie du présent paquet d'information.</xsd:documentation>
                 </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="IsVersionOf" type="DataObjectOrArchiveUnitReferenceType"
-                            minOccurs="0" maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>Est une version de. Edition, adaptation, traduction. Cette relation permet d'indiquer les modifications dans le contenu.</xsd:documentation>
-                                <xsd:documentation>Références : DC.Relation.isVersionOf</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="Replaces" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
-                            maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>Remplace. Cette relation permet d'indiquer les objets remplacés par le niveau courant de description.</xsd:documentation>
-                                <xsd:documentation>DC.Relation.replaces</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="Requires" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
-                            maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>Requiert. Cette relation permet d'indiquer les objets nécessaire à la compréhension du niveau courant de description.</xsd:documentation>
-                                <xsd:documentation>Références : DC.Relation.requires</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="IsPartOf" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
-                            maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>Est une partie de. Cette relation permet d'indique qu'un objet est une partie d'un autre.</xsd:documentation>
-                                <xsd:documentation>Références : DC.Relation.isPartOf</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="References" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
-                            maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>Référence. Cette relation permet d'indiquer qu'un objet en référence un autre.</xsd:documentation>
-                                <xsd:documentation>DC.Relation.references</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
+    <xsd:complexType name="RelatedObjectReferenceType">
+        <xsd:sequence>
+            <xsd:element name="IsVersionOf" type="DataObjectOrArchiveUnitReferenceType"
+                minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Est une version de. Edition, adaptation, traduction. Cette relation permet d'indiquer les modifications dans le contenu.</xsd:documentation>
+                    <xsd:documentation>Références : DC.Relation.isVersionOf</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Replaces" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Remplace. Cette relation permet d'indiquer les objets remplacés par le niveau courant de description.</xsd:documentation>
+                    <xsd:documentation>DC.Relation.replaces</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Requires" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Requiert. Cette relation permet d'indiquer les objets nécessaire à la compréhension du niveau courant de description.</xsd:documentation>
+                    <xsd:documentation>Références : DC.Relation.requires</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="IsPartOf" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Est une partie de. Cette relation permet d'indique qu'un objet est une partie d'un autre.</xsd:documentation>
+                    <xsd:documentation>Références : DC.Relation.isPartOf</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="References" type="DataObjectOrArchiveUnitReferenceType" minOccurs="0"
+                maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Référence. Cette relation permet d'indiquer qu'un objet en référence un autre.</xsd:documentation>
+                    <xsd:documentation>DC.Relation.references</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
     <xsd:complexType name="DataObjectOrArchiveUnitReferenceType">
         <xsd:choice>
             <xsd:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
@@ -671,44 +662,44 @@
     <!-- Signature description -->
     <xsd:group name="SignatureGroup">
         <xsd:sequence>
-            <xsd:element name="Signature" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Contient toutes les informations relatives à la signature.</xsd:documentation>
                 </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="Signer" maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>Signataire(s) de la transaction ou de l'objet.</xsd:documentation>
-                                <xsd:documentation>Références : premis.signer</xsd:documentation>
-                            </xsd:annotation>
-                            <xsd:complexType>
-                                <xsd:group ref="SignerGroup"/>
-                            </xsd:complexType>
-                        </xsd:element>
-                        <xsd:element name="Validator">
-                            <xsd:annotation>
-                                <xsd:documentation>Validateur de la signature.</xsd:documentation>
-                            </xsd:annotation>
-                            <xsd:complexType>
-                                <xsd:group ref="ValidatorGroup"/>
-                            </xsd:complexType>
-                        </xsd:element>
-                        <xsd:element name="Masterdata" type="CodeType" minOccurs="0">
-                            <xsd:annotation>
-                                <xsd:documentation>Référentiel des personnes et des organisations au moment de la vérification de la signature et de sa validation.</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="ReferencedObject" type="ReferencedObjectType">
-                            <xsd:annotation>
-                                <xsd:documentation>Référence à l'objet signé.</xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
+    <xsd:complexType name="SignatureType">
+        <xsd:sequence>
+            <xsd:element name="Signer" type="SignerType" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Signataire(s) de la transaction ou de l'objet.</xsd:documentation>
+                    <xsd:documentation>Références : premis.signer</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Validator" type="ValidatorType">
+                <xsd:annotation>
+                    <xsd:documentation>Validateur de la signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Masterdata" type="CodeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Référentiel des personnes et des organisations au moment de la vérification de la signature et de sa validation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ReferencedObject" type="ReferencedObjectType">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à l'objet signé.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SignerType">
+        <xsd:group ref="SignerGroup"/>
+    </xsd:complexType>
+    <xsd:complexType name="ValidatorType">
+        <xsd:group ref="ValidatorGroup"/>
+    </xsd:complexType>
     <xsd:complexType name="ReferencedObjectType">
         <xsd:annotation>
             <xsd:documentation>Contient la référence à l'objet signé (et son empreinte jusqu'à la fin de la phase de versement dans le SAE).</xsd:documentation>
@@ -845,36 +836,24 @@
                             <xsd:documentation>Date de naissance de la personne.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="BirthPlace" minOccurs="0">
+                    <xsd:element name="BirthPlace" type="BirthOrDeathPlaceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>Lieu de naissance de la personne.</xsd:documentation>
                         </xsd:annotation>
-                        <xsd:complexType>
-                            <xsd:group ref="LocationGroup"/>
-                        </xsd:complexType>
                     </xsd:element>
                     <xsd:element name="DeathDate" type="xsd:date" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>Date de décès d'une personne.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="DeathPlace" minOccurs="0">
+                    <xsd:element name="DeathPlace" type="BirthOrDeathPlaceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>Lieu de décès d'une personne.</xsd:documentation>
                         </xsd:annotation>
-                        <xsd:complexType>
-                            <xsd:group ref="LocationGroup"/>
-                        </xsd:complexType>
                     </xsd:element>
                     <xsd:element name="Nationality" minOccurs="0" maxOccurs="unbounded" type="NonEmptyTokenType">
                         <xsd:annotation>
                             <xsd:documentation>Nationalité d'une personne.</xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>Dans le PersonGroup, Identifiant de type numéro matricule.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -884,16 +863,18 @@
                             <xsd:documentation>Nom d'une entité.</xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>Identifiant de l'entité.</xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
                 </xsd:sequence>
             </xsd:choice>
+            <xsd:element name="Identifier" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiant de la personne (par exemple, le numéro matricule) ou de l'entité.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:group>
+    <xsd:complexType name="BirthOrDeathPlaceType">
+        <xsd:group ref="LocationGroup"/>
+    </xsd:complexType>
     <!-- Business description -->
     <xsd:group name="BusinessGroup">
         <xsd:annotation>

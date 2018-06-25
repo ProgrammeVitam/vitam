@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitIdentifierKeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -76,7 +77,7 @@ public class ArchiveUnitListenerTest {
            null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
-        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        ManagementType management = mock(ManagementType.class);
         when(target.getManagement()).thenReturn(management);
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
@@ -114,7 +115,7 @@ public class ArchiveUnitListenerTest {
            ,null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
-        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        ManagementType management = mock(ManagementType.class);
         when(target.getManagement()).thenReturn(management);
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
@@ -157,7 +158,7 @@ public class ArchiveUnitListenerTest {
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
-        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        ManagementType management = mock(ManagementType.class);
         when(target.getManagement()).thenReturn(management);
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
@@ -205,7 +206,7 @@ public class ArchiveUnitListenerTest {
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
-        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        ManagementType management = mock(ManagementType.class);
         when(target.getManagement()).thenReturn(management);
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
@@ -252,7 +253,7 @@ public class ArchiveUnitListenerTest {
 
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
-        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        ManagementType management = mock(ManagementType.class);
         when(target.getManagement()).thenReturn(management);
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
@@ -305,7 +306,7 @@ public class ArchiveUnitListenerTest {
                 agenciesList, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
-        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        ManagementType management = mock(ManagementType.class);
         when(target.getManagement()).thenReturn(management);
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);
@@ -359,7 +360,7 @@ public class ArchiveUnitListenerTest {
                 agenciesList, null, null, null);
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
-        ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
+        ManagementType management = mock(ManagementType.class);
         when(target.getManagement()).thenReturn(management);
         UpdateOperationType updateOperation = mock(UpdateOperationType.class);
         when(management.getUpdateOperation()).thenReturn(updateOperation);

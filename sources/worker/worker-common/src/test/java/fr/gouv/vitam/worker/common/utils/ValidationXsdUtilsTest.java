@@ -26,25 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.PropertiesUtils;
+import org.junit.Test;
+import org.xml.sax.SAXException;
 
+import javax.xml.stream.XMLStreamException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.xml.stream.XMLStreamException;
-
-import org.junit.Test;
-import org.xml.sax.SAXException;
-
-import fr.gouv.vitam.common.PropertiesUtils;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ValidationXsdUtilsTest {
 
     private static final String SEDA_VITAM_VALIDATION_FILE = "seda-vitam-2.1-main.xsd";
-    private static final String SEDA_VALIDATION_FILE = "seda-2.1-main.xsd";
+    private static final String SEDA_VALIDATION_FILE = "SEDA_2-1_fast_dl/seda-2.1-main.xsd";
     private static final String SEDA_FILE = "sip1.xml";
     private static final String SEDA_FILE2 = "manifestOK.xml";
     private static final String SEDA_FILE_DATA_OBJ_REF = "manifestWithDataObjectGroupExistingReferenceId.xml";

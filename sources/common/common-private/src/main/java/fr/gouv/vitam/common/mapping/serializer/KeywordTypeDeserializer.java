@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.CodeKeywordType;
-import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 
 import java.io.IOException;
 
@@ -39,7 +39,7 @@ import java.io.IOException;
  * Deserialize a (json, xml, string) representation to LevelType
  * To be registered in jackson objectMapper
  */
-public class KeywordTypeDeserializer extends JsonDeserializer<KeywordsType.KeywordType> {
+public class KeywordTypeDeserializer extends JsonDeserializer<KeyType> {
     /**
      *
      * @param jp (json, xml, string) representation
@@ -48,9 +48,9 @@ public class KeywordTypeDeserializer extends JsonDeserializer<KeywordsType.Keywo
      * @throws IOException
      */
     @Override
-    public KeywordsType.KeywordType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public KeyType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        KeywordsType.KeywordType keywordType = new KeywordsType.KeywordType();
+        KeyType keywordType = new KeyType();
         keywordType.setValue(CodeKeywordType.fromValue(node.asText()));
         return keywordType;
     }

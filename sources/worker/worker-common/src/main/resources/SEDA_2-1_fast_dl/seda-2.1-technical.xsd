@@ -182,11 +182,6 @@
                     <xsd:documentation>Empreinte de l'objet-données.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Size" type="SizeInBytesType">
-                <xsd:annotation>
-                    <xsd:documentation>Permet de spécifier la taille de l'objet-données en octet.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:group>
 
@@ -202,18 +197,15 @@
                 </xsd:annotation>
                 <xsd:sequence>
                     <xsd:group ref="MinimalBinaryDataObjectGroup" minOccurs="0"/>
-                    <xsd:element name="Compressed" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="Size" type="SizeInBytesType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>Permet de spécifier la taille de l'objet-données en octet.</xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Compressed" type="CompressedType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>Indique si l’objet-données est compressé et doit être décompressé.</xsd:documentation>
                         </xsd:annotation>
-                        <xsd:complexType>
-                            <xsd:simpleContent>
-                                <xsd:extension base="xsd:string">
-                                    <xsd:attribute name="algorithm" type="CompressionAlgorithmType" use="required"/>
-                                    <xsd:attribute name="uncompressedSize" type="SizeInBytesType" use="required"/>
-                                </xsd:extension>
-                            </xsd:simpleContent>
-                        </xsd:complexType>
                     </xsd:element>
                     <xsd:group ref="BinaryTechnicalDescriptionGroup">
                         <xsd:annotation>
@@ -223,6 +215,14 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:complexType name="CompressedType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="algorithm" type="CompressionAlgorithmType" use="required"/>
+                <xsd:attribute name="uncompressedSize" type="SizeInBytesType" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
     </xsd:complexType>
 
     <xsd:group name="BinaryTechnicalDescriptionGroup">

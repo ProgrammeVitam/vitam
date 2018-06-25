@@ -32,7 +32,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DocumentTechnicalMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ImageTechnicalMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextTechnicalMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.VideoTechnicalMetadataType;
-import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
 import fr.gouv.vitam.common.model.objectgroup.MetadataModel;
 import org.w3c.dom.Element;
 
